@@ -27,5 +27,6 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.preview-designer" scope="TEST" />
   </component>
 </module>

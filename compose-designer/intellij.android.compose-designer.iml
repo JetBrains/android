@@ -32,5 +32,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.compose-common" />
+    <orderEntry type="module" module-name="intellij.android.preview-designer" />
   </component>
 </module>

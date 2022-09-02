@@ -26,7 +26,7 @@ enum class DisplayPositioning {
 }
 
 /**
- * Settings that modify how a [ComposePreviewElement] is rendered
+ * Settings that modify how a [PreviewElement] is rendered
  *
  * @param name display name of this preview element
  * @param group name that allows multiple previews in separate groups

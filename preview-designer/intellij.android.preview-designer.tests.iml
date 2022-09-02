@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/testSrc">
+      <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/testSrc/META-INF" type="java-resource" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="kotlin-test" level="project" scope="TEST"/>
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.preview-designer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+  </component>
+  <component name="TestModuleProperties" production-module="intellij.android.glance-designer" />
+</module>

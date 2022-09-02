@@ -17,6 +17,7 @@ iml_module(
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
     ],
@@ -45,5 +46,6 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/glance-designer:intellij.android.glance-designer[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
+        "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module, test]",
     ],
 )

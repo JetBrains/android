@@ -31,6 +31,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
         "//tools/adt/idea/intellij.android.compose-common[module]",
+        "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module]",
     ],
 )
 
@@ -105,6 +106,7 @@ iml_module(
         "//tools/adt/idea/intellij.android.compose-common[module]",
         "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
+        "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module, test]",
     ],
 )
 
