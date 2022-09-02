@@ -51,6 +51,14 @@ class DefaultDataSeriesTest {
   }
 
   @Test
+  fun `returns partial list with decimal values`() {
+    val series = DefaultDataSeries<String>()
+    data.forEach { series.add(it.x, it.value) }
+
+    assertThat(series.getDataForRange(Range(0.5, 2.5))).containsExactly(data[1], data[2])
+  }
+
+  @Test
   fun `inclusive left and inclusive right`() {
     val series = DefaultDataSeries<String>()
     data.forEach { series.add(it.x, it.value) }

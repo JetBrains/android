@@ -40,9 +40,13 @@ public final class DefaultDataSeries<E> implements DataSeries<E> {
       return getDataSubList(0, 0);
     }
 
-    int fromIndex = getNearestXIndex((long)range.getMin());
-    int toIndex = getNearestXIndex((long)range.getMax()) + 1;
-    return getDataSubList(fromIndex, toIndex);
+    long rangeMin = (long)Math.ceil(range.getMin());
+    long rangeMax = (long)Math.floor(range.getMax());
+
+    int fromIndex = getNearestXIndex(rangeMin);
+    int toIndex = getNearestXIndex(rangeMax);
+
+    return getDataSubList(fromIndex, toIndex + 1);
   }
 
   public List<SeriesData<E>> getAllData() {
