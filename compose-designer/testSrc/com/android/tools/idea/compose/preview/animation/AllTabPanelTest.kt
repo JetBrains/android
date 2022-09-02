@@ -31,18 +31,17 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
+import javax.swing.JPanel
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JPanel
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
 
 class AllTabPanelTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var parentDisposable: Disposable
 
@@ -53,11 +52,12 @@ class AllTabPanelTest {
     parentDisposable = Disposer.newDisposable()
     val model = runInEdtAndGet {
       NlModelBuilderUtil.model(
-        projectRule,
-        "layout",
-        "layout.xml",
-        ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
-      ).build()
+          projectRule,
+          "layout",
+          "layout.xml",
+          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
+        )
+        .build()
     }
     surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()
     surface.addModelWithoutRender(model)
@@ -71,24 +71,29 @@ class AllTabPanelTest {
   @Test
   fun `add playback`() {
     val panel = AllTabPanel().apply { setSize(1000, 800) }
-    panel.addPlayback(JPanel().apply {
-      background = JBColor.blue
-    })
+    panel.addPlayback(JPanel().apply { background = JBColor.blue })
   }
 
   @Test
   fun `add timeline`() {
     val panel = AllTabPanel().apply { setSize(1000, 800) }
-    panel.addTimeline(JPanel().apply {
-      background = JBColor.blue
-    })
+    panel.addTimeline(JPanel().apply { background = JBColor.blue })
   }
 
   @Test
   fun `add and remove cards`() {
-    val cardOne = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("One")) {}.apply { setDuration(111) }
-    val cardTwo = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Two")) {}.apply { setDuration(222) }
-    val cardThree = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Three")) {}.apply { setDuration(333) }
+    val cardOne =
+      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("One")) {}.apply {
+        setDuration(111)
+      }
+    val cardTwo =
+      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Two")) {}.apply {
+        setDuration(222)
+      }
+    val cardThree =
+      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Three")) {}.apply {
+        setDuration(333)
+      }
 
     val panel = AllTabPanel().apply { setSize(1000, 800) }
 
@@ -110,10 +115,10 @@ class AllTabPanelTest {
       assertEquals(2, panel.getNumberOfCards())
       panel.removeCard(cardThree)
       assertEquals(1, panel.getNumberOfCards())
-      //It's okay to add removed card again.
+      // It's okay to add removed card again.
       panel.addCard(cardThree)
       assertEquals(2, panel.getNumberOfCards())
-      //Remove all remaining cards.
+      // Remove all remaining cards.
       panel.removeCard(cardThree)
       panel.removeCard(cardOne)
       assertEquals(0, panel.getNumberOfCards())
@@ -148,10 +153,10 @@ class AllTabPanelTest {
       assertEquals(2, panel.getNumberOfCards())
       panel.removeCard(cardThree)
       assertEquals(1, panel.getNumberOfCards())
-      //It's okay to add removed card again.
+      // It's okay to add removed card again.
       panel.addCard(cardThree)
       assertEquals(2, panel.getNumberOfCards())
-      //Remove all remaining cards.
+      // Remove all remaining cards.
       panel.removeCard(cardThree)
       panel.removeCard(cardOne)
       assertEquals(0, panel.getNumberOfCards())
@@ -162,16 +167,25 @@ class AllTabPanelTest {
 
   @Test
   fun `preview ui`() {
-    val cardOne = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("One")) {}.apply { setDuration(111) }
-    val cardTwo = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Two")) {}.apply { setDuration(222) }
-    val cardThree = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Three")) {}.apply { setDuration(333) }
+    val cardOne =
+      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("One")) {}.apply {
+        setDuration(111)
+      }
+    val cardTwo =
+      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Two")) {}.apply {
+        setDuration(222)
+      }
+    val cardThree =
+      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Three")) {}.apply {
+        setDuration(333)
+      }
 
-
-    val panel = AllTabPanel().apply {
-      setSize(1000, 800)
-      addPlayback(TestUtils.createPlaybackPlaceHolder())
-      addTimeline(TestUtils.createTimelinePlaceHolder())
-    }
+    val panel =
+      AllTabPanel().apply {
+        setSize(1000, 800)
+        addPlayback(TestUtils.createPlaybackPlaceHolder())
+        addTimeline(TestUtils.createTimelinePlaceHolder())
+      }
 
     invokeAndWaitIfNeeded {
       val ui = FakeUi(panel)
@@ -181,24 +195,31 @@ class AllTabPanelTest {
       ui.updateToolbars()
       ui.layout()
       // Uncomment to preview.
-      //ui.render()
+      // ui.render()
     }
   }
 
   @Test
   fun `preview ui with mixed cards`() {
-    val cardOne = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("AnimationCard One")) {}.apply { setDuration(111) }
-    val cardTwo = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("AnimationCard Two")) {}.apply { setDuration(222) }
-    val cardThree = AnimationCard(TestUtils.testPreviewState(), surface, ElementState("AnimationCard Three")) {}.apply { setDuration(333) }
+    val cardOne =
+      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("AnimationCard One")) {}
+        .apply { setDuration(111) }
+    val cardTwo =
+      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("AnimationCard Two")) {}
+        .apply { setDuration(222) }
+    val cardThree =
+      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("AnimationCard Three")) {}
+        .apply { setDuration(333) }
     val labelCardOne = LabelCard(ElementState("LabelCard One"))
     val labelCardTwo = LabelCard(ElementState("LabelCard Two"))
     val labelCardThree = LabelCard(ElementState("LabelCard Three"))
 
-    val panel = AllTabPanel().apply {
-      setSize(1000, 800)
-      addPlayback(TestUtils.createPlaybackPlaceHolder())
-      addTimeline(TestUtils.createTimelinePlaceHolder())
-    }
+    val panel =
+      AllTabPanel().apply {
+        setSize(1000, 800)
+        addPlayback(TestUtils.createPlaybackPlaceHolder())
+        addTimeline(TestUtils.createTimelinePlaceHolder())
+      }
 
     invokeAndWaitIfNeeded {
       val ui = FakeUi(panel)
@@ -211,19 +232,24 @@ class AllTabPanelTest {
       ui.updateToolbars()
       ui.layout()
       // Uncomment to preview ui.
-      //ui.render()
+      // ui.render()
     }
   }
 
   @Test
   fun `expand cards`() {
-    val panel = AllTabPanel().apply {
-      setSize(1000, 400)
-      addPlayback(TestUtils.createPlaybackPlaceHolder())
-      addTimeline(TestUtils.createTimelinePlaceHolder())
-    }
+    val panel =
+      AllTabPanel().apply {
+        setSize(1000, 400)
+        addPlayback(TestUtils.createPlaybackPlaceHolder())
+        addTimeline(TestUtils.createTimelinePlaceHolder())
+      }
     for (i in 0..10) {
-      panel.addCard(AnimationCard(TestUtils.testPreviewState(), surface, ElementState("card $i")) {}.apply { setDuration(i * 10) })
+      panel.addCard(
+        AnimationCard(TestUtils.testPreviewState(), surface, ElementState("card $i")) {}.apply {
+          setDuration(i * 10)
+        }
+      )
     }
 
     invokeAndWaitIfNeeded {
@@ -231,7 +257,7 @@ class AllTabPanelTest {
       ui.updateToolbars()
       ui.layoutAndDispatchEvents()
       // Uncomment to preview.
-      //ui.render()
+      // ui.render()
       val firstCard = TestUtils.findAllCards(panel)[0] as AnimationCard
       firstCard.expandedSize = 300
       assertNotEquals(300, firstCard.getCurrentHeight())
@@ -242,13 +268,18 @@ class AllTabPanelTest {
 
   @Test
   fun `scroll ui`() {
-    val panel = AllTabPanel().apply {
-      setSize(1000, 400)
-      addPlayback(TestUtils.createPlaybackPlaceHolder())
-      addTimeline(TestUtils.createTimelinePlaceHolder())
-    }
+    val panel =
+      AllTabPanel().apply {
+        setSize(1000, 400)
+        addPlayback(TestUtils.createPlaybackPlaceHolder())
+        addTimeline(TestUtils.createTimelinePlaceHolder())
+      }
     for (i in 0..10) {
-      panel.addCard(AnimationCard(TestUtils.testPreviewState(), surface, ElementState("card $i")) {}.apply { setDuration(i * 10) })
+      panel.addCard(
+        AnimationCard(TestUtils.testPreviewState(), surface, ElementState("card $i")) {}.apply {
+          setDuration(i * 10)
+        }
+      )
     }
 
     invokeAndWaitIfNeeded {
@@ -257,12 +288,12 @@ class AllTabPanelTest {
       ui.layout()
       ui.render()
       ui.mouse.wheel(200, 200, 100)
-      //TODO Check if scroll works properly
+      // TODO Check if scroll works properly
       ui.render()
     }
   }
 
   private fun JPanel.getNumberOfCards() =
-    ((this.components[0] as JBScrollPane).viewport.components[0] as JBSplitter).firstComponent.components.count()
-
+    ((this.components[0] as JBScrollPane).viewport.components[0] as JBSplitter).firstComponent
+      .components.count()
 }

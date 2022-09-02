@@ -17,10 +17,10 @@ package com.android.tools.idea.compose.preview.pickers.properties.inspector
 
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.impl.model.util.FakeEnumSupport
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import org.junit.Test
 
 internal class PsiDropDownModelTest {
   @Test
@@ -29,7 +29,7 @@ internal class PsiDropDownModelTest {
     val enumSupport = FakeEnumSupport("value1", "value2", "value3")
 
     val model = PsiDropDownModel(property, enumSupport)
-    model.popupMenuWillBecomeVisible { }.get(1L, TimeUnit.SECONDS) // load values from enumSupport
+    model.popupMenuWillBecomeVisible {}.get(1L, TimeUnit.SECONDS) // load values from enumSupport
 
     assertEquals(2, model.getIndexOfCurrentValue())
 

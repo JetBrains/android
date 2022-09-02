@@ -30,6 +30,9 @@ import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.After
 import org.junit.Before
@@ -37,12 +40,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 @RunWith(Parameterized::class)
-internal class PreviewPickerAnnotationInspectionTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
+internal class PreviewPickerAnnotationInspectionTest(
+  previewAnnotationPackage: String,
+  composableAnnotationPackage: String
+) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
@@ -54,15 +57,16 @@ internal class PreviewPickerAnnotationInspectionTest(previewAnnotationPackage: S
   private val previewToolingPackage = previewAnnotationPackage
 
   @get:Rule
-  val rule = ComposeProjectRule(
-    previewAnnotationPackage = previewAnnotationPackage,
-    composableAnnotationPackage = composableAnnotationPackage
-  )
+  val rule =
+    ComposeProjectRule(
+      previewAnnotationPackage = previewAnnotationPackage,
+      composableAnnotationPackage = composableAnnotationPackage
+    )
 
-  private val fixture get() = rule.fixture
+  private val fixture
+    get() = rule.fixture
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Before
   fun setup() {
@@ -109,7 +113,8 @@ internal class PreviewPickerAnnotationInspectionTest(previewAnnotationPackage: S
 
     checkInspectionErrorAndApplyFix(
       affectedText = "spec:shape=Normal,width=1080,height=1920,unit=sp",
-      errorDescription = """Bad value type for: unit.
+      errorDescription =
+        """Bad value type for: unit.
 
 Parameter: unit should be one of: px, dp.
 
@@ -145,14 +150,16 @@ Missing parameter: dpi.""",
 
     checkInspectionErrorAndApplyFix(
       affectedText = "spec:width=1080,isRound=no,chinSize=30,orientation=vertical",
-      errorDescription = """Bad value type for: width, isRound, chinSize, orientation.
+      errorDescription =
+        """Bad value type for: width, isRound, chinSize, orientation.
 
 Parameter: width, chinSize should have Float(dp/px) value.
 Parameter: isRound should be one of: true, false.
 Parameter: orientation should be one of: portrait, landscape.
 
 Missing parameter: height.""",
-      replaceWithMessage = "Replace with spec:width=1080dp,isRound=false,chinSize=30dp,orientation=portrait,height=891dp"
+      replaceWithMessage =
+        "Replace with spec:width=1080dp,isRound=false,chinSize=30dp,orientation=portrait,height=891dp"
     )
   }
 
@@ -178,7 +185,8 @@ Missing parameter: height.""",
 
     checkInspectionErrorAndApplyFix(
       affectedText = "\"spec:width=1080px,\" + \"height=\" + heightPx",
-      errorDescription = """Bad value type for: height.
+      errorDescription =
+        """Bad value type for: height.
 
 Parameter: height should have Float(dp/px) value.""",
       replaceWithMessage = "Replace with spec:width=1080px,height=1900px"

@@ -27,29 +27,34 @@ import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.vfs.VirtualFile
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertTrue
 
 private const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.runtime"
 private const val PREVIEW_TOOLING_PACKAGE = "androidx.compose.ui.tooling.preview"
 
 class MultiPreviewUsageTrackerTest {
 
-  @get:Rule
-  val multiPreviewRule = SetFlagRule(StudioFlags.COMPOSE_MULTIPREVIEW, true)
+  @get:Rule val multiPreviewRule = SetFlagRule(StudioFlags.COMPOSE_MULTIPREVIEW, true)
 
   @get:Rule
-  val projectRule = ComposeProjectRule(previewAnnotationPackage = PREVIEW_TOOLING_PACKAGE,
-                                       composableAnnotationPackage = COMPOSABLE_ANNOTATION_FQN)
-  private val project get() = projectRule.project
-  private val fixture get() = projectRule.fixture
+  val projectRule =
+    ComposeProjectRule(
+      previewAnnotationPackage = PREVIEW_TOOLING_PACKAGE,
+      composableAnnotationPackage = COMPOSABLE_ANNOTATION_FQN
+    )
+  private val project
+    get() = projectRule.project
+  private val fixture
+    get() = projectRule.fixture
 
-  private val baseFileContent = """
+  private val baseFileContent =
+    """
       package a
 
       import $PREVIEW_TOOLING_PACKAGE.Preview
@@ -79,15 +84,16 @@ class MultiPreviewUsageTrackerTest {
   }
 
   /**
-   * For more details about the graph used in this test,
-   * see the README at [com.android.tools.idea.compose.preview.analytics]
+   * For more details about the graph used in this test, see the README at
+   * [com.android.tools.idea.compose.preview.analytics]
    */
   @Test
   fun testLogEvent_tree() { // The MultiPreview graph has a tree structure
-    val psiFile = fixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val psiFile =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         import $PREVIEW_TOOLING_PACKAGE.Preview
         import $COMPOSABLE_ANNOTATION_FQN.Composable
 
@@ -96,8 +102,11 @@ class MultiPreviewUsageTrackerTest {
                                listOf(Pair(0, 1), Pair(1, 2), Pair(1, 3), Pair(2, 4), Pair(2, 5), Pair(3, 6), Pair(3, 7)),
                                setOf(0, 2, 4, 6))
       }
-      """.trimIndent())
-    val multiPreviewUsageTracker = runReadAction { MultiPreviewUsageTracker.getInstance(psiFile.androidFacet) }
+      """.trimIndent()
+      )
+    val multiPreviewUsageTracker = runReadAction {
+      MultiPreviewUsageTracker.getInstance(psiFile.androidFacet)
+    }
     val multiPreviewEvent = MultiPreviewEvent(getPreviewNodes(psiFile.virtualFile), "fileName")
     val androidStudioEvent = multiPreviewUsageTracker.logEvent(multiPreviewEvent)
     assertEquals(AndroidStudioEvent.EventKind.COMPOSE_MULTI_PREVIEW, androidStudioEvent.kind)
@@ -105,17 +114,29 @@ class MultiPreviewUsageTrackerTest {
     // Check types
     val nodes = androidStudioEvent.composeMultiPreviewEvent.multiPreviewNodesList
     assertEquals(6, nodes.size)
-    assertEquals(1, nodes.count {
-      it.nodeType == ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.ROOT_COMPOSABLE_FUNCTION_NODE
-    })
-    assertEquals(5, nodes.count {
-      it.nodeType == ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE
-    })
+    assertEquals(
+      1,
+      nodes.count {
+        it.nodeType ==
+          ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType
+            .ROOT_COMPOSABLE_FUNCTION_NODE
+      }
+    )
+    assertEquals(
+      5,
+      nodes.count {
+        it.nodeType ==
+          ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE
+      }
+    )
 
     // Check counters (if root counters are ok, all other counters are probably ok)
-    val rootNode = nodes.single {
-      it.nodeType == ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.ROOT_COMPOSABLE_FUNCTION_NODE
-    }
+    val rootNode =
+      nodes.single {
+        it.nodeType ==
+          ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType
+            .ROOT_COMPOSABLE_FUNCTION_NODE
+      }
     assertEquals(1, rootNode.previewChildsCount)
     assertEquals(1, rootNode.multiPreviewChildsCount)
     assertEquals(4, rootNode.subtreePreviewsCount)
@@ -131,15 +152,16 @@ class MultiPreviewUsageTrackerTest {
   }
 
   /**
-   * For more details about the graph used in this test,
-   * see the README at [com.android.tools.idea.compose.preview.analytics]
+   * For more details about the graph used in this test, see the README at
+   * [com.android.tools.idea.compose.preview.analytics]
    */
   @Test
   fun testLogEvent_DAG() { // The MultiPreview graph is a direct acyclic graph
-    val psiFile = fixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val psiFile =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         import $PREVIEW_TOOLING_PACKAGE.Preview
         import $COMPOSABLE_ANNOTATION_FQN.Composable
 
@@ -149,8 +171,11 @@ class MultiPreviewUsageTrackerTest {
                                       Pair(4, 7), Pair(5, 8), Pair(5, 9), Pair(6, 10), Pair(7, 11), Pair(8, 12), Pair(9, 12)),
                                setOf(0, 2, 4, 6, 12))
       }
-      """.trimIndent())
-    val multiPreviewUsageTracker = runReadAction { MultiPreviewUsageTracker.getInstance(psiFile.androidFacet) }
+      """.trimIndent()
+      )
+    val multiPreviewUsageTracker = runReadAction {
+      MultiPreviewUsageTracker.getInstance(psiFile.androidFacet)
+    }
     val multiPreviewEvent = MultiPreviewEvent(getPreviewNodes(psiFile.virtualFile), "fileName")
     val androidStudioEvent = multiPreviewUsageTracker.logEvent(multiPreviewEvent)
     assertEquals(AndroidStudioEvent.EventKind.COMPOSE_MULTI_PREVIEW, androidStudioEvent.kind)
@@ -158,25 +183,40 @@ class MultiPreviewUsageTrackerTest {
     // Check types
     val nodes = androidStudioEvent.composeMultiPreviewEvent.multiPreviewNodesList
     assertEquals(8, nodes.size)
-    assertEquals(2, nodes.count {
-      it.nodeType == ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.ROOT_COMPOSABLE_FUNCTION_NODE
-    })
-    assertEquals(6, nodes.count {
-      it.nodeType == ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE
-    })
+    assertEquals(
+      2,
+      nodes.count {
+        it.nodeType ==
+          ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType
+            .ROOT_COMPOSABLE_FUNCTION_NODE
+      }
+    )
+    assertEquals(
+      6,
+      nodes.count {
+        it.nodeType ==
+          ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE
+      }
+    )
 
     // Check counters (if roots counters are ok, all other counters are probably ok)
-    val rootNode0 = nodes.first {
-      it.nodeType == ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.ROOT_COMPOSABLE_FUNCTION_NODE
-    }
+    val rootNode0 =
+      nodes.first {
+        it.nodeType ==
+          ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType
+            .ROOT_COMPOSABLE_FUNCTION_NODE
+      }
     assertEquals(1, rootNode0.previewChildsCount)
     assertEquals(1, rootNode0.multiPreviewChildsCount)
     assertEquals(3, rootNode0.subtreePreviewsCount)
     assertEquals(2, rootNode0.subtreeMultiPreviewsCount)
     assertEquals(4, rootNode0.subtreeUselessNodesCount)
-    val rootNode1 = nodes.last {
-      it.nodeType == ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.ROOT_COMPOSABLE_FUNCTION_NODE
-    }
+    val rootNode1 =
+      nodes.last {
+        it.nodeType ==
+          ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType
+            .ROOT_COMPOSABLE_FUNCTION_NODE
+      }
     assertEquals(0, rootNode1.previewChildsCount)
     assertEquals(2, rootNode1.multiPreviewChildsCount)
     assertEquals(2, rootNode1.subtreePreviewsCount)
@@ -190,20 +230,27 @@ class MultiPreviewUsageTrackerTest {
     assertTrue(nodes.all { it.hasAnonymizedComposableId() })
     val idsList = nodes.map { it.anonymizedComposableId }.distinct()
     assertEquals(2, idsList.size)
-    assertEquals(listOf(3, 5), listOf(nodes.count { it.anonymizedComposableId == idsList[0] },
-                                      nodes.count { it.anonymizedComposableId == idsList[1] }).sorted())
+    assertEquals(
+      listOf(3, 5),
+      listOf(
+          nodes.count { it.anonymizedComposableId == idsList[0] },
+          nodes.count { it.anonymizedComposableId == idsList[1] }
+        )
+        .sorted()
+    )
   }
 
   /**
-   * For more details about the graph used in this test,
-   * see the README at [com.android.tools.idea.compose.preview.analytics]
+   * For more details about the graph used in this test, see the README at
+   * [com.android.tools.idea.compose.preview.analytics]
    */
   @Test
   fun testLogEvent_withCycle() { // The MultiPreview graph has a cycle
-    val psiFile = fixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val psiFile =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         import $PREVIEW_TOOLING_PACKAGE.Preview
         import $COMPOSABLE_ANNOTATION_FQN.Composable
 
@@ -214,8 +261,11 @@ class MultiPreviewUsageTrackerTest {
                                       Pair(7, 11), Pair(8, 12), Pair(9, 12), Pair(11, 3), Pair(11, 4)),
                                setOf(0, 2, 4, 6, 12))
       }
-      """.trimIndent())
-    val multiPreviewUsageTracker = runReadAction { MultiPreviewUsageTracker.getInstance(psiFile.androidFacet) }
+      """.trimIndent()
+      )
+    val multiPreviewUsageTracker = runReadAction {
+      MultiPreviewUsageTracker.getInstance(psiFile.androidFacet)
+    }
     val multiPreviewEvent = MultiPreviewEvent(getPreviewNodes(psiFile.virtualFile), "fileName")
     val androidStudioEvent = multiPreviewUsageTracker.logEvent(multiPreviewEvent)
     assertEquals(AndroidStudioEvent.EventKind.COMPOSE_MULTI_PREVIEW, androidStudioEvent.kind)
@@ -223,25 +273,40 @@ class MultiPreviewUsageTrackerTest {
     // Check types
     val nodes = androidStudioEvent.composeMultiPreviewEvent.multiPreviewNodesList
     assertEquals(12, nodes.size)
-    assertEquals(2, nodes.count {
-      it.nodeType == ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.ROOT_COMPOSABLE_FUNCTION_NODE
-    })
-    assertEquals(10, nodes.count {
-      it.nodeType == ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE
-    })
+    assertEquals(
+      2,
+      nodes.count {
+        it.nodeType ==
+          ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType
+            .ROOT_COMPOSABLE_FUNCTION_NODE
+      }
+    )
+    assertEquals(
+      10,
+      nodes.count {
+        it.nodeType ==
+          ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE
+      }
+    )
 
     // Check counters (if roots counters are ok, all other counters are probably ok)
-    val rootNode0 = nodes.first {
-      it.nodeType == ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.ROOT_COMPOSABLE_FUNCTION_NODE
-    }
+    val rootNode0 =
+      nodes.first {
+        it.nodeType ==
+          ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType
+            .ROOT_COMPOSABLE_FUNCTION_NODE
+      }
     assertEquals(1, rootNode0.previewChildsCount)
     assertEquals(2, rootNode0.multiPreviewChildsCount)
     assertEquals(4, rootNode0.subtreePreviewsCount)
     assertEquals(6, rootNode0.subtreeMultiPreviewsCount)
     assertEquals(1, rootNode0.subtreeUselessNodesCount)
-    val rootNode1 = nodes.last {
-      it.nodeType == ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.ROOT_COMPOSABLE_FUNCTION_NODE
-    }
+    val rootNode1 =
+      nodes.last {
+        it.nodeType ==
+          ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType
+            .ROOT_COMPOSABLE_FUNCTION_NODE
+      }
     assertEquals(0, rootNode1.previewChildsCount)
     assertEquals(2, rootNode1.multiPreviewChildsCount)
     assertEquals(2, rootNode1.subtreePreviewsCount)
@@ -255,20 +320,34 @@ class MultiPreviewUsageTrackerTest {
     assertTrue(nodes.all { it.hasAnonymizedComposableId() })
     val idsList = nodes.map { it.anonymizedComposableId }.distinct()
     assertEquals(2, idsList.size)
-    assertEquals(listOf(5, 7), listOf(nodes.count { it.anonymizedComposableId == idsList[0] },
-                                      nodes.count { it.anonymizedComposableId == idsList[1] }).sorted())
+    assertEquals(
+      listOf(5, 7),
+      listOf(
+          nodes.count { it.anonymizedComposableId == idsList[0] },
+          nodes.count { it.anonymizedComposableId == idsList[1] }
+        )
+        .sorted()
+    )
   }
 
   @Test
   fun testGraphHashCode_different() {
-    val multiPreviewEvents = listOf (
-      baseFileContent,
-      baseFileContent.replace ("package a", "package b").replace("@Preview // first preview",""),
-      baseFileContent.replace ("package a", "package c").replace("@EmptyAnnotation",""),
-      baseFileContent.replace ("package a", "package d").replace("@MyAnnotation",""),
-      baseFileContent.replace ("package a", "package e").replace("@Composable",""),
-      baseFileContent.replace ("package a", "package f").replace("@Preview // second preview",""),
-    ).mapIndexed { idx: Int, testFileContent: String -> addFileAndCreateMultiPreviewEvent("testFile$idx", testFileContent)}
+    val multiPreviewEvents =
+      listOf(
+          baseFileContent,
+          baseFileContent
+            .replace("package a", "package b")
+            .replace("@Preview // first preview", ""),
+          baseFileContent.replace("package a", "package c").replace("@EmptyAnnotation", ""),
+          baseFileContent.replace("package a", "package d").replace("@MyAnnotation", ""),
+          baseFileContent.replace("package a", "package e").replace("@Composable", ""),
+          baseFileContent
+            .replace("package a", "package f")
+            .replace("@Preview // second preview", ""),
+        )
+        .mapIndexed { idx: Int, testFileContent: String ->
+          addFileAndCreateMultiPreviewEvent("testFile$idx", testFileContent)
+        }
 
     // Each annotation in the base file is part of the MultiPreview graph, so all the files
     // generated by removing each of them individually should generate a different hashCode
@@ -279,13 +358,15 @@ class MultiPreviewUsageTrackerTest {
   fun testGraphHashCode_extraPreviewCode() {
     val baseEvent = addFileAndCreateMultiPreviewEvent("baseFile", baseFileContent)
     val testFileContent = baseFileContent.replace("package a", "package b")
-    val extraCode =  """
+    val extraCode =
+      """
       @Composable
       @Preview
       fun otherPreviewFun() {
       }
     """
-    val withExtraCodeEvent = addFileAndCreateMultiPreviewEvent("testFile", testFileContent + extraCode)
+    val withExtraCodeEvent =
+      addFileAndCreateMultiPreviewEvent("testFile", testFileContent + extraCode)
     // The extra code affects the MultiPreview graph and the hashCode
     assertNotEquals(baseEvent.hashCode(), withExtraCodeEvent.hashCode())
   }
@@ -294,13 +375,15 @@ class MultiPreviewUsageTrackerTest {
   fun testGraphHashCode_extraNotPreviewCode() {
     val baseEvent = addFileAndCreateMultiPreviewEvent("baseFile", baseFileContent)
     val testFileContent = baseFileContent.replace("package a", "package b")
-    val extraCode =  """
+    val extraCode =
+      """
       annotation class NotPreviewRelatedAnnotation
 
       fun otherNotPreviewFun() {
       }
     """
-    val withExtraCodeEvent = addFileAndCreateMultiPreviewEvent("testFile", testFileContent + extraCode)
+    val withExtraCodeEvent =
+      addFileAndCreateMultiPreviewEvent("testFile", testFileContent + extraCode)
     // Code not related with the MultiPreview graph shouldn't affect the hashCode
     assertEquals(baseEvent.hashCode(), withExtraCodeEvent.hashCode())
   }
@@ -308,8 +391,10 @@ class MultiPreviewUsageTrackerTest {
   @Test
   fun testGraphHashCode_annotationName() {
     val baseEvent = addFileAndCreateMultiPreviewEvent("baseFile", baseFileContent)
-    val testFileContent = baseFileContent.replace("package a", "package b")
-      .replace("MyAnnotation", "MyDifferentAnnotation")
+    val testFileContent =
+      baseFileContent
+        .replace("package a", "package b")
+        .replace("MyAnnotation", "MyDifferentAnnotation")
     val withExtraCodeEvent = addFileAndCreateMultiPreviewEvent("testFile", testFileContent)
     // The annotation names shouldn't affect the hashCode
     assertEquals(baseEvent.hashCode(), withExtraCodeEvent.hashCode())
@@ -318,8 +403,10 @@ class MultiPreviewUsageTrackerTest {
   @Test
   fun testGraphHashCode_previewParameter() {
     val baseEvent = addFileAndCreateMultiPreviewEvent("baseFile", baseFileContent)
-    val testFileContent = baseFileContent.replace("package a", "package b")
-      .replaceFirst("@Preview", "@Preview(name = \"nameParam\")")
+    val testFileContent =
+      baseFileContent
+        .replace("package a", "package b")
+        .replaceFirst("@Preview", "@Preview(name = \"nameParam\")")
     val withExtraCodeEvent = addFileAndCreateMultiPreviewEvent("testFile", testFileContent)
     // Changes in Preview parameters shouldn't affect the hashCode
     assertEquals(baseEvent.hashCode(), withExtraCodeEvent.hashCode())
@@ -328,7 +415,8 @@ class MultiPreviewUsageTrackerTest {
   @Test
   fun testGraphHashCode_codeOrder() {
     val baseEvent = addFileAndCreateMultiPreviewEvent("baseFile", baseFileContent)
-    var testFileContent = """
+    var testFileContent =
+      """
       package b // use a different package that the one baseFile uses
 
       import $PREVIEW_TOOLING_PACKAGE.Preview
@@ -349,12 +437,18 @@ class MultiPreviewUsageTrackerTest {
       annotation class MyAnnotation
       """
     val differentOrderEvent = addFileAndCreateMultiPreviewEvent("testFile", testFileContent)
-    // The annotation and declaration order shouldn't affect the hashCode as long as the DFS tree remains the same
+    // The annotation and declaration order shouldn't affect the hashCode as long as the DFS tree
+    // remains the same
     assertEquals(baseEvent.hashCode(), differentOrderEvent.hashCode())
   }
 
-  private fun addFileAndCreateMultiPreviewEvent(fileName: String, fileContent: String): MultiPreviewEvent {
-    val vFile = fixture.addFileToProjectAndInvalidate("src/$fileName.kt", fileContent.trimIndent()).virtualFile
+  private fun addFileAndCreateMultiPreviewEvent(
+    fileName: String,
+    fileContent: String
+  ): MultiPreviewEvent {
+    val vFile =
+      fixture.addFileToProjectAndInvalidate("src/$fileName.kt", fileContent.trimIndent())
+        .virtualFile
 
     // Don't use the real file nor composable names, so that they don't affect the hashCode
     return MultiPreviewEvent(clearComposableFqnData(getPreviewNodes(vFile)), "fileName")
@@ -366,20 +460,34 @@ class MultiPreviewUsageTrackerTest {
   }
 
   private fun getPreviewNodes(vFile: VirtualFile) = runBlocking {
-    findAnnotatedMethodsValues(project, vFile, COMPOSABLE_FQ_NAMES, COMPOSABLE_ANNOTATION_NAME) { methods ->
-      getPreviewNodes(methods, true).asSequence()
-    }.filterIsInstance<MultiPreviewNode>()
+    findAnnotatedMethodsValues(project, vFile, COMPOSABLE_FQ_NAMES, COMPOSABLE_ANNOTATION_NAME) {
+        methods ->
+        getPreviewNodes(methods, true).asSequence()
+      }
+      .filterIsInstance<MultiPreviewNode>()
   }
 }
 
 /**
- * @param nComposable number of composable methods (their ids will be the numbers in the range [0, nComposable))
- * @param nAnnotClasses number of annotation classes (their ids will be the numbers in the range [nComposable, nComposable+nAnnotClasses))
- * @param edges list of directed edges from [Pair.first] to [Pair.second], where the elements of each Pair must correspond to a
+ * @param nComposable number of composable methods (their ids will be the numbers in the range [0,
+ * nComposable))
+ * @param nAnnotClasses number of annotation classes (their ids will be the numbers in the range
+ * [nComposable, nComposable+nAnnotClasses))
+ * @param edges list of directed edges from [Pair.first] to [Pair.second], where the elements of
+ * each Pair must correspond to a
+ * ```
  *        valid node id according to the values of nComposable and nAnnotClasses
- * @param idsWithPreview set of ids corresponding to the Composable methods and annotation classes that should be annotated with Preview
+ * @param idsWithPreview
+ * ```
+ * set of ids corresponding to the Composable methods and annotation classes that should be
+ * annotated with Preview
  */
-private fun buildMultiPreviewGraph(nComposable: Int, nAnnotClasses: Int, edges: List<Pair<Int, Int>>, idsWithPreview: Set<Int>): String {
+private fun buildMultiPreviewGraph(
+  nComposable: Int,
+  nAnnotClasses: Int,
+  edges: List<Pair<Int, Int>>,
+  idsWithPreview: Set<Int>
+): String {
   // validate parameters
   assertTrue(nComposable >= 0 && nAnnotClasses >= 0)
   assertTrue(edges.all { it.first >= 0 && it.first < nComposable + nAnnotClasses })

@@ -27,25 +27,36 @@ import com.intellij.lang.LanguageParserDefinitions
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
+import kotlin.test.assertEquals
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
 
 internal class DeviceSpecCompletionContributorTest {
-  @get:Rule
-  val rule = AndroidProjectRule.inMemory()
+  @get:Rule val rule = AndroidProjectRule.inMemory()
 
-  val fixture get() = rule.fixture
+  val fixture
+    get() = rule.fixture
 
   @Before
   fun setup() {
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
-    fixture.registerLanguageExtensionPoint(LanguageParserDefinitions.INSTANCE, DeviceSpecParserDefinition(), DeviceSpecLanguage)
-    val ep = ApplicationManager.getApplication().extensionArea.getExtensionPoint<CompletionContributorEP>(CompletionContributor.EP.name)
+    fixture.registerLanguageExtensionPoint(
+      LanguageParserDefinitions.INSTANCE,
+      DeviceSpecParserDefinition(),
+      DeviceSpecLanguage
+    )
+    val ep =
+      ApplicationManager.getApplication()
+        .extensionArea
+        .getExtensionPoint<CompletionContributorEP>(CompletionContributor.EP.name)
     ep.registerExtension(
-      CompletionContributorEP(DeviceSpecLanguage.id, DeviceSpecCompletionContributor::class.java.name, ep.pluginDescriptor),
+      CompletionContributorEP(
+        DeviceSpecLanguage.id,
+        DeviceSpecCompletionContributor::class.java.name,
+        ep.pluginDescriptor
+      ),
       fixture.testRootDisposable
     )
     runInEdtAndWait {
@@ -122,7 +133,9 @@ internal class DeviceSpecCompletionContributorTest {
     assertEquals("id:pixel_5", fixture.lookupElementStrings!![0])
 
     // completion for 'id' prefix
-    fixture.completeDeviceSpec("id$caret") // Note that 'id' also matches 'width' in the full 'spec:...' definition
+    fixture.completeDeviceSpec(
+      "id$caret"
+    ) // Note that 'id' also matches 'width' in the full 'spec:...' definition
     assertEquals(5, fixture.lookupElementStrings!!.size)
     assertEquals("id:pixel_5", fixture.lookupElementStrings!![0])
     assertEquals("spec:width=411dp,height=891dp", fixture.lookupElementStrings!![1])

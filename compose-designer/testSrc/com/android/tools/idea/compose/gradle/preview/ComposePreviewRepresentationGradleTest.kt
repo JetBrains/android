@@ -59,6 +59,15 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.awt.image.BufferedImage
+import java.nio.file.Paths
+import java.time.Duration
+import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -72,23 +81,12 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.awt.image.BufferedImage
-import java.nio.file.Paths
-import java.time.Duration
-import java.util.concurrent.TimeUnit
-import javax.swing.JPanel
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
 
 class ComposePreviewRepresentationGradleTest {
   private val logger = Logger.getInstance(ComposePreviewRepresentationGradleTest::class.java)
 
-  @get:Rule
-  val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
-  @get:Rule
-  val resetFastPreviewFlag = RestoreFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW)
+  @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  @get:Rule val resetFastPreviewFlag = RestoreFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW)
   private val project: Project
     get() = projectRule.project
   private val fixture: CodeInsightTestFixture
@@ -108,11 +106,16 @@ class ComposePreviewRepresentationGradleTest {
     composePreviewRepresentation = createComposePreviewRepresentation(psiMainFile, previewView)
 
     invokeAndWaitIfNeeded {
-      fakeUi = FakeUi(JPanel().apply {
-        layout = BorderLayout()
-        size = Dimension(1000, 800)
-        add(previewView, BorderLayout.CENTER)
-      }, 1.0, true)
+      fakeUi =
+        FakeUi(
+          JPanel().apply {
+            layout = BorderLayout()
+            size = Dimension(1000, 800)
+            add(previewView, BorderLayout.CENTER)
+          },
+          1.0,
+          true
+        )
       fakeUi.root.validate()
     }
 
@@ -135,9 +138,7 @@ class ComposePreviewRepresentationGradleTest {
     logger.info("setUp completed")
   }
 
-  /**
-   * Suspendable version of [DumbService.waitForSmartMode].
-   */
+  /** Suspendable version of [DumbService.waitForSmartMode]. */
   private suspend fun waitForSmartMode(project: Project) {
     val dumbService = DumbService.getInstance(project)
     if (dumbService.isDumb) logger.info("waitForSmartMode: Waiting")
@@ -145,9 +146,7 @@ class ComposePreviewRepresentationGradleTest {
     logger.info("waitForSmartMode: ${dumbService.isDumb}")
   }
 
-  /**
-   * Wait for any running refreshes to complete.
-   */
+  /** Wait for any running refreshes to complete. */
   private fun waitForRefreshToFinish() = runBlocking {
     logger.info("waitForRefreshToFinish")
     // Wait for refresh to finish
@@ -155,31 +154,31 @@ class ComposePreviewRepresentationGradleTest {
     logger.info("Refresh completed")
   }
 
-  /**
-   * Finds the render result of the [SceneViewPeerPanel] with the given [name].
-   */
-  private fun findSceneViewRenderWithName(@Suppress("SameParameterValue") name: String): BufferedImage {
+  /** Finds the render result of the [SceneViewPeerPanel] with the given [name]. */
+  private fun findSceneViewRenderWithName(
+    @Suppress("SameParameterValue") name: String
+  ): BufferedImage {
     val sceneViewPanel = fakeUi.findComponent<SceneViewPeerPanel> { it.displayName == name }!!
-    return fakeUi.render().getSubimage(
-      sceneViewPanel.x, sceneViewPanel.y,
-      sceneViewPanel.width, sceneViewPanel.height)
+    return fakeUi
+      .render()
+      .getSubimage(sceneViewPanel.x, sceneViewPanel.y, sceneViewPanel.width, sceneViewPanel.height)
+  }
+
+  /** Validates the UI to ensure is up to date. */
+  private fun validate() = invokeAndWaitIfNeeded {
+    fakeUi.root.validate()
+    previewView.mainSurface.zoomToFit()
+    fakeUi.root.validate()
   }
 
   /**
-   * Validates the UI to ensure is up to date.
+   * Runs the [runnable]. The [runnable] is expected to trigger a refresh and this method will
+   * return once the refresh has happened.
    */
-  private fun validate() =
-    invokeAndWaitIfNeeded {
-      fakeUi.root.validate()
-      previewView.mainSurface.zoomToFit()
-      fakeUi.root.validate()
-    }
-
-  /**
-   * Runs the [runnable]. The [runnable] is expected to trigger a refresh and this method will return once the refresh has
-   * happened.
-   */
-  private fun runAndWaitForRefresh(timeout: Duration = Duration.ofSeconds(40), runnable: () -> Unit) = runBlocking {
+  private fun runAndWaitForRefresh(
+    timeout: Duration = Duration.ofSeconds(40),
+    runnable: () -> Unit
+  ) = runBlocking {
     logger.info("runAndWaitForRefresh")
     // Wait for any on going refreshes to finish
     waitForRefreshToFinish()
@@ -187,7 +186,8 @@ class ComposePreviewRepresentationGradleTest {
     logger.info("runAndWaitForRefresh: Starting runnable")
     runnable()
     logger.info("runAndWaitForRefresh: Runnable executed")
-    // Wait for the refresh to complete outside of the timeout to reduce the changes of indexing interfering with the runnable execution.
+    // Wait for the refresh to complete outside of the timeout to reduce the changes of indexing
+    // interfering with the runnable execution.
     waitForSmartMode(project)
     withTimeout(timeout.toMillis()) {
       onRefreshCompletable.await()
@@ -196,30 +196,32 @@ class ComposePreviewRepresentationGradleTest {
     waitForRefreshToFinish()
   }
 
-  /**
-   * Runs the [runnable]. The [runnable] is expected to trigger a fast preview refresh
-   */
-  private fun runAndWaitForFastRefresh(timeout: Duration = Duration.ofSeconds(40), runnable: () -> Unit) = runBlocking {
+  /** Runs the [runnable]. The [runnable] is expected to trigger a fast preview refresh */
+  private fun runAndWaitForFastRefresh(
+    timeout: Duration = Duration.ofSeconds(40),
+    runnable: () -> Unit
+  ) = runBlocking {
     logger.info("runAndWaitForFastRefresh")
     val fastPreviewManager = FastPreviewManager.getInstance(project)
 
     assertTrue("FastPreviewManager must be enabled", fastPreviewManager.isEnabled)
 
     val compileDeferred = CompletableDeferred<CompilationResult>()
-    val fastPreviewManagerListener = object: FastPreviewManager.Companion.FastPreviewManagerListener {
-      override fun onCompilationStarted(files: Collection<PsiFile>) {
-        logger.info("runAndWaitForFastRefresh: onCompilationStarted")
-      }
+    val fastPreviewManagerListener =
+      object : FastPreviewManager.Companion.FastPreviewManagerListener {
+        override fun onCompilationStarted(files: Collection<PsiFile>) {
+          logger.info("runAndWaitForFastRefresh: onCompilationStarted")
+        }
 
-      override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
-        logger.info("runAndWaitForFastRefresh: onCompilationComplete $result")
-        compileDeferred.complete(result)
+        override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
+          logger.info("runAndWaitForFastRefresh: onCompilationComplete $result")
+          compileDeferred.complete(result)
+        }
       }
-
-    }
     fastPreviewManager.addListener(fixture.testRootDisposable, fastPreviewManagerListener)
     val startMillis = System.currentTimeMillis()
-    // Wait for the refresh to complete outside of the timeout to reduce the changes of indexing interfering with the compilation or
+    // Wait for the refresh to complete outside of the timeout to reduce the changes of indexing
+    // interfering with the compilation or
     // runnable execution.
     waitForSmartMode(project)
     withTimeout(timeout.toMillis()) {
@@ -234,20 +236,14 @@ class ComposePreviewRepresentationGradleTest {
     withTimeout(remainingMillis) {
       val result = compileDeferred.await()
       logger.info("runAndWaitForFastRefresh: Compilation finished $result")
-      (result as? CompilationResult.WithThrowable)?.let {
-        logger.error(it.e)
-      }
+      (result as? CompilationResult.WithThrowable)?.let { logger.error(it.e) }
     }
   }
 
-  /**
-   * Builds the project and waits for the preview panel to refresh. It also does zoom to fit.
-   */
+  /** Builds the project and waits for the preview panel to refresh. It also does zoom to fit. */
   private fun buildAndRefresh() {
     logger.info("buildAndRefresh")
-    runAndWaitForRefresh {
-      projectRule.buildAndAssertIsSuccessful()
-    }
+    runAndWaitForRefresh { projectRule.buildAndAssertIsSuccessful() }
     validate()
   }
 
@@ -260,17 +256,26 @@ class ComposePreviewRepresentationGradleTest {
         NavigatablePreview
         OnlyATextNavigation
       """.trimIndent(),
-      fakeUi.findAllComponents<SceneViewPeerPanel>()
-        .filter { it.isShowing }.joinToString("\n") { it.displayName })
+      fakeUi.findAllComponents<SceneViewPeerPanel>().filter { it.isShowing }.joinToString("\n") {
+        it.displayName
+      }
+    )
 
     val output = fakeUi.render()
 
-    val defaultPreviewSceneViewPeerPanel = fakeUi.findComponent<SceneViewPeerPanel> { it.displayName == "DefaultPreview" }!!
-    val defaultPreviewRender = output.getSubimage(
-      defaultPreviewSceneViewPeerPanel.x, defaultPreviewSceneViewPeerPanel.y,
-      defaultPreviewSceneViewPeerPanel.width, defaultPreviewSceneViewPeerPanel.height)
+    val defaultPreviewSceneViewPeerPanel =
+      fakeUi.findComponent<SceneViewPeerPanel> { it.displayName == "DefaultPreview" }!!
+    val defaultPreviewRender =
+      output.getSubimage(
+        defaultPreviewSceneViewPeerPanel.x,
+        defaultPreviewSceneViewPeerPanel.y,
+        defaultPreviewSceneViewPeerPanel.width,
+        defaultPreviewSceneViewPeerPanel.height
+      )
     ImageDiffUtil.assertImageSimilar(
-      Paths.get("${fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withPanel.png"),
+      Paths.get(
+        "${fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withPanel.png"
+      ),
       defaultPreviewRender,
       10.0,
       20
@@ -291,9 +296,7 @@ class ComposePreviewRepresentationGradleTest {
         FileDocumentManager.getInstance().saveAllDocuments()
       }
     }
-    invokeAndWaitIfNeeded {
-      fakeUi.root.validate()
-    }
+    invokeAndWaitIfNeeded { fakeUi.root.validate() }
 
     assertEquals(
       """
@@ -301,8 +304,10 @@ class ComposePreviewRepresentationGradleTest {
         TwoElementsPreview
         OnlyATextNavigation
       """.trimIndent(),
-      fakeUi.findAllComponents<SceneViewPeerPanel>()
-        .filter { it.isShowing }.joinToString("\n") { it.displayName })
+      fakeUi.findAllComponents<SceneViewPeerPanel>().filter { it.isShowing }.joinToString("\n") {
+        it.displayName
+      }
+    )
   }
 
   @Test
@@ -313,9 +318,7 @@ class ComposePreviewRepresentationGradleTest {
     runWriteActionAndWait {
       fixture.openFileInEditor(psiMainFile.virtualFile)
       fixture.moveCaret("Text(\"Hello 2\")|")
-      fixture.editor.executeAndSave {
-        insertText("\nText(\"Hello 3\")\n")
-      }
+      fixture.editor.executeAndSave { insertText("\nText(\"Hello 3\")\n") }
       PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
       FileDocumentManager.getInstance().saveAllDocuments()
     }
@@ -327,19 +330,16 @@ class ComposePreviewRepresentationGradleTest {
     val secondRender = findSceneViewRenderWithName("TwoElementsPreview")
     assertTrue(
       "Second image expected at least 10% higher but were second=${secondRender.height} first=${firstRender.height}",
-      secondRender.height > (firstRender.height * 1.10))
+      secondRender.height > (firstRender.height * 1.10)
+    )
     try {
       ImageDiffUtil.assertImageSimilar("testImage", firstRender, secondRender, 10.0, 20)
       fail("First render and second render are expected to be different")
-    }
-    catch (_: AssertionError) {
-    }
+    } catch (_: AssertionError) {}
 
     // Restore to the initial state and verify
     runWriteActionAndWait {
-      fixture.editor.executeAndSave {
-        replaceText("Text(\"Hello 3\")\n", "")
-      }
+      fixture.editor.executeAndSave { replaceText("Text(\"Hello 3\")\n", "") }
     }
 
     buildAndRefresh()
@@ -356,9 +356,7 @@ class ComposePreviewRepresentationGradleTest {
     runWriteActionAndWait {
       fixture.openFileInEditor(otherPreviewsFile.virtualFile)
       fixture.moveCaret("|@Preview")
-      fixture.editor.executeAndSave {
-        insertText("@Preview\nannotation class MyAnnotation\n\n")
-      }
+      fixture.editor.executeAndSave { insertText("@Preview\nannotation class MyAnnotation\n\n") }
       PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
       FileDocumentManager.getInstance().saveAllDocuments()
     }
@@ -368,16 +366,12 @@ class ComposePreviewRepresentationGradleTest {
       runWriteActionAndWait {
         fixture.openFileInEditor(psiMainFile.virtualFile)
         fixture.moveCaret("|@Preview")
-        fixture.editor.executeAndSave {
-          insertText("@MyAnnotation\n")
-        }
+        fixture.editor.executeAndSave { insertText("@MyAnnotation\n") }
         PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
         FileDocumentManager.getInstance().saveAllDocuments()
       }
     }
-    invokeAndWaitIfNeeded {
-      fakeUi.root.validate()
-    }
+    invokeAndWaitIfNeeded { fakeUi.root.validate() }
 
     assertEquals(
       """
@@ -387,31 +381,31 @@ class ComposePreviewRepresentationGradleTest {
         NavigatablePreview
         OnlyATextNavigation
       """.trimIndent(),
-      fakeUi.findAllComponents<SceneViewPeerPanel>()
-        .filter { it.isShowing }.joinToString("\n") { it.displayName })
+      fakeUi.findAllComponents<SceneViewPeerPanel>().filter { it.isShowing }.joinToString("\n") {
+        it.displayName
+      }
+    )
 
     // Modify the Preview annotating MyAnnotation
     runWriteActionAndWait {
       fixture.openFileInEditor(otherPreviewsFile.virtualFile)
       fixture.moveCaret("@Preview|")
-      fixture.editor.executeAndSave {
-        insertText("(name = \"newName\")")
-      }
+      fixture.editor.executeAndSave { insertText("(name = \"newName\")") }
       PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
       FileDocumentManager.getInstance().saveAllDocuments()
     }
 
     runAndWaitForRefresh(Duration.ofSeconds(35)) {
       // Simulate what happens when changing to the MainActivity.kt tab in the editor
-      // TODO(b/232092986) This is actually not a tab change, but currently we don't have a better way
-      //  of simulating it, and this is the only relevant consequence of changing tabs for this test.
+      // TODO(b/232092986) This is actually not a tab change, but currently we don't have a better
+      // way
+      //  of simulating it, and this is the only relevant consequence of changing tabs for this
+      // test.
       runWriteActionAndWait { fixture.openFileInEditor(psiMainFile.virtualFile) }
       composePreviewRepresentation.onActivate()
     }
 
-    invokeAndWaitIfNeeded {
-      fakeUi.root.validate()
-    }
+    invokeAndWaitIfNeeded { fakeUi.root.validate() }
 
     assertEquals(
       """
@@ -421,8 +415,10 @@ class ComposePreviewRepresentationGradleTest {
         NavigatablePreview
         OnlyATextNavigation
       """.trimIndent(),
-      fakeUi.findAllComponents<SceneViewPeerPanel>()
-        .filter { it.isShowing }.joinToString("\n") { it.displayName })
+      fakeUi.findAllComponents<SceneViewPeerPanel>().filter { it.isShowing }.joinToString("\n") {
+        it.displayName
+      }
+    )
   }
 
   @Test
@@ -435,8 +431,11 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `updating different file triggers needs refresh`() {
-    val otherFile = VfsUtil.findRelativeFile(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path,
-                                             ProjectRootManager.getInstance(projectRule.project).contentRoots[0])!!
+    val otherFile =
+      VfsUtil.findRelativeFile(
+        SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path,
+        ProjectRootManager.getInstance(projectRule.project).contentRoots[0]
+      )!!
 
     assertFalse(composePreviewRepresentation.needsRefreshOnSuccessfulBuild())
 
@@ -448,9 +447,7 @@ class ComposePreviewRepresentationGradleTest {
       FileDocumentManager.getInstance().saveAllDocuments()
     }
     assertTrue(composePreviewRepresentation.buildWillTriggerRefresh())
-    runBlocking {
-      projectRule.buildAndAssertIsSuccessful()
-    }
+    runBlocking { projectRule.buildAndAssertIsSuccessful() }
     assertFalse(composePreviewRepresentation.needsRefreshOnSuccessfulBuild())
   }
 
@@ -468,11 +465,13 @@ class ComposePreviewRepresentationGradleTest {
   fun `fast preview request`() {
     StudioFlags.COMPOSE_FAST_PREVIEW.override(true)
     val requestCompleted = CompletableDeferred<Unit>()
-    val testTracker = TestFastPreviewTrackerManager {
-      requestCompleted.complete(Unit)
-    }
+    val testTracker = TestFastPreviewTrackerManager { requestCompleted.complete(Unit) }
 
-    project.replaceService(FastPreviewTrackerManager::class.java, testTracker, fixture.testRootDisposable)
+    project.replaceService(
+      FastPreviewTrackerManager::class.java,
+      testTracker,
+      fixture.testRootDisposable
+    )
 
     runAndWaitForFastRefresh {
       WriteCommandAction.runWriteCommandAction(project) {
@@ -490,7 +489,10 @@ class ComposePreviewRepresentationGradleTest {
       }
     }
 
-    assertEquals("compilationSucceeded (compilationDurationMs=>0, compiledFiles=1, refreshTime=>0)", testTracker.logOutput())
+    assertEquals(
+      "compilationSucceeded (compilationDurationMs=>0, compiledFiles=1, refreshTime=>0)",
+      testTracker.logOutput()
+    )
   }
 
   @Test
@@ -498,7 +500,10 @@ class ComposePreviewRepresentationGradleTest {
     StudioFlags.COMPOSE_FAST_PREVIEW.override(true)
 
     runAndWaitForFastRefresh {
-      project.messageBus.syncPublisher(ProblemListener.TOPIC).problemsDisappeared(psiMainFile.virtualFile)
+      project
+        .messageBus
+        .syncPublisher(ProblemListener.TOPIC)
+        .problemsDisappeared(psiMainFile.virtualFile)
     }
   }
 
@@ -508,7 +513,8 @@ class ComposePreviewRepresentationGradleTest {
 
     val otherPreviewsFile = getPsiFile(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
     val otherPreviewView = TestComposePreviewView(fixture.testRootDisposable, project)
-    val otherPreviewRepresentation = createComposePreviewRepresentation(otherPreviewsFile, otherPreviewView)
+    val otherPreviewRepresentation =
+      createComposePreviewRepresentation(otherPreviewsFile, otherPreviewView)
 
     otherPreviewRepresentation.onActivate()
 
@@ -519,9 +525,7 @@ class ComposePreviewRepresentationGradleTest {
         fixture.openFileInEditor(otherPreviewsFile.virtualFile)
         // Add a MultiPreview annotation that won't be used
         fixture.moveCaret("|@Preview")
-        fixture.editor.executeAndSave {
-          insertText("@Preview\nannotation class MyAnnotation\n\n")
-        }
+        fixture.editor.executeAndSave { insertText("@Preview\nannotation class MyAnnotation\n\n") }
         PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
         FileDocumentManager.getInstance().saveAllDocuments()
       }
@@ -534,16 +538,15 @@ class ComposePreviewRepresentationGradleTest {
 
     val otherPreviewsFile = getPsiFile(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
     val otherPreviewView = TestComposePreviewView(fixture.testRootDisposable, project)
-    val otherPreviewRepresentation = createComposePreviewRepresentation(otherPreviewsFile, otherPreviewView)
+    val otherPreviewRepresentation =
+      createComposePreviewRepresentation(otherPreviewsFile, otherPreviewView)
 
     composePreviewRepresentation.onDeactivate()
     otherPreviewRepresentation.onActivate()
 
     // Now otherPreviewRepresentation is active, but the main file representation is not,
     // so modifying otherPreviewsFile shouldn't trigger a refresh in the later one.
-    invokeAndWaitIfNeeded {
-      fixture.openFileInEditor(otherPreviewsFile.virtualFile)
-    }
+    invokeAndWaitIfNeeded { fixture.openFileInEditor(otherPreviewsFile.virtualFile) }
     assertFailsWith<TimeoutCancellationException> {
       runAndWaitForRefresh(Duration.ofSeconds(30)) {
         runWriteActionAndWait {
@@ -564,11 +567,20 @@ class ComposePreviewRepresentationGradleTest {
     return runReadAction { PsiManager.getInstance(project).findFile(vFile)!! }
   }
 
-  private fun createComposePreviewRepresentation(psiFile: PsiFile, view: TestComposePreviewView): ComposePreviewRepresentation {
-    val previewRepresentation = ComposePreviewRepresentation(psiFile, object : PreviewElementProvider<ComposePreviewElement> {
-      override suspend fun previewElements(): Sequence<ComposePreviewElement> =
-        AnnotationFilePreviewElementFinder.findPreviewMethods(project, psiFile.virtualFile).asSequence()
-    }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _, _ -> view }
+  private fun createComposePreviewRepresentation(
+    psiFile: PsiFile,
+    view: TestComposePreviewView
+  ): ComposePreviewRepresentation {
+    val previewRepresentation =
+      ComposePreviewRepresentation(
+        psiFile,
+        object : PreviewElementProvider<ComposePreviewElement> {
+          override suspend fun previewElements(): Sequence<ComposePreviewElement> =
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, psiFile.virtualFile)
+              .asSequence()
+        },
+        PreferredVisibility.SPLIT
+      ) { _, _, _, _, _, _, _, _, _ -> view }
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
     return previewRepresentation
   }

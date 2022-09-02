@@ -19,10 +19,10 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.Test
 
 class UnsupportedLabelTest {
   @Test
@@ -34,7 +34,8 @@ class UnsupportedLabelTest {
     val labelTwo = UnsupportedLabel(slider, ElementState(""), 0, slider.sliderUI.positionProxy)
     assertTrue { slider.components[1].isVisible }
     assertTrue { slider.components[2].isVisible }
-    // componentCount is +1 to the number of labels here and checks below because slider also contains Thumb component.
+    // componentCount is +1 to the number of labels here and checks below because slider also
+    // contains Thumb component.
     assertEquals(3, slider.componentCount)
 
     // Dispose first label
@@ -74,15 +75,15 @@ class UnsupportedLabelTest {
       val slider = TestUtils.createTestSlider()
 
       // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      val ui = FakeUi(slider.parent).apply {
-        layoutAndDispatchEvents()
-      }
+      val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
 
       var height = 25
       for (i in 0..4) {
-        slider.sliderUI.elements.add(UnsupportedLabel(slider, ElementState(""), height, slider.sliderUI.positionProxy).apply {
-          height += this.height
-        })
+        slider.sliderUI.elements.add(
+          UnsupportedLabel(slider, ElementState(""), height, slider.sliderUI.positionProxy).apply {
+            height += this.height
+          }
+        )
       }
 
       // Call layoutAndDispatchEvents() so all JComponents are updated and visible.
@@ -91,7 +92,7 @@ class UnsupportedLabelTest {
       // No tooltips.
       assertEquals(0, slider.scanForTooltips().size)
       // Uncomment to preview ui.
-      //ui.render()
+      // ui.render()
     }
   }
 }

@@ -26,17 +26,17 @@ import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class InspectionsGradleTest {
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(TEST_DATA_PATH)
-  private val fixture get() = projectRule.fixture
+  @get:Rule val projectRule = AndroidGradleProjectRule(TEST_DATA_PATH)
+  private val fixture
+    get() = projectRule.fixture
 
   @Before
   fun setUp() {
@@ -46,18 +46,26 @@ class InspectionsGradleTest {
   @Test
   fun testPreviewNotSupportedInUnitTestFiles_unitTest() {
     fixture.enableInspections(PreviewNotSupportedInUnitTestFiles() as InspectionProfileEntry)
-    val vFile = VfsUtil.findRelativeFile(SimpleComposeAppPaths.APP_PREVIEWS_UNIT_TEST.path,
-                                         ProjectRootManager.getInstance(projectRule.project).contentRoots[0])!!
+    val vFile =
+      VfsUtil.findRelativeFile(
+        SimpleComposeAppPaths.APP_PREVIEWS_UNIT_TEST.path,
+        ProjectRootManager.getInstance(projectRule.project).contentRoots[0]
+      )!!
     fixture.configureFromExistingVirtualFile(vFile)
-    assertEquals("21: Preview is not supported in unit test files.",
-                 fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber())
+    assertEquals(
+      "21: Preview is not supported in unit test files.",
+      fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber()
+    )
   }
 
   @Test
   fun testPreviewNotSupportedInUnitTestFiles_androidTest() {
     fixture.enableInspections(PreviewNotSupportedInUnitTestFiles() as InspectionProfileEntry)
-    val vFile = VfsUtil.findRelativeFile(SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path,
-                                         ProjectRootManager.getInstance(projectRule.project).contentRoots[0])!!
+    val vFile =
+      VfsUtil.findRelativeFile(
+        SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path,
+        ProjectRootManager.getInstance(projectRule.project).contentRoots[0]
+      )!!
     fixture.configureFromExistingVirtualFile(vFile)
     assertTrue(fixture.doHighlighting(HighlightSeverity.ERROR).isEmpty())
   }

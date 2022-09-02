@@ -30,16 +30,18 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
+import java.util.concurrent.CountDownLatch
+import javax.swing.JComponent
+import javax.swing.JPanel
 import junit.framework.Assert.assertTrue
 import org.junit.Assert.assertArrayEquals
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.CountDownLatch
-import javax.swing.JComponent
-import javax.swing.JPanel
 
-internal class TestComposePreviewView(override val surfaces: List<NlDesignSurface>,
-                                      override val mainSurface: NlDesignSurface) : ComposePreviewView {
+internal class TestComposePreviewView(
+  override val surfaces: List<NlDesignSurface>,
+  override val mainSurface: NlDesignSurface
+) : ComposePreviewView {
   override val component: JComponent
     get() = JPanel()
   override var bottomPanel: JComponent? = null
@@ -48,39 +50,38 @@ internal class TestComposePreviewView(override val surfaces: List<NlDesignSurfac
   override var hasContent: Boolean = true
   override var hasRendered: Boolean = true
 
-  override fun updateNotifications(parentEditor: FileEditor) {
-  }
+  override fun updateNotifications(parentEditor: FileEditor) {}
 
-  override fun updateVisibilityAndNotifications() {
-  }
+  override fun updateVisibilityAndNotifications() {}
 
-  override fun updateProgress(message: String) {
-  }
+  override fun updateProgress(message: String) {}
 
-  override fun setPinnedSurfaceVisibility(visible: Boolean) {
-  }
+  override fun setPinnedSurfaceVisibility(visible: Boolean) {}
 
-  override fun onRefreshCancelledByTheUser() {
-  }
+  override fun onRefreshCancelledByTheUser() {}
 
-  override fun onRefreshCompleted() {
-  }
+  override fun onRefreshCompleted() {}
 }
 
 class ComposePreviewRepresentationTest {
   @get:Rule
-  val projectRule = ComposeProjectRule(previewAnnotationPackage = "androidx.compose.ui.tooling.preview",
-                                       composableAnnotationPackage = "androidx.compose.runtime")
-  private val project get() = projectRule.project
-  private val fixture get() = projectRule.fixture
+  val projectRule =
+    ComposeProjectRule(
+      previewAnnotationPackage = "androidx.compose.ui.tooling.preview",
+      composableAnnotationPackage = "androidx.compose.runtime"
+    )
+  private val project
+    get() = projectRule.project
+  private val fixture
+    get() = projectRule.fixture
 
   @Test
   fun testPreviewInitialization() = invokeLaterIfNeeded {
-
-    val composeTest = fixture.addFileToProjectAndInvalidate(
-      "Test.kt",
-      // language=kotlin
-      """
+    val composeTest =
+      fixture.addFileToProjectAndInvalidate(
+        "Test.kt",
+        // language=kotlin
+        """
         import androidx.compose.ui.tooling.preview.Devices
         import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.runtime.Composable
@@ -94,27 +95,40 @@ class ComposePreviewRepresentationTest {
         @Preview(name = "preview2", apiLevel = 12, group = "groupA", showBackground = true)
         fun Preview2() {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    val pinnedSurface = NlDesignSurface.builder(project, fixture.testRootDisposable)
-      .setNavigationHandler(ComposePreviewNavigationHandler())
-      .build()
-    val mainSurface = NlDesignSurface.builder(project, fixture.testRootDisposable)
-      .setNavigationHandler(ComposePreviewNavigationHandler())
-      .build()
+    val pinnedSurface =
+      NlDesignSurface.builder(project, fixture.testRootDisposable)
+        .setNavigationHandler(ComposePreviewNavigationHandler())
+        .build()
+    val mainSurface =
+      NlDesignSurface.builder(project, fixture.testRootDisposable)
+        .setNavigationHandler(ComposePreviewNavigationHandler())
+        .build()
     val modelRenderedLatch = CountDownLatch(2)
 
-    mainSurface.addListener(object : DesignSurfaceListener {
-      override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
-        (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener { modelRenderedLatch.countDown() }
+    mainSurface.addListener(
+      object : DesignSurfaceListener {
+        override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
+          (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener {
+            modelRenderedLatch.countDown()
+          }
+        }
       }
-    })
+    )
 
     val composeView = TestComposePreviewView(listOf(pinnedSurface), mainSurface)
-    val preview = ComposePreviewRepresentation(composeTest, object : PreviewElementProvider<ComposePreviewElement> {
-      override suspend fun previewElements(): Sequence<ComposePreviewElement> =
-        AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).asSequence()
-    }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _, _ -> composeView }
+    val preview =
+      ComposePreviewRepresentation(
+        composeTest,
+        object : PreviewElementProvider<ComposePreviewElement> {
+          override suspend fun previewElements(): Sequence<ComposePreviewElement> =
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+              .asSequence()
+        },
+        PreferredVisibility.SPLIT
+      ) { _, _, _, _, _, _, _, _, _ -> composeView }
     Disposer.register(fixture.testRootDisposable, preview)
     ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
 
@@ -122,8 +136,15 @@ class ComposePreviewRepresentationTest {
 
     modelRenderedLatch.await()
 
-    assertArrayEquals(arrayOf("groupA"), preview.availableGroups.map { it.displayName }.toTypedArray())
-    assertTrue(!preview.status().hasErrors && !preview.status().hasRuntimeErrors && !preview.status().isOutOfDate)
+    assertArrayEquals(
+      arrayOf("groupA"),
+      preview.availableGroups.map { it.displayName }.toTypedArray()
+    )
+    assertTrue(
+      !preview.status().hasErrors &&
+        !preview.status().hasRuntimeErrors &&
+        !preview.status().isOutOfDate
+    )
     preview.onDeactivate()
   }
 }

@@ -30,37 +30,48 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import java.awt.Rectangle
+import java.awt.geom.Ellipse2D
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Rectangle
-import java.awt.geom.Ellipse2D
 
 class ComposeScreenViewProvidersTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun `shape policy depends on the showSystemUi value`() {
     val model = invokeAndWaitIfNeeded {
       NlModelBuilderUtil.model(
-        projectRule.module.androidFacet!!,
-        projectRule.fixture, SdkConstants.FD_RES_LAYOUT, "model.xml", ComponentDescriptor("LinearLayout"))
+          projectRule.module.androidFacet!!,
+          projectRule.fixture,
+          SdkConstants.FD_RES_LAYOUT,
+          "model.xml",
+          ComponentDescriptor("LinearLayout")
+        )
         .build()
     }
     val surface = NlDesignSurface.build(projectRule.project, projectRule.testRootDisposable)
     surface.model = model
 
     // Create a device with round shape
-    val deviceWithRoundFrame = DeviceConfig(width = 600f, height = 600f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Round)
-      .createDeviceInstance()
+    val deviceWithRoundFrame =
+      DeviceConfig(
+          width = 600f,
+          height = 600f,
+          dimUnit = DimUnit.px,
+          dpi = 480,
+          shape = Shape.Round
+        )
+        .createDeviceInstance()
     model.configuration.setDevice(deviceWithRoundFrame, false)
 
-    var previewElement = SingleComposePreviewElementInstance.forTesting(
-      "TestMethod",
-      displayName = "displayName",
-      showDecorations = true
-    )
+    var previewElement =
+      SingleComposePreviewElementInstance.forTesting(
+        "TestMethod",
+        displayName = "displayName",
+        showDecorations = true
+      )
     model.dataContext = DataContext {
       when (it) {
         COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
@@ -68,20 +79,24 @@ class ComposeScreenViewProvidersTest {
       }
     }
 
-    // When showDecorations is true, the scene view should always use a the device shape. In this case, round.
+    // When showDecorations is true, the scene view should always use a the device shape. In this
+    // case, round.
     listOf(COMPOSE_SCREEN_VIEW_PROVIDER, COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER).forEach {
-      val sceneView = it.createPrimarySceneView(surface, surface.sceneManager as LayoutlibSceneManager)
+      val sceneView =
+        it.createPrimarySceneView(surface, surface.sceneManager as LayoutlibSceneManager)
       assertTrue(sceneView.screenShape is Ellipse2D)
     }
 
     // When showDecorations is false, the scene view should always use a square shape
-    previewElement = SingleComposePreviewElementInstance.forTesting(
-      "TestMethod",
-      displayName = "displayName",
-      showDecorations = false
-    )
+    previewElement =
+      SingleComposePreviewElementInstance.forTesting(
+        "TestMethod",
+        displayName = "displayName",
+        showDecorations = false
+      )
     listOf(COMPOSE_SCREEN_VIEW_PROVIDER, COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER).forEach {
-      val sceneView = it.createPrimarySceneView(surface, surface.sceneManager as LayoutlibSceneManager)
+      val sceneView =
+        it.createPrimarySceneView(surface, surface.sceneManager as LayoutlibSceneManager)
       assertTrue(sceneView.screenShape is Rectangle)
     }
   }

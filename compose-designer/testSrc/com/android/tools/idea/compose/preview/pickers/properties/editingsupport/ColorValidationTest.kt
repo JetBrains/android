@@ -17,8 +17,8 @@ package com.android.tools.idea.compose.preview.pickers.properties.editingsupport
 
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.google.common.primitives.UnsignedInteger
-import org.junit.Test
 import kotlin.test.assertEquals
+import org.junit.Test
 
 internal class ColorValidationTest {
 
@@ -46,7 +46,8 @@ internal class ColorValidationTest {
 
   @Test
   fun badFormat() {
-    val errorAndMessage = Pair(EditingErrorCategory.ERROR, "Color should be an aRGB hex literal (0xAARRGGBB)")
+    val errorAndMessage =
+      Pair(EditingErrorCategory.ERROR, "Color should be an aRGB hex literal (0xAARRGGBB)")
     assertEquals(errorAndMessage, validator("0xFF AA BB CC"))
     assertEquals(errorAndMessage, validator("0 xFFAABBCC"))
     assertEquals(errorAndMessage, validator("0x FFAABBCC"))

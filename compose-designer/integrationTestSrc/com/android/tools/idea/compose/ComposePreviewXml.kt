@@ -18,17 +18,14 @@ package com.android.tools.idea.compose
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
+import java.nio.file.Path
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Path
 
-/**
- * Ensures that Compose Preview works for an XML file.
- */
+/** Ensures that Compose Preview works for an XML file. */
 class ComposePreviewXml {
 
-  @get:Rule
-  val system = AndroidSystem.standard()
+  @get:Rule val system = AndroidSystem.standard()
 
   @Test
   fun basic() {
@@ -42,7 +39,8 @@ class ComposePreviewXml {
       studio.waitForSync()
       studio.waitForIndex()
 
-      val path: Path = project.targetProject.resolve("app/src/main/res/drawable/ic_launcher_background.xml")
+      val path: Path =
+        project.targetProject.resolve("app/src/main/res/drawable/ic_launcher_background.xml")
       studio.openFile("ComposePreviewTest", path.toString())
       studio.waitForComponentByClass("DesignSurfaceScrollPane", "JBViewport", "SceneViewPanel")
     }

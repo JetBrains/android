@@ -40,11 +40,15 @@ object TestUtils {
   private const val TEST_ELEMENT_ROW_HEIGHT = 100
 
   /** Test [TimelineElement] with size [TEST_ELEMENT_WIDTH] x [TEST_ELEMENT_HEIGHT] */
-  class TestTimelineElement(private val x: Int, private val y: Int, positionProxy: PositionProxy, state: ElementState = ElementState()) :
-    TimelineElement(state, x, x + TEST_ELEMENT_WIDTH, positionProxy) {
+  class TestTimelineElement(
+    private val x: Int,
+    private val y: Int,
+    positionProxy: PositionProxy,
+    state: ElementState = ElementState()
+  ) : TimelineElement(state, x, x + TEST_ELEMENT_WIDTH, positionProxy) {
     override fun contains(x: Int, y: Int): Boolean {
       return x in this.x + offsetPx..this.x + TEST_ELEMENT_WIDTH + offsetPx &&
-             y in this.y..this.y + TEST_ELEMENT_HEIGHT
+        y in this.y..this.y + TEST_ELEMENT_HEIGHT
     }
 
     override var height = TEST_ELEMENT_ROW_HEIGHT
@@ -56,9 +60,10 @@ object TestUtils {
       if (contains(point)) TooltipInfo("$x", "$y") else null
   }
 
-  fun testPreviewState(withCoordination: Boolean = true) = object : AnimationPreviewState {
-    override fun isCoordinationAvailable() = withCoordination
-  }
+  fun testPreviewState(withCoordination: Boolean = true) =
+    object : AnimationPreviewState {
+      override fun isCoordinationAvailable() = withCoordination
+    }
 
   /** Create [TimelinePanel] with 300x500 size. */
   fun createTestSlider(): TimelinePanel {
@@ -73,11 +78,16 @@ object TestUtils {
     return slider
   }
 
-  fun createPlaybackPlaceHolder() = JLabel("Playback placeholder").apply { background = JBColor.blue }
+  fun createPlaybackPlaceHolder() =
+    JLabel("Playback placeholder").apply { background = JBColor.blue }
 
-  fun createTimelinePlaceHolder() = JLabel("Timeline placeholder").apply { background = JBColor.pink }
+  fun createTimelinePlaceHolder() =
+    JLabel("Timeline placeholder").apply { background = JBColor.pink }
 
-  fun createComposeAnimation(label: String? = null, type: ComposeAnimationType = ComposeAnimationType.ANIMATED_VALUE) =
+  fun createComposeAnimation(
+    label: String? = null,
+    type: ComposeAnimationType = ComposeAnimationType.ANIMATED_VALUE
+  ) =
     object : ComposeAnimation {
       override val animationObject = Any()
       override val type = type
@@ -93,22 +103,33 @@ object TestUtils {
 
   fun TimelineElement.scanForTooltips(dimension: Dimension): Set<TooltipInfo> {
     val set = mutableSetOf<TooltipInfo>()
-    for (x in 0..dimension.width step 5) for (y in 0..dimension.height step 5)
-      this.getTooltip(Point(x, y))?.let { set.add(it) }
+    for (x in 0..dimension.width step 5) for (y in 0..dimension.height step 5) this.getTooltip(
+        Point(x, y)
+      )
+      ?.let { set.add(it) }
     return set
   }
 
   fun findAllCards(parent: Component): List<Card> =
-    TreeWalker(parent).descendantStream().filter { it is Card }.collect(
-      Collectors.toList()).map { it as Card }
+    TreeWalker(parent).descendantStream().filter { it is Card }.collect(Collectors.toList()).map {
+      it as Card
+    }
 
   fun findTimeline(parent: Component): TimelinePanel =
-    TreeWalker(parent).descendantStream().filter { it is TimelinePanel }.collect(
-      Collectors.toList()).map { it as TimelinePanel }.first()
+    TreeWalker(parent)
+      .descendantStream()
+      .filter { it is TimelinePanel }
+      .collect(Collectors.toList())
+      .map { it as TimelinePanel }
+      .first()
 
   fun Card.findLabel(): JLabel =
-    TreeWalker(this.component).descendantStream().filter { it is JLabel }.collect(
-      Collectors.toList()).map { it as JLabel }.first()
+    TreeWalker(this.component)
+      .descendantStream()
+      .filter { it is JLabel }
+      .collect(Collectors.toList())
+      .map { it as JLabel }
+      .first()
 
   fun AnimationCard.findExpandButton(): Component {
     return (this.component.components[0] as Container).components[0]

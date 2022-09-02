@@ -25,6 +25,9 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
+import java.awt.image.BufferedImage
+import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.junit.After
@@ -32,13 +35,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.image.BufferedImage
-import java.nio.file.Paths
-import java.util.concurrent.TimeUnit
 
 class ComposeDocumentationProviderTest {
-  @get:Rule
-  val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
   @Before
   fun setUp() {
@@ -55,24 +54,40 @@ class ComposeDocumentationProviderTest {
   @Test
   fun testBasicDoc() {
     val project = projectRule.project
-    val activityFile = VfsUtil.findRelativeFile(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
-                                                ProjectRootManager.getInstance(project).contentRoots[0])!!
+    val activityFile =
+      VfsUtil.findRelativeFile(
+        SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
+        ProjectRootManager.getInstance(project).contentRoots[0]
+      )!!
 
     val composeDocProvider = ComposeDocumentationProvider()
-    val previewMethod = ReadAction.compute<KtNamedFunction, Throwable> {
-      val ktFile = PsiManager.getInstance(project).findFile(activityFile) as KtFile
-      ktFile.declarations
-        .filterIsInstance<KtNamedFunction>()
-        .single { it.isTopLevel && it.name == "Greeting" }
-    }
+    val previewMethod =
+      ReadAction.compute<KtNamedFunction, Throwable> {
+        val ktFile = PsiManager.getInstance(project).findFile(activityFile) as KtFile
+        ktFile.declarations.filterIsInstance<KtNamedFunction>().single {
+          it.isTopLevel && it.name == "Greeting"
+        }
+      }
 
     val generatedDoc = composeDocProvider.generateDocAsync(previewMethod, null).get()!!
 
     // Check that we've correctly generated the preview tag
-    assertTrue(generatedDoc.contains("<div class='content'><img src='file://DefaultPreview' alt='preview:DefaultPreview' width='\\d+' height='\\d+'></div>".toRegex()))
+    assertTrue(
+      generatedDoc.contains(
+        "<div class='content'><img src='file://DefaultPreview' alt='preview:DefaultPreview' width='\\d+' height='\\d+'></div>".toRegex()
+      )
+    )
 
-    val previewImage = composeDocProvider.getLocalImageForElementAsync(previewMethod).get(5, TimeUnit.SECONDS) as BufferedImage
-    ImageDiffUtil.assertImageSimilar(Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultDocRender.png"),
-                                     previewImage, 0.1, 1)
+    val previewImage =
+      composeDocProvider.getLocalImageForElementAsync(previewMethod).get(5, TimeUnit.SECONDS) as
+        BufferedImage
+    ImageDiffUtil.assertImageSimilar(
+      Paths.get(
+        "${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultDocRender.png"
+      ),
+      previewImage,
+      0.1,
+      1
+    )
   }
 }

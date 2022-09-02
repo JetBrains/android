@@ -31,20 +31,18 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.TestActionEvent
 import icons.StudioIcons
+import kotlin.test.assertEquals
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.mockito.Mockito
-import kotlin.test.assertEquals
 
 class ComposePreviewStatusIconActionTest {
   val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val chain: TestRule = RuleChain.outerRule(projectRule)
-    .around(FastPreviewRule())
+  @get:Rule val chain: TestRule = RuleChain.outerRule(projectRule).around(FastPreviewRule())
 
   private val composePreviewManager = TestComposePreviewManager()
 
@@ -56,16 +54,18 @@ class ComposePreviewStatusIconActionTest {
     }
   }
 
-  private val originStatus = ComposePreviewManager.Status(
-    hasRuntimeErrors = false,
-    hasSyntaxErrors = false,
-    isOutOfDate = false,
-    isRefreshing = false,
-    interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
-  )
+  private val originStatus =
+    ComposePreviewManager.Status(
+      hasRuntimeErrors = false,
+      hasSyntaxErrors = false,
+      isOutOfDate = false,
+      isRefreshing = false,
+      interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
+    )
 
   private val tf = listOf(true, false)
-  private val fastPreviewDisableReasons = listOf(null, ManualDisabledReason, DisableReason("Auto-Disabled"))
+  private val fastPreviewDisableReasons =
+    listOf(null, ManualDisabledReason, DisableReason("Auto-Disabled"))
 
   private val sceneViewMock = Mockito.mock(SceneView::class.java)
   private val sceneManagerMock = Mockito.mock(LayoutlibSceneManager::class.java)
@@ -73,10 +73,18 @@ class ComposePreviewStatusIconActionTest {
   private val renderLoggerMock = Mockito.mock(RenderLogger::class.java)
   private var renderError = false
   init {
-    Mockito.`when`(sceneViewMock.sceneManager).then { return@then sceneManagerMock }
-    Mockito.`when`(sceneManagerMock.renderResult).then { return@then renderResultMock }
-    Mockito.`when`(renderResultMock.logger).then { return@then renderLoggerMock }
-    Mockito.`when`(renderLoggerMock.hasErrors()).then { return@then renderError }
+    Mockito.`when`(sceneViewMock.sceneManager).then {
+      return@then sceneManagerMock
+    }
+    Mockito.`when`(sceneManagerMock.renderResult).then {
+      return@then renderResultMock
+    }
+    Mockito.`when`(renderResultMock.logger).then {
+      return@then renderLoggerMock
+    }
+    Mockito.`when`(renderLoggerMock.hasErrors()).then {
+      return@then renderError
+    }
   }
 
   @After
@@ -99,11 +107,13 @@ class ComposePreviewStatusIconActionTest {
               for (fastPreviewDisableReason in fastPreviewDisableReasons) {
                 updateFastPreviewStatus(fastPreviewDisableReason)
                 this.renderError = renderError
-                composePreviewManager.currentStatus = originStatus.copy(
-                  hasRuntimeErrors = runtimeError,
-                  hasSyntaxErrors = syntaxError,
-                  isOutOfDate = outOfDate,
-                  isRefreshing = refreshing)
+                composePreviewManager.currentStatus =
+                  originStatus.copy(
+                    hasRuntimeErrors = runtimeError,
+                    hasSyntaxErrors = syntaxError,
+                    isOutOfDate = outOfDate,
+                    isRefreshing = refreshing
+                  )
                 action.update(event)
                 val expectedToShowIcon = renderError && !refreshing
                 assertEquals(expectedToShowIcon, event.presentation.isEnabled)
@@ -122,8 +132,7 @@ class ComposePreviewStatusIconActionTest {
   private fun updateFastPreviewStatus(disableReason: DisableReason?) {
     if (disableReason == null) {
       FastPreviewManager.getInstance(projectRule.project).enable()
-    }
-    else {
+    } else {
       FastPreviewManager.getInstance(projectRule.project).disable(disableReason)
     }
   }

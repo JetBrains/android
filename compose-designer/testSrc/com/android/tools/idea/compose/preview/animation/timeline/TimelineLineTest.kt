@@ -19,19 +19,17 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.Test
 
 class TimelineLineTest {
 
   @Test
   fun `check line contains points`(): Unit = invokeAndWaitIfNeeded {
-    val slider = TestUtils.createTestSlider().apply {
-      maximum = 600
-    }
+    val slider = TestUtils.createTestSlider().apply { maximum = 600 }
     // Call layoutAndDispatchEvents() so positionProxy returns correct values
     val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
     slider.sliderUI.apply {
@@ -53,26 +51,29 @@ class TimelineLineTest {
 
   @Test
   fun `ui with lines renders correctly`(): Unit = invokeAndWaitIfNeeded {
-    val slider = TestUtils.createTestSlider().apply {
-      value = 1000
-    }
+    val slider = TestUtils.createTestSlider().apply { value = 1000 }
     slider.sliderUI.apply {
-      elements.add(TimelineLine(ElementState(), 50, 150, 50, positionProxy).apply {
-        status = TimelineElementStatus.Hovered
-      })
-      elements.add(TimelineLine(ElementState(), 50, 150, 150, positionProxy).apply {
-        status = TimelineElementStatus.Dragged
-      })
-      elements.add(TimelineLine(ElementState(), 50, 150, 250, positionProxy).apply {
-        status = TimelineElementStatus.Inactive
-      })
-      elements.add(TimelineLine(ElementState(), 50, 150, 350, positionProxy).apply {
-      })
+      elements.add(
+        TimelineLine(ElementState(), 50, 150, 50, positionProxy).apply {
+          status = TimelineElementStatus.Hovered
+        }
+      )
+      elements.add(
+        TimelineLine(ElementState(), 50, 150, 150, positionProxy).apply {
+          status = TimelineElementStatus.Dragged
+        }
+      )
+      elements.add(
+        TimelineLine(ElementState(), 50, 150, 250, positionProxy).apply {
+          status = TimelineElementStatus.Inactive
+        }
+      )
+      elements.add(TimelineLine(ElementState(), 50, 150, 350, positionProxy).apply {})
     }
     // Call layoutAndDispatchEvents() so positionProxy returns correct values
     val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
     // Uncomment to preview ui.
-    //ui.render()
+    // ui.render()
     assertNotNull(ui)
   }
 }

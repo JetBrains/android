@@ -23,11 +23,7 @@ import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito
 import java.awt.Component
-import java.awt.Container
 import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JComponent
@@ -35,20 +31,25 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mockito
 
 class AnimationCardTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val minimumSize = Dimension(10, 10)
 
   @Test
   fun `create animation card`() {
-    val card = AnimationCard(
-      TestUtils.testPreviewState(),
-      Mockito.mock(DesignSurface::class.java),
-      ElementState("Title")) { }.apply { setDuration(111) }
+    val card =
+      AnimationCard(
+          TestUtils.testPreviewState(),
+          Mockito.mock(DesignSurface::class.java),
+          ElementState("Title")
+        ) {}
+        .apply { setDuration(111) }
     card.setSize(300, 300)
 
     invokeAndWaitIfNeeded {
@@ -100,7 +101,8 @@ class AnimationCardTest {
         ui.clickOn(it)
         assertEquals(4, freezeCalls)
       }
-      // Double click to open in new tab. Use label position just to make sure we are not clicking on any button.
+      // Double click to open in new tab. Use label position just to make sure we are not clicking
+      // on any button.
       val label = (card.components[0] as JComponent).components[1]
       var openInTabActions = 0
       card.addOpenInTabListener { openInTabActions++ }
@@ -112,17 +114,21 @@ class AnimationCardTest {
 
   @Test
   fun `create animation card if coordination is not available`(): Unit = invokeAndWaitIfNeeded {
-    val card = AnimationCard(
-      TestUtils.testPreviewState(false),
-      Mockito.mock(DesignSurface::class.java),
-      ElementState("Title")) { }.apply {
-      setDuration(111)
-      setSize(300, 300)
-    }
-    val ui = FakeUi(card).apply {
-      updateToolbars()
-      layout()
-    }
+    val card =
+      AnimationCard(
+          TestUtils.testPreviewState(false),
+          Mockito.mock(DesignSurface::class.java),
+          ElementState("Title")
+        ) {}
+        .apply {
+          setDuration(111)
+          setSize(300, 300)
+        }
+    val ui =
+      FakeUi(card).apply {
+        updateToolbars()
+        layout()
+      }
 
     // Lock button is not available.
     findFreezeButton(card).also {
@@ -132,12 +138,17 @@ class AnimationCardTest {
       TestUtils.assertBigger(minimumSize, it.size)
     }
     // Uncomment to preview ui.
-    //ui.render()
+    // ui.render()
   }
 
   private fun findFreezeButton(parent: Component): Component {
-    val frozeToolbar = TreeWalker(parent).descendantStream().filter { it is ActionToolbarImpl }.collect(
-      Collectors.toList()).map { it as ActionToolbarImpl }.firstOrNull { it.place == "FreezeAnimationCard" }
+    val frozeToolbar =
+      TreeWalker(parent)
+        .descendantStream()
+        .filter { it is ActionToolbarImpl }
+        .collect(Collectors.toList())
+        .map { it as ActionToolbarImpl }
+        .firstOrNull { it.place == "FreezeAnimationCard" }
     return (frozeToolbar as JComponent).components[0]
   }
 }

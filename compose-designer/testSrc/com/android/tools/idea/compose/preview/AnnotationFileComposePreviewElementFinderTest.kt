@@ -17,8 +17,8 @@ package com.android.tools.idea.compose.preview
 
 import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.compose.preview.util.ParametrizedComposePreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
+import com.android.tools.idea.compose.preview.util.ParametrizedComposePreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
 import com.android.tools.idea.flags.StudioFlags
@@ -52,18 +52,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/**
- * Asserts that the given [methodName] body has the actual given [actualBodyRange]
- */
+/** Asserts that the given [methodName] body has the actual given [actualBodyRange] */
 private fun assertMethodTextRange(file: PsiFile, methodName: String, actualBodyRange: TextRange) {
-  val range = ReadAction.compute<TextRange, Throwable> {
-    file
-      .toUElementOfType<UFile>()
-      ?.method(methodName)
-      ?.uastBody
-      ?.sourcePsi
-      ?.textRange!!
-  }
+  val range =
+    ReadAction.compute<TextRange, Throwable> {
+      file.toUElementOfType<UFile>()?.method(methodName)?.uastBody?.sourcePsi?.textRange!!
+    }
   assertNotEquals(range, TextRange.EMPTY_RANGE)
   assertEquals(range, actualBodyRange)
 }
@@ -72,7 +66,10 @@ private fun <T> computeOnBackground(computable: () -> T): T =
   AppExecutorUtil.getAppExecutorService().submit(computable).get()
 
 @RunWith(Parameterized::class)
-class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
+class AnnotationFileComposePreviewElementFinderTest(
+  previewAnnotationPackage: String,
+  composableAnnotationPackage: String
+) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
@@ -83,22 +80,26 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
   private val COMPOSABLE_ANNOTATION_FQN = "$composableAnnotationPackage.Composable"
   private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
 
-  @get:Rule
-  val multiPreviewRule = SetFlagRule(StudioFlags.COMPOSE_MULTIPREVIEW, true)
+  @get:Rule val multiPreviewRule = SetFlagRule(StudioFlags.COMPOSE_MULTIPREVIEW, true)
 
   @get:Rule
-  val projectRule = ComposeProjectRule(previewAnnotationPackage = previewAnnotationPackage,
-                                       composableAnnotationPackage = composableAnnotationPackage)
-  private val project get() = projectRule.project
-  private val fixture get() = projectRule.fixture
+  val projectRule =
+    ComposeProjectRule(
+      previewAnnotationPackage = previewAnnotationPackage,
+      composableAnnotationPackage = composableAnnotationPackage
+    )
+  private val project
+    get() = projectRule.project
+  private val fixture
+    get() = projectRule.fixture
 
   @Test
   fun testFindPreviewAnnotations() = runBlocking {
-
-    val composeTest = fixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val composeTest =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         import $PREVIEW_TOOLING_PACKAGE.Devices
         import $PREVIEW_TOOLING_PACKAGE.Preview
         import $COMPOSABLE_ANNOTATION_FQN
@@ -166,13 +167,15 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
         fun FullyQualifiedAnnotationPreview() {
 
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
     // Add secondary file with Previews that should not be found when looking into composeFile
-    val otherFile = fixture.addFileToProjectAndInvalidate(
-      "src/OtherFile.kt",
-      // language=kotlin
-      """
+    val otherFile =
+      fixture.addFileToProjectAndInvalidate(
+        "src/OtherFile.kt",
+        // language=kotlin
+        """
         import $PREVIEW_TOOLING_PACKAGE.Devices
         import $PREVIEW_TOOLING_PACKAGE.Preview
         import $COMPOSABLE_ANNOTATION_FQN
@@ -185,13 +188,22 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
         @[Composable Preview]
         fun OtherFilePreview2() {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile))
+    assertTrue(
+      AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+    )
     assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, otherFile.virtualFile))
-    assertTrue(computeOnBackground { AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile) })
+    assertTrue(
+      computeOnBackground {
+        AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+      }
+    )
 
-    val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
+    val elements =
+      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+        .toList()
     assertEquals(11, elements.size)
     elements[0].let {
       assertEquals("Preview1", it.displaySettings.name)
@@ -222,8 +234,10 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
 
       ReadAction.run<Throwable> {
         assertMethodTextRange(composeTest, "Preview2", it.previewBodyPsi?.psiRange?.range!!)
-        assertEquals("@Preview(name = \"preview2\", apiLevel = 12, group = \"groupA\", showBackground = true, locale = \"en-rUS\")",
-                     it.previewElementDefinitionPsi?.element?.text)
+        assertEquals(
+          "@Preview(name = \"preview2\", apiLevel = 12, group = \"groupA\", showBackground = true, locale = \"en-rUS\")",
+          it.previewElementDefinitionPsi?.element?.text
+        )
       }
     }
 
@@ -243,7 +257,8 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
         assertMethodTextRange(composeTest, "Preview3", it.previewBodyPsi?.psiRange?.range!!)
         assertEquals(
           "@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true, device = Devices.NEXUS_7)",
-          it.previewElementDefinitionPsi?.element?.text)
+          it.previewElementDefinitionPsi?.element?.text
+        )
       }
     }
 
@@ -254,8 +269,10 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
 
       ReadAction.run<Throwable> {
         assertMethodTextRange(composeTest, "Preview4", it.previewBodyPsi?.psiRange?.range!!)
-        assertEquals("@Preview(name = \"preview4\", uiMode = 3, backgroundColor = 0xBAAABA)",
-                     it.previewElementDefinitionPsi?.element?.text)
+        assertEquals(
+          "@Preview(name = \"preview4\", uiMode = 3, backgroundColor = 0xBAAABA)",
+          it.previewElementDefinitionPsi?.element?.text
+        )
       }
     }
 
@@ -266,8 +283,10 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
 
       ReadAction.run<Throwable> {
         assertMethodTextRange(composeTest, "Preview5", it.previewBodyPsi?.psiRange?.range!!)
-        assertEquals("@Preview(name = \"preview5\", uiMode = 3, backgroundColor = 0xFFBAAABA)",
-                     it.previewElementDefinitionPsi?.element?.text)
+        assertEquals(
+          "@Preview(name = \"preview5\", uiMode = 3, backgroundColor = 0xFFBAAABA)",
+          it.previewElementDefinitionPsi?.element?.text
+        )
       }
     }
 
@@ -338,10 +357,11 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
 
   @Test
   fun testFindPreviewAnnotationsWithoutImport() = runBlocking {
-    val composeTest = fixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val composeTest =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         import $COMPOSABLE_ANNOTATION_FQN
 
         @Composable
@@ -352,28 +372,30 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
         @[Composable $PREVIEW_TOOLING_PACKAGE.Preview]
         fun Preview2() {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile))
+    assertTrue(
+      AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+    )
 
-    val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
+    val elements =
+      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+        .toList()
     assertEquals(2, elements.size)
 
-    elements[0].let {
-      assertEquals("TestKt.Preview1", it.composableMethodFqn)
-    }
+    elements[0].let { assertEquals("TestKt.Preview1", it.composableMethodFqn) }
 
-    elements[1].let {
-      assertEquals("TestKt.Preview2", it.composableMethodFqn)
-    }
+    elements[1].let { assertEquals("TestKt.Preview2", it.composableMethodFqn) }
   }
 
   @Test
   fun testNoDuplicatePreviewElements() = runBlocking {
-    val composeTest = fixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val composeTest =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         import $PREVIEW_TOOLING_PACKAGE.Preview
         import $COMPOSABLE_ANNOTATION_FQN
 
@@ -382,9 +404,12 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
         @Preview(name = "preview", apiLevel = 12)
         fun Preview1() {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    val element = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).single()
+    val element =
+      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+        .single()
     // Check that we keep the first element
     assertEquals("Preview1 - preview", element.displaySettings.name)
   }
@@ -402,12 +427,14 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
                                  val theme: String = "",
                                  val widthDp: Int = -1,
                                  val heightDp: Int = -1)
-       """.trimIndent())
+       """.trimIndent()
+    )
 
-    val composeTest = fixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val composeTest =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         import com.android.notpreview.Preview
         import $COMPOSABLE_ANNOTATION_FQN
 
@@ -425,21 +452,27 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
         @Preview(name = "preview3", width = 1, height = 2)
         fun Preview3() {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    assertEquals(0, AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).count())
+    assertEquals(
+      0,
+      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+        .count()
+    )
   }
 
   /**
-   * Ensures that calling findPreviewMethods returns an empty. Although the method is guaranteed to be called under smart mode,
-   *
+   * Ensures that calling findPreviewMethods returns an empty. Although the method is guaranteed to
+   * be called under smart mode,
    */
   @Test
   fun testDumbMode() = runBlocking {
-    val composeTest = fixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val composeTest =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         import $COMPOSABLE_ANNOTATION_FQN
         import $PREVIEW_TOOLING_PACKAGE.Preview
 
@@ -452,35 +485,34 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
         @Preview(name = "preview2", apiLevel = 12)
         fun Preview1() {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
     runInEdtAndWait {
       DumbServiceImpl.getInstance(project).isDumb = true
-      assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile))
+      assertTrue(
+        AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+      )
     }
-    val result = GlobalScope.async {
-      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
-    }
-    try {
-      withTimeout(2500) {
-        result.await()
+    val result =
+      GlobalScope.async {
+        AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
       }
+    try {
+      withTimeout(2500) { result.await() }
       fail("The result should not have been returned in non-smart mode")
-    }
-    catch (_: TimeoutCancellationException) {
-    }
-    runInEdtAndWait {
-      DumbServiceImpl.getInstance(project).isDumb = false
-    }
+    } catch (_: TimeoutCancellationException) {}
+    runInEdtAndWait { DumbServiceImpl.getInstance(project).isDumb = false }
     assertEquals(2, result.await().size)
   }
 
   @Test
   fun testPreviewParameters() = runBlocking {
-    val composeTest = fixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val composeTest =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         package test
 
         import $PREVIEW_TOOLING_PACKAGE.Preview
@@ -517,9 +549,12 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
         fun MultiParameter(@PreviewParameter(provider = TestStringProvider::class) aString: String,
                            @PreviewParameter(provider = TestIntProvider::class, limit = 2) aInt: Int) {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
+    val elements =
+      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+        .toList()
     elements[0].let {
       assertFalse(it is ParametrizedComposePreviewElementTemplate)
       assertEquals("NoParameter", it.displaySettings.name)
@@ -527,11 +562,14 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
     // The next two are the same just using the annotation parameter explicitly in one of them.
     // The resulting PreviewElement should be the same with different name.
     listOf("SingleParameter" to elements[1], "SingleParameterNoName" to elements[2])
-      .map { (name, previewElement) -> name to previewElement as ParametrizedComposePreviewElementTemplate }
+      .map { (name, previewElement) ->
+        name to previewElement as ParametrizedComposePreviewElementTemplate
+      }
       .forEach { (name, previewElement) ->
         assertEquals(name, previewElement.displaySettings.name)
         assertEquals(1, previewElement.parameterProviders.size)
-        previewElement.parameterProviders.single { param -> "aString" == param.name }.let { parameter ->
+        previewElement.parameterProviders.single { param -> "aString" == param.name }.let {
+          parameter ->
           assertEquals("test.TestStringProvider", parameter.providerClassFqn)
           assertEquals(0, parameter.index)
           assertEquals(Int.MAX_VALUE, parameter.limit)
@@ -550,10 +588,11 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
 
   @Test
   fun testOrdering() = runBlocking {
-    val composeTest = fixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val composeTest =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         import $PREVIEW_TOOLING_PACKAGE.Preview
         import $COMPOSABLE_ANNOTATION_FQN
 
@@ -581,10 +620,12 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
         @Preview
         fun TopB() {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
     AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
-      .toMutableList().apply {
+      .toMutableList()
+      .apply {
         // Randomize to make sure the ordering works
         shuffle()
       }
@@ -598,23 +639,29 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
               it.displaySettings.showDecoration,
               it.displaySettings.showBackground,
               it.displaySettings.backgroundColor,
-              if (it.displaySettings.name.startsWith("Top")) DisplayPositioning.TOP else it.displaySettings.displayPositioning)
+              if (it.displaySettings.name.startsWith("Top")) DisplayPositioning.TOP
+              else it.displaySettings.displayPositioning
+            )
         }
       }
       .sortByDisplayAndSourcePosition()
       .map { it.composableMethodFqn }
       .toTypedArray()
       .let {
-        assertArrayEquals(arrayOf("TestKt.TopA", "TestKt.TopB", "TestKt.C", "TestKt.A", "TestKt.B"), it)
+        assertArrayEquals(
+          arrayOf("TestKt.TopA", "TestKt.TopB", "TestKt.C", "TestKt.A", "TestKt.B"),
+          it
+        )
       }
   }
 
   @Test
   fun testOrderingMultipreview() = runBlocking {
-    val composeTest = fixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val composeTest =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         import $PREVIEW_TOOLING_PACKAGE.Preview
         import $COMPOSABLE_ANNOTATION_FQN
 
@@ -664,10 +711,12 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
         @Many
         fun f(){
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
     AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
-      .toMutableList().apply {
+      .toMutableList()
+      .apply {
         // Randomize to make sure the ordering works
         shuffle()
       }
@@ -681,30 +730,50 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
               it.displaySettings.showDecoration,
               it.displaySettings.showBackground,
               it.displaySettings.backgroundColor,
-              if (it.displaySettings.name == "TopA") DisplayPositioning.TOP else it.displaySettings.displayPositioning)
+              if (it.displaySettings.name == "TopA") DisplayPositioning.TOP
+              else it.displaySettings.displayPositioning
+            )
         }
       }
       .sortByDisplayAndSourcePosition()
       .map { it.displaySettings.name }
       .toTypedArray()
       .let {
-        assertArrayEquals(arrayOf(
-          "TopA", // Preview with top priority
-          "C - Annot1 1", "C - Annot3 1", "C", // Previews of 'C'
-          "A - Annot2 1", "A", "A - Annot1 1", "A - Annot3 1", // Previews of 'A'
-          "TopA - Annot1 1", "TopA - Annot3 1", // Previews of 'TopA'
-          "f - Many 01", "f - Many 02", "f - Many 03", "f - Many 04", "f - Many 05",
-          "f - Many 06", "f - Many 07", "f - Many 08", "f - Many 09", "f - Many 10", // Previews of 'f'
-        ), it)
+        assertArrayEquals(
+          arrayOf(
+            "TopA", // Preview with top priority
+            "C - Annot1 1",
+            "C - Annot3 1",
+            "C", // Previews of 'C'
+            "A - Annot2 1",
+            "A",
+            "A - Annot1 1",
+            "A - Annot3 1", // Previews of 'A'
+            "TopA - Annot1 1",
+            "TopA - Annot3 1", // Previews of 'TopA'
+            "f - Many 01",
+            "f - Many 02",
+            "f - Many 03",
+            "f - Many 04",
+            "f - Many 05",
+            "f - Many 06",
+            "f - Many 07",
+            "f - Many 08",
+            "f - Many 09",
+            "f - Many 10", // Previews of 'f'
+          ),
+          it
+        )
       }
   }
 
   @Test
   fun testRepeatedPreviewAnnotations() = runBlocking {
-    val composeTest = fixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val composeTest =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         import $PREVIEW_TOOLING_PACKAGE.Preview
         import $COMPOSABLE_ANNOTATION_FQN
 
@@ -713,12 +782,21 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
         @Preview(name = "preview2", group = "groupA")
         fun Preview1() {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile))
-    assertTrue(computeOnBackground { AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile) })
+    assertTrue(
+      AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+    )
+    assertTrue(
+      computeOnBackground {
+        AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+      }
+    )
 
-    val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
+    val elements =
+      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+        .toList()
     assertEquals(2, elements.size)
     elements[0].let {
       assertEquals("Preview1 - preview1", it.displaySettings.name)
@@ -727,8 +805,10 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
 
       ReadAction.run<Throwable> {
         assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
-        assertEquals("@Preview(name = \"preview1\", widthDp = 2)",
-                     it.previewElementDefinitionPsi?.element?.text)
+        assertEquals(
+          "@Preview(name = \"preview1\", widthDp = 2)",
+          it.previewElementDefinitionPsi?.element?.text
+        )
       }
     }
 
@@ -740,18 +820,21 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
 
       ReadAction.run<Throwable> {
         assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
-        assertEquals("@Preview(name = \"preview2\", group = \"groupA\")",
-                     it.previewElementDefinitionPsi?.element?.text)
+        assertEquals(
+          "@Preview(name = \"preview2\", group = \"groupA\")",
+          it.previewElementDefinitionPsi?.element?.text
+        )
       }
     }
   }
 
   @Test
   fun testFindPreviewAnnotationsCache() = runBlocking {
-    val composeTest = fixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val composeTest =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         import $PREVIEW_TOOLING_PACKAGE.Devices
         import $PREVIEW_TOOLING_PACKAGE.Preview
         import $COMPOSABLE_ANNOTATION_FQN
@@ -761,12 +844,14 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
         fun Preview1() {
         }
 
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    val otherFile = fixture.addFileToProjectAndInvalidate(
-      "src/OtherFile.kt",
-      // language=kotlin
-      """
+    val otherFile =
+      fixture.addFileToProjectAndInvalidate(
+        "src/OtherFile.kt",
+        // language=kotlin
+        """
         import $PREVIEW_TOOLING_PACKAGE.Devices
         import $PREVIEW_TOOLING_PACKAGE.Preview
         import $COMPOSABLE_ANNOTATION_FQN
@@ -779,15 +864,21 @@ class AnnotationFileComposePreviewElementFinderTest(previewAnnotationPackage: St
         @[Composable Preview]
         fun OtherFilePreview2() {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
     repeat(3) {
-      val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
+      val elements =
+        AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+          .toList()
       assertEquals("Preview1", elements.single().displaySettings.name)
 
-      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
+      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+        .toList()
 
-      val elementsInOtherFile = AnnotationFilePreviewElementFinder.findPreviewMethods(project, otherFile.virtualFile).toList()
+      val elementsInOtherFile =
+        AnnotationFilePreviewElementFinder.findPreviewMethods(project, otherFile.virtualFile)
+          .toList()
       assertEquals("OtherFilePreview1", elementsInOtherFile[0].displaySettings.name)
       assertEquals("OtherFilePreview2", elementsInOtherFile[1].displaySettings.name)
 

@@ -53,9 +53,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-private fun ComposePreviewElement.annotationText(): String = ReadAction.compute<String, Throwable> {
-  previewElementDefinitionPsi?.element?.text ?: ""
-}
+private fun ComposePreviewElement.annotationText(): String =
+  ReadAction.compute<String, Throwable> { previewElementDefinitionPsi?.element?.text ?: "" }
 
 @RunWith(Parameterized::class)
 class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPackage: String) {
@@ -70,14 +69,19 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   private val previewToolingPackage = previewAnnotationPackage
 
   @get:Rule
-  val projectRule = ComposeProjectRule(previewAnnotationPackage = previewAnnotationPackage,
-                                       composableAnnotationPackage = composableAnnotationPackage)
+  val projectRule =
+    ComposeProjectRule(
+      previewAnnotationPackage = previewAnnotationPackage,
+      composableAnnotationPackage = composableAnnotationPackage
+    )
 
-  @get:Rule
-  val edtRule = EdtRule()
-  private val fixture get() = projectRule.fixture
-  private val project get() = projectRule.project
-  private val module get() = projectRule.fixture.module
+  @get:Rule val edtRule = EdtRule()
+  private val fixture
+    get() = projectRule.fixture
+  private val project
+    get() = projectRule.project
+  private val module
+    get() = projectRule.fixture.module
 
   @After
   fun teardown() {
@@ -89,7 +93,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   @Test
   fun `the psi model reads the preview annotation correctly`() = runBlocking {
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $composableAnnotationFqName
       import $previewToolingPackage.Preview
 
@@ -117,21 +122,39 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     """.trimIndent()
 
     val file = fixture.configureByText("Test.kt", fileContent)
-    val previews = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).toList()
+    val previews =
+      AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile)
+        .toList()
     ReadAction.run<Throwable> {
       previews[0].also { noParametersPreview ->
         val parsed =
-          PreviewPickerPropertyModel.fromPreviewElement(project, module, noParametersPreview.previewElementDefinitionPsi, NoOpTracker)
+          PreviewPickerPropertyModel.fromPreviewElement(
+            project,
+            module,
+            noParametersPreview.previewElementDefinitionPsi,
+            NoOpTracker
+          )
         assertNotNull(parsed.properties["", "name"])
         assertNull(parsed.properties.getOrNull("", "name2"))
       }
       previews[1].also { namedPreview ->
-        val parsed = PreviewPickerPropertyModel.fromPreviewElement(project, module, namedPreview.previewElementDefinitionPsi, NoOpTracker)
+        val parsed =
+          PreviewPickerPropertyModel.fromPreviewElement(
+            project,
+            module,
+            namedPreview.previewElementDefinitionPsi,
+            NoOpTracker
+          )
         assertEquals("named", parsed.properties["", "name"].value)
       }
       previews[3].also { namedPreviewFromConst ->
         val parsed =
-          PreviewPickerPropertyModel.fromPreviewElement(project, module, namedPreviewFromConst.previewElementDefinitionPsi, NoOpTracker)
+          PreviewPickerPropertyModel.fromPreviewElement(
+            project,
+            module,
+            namedPreviewFromConst.previewElementDefinitionPsi,
+            NoOpTracker
+          )
         assertEquals("Name from Const", parsed.properties["", "name"].value)
       }
     }
@@ -143,7 +166,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     Sdks.addLatestAndroidSdk(fixture.projectDisposable, module)
 
     @Language("kotlin")
-    val annotationWithParameters = """
+    val annotationWithParameters =
+      """
       import $composableAnnotationFqName
       import $previewToolingPackage.Preview
 
@@ -156,7 +180,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertUpdatingModelUpdatesPsiCorrectly(annotationWithParameters)
 
     @Language("kotlin")
-    val emptyAnnotation = """
+    val emptyAnnotation =
+      """
       import $composableAnnotationFqName
       import $previewToolingPackage.Preview
 
@@ -173,7 +198,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   @Test
   fun `supported parameters displayed correctly`() = runBlocking {
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $composableAnnotationFqName
       import $previewToolingPackage.Preview
 
@@ -199,7 +225,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   @Test
   fun `preview default values`() = runBlocking {
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $composableAnnotationFqName
       import $previewToolingPackage.Preview
 
@@ -217,7 +244,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals("Default (en-US)", model.properties["", "locale"].defaultValue)
     assertTrue(model.properties["", "apiLevel"].defaultValue!!.toInt() > 0)
 
-    // Note that uiMode and device, are displayed through a ComboBox option and don't actually display these values
+    // Note that uiMode and device, are displayed through a ComboBox option and don't actually
+    // display these values
     assertEquals("Undefined", model.properties["", "uiMode"].defaultValue)
     assertEquals("Default", model.properties["", "Device"].defaultValue)
 
@@ -241,7 +269,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   @Test
   fun fontScaleEditing() = runBlocking {
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $composableAnnotationFqName
       import $previewToolingPackage.Preview
 
@@ -252,7 +281,12 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
       """.trimIndent()
 
     val model = getFirstModel(fileContent)
-    val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, fixture.findFileInTempDir("Test.kt")).first()
+    val preview =
+      AnnotationFilePreviewElementFinder.findPreviewMethods(
+          fixture.project,
+          fixture.findFileInTempDir("Test.kt")
+        )
+        .first()
 
     fun checkFontScaleChange(newValue: String, expectedPropertyValue: String) {
       val expectedTextValue = expectedPropertyValue + 'f'
@@ -276,7 +310,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   @Test
   fun showBackgroundEditing() = runBlocking {
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $composableAnnotationFqName
       import $previewToolingPackage.Preview
 
@@ -287,7 +322,12 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
       """.trimIndent()
 
     val model = getFirstModel(fileContent)
-    val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, fixture.findFileInTempDir("Test.kt")).first()
+    val preview =
+      AnnotationFilePreviewElementFinder.findPreviewMethods(
+          fixture.project,
+          fixture.findFileInTempDir("Test.kt")
+        )
+        .first()
 
     fun checkShowBackgroundChange(newValue: String?, expectedPropertyValue: String?) {
       model.properties["", "showBackground"].value = newValue
@@ -310,7 +350,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   @Test
   fun `original order is preserved`() = runBlocking {
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $composableAnnotationFqName
       import $previewToolingPackage.Preview
 
@@ -360,27 +401,42 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals(14, testTracker.valuesRegistered.size)
     var index = 0
     // Device
-    assertEquals(PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[index++])
+    assertEquals(
+      PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED,
+      testTracker.valuesRegistered[index++]
+    )
 
     // Orientation
     assertEquals(PreviewPickerValue.ORIENTATION_PORTRAIT, testTracker.valuesRegistered[index++])
     assertEquals(PreviewPickerValue.ORIENTATION_LANDSCAPE, testTracker.valuesRegistered[index++])
-    assertEquals(PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE, testTracker.valuesRegistered[index++])
+    assertEquals(
+      PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE,
+      testTracker.valuesRegistered[index++]
+    )
 
     // Density
     assertEquals(PreviewPickerValue.DENSITY_XX_HIGH, testTracker.valuesRegistered[index++])
     assertEquals(PreviewPickerValue.DENSITY_XX_HIGH, testTracker.valuesRegistered[index++])
     assertEquals(PreviewPickerValue.DENSITY_X_HIGH, testTracker.valuesRegistered[index++])
     assertEquals(PreviewPickerValue.DENSITY_XXX_HIGH, testTracker.valuesRegistered[index++])
-    assertEquals(PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE, testTracker.valuesRegistered[index++])
+    assertEquals(
+      PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE,
+      testTracker.valuesRegistered[index++]
+    )
 
     // DimensionUnit
     assertEquals(PreviewPickerValue.UNIT_DP, testTracker.valuesRegistered[index++])
     assertEquals(PreviewPickerValue.UNIT_PIXELS, testTracker.valuesRegistered[index++])
-    assertEquals(PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE, testTracker.valuesRegistered[index++])
+    assertEquals(
+      PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE,
+      testTracker.valuesRegistered[index++]
+    )
 
     // Width/Height
-    assertEquals(PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[index++])
+    assertEquals(
+      PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED,
+      testTracker.valuesRegistered[index++]
+    )
     assertEquals(PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[index])
   }
 
@@ -390,10 +446,18 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(false)
     val (testTracker, model) = simpleTrackingTestSetup()
 
-    val deviceProperty = model.properties["", "Device"] // Which parameter doesn't matter in this context, but best to test with Device
-    val deviceOptions = DeviceEnumValueBuilder()
-      .addGenericById("My Generic", "my_generic") // This is an example of an option generated from the Device Manager
-      .includeDefaultsAndBuild().associateBy { it.display } // Easier to test
+    val deviceProperty =
+      model.properties[
+        "",
+        "Device"] // Which parameter doesn't matter in this context, but best to test with Device
+    val deviceOptions =
+      DeviceEnumValueBuilder()
+        .addGenericById(
+          "My Generic",
+          "my_generic"
+        ) // This is an example of an option generated from the Device Manager
+        .includeDefaultsAndBuild()
+        .associateBy { it.display } // Easier to test
 
     deviceOptions["Phone"]!!.select(deviceProperty)
     assertEquals("spec:shape=Normal,width=411,height=891,unit=dp,dpi=420", deviceProperty.value)
@@ -459,7 +523,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   @RunsInEdt
   @Test
   fun testDeviceTrackedPerModification() {
-    // We need the sdk to be able to figure out devices set by ID, including the initial/default device
+    // We need the sdk to be able to figure out devices set by ID, including the initial/default
+    // device
     Sdks.addLatestAndroidSdk(projectRule.fixture.projectDisposable, module)
     val (testTracker, model) = simpleTrackingTestSetup()
 
@@ -471,7 +536,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     model.properties["", "name"].value = "my name 2"
     model.properties["", "Device"].value = ReferencePhoneConfig.deviceSpec()
 
-    //Modifications under Reference Phone device
+    // Modifications under Reference Phone device
     model.properties["", "name"].value = "my name 3"
 
     assertEquals(5, testTracker.devicesRegistered.size)
@@ -485,16 +550,26 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   private suspend fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(false)
     val file = fixture.configureByText("Test.kt", fileContent)
-    val noParametersPreview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
-    val model = ReadAction.compute<PsiPropertyModel, Throwable> {
-      PreviewPickerPropertyModel.fromPreviewElement(project, module, noParametersPreview.previewElementDefinitionPsi, NoOpTracker)
-    }
-    var expectedModificationsCountdown = 21
-    model.addListener(object : PropertiesModelListener<PsiPropertyItem> {
-      override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>) {
-        expectedModificationsCountdown--
+    val noParametersPreview =
+      AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile)
+        .first()
+    val model =
+      ReadAction.compute<PsiPropertyModel, Throwable> {
+        PreviewPickerPropertyModel.fromPreviewElement(
+          project,
+          module,
+          noParametersPreview.previewElementDefinitionPsi,
+          NoOpTracker
+        )
       }
-    })
+    var expectedModificationsCountdown = 21
+    model.addListener(
+      object : PropertiesModelListener<PsiPropertyItem> {
+        override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>) {
+          expectedModificationsCountdown--
+        }
+      }
+    )
 
     model.properties["", "name"].value = "NoHello"
     // Try to override our previous write. Only the last one should persist
@@ -507,29 +582,37 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals("Hello", model.properties["", "name"].value)
     assertEquals("Group2", model.properties["", "group"].value)
     assertEquals("32", model.properties["", "widthDp"].value)
-    assertEquals("@Preview(name = \"Hello\", group = \"Group2\", widthDp = 32)", noParametersPreview.annotationText())
+    assertEquals(
+      "@Preview(name = \"Hello\", group = \"Group2\", widthDp = 32)",
+      noParametersPreview.annotationText()
+    )
 
     // Device parameters modifications
-    model.properties["", "Width"].value = "720" // In pixels, this change should populate 'device' parameter in annotation
+    model.properties["", "Width"].value =
+      "720" // In pixels, this change should populate 'device' parameter in annotation
     assertEquals(
       """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=720,height=891,unit=dp,dpi=420")""",
       noParametersPreview.annotationText()
     )
 
-    model.properties["", "DimensionUnit"].value = "px" // Should modify width and height in 'device' parameter
+    model.properties["", "DimensionUnit"].value =
+      "px" // Should modify width and height in 'device' parameter
     assertEquals(
       """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=1890,height=2339,unit=px,dpi=420")""",
       noParametersPreview.annotationText()
     )
 
-    model.properties["", "Density"].value = "240" // When changing back to pixels, the width and height should be different than originally
+    model.properties["", "Density"].value =
+      "240" // When changing back to pixels, the width and height should be different than
+    // originally
     model.properties["", "DimensionUnit"].value = "dp"
     assertEquals(
       """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=1260,height=1559,unit=dp,dpi=240")""",
       noParametersPreview.annotationText()
     )
 
-    model.properties["", "Orientation"].value = "landscape" // Changing orientation swaps width/height values
+    model.properties["", "Orientation"].value =
+      "landscape" // Changing orientation swaps width/height values
     assertEquals(
       """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=1559,height=1260,unit=dp,dpi=240")""",
       noParametersPreview.annotationText()
@@ -571,7 +654,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
 
     // Since there's no orientation parameter, it's implied from the width/height values
     assertEquals("landscape", model.properties["", "Orientation"].value)
-    // When changed, it has to be reflected explicitly in the spec, without affecting the width/height
+    // When changed, it has to be reflected explicitly in the spec, without affecting the
+    // width/height
     model.properties["", "Orientation"].value = "portrait"
     assertEquals(
       """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=2340px,height=1890px,dpi=240,orientation=portrait")""",
@@ -607,9 +691,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     try {
       model.properties["", "notexists"].value = "3"
       fail("Nonexistent property should throw NoSuchElementException")
-    }
-    catch (expected: NoSuchElementException) {
-    }
+    } catch (expected: NoSuchElementException) {}
 
     // Verify final values on model
     assertNull(model.properties["", "name"].value)
@@ -617,13 +699,15 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertNull(model.properties["", "widthDp"].value)
     // Verify final state of file
     assertEquals("@Preview", noParametersPreview.annotationText())
-    // Verify that every modification (setting, overwriting and deleting values) triggered the listener
+    // Verify that every modification (setting, overwriting and deleting values) triggered the
+    // listener
     assertEquals(0, expectedModificationsCountdown)
   }
 
   private fun simpleTrackingTestSetup(): Pair<TestTracker, PsiPropertyModel> {
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $composableAnnotationFqName
       import $previewToolingPackage.Preview
 
@@ -637,12 +721,22 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     return Pair(testTracker, model)
   }
 
-  private suspend fun getFirstModel(fileContent: String, tracker: ComposePickerTracker = NoOpTracker): PsiPropertyModel {
+  private suspend fun getFirstModel(
+    fileContent: String,
+    tracker: ComposePickerTracker = NoOpTracker
+  ): PsiPropertyModel {
     val file = fixture.configureByText("Test.kt", fileContent)
-    val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
+    val preview =
+      AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile)
+        .first()
     ConfigurationManager.getOrCreateInstance(module)
     return ReadAction.compute<PsiPropertyModel, Throwable> {
-      PreviewPickerPropertyModel.fromPreviewElement(project, module, preview.previewElementDefinitionPsi, tracker)
+      PreviewPickerPropertyModel.fromPreviewElement(
+        project,
+        module,
+        preview.previewElementDefinitionPsi,
+        tracker
+      )
     }
   }
 }

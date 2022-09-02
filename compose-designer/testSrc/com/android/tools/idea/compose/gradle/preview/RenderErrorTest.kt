@@ -35,20 +35,19 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import java.awt.BorderLayout
+import java.awt.Dimension
+import javax.swing.JPanel
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertTrue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
-import java.awt.BorderLayout
-import java.awt.Dimension
-import javax.swing.JPanel
 
 class RenderErrorTest {
 
-  @get:Rule
-  val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
   private val project: Project
     get() = projectRule.project
@@ -57,24 +56,38 @@ class RenderErrorTest {
 
   @Test
   fun testSceneViewHasRenderErrors() {
-    val mainFile = project.guessProjectDir()!!.findFileByRelativePath(SimpleComposeAppPaths.APP_RENDER_ERROR.path)!!
+    val mainFile =
+      project.guessProjectDir()!!.findFileByRelativePath(
+        SimpleComposeAppPaths.APP_RENDER_ERROR.path
+      )!!
     val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
     val composePreviewRepresentation: ComposePreviewRepresentation
 
     val previewView = TestComposePreviewView(fixture.testRootDisposable, project)
-    composePreviewRepresentation = ComposePreviewRepresentation(psiMainFile, object : PreviewElementProvider<ComposePreviewElement> {
-      override suspend fun previewElements(): Sequence<ComposePreviewElement> =
-        AnnotationFilePreviewElementFinder.findPreviewMethods(project, psiMainFile.virtualFile).asSequence()
-    }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _, _ -> previewView }
+    composePreviewRepresentation =
+      ComposePreviewRepresentation(
+        psiMainFile,
+        object : PreviewElementProvider<ComposePreviewElement> {
+          override suspend fun previewElements(): Sequence<ComposePreviewElement> =
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, psiMainFile.virtualFile)
+              .asSequence()
+        },
+        PreferredVisibility.SPLIT
+      ) { _, _, _, _, _, _, _, _, _ -> previewView }
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
 
     lateinit var fakeUi: FakeUi
     invokeAndWaitIfNeeded {
-      fakeUi = FakeUi(JPanel().apply {
-        layout = BorderLayout()
-        size = Dimension(1000, 800)
-        add(previewView, BorderLayout.CENTER)
-      }, 1.0, true)
+      fakeUi =
+        FakeUi(
+          JPanel().apply {
+            layout = BorderLayout()
+            size = Dimension(1000, 800)
+            add(previewView, BorderLayout.CENTER)
+          },
+          1.0,
+          true
+        )
       fakeUi.root.validate()
     }
     composePreviewRepresentation.onActivate()
@@ -91,12 +104,21 @@ class RenderErrorTest {
 
     val sceneViewPanelWithErrors = panels.single { it.displayName == "PreviewWithRenderErrors" }
     assertTrue(sceneViewPanelWithErrors.sceneView.hasRenderErrors())
-    val visibleErrorsPanel = TreeWalker(sceneViewPanelWithErrors).descendants().filterIsInstance<SceneViewErrorsPanel>().single()
+    val visibleErrorsPanel =
+      TreeWalker(sceneViewPanelWithErrors)
+        .descendants()
+        .filterIsInstance<SceneViewErrorsPanel>()
+        .single()
     assertTrue(visibleErrorsPanel.isVisible)
 
-    val sceneViewPanelWithoutErrors = panels.single { it.displayName == "PreviewWithoutRenderErrors" }
+    val sceneViewPanelWithoutErrors =
+      panels.single { it.displayName == "PreviewWithoutRenderErrors" }
     assertFalse(sceneViewPanelWithoutErrors.sceneView.hasRenderErrors())
-    val invisibleErrorsPanel = TreeWalker(sceneViewPanelWithoutErrors).descendants().filterIsInstance<SceneViewErrorsPanel>().single()
+    val invisibleErrorsPanel =
+      TreeWalker(sceneViewPanelWithoutErrors)
+        .descendants()
+        .filterIsInstance<SceneViewErrorsPanel>()
+        .single()
     assertFalse(invisibleErrorsPanel.isVisible)
   }
 }

@@ -24,6 +24,9 @@ import com.android.tools.idea.editors.fast.fastCompile
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import java.util.concurrent.CancellationException
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.random.Random
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -33,26 +36,24 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
-import java.util.concurrent.CancellationException
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.random.Random
 
 class FastPreviewUtilTest {
   val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val chain: TestRule = RuleChain.outerRule(projectRule)
-    .around(FastPreviewRule())
+  @get:Rule val chain: TestRule = RuleChain.outerRule(projectRule).around(FastPreviewRule())
 
   private val testFile: PsiFile by lazy {
-    projectRule.fixture.addFileToProject("src/Test.kt", """
+    projectRule.fixture.addFileToProject(
+      "src/Test.kt",
+      """
       fun testA() {
       }
 
       fun testB() {
         testA()
       }
-    """.trimIndent())
+    """.trimIndent()
+    )
   }
 
   @Test
@@ -65,21 +66,24 @@ class FastPreviewUtilTest {
   @Test
   fun `fast compile call cancellation`() {
     val blockingDaemon = BlockingDaemonClient()
-    val testPreviewManager = FastPreviewManager.getTestInstance(projectRule.project, { _, _, _, _ -> blockingDaemon }).also {
-      Disposer.register(projectRule.fixture.testRootDisposable, it)
-    }
+    val testPreviewManager =
+      FastPreviewManager.getTestInstance(projectRule.project, { _, _, _, _ -> blockingDaemon })
+        .also { Disposer.register(projectRule.fixture.testRootDisposable, it) }
 
     val launchedCompileRequests = AtomicInteger(0)
     runBlocking {
       // Launch and cancel the 50 calls. Verify that they are cancelled correctly.
       repeat(50) {
-        val job = launch(workerThread) {
-          try {
-            assertTrue(fastCompile(projectRule.testRootDisposable, testFile, testPreviewManager) is CompilationResult.CompilationAborted)
-          } catch (_: CancellationException) {
+        val job =
+          launch(workerThread) {
+            try {
+              assertTrue(
+                fastCompile(projectRule.testRootDisposable, testFile, testPreviewManager) is
+                  CompilationResult.CompilationAborted
+              )
+            } catch (_: CancellationException) {}
+            launchedCompileRequests.incrementAndGet()
           }
-          launchedCompileRequests.incrementAndGet()
-        }
         launch(workerThread) {
           delay(Random.nextLong(100, 1200))
           job.cancel()

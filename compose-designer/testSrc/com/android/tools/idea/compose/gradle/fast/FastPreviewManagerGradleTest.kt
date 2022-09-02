@@ -49,6 +49,10 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
+import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.concurrent.thread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -63,22 +67,20 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.io.File
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicLong
-import kotlin.concurrent.thread
 
 /**
- * This factory will instantiate [OutOfProcessCompilerDaemonClientImpl] for the given version.
- * This factory will try to find a daemon for the given specific version or fallback to a stable one if the specific one
- * is not found. For example, for `1.1.0-alpha02`, this factory will try to locate the jar for the daemon
- * `kotlin-compiler-daemon-1.1.0-alpha02.jar`. If not found, it will alternatively try `kotlin-compiler-daemon-1.1.0.jar` since
- * it should be compatible.
+ * This factory will instantiate [OutOfProcessCompilerDaemonClientImpl] for the given version. This
+ * factory will try to find a daemon for the given specific version or fallback to a stable one if
+ * the specific one is not found. For example, for `1.1.0-alpha02`, this factory will try to locate
+ * the jar for the daemon `kotlin-compiler-daemon-1.1.0-alpha02.jar`. If not found, it will
+ * alternatively try `kotlin-compiler-daemon-1.1.0.jar` since it should be compatible.
  */
-private fun defaultDaemonFactory(version: String,
-                                 project: Project,
-                                 log: Logger,
-                                 scope: CoroutineScope): CompilerDaemonClient {
+private fun defaultDaemonFactory(
+  version: String,
+  project: Project,
+  log: Logger,
+  scope: CoroutineScope
+): CompilerDaemonClient {
   return OutOfProcessCompilerDaemonClientImpl(version, scope, log)
 }
 
@@ -91,11 +93,9 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     val useEmbeddedCompilerValues = listOf(true, false)
   }
 
-  @get:Rule
-  val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
-  @get:Rule
-  val fastPreviewFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
+  @get:Rule val fastPreviewFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
 
   lateinit var psiMainFile: PsiFile
   lateinit var fastPreviewManager: FastPreviewManager
@@ -103,18 +103,18 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
   @Before
   fun setUp() {
     FastPreviewConfiguration.getInstance().isEnabled = true
-    val mainFile = projectRule.project.guessProjectDir()!!
-      .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
+    val mainFile =
+      projectRule.project.guessProjectDir()!!.findFileByRelativePath(
+        SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path
+      )!!
     psiMainFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(mainFile)!! }
-    fastPreviewManager = if (useEmbeddedCompiler)
-      FastPreviewManager.getInstance(projectRule.project)
-    else
-      FastPreviewManager.getTestInstance(projectRule.project, ::defaultDaemonFactory).also {
-        Disposer.register(projectRule.fixture.testRootDisposable, it)
-      }
-    invokeAndWaitIfNeeded {
-      projectRule.buildAndAssertIsSuccessful()
-    }
+    fastPreviewManager =
+      if (useEmbeddedCompiler) FastPreviewManager.getInstance(projectRule.project)
+      else
+        FastPreviewManager.getTestInstance(projectRule.project, ::defaultDaemonFactory).also {
+          Disposer.register(projectRule.fixture.testRootDisposable, it)
+        }
+    invokeAndWaitIfNeeded { projectRule.buildAndAssertIsSuccessful() }
     runWriteActionAndWait {
       projectRule.fixture.openFileInEditor(mainFile)
       WriteCommandAction.runWriteCommandAction(projectRule.project) {
@@ -132,9 +132,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
   @After
   fun tearDown() {
-    runBlocking {
-      fastPreviewManager.stopAllDaemons().join()
-    }
+    runBlocking { fastPreviewManager.stopAllDaemons().join() }
     LiveEditApplicationConfiguration.getInstance().resetDefault()
   }
 
@@ -165,8 +163,12 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
   @Test
   fun testFastPreviewEditChangeRender() {
-    val previewElement = SingleComposePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview")
-    val initialState = renderPreviewElement(projectRule.androidFacet(":app"), previewElement).get()!!
+    val previewElement =
+      SingleComposePreviewElementInstance.forTesting(
+        "google.simpleapplication.MainActivityKt.TwoElementsPreview"
+      )
+    val initialState =
+      renderPreviewElement(projectRule.androidFacet(":app"), previewElement).get()!!
 
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
     typeAndSaveDocument("Text(\"Hello 3\")\n")
@@ -178,23 +180,26 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     val finalState = renderPreviewElement(projectRule.androidFacet(":app"), previewElement).get()!!
     assertTrue(
       "Resulting image is expected to be at least 20% higher since a new text line was added",
-      finalState.height > initialState.height * 1.20)
+      finalState.height > initialState.height * 1.20
+    )
   }
 
   @Test
   fun testMultipleFilesCompileSuccessfully() {
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
     val psiSecondFile = runReadAction {
-      val vFile = projectRule.project.guessProjectDir()!!
-        .findFileByRelativePath("app/src/main/java/google/simpleapplication/OtherPreviews.kt")!!
+      val vFile =
+        projectRule.project.guessProjectDir()!!.findFileByRelativePath(
+          "app/src/main/java/google/simpleapplication/OtherPreviews.kt"
+        )!!
       PsiManager.getInstance(projectRule.project).findFile(vFile)!!
     }
     runBlocking {
-      val (result, outputPath) = fastPreviewManager.compileRequest(listOf(psiMainFile, psiSecondFile), module)
+      val (result, outputPath) =
+        fastPreviewManager.compileRequest(listOf(psiMainFile, psiSecondFile), module)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
-      val generatedFilesSet = withContext(diskIoThread) {
-        File(outputPath).toPath().toFileNameSet()
-      }
+      val generatedFilesSet =
+        withContext(diskIoThread) { File(outputPath).toPath().toFileNameSet() }
       assertTrue(generatedFilesSet.contains("OtherPreviewsKt.class"))
     }
   }
@@ -215,9 +220,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
       while (compile) {
         val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
         typeAndSaveDocument("Text(\"Hello 3\")\n")
-        runBlocking {
-          fastPreviewManager.compileRequest(psiMainFile, module)
-        }
+        runBlocking { fastPreviewManager.compileRequest(psiMainFile, module) }
         previewCompilations.incrementAndGet()
       }
     }
@@ -226,13 +229,18 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     val deviceThread = thread {
       val output = mutableListOf<AndroidLiveEditCodeGenerator.CodeGeneratorOutput>()
       val function = runReadAction {
-        psiMainFile.collectDescendantsOfType<KtNamedFunction>().first { it.name?.contains("TwoElementsPreview") ?: false }
+        psiMainFile.collectDescendantsOfType<KtNamedFunction>().first {
+          it.name?.contains("TwoElementsPreview") ?: false
+        }
       }
 
       startCountDownLatch.await()
       while (compile) {
-        AndroidLiveEditCodeGenerator(projectRule.project).compile(
-          listOf(AndroidLiveEditCodeGenerator.CodeGeneratorInput(psiMainFile, function)), output)
+        AndroidLiveEditCodeGenerator(projectRule.project)
+          .compile(
+            listOf(AndroidLiveEditCodeGenerator.CodeGeneratorInput(psiMainFile, function)),
+            output
+          )
         deviceCompilations.incrementAndGet()
       }
     }
@@ -244,7 +252,9 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
     // Wait for both threads to run the iterations.
     runBlocking {
-      while (deviceCompilations.get() < iterations || previewCompilations.get() < iterations) delay(200)
+      while (deviceCompilations.get() < iterations || previewCompilations.get() < iterations) delay(
+        200
+      )
       compile = false
     }
 
@@ -259,9 +269,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     try {
       val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
       typeAndSaveDocument("inlineCall()\n")
-      runWriteActionAndWait {
-        projectRule.fixture.moveCaret("|@Preview")
-      }
+      runWriteActionAndWait { projectRule.fixture.moveCaret("|@Preview") }
       runInEdtAndWait {
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Consume editor events
       }
@@ -269,7 +277,10 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
       runBlocking {
         val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
-        assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
+        assertTrue(
+          "Compilation must pass, failed with $result",
+          result == CompilationResult.Success
+        )
       }
     } finally {
       LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis = originalUseInlineAnalysis

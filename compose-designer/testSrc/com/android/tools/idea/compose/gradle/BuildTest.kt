@@ -40,22 +40,22 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.PsiUtil
 import com.intellij.testFramework.EdtRule
-import org.junit.Assert.assertEquals
+import java.io.File
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 // TODO(b/231401347): Move compose-agnostic testing to com.android.tools.idea.projectsystem.
 class BuildTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(TEST_DATA_PATH)
+  @get:Rule val projectRule = AndroidGradleProjectRule(TEST_DATA_PATH)
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private fun doTestHasBeenBuiltSuccessfully(project: Project, filePaths: List<String>) {
-    val activityFiles = filePaths.map { VfsUtil.findRelativeFile(it, ProjectRootManager.getInstance(project).contentRoots[0])!! }
+    val activityFiles =
+      filePaths.map {
+        VfsUtil.findRelativeFile(it, ProjectRootManager.getInstance(project).contentRoots[0])!!
+      }
     val psiFiles = activityFiles.map { runReadAction { PsiUtil.getPsiFile(project, it) } }
     val psiFilePointers = psiFiles.map { runReadAction { SmartPointerManager.createPointer(it) } }
 
@@ -74,9 +74,7 @@ class BuildTest {
     }
     // Ensure that the VFS is up to date, so the .class file is not cached when removed.
     ApplicationManager.getApplication().invokeAndWait {
-      runWriteAction {
-        VirtualFileManager.getInstance().syncRefresh()
-      }
+      runWriteAction { VirtualFileManager.getInstance().syncRefresh() }
     }
     assertTrue(psiFilePointers.none { hasBeenBuiltSuccessfully(it) })
     assertTrue(psiFiles.none { hasExistingClassFile(it) })
@@ -85,28 +83,55 @@ class BuildTest {
   @Test
   fun testHasBeenBuiltSuccessfully() {
     projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
-    doTestHasBeenBuiltSuccessfully(projectRule.project, listOf(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path))
-    doTestHasBeenBuiltSuccessfully(projectRule.project, listOf(SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path))
-    doTestHasBeenBuiltSuccessfully(projectRule.project, listOf(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
-                                                               SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path))
+    doTestHasBeenBuiltSuccessfully(
+      projectRule.project,
+      listOf(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)
+    )
+    doTestHasBeenBuiltSuccessfully(
+      projectRule.project,
+      listOf(SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path)
+    )
+    doTestHasBeenBuiltSuccessfully(
+      projectRule.project,
+      listOf(
+        SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
+        SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path
+      )
+    )
   }
 
   @Test
   fun testCompositeBuildsCorrectly() {
-    projectRule.load(COMPOSITE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION, preLoad = { projectRoot ->
-      // Copy SimpleComposableApplication to this project to be able to make a composite. The composite project settings.gradle
-      // will point to the SimpleComposableApplication
-      val simpleComposableAppPath = projectRule.resolveTestDataPath(SIMPLE_COMPOSE_PROJECT_PATH)
-      val destination = File(projectRoot, "SimpleComposeApplication")
-      FileUtil.copyDir(simpleComposableAppPath, destination)
-      defaultPatchPreparedProject(File(projectRule.project.basePath!!), null, null, DEFAULT_KOTLIN_VERSION, null, *listOf<File>().toTypedArray())
-    })
+    projectRule.load(
+      COMPOSITE_COMPOSE_PROJECT_PATH,
+      kotlinVersion = DEFAULT_KOTLIN_VERSION,
+      preLoad = { projectRoot ->
+        // Copy SimpleComposableApplication to this project to be able to make a composite. The
+        // composite project settings.gradle
+        // will point to the SimpleComposableApplication
+        val simpleComposableAppPath = projectRule.resolveTestDataPath(SIMPLE_COMPOSE_PROJECT_PATH)
+        val destination = File(projectRoot, "SimpleComposeApplication")
+        FileUtil.copyDir(simpleComposableAppPath, destination)
+        defaultPatchPreparedProject(
+          File(projectRule.project.basePath!!),
+          null,
+          null,
+          DEFAULT_KOTLIN_VERSION,
+          null,
+          *listOf<File>().toTypedArray()
+        )
+      }
+    )
     val project = projectRule.project
-    val activityFile = VfsUtil.findRelativeFile("SimpleComposeApplication/${SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path}",
-                                                ProjectRootManager.getInstance(project).contentRoots[0])!!
-    val psiFilePointer = ReadAction.compute<SmartPsiElementPointer<PsiFile>, Throwable> {
-      SmartPointerManager.createPointer(PsiUtil.getPsiFile(project, activityFile))
-    }
+    val activityFile =
+      VfsUtil.findRelativeFile(
+        "SimpleComposeApplication/${SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path}",
+        ProjectRootManager.getInstance(project).contentRoots[0]
+      )!!
+    val psiFilePointer =
+      ReadAction.compute<SmartPsiElementPointer<PsiFile>, Throwable> {
+        SmartPointerManager.createPointer(PsiUtil.getPsiFile(project, activityFile))
+      }
     runAndWaitForBuildToComplete(projectRule) { project.requestBuild(listOf(activityFile)) }
     assertTrue(hasBeenBuiltSuccessfully(psiFilePointer))
   }

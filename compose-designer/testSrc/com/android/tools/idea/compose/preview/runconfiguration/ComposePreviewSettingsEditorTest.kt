@@ -38,10 +38,12 @@ class ComposePreviewSettingsEditorTest : AndroidTestCase() {
     runConfiguration.setModule(myModule)
     settingsEditor.resetFrom(runConfiguration)
 
-    val modulesComboBox = TreeWalker(settingsEditor.component).descendants().filterIsInstance<ModulesComboBox>().first()
+    val modulesComboBox =
+      TreeWalker(settingsEditor.component).descendants().filterIsInstance<ModulesComboBox>().first()
     assertEquals(myModule, modulesComboBox.selectedModule)
 
-    val composableText = TreeWalker(settingsEditor.component).descendants().filterIsInstance<JBTextField>().first()
+    val composableText =
+      TreeWalker(settingsEditor.component).descendants().filterIsInstance<JBTextField>().first()
     assertEquals("my.composable.NameKt", composableText.text)
   }
 
@@ -49,10 +51,12 @@ class ComposePreviewSettingsEditorTest : AndroidTestCase() {
     assertNull(runConfiguration.composableMethodFqn)
     assertEmpty(runConfiguration.modules)
 
-    val modulesComboBox = TreeWalker(settingsEditor.component).descendants().filterIsInstance<ModulesComboBox>().first()
+    val modulesComboBox =
+      TreeWalker(settingsEditor.component).descendants().filterIsInstance<ModulesComboBox>().first()
     modulesComboBox.selectedModule = myModule
 
-    val composableText = TreeWalker(settingsEditor.component).descendants().filterIsInstance<JBTextField>().first()
+    val composableText =
+      TreeWalker(settingsEditor.component).descendants().filterIsInstance<JBTextField>().first()
     composableText.text = "my.composable.NameKt"
 
     settingsEditor.applyTo(runConfiguration)

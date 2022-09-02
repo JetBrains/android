@@ -35,20 +35,25 @@ private class FakeView(var _hasAnimations: Boolean) {
 }
 
 internal class ComposeSceneUpdateListenerTest {
-  private val logTracker = object : AnimationToolingUsageTracker {
-    val loggedEvents = mutableListOf<AnimationToolingEvent>()
-    override fun logEvent(event: AnimationToolingEvent): AndroidStudioEvent.Builder {
-      loggedEvents.add(event)
-      return AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.COMPOSE_ANIMATION_TOOLING)
-        .setComposeAnimationToolingEvent(event.build())
+  private val logTracker =
+    object : AnimationToolingUsageTracker {
+      val loggedEvents = mutableListOf<AnimationToolingEvent>()
+      override fun logEvent(event: AnimationToolingEvent): AndroidStudioEvent.Builder {
+        loggedEvents.add(event)
+        return AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.COMPOSE_ANIMATION_TOOLING)
+          .setComposeAnimationToolingEvent(event.build())
+      }
     }
-  }
 
-  val composable = SingleComposePreviewElementInstance("composableMethodName",
-                                                       PreviewDisplaySettings("A name", null, false, false, null), null, null,
-                                                       PreviewConfiguration.cleanAndGet()
-  )
+  val composable =
+    SingleComposePreviewElementInstance(
+      "composableMethodName",
+      PreviewDisplaySettings("A name", null, false, false, null),
+      null,
+      null,
+      PreviewConfiguration.cleanAndGet()
+    )
 
   @Test
   fun `check hasAnimations is updated and logged correctly in static mode`() {
@@ -56,8 +61,10 @@ internal class ComposeSceneUpdateListenerTest {
     val fakeView = FakeView(true)
     updateAnimationInspectorToolbarIcon(fakeView, previewManager, composable) { logTracker }
     assertTrue(composable.hasAnimations)
-    assertEquals("type: ANIMATION_INSPECTOR_AVAILABLE",
-                 logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) })
+    assertEquals(
+      "type: ANIMATION_INSPECTOR_AVAILABLE",
+      logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) }
+    )
 
     logTracker.loggedEvents.clear()
     fakeView._hasAnimations = false
@@ -67,8 +74,10 @@ internal class ComposeSceneUpdateListenerTest {
     fakeView._hasAnimations = true
     updateAnimationInspectorToolbarIcon(fakeView, previewManager, composable) { logTracker }
     assertTrue(composable.hasAnimations)
-    assertEquals("type: ANIMATION_INSPECTOR_AVAILABLE",
-                 logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) })
+    assertEquals(
+      "type: ANIMATION_INSPECTOR_AVAILABLE",
+      logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) }
+    )
   }
 
   @Test
@@ -79,16 +88,20 @@ internal class ComposeSceneUpdateListenerTest {
       updateAnimationInspectorToolbarIcon(fakeView, previewManager, composable) { logTracker }
     }
     // Only logged once
-    assertEquals("type: ANIMATION_INSPECTOR_AVAILABLE",
-                 logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) })
+    assertEquals(
+      "type: ANIMATION_INSPECTOR_AVAILABLE",
+      logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) }
+    )
 
     logTracker.loggedEvents.clear()
     fakeView._hasAnimations = false
     updateAnimationInspectorToolbarIcon(fakeView, previewManager, composable) { logTracker }
     fakeView._hasAnimations = true
     updateAnimationInspectorToolbarIcon(fakeView, previewManager, composable) { logTracker }
-    assertEquals("type: ANIMATION_INSPECTOR_AVAILABLE",
-                 logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) })
+    assertEquals(
+      "type: ANIMATION_INSPECTOR_AVAILABLE",
+      logTracker.loggedEvents.joinToString("\n") { TextFormat.shortDebugString(it.build()) }
+    )
   }
 
   @Test

@@ -32,20 +32,20 @@ import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.util.PsiTreeUtil
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class ComposePreviewRunConfigurationGradleTest {
 
-  private val noValidComposableErrorMessage = message("run.configuration.no.valid.composable.set", "")
+  private val noValidComposableErrorMessage =
+    message("run.configuration.no.valid.composable.set", "")
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule(TEST_DATA_PATH)
+  @get:Rule val projectRule = AndroidGradleProjectRule(TEST_DATA_PATH)
 
   @Before
   fun setUp() {
@@ -54,63 +54,101 @@ class ComposePreviewRunConfigurationGradleTest {
 
   @Test
   fun testValidatePreview_app_main() {
-    val errors = validatePreview(projectRule.project, SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path, expectedSetupResult = true)
+    val errors =
+      validatePreview(
+        projectRule.project,
+        SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
+        expectedSetupResult = true
+      )
     assertTrue(errors.isEmpty())
   }
 
   @Test
   fun testValidatePreview_app_androidTest() {
-    val errors = validatePreview(
-      projectRule.project, SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path,
-      expectedSetupResult = false
-    )
+    val errors =
+      validatePreview(
+        projectRule.project,
+        SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path,
+        expectedSetupResult = false
+      )
     assertTrue(errors.isNotEmpty())
     assertTrue(errors.any { it.message == noValidComposableErrorMessage })
   }
 
   @Test
   fun testValidatePreview_app_unitTest() {
-    val errors = validatePreview(projectRule.project, SimpleComposeAppPaths.APP_PREVIEWS_UNIT_TEST.path, expectedSetupResult = false)
+    val errors =
+      validatePreview(
+        projectRule.project,
+        SimpleComposeAppPaths.APP_PREVIEWS_UNIT_TEST.path,
+        expectedSetupResult = false
+      )
     assertTrue(errors.isNotEmpty())
     assertTrue(errors.any { it.message == noValidComposableErrorMessage })
   }
 
   @Test
   fun testValidatePreview_lib_main() {
-    val errors = validatePreview(projectRule.project, SimpleComposeAppPaths.LIB_PREVIEWS.path, expectedSetupResult = true)
+    val errors =
+      validatePreview(
+        projectRule.project,
+        SimpleComposeAppPaths.LIB_PREVIEWS.path,
+        expectedSetupResult = true
+      )
     assertTrue(errors.isEmpty())
   }
 
   @Test
   fun testValidatePreview_lib_androidTest() {
-    val errors = validatePreview(
-      projectRule.project, SimpleComposeAppPaths.LIB_PREVIEWS_ANDROID_TEST.path,
-      expectedSetupResult = false
-    )
+    val errors =
+      validatePreview(
+        projectRule.project,
+        SimpleComposeAppPaths.LIB_PREVIEWS_ANDROID_TEST.path,
+        expectedSetupResult = false
+      )
     assertTrue(errors.isNotEmpty())
     assertTrue(errors.any { it.message == noValidComposableErrorMessage })
   }
 
   @Test
   fun testValidatePreview_lib_unitTest() {
-    val errors = validatePreview(projectRule.project, SimpleComposeAppPaths.LIB_PREVIEWS_UNIT_TEST.path, expectedSetupResult = false)
+    val errors =
+      validatePreview(
+        projectRule.project,
+        SimpleComposeAppPaths.LIB_PREVIEWS_UNIT_TEST.path,
+        expectedSetupResult = false
+      )
     assertTrue(errors.isNotEmpty())
     assertTrue(errors.any { it.message == noValidComposableErrorMessage })
   }
 }
 
-private fun validatePreview(project: Project, filePath: String, expectedSetupResult: Boolean): MutableList<ValidationError> {
+private fun validatePreview(
+  project: Project,
+  filePath: String,
+  expectedSetupResult: Boolean
+): MutableList<ValidationError> {
   val previewRunConfigurationProducer = ComposePreviewRunConfigurationProducer()
-  val previewRunConfiguration = ComposePreviewRunConfiguration(project, ComposePreviewRunConfigurationType().configurationFactories[0])
+  val previewRunConfiguration =
+    ComposePreviewRunConfiguration(
+      project,
+      ComposePreviewRunConfigurationType().configurationFactories[0]
+    )
 
-  val vFile = VfsUtil.findRelativeFile(filePath, ProjectRootManager.getInstance(project).contentRoots[0])!!
+  val vFile =
+    VfsUtil.findRelativeFile(filePath, ProjectRootManager.getInstance(project).contentRoots[0])!!
   return runReadAction {
     val file = vFile.toPsiFile(project)
     // Always picking the last function in the file
     val previewFun = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).last()
     val context = ConfigurationContext(previewFun)
 
-    val setupResult = previewRunConfigurationProducer.setupConfigurationFromContext(previewRunConfiguration, context, Ref(previewFun))
+    val setupResult =
+      previewRunConfigurationProducer.setupConfigurationFromContext(
+        previewRunConfiguration,
+        context,
+        Ref(previewFun)
+      )
     assertEquals(expectedSetupResult, setupResult)
 
     previewRunConfiguration.validate(null)

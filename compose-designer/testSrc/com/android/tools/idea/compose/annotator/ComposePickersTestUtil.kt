@@ -28,13 +28,13 @@ internal fun CodeInsightTestFixture.findPsiFile(tempDirPath: String): PsiFile {
   return checkNotNull(PsiManager.getInstance(project).findFile(file))
 }
 
-internal fun <E: Any> CodeInsightTestFixture.registerLanguageExtensionPoint(
+internal fun <E : Any> CodeInsightTestFixture.registerLanguageExtensionPoint(
   extension: LanguageExtension<E>,
   implementation: E,
   language: Language
 ) {
-  ApplicationManager.getApplication().extensionArea.getExtensionPoint<LanguageExtensionPoint<E>>(extension.name).registerExtension(
-    LanguageExtensionPoint(language.id, implementation),
-    testRootDisposable
-  )
+  ApplicationManager.getApplication()
+    .extensionArea
+    .getExtensionPoint<LanguageExtensionPoint<E>>(extension.name)
+    .registerExtension(LanguageExtensionPoint(language.id, implementation), testRootDisposable)
 }

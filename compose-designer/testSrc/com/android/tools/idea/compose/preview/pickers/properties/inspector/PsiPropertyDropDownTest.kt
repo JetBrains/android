@@ -28,26 +28,23 @@ import com.android.tools.property.panel.impl.model.util.FakeComboBoxUI
 import com.android.tools.property.panel.impl.model.util.FakeEnumSupport
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
-import org.junit.ClassRule
-import org.junit.Rule
-import org.junit.Test
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
 
 internal class PsiPropertyDropDownTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Test
   fun testEnterInPopup() {
@@ -152,11 +149,11 @@ internal class PsiPropertyDropDownTest {
   }
 
   private fun getWrappedComboBox(comboBox: PsiPropertyDropDown): CommonComboBox<EnumValue, *> {
-    @Suppress("UNCHECKED_CAST")
-    return comboBox.components.single() as CommonComboBox<EnumValue, *>
+    @Suppress("UNCHECKED_CAST") return comboBox.components.single() as CommonComboBox<EnumValue, *>
   }
 
-  private val CommonComboBox<EnumValue, *>.selectedEnumValue get() = selectedItem as? EnumValue
+  private val CommonComboBox<EnumValue, *>.selectedEnumValue
+    get() = selectedItem as? EnumValue
 
   private fun isPopupVisible(dropDown: PsiPropertyDropDown): Boolean =
     getWrappedComboBox(dropDown).isPopupVisible
@@ -168,19 +165,18 @@ internal class PsiPropertyDropDownTest {
     return dropdown
   }
 
-  private fun createDropDown(property: PsiPropertyItem, enumSupport: EnumSupport): PsiPropertyDropDown {
+  private fun createDropDown(
+    property: PsiPropertyItem,
+    enumSupport: EnumSupport
+  ): PsiPropertyDropDown {
     val model = PsiDropDownModel(property, enumSupport)
     return createDropDown(model)
   }
 
   private fun wrapDropDownInKeyboardConsumer(dropDown: PsiPropertyDropDown): MyKeyboardConsumer =
-    MyKeyboardConsumer().apply {
-      add(dropDown)
-    }
+    MyKeyboardConsumer().apply { add(dropDown) }
 
-  /**
-   * Container that may consume ESCAPE keyboard events.
-   */
+  /** Container that may consume ESCAPE keyboard events. */
   private class MyKeyboardConsumer : JPanel() {
     private var _keyCount = 0
 
@@ -188,7 +184,12 @@ internal class PsiPropertyDropDownTest {
       get() = _keyCount
 
     init {
-      registerActionKey({ _keyCount++ }, KeyStrokes.ESCAPE, "escape", condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+      registerActionKey(
+        { _keyCount++ },
+        KeyStrokes.ESCAPE,
+        "escape",
+        condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+      )
     }
   }
 }

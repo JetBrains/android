@@ -33,27 +33,33 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-/**
- * Default Kotlin version used for Compose projects using this rule.
- */
+/** Default Kotlin version used for Compose projects using this rule. */
 const val DEFAULT_KOTLIN_VERSION = "1.7.0"
 
 /**
  * [TestRule] that implements the [before] and [after] setup specific for Compose rendering tests.
  */
-private class ComposeGradleProjectRuleImpl(private val projectPath: String,
-                                           private val kotlinVersion: String,
-                                           private val projectRule: AndroidGradleProjectRule) : NamedExternalResource() {
+private class ComposeGradleProjectRuleImpl(
+  private val projectPath: String,
+  private val kotlinVersion: String,
+  private val projectRule: AndroidGradleProjectRule
+) : NamedExternalResource() {
   override fun before(description: Description) {
     RenderService.shutdownRenderExecutor(5)
     RenderService.initializeRenderExecutor()
-    RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
+    RenderService.setForTesting(
+      projectRule.project,
+      NoSecurityManagerRenderService(projectRule.project)
+    )
     projectRule.fixture.testDataPath = resolveWorkspacePath(TEST_DATA_PATH).toString()
     projectRule.load(projectPath, kotlinVersion)
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
-      Assert.assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
+      Assert.assertTrue(
+        "The project must compile correctly for the test to pass",
+        isBuildSuccessful
+      )
     }
   }
 
@@ -63,26 +69,29 @@ private class ComposeGradleProjectRuleImpl(private val projectPath: String,
 }
 
 /**
- * A [TestRule] providing the same behaviour as [AndroidGradleProjectRule] but with the correct setup for rendeering
- * Compose elements.
+ * A [TestRule] providing the same behaviour as [AndroidGradleProjectRule] but with the correct
+ * setup for rendeering Compose elements.
  */
-class ComposeGradleProjectRule(projectPath: String,
-                               kotlinVersion: String = DEFAULT_KOTLIN_VERSION,
-                               private val projectRule: AndroidGradleProjectRule = AndroidGradleProjectRule()) : TestRule {
+class ComposeGradleProjectRule(
+  projectPath: String,
+  kotlinVersion: String = DEFAULT_KOTLIN_VERSION,
+  private val projectRule: AndroidGradleProjectRule = AndroidGradleProjectRule()
+) : TestRule {
   val project: Project
     get() = projectRule.project
 
   val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
-  private val delegate = RuleChain
-    .outerRule(projectRule)
-    .around(ComposeGradleProjectRuleImpl(projectPath, kotlinVersion, projectRule))
-    .around(EdtRule())
+  private val delegate =
+    RuleChain.outerRule(projectRule)
+      .around(ComposeGradleProjectRuleImpl(projectPath, kotlinVersion, projectRule))
+      .around(EdtRule())
 
   fun androidFacet(gradlePath: String) = projectRule.androidFacet(gradlePath)
 
-  override fun apply(base: Statement, description: Description): Statement = delegate.apply(base, description)
+  override fun apply(base: Statement, description: Description): Statement =
+    delegate.apply(base, description)
 
   fun clean() = GradleBuildInvoker.getInstance(project).cleanProject()
   fun build(): GradleInvocationResult = projectRule.invokeTasks("compileDebugSources")

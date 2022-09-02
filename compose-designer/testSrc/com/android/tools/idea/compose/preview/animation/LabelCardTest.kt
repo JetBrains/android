@@ -18,9 +18,9 @@ package com.android.tools.idea.compose.preview.animation
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import org.junit.Test
 import java.awt.Dimension
 import kotlin.test.assertTrue
+import org.junit.Test
 
 class LabelCardTest {
 
@@ -44,7 +44,7 @@ class LabelCardTest {
         TestUtils.assertBigger(minimumSize, it.size)
       }
       // Uncomment to preview
-      //ui.render()
+      // ui.render()
     }
   }
 }

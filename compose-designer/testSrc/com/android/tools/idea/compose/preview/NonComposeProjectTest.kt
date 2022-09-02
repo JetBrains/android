@@ -22,28 +22,29 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Check that a non compose project does not have preview.
- */
+/** Check that a non compose project does not have preview. */
 class NonComposeProjectTest {
-  @get:Rule
-  val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
-  private val project get() = projectRule.project
-  private val fixture get() = projectRule.fixture
+  @get:Rule val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
+  private val project
+    get() = projectRule.project
+  private val fixture
+    get() = projectRule.fixture
 
   @Test
   fun `compose preview not available`() {
-    val file = fixture.addFileToProjectAndInvalidate(
-      "Main.kt",
-      // language=kotlin
-      """
+    val file =
+      fixture.addFileToProjectAndInvalidate(
+        "Main.kt",
+        // language=kotlin
+        """
         fun testMethod() {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    val previewProvider = ComposePreviewRepresentationProvider { AnnotationFilePreviewElementFinder }
-    runBlocking {
-      assertFalse(previewProvider.accept(project, file))
+    val previewProvider = ComposePreviewRepresentationProvider {
+      AnnotationFilePreviewElementFinder
     }
+    runBlocking { assertFalse(previewProvider.accept(project, file)) }
   }
 }

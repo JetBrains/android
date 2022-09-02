@@ -25,12 +25,12 @@ import com.android.tools.idea.compose.preview.pickers.properties.MutableDeviceCo
 import com.android.tools.idea.compose.preview.pickers.properties.Orientation
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
 import com.android.tools.idea.flags.StudioFlags
-import org.junit.After
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import org.junit.After
+import org.junit.Test
 
 internal class DeviceUtilsKtTest {
 
@@ -113,7 +113,10 @@ internal class DeviceUtilsKtTest {
     device = deviceFromDeviceSpec("spec:shape=Normal,width=300,height=200,unit=px,dpi=480")
     assertEquals(300, screenProvider().xDimension)
     assertEquals(200, screenProvider().yDimension)
-    assertEquals(ScreenOrientation.LANDSCAPE, orientationProvider()) // Orientation implied from dimensions
+    assertEquals(
+      ScreenOrientation.LANDSCAPE,
+      orientationProvider()
+    ) // Orientation implied from dimensions
 
     // From DeviceSpec Language
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
@@ -125,7 +128,10 @@ internal class DeviceUtilsKtTest {
     device = deviceFromDeviceSpec("spec:width=300px,height=200px")
     assertEquals(300, screenProvider().xDimension)
     assertEquals(200, screenProvider().yDimension)
-    assertEquals(ScreenOrientation.LANDSCAPE, orientationProvider()) // Orientation implied from dimensions
+    assertEquals(
+      ScreenOrientation.LANDSCAPE,
+      orientationProvider()
+    ) // Orientation implied from dimensions
 
     device = deviceFromDeviceSpec("spec:width=100px,height=200px,orientation=portrait")
     assertEquals(100, screenProvider().xDimension)
@@ -138,39 +144,56 @@ internal class DeviceUtilsKtTest {
   @Test
   fun deviceInstanceRoundAndChin() {
     // From DeviceConfig
-    var screen = DeviceConfig(
-      width = 100f,
-      height = 100f,
-      dimUnit = DimUnit.px,
-      shape = Shape.Round,
-      chinSize = 20f
-    ).createDeviceInstance().defaultHardware.screen
+    var screen =
+      DeviceConfig(
+          width = 100f,
+          height = 100f,
+          dimUnit = DimUnit.px,
+          shape = Shape.Round,
+          chinSize = 20f
+        )
+        .createDeviceInstance()
+        .defaultHardware
+        .screen
     assertEquals(ScreenRound.ROUND, screen.screenRound)
     assertEquals(20, screen.chin)
 
-    screen = DeviceConfig(
-      width = 100f,
-      height = 100f,
-      dimUnit = DimUnit.dp,
-      shape = Shape.Chin,
-      chinSize = 20f
-    ).createDeviceInstance().defaultHardware.screen
+    screen =
+      DeviceConfig(
+          width = 100f,
+          height = 100f,
+          dimUnit = DimUnit.dp,
+          shape = Shape.Chin,
+          chinSize = 20f
+        )
+        .createDeviceInstance()
+        .defaultHardware
+        .screen
     assertEquals(ScreenRound.ROUND, screen.screenRound)
     assertEquals(30, screen.chin) // When using Shape.Chin, chinSize is always 30
 
     // From DeviceSpec
-    screen = deviceFromDeviceSpec("spec:shape=Round,width=100,height=200,unit=px,dpi=300")!!.defaultHardware.screen
+    screen =
+      deviceFromDeviceSpec("spec:shape=Round,width=100,height=200,unit=px,dpi=300")!!
+        .defaultHardware
+        .screen
     assertEquals(ScreenRound.ROUND, screen.screenRound)
     assertEquals(0, screen.chin)
 
-    screen = deviceFromDeviceSpec("spec:shape=Chin,width=100,height=200,unit=px,dpi=300")!!.defaultHardware.screen
+    screen =
+      deviceFromDeviceSpec("spec:shape=Chin,width=100,height=200,unit=px,dpi=300")!!
+        .defaultHardware
+        .screen
     assertEquals(ScreenRound.ROUND, screen.screenRound)
     assertEquals(30, screen.chin)
 
     // From DeviceSpec Language
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
 
-    screen = deviceFromDeviceSpec("spec:width=100px,height=200px,isRound=true,chinSize=50px")!!.defaultHardware.screen
+    screen =
+      deviceFromDeviceSpec("spec:width=100px,height=200px,isRound=true,chinSize=50px")!!
+        .defaultHardware
+        .screen
     assertEquals(ScreenRound.ROUND, screen.screenRound)
     assertEquals(50, screen.chin)
 
@@ -191,7 +214,8 @@ internal class DeviceUtilsKtTest {
     assertNotNull(device2)
     val screen2 = device2.defaultHardware.screen
 
-    // Note: these dimensions are calculated with the closest Density bucket for dpi=300: XHDPI (320)
+    // Note: these dimensions are calculated with the closest Density bucket for dpi=300: XHDPI
+    // (320)
     assertEquals(200, screen2.xDimension)
     assertEquals(400, screen2.yDimension)
     assertEquals(320, screen2.pixelDensity.dpiValue) // Adjusted Density bucket
@@ -223,7 +247,8 @@ internal class DeviceUtilsKtTest {
 
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     // Device parameters should be the same as 'id1' with a different orientation
-    val deviceByParentId = existingDevices.findOrParseFromDefinition("spec:parent=id1,orientation=landscape")
+    val deviceByParentId =
+      existingDevices.findOrParseFromDefinition("spec:parent=id1,orientation=landscape")
     val screen2 = deviceByParentId!!.defaultHardware.screen
     // Devices defined by 'spec' are always Custom devices
     assertEquals("Custom", deviceByParentId.id)
@@ -241,18 +266,44 @@ private fun buildMockDevices(): List<Device> {
   // Assign it to name if even, otherwise as an id
   var nameOrIdCount = 0
   return listOf(
-    DeviceConfig(width = 1080f, height = 1920f, dimUnit = DimUnit.px, dpi = 320, shape = Shape.Normal),
-    DeviceConfig(width = 540f, height = 960f, dimUnit = DimUnit.px, dpi = 640, shape = Shape.Normal),
-    DeviceConfig(width = 1080f, height = 2280f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Normal),
-    DeviceConfig(width = 600f, height = 600f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Round)
-  ).map {
-    Device.Builder(it.createDeviceInstance()).also { builder ->
-      if (nameOrIdCount % 2 == 0) {
-        builder.setName("name${nameOrIdCount++}")
-      }
-      else {
-        builder.setId("id${nameOrIdCount++}")
-      }
-    }.build()
-  }
+      DeviceConfig(
+        width = 1080f,
+        height = 1920f,
+        dimUnit = DimUnit.px,
+        dpi = 320,
+        shape = Shape.Normal
+      ),
+      DeviceConfig(
+        width = 540f,
+        height = 960f,
+        dimUnit = DimUnit.px,
+        dpi = 640,
+        shape = Shape.Normal
+      ),
+      DeviceConfig(
+        width = 1080f,
+        height = 2280f,
+        dimUnit = DimUnit.px,
+        dpi = 480,
+        shape = Shape.Normal
+      ),
+      DeviceConfig(
+        width = 600f,
+        height = 600f,
+        dimUnit = DimUnit.px,
+        dpi = 480,
+        shape = Shape.Round
+      )
+    )
+    .map {
+      Device.Builder(it.createDeviceInstance())
+        .also { builder ->
+          if (nameOrIdCount % 2 == 0) {
+            builder.setName("name${nameOrIdCount++}")
+          } else {
+            builder.setId("id${nameOrIdCount++}")
+          }
+        }
+        .build()
+    }
 }

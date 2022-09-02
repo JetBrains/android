@@ -26,18 +26,26 @@ import org.junit.Test
 
 class ComposePreviewRepresentationProviderTest {
   @get:Rule
-  val projectRule = ComposeProjectRule(previewAnnotationPackage = "androidx.compose.ui.tooling.preview",
-                                       composableAnnotationPackage = "androidx.compose.runtime")
-  private val project get() = projectRule.project
-  private val fixture get() = projectRule.fixture
-  private val previewProvider = ComposePreviewRepresentationProvider { AnnotationFilePreviewElementFinder }
+  val projectRule =
+    ComposeProjectRule(
+      previewAnnotationPackage = "androidx.compose.ui.tooling.preview",
+      composableAnnotationPackage = "androidx.compose.runtime"
+    )
+  private val project
+    get() = projectRule.project
+  private val fixture
+    get() = projectRule.fixture
+  private val previewProvider = ComposePreviewRepresentationProvider {
+    AnnotationFilePreviewElementFinder
+  }
 
   @Test
   fun testDefaultLayout() {
-    val previewFile = fixture.addFileToProjectAndInvalidate(
-      "Preview.kt",
-      // language=kotlin
-      """
+    val previewFile =
+      fixture.addFileToProjectAndInvalidate(
+        "Preview.kt",
+        // language=kotlin
+        """
         import androidx.compose.ui.tooling.preview.Devices
         import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.runtime.Composable
@@ -51,11 +59,13 @@ class ComposePreviewRepresentationProviderTest {
         @Preview(name = "preview2", apiLevel = 12, group = "groupA", showBackground = true)
         fun Preview2() {
         }
-      """.trimIndent())
-    val composableFile = fixture.addFileToProjectAndInvalidate(
-      "Composable.kt",
-      // language=kotlin
-      """
+      """.trimIndent()
+      )
+    val composableFile =
+      fixture.addFileToProjectAndInvalidate(
+        "Composable.kt",
+        // language=kotlin
+        """
         import androidx.compose.ui.tooling.preview.Devices
         import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.runtime.Composable
@@ -67,38 +77,55 @@ class ComposePreviewRepresentationProviderTest {
         @Composable
         fun Composable2() {
         }
-      """.trimIndent())
-    val kotlinFile = fixture.addFileToProjectAndInvalidate(
-      "Kotlin.kt",
-      // language=kotlin
-      """
+      """.trimIndent()
+      )
+    val kotlinFile =
+      fixture.addFileToProjectAndInvalidate(
+        "Kotlin.kt",
+        // language=kotlin
+        """
         import androidx.compose.runtime.Composable
         import androidx.compose.ui.tooling.preview.Devices
         import androidx.compose.ui.tooling.preview.Preview
 
         fun helloMethod() {
         }
-      """.trimIndent())
-    val kotlinWithNoComposable = fixture.addFileToProjectAndInvalidate(
-      "RegularKotlin.kt",
-      // language=kotlin
-      """
+      """.trimIndent()
+      )
+    val kotlinWithNoComposable =
+      fixture.addFileToProjectAndInvalidate(
+        "RegularKotlin.kt",
+        // language=kotlin
+        """
         fun aKotlinMethod() {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
     runBlocking {
       assertTrue(previewProvider.accept(project, previewFile))
       assertTrue(previewProvider.accept(project, composableFile))
       assertTrue(previewProvider.accept(project, kotlinFile))
       assertTrue(previewProvider.accept(project, kotlinWithNoComposable))
     }
-    assertEquals(PreferredVisibility.SPLIT,
-                 getRepresentationForFile(previewFile, project, fixture, previewProvider).preferredInitialVisibility)
-    assertEquals(PreferredVisibility.SPLIT,
-                 getRepresentationForFile(composableFile, project, fixture, previewProvider).preferredInitialVisibility)
-    assertEquals(PreferredVisibility.HIDDEN,
-                 getRepresentationForFile(kotlinFile, project, fixture, previewProvider).preferredInitialVisibility)
-    assertEquals(PreferredVisibility.HIDDEN,
-                 getRepresentationForFile(kotlinWithNoComposable, project, fixture, previewProvider).preferredInitialVisibility)
+    assertEquals(
+      PreferredVisibility.SPLIT,
+      getRepresentationForFile(previewFile, project, fixture, previewProvider)
+        .preferredInitialVisibility
+    )
+    assertEquals(
+      PreferredVisibility.SPLIT,
+      getRepresentationForFile(composableFile, project, fixture, previewProvider)
+        .preferredInitialVisibility
+    )
+    assertEquals(
+      PreferredVisibility.HIDDEN,
+      getRepresentationForFile(kotlinFile, project, fixture, previewProvider)
+        .preferredInitialVisibility
+    )
+    assertEquals(
+      PreferredVisibility.HIDDEN,
+      getRepresentationForFile(kotlinWithNoComposable, project, fixture, previewProvider)
+        .preferredInitialVisibility
+    )
   }
 }

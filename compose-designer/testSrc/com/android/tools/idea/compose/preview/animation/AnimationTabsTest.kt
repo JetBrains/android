@@ -27,18 +27,17 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.tabs.TabInfo
+import javax.swing.JPanel
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JPanel
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 class AnimationTabsTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var parentDisposable: Disposable
 
@@ -49,11 +48,12 @@ class AnimationTabsTest {
     parentDisposable = Disposer.newDisposable()
     val model = runInEdtAndGet {
       NlModelBuilderUtil.model(
-        projectRule,
-        "layout",
-        "layout.xml",
-        ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
-      ).build()
+          projectRule,
+          "layout",
+          "layout.xml",
+          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
+        )
+        .build()
     }
     surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()
     surface.addModelWithoutRender(model)
@@ -96,15 +96,9 @@ class AnimationTabsTest {
 
       // Add three tabs.
       var closedInfo: TabInfo? = null
-      val firstInfo = TabInfo(JPanel()).also {
-        tabs.addTabWithCloseButton(it) { closedInfo = it }
-      }
-      val secondInfo = TabInfo(JPanel()).let {
-        tabs.addTabWithCloseButton(it) { closedInfo = it }
-      }
-      val thirdInfo = TabInfo(JPanel()).let {
-        tabs.addTabWithCloseButton(it) { closedInfo = it }
-      }
+      val firstInfo = TabInfo(JPanel()).also { tabs.addTabWithCloseButton(it) { closedInfo = it } }
+      val secondInfo = TabInfo(JPanel()).let { tabs.addTabWithCloseButton(it) { closedInfo = it } }
+      val thirdInfo = TabInfo(JPanel()).let { tabs.addTabWithCloseButton(it) { closedInfo = it } }
       val ui = FakeUi(tabs)
 
       // Close first tab.

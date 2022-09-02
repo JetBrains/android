@@ -1,8 +1,8 @@
 package com.android.tools.idea.compose.preview.animation.timeline
 
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import org.junit.Test
 
 class ElementStateTest {
   @Test

@@ -18,8 +18,6 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.projectsystem.BuildListener
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
@@ -35,15 +33,14 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import junit.framework.Assert.assertNull
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Relative paths to some useful files in the SimpleComposeApplication ([SIMPLE_COMPOSE_PROJECT_PATH]) test project
+ * Relative paths to some useful files in the SimpleComposeApplication (
+ * [SIMPLE_COMPOSE_PROJECT_PATH]) test project
  */
 internal enum class SimpleComposeAppPaths(val path: String) {
   APP_MAIN_ACTIVITY("app/src/main/java/google/simpleapplication/MainActivity.kt"),
@@ -54,92 +51,101 @@ internal enum class SimpleComposeAppPaths(val path: String) {
   APP_PREVIEWS_UNIT_TEST("app/src/test/java/google/simpleapplication/UnitPreviews.kt"),
   APP_SIMPLE_APPLICATION_DIR("app/src/test/java/google/simpleapplication"),
   LIB_PREVIEWS("lib/src/main/java/google/simpleapplicationlib/Previews.kt"),
-  LIB_PREVIEWS_ANDROID_TEST("lib/src/androidTest/java/google/simpleapplicationlib/AndroidPreviews.kt"),
+  LIB_PREVIEWS_ANDROID_TEST(
+    "lib/src/androidTest/java/google/simpleapplicationlib/AndroidPreviews.kt"
+  ),
   LIB_PREVIEWS_UNIT_TEST("lib/src/test/java/google/simpleapplicationlib/UnitPreviews.kt")
 }
 
 /**
- * List of variations of namespaces to be tested by the Compose tests. This is done
- * to support the name migration. We test the old/new preview annotation names with the
- * old/new composable annotation names.
+ * List of variations of namespaces to be tested by the Compose tests. This is done to support the
+ * name migration. We test the old/new preview annotation names with the old/new composable
+ * annotation names.
  */
-internal val namespaceVariations = listOf(
-  arrayOf("androidx.compose.ui.tooling.preview", "androidx.compose"),
-  arrayOf("androidx.compose.ui.tooling.preview", "androidx.compose.runtime")
-)
+internal val namespaceVariations =
+  listOf(
+    arrayOf("androidx.compose.ui.tooling.preview", "androidx.compose"),
+    arrayOf("androidx.compose.ui.tooling.preview", "androidx.compose.runtime")
+  )
 
 internal fun UFile.declaredMethods(): Sequence<UMethod> =
-  classes
-    .asSequence()
-    .flatMap { it.methods.asSequence() }
+  classes.asSequence().flatMap { it.methods.asSequence() }
 
 internal fun UFile.method(name: String): UMethod? =
-  declaredMethods()
-    .filter { it.name == name }
-    .singleOrNull()
+  declaredMethods().filter { it.name == name }.singleOrNull()
+
+/** Returns the [HighlightInfo] description adding the relative line number */
+internal fun HighlightInfo.descriptionWithLineNumber() =
+  ReadAction.compute<String, Throwable> {
+    "${StringUtil.offsetToLineNumber(highlighter!!.document.text, startOffset)}: ${description}"
+  }
 
 /**
- * Returns the [HighlightInfo] description adding the relative line number
+ * Runs the [action] and waits for a build to happen. It returns the number of builds triggered by
+ * [action].
  */
-internal fun HighlightInfo.descriptionWithLineNumber() = ReadAction.compute<String, Throwable> {
-  "${StringUtil.offsetToLineNumber(highlighter!!.document.text, startOffset)}: ${description}"
-}
+internal fun runAndWaitForBuildToComplete(
+  projectRule: AndroidGradleProjectRule,
+  action: () -> Unit
+) =
+  runBlocking(AndroidDispatchers.workerThread) {
+    val buildComplete = CompletableDeferred<Unit>()
+    val disposable =
+      Disposer.newDisposable(projectRule.fixture.testRootDisposable, "Build Listener disposable")
+    var readyToListen = false
+    try {
+      setupBuildListener(
+        projectRule.project,
+        object : BuildListener {
+          override fun startedListening() {
+            readyToListen = true
+          }
 
-/**
- * Runs the [action] and waits for a build to happen. It returns the number of builds triggered by [action].
- */
-internal fun runAndWaitForBuildToComplete(projectRule: AndroidGradleProjectRule, action: () -> Unit) = runBlocking(
-  AndroidDispatchers.workerThread) {
-  val buildComplete = CompletableDeferred<Unit>()
-  val disposable = Disposer.newDisposable(projectRule.fixture.testRootDisposable, "Build Listener disposable")
-  var readyToListen = false
-  try {
-    setupBuildListener(projectRule.project, object : BuildListener {
-      override fun startedListening() {
-        readyToListen = true
-      }
+          override fun buildFailed() {
+            if (!readyToListen) return
+            buildComplete.complete(Unit)
+          }
 
-      override fun buildFailed() {
-        if (!readyToListen) return
-        buildComplete.complete(Unit)
-      }
+          override fun buildSucceeded() {
+            if (!readyToListen) return
+            buildComplete.complete(Unit)
+          }
+        },
+        disposable
+      )
 
-      override fun buildSucceeded() {
-        if (!readyToListen) return
-        buildComplete.complete(Unit)
-      }
-    }, disposable)
-
-    action()
-    buildComplete.await()
+      action()
+      buildComplete.await()
+    } finally {
+      Disposer.dispose(disposable)
+    }
   }
-  finally {
-    Disposer.dispose(disposable)
-  }
-}
 
 /**
  * Simulates the initialization of an editor and returns the corresponding [PreviewRepresentation].
  */
-internal fun getRepresentationForFile(file: PsiFile,
-                                      project: Project,
-                                      fixture: CodeInsightTestFixture,
-                                      previewProvider: ComposePreviewRepresentationProvider): PreviewRepresentation {
+internal fun getRepresentationForFile(
+  file: PsiFile,
+  project: Project,
+  fixture: CodeInsightTestFixture,
+  previewProvider: ComposePreviewRepresentationProvider
+): PreviewRepresentation {
   ApplicationManager.getApplication().invokeAndWait {
-    runWriteAction {
-      fixture.configureFromExistingVirtualFile(file.virtualFile)
-    }
-    val textEditor = TextEditorProvider.getInstance().createEditor(project, file.virtualFile) as TextEditor
+    runWriteAction { fixture.configureFromExistingVirtualFile(file.virtualFile) }
+    val textEditor =
+      TextEditorProvider.getInstance().createEditor(project, file.virtualFile) as TextEditor
     Disposer.register(fixture.testRootDisposable, textEditor)
   }
 
-  val multiRepresentationPreview = MultiRepresentationPreview(file, fixture.editor,
-                                                              listOf(previewProvider),
-                                                              AndroidCoroutineScope(fixture.testRootDisposable))
+  val multiRepresentationPreview =
+    MultiRepresentationPreview(
+      file,
+      fixture.editor,
+      listOf(previewProvider),
+      AndroidCoroutineScope(fixture.testRootDisposable)
+    )
   Disposer.register(fixture.testRootDisposable, multiRepresentationPreview)
 
-  runBlocking {
-    multiRepresentationPreview.onInit()
-  }
+  runBlocking { multiRepresentationPreview.onInit() }
   return multiRepresentationPreview.currentRepresentation!!
 }

@@ -19,8 +19,10 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserDefinition
 import com.intellij.testFramework.ParsingTestCase
 
-class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpecParserDefinition()) {
-  override fun getTestDataPath() = TestUtils.resolveWorkspacePath("tools/adt/idea/compose-designer/testData").toString()
+class DeviceSpecParserTest :
+  ParsingTestCase("no_data_path_needed", "", DeviceSpecParserDefinition()) {
+  override fun getTestDataPath() =
+    TestUtils.resolveWorkspacePath("tools/adt/idea/compose-designer/testData").toString()
 
   private fun toParseTreeText(input: String): String {
     val psiFile = createPsiFile("in-memory", input)
@@ -86,7 +88,9 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
               DeviceSpecOrientationTImpl(ORIENTATION_T)
                 PsiElement(portrait)('portrait')
       """.trimIndent(),
-      toParseTreeText("spec: id=an_id,name=my_device_spec,width=200dp,height=200dp,orientation=portrait")
+      toParseTreeText(
+        "spec: id=an_id,name=my_device_spec,width=200dp,height=200dp,orientation=portrait"
+      )
     )
   }
 
@@ -118,18 +122,18 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
               PsiElement(=)('=')
               PsiElement(STRING_T)('my_device')
       """.trimIndent(),
-      toParseTreeText("""
+      toParseTreeText(
+        """
         spec:
           width=30dp,
           height=30px,
           name=my_device
-      """.trimIndent())
+      """.trimIndent()
+      )
     )
   }
 
-  /**
-   * Cases where a number is part of a string are parsed correctly depending on the context.
-   */
+  /** Cases where a number is part of a string are parsed correctly depending on the context. */
   fun testSpecWithNumberInIdOrName() {
     // ID, Name or parent with dimension value is considered a String token
     assertEquals(

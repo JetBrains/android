@@ -31,8 +31,11 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
 private fun PsiFile.findFunctionIdentifier(name: String): PsiElement {
-  val function = PsiTreeUtil.findChildrenOfType(this, KtNamedFunction::class.java).first { it.name == name }
-  return PsiTreeUtil.getChildrenOfType(function, LeafPsiElement::class.java)?.first { it.node.elementType == KtTokens.IDENTIFIER }!!
+  val function =
+    PsiTreeUtil.findChildrenOfType(this, KtNamedFunction::class.java).first { it.name == name }
+  return PsiTreeUtil.getChildrenOfType(function, LeafPsiElement::class.java)?.first {
+    it.node.elementType == KtTokens.IDENTIFIER
+  }!!
 }
 
 class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
@@ -51,17 +54,25 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
     StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
   }
 
-  override fun configureAdditionalModules(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
-                                          modules: MutableList<MyAdditionalModuleData>) {
+  override fun configureAdditionalModules(
+    projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
+    modules: MutableList<MyAdditionalModuleData>
+  ) {
     super.configureAdditionalModules(projectBuilder, modules)
-    addModuleWithAndroidFacet(projectBuilder, modules, "myLibrary", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
+    addModuleWithAndroidFacet(
+      projectBuilder,
+      modules,
+      "myLibrary",
+      AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+    )
   }
 
   fun testGetInfo() {
-    val file = myFixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val file =
+      myFixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
@@ -69,7 +80,8 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         @Preview
         fun Preview1() {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
     // a run line marker should be created since the function is a valid preview.
@@ -79,10 +91,11 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
   fun testGetInfoLibraryModule() {
     val modulePath = getAdditionalModulePath("myLibrary")
 
-    val file = myFixture.addFileToProjectAndInvalidate(
-      "$modulePath/src/main/java/com/example/mylibrary/TestLibraryFile.kt",
-      // language=kotlin
-      """
+    val file =
+      myFixture.addFileToProjectAndInvalidate(
+        "$modulePath/src/main/java/com/example/mylibrary/TestLibraryFile.kt",
+        // language=kotlin
+        """
         import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
@@ -90,7 +103,8 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         @Preview
         fun Preview1() {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
     // a run line marker should not be created since the function is located in a library module.
@@ -98,10 +112,11 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
   }
 
   fun testGetInfoMultipreview() {
-    val file = myFixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val file =
+      myFixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
@@ -112,7 +127,8 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         @MyAnnotation
         fun Preview1() {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
     // a run line marker should be created since the function is a valid preview.
@@ -120,10 +136,11 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
   }
 
   fun testGetInfoEmptyMultipreview() {
-    val file = myFixture.addFileToProjectAndInvalidate(
-      "src/Test.kt",
-      // language=kotlin
-      """
+    val file =
+      myFixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
         import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.Composable
 
@@ -133,18 +150,21 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         @MyNotPreviewAnnotation
         fun Preview1() {
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
-    // a run line marker should not be created since the annotation class is not annotated with Preview.
+    // a run line marker should not be created since the annotation class is not annotated with
+    // Preview.
     assertNull(contributor.getInfo(functionIdentifier))
   }
 
   fun testGetInfoInvalidComposePreview() {
-    val file = myFixture.addFileToProjectAndInvalidate(
-      "src/TestNotPreview.kt",
-      // language=kotlin
-      """
+    val file =
+      myFixture.addFileToProjectAndInvalidate(
+        "src/TestNotPreview.kt",
+        // language=kotlin
+        """
         import androidx.compose.Composable
         import androidx.compose.ui.tooling.preview.Preview
 
@@ -163,7 +183,8 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
           fun NestedPreview() {
           }
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
     val notPreview = file.findFunctionIdentifier("NotAPreview")
     // a run line marker should not be created since the function is not a valid preview.

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import org.junit.Test
 
 class AnimatedPropertyTest {
 
@@ -50,10 +50,13 @@ class AnimatedPropertyTest {
 
   @Test
   fun buildCurveWithStartEndPointsSet() {
-    var result = AnimatedProperty.Builder()
-      .add(2, ComposeUnit.Dp(10f))
-      .add(3, ComposeUnit.Dp(15f))
-      .setStartTimeMs(0).setEndTimeMs(4).build()
+    var result =
+      AnimatedProperty.Builder()
+        .add(2, ComposeUnit.Dp(10f))
+        .add(3, ComposeUnit.Dp(15f))
+        .setStartTimeMs(0)
+        .setEndTimeMs(4)
+        .build()
     assertNotNull(result)
     assertEquals(result.startMs, 0)
     assertEquals(result.endMs, 4)
@@ -112,7 +115,6 @@ class AnimatedPropertyTest {
     }
   }
 
-
   @Test
   fun buildRectWithExactlySameCurves() {
     val builder = AnimatedProperty.Builder()
@@ -167,7 +169,6 @@ class AnimatedPropertyTest {
       assertEquals(mapOf(10 to 6.0), it.points)
     }
   }
-
 
   @Test
   fun buildWithInvalidDimensions() {

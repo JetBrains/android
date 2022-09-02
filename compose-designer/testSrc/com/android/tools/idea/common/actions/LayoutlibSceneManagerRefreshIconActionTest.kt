@@ -29,15 +29,15 @@ import org.junit.Rule
 import org.junit.Test
 
 internal class LayoutlibSceneManagerRefreshIconActionTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
   private val project
     get() = projectRule.project
 
-  private fun LayoutlibSceneManagerRefreshIconAction.updateAndRun(runnable: (event: AnActionEvent) -> Unit) {
+  private fun LayoutlibSceneManagerRefreshIconAction.updateAndRun(
+    runnable: (event: AnActionEvent) -> Unit
+  ) {
     // Ensure all events have been processed
     UIUtil.dispatchAllInvocationEvents()
     val testEvent = TestActionEvent(this)
@@ -49,53 +49,45 @@ internal class LayoutlibSceneManagerRefreshIconActionTest {
   @Test
   fun `build triggers refresh update`() {
     val buildListener = mutableListOf<BuildListener>()
-    val action = LayoutlibSceneManagerRefreshIconAction.forTesting(project,
-                                                                   { },
-                                                                   { _, listener, _ -> buildListener.add(listener) },
-                                                                   projectRule.fixture.testRootDisposable)
-    action.updateAndRun {
-      assertFalse(it.presentation.isVisible)
-    }
+    val action =
+      LayoutlibSceneManagerRefreshIconAction.forTesting(
+        project,
+        {},
+        { _, listener, _ -> buildListener.add(listener) },
+        projectRule.fixture.testRootDisposable
+      )
+    action.updateAndRun { assertFalse(it.presentation.isVisible) }
 
     // Start build
     buildListener.forEach { it.buildStarted() }
-    action.updateAndRun {
-      assertTrue(it.presentation.isVisible)
-    }
+    action.updateAndRun { assertTrue(it.presentation.isVisible) }
 
     // Build failed
     buildListener.forEach { it.buildFailed() }
-    action.updateAndRun {
-      assertFalse(it.presentation.isVisible)
-    }
+    action.updateAndRun { assertFalse(it.presentation.isVisible) }
 
     // Start a second build
     buildListener.forEach { it.buildStarted() }
-    action.updateAndRun {
-      assertTrue(it.presentation.isVisible)
-    }
+    action.updateAndRun { assertTrue(it.presentation.isVisible) }
   }
 
   @RunsInEdt
   @Test
   fun `build triggers when scene manager refreshes`() {
     val renderListeners = mutableListOf<RenderListener>()
-    val action = LayoutlibSceneManagerRefreshIconAction.forTesting(project,
-                                                                   { renderListeners.add(it) },
-                                                                   { _, _, _ -> },
-                                                                   projectRule.fixture.testRootDisposable)
-    action.updateAndRun {
-      assertFalse(it.presentation.isVisible)
-    }
+    val action =
+      LayoutlibSceneManagerRefreshIconAction.forTesting(
+        project,
+        { renderListeners.add(it) },
+        { _, _, _ -> },
+        projectRule.fixture.testRootDisposable
+      )
+    action.updateAndRun { assertFalse(it.presentation.isVisible) }
 
     renderListeners.forEach { it.onRenderStarted() }
-    action.updateAndRun {
-      assertTrue(it.presentation.isVisible)
-    }
+    action.updateAndRun { assertTrue(it.presentation.isVisible) }
 
     renderListeners.forEach { it.onRenderCompleted() }
-    action.updateAndRun {
-      assertFalse(it.presentation.isVisible)
-    }
+    action.updateAndRun { assertFalse(it.presentation.isVisible) }
   }
 }

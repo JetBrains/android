@@ -12,39 +12,78 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-private data class TestSourceLocation(override val className: String,
-                                      override val methodName: String = "",
-                                      override val fileName: String = "",
-                                      override val lineNumber: Int = -1,
-                                      override val packageHash: Int = -1): SourceLocation
+private data class TestSourceLocation(
+  override val className: String,
+  override val methodName: String = "",
+  override val fileName: String = "",
+  override val lineNumber: Int = -1,
+  override val packageHash: Int = -1
+) : SourceLocation
+
 private fun ComposeViewInfo.serializeHits(x: Int, y: Int): String =
-  findHitWithDepth(x, y)
-    .sortedBy { it.first }
-    .joinToString("\n") { "${it.first}: ${it.second.sourceLocation.className}" }
+  findHitWithDepth(x, y).sortedBy { it.first }.joinToString("\n") {
+    "${it.first}: ${it.second.sourceLocation.className}"
+  }
 
 class ComposeViewInfoTest {
   @Test
   fun checkBoundHits() {
     val root =
-      ComposeViewInfo(TestSourceLocation("root"), PxBounds(0, 0, 1000, 300), children = listOf(
-        ComposeViewInfo(TestSourceLocation("child1"), PxBounds(0, 0, 0, 0), children = listOf()),
-        ComposeViewInfo(TestSourceLocation("child2"), PxBounds(100, 100, 500, 300), children = listOf(
-          ComposeViewInfo(TestSourceLocation("child2.2"), PxBounds(250, 250, 500, 300), children = listOf()))),
-        ComposeViewInfo(TestSourceLocation("child3"), PxBounds(400, 200, 1000, 300), children = listOf())))
+      ComposeViewInfo(
+        TestSourceLocation("root"),
+        PxBounds(0, 0, 1000, 300),
+        children =
+          listOf(
+            ComposeViewInfo(
+              TestSourceLocation("child1"),
+              PxBounds(0, 0, 0, 0),
+              children = listOf()
+            ),
+            ComposeViewInfo(
+              TestSourceLocation("child2"),
+              PxBounds(100, 100, 500, 300),
+              children =
+                listOf(
+                  ComposeViewInfo(
+                    TestSourceLocation("child2.2"),
+                    PxBounds(250, 250, 500, 300),
+                    children = listOf()
+                  )
+                )
+            ),
+            ComposeViewInfo(
+              TestSourceLocation("child3"),
+              PxBounds(400, 200, 1000, 300),
+              children = listOf()
+            )
+          )
+      )
 
-    assertTrue("2000, 2000 should not hit any components", root.findHitWithDepth(2000, 2000).isEmpty())
+    assertTrue(
+      "2000, 2000 should not hit any components",
+      root.findHitWithDepth(2000, 2000).isEmpty()
+    )
     assertEquals("0: root".trimMargin(), root.serializeHits(0, 0))
-    assertEquals("""0: root
-                   |1: child2""".trimMargin(), root.serializeHits(125, 125))
+    assertEquals(
+      """0: root
+                   |1: child2""".trimMargin(),
+      root.serializeHits(125, 125)
+    )
     assertEquals("child2", root.findDeepestHits(125, 125).single().sourceLocation.className)
-    assertEquals("""0: root
+    assertEquals(
+      """0: root
                    |1: child2
-                   |2: child2.2""".trimMargin(), root.serializeHits(260, 260))
+                   |2: child2.2""".trimMargin(),
+      root.serializeHits(260, 260)
+    )
     assertEquals("child2.2", root.findDeepestHits(260, 260).single().sourceLocation.className)
-    assertEquals("""0: root
+    assertEquals(
+      """0: root
                    |1: child2
                    |1: child3
-                   |2: child2.2""".trimMargin(), root.serializeHits(450, 260))
+                   |2: child2.2""".trimMargin(),
+      root.serializeHits(450, 260)
+    )
     assertEquals("child2.2", root.findDeepestHits(450, 260).single().sourceLocation.className)
   }
 

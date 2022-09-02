@@ -19,18 +19,17 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.ui.ComboBox
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito.mock
 import java.awt.Graphics2D
 import javax.swing.JSlider
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mockito.mock
 
 class InspectorPainterTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun zeroWidth() {
@@ -75,8 +74,7 @@ class InspectorPainterTest {
   @Test
   fun paintThumbForHorizSlider() {
     val g = mock(Graphics2D::class.java)
-    InspectorPainter.Thumb.paintThumbForHorizSlider(
-      g, 0, 0, 100)
+    InspectorPainter.Thumb.paintThumbForHorizSlider(g, 0, 0, 100)
   }
 
   @Test
@@ -99,9 +97,17 @@ class InspectorPainterTest {
   fun createStartEndComboBoxes() {
     var callbacks = 0
     val comboBoxOne: InspectorPainter.StateComboBox =
-      InspectorPainter.StartEndComboBox(mock(DesignSurface::class.java), logger = {}, callback = { callbacks++ })
+      InspectorPainter.StartEndComboBox(
+        mock(DesignSurface::class.java),
+        logger = {},
+        callback = { callbacks++ }
+      )
     val comboBoxTwo: InspectorPainter.StateComboBox =
-      InspectorPainter.StartEndComboBox(mock(DesignSurface::class.java), logger = {}, callback = { callbacks++ })
+      InspectorPainter.StartEndComboBox(
+        mock(DesignSurface::class.java),
+        logger = {},
+        callback = { callbacks++ }
+      )
     val boxes = InspectorPainter.StateComboBoxes(listOf(comboBoxOne, comboBoxTwo))
 
     // All StateComboBox have the same state.
@@ -185,8 +191,7 @@ class InspectorPainterTest {
 
   @Test
   fun createEmptyComboBox() {
-    val comboBox: InspectorPainter.StateComboBox =
-      InspectorPainter.EmptyComboBox()
+    val comboBox: InspectorPainter.StateComboBox = InspectorPainter.EmptyComboBox()
     assertNotNull(comboBox.component)
   }
 }

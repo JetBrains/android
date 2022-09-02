@@ -19,7 +19,6 @@ import com.android.testutils.JarTestSuiteRunner
 import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith
 
-
 @RunWith(JarTestSuiteRunner::class)
 @JarTestSuiteRunner.ExcludeClasses(ComposePreviewTestSuite::class)
 class ComposePreviewTestSuite : IdeaTestSuiteBase() {
@@ -27,7 +26,9 @@ class ComposePreviewTestSuite : IdeaTestSuiteBase() {
     init {
       linkIntoOfflineMavenRepo("tools/adt/idea/compose-designer/test_deps.manifest")
       unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
-      linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest")
+      linkIntoOfflineMavenRepo(
+        "tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest"
+      )
       linkIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.manifest")
     }
   }

@@ -32,6 +32,8 @@ import com.android.tools.property.panel.api.HeaderEnumValue
 import com.intellij.openapi.module.Module
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubConfigurationAsLibrary
@@ -43,11 +45,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 @Language("XML")
-private const val STRINGS_CONTENT = """<?xml version="1.0" encoding="utf-8"?>
+private const val STRINGS_CONTENT =
+  """<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">my app</string>
 </resources>
@@ -64,11 +65,9 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
 
   private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
 
-  @get:Rule
-  val rule = AndroidProjectRule.inMemory()
+  @get:Rule val rule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val module: Module
     get() = rule.fixture.module
@@ -84,23 +83,28 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
   fun testValuesProvider() {
     rule.fixture.stubConfigurationAsLibrary()
 
-    val manifest = rule.fixture.addFileToProjectAndInvalidate(SdkConstants.FN_ANDROID_MANIFEST_XML, "")
-    rule.fixture.addFileToProjectAndInvalidate("res/values/strings.xml", STRINGS_CONTENT) // Should not affect locale options
+    val manifest =
+      rule.fixture.addFileToProjectAndInvalidate(SdkConstants.FN_ANDROID_MANIFEST_XML, "")
+    rule.fixture.addFileToProjectAndInvalidate(
+      "res/values/strings.xml",
+      STRINGS_CONTENT
+    ) // Should not affect locale options
     rule.fixture.addFileToProjectAndInvalidate("res/values-es-rES/strings.xml", STRINGS_CONTENT)
     rule.fixture.addFileToProjectAndInvalidate("res/values-en-rUS/strings.xml", STRINGS_CONTENT)
     rule.fixture.addFileToProjectAndInvalidate("res/values-en-rGB/strings.xml", STRINGS_CONTENT)
     SourceProviderManager.replaceForTest(
       module.androidFacet!!,
       rule.fixture.projectDisposable,
-      NamedIdeaSourceProviderBuilder.create(
-        "main", manifest.virtualFile.url
-      ).withResDirectoryUrls(listOf(rule.fixture.findFileInTempDir("res").url)).build()
+      NamedIdeaSourceProviderBuilder.create("main", manifest.virtualFile.url)
+        .withResDirectoryUrls(listOf(rule.fixture.findFileInTempDir("res").url))
+        .build()
     )
 
     val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(module, null)
     val uiModeValues = valuesProvider.getValuesProvider("uiMode")!!.invoke()
     assertEquals(10, uiModeValues.size)
-    // The Normal mode should go right after the header, remaining options are sorted on their resolved value
+    // The Normal mode should go right after the header, remaining options are sorted on their
+    // resolved value
     assertEquals("Not Night", (uiModeValues[0] as HeaderEnumValue).header)
     assertEquals("Normal", uiModeValues[1].display)
     assertEquals("Undefined", uiModeValues[2].display)
@@ -110,7 +114,10 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("Normal", uiModeValues[6].display)
 
     val deviceValues = valuesProvider.getValuesProvider("Device")!!.invoke()
-    assertEquals(18, deviceValues.size) // 4 headers + 3 separators + 11 devices (4 Reference, 3 Wear, 3 TV, 1 Auto)
+    assertEquals(
+      18,
+      deviceValues.size
+    ) // 4 headers + 3 separators + 11 devices (4 Reference, 3 Wear, 3 TV, 1 Auto)
     // Generic devices are not shown since they are empty when running on test
     assertEquals("Reference Devices", (deviceValues[0] as HeaderEnumValue).header)
     assertEquals("Phone", deviceValues[1].display)
@@ -156,7 +163,8 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(module, null)
     val uiModeValues = valuesProvider.getValuesProvider("uiMode")!!.invoke()
     assertEquals(18, uiModeValues.size)
-    // We only care of the order of the first 2 options, all else are sorted on their value and their availability depends on the sdk used
+    // We only care of the order of the first 2 options, all else are sorted on their value and
+    // their availability depends on the sdk used
     assertEquals("Not Night", (uiModeValues[0] as HeaderEnumValue).header)
     assertEquals("Normal", uiModeValues[1].display) // Preferred first option
     assertEquals("Undefined", uiModeValues[2].display) // Has lowest value (0)
@@ -179,7 +187,8 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("Auto", deviceHeaders[6].header)
     assertEquals("Generic Devices", deviceHeaders[7].header)
 
-    // With Sdk verify that Wear, Tv and Auto have actual devices (their value start with "id:" instead of "spec:")
+    // With Sdk verify that Wear, Tv and Auto have actual devices (their value start with "id:"
+    // instead of "spec:")
     val wearIndex = deviceEnumValues.indexOfFirst { it is HeaderEnumValue && it.header == "Wear" }
     assertTrue(deviceEnumValues[wearIndex + 1].value!!.startsWith("id:"))
 
@@ -197,12 +206,15 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
   @RunsInEdt
   @Test
   fun testGroupValuesProvider() {
-    rule.fixture.stubComposableAnnotation() // Package does not matter, we are not testing the Composable annotation
+    rule.fixture
+      .stubComposableAnnotation() // Package does not matter, we are not testing the Composable
+    // annotation
     rule.fixture.stubPreviewAnnotation(COMPOSE_UI_TOOLING_PREVIEW_PACKAGE)
-    val file = rule.fixture.addFileToProjectAndInvalidate(
-      "Test.kt",
-      // language=kotlin
-      """
+    val file =
+      rule.fixture.addFileToProjectAndInvalidate(
+        "Test.kt",
+        // language=kotlin
+        """
         import androidx.compose.Composable
         import $PREVIEW_TOOLING_PACKAGE.Preview
 
@@ -217,13 +229,14 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
         @Preview(group = "group2")
         @Composable
         fun preview3() {}
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(module, file.virtualFile)
+    val valuesProvider =
+      PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(module, file.virtualFile)
     val groupEnumValues = valuesProvider.getValuesProvider("group")!!.invoke()
     assertEquals(2, groupEnumValues.size)
     assertEquals("group1", groupEnumValues[0].display)
     assertEquals("group2", groupEnumValues[1].display)
   }
-
 }

@@ -18,13 +18,19 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.intellij.psi.PsiFile
 
-class TestComposePreviewManager(initialInteractiveMode: ComposePreviewManager.InteractiveMode = ComposePreviewManager.InteractiveMode.DISABLED) : ComposePreviewManager {
+class TestComposePreviewManager(
+  initialInteractiveMode: ComposePreviewManager.InteractiveMode =
+    ComposePreviewManager.InteractiveMode.DISABLED
+) : ComposePreviewManager {
 
-  var currentStatus = ComposePreviewManager.Status(hasRuntimeErrors = false,
-                                                   hasSyntaxErrors = false,
-                                                   isOutOfDate = false,
-                                                   isRefreshing = false,
-                                                   interactiveMode = initialInteractiveMode)
+  var currentStatus =
+    ComposePreviewManager.Status(
+      hasRuntimeErrors = false,
+      hasSyntaxErrors = false,
+      isOutOfDate = false,
+      isRefreshing = false,
+      interactiveMode = initialInteractiveMode
+    )
   var interactiveMode: ComposePreviewManager.InteractiveMode = initialInteractiveMode
     set(value) {
       field = value

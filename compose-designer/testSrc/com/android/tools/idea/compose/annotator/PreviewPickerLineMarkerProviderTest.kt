@@ -32,6 +32,8 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.apache.commons.lang.StringUtils
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
@@ -43,11 +45,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 @RunWith(Parameterized::class)
-class PreviewPickerLineMarkerProviderTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
+class PreviewPickerLineMarkerProviderTest(
+  previewAnnotationPackage: String,
+  composableAnnotationPackage: String
+) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
@@ -61,15 +64,16 @@ class PreviewPickerLineMarkerProviderTest(previewAnnotationPackage: String, comp
   private val filePath = "src/main/Test.kt"
 
   @get:Rule
-  val rule = ComposeProjectRule(
-    previewAnnotationPackage = previewAnnotationPackage,
-    composableAnnotationPackage = composableAnnotationPackage
-  )
+  val rule =
+    ComposeProjectRule(
+      previewAnnotationPackage = previewAnnotationPackage,
+      composableAnnotationPackage = composableAnnotationPackage
+    )
 
-  private val fixture get() = rule.fixture
+  private val fixture
+    get() = rule.fixture
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Before
   fun setup() {
@@ -78,7 +82,11 @@ class PreviewPickerLineMarkerProviderTest(previewAnnotationPackage: String, comp
     StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
     ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled = true
     (rule.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    fixture.registerLanguageExtensionPoint(LineMarkerProviders.getInstance(), PreviewPickerLineMarkerProvider(), KotlinLanguage.INSTANCE)
+    fixture.registerLanguageExtensionPoint(
+      LineMarkerProviders.getInstance(),
+      PreviewPickerLineMarkerProvider(),
+      KotlinLanguage.INSTANCE
+    )
 
     fixture.addFileToProject(
       filePath,
@@ -104,7 +112,8 @@ class PreviewPickerLineMarkerProviderTest(previewAnnotationPackage: String, comp
         )
         @Composable
         fun preview1() {}
-      """.trimIndent())
+      """.trimIndent()
+    )
   }
 
   @After
@@ -124,13 +133,16 @@ class PreviewPickerLineMarkerProviderTest(previewAnnotationPackage: String, comp
     getAndAssertPreviewLineMarkers()
 
     fixture.moveCaret("\"my group\"\n)|\n@Composable")
-    // The Modifier should still hold even after adding whitespace, and the LineMarker should be available
+    // The Modifier should still hold even after adding whitespace, and the LineMarker should be
+    // available
     fixture.type('\n')
     fixture.type('\n')
 
     fixture.doHighlighting()
     val previewLineMarkerInfos = getAndAssertPreviewLineMarkers()
-    listOf(psiFile.findPreviewAnnotation(2), psiFile.findPreviewAnnotation(4)).forEachIndexed { idx, validAnnotation ->
+    listOf(psiFile.findPreviewAnnotation(2), psiFile.findPreviewAnnotation(4)).forEachIndexed {
+      idx,
+      validAnnotation ->
       assertEquals(validAnnotation.startOffset, previewLineMarkerInfos[idx].startOffset)
       assertEquals(validAnnotation.endOffset, previewLineMarkerInfos[idx].endOffset)
       assertEquals(COMPOSE_PREVIEW_ANNOTATION_NAME, previewLineMarkerInfos[idx].element!!.text)
@@ -151,7 +163,9 @@ class PreviewPickerLineMarkerProviderTest(previewAnnotationPackage: String, comp
     assertMissingLineMarker()
 
     fixture.moveCaret("spec:shape=Normal|\"")
-    fixture.type(",width=1080,height=1920,unit=px,dpi=480") // Type the rest of a correct Device spec.
+    fixture.type(
+      ",width=1080,height=1920,unit=px,dpi=480"
+    ) // Type the rest of a correct Device spec.
     fixture.doHighlighting()
     getAndAssertPreviewLineMarkers()
   }
@@ -164,19 +178,31 @@ class PreviewPickerLineMarkerProviderTest(previewAnnotationPackage: String, comp
     val previewLineMarkerInfos = getPreviewLineMarkers()
 
     assertEquals(2, previewLineMarkerInfos.size)
-    assertTrue(previewLineMarkerInfos.all { "Preview Picker" == it.createGutterRenderer().clickAction!!.templateText })
+    assertTrue(
+      previewLineMarkerInfos.all {
+        "Preview Picker" == it.createGutterRenderer().clickAction!!.templateText
+      }
+    )
     return previewLineMarkerInfos
   }
 
   private fun getPreviewLineMarkers(): List<LineMarkerInfo<*>> =
-    DaemonCodeAnalyzerImpl.getLineMarkers(fixture.editor.document, rule.project).filter { lineMarkerInfo ->
+    DaemonCodeAnalyzerImpl.getLineMarkers(fixture.editor.document, rule.project).filter {
+      lineMarkerInfo ->
       lineMarkerInfo.lineMarkerTooltip == "Preview configuration picker"
     }
 }
 
-private fun PsiFile.findPreviewAnnotation(ordinal: Int): PsiElement =
-  runInEdtAndGet {
-    // The element should start after the '@' so add 1 to the offset
-    val indexOfElement = StringUtils.ordinalIndexOf(text, "@$COMPOSE_PREVIEW_ANNOTATION_NAME", ordinal) + 1
-    checkNotNull(PsiTreeUtil.findElementOfClassAtOffset(this, indexOfElement, KtNameReferenceExpression::class.java, true))
-  }
+private fun PsiFile.findPreviewAnnotation(ordinal: Int): PsiElement = runInEdtAndGet {
+  // The element should start after the '@' so add 1 to the offset
+  val indexOfElement =
+    StringUtils.ordinalIndexOf(text, "@$COMPOSE_PREVIEW_ANNOTATION_NAME", ordinal) + 1
+  checkNotNull(
+    PsiTreeUtil.findElementOfClassAtOffset(
+      this,
+      indexOfElement,
+      KtNameReferenceExpression::class.java,
+      true
+    )
+  )
+}

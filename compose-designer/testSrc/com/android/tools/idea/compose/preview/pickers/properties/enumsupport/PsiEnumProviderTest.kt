@@ -17,8 +17,8 @@ package com.android.tools.idea.compose.preview.pickers.properties.enumsupport
 
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.property.panel.api.EnumValue
-import org.junit.Test
 import kotlin.test.assertEquals
+import org.junit.Test
 
 class PsiEnumProviderTest {
 
@@ -54,14 +54,22 @@ class PsiEnumProviderTest {
     checkDefaultEnumValue("", "Default", getDeviceDefaultEnumValue("   "))
 
     // Some pre-defined devices
-    checkDefaultEnumValue("id:Nexus 7 2013", "Nexus 7 (2013)", getDeviceDefaultEnumValue("id:Nexus 7 2013"))
+    checkDefaultEnumValue(
+      "id:Nexus 7 2013",
+      "Nexus 7 (2013)",
+      getDeviceDefaultEnumValue("id:Nexus 7 2013")
+    )
     checkDefaultEnumValue("name:Nexus 10", "Nexus 10", getDeviceDefaultEnumValue("name:Nexus 10"))
     checkDefaultEnumValue("id:pixel_4_xl", "Pixel 4 XL", getDeviceDefaultEnumValue("id:pixel_4_xl"))
 
     // Parsed devices
     checkDefaultEnumValue("id:my device", "my device", getDeviceDefaultEnumValue("id:my device"))
     checkDefaultEnumValue("id:pixel_fake", "pixel fake", getDeviceDefaultEnumValue("id:pixel_fake"))
-    checkDefaultEnumValue("name:Pixel Fake", "Pixel Fake", getDeviceDefaultEnumValue("name:Pixel Fake"))
+    checkDefaultEnumValue(
+      "name:Pixel Fake",
+      "Pixel Fake",
+      getDeviceDefaultEnumValue("name:Pixel Fake")
+    )
 
     // Device spec
     checkDefaultEnumValue(
@@ -71,34 +79,29 @@ class PsiEnumProviderTest {
     )
 
     // Density should return a density on a specific bucket
-    checkDefaultEnumValue(
-      "160",
-      "mdpi (160 dpi)",
-      getDensityDefaultEnumValue("199")
-    )
-    checkDefaultEnumValue(
-      "240",
-      "hdpi (240 dpi)",
-      getDensityDefaultEnumValue("200")
-    )
-    checkDefaultEnumValue(
-      "240",
-      "hdpi (240 dpi)",
-      getDensityDefaultEnumValue("201")
-    )
+    checkDefaultEnumValue("160", "mdpi (160 dpi)", getDensityDefaultEnumValue("199"))
+    checkDefaultEnumValue("240", "hdpi (240 dpi)", getDensityDefaultEnumValue("200"))
+    checkDefaultEnumValue("240", "hdpi (240 dpi)", getDensityDefaultEnumValue("201"))
 
     // Unsupported values
     checkDefaultEnumValue("my device", "my device", getDeviceDefaultEnumValue("my device"))
   }
 
-  private fun getUiModeDefaultEnumValue(initialValue: String) = psiEnumProvider(FakePsiProperty("uiMode"))!!.createValue(initialValue)
+  private fun getUiModeDefaultEnumValue(initialValue: String) =
+    psiEnumProvider(FakePsiProperty("uiMode"))!!.createValue(initialValue)
 
-  private fun getDeviceDefaultEnumValue(initialValue: String) = psiEnumProvider(FakePsiProperty("Device"))!!.createValue(initialValue)
+  private fun getDeviceDefaultEnumValue(initialValue: String) =
+    psiEnumProvider(FakePsiProperty("Device"))!!.createValue(initialValue)
 
-  private fun getDensityDefaultEnumValue(initialValue: String) = psiEnumProvider(FakePsiProperty("Density"))!!.createValue(initialValue)
+  private fun getDensityDefaultEnumValue(initialValue: String) =
+    psiEnumProvider(FakePsiProperty("Density"))!!.createValue(initialValue)
 }
 
-private fun checkDefaultEnumValue(expectedValue: String, expectedDisplay: String, enumValue: EnumValue) {
+private fun checkDefaultEnumValue(
+  expectedValue: String,
+  expectedDisplay: String,
+  enumValue: EnumValue
+) {
   assertEquals(expectedValue, enumValue.value)
   assertEquals(expectedDisplay, enumValue.display)
 }

@@ -31,21 +31,33 @@ class AnimationToolingUsageTrackerTest {
 
   @Test
   fun testLogEvent() {
-    val animationToolingEvent = AnimationToolingEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE)
+    val animationToolingEvent =
+      AnimationToolingEvent(
+        ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE
+      )
     val androidStudioEvent = animationToolingUsageTracker.logEvent(animationToolingEvent)
 
     assertEquals(AndroidStudioEvent.EventKind.COMPOSE_ANIMATION_TOOLING, androidStudioEvent.kind)
-    assertEquals(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE,
-                 androidStudioEvent.composeAnimationToolingEvent.type)
+    assertEquals(
+      ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE,
+      androidStudioEvent.composeAnimationToolingEvent.type
+    )
   }
 
   @Test
   fun testSpeedMultiplier() {
-    val animationToolingEvent = AnimationToolingEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_ANIMATION_SPEED)
-      .withAnimationMultiplier(1.5f)
+    val animationToolingEvent =
+      AnimationToolingEvent(
+          ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_ANIMATION_SPEED
+        )
+        .withAnimationMultiplier(1.5f)
 
-    val composeAnimationToolingEvent = animationToolingUsageTracker.logEvent(animationToolingEvent).composeAnimationToolingEvent
-    assertEquals(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_ANIMATION_SPEED, composeAnimationToolingEvent.type)
+    val composeAnimationToolingEvent =
+      animationToolingUsageTracker.logEvent(animationToolingEvent).composeAnimationToolingEvent
+    assertEquals(
+      ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_ANIMATION_SPEED,
+      composeAnimationToolingEvent.type
+    )
     assertEquals(1.5f, composeAnimationToolingEvent.animationSpeedMultiplier)
   }
 }
