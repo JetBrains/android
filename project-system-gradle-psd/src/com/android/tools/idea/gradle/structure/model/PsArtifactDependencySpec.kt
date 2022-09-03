@@ -19,10 +19,10 @@ import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
+import com.intellij.openapi.externalSystem.model.project.dependencies.ArtifactDependencyNode
 import com.intellij.openapi.util.text.StringUtil.isNotEmpty
 import com.intellij.util.text.nullize
 import org.gradle.tooling.model.GradleModuleVersion
-import org.jetbrains.plugins.gradle.ExternalDependencyId
 import java.util.regex.Pattern
 
 /**
@@ -95,13 +95,13 @@ interface PsArtifactDependencySpec : Comparable<PsArtifactDependencySpec> {
       create(dependency.group().toString(), dependency.name().forceString(), dependency.version().toString())
 
     fun create(coordinates: GradleCoordinate): PsArtifactDependencySpec =
-      create(coordinates.groupId, coordinates.artifactId!!, coordinates.revision)
+      create(coordinates.groupId, coordinates.artifactId, coordinates.revision)
 
     fun create(moduleVersion: GradleModuleVersion): PsArtifactDependencySpec =
       create(moduleVersion.group, moduleVersion.name, moduleVersion.version)
 
-    fun create(id: ExternalDependencyId): PsArtifactDependencySpec =
-      create(id.group, id.name, id.version)
+    fun create(id: ArtifactDependencyNode): PsArtifactDependencySpec =
+      create(id.group, id.module, id.version)
   }
 }
 

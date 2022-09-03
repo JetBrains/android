@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.structure.model.PsResolvedModuleModel
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.ListenableFutureTask
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.externalSystem.model.project.dependencies.ProjectDependencies
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
@@ -80,8 +81,15 @@ private fun findModel(module: GradleModuleModels, modelFactory: (GradleAndroidMo
 
   fun tryJavaModels(): PsResolvedModuleModel.PsJavaModuleResolvedModel? {
     val javaModel = module.findModel(ExternalProject::class.java) ?: return null
+    val projectDependencies = module.findModel(ProjectDependencies::class.java)
     val syncIssues = module.findModel(SyncIssues::class.java) ?: SyncIssues.EMPTY
-    return PsResolvedModuleModel.PsJavaModuleResolvedModel(gradlePath, gradleModuleModel.buildFilePath?.absolutePath, javaModel, syncIssues)
+    return PsResolvedModuleModel.PsJavaModuleResolvedModel(
+      gradlePath,
+      gradleModuleModel.buildFilePath?.absolutePath,
+      javaModel,
+      projectDependencies,
+      syncIssues
+    )
   }
 
   return tryAndroidModels() ?: tryJavaModels()

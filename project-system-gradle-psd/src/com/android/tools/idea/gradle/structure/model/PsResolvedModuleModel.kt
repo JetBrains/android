@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
+import com.intellij.openapi.externalSystem.model.project.dependencies.ProjectDependencies
 import org.jetbrains.plugins.gradle.model.ExternalProject
 
 /**
@@ -39,6 +40,7 @@ sealed class PsResolvedModuleModel {
     override val gradlePath: String,
     override val buildFile: String?,
     val model: ExternalProject,
+    val dependencies: ProjectDependencies?,
     val syncIssues: SyncIssues
   ) : PsResolvedModuleModel()
 }

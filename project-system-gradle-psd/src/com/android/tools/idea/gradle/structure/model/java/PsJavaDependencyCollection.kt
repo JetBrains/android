@@ -29,12 +29,14 @@ import com.android.tools.idea.gradle.structure.model.PsModuleDependency
 import com.android.tools.idea.gradle.structure.model.PsResolvedDependencyCollection
 import com.android.tools.idea.gradle.structure.model.matchJarDeclaredDependenciesIn
 import com.android.tools.idea.gradle.structure.model.relativeFile
-import com.jetbrains.rd.util.first
-import org.jetbrains.plugins.gradle.model.ExternalLibraryDependency
-import org.jetbrains.plugins.gradle.model.ExternalMultiLibraryDependency
-import org.jetbrains.plugins.gradle.model.ExternalProjectDependency
-import org.jetbrains.plugins.gradle.model.FileCollectionDependency
-import org.jetbrains.plugins.gradle.model.UnresolvedExternalDependency
+import com.intellij.openapi.externalSystem.model.project.dependencies.ArtifactDependencyNode
+import com.intellij.openapi.externalSystem.model.project.dependencies.DependencyNode
+import com.intellij.openapi.externalSystem.model.project.dependencies.FileCollectionDependencyNode
+import com.intellij.openapi.externalSystem.model.project.dependencies.ProjectDependencyNode
+import com.intellij.openapi.externalSystem.model.project.dependencies.ReferenceNode
+import com.intellij.openapi.externalSystem.model.project.dependencies.UnknownDependencyNode
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.io.File
 
 interface PsJavaDependencyCollection<out LibraryDependencyT, out JarDependencyT, out ModuleDependencyT>
@@ -85,11 +87,12 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
   module = module
 ),
     PsJavaDependencyCollection<PsResolvedLibraryJavaDependency, PsResolvedJarJavaDependency, PsResolvedModuleJavaDependency> {
+
   override fun collectResolvedDependencies(container: PsJavaModule) {
-    val gradleModel = parent.resolvedModel
+    val gradleDependencyGraph = parent.resolvedModelDependencies
 
     fun processFile(file: File) {
-      val artifactCanonicalFile = file?.canonicalFile ?: return
+      val artifactCanonicalFile = file.canonicalFile ?: return
       val matchingDeclaredDependencies =
         matchJarDeclaredDependenciesIn(parent.dependencies, artifactCanonicalFile)
       val path = parent.relativeFile(artifactCanonicalFile)
@@ -97,52 +100,74 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
       addJarDependency(jarDependency)
     }
 
-    gradleModel?.sourceSets?.filter { it.key == "main" }?.first()?.also {
-      (_, sourceSet) ->
-      sourceSet.dependencies.filter { it.scope == "COMPILE" || it.scope == "PROVIDED" }.forEach { dependency ->
-        when (dependency) {
-          is ExternalLibraryDependency -> {
-            addLibrary(dependency)
-          }
-          is ExternalMultiLibraryDependency -> {
-            dependency.files.forEach(::processFile)
-          }
-          is FileCollectionDependency -> {
-            dependency.files.forEach(::processFile)
-          }
-          is ExternalProjectDependency -> {
-            val module = parent.parent.findModuleByGradlePath(dependency.projectPath);
-            if (module != null) {
-              addModule(module, dependency.scope)
-            }
-          }
-          is UnresolvedExternalDependency -> Unit
+    val dependencyNodeMap: Long2ObjectMap<DependencyNode> = Long2ObjectOpenHashMap()
+    val componentDependencies = gradleDependencyGraph?.componentsDependencies?.firstOrNull { it.componentName == "main" } ?: return
+    // The code below creates lazily expanding nodes. In order to resolve an arbitrary ReferenceNode we must perform
+    // a complete traversal here.
+    populateDependencyNodeMap(componentDependencies.compileDependenciesGraph, dependencyNodeMap)
+
+    componentDependencies.compileDependenciesGraph.dependencies.forEach { maybeReference ->
+      @Suppress("MoveVariableDeclarationIntoWhen")
+      val dependency = if (maybeReference is ReferenceNode) dependencyNodeMap[maybeReference.id] else maybeReference
+      when(dependency) {
+        is ArtifactDependencyNode -> {
+          addLibraryDependency(processLibraryNode(dependency, dependencyNodeMap))
         }
+        is FileCollectionDependencyNode -> {
+          // The format for dependency.path is the same as org.gradle.api.file.FileCollection#getAsPath
+          // That is a list of file paths seperated by the path separator
+          dependency.path.split(File.pathSeparator).forEach {
+            processFile(File(it))
+          }
+        }
+        is ProjectDependencyNode -> {
+          val module = parent.parent.findModuleByGradlePath(dependency.projectPath)
+          if (module != null) {
+            // All Java dependencies are currently compile scope, this value is currently not used.
+            addModule(module, "COMPILE")
+          }
+        }
+        is UnknownDependencyNode -> Unit
       }
     }
   }
 
-  private fun addLibrary(library: ExternalLibraryDependency) {
-    val parsedDependencies = parent.dependencies
-    val group = library.id.group
-    val name = library.id.name
-    val version = library.id.version
-    val coordinates = if (group != null && version != null) GradleCoordinate(group, name, version) else null
-    if (coordinates != null) {
-      val matchingDeclaredDependencies = parsedDependencies
-        .findLibraryDependencies(coordinates.groupId, coordinates.artifactId)
-        // TODO(b/110774403): Support Java module dependency scopes.
-      addLibraryDependency(PsResolvedLibraryJavaDependency(parent, library, matchingDeclaredDependencies).also {
-        library.file?.let { file ->
-          it.setDependenciesFromPomFile(parent.parent.pomDependencyCache.getPomDependencies(coordinates.toString(), file))
-        }
-      })
+
+  /**
+   * Traverses the complete tree of dependencies starting at [dependency] and populates all none [ReferenceNode]s
+   * within the [dependencyNodeMap].
+   */
+  private fun populateDependencyNodeMap(dependency: DependencyNode, dependencyNodeMap: Long2ObjectMap<DependencyNode>) {
+    val queue = ArrayDeque<DependencyNode>()
+    queue.add(dependency)
+    while (queue.isNotEmpty()) {
+      val item = queue.removeFirst()
+      if (item !is ReferenceNode) {
+        dependencyNodeMap[item.id] = item
+        queue.addAll(item.dependencies)
+      }
     }
   }
 
+  private fun processLibraryNode(library: ArtifactDependencyNode, dependencyNodeMap: Long2ObjectMap<DependencyNode>): PsResolvedLibraryJavaDependency {
+    val parsedDependencies = parent.dependencies
+    val group = library.group
+    val name = library.module
+    val version = library.version
+    val coordinates = GradleCoordinate(group, name, version)
+    val matchingDeclaredDependencies = parsedDependencies
+      .findLibraryDependencies(coordinates.groupId, coordinates.artifactId)
+    val resolvedDependencies = library.dependencies
+      .map { if (it is ReferenceNode) dependencyNodeMap[it.id] else it }
+      .filterIsInstance<ArtifactDependencyNode>()
+    // TODO(b/110774403): Support Java module dependency scopes.
+    return PsResolvedLibraryJavaDependency(parent, library, matchingDeclaredDependencies) {
+      resolvedDependencies.map { processLibraryNode(it, dependencyNodeMap) }.toSet()
+    }
+  }
 
   private fun addModule(module: PsModule, scope: String) {
-    val gradlePath = module.gradlePath!!
+    val gradlePath = module.gradlePath
     val matchingParsedDependencies =
       parent
         .dependencies

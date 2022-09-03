@@ -56,8 +56,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder;
 import com.intellij.openapi.externalSystem.importing.ProjectResolverPolicy;
 import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.model.project.dependencies.ProjectDependencies;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.settings.ExternalProjectSettings;
@@ -234,6 +236,10 @@ public class GradleSyncExecutor {
           ExternalProject project = findExternalProjectForModule(rootProjectNode, moduleNode);
           if (project != null) {
             moduleModules.addModel(ExternalProject.class, project);
+          }
+          DataNode<ProjectDependencies> dependenciesNode = find(moduleNode, ProjectKeys.DEPENDENCIES_GRAPH);
+          if (dependenciesNode != null) {
+            moduleModules.addModel(ProjectDependencies.class, dependenciesNode.getData());
           }
         }
         builder.add(moduleModules);

@@ -89,7 +89,7 @@ class PsJavaModuleTest {
 private fun moduleWithoutSyncedModel(project: PsProject, name: String): PsJavaModule {
   val moduleWithSyncedModel = project.findModuleByName(name) as PsJavaModule
   return PsJavaModule(project, moduleWithSyncedModel.gradlePath).apply {
-    init(moduleWithSyncedModel.name, null, null, moduleWithSyncedModel.parsedModel)
+    init(moduleWithSyncedModel.name, null, null, null, moduleWithSyncedModel.parsedModel)
   }
 }
 

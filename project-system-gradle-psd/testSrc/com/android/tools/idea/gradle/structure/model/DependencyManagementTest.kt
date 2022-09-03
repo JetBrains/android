@@ -210,9 +210,6 @@ class DependencyManagementTest {
         val lib3 = dependencies.findLibraryDependency("com.example.jlib:lib3:0.9.1")
         assertThat(lib3.testDeclared(), hasItems(true))
         assertThat(lib3.testMatchingScopes(), hasItems("implementation"))
-
-        val lib4 = dependencies.findLibraryDependency("com.example.jlib:lib4:0.9.1")
-        assertThat(lib4.testDeclared(), hasItems(false))
       }
     }
   }

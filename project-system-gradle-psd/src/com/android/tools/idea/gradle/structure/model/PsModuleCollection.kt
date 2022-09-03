@@ -123,6 +123,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
             .init(moduleName,
                   findParentModuleFor(key.gradlePath),
                   (moduleResolvedModel as? PsResolvedModuleModel.PsJavaModuleResolvedModel)?.model,
+                  (moduleResolvedModel as? PsResolvedModuleModel.PsJavaModuleResolvedModel)?.dependencies,
                   moduleParsedModel)
       ModuleKind.EMPTY -> (model as PsEmptyModule).init(moduleName, findParentModuleFor(key.gradlePath))
       ModuleKind.FAKE -> throw IllegalArgumentException()

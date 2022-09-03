@@ -38,7 +38,7 @@ import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.meta.property
 import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import com.google.common.base.CaseFormat
-import org.jetbrains.plugins.gradle.model.ExternalLibraryDependency
+import com.intellij.openapi.externalSystem.model.project.dependencies.ArtifactDependencyNode
 import kotlin.reflect.KProperty
 
 class PsDeclaredLibraryJavaDependency(
@@ -121,17 +121,17 @@ class PsDeclaredLibraryJavaDependency(
 
 class PsResolvedLibraryJavaDependency(
   parent: PsJavaModule,
-  library: ExternalLibraryDependency,
-  override val declaredDependencies: List<PsDeclaredLibraryJavaDependency>
+  val library: ArtifactDependencyNode,
+  override val declaredDependencies: List<PsDeclaredLibraryJavaDependency>,
+  private val resolvedDependenciesProducer: () -> Set<PsResolvedLibraryJavaDependency>
 ) : PsJavaDependency(parent),
     PsLibraryDependency, PsResolvedDependency, PsResolvedLibraryDependency {
-  internal val pomDependencies = mutableListOf<PsArtifactDependencySpec>()
 
   override val isDeclared: Boolean get() = declaredDependencies.isNotEmpty()
 
-  override val joinedConfigurationNames: String = library.scope ?: ""
+  override val joinedConfigurationNames: String = "" // Java library currently only show compile scope
 
-  override val spec: PsArtifactDependencySpec = PsArtifactDependencySpec.create(library.id)
+  override val spec: PsArtifactDependencySpec = PsArtifactDependencySpec.create(library)
 
   override fun getParsedModels(): List<DependencyModel> = declaredDependencies.map { it.parsedModel }
 
@@ -142,11 +142,7 @@ class PsResolvedLibraryJavaDependency(
 
   override fun toText(): String = spec.toString()
 
-  override fun getTransitiveDependencies(): Set<PsResolvedLibraryJavaDependency> =
-    pomDependencies.flatMap { parent.resolvedDependencies.findLibraryDependencies(it.group, it.name) }.toSet()
-
-  internal fun setDependenciesFromPomFile(value: List<PsArtifactDependencySpec>) {
-    pomDependencies.clear()
-    pomDependencies.addAll(value)
+  override fun getTransitiveDependencies(): Set<PsResolvedLibraryJavaDependency> {
+    return resolvedDependenciesProducer()
   }
 }

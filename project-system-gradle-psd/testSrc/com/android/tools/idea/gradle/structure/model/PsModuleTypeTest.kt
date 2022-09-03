@@ -82,7 +82,7 @@ private fun moduleWithoutSyncedModel(project: PsProject, name: String): PsModule
       init(moduleWithSyncedModel.name, null, null, null, null, moduleWithSyncedModel.parsedModel)
     }
     is PsJavaModule -> PsJavaModule(project, moduleWithSyncedModel.gradlePath).apply {
-      init(moduleWithSyncedModel.name, null, null, moduleWithSyncedModel.parsedModel)
+      init(moduleWithSyncedModel.name, null, null, null, moduleWithSyncedModel.parsedModel)
     }
     else -> throw IllegalArgumentException()
   }
