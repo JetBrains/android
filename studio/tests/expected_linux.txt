@@ -460,7 +460,7 @@ android-studio/lib/asm-analysis-9.2.jar
 android-studio/lib/asm-commons-9.2.jar
 android-studio/lib/asm-tree-9.2.jar
 android-studio/lib/asm-util-9.2.jar
-android-studio/lib/build-marker-AI-222.2964.55.2221.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-222.3048.13.2221.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/dbus-java-3.2.1.jar
@@ -2700,8 +2700,9 @@ android-studio/plugins/textmate/lib/bundles/docker/language-configuration.json
 android-studio/plugins/textmate/lib/bundles/docker/package.json
 android-studio/plugins/textmate/lib/bundles/docker/package.nls.json
 android-studio/plugins/textmate/lib/bundles/docker/syntaxes/docker.tmLanguage.json
-android-studio/plugins/textmate/lib/bundles/erlang/snippets/erlang.json
-android-studio/plugins/textmate/lib/bundles/erlang/syntaxes/erlang.tmLanguage.json
+android-studio/plugins/textmate/lib/bundles/erlang/grammar/Erlang.plist
+android-studio/plugins/textmate/lib/bundles/erlang/language-configuration.json
+android-studio/plugins/textmate/lib/bundles/erlang/package.json
 android-studio/plugins/textmate/lib/bundles/fsharp/.vscodeignore
 android-studio/plugins/textmate/lib/bundles/fsharp/cgmanifest.json
 android-studio/plugins/textmate/lib/bundles/fsharp/language-configuration.json

@@ -2715,8 +2715,9 @@ Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/docker/language
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/docker/package.json
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/docker/package.nls.json
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/docker/syntaxes/docker.tmLanguage.json
-Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/erlang/snippets/erlang.json
-Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/erlang/syntaxes/erlang.tmLanguage.json
+Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/erlang/grammar/Erlang.plist
+Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/erlang/language-configuration.json
+Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/erlang/package.json
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/fsharp/.vscodeignore
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/fsharp/cgmanifest.json
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/fsharp/language-configuration.json
