@@ -30,7 +30,7 @@ android-studio/bin/icons/icons-v2-2.5-d.db
 android-studio/bin/icons/icons-v2-2.5.db
 android-studio/bin/idea.properties
 android-studio/bin/inspect.sh
-android-studio/bin/libdbm-x86_64.so
+android-studio/bin/libdbm.so
 android-studio/bin/lldb/helpers/jb_lldb_init.py
 android-studio/bin/lldb/helpers/jb_lldb_stepping.py
 android-studio/bin/lldb/helpers/renderers/__init__.py
@@ -460,7 +460,7 @@ android-studio/lib/asm-analysis-9.2.jar
 android-studio/lib/asm-commons-9.2.jar
 android-studio/lib/asm-tree-9.2.jar
 android-studio/lib/asm-util-9.2.jar
-android-studio/lib/build-marker-AI-222.3048.13.2221.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-222.3153.4.2221.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/dbus-java-3.2.1.jar
