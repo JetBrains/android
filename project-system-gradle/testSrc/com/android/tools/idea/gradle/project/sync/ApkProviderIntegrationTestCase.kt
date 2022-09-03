@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationRes
 import com.android.tools.idea.gradle.project.sync.Target.ManuallyAssembled
 import com.android.tools.idea.gradle.project.sync.Target.NamedAppTargetRunConfiguration
 import com.android.tools.idea.gradle.project.sync.Target.TestTargetRunConfiguration
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.getBuiltApksForSelectedVariant
 import com.android.tools.idea.run.AndroidRunConfigurationBase
@@ -47,7 +49,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.COMPOSITE_BUILD,
+        testProject = AndroidCoreTestProject.COMPOSITE_BUILD,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
       ),
       expectApks =
@@ -77,7 +79,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.COMPOSITE_BUILD,
+        testProject = AndroidCoreTestProject.COMPOSITE_BUILD,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = "TestCompositeLib1:app:main"),
       ),
       expectApks =
@@ -107,7 +109,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
+        testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX,
         executeMakeBeforeRun = false,
       ),
       expectApks = mapOf(
@@ -137,7 +139,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
+        testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX,
       ),
       expectApks =
       """
@@ -167,7 +169,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         viaBundle = true,
-        testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
+        testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX,
       ),
       expectApks = mapOf(
         AGP_CURRENT to """
@@ -199,7 +201,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
+        testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX,
         target = ManuallyAssembled(":app", forTests = false),
       ),
       expectApks = mapOf(
@@ -222,7 +224,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.SIMPLE_APPLICATION,
+        testProject = TestProject.SIMPLE_APPLICATION,
         target = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
       ),
       expectApks =
@@ -264,7 +266,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.SIMPLE_APPLICATION,
+        testProject = TestProject.SIMPLE_APPLICATION,
         target = ManuallyAssembled(":app", forTests = true),
       ),
       expectApks = mapOf(
@@ -299,7 +301,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.TEST_ONLY_MODULE,
+        testProject = TestProject.TEST_ONLY_MODULE,
         target = TestTargetRunConfiguration("com.example.android.app.ExampleTest"),
       ),
       expectApks =
@@ -342,7 +344,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.DYNAMIC_APP,
+        testProject = AndroidCoreTestProject.DYNAMIC_APP,
       ),
       expectApks =
       """
@@ -376,7 +378,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         device = 19,
-        testProject = TestProjectPaths.DYNAMIC_APP,
+        testProject = AndroidCoreTestProject.DYNAMIC_APP,
       ),
       IGNORE = { TODO("b/189190337") },
       expectApks = mapOf(
@@ -400,7 +402,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.DYNAMIC_APP,
+        testProject = AndroidCoreTestProject.DYNAMIC_APP,
         target = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
       ),
       expectApks = mapOf(
@@ -440,7 +442,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         device = 19,
-        testProject = TestProjectPaths.DYNAMIC_APP,
+        testProject = AndroidCoreTestProject.DYNAMIC_APP,
         target = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
       ),
       IGNORE = { TODO("b/189190337") },
@@ -476,7 +478,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.DYNAMIC_APP,
+        testProject = AndroidCoreTestProject.DYNAMIC_APP,
         target = TestTargetRunConfiguration("com.example.feature1.ExampleInstrumentedTest"),
       ),
       // Do not run with the current version of the AGP.
@@ -571,7 +573,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.BUDDY_APKS,
+        testProject = AndroidCoreTestProject.BUDDY_APKS,
         target = TestTargetRunConfiguration("google.testapplication.ApplicationTest"),
       ),
       expectApks =
@@ -625,7 +627,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.SIMPLE_APPLICATION,
+        testProject = TestProject.SIMPLE_APPLICATION,
         variant = ":app" to "release",
       ),
       expectValidate = mapOf(
@@ -663,7 +665,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
+        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
@@ -682,20 +684,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       """.trimIndent())
     ),
   )
-
-private fun def(
-  stackMarker: (() -> Unit) -> Unit, // Is supposed to be implemented as { it() }.
-  scenario: TestScenario,
-  IGNORE: TestConfiguration.() -> Unit = { },
-  expectApks: String,
-  expectValidate: String? = null,
-) = ApkProviderTest(
-  scenario = scenario,
-  IGNORE = IGNORE,
-  expectApks = mapOf(AGP_CURRENT to expectApks),
-  expectValidate = expectValidate?.let { mapOf(AGP_CURRENT to expectValidate) } ?: emptyMap(),
-  stackMarker = stackMarker
-)
 
 private fun def(
   stackMarker: (() -> Unit) -> Unit, // Is supposed to be implemented as { it() }.

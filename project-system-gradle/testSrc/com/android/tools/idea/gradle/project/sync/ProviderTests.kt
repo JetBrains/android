@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationRes
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.sync.ProviderIntegrationTestCase.CurrentAgp.Companion.NUMBER_OF_EXPECTATIONS
+import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationBase
@@ -32,6 +34,7 @@ import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.gradleModule
@@ -74,7 +77,7 @@ interface ValueNormalizers {
 }
 
 data class TestScenario(
-  val testProject: String,
+  val testProject: TemplateBasedTestProject,
   val viaBundle: Boolean = false,
   val executeMakeBeforeRun: Boolean = true,
   val target: Target = Target.AppTargetRunConfiguration,
@@ -93,7 +96,7 @@ data class TestScenario(
 
       fun <T : Any> T?.prefixed() = this?.let { "-$it" } ?: ""
 
-      return testProject.removePrefix("projects/") +
+      return testProject.projectName +
              viaBundle.prefixed("via-bundle") +
              (!executeMakeBeforeRun).prefixed("before-build") +
              target.prefixed() +
@@ -123,7 +126,7 @@ interface ProviderTestDefinition {
 
 interface AggregateTestDefinition : AgpIntegrationTestDefinition, ProviderTestDefinition
 
-fun GradleIntegrationTest.runProviderTest(testDefinition: AggregateTestDefinition, expect: Expect, valueNormalizers: ValueNormalizers) {
+fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefinition, expect: Expect, valueNormalizers: ValueNormalizers) {
   val agpVersion = testDefinition.agpVersion
   val testConfiguration = object : TestConfiguration {
     override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = agpVersion
@@ -132,15 +135,13 @@ fun GradleIntegrationTest.runProviderTest(testDefinition: AggregateTestDefinitio
   with(testDefinition) {
     Assume.assumeThat(runCatching { testConfiguration.IGNORE() }.exceptionOrNull(), Matchers.nullValue())
     outputCurrentlyRunningTest(this)
-    val projectPath = prepareGradleProject(
-      scenario.testProject,
-      "project"
-    )
+    val preparedProject = prepareTestProject(scenario.testProject, agpVersion = agpVersion)
+    val projectPath = preparedProject.root
     val gradlePropertiesPath = projectPath.resolve("gradle.properties")
     gradlePropertiesPath.writeText(
       gradlePropertiesPath.readText() + "\n android.suppressUnsupportedCompileSdk=${BuildEnvironment.getInstance().compileSdkVersion}"
     )
-    openPreparedProject("project") { project ->
+    preparedProject.open { project ->
       try {
         val variant = scenario.variant
         if (variant != null) {

@@ -105,6 +105,6 @@ fun applicableAgpVersions() = AgpVersionSoftwareEnvironmentDescriptor.values()
 /**
  * Prints a message describing the currently running test to the standard output.
  */
-fun GradleIntegrationTest.outputCurrentlyRunningTest(testDefinition: AgpIntegrationTestDefinition) {
+fun IntegrationTestEnvironment.outputCurrentlyRunningTest(testDefinition: AgpIntegrationTestDefinition) {
   println("Testing: ${this.javaClass.simpleName}[${testDefinition.displayName()}]")
 }
