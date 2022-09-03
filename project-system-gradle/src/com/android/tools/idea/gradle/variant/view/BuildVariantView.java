@@ -88,7 +88,6 @@ public class BuildVariantView {
   private static final Color CONFLICT_CELL_BACKGROUND = MessageType.ERROR.getPopupBackground();
 
   private final Project myProject;
-  private BuildVariantUpdater myUpdater;
 
   private JPanel myToolWindowPanel;
   private JBTable myVariantsTable;
@@ -101,13 +100,8 @@ public class BuildVariantView {
     return project.getService(BuildVariantView.class);
   }
 
-  public BuildVariantView(@NotNull Project project) {
-    this(project, BuildVariantUpdater.getInstance(project));
-  }
-
-  private BuildVariantView(@NotNull Project project, @NotNull BuildVariantUpdater updater) {
+  private BuildVariantView(@NotNull Project project) {
     myProject = project;
-    myUpdater = updater;
     ((JComponent)myVariantsTable.getParent().getParent()).setBorder(JBUI.Borders.empty());
   }
 
@@ -338,7 +332,7 @@ public class BuildVariantView {
       editor.addItemListener(e -> {
         if (e.getStateChange() == ItemEvent.SELECTED) {
           BuildVariantItem selectedVariant = (BuildVariantItem)e.getItem();
-          myUpdater.updateSelectedBuildVariant(tableRow.getModule(), selectedVariant.getBuildVariantName());
+          BuildVariantUpdater.getInstance(myProject).updateSelectedBuildVariant(tableRow.getModule(), selectedVariant.getBuildVariantName());
         }
       });
       DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);
@@ -369,7 +363,7 @@ public class BuildVariantView {
       editor.addItemListener(e -> {
         if (e.getStateChange() == ItemEvent.SELECTED) {
           AbiItem selectedAbi = (AbiItem)e.getItem();
-          myUpdater.updateSelectedAbi(tableRow.getModule(), selectedAbi.getAbiName());
+          BuildVariantUpdater.getInstance(myProject).updateSelectedAbi(tableRow.getModule(), selectedAbi.getAbiName());
         }
       });
       DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);
