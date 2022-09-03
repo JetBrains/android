@@ -48,7 +48,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class VerifyJavaKotlinXmlCodeStylesTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private IdeSettingsDialogFixture mySettingsDialog;
   private static String javaCodeLanguage = "Java";
@@ -98,6 +98,7 @@ public class VerifyJavaKotlinXmlCodeStylesTest {
 
   @Before
   public void setUp() throws Exception {
+    guiTest.withTimeout(7, TimeUnit.MINUTES);
     guiTest.importSimpleApplication();
     guiTest.robot().waitForIdle();
   }
@@ -129,7 +130,7 @@ public class VerifyJavaKotlinXmlCodeStylesTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.FAST_BAZEL)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testModifyJavaCodeStyle() throws IOException, InterruptedException {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
@@ -206,7 +207,7 @@ public class VerifyJavaKotlinXmlCodeStylesTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.FAST_BAZEL)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testXMlCodeStyleReformatting() throws IOException, InterruptedException {
     EditorFixture editorFixture = guiTest.ideFrame().getEditor();

@@ -550,22 +550,6 @@ java_test(
 )
 
 java_test(
-    name = "CodeStyleTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.CodeStyleTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "VerifyJavaKotlinXmlCodeStylesTest",
     size = "large",
     data = COMMON_DATA + [
@@ -574,22 +558,6 @@ java_test(
         "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.VerifyJavaKotlinXmlCodeStylesTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "XMLCodeStyleTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.XMLCodeStyleTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
     ],
@@ -677,14 +645,14 @@ java_test(
 )
 
 java_test(
-    name = "ConvertToWebpActionTest",
+    name = "ConvertFromAndToWebpTest",
     size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([
         "testData/ImportLocalWebpProject/**",
     ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.ConvertToWebpActionTest"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.ConvertFromAndToWebpTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
     ],
@@ -1051,20 +1019,6 @@ java_test(
         "qa_smoke",
         "qa_smoke_unreliable",  # b/160247726
         "qa_unreliable",  # b/160247726
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ConvertFromWebpToPngTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/ImportLocalWebpProject/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.ConvertFromWebpToPngTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

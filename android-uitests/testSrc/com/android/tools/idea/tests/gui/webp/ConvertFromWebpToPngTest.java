@@ -57,7 +57,6 @@ public class ConvertFromWebpToPngTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testConvertFromWebPToPng() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("ImportLocalWebpProject", Wait.seconds(120))
