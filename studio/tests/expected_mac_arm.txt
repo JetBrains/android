@@ -469,7 +469,7 @@ Android Studio Preview.app/Contents/lib/forms_rt.jar
 Android Studio Preview.app/Contents/lib/groovy.jar
 Android Studio Preview.app/Contents/lib/grpc-netty-shaded.jar
 Android Studio Preview.app/Contents/lib/idea_rt.jar
-Android Studio Preview.app/Contents/lib/intellij-coverage-agent-1.0.671.jar
+Android Studio Preview.app/Contents/lib/intellij-coverage-agent-1.0.673.jar
 Android Studio Preview.app/Contents/lib/intellij-test-discovery.jar
 Android Studio Preview.app/Contents/lib/jffi-1.3.9-native.jar
 Android Studio Preview.app/Contents/lib/jffi-1.3.9.jar

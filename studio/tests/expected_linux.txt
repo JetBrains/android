@@ -460,7 +460,7 @@ android-studio/lib/asm-analysis-9.2.jar
 android-studio/lib/asm-commons-9.2.jar
 android-studio/lib/asm-tree-9.2.jar
 android-studio/lib/asm-util-9.2.jar
-android-studio/lib/build-marker-AI-222.2889.14.2221.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-222.2964.55.2221.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/dbus-java-3.2.1.jar
@@ -471,7 +471,7 @@ android-studio/lib/forms_rt.jar
 android-studio/lib/groovy.jar
 android-studio/lib/grpc-netty-shaded.jar
 android-studio/lib/idea_rt.jar
-android-studio/lib/intellij-coverage-agent-1.0.671.jar
+android-studio/lib/intellij-coverage-agent-1.0.673.jar
 android-studio/lib/intellij-test-discovery.jar
 android-studio/lib/java-utils-1.0.6.jar
 android-studio/lib/jffi-1.3.9-native.jar
