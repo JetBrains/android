@@ -37,7 +37,7 @@ import org.mockito.Mockito.any
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.verify
 
-
+@org.junit.Ignore("b/244804255")
 class UpgradeGradleVersionsQuickFixTest {
   @JvmField
   @Rule
