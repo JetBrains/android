@@ -66,7 +66,6 @@ class LogcatFormatActionTest {
     assertThat(action.templatePresentation.icon).isSameAs(AllIcons.Actions.Properties)
   }
 
-  @org.junit.Ignore("b/244792906")
   @Test
   fun actionPerformed() {
     val action = LogcatFormatAction(projectRule.project, fakeLogcatPresenter)
