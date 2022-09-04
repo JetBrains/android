@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.AndroidIoManager
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.getTestStartTime
 import com.intellij.execution.TestStateStorage
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
@@ -41,6 +42,11 @@ class ImportTestGroup(
   )
 
   private val timestampMap: MutableMap<File, IntelliJStandardTestHistoryTimestamp> = concurrentMapOf()
+
+  // TODO(b/244935095): remove when getChildren() no longer expects/requires @UiThread
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.EDT
+  }
 
   @UiThread
   override fun getChildren(e: AnActionEvent?): Array<AnAction> {
