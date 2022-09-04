@@ -753,7 +753,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-terminal",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-testng",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-textmate",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-changeReminder",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-yaml",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-clangd",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-plugin",
