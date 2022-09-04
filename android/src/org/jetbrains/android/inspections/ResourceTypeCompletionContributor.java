@@ -62,6 +62,7 @@ import gnu.trove.TObjectHashingStrategy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -249,7 +250,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
       if (constraint == null) {
         PsiClass aClass = annotation.resolveAnnotationType();
         if (aClass == null) continue;
-        if (visited == null) visited = new THashSet<>();
+        if (visited == null) visited = new HashSet<>();
         if (!visited.add(aClass)) continue;
         constraint = getAllowedValues(aClass, type, visited);
       }
@@ -356,8 +357,8 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
       if (canBeOred != a2.canBeOred) {
         return false;
       }
-      Set<PsiAnnotationMemberValue> v1 = new THashSet<>(Arrays.asList(values));
-      Set<PsiAnnotationMemberValue> v2 = new THashSet<>(Arrays.asList(a2.values));
+      Set<PsiAnnotationMemberValue> v1 = new HashSet<>(Arrays.asList(values));
+      Set<PsiAnnotationMemberValue> v2 = new HashSet<>(Arrays.asList(a2.values));
       if (v1.size() != v2.size()) {
         return false;
       }
