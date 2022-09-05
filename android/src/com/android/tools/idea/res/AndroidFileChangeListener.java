@@ -30,6 +30,7 @@ import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.util.FileExtensions;
 import com.intellij.AppTopics;
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.properties.PropertiesFileType;
@@ -428,7 +429,7 @@ public class AndroidFileChangeListener implements Disposable {
       PsiFile psiFile = myPsiDocumentManager.getCachedPsiFile(document);
       if (psiFile == null) {
         VirtualFile virtualFile = myFileDocumentManager.getFile(document);
-        if (virtualFile != null) {
+        if (virtualFile != null && !IntentionPreviewUtils.isIntentionPreviewActive()) {
           runInWriteAction(() -> myRegistry.dispatchToRepositories(virtualFile, ResourceFolderRepository::scheduleScan));
         }
       }
