@@ -38,7 +38,7 @@ import java.util.List;
  * This class is a copy of {@link com.intellij.codeInspection.deprecation.DeprecationInspection}
  * but with one patch applied: https://android-review.googlesource.com/#/c/149415/
  */
-public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTool {
+public class AndroidDeprecationInspection extends AbstractBaseJavaLocalInspectionTool {
 
   @NonNls public static final String SHORT_NAME = DeprecationUtil.DEPRECATION_SHORT_NAME;
   @NonNls public static final String ID = DeprecationUtil.DEPRECATION_ID;

@@ -111,6 +111,6 @@ class SafeArgsKtCompletionContributor : CompletionContributor() {
 private fun LookupElement.withIconFromLookupObject(): LookupElement = object : LookupElementDecorator<LookupElement>(this) {
   override fun renderElement(presentation: LookupElementPresentation) {
     super.renderElement(presentation)
-    presentation.icon = DefaultLookupItemRenderer.getRawIcon(this@withIconFromLookupObject, presentation.isReal)
+    presentation.icon = DefaultLookupItemRenderer.getRawIcon(this@withIconFromLookupObject)
   }
 }
