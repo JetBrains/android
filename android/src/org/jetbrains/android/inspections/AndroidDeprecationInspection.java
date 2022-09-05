@@ -18,7 +18,7 @@ package org.jetbrains.android.inspections;
 import com.intellij.codeInsight.daemon.JavaErrorBundle;
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightMessageUtil;
 import com.intellij.codeInsight.daemon.impl.analysis.JavaHighlightUtil;
-import com.intellij.codeInspection.BaseJavaBatchLocalInspectionTool;
+import com.intellij.codeInspection.AbstractBaseJavaLocalInspectionTool;
 import com.intellij.codeInspection.DeprecationUtil;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemHighlightType;
@@ -64,7 +64,7 @@ import org.jetbrains.annotations.Nullable;
  * This class is a copy of {@link com.intellij.codeInspection.deprecation.DeprecationInspection}
  * but with one patch applied: https://android-review.googlesource.com/#/c/149415/
  */
-public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTool {
+public class AndroidDeprecationInspection extends AbstractBaseJavaLocalInspectionTool {
 
   @SuppressWarnings("InspectionDescriptionNotFoundInspection")
   @NonNls public static final String SHORT_NAME = DeprecationUtil.DEPRECATION_SHORT_NAME;

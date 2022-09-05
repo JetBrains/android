@@ -22,7 +22,7 @@ import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
-import com.intellij.codeInsight.lookup.DefaultLookupItemRenderer
+import com.intellij.codeInsight.lookup.DefaultLookupItemRenderer.getRawIcon
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.codeInsight.lookup.LookupElementDecorator
@@ -111,6 +111,6 @@ class SafeArgsKtCompletionContributor : CompletionContributor() {
 private fun LookupElement.withIconFromLookupObject(): LookupElement = object : LookupElementDecorator<LookupElement>(this) {
   override fun renderElement(presentation: LookupElementPresentation) {
     super.renderElement(presentation)
-    presentation.icon = DefaultLookupItemRenderer.getRawIcon(this@withIconFromLookupObject, presentation.isReal)
+    presentation.icon = getRawIcon(this@withIconFromLookupObject)
   }
 }
