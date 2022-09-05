@@ -23,6 +23,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.RangeHighlighter
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -449,7 +450,11 @@ class LiteralsManager(
             super.visitElement(element)
           }
         })
-      } catch (_: IndexNotReadyException) {}
+      }
+      catch (_: IndexNotReadyException) {}
+      catch (_: ProcessCanceledException) {
+        // After 222.2889.14 the visitor can throw ProcessCanceledException instead of IndexNotReadyException if in dumb mode.
+      }
       savedLiterals
     }).submit(literalReadingExecutor).await()
 
