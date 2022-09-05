@@ -129,6 +129,8 @@ class VisualizationInteractionHandler(private val surface: DesignSurface<*>,
       sceneView.scene.mouseHover(context, Coordinates.getAndroidXDip(sceneView, mouseX), Coordinates.getAndroidYDip(sceneView, mouseY), modifiersEx)
     }
     surface.sceneManagers.flatMap { it.sceneViews }.forEach { it.onHover(mouseX, mouseY) }
+
+    surface.actionManager.designSurfaceToolbar.isVisible = true
   }
 
   override fun stayHovering(mouseX: Int, mouseY: Int) {
@@ -172,6 +174,8 @@ class VisualizationInteractionHandler(private val surface: DesignSurface<*>,
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) = Unit
 
   override fun mouseExited() {
+    surface.actionManager.designSurfaceToolbar.isVisible = false
+
     // Call onHover on each SceneView, with coordinates that are sure to be outside.
     surface.sceneManagers.flatMap { it.sceneViews }.forEach {
       it.scene.mouseHover(it.context, Int.MIN_VALUE, Int.MIN_VALUE, 0)

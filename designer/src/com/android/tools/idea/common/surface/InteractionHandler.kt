@@ -233,6 +233,8 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
     }
 
     surface.sceneManagers.map { it.sceneView }.forEach { it.onHover(mouseX, mouseY) }
+
+    surface.actionManager.designSurfaceToolbar.isVisible = true
   }
 
   override fun stayHovering(mouseX: Int, mouseY: Int) {
@@ -328,6 +330,8 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) = Unit
 
   override fun mouseExited() {
+    surface.actionManager.designSurfaceToolbar.isVisible = false
+
     // Call onHover on each SceneView, with coordinates that are sure to be outside.
     surface.sceneManagers.map { it.sceneView }.forEach {
       it.scene.mouseHover(it.context, Int.MIN_VALUE, Int.MIN_VALUE, 0)
