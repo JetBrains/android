@@ -68,15 +68,9 @@ interface GradleBuildInvoker {
   val project: Project
 
   data class Request constructor(
-    val mode: BuildMode?,
     val project: Project,
-    val rootProjectPath: File,
-    val gradleTasks: List<String>,
     val taskId: ExternalSystemTaskId,
-    val jvmArguments: List<String> = emptyList(),
-    val commandLineArguments: List<String> = emptyList(),
-    val env: Map<String, String> = emptyMap(),
-    val isPassParentEnvs: Boolean = true,
+    val data: RequestData,
     val isWaitForCompletion: Boolean = false,
 
     /**
@@ -85,6 +79,40 @@ interface GradleBuildInvoker {
     val doNotShowBuildOutputOnFailure: Boolean = false,
     val listener: ExternalSystemTaskNotificationListener? = null
   ) {
+    val mode: BuildMode? get() = data.mode
+    val rootProjectPath: File get() = data.rootProjectPath
+    val gradleTasks: List<String> get() = data.gradleTasks
+    val jvmArguments: List<String> get() = data.jvmArguments
+    val commandLineArguments: List<String> get() = data.commandLineArguments
+    val env: Map<String, String> get() = data.env
+    val isPassParentEnvs: Boolean get() = data.isPassParentEnvs
+
+    constructor(
+      mode: BuildMode?,
+      project: Project,
+      rootProjectPath: File,
+      gradleTasks: List<String>,
+      taskId: ExternalSystemTaskId,
+      jvmArguments: List<String> = emptyList(),
+      commandLineArguments: List<String> = emptyList(),
+      env: Map<String, String> = emptyMap(),
+      isPassParentEnvs: Boolean = true,
+      isWaitForCompletion: Boolean = false,
+
+      /**
+       * If true, the build output window will not automatically be shown on failure.
+       */
+      doNotShowBuildOutputOnFailure: Boolean = false,
+      listener: ExternalSystemTaskNotificationListener? = null
+    ) : this(
+      project = project,
+      taskId = taskId,
+      data = RequestData(mode, rootProjectPath, gradleTasks, jvmArguments, commandLineArguments, env, isPassParentEnvs),
+      isWaitForCompletion = isWaitForCompletion,
+      doNotShowBuildOutputOnFailure = doNotShowBuildOutputOnFailure,
+      listener = listener
+    )
+
     companion object {
       @JvmStatic
       fun builder(
@@ -105,48 +133,51 @@ interface GradleBuildInvoker {
         request.copy(taskId = ExternalSystemTaskId.create(GradleUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, request.project))
     }
 
+    data class RequestData(
+      val mode: BuildMode?,
+      val rootProjectPath: File,
+      val gradleTasks: List<String>,
+      val jvmArguments: List<String> = emptyList(),
+      val commandLineArguments: List<String> = emptyList(),
+      val env: Map<String, String> = emptyMap(),
+      val isPassParentEnvs: Boolean = true,
+    )
+
     class Builder constructor(
       project: Project,
-      rootProjectPath: File,
-      gradleTasks: List<String>
+      requestData: RequestData
     ) {
       private var request: Request = Request(
-        mode = null,
         project = project,
-        rootProjectPath = rootProjectPath,
-        gradleTasks = gradleTasks,
+        data = requestData,
         taskId = ExternalSystemTaskId.create(GradleUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
       )
 
-      fun setMode(value: BuildMode?): Builder {
-        request = request.copy(mode = value)
+      constructor(
+        project: Project,
+        rootProjectPath: File,
+        gradleTasks: List<String>
+      ) : this(project, RequestData(null, rootProjectPath, gradleTasks))
+
+      fun updateData(update: (RequestData) -> RequestData): Builder {
+        request = request.copy(data = update(request.data))
         return this
       }
+
+      fun setMode(value: BuildMode?): Builder = updateData { it.copy(mode = value) }
 
       fun setTaskId(value: ExternalSystemTaskId): Builder {
         request = request.copy(taskId = value)
         return this
       }
 
-      fun setJvmArguments(value: List<String>): Builder {
-        request = request.copy(jvmArguments = value.toList())
-        return this
-      }
+      fun setJvmArguments(value: List<String>): Builder = updateData { it.copy(jvmArguments = value.toList()) }
 
-      fun setCommandLineArguments(value: List<String>): Builder {
-        request = request.copy(commandLineArguments = value.toList())
-        return this
-      }
+      fun setCommandLineArguments(value: List<String>): Builder = updateData { it.copy(commandLineArguments = value.toList()) }
 
-      fun withEnvironmentVariables(value: Map<String, String>): Builder {
-        request = request.copy(env = request.env + value)
-        return this
-      }
+      fun withEnvironmentVariables(value: Map<String, String>): Builder = updateData { it.copy(env = request.env + value) }
 
-      fun passParentEnvs(value: Boolean): Builder {
-        request = request.copy(isPassParentEnvs = value)
-        return this
-      }
+      fun passParentEnvs(value: Boolean): Builder = updateData { it.copy(isPassParentEnvs = value) }
 
       fun waitForCompletion(): Builder {
         request = request.copy(isWaitForCompletion = true)
