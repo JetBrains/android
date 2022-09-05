@@ -49,7 +49,7 @@ class UpgradeGradleVersionsQuickFix(val gradleVersion: GradleVersion,
    *
    * @return A [CompletableFuture] that will be a [Boolean], indicating whether the changes were applied or not.
    */
-  override fun runQuickFix(project: Project, dataProvider: DataContext): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
     val runnable = Runnable {
       AndroidExecutors.getInstance().diskIoThreadExecutor.execute {

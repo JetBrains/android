@@ -29,7 +29,6 @@ import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.TestDataProvider
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -37,7 +36,6 @@ import org.mockito.Mockito.any
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.verify
 
-@org.junit.Ignore("b/244804255")
 class UpgradeGradleVersionsQuickFixTest {
   @JvmField
   @Rule
@@ -80,7 +78,7 @@ class UpgradeGradleVersionsQuickFixTest {
     }
     ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, fakeSyncInvoker)
     whenever(mockedUpdater.updatePluginVersion(any(), any())).thenReturn(success)
-    val result = quickFix.runQuickFix(project, TestDataProvider(project) as DataContext).get()
+    val result = quickFix.runQuickFix(project, DataContext { }).get()
     assertThat(result).isEqualTo(success)
     verify(mockedUpdater).updatePluginVersion(eq(latestAgpVersion), eq(latestGradleVersion))
     if (success) {
@@ -100,7 +98,7 @@ class UpgradeGradleVersionsQuickFixTest {
     quickFix.showDialogResult(success)
     val ideComponents = IdeComponents(project)
     val mockSyncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker::class.java)
-    val result = quickFix.runQuickFix(project, TestDataProvider(project) as DataContext).get()
+    val result = quickFix.runQuickFix(project, DataContext { }).get()
     assertThat(result).isEqualTo(success)
     Mockito.verifyZeroInteractions(mockSyncInvoker)
   }
