@@ -252,9 +252,7 @@ public class AndroidLintQuickfixTestGenerated {
 
         public void testWhen() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/targetVersionCheck/when.kt");
-/* b/244759724
             doTest(fileName);
-b/244759724 */
         }
     }
 }

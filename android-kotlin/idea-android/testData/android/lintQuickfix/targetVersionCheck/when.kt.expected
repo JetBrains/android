@@ -13,6 +13,7 @@ class VectorDrawableProvider {
             } else {
                 TODO("VERSION.SDK_INT < LOLLIPOP")
             }
+
             else -> VectorDrawable()
         }
     }
