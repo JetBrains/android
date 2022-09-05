@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.TestProjectPaths
+import com.intellij.openapi.project.Project
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
 import java.io.File
@@ -34,18 +35,28 @@ enum class AndroidCoreTestProject(
   override val autoMigratePackageAttribute: Boolean = true,
   override val setup: () -> () -> Unit = { {} },
   override val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
-  override val expectedSyncIssues: Set<Int> = emptySet()
+  override val expectedSyncIssues: Set<Int> = emptySet(),
+  override val verifyOpened: ((Project) -> Unit)? = null
 ) : TemplateBasedTestProject {
+  ANDROID_LIBRARY_AS_TEST_DEPENDENCY(TestProjectPaths.ANDROID_LIBRARY_AS_TEST_DEPENDENCY),
   APPLICATION_ID_SUFFIX(TestProjectPaths.APPLICATION_ID_SUFFIX),
   APPLICATION_ID_VARIANT_API(TestProjectPaths.APPLICATION_ID_VARIANT_API),
   APPLICATION_ID_VARIANT_API_BROKEN(TestProjectPaths.APPLICATION_ID_VARIANT_API_BROKEN),
   BUDDY_APKS(TestProjectPaths.BUDDY_APKS),
   COMPOSITE_BUILD(TestProjectPaths.COMPOSITE_BUILD),
+  DEPENDENT_MODULES(TestProjectPaths.DEPENDENT_MODULES),
+  DEPENDENT_NATIVE_MODULES(TestProjectPaths.DEPENDENT_NATIVE_MODULES),
   DYNAMIC_APP(TestProjectPaths.DYNAMIC_APP),
+  DYNAMIC_APP_WITH_VARIANTS(TestProjectPaths.DYNAMIC_APP_WITH_VARIANTS),
+  HELLO_JNI(TestProjectPaths.HELLO_JNI),
   INSTANT_APP(TestProjectPaths.INSTANT_APP),
+  KOTLIN_KAPT(TestProjectPaths.KOTLIN_KAPT),
   PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER(TestProjectPaths.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER),
+  PSD_DEPENDENCY(TestProjectPaths.PSD_DEPENDENCY),
+  RUN_APP_36(TestProjectPaths.RUN_APP_36),
   PROJECT_WITH_APP_AND_LIB_DEPENDENCY(TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY),
   RUN_CONFIG_ACTIVITY(TestProjectPaths.RUN_CONFIG_ACTIVITY),
+  TRANSITIVE_DEPENDENCIES(TestProjectPaths.TRANSITIVE_DEPENDENCIES),
   ;
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData"

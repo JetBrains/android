@@ -17,6 +17,8 @@ package com.android.tools.idea.testing
 
 import com.android.testutils.junit4.OldAgpSuite
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_31
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 
 /**
@@ -44,7 +46,8 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
    */
   val modelVersion: ModelVersion = ModelVersion.V2
 ) {
-  AGP_31("3.1", gradleVersion = "5.3.1", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1),
+  AGP_31("3.1.4", gradleVersion = "5.3.1", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1),
+  AGP_33_WITH_5_3_1("3.3.2", gradleVersion = "5.3.1", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1),
   AGP_33("3.3.2", gradleVersion = "5.5", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1),
   AGP_35("3.5.0", gradleVersion = "5.5", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1),
   AGP_40("4.0.0", gradleVersion = "6.7.1", modelVersion = ModelVersion.V1),
@@ -90,7 +93,7 @@ interface AgpIntegrationTestDefinition {
   val agpVersion: AgpVersionSoftwareEnvironmentDescriptor
   fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): AgpIntegrationTestDefinition
   fun displayName(): String = "$name${if (agpVersion != AGP_CURRENT) "-${agpVersion}" else ""}"
-  fun isCompatible(): Boolean = true
+  fun isCompatible(): Boolean = agpVersion > AGP_33_WITH_5_3_1 /* Not supported special cases */
 }
 
 /**

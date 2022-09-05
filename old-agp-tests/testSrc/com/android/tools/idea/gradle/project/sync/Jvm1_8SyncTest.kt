@@ -16,16 +16,13 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.testutils.junit4.OldAgpTest
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Expect
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8
 import com.intellij.openapi.roots.ProjectRootManager
@@ -36,16 +33,16 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 @RunsInEdt
 @OldAgpTest(agpVersions = ["3.5.0"], gradleVersions = ["5.5"])
-class Jvm1_8SyncTest : GradleIntegrationTest {
+class Jvm1_8SyncTest {
   @Test
   fun test18() {
     expect.that(IdeSdks.getInstance().jdk?.version).isEqualTo(JDK_1_8)
-    prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "p", AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
-    openPreparedProject("p") { project ->
+    val preparedProject =
+      projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
+    preparedProject.open { project ->
       val projectSdk = ProjectRootManager.getInstance(project).projectSdk
       expect.that(projectSdk?.version).isEqualTo(JDK_1_8)
     }
@@ -71,8 +68,4 @@ class Jvm1_8SyncTest : GradleIntegrationTest {
 
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
 }

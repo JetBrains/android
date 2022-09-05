@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest.Te
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_31
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
@@ -167,6 +168,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
       AGP_72 -> testV1vsV2(AGP_72_V1, AGP_72)
       // Do not replace with when.
       AGP_31 -> Unit
+      AGP_33_WITH_5_3_1 -> Unit
       AGP_33 -> Unit
       AGP_35 -> Unit
       AGP_40 -> Unit

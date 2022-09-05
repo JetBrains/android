@@ -23,6 +23,9 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariants
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -61,7 +64,7 @@ private const val NOT_SET = "n/a"
 
 @RunWith(JUnit4::class)
 @RunsInEdt
-class BuildVariantsIntegrationTest : GradleIntegrationTest {
+class BuildVariantsIntegrationTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
@@ -70,8 +73,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testSwitchVariants() {
-    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    preparedProject.open { project ->
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       val debugSnapshot = project.saveAndDump()
@@ -90,8 +93,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testSwitchVariants_Kapt() {
-    prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.KOTLIN_KAPT)
+    preparedProject.open { project ->
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       val debugSnapshot = project.saveAndDump()
@@ -112,12 +115,13 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   fun testSwitchVariants_symlinks() {
     assumeNotWindows()
 
-    val path = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    val path = preparedProject.root
     val suffix = "_sm"
     val symlinkPath = File(path.path + suffix)
     Files.createSymbolicLink(symlinkPath.toPath(), path.toPath())
 
-    openPreparedProject("project$suffix") { project ->
+    projectRule.openPreparedProject("project$suffix") { project ->
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       switchVariant(project, ":app", "release")
@@ -130,14 +134,15 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   fun testSwitchVariants_app_symlinks() {
     assumeNotWindows()
 
-    val path = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    val path = preparedProject.root
     val app = path.resolve("app").toPath()
     val linkSourcePath = path.resolve("app_sm_src").toPath()
     Files.move(app, linkSourcePath)
     Files.createSymbolicLink(app, linkSourcePath)
     VfsUtil.markDirtyAndRefresh(false, true, true, path)
 
-    openPreparedProject("project") { project ->
+    preparedProject.open { project ->
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       switchVariant(project, ":app", "release")
@@ -148,8 +153,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testSwitchVariantsWithDependentModules() {
-    prepareGradleProject(TestProjectPaths.DEPENDENT_MODULES, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.DEPENDENT_MODULES)
+    preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "basicDebug")
@@ -174,8 +179,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   @Test
   fun testSwitchVariantsWithDependentNativeModules() {
     assumeNotWindows()
-    prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.DEPENDENT_NATIVE_MODULES)
+    preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug", abi = "x86")
@@ -206,8 +211,9 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   @Test
   fun testSwitchVariantsWithAbiFilters() {
     assumeNotWindows()
-    val rootPath = prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project")
-    val buildFile = rootPath.resolve("app").resolve("build.gradle")
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.DEPENDENT_NATIVE_MODULES)
+    val path = preparedProject.root
+    val buildFile = path.resolve("app").resolve("build.gradle")
     buildFile.writeText(
       buildFile
         .readText()
@@ -233,7 +239,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
           """
         )
     )
-    openPreparedProject("project") { project ->
+    preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "aaDebug", abi = "armeabi-v7a")
@@ -265,8 +271,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   @Test
   fun testSwitchAbiWithDependentNativeModules() {
     assumeNotWindows()
-    prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.DEPENDENT_NATIVE_MODULES)
+    preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug", abi = "x86")
@@ -296,8 +302,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testSwitchVariantsWithFeatureModules() {
-    prepareGradleProject(TestProjectPaths.DYNAMIC_APP_WITH_VARIANTS, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.DYNAMIC_APP_WITH_VARIANTS)
+    preparedProject.open { project ->
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "fl1AbDebug")
       expect.thatModuleVariantIs(project, ":feature1", "fl1AbDebug")
@@ -317,8 +323,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testSwitchVariantsWithDependentModules_fromLib() {
-    prepareGradleProject(TestProjectPaths.DEPENDENT_MODULES, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.DEPENDENT_MODULES)
+    preparedProject.open { project ->
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "basicDebug")
       expect.thatModuleVariantIs(project, ":lib", "debug")
@@ -332,8 +338,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun `switching follows dependencies`() {
-    prepareGradleProject(TestProjectPaths.TRANSITIVE_DEPENDENCIES, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(TestProject.TRANSITIVE_DEPENDENCIES)
+    preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
@@ -360,8 +366,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testSwitchVariantsInCompositeBuildProject() {
-    prepareGradleProject(TestProjectPaths.COMPOSITE_BUILD, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(TestProject.COMPOSITE_BUILD)
+    preparedProject.open { project ->
       switchVariant(project, ":app", "release")
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
@@ -371,8 +377,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun `sync after switching variants`() {
-    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    preparedProject.open { project ->
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
 
@@ -391,8 +397,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun `switch reopen and switch back`() {
-    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    val (debugSnapshot, releaseSnapshot) = openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    val (debugSnapshot, releaseSnapshot) = preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
@@ -404,7 +410,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
       expect.thatModuleVariantIs(project, ":app", "release")
       debugSnapshot to project.saveAndDump()
     }
-    openPreparedProject("project") { project ->
+    preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
@@ -420,8 +426,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun `switch switch back and reopen`() {
-    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    val (debugSnapshot, releaseSnapshot) = openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    val (debugSnapshot, releaseSnapshot) = preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
@@ -440,7 +446,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
       expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
       debugSnapshot to releaseSnapshot
     }
-    openPreparedProject("project") { project ->
+    preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
@@ -456,8 +462,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun `switch reopen and switch back with Kotlin and Kapt`() {
-    prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
-    val (debugSnapshot, releaseSnapshot) = openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.KOTLIN_KAPT)
+    val (debugSnapshot, releaseSnapshot) = preparedProject.open { project ->
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       val debugSnapshot = project.saveAndDump()
@@ -467,7 +473,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
       expect.thatModuleVariantIs(project, ":app", "release")
       debugSnapshot to project.saveAndDump()
     }
-    openPreparedProject("project") { project ->
+    preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
@@ -484,9 +490,10 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   @Test
   fun `switch variant and abi with cmake`() {
     assumeNotWindows()
-    val projectDir = prepareGradleProject(TestProjectPaths.HELLO_JNI, "project")
-    projectDir.resolve(".idea").deleteRecursively()
-    val (firstSnapshot, secondSnapshot) = openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.HELLO_JNI)
+    val path = preparedProject.root
+    path.resolve(".idea").deleteRecursively()
+    val (firstSnapshot, secondSnapshot) = preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "arm7Debug", abi = "armeabi-v7a")
@@ -498,7 +505,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
       expect.thatModuleVariantIs(project, ":app", "x86Debug", abi = "x86")
       firstSnapshot to project.saveAndDump()
     }
-    openPreparedProject("project") { project ->
+    preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "x86Debug", abi = "x86")
@@ -532,7 +539,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
       expect.thatModuleVariantIs(project, ":app", "enableAllAbisDebug", abi = "armeabi-v7a")
 
     }
-    openPreparedProject("project") { project ->
+    preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
 
       switchAbi(project, ":app", "x86")
@@ -544,31 +551,34 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun `switch variants in apps with shared dependency modules`() {
-    val projectLocation = prepareGradleProject(TestProjectPaths.TRANSITIVE_DEPENDENCIES, "project")
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.TRANSITIVE_DEPENDENCIES)
+    val path = preparedProject.root
+
     // Create build file for module app2, so that
     //         app  -> library2 -> library1
     //         app2 -> library2 -> library1
-    val buildFilePath = File(projectLocation, FileUtil.join("app2", SdkConstants.FN_BUILD_GRADLE))
+    val buildFilePath = File(path, FileUtil.join("app2", SdkConstants.FN_BUILD_GRADLE))
     FileUtil.writeToFile(buildFilePath, """apply plugin: 'com.android.application'
       android {
           compileSdkVersion ${BuildEnvironment.getInstance().compileSdkVersion}
+          namespace "com.example"
       }
       dependencies {
           api project(':library2')
       }""")
 
     // Add app2 to settings file.
-    val settingsFile = File(projectLocation, SdkConstants.FN_SETTINGS_GRADLE)
+    val settingsFile = File(path, SdkConstants.FN_SETTINGS_GRADLE)
     val settingsText = asCharSource(settingsFile, Charsets.UTF_8).read()
     FileUtil.writeToFile(settingsFile, settingsText.trim { it <= ' ' } + ", \":app2\"")
 
     // Create manifest file for app2.
-    val manifest = File(projectLocation, FileUtil.join("app2", "src", "main", SdkConstants.ANDROID_MANIFEST_XML))
+    val manifest = File(path, FileUtil.join("app2", "src", "main", SdkConstants.ANDROID_MANIFEST_XML))
     FileUtil.writeToFile(manifest, """<?xml version="1.0" encoding="utf-8"?>
-      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example">
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android">
       </manifest>""")
 
-    openPreparedProject("project") { project ->
+    preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
@@ -614,8 +624,8 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun `switch variants in app with a test dependency on an android library`() {
-    prepareGradleProject(TestProjectPaths.ANDROID_LIBRARY_AS_TEST_DEPENDENCY, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.ANDROID_LIBRARY_AS_TEST_DEPENDENCY)
+    preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
@@ -644,10 +654,6 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
       expect.that(project.saveAndDump()).isEqualTo(allReleaseSnapshot)
     }
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
 }
 
 private fun Module.selectedModelVariant(): String? = GradleAndroidModel.get(this)?.selectedVariant?.name

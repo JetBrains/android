@@ -19,6 +19,7 @@ import com.android.builder.model.v2.ide.SyncIssue
 import com.android.testutils.AssumeUtil.assumeNotWindows
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
+import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
@@ -26,6 +27,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.google.common.truth.Expect
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
@@ -47,7 +50,8 @@ enum class TestProject(
   override val autoMigratePackageAttribute: Boolean = true,
   override val setup: () -> () -> Unit = { {} },
   override val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
-  override val expectedSyncIssues: Set<Int> = emptySet()
+  override val expectedSyncIssues: Set<Int> = emptySet(),
+  override val verifyOpened: ((Project) -> Unit)? = null
 ) : TemplateBasedTestProject {
   APP_WITH_ML_MODELS(TestProjectToSnapshotPaths.APP_WITH_ML_MODELS),
   APP_WITH_BUILDSRC(TestProjectToSnapshotPaths.APP_WITH_BUILDSRC),
@@ -132,6 +136,14 @@ enum class TestProject(
       }
     },
     expectedSyncIssues = setOf(SyncIssue.TYPE_UNNAMED_FLAVOR_DIMENSION)
+  ),
+  SIMPLE_APPLICATION_SYNC_FAILED(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "syncFailed",
+    verifyOpened = { project -> assertThat(GradleSyncState.Companion.getInstance(project).lastSyncFailed()).isTrue() },
+    patch = { root ->
+      root.resolve("build.gradle").writeText("*** this is an error ***")
+    }
   ),
   WITH_GRADLE_METADATA(TestProjectToSnapshotPaths.WITH_GRADLE_METADATA),
   BASIC_CMAKE_APP(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),

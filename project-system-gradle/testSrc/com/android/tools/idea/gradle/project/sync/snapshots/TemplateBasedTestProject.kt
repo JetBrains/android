@@ -54,6 +54,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
   val setup: () -> () -> Unit
   val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit
   val expectedSyncIssues: Set<Int>
+  val verifyOpened: ((Project) -> Unit)?
 
   val projectName: String  get() = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
   val templateAbsolutePath: File  get() = resolveTestDataPath(template)
@@ -69,6 +70,10 @@ interface TemplateBasedTestProject : TestProjectDefinition {
 
   fun defaultOpenPreparedProjectOptions(): OpenPreparedProjectOptions {
     return OpenPreparedProjectOptions(expectedSyncIssues = expectedSyncIssues)
+      .let {
+        val verifyOpened = verifyOpened
+        if (verifyOpened != null) it.copy(verifyOpened = verifyOpened) else it
+      }
   }
 
   override fun preparedTestProject(
@@ -286,6 +291,7 @@ private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (
   AgpVersionSoftwareEnvironmentDescriptor.AGP_80 -> "_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_80_V1 -> "_NewAgp_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_31 -> "_Agp_3.1_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1 -> "_Agp_3.3_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_33 -> "_Agp_3.3_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_35 -> "_Agp_3.5_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_40 -> "_Agp_4.0_"

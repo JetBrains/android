@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectRe
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.navigator.AndroidProjectViewSnapshotComparisonTestDef
 import com.android.tools.idea.navigator.SourceProvidersTestDef
+import com.android.tools.idea.projectsystem.gradle.GradleModuleHierarchyProviderTest
 import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
@@ -75,6 +76,7 @@ abstract class SyncedProjectTest(
         ProjectStructureSnapshotTestDef.tests +
         AndroidProjectViewSnapshotComparisonTestDef.tests +
         GradleSyncLoggedEventsTestDef.tests +
+        GradleModuleHierarchyProviderTest.tests +
         selfChecks()
       ).groupBy { it.testProject }
   }
@@ -117,6 +119,9 @@ abstract class SyncedProjectTest(
 
   @Test
   fun testSimpleApplication_withUnnamedDimension() = testProject(TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION)
+
+  @Test
+  fun testSimpleApplication_syncFailed() = testProject(TestProject.SIMPLE_APPLICATION_SYNC_FAILED)
 
   @Test
   fun testWithGradleMetadata() = testProject(TestProject.WITH_GRADLE_METADATA)

@@ -19,6 +19,9 @@ import com.android.sdklib.devices.Abi
 import com.android.tools.idea.gradle.model.IdeSyncIssue.Companion.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.internal.dump
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -26,15 +29,11 @@ import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths
-import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.saveAndDump
 import com.google.common.truth.Expect
@@ -50,18 +49,15 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.util.PathUtil
 import com.intellij.workspaceModel.ide.getInstance
 import com.intellij.workspaceModel.storage.impl.url.toVirtualFileUrl
 import com.intellij.workspaceModel.storage.url.VirtualFileUrlManager
-import org.jetbrains.android.AndroidTestBase
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 import kotlin.test.fail
 
 @RunsInEdt
-class SyncScenariosIntegrationTest : GradleIntegrationTest {
+class SyncScenariosIntegrationTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
@@ -80,8 +76,8 @@ class SyncScenariosIntegrationTest : GradleIntegrationTest {
         modulePlusMain = dumpModule(":modulePlus", Module::getMainModule),
       )
 
-    prepareGradleProject(TestProjectToSnapshotPaths.PSD_DEPENDENCY, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    preparedProject.open { project ->
       val beforeLibUpgrade = project.dumpTestedModules()
       PsProjectImpl(project).let { projectModel ->
         projectModel
@@ -124,11 +120,11 @@ class SyncScenariosIntegrationTest : GradleIntegrationTest {
    */
   @Test
   fun testAddedSourcesOnNoSourceLibraryArentRemoved() {
-    val basePath = prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val libWithNoSources = "com.google.truth:truth:0.44"
     val libWithSources = "junit:junit:4.12"
 
-    val buildFile = basePath.resolve("app").resolve("build.gradle")
+    val buildFile = preparedProject.root.resolve("app").resolve("build.gradle")
     buildFile.writeText(buildFile.readText() + """
       dependencies {
         implementation("$libWithNoSources")
@@ -136,7 +132,7 @@ class SyncScenariosIntegrationTest : GradleIntegrationTest {
       }
     """)
 
-    openPreparedProject("project") { project ->
+    preparedProject.open { project ->
       // Emulate adding source to the lib1 library.
       var table = LibraryTablesRegistrar.getInstance().getLibraryTable(project)
       var noSourceLib = table.getLibraryByName("Gradle: $libWithNoSources")!!
@@ -181,8 +177,8 @@ class SyncScenariosIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testPsdSampleRenamingModule() {
-    prepareGradleProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(TestProject.PSD_SAMPLE_GROOVY)
+    preparedProject.open { project ->
       val beforeRename = project.dumpModule(":nested1:deep") { getMainModule() }
       expect.that(project.gradleModule(":container1:deep")).isNull()
       PsProjectImpl(project).let { projectModel ->
@@ -208,8 +204,8 @@ class SyncScenariosIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testUnsupportedAbisIgnored() {
-    val basePath = prepareGradleProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP, "project")
-    val buildFile = basePath.resolve("app").resolve("build.gradle")
+    val preparedProject = projectRule.prepareTestProject(TestProject.BASIC_CMAKE_APP)
+    val buildFile = preparedProject.root.resolve("app").resolve("build.gradle")
     buildFile.writeText(buildFile.readText() + """
       android {
         defaultConfig {
@@ -220,7 +216,7 @@ class SyncScenariosIntegrationTest : GradleIntegrationTest {
       }
     """.trimIndent())
 
-    openPreparedProject(
+    projectRule.openPreparedProject(
       "project",
       OpenPreparedProjectOptions(
         expectedSyncIssues = setOf(TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION),
@@ -234,15 +230,15 @@ class SyncScenariosIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testGradleSourceSetModelClash() {
-    val basePath = prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
-    val buildFile = basePath.resolve("app").resolve("build.gradle")
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    val buildFile = preparedProject.root.resolve("app").resolve("build.gradle")
     buildFile.writeText(buildFile.readText() + """
       sourceSets {
         test.resources.srcDirs += 'src/test/resources'
       }
     """.trimIndent())
 
-    openPreparedProject("project") { project ->
+    preparedProject.open { project ->
       val modules = ModuleManager.getInstance(project).modules
       assertThat(modules).hasLength(5)
       assertThat(modules.map(Module::getName).sorted()).containsExactly(
@@ -251,14 +247,14 @@ class SyncScenariosIntegrationTest : GradleIntegrationTest {
       val roots = ModuleRootManager.getInstance(unitTestModule).contentRoots
       @Suppress("UnstableApiUsage")
       assertThat(roots.map { it.url }).doesNotContain(
-        basePath.resolve("app/src/test/resources").toPath().toVirtualFileUrl(VirtualFileUrlManager.getInstance(project)).url)
+        preparedProject.root.resolve("app/src/test/resources").toPath().toVirtualFileUrl(VirtualFileUrlManager.getInstance(project)).url)
     }
   }
 
   @Test
   fun testPsdDependencyAndroidToJavaModuleAndBack() {
-    prepareGradleProject(TestProjectToSnapshotPaths.PSD_DEPENDENCY, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    preparedProject.open { project ->
       AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
       val beforeAndroidToJava = project.saveAndDump()
       val oldModuleCContent = WriteAction.compute<ByteArray, Throwable> {
@@ -292,8 +288,8 @@ class SyncScenariosIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testPsdDependencyDeleteModule() {
-    prepareGradleProject(TestProjectToSnapshotPaths.PSD_DEPENDENCY, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    preparedProject.open { project ->
       val moduleName = project.gradleModule(":moduleB")!!.name
       assertThat(ModuleManager.getInstance(project).findModuleByName(moduleName)).isNotNull()
       PsProjectImpl(project).let { projectModel ->
@@ -309,11 +305,6 @@ class SyncScenariosIntegrationTest : GradleIntegrationTest {
     requestSyncAndWait()
     return this.saveAndDump()
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
-  override fun getAdditionalRepos(): Collection<File> =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 }
 
 private fun Project.dumpModule(moduleName: String, sourcesetModule: Module.() -> Module?) =

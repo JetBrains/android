@@ -15,49 +15,68 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.Project
+import java.io.File
 
-class GradleModuleHierarchyProviderTest : AndroidGradleTestCase() {
-  fun testCompositeStructure() {
-    loadProject(TestProjectPaths.COMPOSITE_BUILD)
-    val provider = GradleModuleHierarchyProvider(project)
-    val mainProject = project.findModule(::testCompositeStructure.name)
-    val project1 = project.findModule("TestCompositeLib1")
-    val project2 = project.findModule("composite2")
-    val project3 = project.findModule("TestCompositeLib3")
-    val project4 = project.findModule("composite4")
-    val project5 = project.findModule("compositeNest")
-    assertThat(provider.forProject.submodules).containsExactly(mainProject, project1, project2, project3, project4, project5)
+data class GradleModuleHierarchyProviderTest(
+  override val name: String,
+  override val testProject: TestProject,
+  override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+  val test: (Project) -> Unit
+) : SyncedProjectTest.TestDef {
+
+  companion object {
+    val tests: List<GradleModuleHierarchyProviderTest> = listOf(
+      GradleModuleHierarchyProviderTest(
+        name = "testCompositeStructure",
+        TestProject.COMPOSITE_BUILD,
+      ) { project ->
+        val provider = GradleModuleHierarchyProvider(project)
+        val mainProject = project.findModule("project")
+        val project1 = project.findModule("TestCompositeLib1")
+        val project2 = project.findModule("composite2")
+        val project3 = project.findModule("TestCompositeLib3")
+        val project4 = project.findModule("composite4")
+        val project5 = project.findModule("compositeNest")
+        val project6 = project.findModule("com.test.compositeNest3.compositeNest") // The name given by IntelliJ.
+        assertThat(provider.forProject.submodules).containsExactly(mainProject, project1, project2, project3, project4, project5, project6)
+      },
+
+      GradleModuleHierarchyProviderTest(
+        name = "testUsualStructure",
+        TestProject.SIMPLE_APPLICATION,
+      ) { project ->
+        val provider = GradleModuleHierarchyProvider(project)
+        val app = project.findAppModule()
+        assertThat(provider.forProject.submodules).containsExactly(app)
+      },
+
+      GradleModuleHierarchyProviderTest(
+        name = "testFirstSyncFailedStructure",
+        TestProject.SIMPLE_APPLICATION_SYNC_FAILED
+      ) {project ->
+        TruthJUnit.assume().that(ModuleManager.getInstance(project).modules).asList().hasSize(1)
+        val provider = GradleModuleHierarchyProvider(project)
+        // This case is handled by the AndroidViewProjectNode directly.
+        assertThat(provider.forProject.submodules).isEmpty()
+
+      },
+    )
   }
 
-  fun testUsualStructure() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-    val provider = GradleModuleHierarchyProvider(project)
-    val app = project.findAppModule()
-    assertThat(provider.forProject.submodules).containsExactly(app)
+  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTest.TestDef {
+    return copy(agpVersion = agpVersion)
   }
 
-
-  fun testFirstSyncFailedStructure() {
-    prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION, null, null, null, null)
-    val buildFile = @Suppress("DEPRECATION") project.baseDir.findChild("build.gradle")!!
-    runWriteAction {
-      buildFile.setBinaryContent("*** this is an error ***".toByteArray())
-    }
-    GradleProjectImporter.configureNewProject(project)
-    GradleProjectImporter.getInstance().importProjectNoSync(GradleProjectImporter.Request(project))
-    requestSyncAndGetExpectedFailure()
-    TruthJUnit.assume().that(ModuleManager.getInstance(project).modules).asList().hasSize(1)
-    val provider = GradleModuleHierarchyProvider(project)
-    // This case is handled by the AndroidViewProjectNode directly.
-    assertThat(provider.forProject.submodules).isEmpty()
+  override fun runTest(root: File, project: Project) {
+    test(project)
   }
 }
