@@ -140,7 +140,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     isEnabled = false
   }
 
-  val positionableAdapter = object : PositionableContent() {
+  val positionableAdapter = object : PositionableContent {
     override val x: Int get() = sceneView.x
     override val y: Int get() = sceneView.y
     override val isVisible: Boolean get() = sceneView.isVisible

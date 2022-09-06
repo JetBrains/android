@@ -29,7 +29,7 @@ class TestPositionableContent(override var x: Int = 0,
                               val width: Int,
                               val height: Int,
                               val scale: Double = 1.0,
-                              override val margin: Insets = JBInsets.emptyInsets()) : PositionableContent() {
+                              override val margin: Insets = JBInsets.emptyInsets()) : PositionableContent {
   private val dimension = Dimension(width, height)
 
   override val isVisible: Boolean get() = true

@@ -28,24 +28,24 @@ internal fun Collection<PositionableContent>.sortByPosition() = sortedWith(compa
 /**
  * Class that provides an interface for content that can be positioned on the [com.android.tools.idea.common.surface.DesignSurface]
  */
-abstract class PositionableContent {
+interface PositionableContent {
   val contentSize: Dimension
     @AndroidDpCoordinate get() = getContentSize(Dimension())
 
   @get:SwingCoordinate
-  abstract val x: Int
+  val x: Int
 
   @get:SwingCoordinate
-  abstract val y: Int
+  val y: Int
   
   val scaledContentSize: Dimension
     @SwingCoordinate get() = getScaledContentSize(Dimension())
-  abstract val margin: Insets
+  val margin: Insets
 
-  abstract val isVisible: Boolean
+  val isVisible: Boolean
 
   @AndroidDpCoordinate
-  abstract fun getContentSize(dimension: Dimension?): Dimension
+  fun getContentSize(dimension: Dimension?): Dimension
 
   /**
    * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
@@ -55,8 +55,8 @@ abstract class PositionableContent {
    *                  returned.
    */
   @SwingCoordinate
-  abstract fun getScaledContentSize(dimension: Dimension?): Dimension
-  abstract fun setLocation(@SwingCoordinate x: Int, @SwingCoordinate y: Int)
+  fun getScaledContentSize(dimension: Dimension?): Dimension
+  fun setLocation(@SwingCoordinate x: Int, @SwingCoordinate y: Int)
 }
 
 
