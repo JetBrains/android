@@ -686,7 +686,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
+        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app-with-dynamic-feature:main"),
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
