@@ -124,7 +124,7 @@ class BuildAttributionUiManagerImpl(
 
   override fun showNewReport(){
     val buildResults = BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults()
-    val reportUiData = BuildAttributionReportBuilder(buildResults, buildResults.getBuildFinishedTimestamp(), buildResults.getBuildRequestData()).build()
+    val reportUiData = BuildAttributionReportBuilder(buildResults).build()
     val buildSessionId = buildResults.getBuildSessionID()
     showNewReport(reportUiData, buildSessionId)
   }

@@ -39,6 +39,7 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
 
 
     val analyzerResults = object : MockResultsProvider() {
+      override fun getBuildFinishedTimestamp(): Long = 12345
       override fun getTotalBuildTimeMs(): Long = 1500
       override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
       override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = listOf(
@@ -47,7 +48,7 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
+    val report = BuildAttributionReportBuilder(analyzerResults).build()
 
     assertThat(report.buildSummary.totalBuildDuration.timeMs).isEqualTo(1500)
     assertThat(report.criticalPathTasks.criticalPathDuration).isEqualTo(TimeWithPercentage(1000, 1500))
@@ -73,6 +74,7 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
 
 
     val analyzerResults = object : MockResultsProvider() {
+      override fun getBuildFinishedTimestamp(): Long = 12345
       override fun getTotalBuildTimeMs(): Long = 1500
       override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
       override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = listOf(
@@ -81,7 +83,7 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
+    val report = BuildAttributionReportBuilder(analyzerResults).build()
 
     assertThat(report.criticalPathPlugins.criticalPathDuration).isEqualTo(TimeWithPercentage(1000, 1500))
     assertThat(report.criticalPathPlugins.miscStepsTime).isEqualTo(TimeWithPercentage(500, 1500))
@@ -106,13 +108,14 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
 
 
     val analyzerResults = object : MockResultsProvider() {
+      override fun getBuildFinishedTimestamp(): Long = 12345
       override fun getTotalBuildTimeMs(): Long = 1500
       override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(taskA)
       override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = listOf(PluginBuildData(plugin, 1500))
       override fun buildUsesConfigurationCache(): Boolean = true
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
+    val report = BuildAttributionReportBuilder(analyzerResults).build()
 
     //Sorted by time descending
     assertThat(report.criticalPathTasks.tasks[0].pluginUnknownBecauseOfCC).isTrue()

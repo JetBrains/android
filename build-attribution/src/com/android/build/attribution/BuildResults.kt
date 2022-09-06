@@ -56,7 +56,8 @@ data class BuildAnalysisResults(
   private val buildSessionID: String
 ) : BuildEventsAnalysisResult {
 
-  fun getBuildRequestData() : GradleBuildInvoker.Request.RequestData {
+  @Override
+  override fun getBuildRequestData() : GradleBuildInvoker.Request.RequestData {
     return buildRequestData
   }
 
@@ -64,7 +65,8 @@ data class BuildAnalysisResults(
     return criticalPathAnalyzerResult.buildStartedTimestamp
   }
 
-  fun getBuildFinishedTimestamp() : Long{
+  @Override
+  override fun getBuildFinishedTimestamp() : Long{
     return criticalPathAnalyzerResult.buildFinishedTimestamp
   }
 

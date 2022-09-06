@@ -27,6 +27,8 @@ class ConfigurationTimeReportBuilderTest : AbstractBuildAttributionReportBuilder
   fun testConfigurationTimesReport() {
 
     val analyzerResults = object : MockResultsProvider() {
+      override fun getBuildFinishedTimestamp(): Long = 12345
+
       override fun getConfigurationPhaseTimeMs(): Long = 2000
 
       override fun getProjectsConfigurationData(): List<ProjectConfigurationData> = listOf(
@@ -42,7 +44,7 @@ class ConfigurationTimeReportBuilderTest : AbstractBuildAttributionReportBuilder
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
+    val report = BuildAttributionReportBuilder(analyzerResults).build()
 
     assertThat(report.configurationTime.totalConfigurationTime.timeMs).isEqualTo(2000)
     assertThat(report.configurationTime.projects.size).isEqualTo(2)

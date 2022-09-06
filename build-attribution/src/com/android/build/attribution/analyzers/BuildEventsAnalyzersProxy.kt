@@ -26,9 +26,12 @@ import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import org.jetbrains.kotlin.idea.util.ifTrue
 
 interface BuildEventsAnalysisResult {
+  fun getBuildRequestData() : GradleBuildInvoker.Request.RequestData
+  fun getBuildFinishedTimestamp() : Long
   fun getAnnotationProcessorsData(): List<AnnotationProcessorData>
   fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData>
   fun getTotalBuildTimeMs(): Long

@@ -63,7 +63,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     )
 
     buildAttributionUiManager = BuildAttributionUiManagerImpl(project)
-    reportUiData = BuildAttributionReportBuilder(AbstractBuildAttributionReportBuilderTest.MockResultsProvider(), 0, mock()).build()
+    reportUiData = BuildAttributionReportBuilder(AbstractBuildAttributionReportBuilderTest.MockResultsProvider()).build()
     buildSessionId = UUID.randomUUID().toString()
   }
 
@@ -309,7 +309,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
         checkJetifierBuild = true
       )
     }
-    val reportUiData = BuildAttributionReportBuilder(buildAnalysisResult, 0, mock()).build()
+    val reportUiData = BuildAttributionReportBuilder(buildAnalysisResult).build()
     setNewReportData(reportUiData, buildSessionId)
 
     verifyBuildAnalyzerTabExist()

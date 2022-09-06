@@ -40,9 +40,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
  * The data structure of the report is described in UiDataModel.kt
  */
 class BuildAttributionReportBuilder(
-  val buildAnalysisResult: BuildEventsAnalysisResult,
-  val buildFinishedTimestamp: Long,
-  val buildRequestData: GradleBuildInvoker.Request.RequestData
+  val buildAnalysisResult: BuildEventsAnalysisResult
 ) {
 
   private val criticalPathDurationMs: Long = buildAnalysisResult.getTasksDeterminingBuildDuration().sumByLong { it.executionTime }
@@ -55,7 +53,8 @@ class BuildAttributionReportBuilder(
     val buildSummary = createBuildSummary(pluginConfigurationTimeReport)
     return object : BuildAttributionReportUiData {
       override val successfulBuild: Boolean = true
-      override val buildRequestData: GradleBuildInvoker.Request.RequestData = this@BuildAttributionReportBuilder.buildRequestData
+      override val buildRequestData: GradleBuildInvoker.Request.RequestData =
+        this@BuildAttributionReportBuilder.buildAnalysisResult.getBuildRequestData()
       override val buildSummary: BuildSummary = buildSummary
       override val criticalPathTasks = createCriticalPathTasks(buildSummary.criticalPathDuration)
       override val criticalPathPlugins = createCriticalPathPlugins(buildSummary.criticalPathDuration)
@@ -70,7 +69,7 @@ class BuildAttributionReportBuilder(
   }
 
   private fun createBuildSummary(pluginConfigurationTimeReport: ConfigurationUiData) = object : BuildSummary {
-    override val buildFinishedTimestamp = this@BuildAttributionReportBuilder.buildFinishedTimestamp
+    override val buildFinishedTimestamp = this@BuildAttributionReportBuilder.buildAnalysisResult.getBuildFinishedTimestamp()
     override val totalBuildDuration = TimeWithPercentage(buildAnalysisResult.getTotalBuildTimeMs(), buildAnalysisResult.getTotalBuildTimeMs())
     override val criticalPathDuration = TimeWithPercentage(criticalPathDurationMs, buildAnalysisResult.getTotalBuildTimeMs())
     override val configurationDuration = pluginConfigurationTimeReport.totalConfigurationTime

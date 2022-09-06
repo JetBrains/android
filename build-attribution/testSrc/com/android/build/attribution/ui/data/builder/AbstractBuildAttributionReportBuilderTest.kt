@@ -30,6 +30,8 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 
 open class AbstractBuildAttributionReportBuilderTest {
 
@@ -46,6 +48,8 @@ open class AbstractBuildAttributionReportBuilderTest {
    * Mock results provider with default empty values.
    */
   open class MockResultsProvider : BuildEventsAnalysisResult {
+    override fun getBuildRequestData(): GradleBuildInvoker.Request.RequestData = mock()
+    override fun getBuildFinishedTimestamp(): Long = 0
     override fun getAnnotationProcessorsData(): List<AnnotationProcessorData> = emptyList()
     override fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> = emptyList()
     override fun getTotalBuildTimeMs(): Long = 0

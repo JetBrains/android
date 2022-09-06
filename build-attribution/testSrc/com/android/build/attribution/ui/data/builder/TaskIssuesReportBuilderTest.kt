@@ -40,6 +40,7 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
     val taskD = TaskData("taskD", ":app", pluginB, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList())
 
     val analyzerResults = object : MockResultsProvider() {
+      override fun getBuildFinishedTimestamp(): Long = 12345
       override fun getTotalBuildTimeMs(): Long = 1500
       override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
       override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = listOf(
@@ -58,7 +59,7 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
+    val report = BuildAttributionReportBuilder(analyzerResults).build()
 
     assertThat(report.criticalPathTasks.size).isEqualTo(4)
     // Five warning level issues found (TasksSharingOutput contributes as two - one for every task)
@@ -80,6 +81,7 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
     val nonCritPathTask = TaskData("taskOther", ":app", pluginA, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList())
 
     val analyzerResults = object : MockResultsProvider() {
+      override fun getBuildFinishedTimestamp(): Long = 12345
       override fun getTotalBuildTimeMs(): Long = 1500
       override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(taskA, taskB)
       override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = listOf(
@@ -100,7 +102,7 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
+    val report = BuildAttributionReportBuilder(analyzerResults).build()
 
     // Five warning level issues found (TasksSharingOutput contributes as two - one for every task)
     report.criticalPathPlugins.verify(expectedSize = 2, expectedWarnings = 5, expectedInfos = 0)
@@ -124,6 +126,7 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
     val nonCritPathTask = TaskData("taskOther", ":app", pluginA, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList())
 
     val analyzerResults = object : MockResultsProvider() {
+      override fun getBuildFinishedTimestamp(): Long = 12345
       override fun getTotalBuildTimeMs(): Long = 1500
       override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(taskA, taskB)
       override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = listOf(
@@ -144,7 +147,7 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
+    val report = BuildAttributionReportBuilder(analyzerResults).build()
 
     assertThat(report.issues.size).isEqualTo(2)
     report.issues[0].verify(ALWAYS_RUN_TASKS, 3, 3, 0)

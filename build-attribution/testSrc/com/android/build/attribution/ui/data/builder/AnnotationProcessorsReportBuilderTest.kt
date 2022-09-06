@@ -26,6 +26,7 @@ class AnnotationProcessorsReportBuilderTest : AbstractBuildAttributionReportBuil
   @Test
   fun testTasksCriticalPath() {
     val analyzerResults = object : MockResultsProvider() {
+      override fun getBuildFinishedTimestamp(): Long = 12345
       override fun getAnnotationProcessorsData(): List<AnnotationProcessorData> = listOf(
         AnnotationProcessorData("com.google.auto.value.processor.AutoAnnotationProcessor", Duration.ofMillis(123)),
         AnnotationProcessorData("com.google.auto.value.processor.AutoValueBuilderProcessor", Duration.ofMillis(456)),
@@ -42,7 +43,7 @@ class AnnotationProcessorsReportBuilderTest : AbstractBuildAttributionReportBuil
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
+    val report = BuildAttributionReportBuilder(analyzerResults).build()
 
     assertThat(report.annotationProcessors.nonIncrementalProcessors.size).isEqualTo(3)
     assertThat(report.annotationProcessors.nonIncrementalProcessors[0].className).isEqualTo(
