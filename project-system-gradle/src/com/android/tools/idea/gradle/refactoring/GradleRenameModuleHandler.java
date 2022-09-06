@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.refactoring;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.tools.idea.gradle.util.GradleProjects.isGradleProjectModule;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MODULE_RENAMED;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.annotations.concurrency.UiThread;
@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.google.common.base.Joiner;
@@ -68,6 +67,7 @@ import java.util.List;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
  * Replaces {@link com.intellij.ide.projectView.impl.RenameModuleHandler}. When renaming the module, the class will:
@@ -109,7 +109,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   @Nullable
   private static Module getGradleModule(@NotNull DataContext dataContext) {
     Module module = LangDataKeys.MODULE_CONTEXT.getData(dataContext);
-    if (module != null && (GradleFacet.getInstance(module) != null || isGradleProjectModule(module))) {
+    if (isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) {
       return module;
     }
     return null;
@@ -148,16 +148,16 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
       final VirtualFile moduleRoot = getModuleRootDir(myModule);
       assert moduleRoot != null;
 
-      if (isGradleProjectModule(myModule)) {
+      GradleProjectPath gradleProjectPath = getGradleProjectPath(myModule);
+      if (gradleProjectPath != null && gradleProjectPath.getPath().equals(":")) {
         Messages.showErrorDialog(project, "Can't rename root module", IdeBundle.message("title.rename.module"));
         return true;
       }
 
-      final GradleProjectPath oldModuleGradleProjectPath = getGradleProjectPath(myModule);
-      if (oldModuleGradleProjectPath == null) {
+      if (gradleProjectPath == null) {
         return true;
       }
-      final String oldModuleGradlePath = oldModuleGradleProjectPath.getPath();
+      final String oldModuleGradlePath = gradleProjectPath.getPath();
 
       // Rename all references in Gradle build files
       final List<GradleBuildModel> modifiedBuildModels = Lists.newArrayList();

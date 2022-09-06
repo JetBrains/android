@@ -16,7 +16,8 @@
 package com.android.tools.idea.gradle.structure;
 
 import static com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink.showGradleSettings;
-import static com.android.tools.idea.gradle.util.GradleProjects.getGradleModulePath;
+import static com.android.tools.idea.projectsystem.gradle.BuildRelativeGradleProjectPathKt.buildNamePrefixedGradleProjectPath;
+import static com.android.tools.idea.projectsystem.gradle.BuildRelativeGradleProjectPathKt.getBuildAndRelativeGradleProjectPath;
 import static com.android.tools.idea.structure.dialog.ProjectStructureConfigurableKt.canShowPsd;
 import static com.android.tools.idea.structure.dialog.ProjectStructureConfigurableKt.canShowPsdOrWarnUser;
 
@@ -312,5 +313,10 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   private boolean isGradleProjectInAndroidStudio() {
     return IdeInfo.getInstance().isAndroidStudio() && ProjectSystemUtil.requiresAndroidModel(myProject);
+  }
+
+  private @Nullable String getGradleModulePath(@NotNull Module module) {
+    final var gradleProjectPath = getBuildAndRelativeGradleProjectPath(module);
+    return gradleProjectPath != null ? buildNamePrefixedGradleProjectPath(gradleProjectPath) : null;
   }
 }

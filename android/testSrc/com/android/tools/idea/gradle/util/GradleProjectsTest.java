@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.util;
 
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
-import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.openPreparedProject;
-import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
 
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -28,18 +26,10 @@ import com.android.tools.idea.testing.EdtAndroidProjectRule;
 import com.android.tools.idea.testing.GradleIntegrationTest;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.google.common.truth.Expect;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-import kotlin.Unit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
@@ -73,48 +63,6 @@ public class GradleProjectsTest implements GradleIntegrationTest {
 
     expect.that(facet.getProperties().ALLOW_USER_CONFIGURATION).isFalse();
     expect.that(ProjectSystemUtil.requiresAndroidModel(projectRule.getProject())).isTrue();
-  }
-
-  @Test
-  public void testCompositeGradlePaths() {
-    prepareGradleProject(this, TestProjectPaths.COMPOSITE_BUILD, "project");
-    openPreparedProject(this, "project", project -> {
-      validateModuleGradlePath(project, ":", ":");
-      validateModuleGradlePath(project, ":app", ":app");
-      validateModuleGradlePath(project, ":lib", ":lib");
-      validateModuleGradlePath(project, ":TestCompositeLib1:app", "TestCompositeLib1:app");
-      validateModuleGradlePath(project, ":TestCompositeLib1:lib", "TestCompositeLib1:lib");
-      validateModuleGradlePath(project, ":TestCompositeLib3:app", "TestCompositeLib3:app");
-      validateModuleGradlePath(project, ":TestCompositeLib3:lib", "TestCompositeLib3:lib");
-      validateModuleGradlePath(project, ":TestCompositeLib2", "composite2");
-      validateModuleGradlePath(project, ":TestCompositeLib4", "composite4");
-      return Unit.INSTANCE;
-    });
-  }
-
-  @Test
-  public void testGradlePath() {
-    prepareGradleProject(this,  TestProjectPaths.SIMPLE_APPLICATION, "project");
-    openPreparedProject(this, "project", project -> {
-      List<Module> modules = Arrays.stream(ModuleManager.getInstance(project).getModules()).sorted(Comparator.comparing(Module::getName))
-        .collect(Collectors.toList());
-      expect.that(GradleProjects.getGradleModulePath(modules.get(0))).isEqualTo(":");
-      expect.that(GradleProjects.getGradleModulePath(modules.get(1))).isEqualTo(":app"); // holder module
-      expect.that(GradleProjects.getGradleModulePath(modules.get(2))).isEqualTo(":app"); // android test module
-      expect.that(GradleProjects.getGradleModulePath(modules.get(3))).isEqualTo(":app"); // main module
-      expect.that(GradleProjects.getGradleModulePath(modules.get(4))).isEqualTo(":app"); // unit test module
-      return Unit.INSTANCE;
-    });
-  }
-
-  private void validateModuleGradlePath(Project project, String fullPath, String s) {
-    Module module = gradleModule(project, fullPath);
-    expect.that(module).isNotNull();
-    //noinspection ConstantConditions
-    if (module != null) {
-      // Note: gradleModule is implemented via `getGradleModulePath` so it should fail on `isNotNull` rather than here.
-      expect.that(GradleProjects.getGradleModulePath(module)).isEqualTo(s);
-    }
   }
 
   @NotNull
