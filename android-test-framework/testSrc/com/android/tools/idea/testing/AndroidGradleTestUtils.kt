@@ -96,7 +96,6 @@ import com.android.tools.idea.gradle.project.sync.idea.setupAndroidContentEntrie
 import com.android.tools.idea.gradle.project.sync.idea.setupAndroidDependenciesForMpss
 import com.android.tools.idea.gradle.project.sync.idea.setupCompilerOutputPaths
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues.Companion.syncIssues
-import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
@@ -111,6 +110,8 @@ import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
+import com.android.tools.idea.projectsystem.gradle.buildNamePrefixedGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getBuildAndRelativeGradleProjectPath
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.android.utils.FileUtils
@@ -175,8 +176,8 @@ import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableConsumer
-import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.containers.MultiMap
+import com.intellij.util.messages.MessageBusConnection
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
@@ -1140,6 +1141,12 @@ fun setupTestProjectFromAndroidModel(
   setupAllVariants: Boolean = false,
   vararg moduleBuilders: ModuleModelBuilder
 ) {
+  if (moduleBuilders.none { it.gradlePath == ":" }) {
+    error(
+      "Each project needs to have ':' module. " +
+        "Add `JavaModuleModelBuilder.rootModuleBuilder` to add a default one."
+    )
+  }
   if (IdeSdks.getInstance().androidSdkPath === null) {
     AndroidGradleTests.setUpSdks(project, project, getSdk().toFile())
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
@@ -1819,7 +1826,10 @@ private fun mergeModuleContentRoots(weightMap: Map<String, Int>, moduleNode: Dat
  * Note: In the case of composite build [gradlePath] can be in a form of `includedProject:module:module` for modules from included projects.
  */
 fun Project.gradleModule(gradlePath: String): Module? =
-  ModuleManager.getInstance(this).modules.firstOrNull { GradleProjects.getGradleModulePath(it) == gradlePath }?.getHolderModule()
+  ModuleManager.getInstance(this).modules
+    .firstOrNull {
+      it.getBuildAndRelativeGradleProjectPath()?.buildNamePrefixedGradleProjectPath() == gradlePath
+    }?.getHolderModule()
 
 /**
  * Finds a file by the [path] relative to the corresponding Gradle project root.

@@ -79,15 +79,15 @@ public class GradleProjectsTest implements GradleIntegrationTest {
   public void testCompositeGradlePaths() {
     prepareGradleProject(this, TestProjectPaths.COMPOSITE_BUILD, "project");
     openPreparedProject(this, "project", project -> {
-      validateModuleGradlePath(project, ":");
-      validateModuleGradlePath(project, ":app");
-      validateModuleGradlePath(project, ":lib");
-      validateModuleGradlePath(project, "TestCompositeLib1:app");
-      validateModuleGradlePath(project, "TestCompositeLib1:lib");
-      validateModuleGradlePath(project, "TestCompositeLib3:app");
-      validateModuleGradlePath(project, "TestCompositeLib3:lib");
-      validateModuleGradlePath(project, "composite2");
-      validateModuleGradlePath(project, "composite4");
+      validateModuleGradlePath(project, ":", ":");
+      validateModuleGradlePath(project, ":app", ":app");
+      validateModuleGradlePath(project, ":lib", ":lib");
+      validateModuleGradlePath(project, ":TestCompositeLib1:app", "TestCompositeLib1:app");
+      validateModuleGradlePath(project, ":TestCompositeLib1:lib", "TestCompositeLib1:lib");
+      validateModuleGradlePath(project, ":TestCompositeLib3:app", "TestCompositeLib3:app");
+      validateModuleGradlePath(project, ":TestCompositeLib3:lib", "TestCompositeLib3:lib");
+      validateModuleGradlePath(project, ":TestCompositeLib2", "composite2");
+      validateModuleGradlePath(project, ":TestCompositeLib4", "composite4");
       return Unit.INSTANCE;
     });
   }
@@ -107,8 +107,8 @@ public class GradleProjectsTest implements GradleIntegrationTest {
     });
   }
 
-  private void validateModuleGradlePath(Project project, String s) {
-    Module module = gradleModule(project, s);
+  private void validateModuleGradlePath(Project project, String fullPath, String s) {
+    Module module = gradleModule(project, fullPath);
     expect.that(module).isNotNull();
     //noinspection ConstantConditions
     if (module != null) {

@@ -60,6 +60,7 @@ import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
+import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth
@@ -107,6 +108,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
       project,
       Projects.getBaseDirPath(project),
       true,
+      JavaModuleModelBuilder.rootModuleBuilder,
       AndroidModuleModelBuilder(
         ":moduleName", null, "3.6.0", "debug", AndroidProjectBuilder())
     )

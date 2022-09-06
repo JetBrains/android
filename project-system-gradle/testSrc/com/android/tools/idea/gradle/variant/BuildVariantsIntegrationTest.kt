@@ -365,7 +365,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
       switchVariant(project, ":app", "release")
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
-      expect.thatModuleVariantIs(project, "TestCompositeLib1:lib", "release")
+      expect.thatModuleVariantIs(project, ":TestCompositeLib1:lib", "release")
     }
   }
 
@@ -676,7 +676,7 @@ private fun Expect.consistentConfigurationOf(project: Project) {
 
 private fun Expect.thatModuleVariantIs(project: Project, gradlePath: String, variant: String, abi: String? = null) {
   val module = project.gradleModule(gradlePath)
-  withMessage("Selected variant in AndroidModuleModel $gradlePath").that(module?.selectedModelVariant()).isEqualTo(variant)
+  withMessage("Selected variant in AndroidModuleModel $module $gradlePath").that(module?.selectedModelVariant()).isEqualTo(variant)
   withMessage("Selected variant in AndroidFacet $gradlePath").that(module?.selectedFacetVariant()).isEqualTo(variant)
   if (abi != null) {
     withMessage("Selected variant in NdkModuleModel $gradlePath")
