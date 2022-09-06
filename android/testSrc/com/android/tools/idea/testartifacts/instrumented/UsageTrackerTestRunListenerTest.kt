@@ -29,6 +29,7 @@ import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.stats.UsageTrackerTestRunListener
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
+import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth.assertThat
@@ -49,6 +50,7 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
         project,
         Projects.getBaseDirPath(project),
         true,
+        JavaModuleModelBuilder.rootModuleBuilder,
         AndroidModuleModelBuilder(":moduleName", "debug", AndroidProjectBuilder())
       )
 

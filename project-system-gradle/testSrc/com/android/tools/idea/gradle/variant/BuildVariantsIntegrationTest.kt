@@ -371,7 +371,7 @@ class BuildVariantsIntegrationTest {
       switchVariant(project, ":app", "release")
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
-      expect.thatModuleVariantIs(project, "TestCompositeLib1:lib", "release")
+      expect.thatModuleVariantIs(project, ":includedLib1:lib", "release")
     }
   }
 
