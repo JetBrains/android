@@ -17,6 +17,7 @@ package com.android.tools.idea.project
 
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.findClassFileInOutputRoot
+import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.CompilerModuleExtension
@@ -53,7 +54,7 @@ open class ModuleBasedClassFileFinder(val module: Module): ClassFileFinder {
       val classFile = findClassFileInModuleWithLogging(module, fqcn)
       if (classFile != null) return classFile
 
-      ModuleRootManager.getInstance(module).getDependencies(false).forEach { depModule ->
+      ModuleRootManager.getInstance(module).getDependencies(module.isAndroidTestModule()).forEach { depModule ->
         val classFile = findClassFile(depModule, fqcn, visited)
         if (classFile != null) return classFile
       }
