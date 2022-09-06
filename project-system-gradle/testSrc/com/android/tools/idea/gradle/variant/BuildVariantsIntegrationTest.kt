@@ -491,8 +491,6 @@ class BuildVariantsIntegrationTest {
   fun `switch variant and abi with cmake`() {
     assumeNotWindows()
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.HELLO_JNI)
-    val path = preparedProject.root
-    path.resolve(".idea").deleteRecursively()
     val (firstSnapshot, secondSnapshot) = preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
