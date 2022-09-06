@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import static com.android.tools.idea.run.debug.UtilsKt.showError;
 import static com.android.tools.idea.run.debug.UtilsKt.waitForClientReadyForDebug;
 
 import com.android.ddmlib.Client;
@@ -100,7 +101,8 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
       client = getClient(device);
     }
     catch (ExecutionException e) {
-      logger().error(e);
+      state.getProcessHandler().destroyProcess();
+      showError(myProject, e, launchInfo.env.getRunProfile().getName());
       return;
     }
 
