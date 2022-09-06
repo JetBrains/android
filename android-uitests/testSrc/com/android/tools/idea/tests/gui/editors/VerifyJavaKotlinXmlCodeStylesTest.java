@@ -48,7 +48,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class VerifyJavaKotlinXmlCodeStylesTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   private IdeSettingsDialogFixture mySettingsDialog;
   private static String javaCodeLanguage = "Java";
