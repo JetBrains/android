@@ -30,7 +30,10 @@ import com.android.tools.idea.uibuilder.type.DrawableFileType
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.type.MenuFileType
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
+import com.intellij.analysis.problemsView.toolWindow.HighlightingPanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewProjectErrorsPanelProvider
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.ApplicationManager
@@ -129,7 +132,7 @@ class IssuePanelService(private val project: Project) {
 
       sharedIssuePanel = issuePanel
       contentFactory.createContent(issuePanel.getComponent(), "Design Issue", true).apply {
-        tabName = Tab.DESIGN_TOOLS.tabName
+        tabName = DESIGN_TOOL_TAB_NAME
         isPinnable = false
         sharedIssueTab = this
         isCloseable = false
@@ -271,8 +274,8 @@ class IssuePanelService(private val project: Project) {
     }
     val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
     val contentManager = problemsViewPanel.contentManager
-    val tab = selectedTab?.tabName?.let { contentManager.findContent(it) }
-    val runnable: Runnable? = if (tab != null) Runnable { contentManager.setSelectedContent(tab) } else null
+    val contentOfTab: Content? = if (selectedTab != null) contentManager.contents.firstOrNull { it.isTab(selectedTab) } else null
+    val runnable: Runnable? = if (contentOfTab != null) Runnable { contentManager.setSelectedContent(contentOfTab) } else null
     if (visible) {
       problemsViewPanel.show(runnable)
     }
@@ -495,16 +498,27 @@ class IssuePanelService(private val project: Project) {
     fun getInstance(project: Project): IssuePanelService = project.getService(IssuePanelService::class.java)
 
     val SELECTED_ISSUES = DataKey.create<List<Issue>>(DesignerCommonIssuePanel::class.java.name + "_selectedIssues")
+
+    const val DESIGN_TOOL_TAB_NAME = "Designer"
   }
 
   /**
    * List of the possible tabs of Problems pane. This is used by [setIssuePanelVisibility] to assign the selected tab after changing the
    * visibility of problems pane.
    */
-  enum class Tab(val tabName: String) {
-    CURRENT_FILE("Current File"),
-    PROJECT_ERRORS("Project Errors"),
-    DESIGN_TOOLS("Designer");
+  enum class Tab {
+    CURRENT_FILE,
+    PROJECT_ERRORS,
+    DESIGN_TOOLS
+  }
+}
+
+@VisibleForTesting
+fun Content.isTab(tab: IssuePanelService.Tab): Boolean {
+  return when (tab) {
+    IssuePanelService.Tab.DESIGN_TOOLS -> this.tabName == IssuePanelService.DESIGN_TOOL_TAB_NAME
+    IssuePanelService.Tab.CURRENT_FILE -> (this.component as? ProblemsViewTab)?.getTabId() == HighlightingPanel.ID
+    IssuePanelService.Tab.PROJECT_ERRORS -> (this.component as? ProblemsViewTab)?.getTabId() == ProblemsViewProjectErrorsPanelProvider.ID
   }
 }
 

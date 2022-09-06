@@ -20,7 +20,9 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
+import com.intellij.analysis.problemsView.toolWindow.HighlightingPanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.RegisterToolWindowTask
@@ -35,6 +37,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
+import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -59,8 +62,7 @@ class IssuePanelServiceTest {
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
     val contentManager = toolWindow.contentManager
-    val content = contentManager.factory.createContent(null, "Current File", true).apply {
-      tabName = IssuePanelService.Tab.CURRENT_FILE.tabName
+    val content = contentManager.factory.createContent(TestContentComponent(HighlightingPanel.ID), "Current File", true).apply {
       isCloseable = false
     }
     contentManager.addContent(content)
@@ -291,7 +293,10 @@ class IssuePanelServiceTest {
     val window = toolWindow as TestToolWindow
     val contentManager = window.contentManager
     val additionalContent = contentManager.factory.createContent(null, "Additional Content", false)
-      .apply { isCloseable = false }
+      .apply {
+        tabName = "Additional Content"
+        isCloseable = false
+      }
     window.hide()
     contentManager.setSelectedContent(additionalContent)
 
@@ -305,7 +310,7 @@ class IssuePanelServiceTest {
 
     service.setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
     assertTrue(window.isVisible)
-    assertEquals(contentManager.selectedContent!!.tabName, IssuePanelService.Tab.CURRENT_FILE.tabName)
+    assertTrue(contentManager.selectedContent?.isTab(IssuePanelService.Tab.CURRENT_FILE) ?: false)
   }
 }
 
@@ -383,4 +388,10 @@ class TestToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolW
   override fun isDisposed(): Boolean {
     return contentManager.isDisposed
   }
+}
+
+private class TestContentComponent(private val id: String) : JComponent(), ProblemsViewTab {
+  override fun getName(count: Int): String = id
+
+  override fun getTabId(): String = id
 }
