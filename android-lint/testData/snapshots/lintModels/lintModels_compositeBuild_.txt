@@ -24,10 +24,8 @@ MODULE                        : TestCompositeLib1.app
         MainArtifact
             ApplicationId                 : com.test.composite1
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/app/build/generated/res/resValues/debug [-]
-            - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/app/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/app/build/generated/aidl_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debug/out [-]
-            - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/app/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/app/build/generated/source/buildConfig/debug [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -215,10 +213,8 @@ MODULE                        : TestCompositeLib1.app
             - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite1.test
         - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/app/build/generated/res/resValues/androidTest/debug [-]
-        - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/app/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/app/build/generated/source/buildConfig/androidTest/debug [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -714,10 +710,8 @@ MODULE                        : TestCompositeLib1.lib
         MainArtifact
             ApplicationId                 :
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/lib/build/generated/res/resValues/debug [-]
-            - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/lib/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/aidl_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debug/out [-]
-            - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/source/buildConfig/debug [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -889,10 +883,8 @@ MODULE                        : TestCompositeLib1.lib
             - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite1.test
         - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/lib/build/generated/res/resValues/androidTest/debug [-]
-        - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/lib/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/source/buildConfig/androidTest/debug [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -1399,10 +1391,8 @@ MODULE                        : TestCompositeLib3.app
         MainArtifact
             ApplicationId                 : com.test.composite3
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/app/build/generated/res/resValues/debug [-]
-            - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/app/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/app/build/generated/aidl_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debug/out [-]
-            - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/app/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/app/build/generated/source/buildConfig/debug [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -1582,10 +1572,8 @@ MODULE                        : TestCompositeLib3.app
             - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite3.test
         - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/app/build/generated/res/resValues/androidTest/debug [-]
-        - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/app/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/app/build/generated/source/buildConfig/androidTest/debug [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -2077,10 +2065,8 @@ MODULE                        : TestCompositeLib3.lib
         MainArtifact
             ApplicationId                 :
             - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/lib/build/generated/res/resValues/debug [-]
-            - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/lib/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/aidl_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debug/out [-]
-            - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/source/buildConfig/debug [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -2222,10 +2208,8 @@ MODULE                        : TestCompositeLib3.lib
             - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/classes [-]
         ApplicationId                 : com.test.composite3.test
         - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/lib/build/generated/res/resValues/androidTest/debug [-]
-        - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/lib/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/source/buildConfig/androidTest/debug [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -2709,10 +2693,8 @@ MODULE                        : project.app
         MainArtifact
             ApplicationId                 : com.test.compositeapp
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/debug [-]
-            - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
-            - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/debug [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -2904,10 +2886,8 @@ MODULE                        : project.app
             - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.compositeapp.test
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
-        - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
@@ -3405,10 +3385,8 @@ MODULE                        : project.lib
         MainArtifact
             ApplicationId                 :
             - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/resValues/debug [-]
-            - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
-            - GeneratedSourceFolders      : <ROOT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -3568,10 +3546,8 @@ MODULE                        : project.lib
             - ClassOutputs                : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite0.test
         - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/resValues/androidTest/debug [-]
-        - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        - GeneratedSourceFolders      : <ROOT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies

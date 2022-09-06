@@ -415,7 +415,6 @@ MODULE                        : project_sm_src.app
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/javac/debug/classes [-]
@@ -1036,7 +1035,6 @@ MODULE                        : project_sm_src.app
                     BundleTaskOutputListingFile   : <ROOT>_sm_src/app/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
                     ApkFromBundleTaskName         : extractApksForDebug
                     ApkFromBundleTaskOutputListingFile      : <ROOT>_sm_src/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>_sm_src/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>_sm_src/app/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
@@ -1046,7 +1044,6 @@ MODULE                        : project_sm_src.app
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/javac/debugAndroidTest/classes [-]
@@ -1301,7 +1298,6 @@ MODULE                        : project_sm_src.app
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>_sm_src/app/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>_sm_src/app/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>_sm_src/app/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
                     AnimationsDisabled            : false

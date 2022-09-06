@@ -24,10 +24,8 @@ MODULE                        : MultiFlavor.app
         MainArtifact
             ApplicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
-            - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/firstAbcSecondAbc/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
-            - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/firstAbcSecondAbc/debug [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
@@ -153,10 +151,8 @@ MODULE                        : MultiFlavor.app
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugUnitTest/classes [-]
         ApplicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug.test
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug [-]
-        - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/androidTest/firstAbcSecondAbc/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out [-]
-        - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/androidTest/firstAbcSecondAbc/debug [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies

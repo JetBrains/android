@@ -566,7 +566,6 @@ MODULE                        : My_First_App.app
             KotlinDirectories             : <ROOT>/firstapp/app/src/main/java
             ResourcesDirectories          : <ROOT>/firstapp/app/src/main/resources [-]
             AidlDirectories               : <ROOT>/firstapp/app/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/firstapp/app/src/main/rs [-]
             ResDirectories                : <ROOT>/firstapp/app/src/main/res
             AssetsDirectories             : <ROOT>/firstapp/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/firstapp/app/src/main/jniLibs [-]
@@ -582,7 +581,6 @@ MODULE                        : My_First_App.app
                     KotlinDirectories             : <ROOT>/firstapp/app/src/androidTest/java
                     ResourcesDirectories          : <ROOT>/firstapp/app/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/firstapp/app/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/firstapp/app/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/firstapp/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/firstapp/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/firstapp/app/src/androidTest/jniLibs [-]
@@ -597,7 +595,6 @@ MODULE                        : My_First_App.app
                     KotlinDirectories             : <ROOT>/firstapp/app/src/test/java
                     ResourcesDirectories          : <ROOT>/firstapp/app/src/test/resources [-]
                     AidlDirectories               : <ROOT>/firstapp/app/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/firstapp/app/src/test/rs [-]
                     ResDirectories                : <ROOT>/firstapp/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/firstapp/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/firstapp/app/src/test/jniLibs [-]
@@ -619,7 +616,6 @@ MODULE                        : My_First_App.app
             KotlinDirectories             : <ROOT>/firstapp/app/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/firstapp/app/src/debug/resources [-]
             AidlDirectories               : <ROOT>/firstapp/app/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/firstapp/app/src/debug/rs [-]
             ResDirectories                : <ROOT>/firstapp/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/firstapp/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/firstapp/app/src/debug/jniLibs [-]
@@ -635,7 +631,6 @@ MODULE                        : My_First_App.app
                     KotlinDirectories             : <ROOT>/firstapp/app/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/firstapp/app/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/firstapp/app/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/firstapp/app/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/firstapp/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/firstapp/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/firstapp/app/src/androidTestDebug/jniLibs [-]
@@ -651,7 +646,6 @@ MODULE                        : My_First_App.app
                     KotlinDirectories             : <ROOT>/firstapp/app/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/firstapp/app/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/firstapp/app/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/firstapp/app/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/firstapp/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/firstapp/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/firstapp/app/src/testDebug/jniLibs [-]
@@ -674,7 +668,6 @@ MODULE                        : My_First_App.app
             KotlinDirectories             : <ROOT>/firstapp/app/src/release/java [-]
             ResourcesDirectories          : <ROOT>/firstapp/app/src/release/resources [-]
             AidlDirectories               : <ROOT>/firstapp/app/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/firstapp/app/src/release/rs [-]
             ResDirectories                : <ROOT>/firstapp/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/firstapp/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/firstapp/app/src/release/jniLibs [-]
@@ -690,7 +683,6 @@ MODULE                        : My_First_App.app
                     KotlinDirectories             : <ROOT>/firstapp/app/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/firstapp/app/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/firstapp/app/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/firstapp/app/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/firstapp/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/firstapp/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/firstapp/app/src/testRelease/jniLibs [-]
@@ -743,7 +735,6 @@ MODULE                        : My_First_App.app
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
@@ -1371,7 +1362,6 @@ MODULE                        : My_First_App.app
                     BundleTaskOutputListingFile   : <ROOT>/firstapp/app/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
                     ApkFromBundleTaskName         : extractApksForDebug
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/firstapp/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
@@ -1386,7 +1376,6 @@ MODULE                        : My_First_App.app
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/javac/debugAndroidTest/classes [-]
@@ -1521,7 +1510,6 @@ MODULE                        : My_First_App.app
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -2049,7 +2037,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
             KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/main/java [-]
             ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/main/resources [-]
             AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/main/rs [-]
             ResDirectories                : <ROOT>/shared/mysharedlibrary/src/main/res
             AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/main/jniLibs [-]
@@ -2065,7 +2052,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTest/java
                     ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/shared/mysharedlibrary/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/androidTest/jniLibs [-]
@@ -2080,7 +2066,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/test/java
                     ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/test/resources [-]
                     AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/test/rs [-]
                     ResDirectories                : <ROOT>/shared/mysharedlibrary/src/test/res [-]
                     AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/test/jniLibs [-]
@@ -2102,7 +2087,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
             KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/debug/resources [-]
             AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/debug/rs [-]
             ResDirectories                : <ROOT>/shared/mysharedlibrary/src/debug/res [-]
             AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/debug/jniLibs [-]
@@ -2118,7 +2102,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/jniLibs [-]
@@ -2134,7 +2117,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/shared/mysharedlibrary/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/testDebug/jniLibs [-]
@@ -2157,7 +2139,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
             KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/release/java [-]
             ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/release/resources [-]
             AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/release/rs [-]
             ResDirectories                : <ROOT>/shared/mysharedlibrary/src/release/res [-]
             AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/release/jniLibs [-]
@@ -2173,7 +2154,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/shared/mysharedlibrary/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/testRelease/jniLibs [-]
@@ -2217,7 +2197,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/classes [-]
@@ -2369,7 +2348,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
@@ -2384,7 +2362,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugAndroidTest/classes [-]
@@ -2543,7 +2520,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/shared/mysharedlibrary/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions

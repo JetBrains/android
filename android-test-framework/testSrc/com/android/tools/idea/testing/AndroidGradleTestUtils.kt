@@ -329,6 +329,7 @@ interface AndroidProjectStubBuilder {
   val androidProject: IdeAndroidProjectImpl
   val variants: List<IdeVariantCoreImpl>
   val ndkModel: NdkModel?
+  val includeRenderScriptSources: Boolean
   val internedModels: InternedModels
 }
 
@@ -386,7 +387,8 @@ data class AndroidProjectBuilder(
     { emptyList() },
   val androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl = { buildAndroidProjectStub() },
   val variants: AndroidProjectStubBuilder.() -> List<IdeVariantCoreImpl> = { buildVariantStubs() },
-  val ndkModel: AndroidProjectStubBuilder.() -> NdkModel? = { null }
+  val ndkModel: AndroidProjectStubBuilder.() -> NdkModel? = { null },
+  val includeRenderScriptSources: AndroidProjectStubBuilder.() -> Boolean = { false },
 ) {
   fun withBuildId(buildId: AndroidProjectStubBuilder.() -> String) =
     copy(buildId = buildId)
@@ -530,6 +532,7 @@ data class AndroidProjectBuilder(
         override val variants: List<IdeVariantCoreImpl> = variants()
         override val androidProject: IdeAndroidProjectImpl = androidProject()
         override val ndkModel: NdkModel? = ndkModel()
+        override val includeRenderScriptSources: Boolean get() = includeRenderScriptSources()
         override val internedModels: InternedModels get() = internedModels
       }
       return AndroidProjectModels(
@@ -574,39 +577,39 @@ fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStruc
 }
 
 fun AndroidProjectStubBuilder.buildMainSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider(ARTIFACT_NAME_MAIN, moduleBasePath.resolve("src/main"))
+  sourceProvider(ARTIFACT_NAME_MAIN, moduleBasePath.resolve("src/main"), includeRenderScriptSources)
 
 fun AndroidProjectStubBuilder.buildAndroidTestSourceProviderContainerStub(): IdeSourceProviderContainerImpl =
   IdeSourceProviderContainerImpl(
     artifactName = ARTIFACT_NAME_ANDROID_TEST,
-    sourceProvider = sourceProvider(ARTIFACT_NAME_ANDROID_TEST, moduleBasePath.resolve("src/androidTest")))
+    sourceProvider = sourceProvider(ARTIFACT_NAME_ANDROID_TEST, moduleBasePath.resolve("src/androidTest"), includeRenderScriptSources))
 
 fun AndroidProjectStubBuilder.buildTestFixturesSourceProviderContainerStub(): IdeSourceProviderContainerImpl =
   IdeSourceProviderContainerImpl(
     artifactName = ARTIFACT_NAME_TEST_FIXTURES,
-    sourceProvider = sourceProvider(ARTIFACT_NAME_TEST_FIXTURES, moduleBasePath.resolve("src/testFixtures")))
+    sourceProvider = sourceProvider(ARTIFACT_NAME_TEST_FIXTURES, moduleBasePath.resolve("src/testFixtures"), includeRenderScriptSources))
 
 fun AndroidProjectStubBuilder.buildUnitTestSourceProviderContainerStub(): IdeSourceProviderContainerImpl =
   IdeSourceProviderContainerImpl(
     artifactName = ARTIFACT_NAME_UNIT_TEST,
-    sourceProvider = sourceProvider(ARTIFACT_NAME_UNIT_TEST, moduleBasePath.resolve("src/test")))
+    sourceProvider = sourceProvider(ARTIFACT_NAME_UNIT_TEST, moduleBasePath.resolve("src/test"), includeRenderScriptSources))
 
 fun AndroidProjectStubBuilder.buildDebugSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider("debug", moduleBasePath.resolve("src/debug"))
+  sourceProvider("debug", moduleBasePath.resolve("src/debug"), includeRenderScriptSources)
 
 fun AndroidProjectStubBuilder.buildAndroidTestDebugSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider("androidTestDebug", moduleBasePath.resolve("src/androidTestDebug"))
+  sourceProvider("androidTestDebug", moduleBasePath.resolve("src/androidTestDebug"), includeRenderScriptSources)
 
 fun AndroidProjectStubBuilder.buildTestDebugSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider("testDebug", moduleBasePath.resolve("src/testDebug"))
+  sourceProvider("testDebug", moduleBasePath.resolve("src/testDebug"), includeRenderScriptSources)
 
 fun AndroidProjectStubBuilder.buildReleaseSourceProviderStub(): IdeSourceProviderImpl =
-  sourceProvider("release", moduleBasePath.resolve("src/release"))
+  sourceProvider("release", moduleBasePath.resolve("src/release"), includeRenderScriptSources)
 
 fun AndroidProjectStubBuilder.sourceProvider(name: String): IdeSourceProviderImpl =
-  sourceProvider(name, moduleBasePath.resolve("src/$name"))
+  sourceProvider(name, moduleBasePath.resolve("src/$name"), includeRenderScriptSources)
 
-private fun sourceProvider(name: String, rootDir: File): IdeSourceProviderImpl {
+private fun sourceProvider(name: String, rootDir: File, includeRenderScriptSources: Boolean = false): IdeSourceProviderImpl {
   return IdeSourceProviderImpl(
     myName = name,
     myFolder = rootDir,
@@ -615,7 +618,7 @@ private fun sourceProvider(name: String, rootDir: File): IdeSourceProviderImpl {
     myKotlinDirectories = listOf("kotlin"),
     myResourcesDirectories = listOf("resources"),
     myAidlDirectories = listOf("aidl"),
-    myRenderscriptDirectories = listOf("rs"),
+    myRenderscriptDirectories = if (includeRenderScriptSources) listOf("rs") else listOf(),
     myResDirectories = listOf("res"),
     myAssetsDirectories = listOf("assets"),
     myJniLibsDirectories = listOf("jniLibs"),
@@ -747,10 +750,10 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     variantSourceProvider = null,
     multiFlavorSourceProvider = null,
     ideSetupTaskNames = listOf("generate".appendCapitalized(variant).appendCapitalized("sources")),
-    generatedSourceFolders = listOf(
+    generatedSourceFolders = listOfNotNull(
       buildPath.resolve("generated/aidl_source_output_dir/${variant}/out"),
       buildPath.resolve("generated/ap_generated_sources/${variant}/out"),
-      buildPath.resolve("generated/renderscript_source_output_dir/${variant}/out"),
+      if (includeRenderScriptSources) buildPath.resolve("generated/renderscript_source_output_dir/${variant}/out") else null,
       buildPath.resolve("generated/source/buildConfig/${variant}"),
     ),
     isTestArtifact = false,
@@ -760,8 +763,8 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     applicationId = "applicationId",
     signingConfigName = "defaultConfig",
     isSigned = false,
-    generatedResourceFolders = listOf(
-      buildPath.resolve("generated/res/rs/${variant}"),
+    generatedResourceFolders = listOfNotNull(
+      if (includeRenderScriptSources) buildPath.resolve("generated/res/rs/${variant}") else null,
       buildPath.resolve("generated/res/resValues/${variant}"),
     ),
     additionalRuntimeApks = listOf(),
@@ -812,10 +815,10 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     variantSourceProvider = null,
     multiFlavorSourceProvider = null,
     ideSetupTaskNames = listOf("ideAndroidTestSetupTask1", "ideAndroidTestSetupTask2"),
-    generatedSourceFolders = listOf(
+    generatedSourceFolders = listOfNotNull(
       buildPath.resolve("generated/aidl_source_output_dir/${variant}AndroidTest/out"),
       buildPath.resolve("generated/ap_generated_sources/${variant}AndroidTest/out"),
-      buildPath.resolve("generated/renderscript_source_output_dir/${variant}AndroidTest/out"),
+      if (includeRenderScriptSources) buildPath.resolve("generated/renderscript_source_output_dir/${variant}AndroidTest/out") else null,
       buildPath.resolve("generated/source/buildConfig/androidTest/${variant}"),
     ),
     isTestArtifact = true,
@@ -825,8 +828,8 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     applicationId = applicationId,
     signingConfigName = "defaultConfig",
     isSigned = false,
-    generatedResourceFolders = listOf(
-      buildPath.resolve("generated/res/rs/androidTest/${variant}"),
+    generatedResourceFolders = listOfNotNull(
+      if (includeRenderScriptSources) buildPath.resolve("generated/res/rs/androidTest/${variant}") else null,
       buildPath.resolve("generated/res/resValues/androidTest/${variant}"),
     ),
     additionalRuntimeApks = listOf(),

@@ -25,8 +25,6 @@ MODULE: project.app
                 file://./app/src/main/java
             JniLibsDirectoryUrls:
                 file://./app/src/main/jniLibs
-            RenderscriptDirectoryUrls:
-                file://./app/src/main/rs
             ResDirectoryUrls:
                 file://./app/src/main/res
             ResDirectories:
@@ -50,8 +48,6 @@ MODULE: project.app
                 ./app/src/main/kotlin
             JniLibsDirectories:
                 ./app/src/main/jniLibs
-            RenderscriptDirectories:
-                ./app/src/main/rs
             ResDirectories:
                 ./app/src/main/res
             ResourcesDirectories:
@@ -73,8 +69,6 @@ MODULE: project.app
                     ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/main/rs
                 ResDirectories:
                     ./app/src/main/res
                 ResourcesDirectories:
@@ -95,8 +89,6 @@ MODULE: project.app
                     ./app/src/basic/kotlin
                 JniLibsDirectories:
                     ./app/src/basic/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/basic/rs
                 ResDirectories:
                     ./app/src/basic/res
                 ResourcesDirectories:
@@ -117,8 +109,6 @@ MODULE: project.app
                     ./app/src/bar/kotlin
                 JniLibsDirectories:
                     ./app/src/bar/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/bar/rs
                 ResDirectories:
                     ./app/src/bar/res
                 ResourcesDirectories:
@@ -139,8 +129,6 @@ MODULE: project.app
                     ./app/src/basicBar/kotlin
                 JniLibsDirectories:
                     ./app/src/basicBar/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/basicBar/rs
                 ResDirectories:
                     ./app/src/basicBar/res
                 ResourcesDirectories:
@@ -161,8 +149,6 @@ MODULE: project.app
                     ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/debug/rs
                 ResDirectories:
                     ./app/src/debug/res
                 ResourcesDirectories:
@@ -183,8 +169,6 @@ MODULE: project.app
                     ./app/src/basicBarDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/basicBarDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/basicBarDebug/rs
                 ResDirectories:
                     ./app/src/basicBarDebug/res
                 ResourcesDirectories:
@@ -206,8 +190,6 @@ MODULE: project.app
                     ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/main/rs
                 ResDirectories:
                     ./app/src/main/res
                 ResourcesDirectories:
@@ -228,8 +210,6 @@ MODULE: project.app
                     ./app/src/bar/kotlin
                 JniLibsDirectories:
                     ./app/src/bar/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/bar/rs
                 ResDirectories:
                     ./app/src/bar/res
                 ResourcesDirectories:
@@ -250,8 +230,6 @@ MODULE: project.app
                     ./app/src/basic/kotlin
                 JniLibsDirectories:
                     ./app/src/basic/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/basic/rs
                 ResDirectories:
                     ./app/src/basic/res
                 ResourcesDirectories:
@@ -272,8 +250,6 @@ MODULE: project.app
                     ./app/src/basicBar/kotlin
                 JniLibsDirectories:
                     ./app/src/basicBar/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/basicBar/rs
                 ResDirectories:
                     ./app/src/basicBar/res
                 ResourcesDirectories:
@@ -294,8 +270,6 @@ MODULE: project.app
                     ./app/src/basicBarDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/basicBarDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/basicBarDebug/rs
                 ResDirectories:
                     ./app/src/basicBarDebug/res
                 ResourcesDirectories:
@@ -316,8 +290,6 @@ MODULE: project.app
                     ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/debug/rs
                 ResDirectories:
                     ./app/src/debug/res
                 ResourcesDirectories:
@@ -338,8 +310,6 @@ MODULE: project.app
                     ./app/src/otherBar/kotlin
                 JniLibsDirectories:
                     ./app/src/otherBar/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/otherBar/rs
                 ResDirectories:
                     ./app/src/otherBar/res
                 ResourcesDirectories:
@@ -360,8 +330,6 @@ MODULE: project.app
                     ./app/src/paid/kotlin
                 JniLibsDirectories:
                     ./app/src/paid/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/paid/rs
                 ResDirectories:
                     ./app/src/paid/res
                 ResourcesDirectories:
@@ -382,8 +350,6 @@ MODULE: project.app
                     ./app/src/release/kotlin
                 JniLibsDirectories:
                     ./app/src/release/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/release/rs
                 ResDirectories:
                     ./app/src/release/res
                 ResourcesDirectories:
@@ -404,8 +370,6 @@ MODULE: project.app
                     ./app/src/specialRelease/kotlin
                 JniLibsDirectories:
                     ./app/src/specialRelease/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/specialRelease/rs
                 ResDirectories:
                     ./app/src/specialRelease/res
                 ResourcesDirectories:
@@ -427,8 +391,6 @@ MODULE: project.app
                     ./app/src/test/kotlin
                 JniLibsDirectories:
                     ./app/src/test/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/test/rs
                 ResDirectories:
                     ./app/src/test/res
                 ResourcesDirectories:
@@ -449,8 +411,6 @@ MODULE: project.app
                     ./app/src/testBasic/kotlin
                 JniLibsDirectories:
                     ./app/src/testBasic/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/testBasic/rs
                 ResDirectories:
                     ./app/src/testBasic/res
                 ResourcesDirectories:
@@ -471,8 +431,6 @@ MODULE: project.app
                     ./app/src/testBar/kotlin
                 JniLibsDirectories:
                     ./app/src/testBar/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/testBar/rs
                 ResDirectories:
                     ./app/src/testBar/res
                 ResourcesDirectories:
@@ -493,8 +451,6 @@ MODULE: project.app
                     ./app/src/testBasicBar/kotlin
                 JniLibsDirectories:
                     ./app/src/testBasicBar/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/testBasicBar/rs
                 ResDirectories:
                     ./app/src/testBasicBar/res
                 ResourcesDirectories:
@@ -515,8 +471,6 @@ MODULE: project.app
                     ./app/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/testDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/testDebug/rs
                 ResDirectories:
                     ./app/src/testDebug/res
                 ResourcesDirectories:
@@ -537,8 +491,6 @@ MODULE: project.app
                     ./app/src/testBasicBarDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/testBasicBarDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/testBasicBarDebug/rs
                 ResDirectories:
                     ./app/src/testBasicBarDebug/res
                 ResourcesDirectories:
@@ -560,8 +512,6 @@ MODULE: project.app
                     ./app/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTest/rs
                 ResDirectories:
                     ./app/src/androidTest/res
                 ResourcesDirectories:
@@ -582,8 +532,6 @@ MODULE: project.app
                     ./app/src/androidTestBasic/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestBasic/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestBasic/rs
                 ResDirectories:
                     ./app/src/androidTestBasic/res
                 ResourcesDirectories:
@@ -604,8 +552,6 @@ MODULE: project.app
                     ./app/src/androidTestBar/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestBar/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestBar/rs
                 ResDirectories:
                     ./app/src/androidTestBar/res
                 ResourcesDirectories:
@@ -626,8 +572,6 @@ MODULE: project.app
                     ./app/src/androidTestBasicBar/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestBasicBar/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestBasicBar/rs
                 ResDirectories:
                     ./app/src/androidTestBasicBar/res
                 ResourcesDirectories:
@@ -648,8 +592,6 @@ MODULE: project.app
                     ./app/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestDebug/rs
                 ResDirectories:
                     ./app/src/androidTestDebug/res
                 ResourcesDirectories:
@@ -670,8 +612,6 @@ MODULE: project.app
                     ./app/src/androidTestBasicBarDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestBasicBarDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestBasicBarDebug/rs
                 ResDirectories:
                     ./app/src/androidTestBasicBarDebug/res
                 ResourcesDirectories:
@@ -748,13 +688,6 @@ MODULE: project.app
                     file://./app/src/basicBar/jniLibs
                     file://./app/src/debug/jniLibs
                     file://./app/src/basicBarDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/main/rs
-                    file://./app/src/basic/rs
-                    file://./app/src/bar/rs
-                    file://./app/src/basicBar/rs
-                    file://./app/src/debug/rs
-                    file://./app/src/basicBarDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/main/res
                     file://./app/src/basic/res
@@ -836,13 +769,6 @@ MODULE: project.app
                     file://./app/src/testBasicBar/jniLibs
                     file://./app/src/testDebug/jniLibs
                     file://./app/src/testBasicBarDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/test/rs
-                    file://./app/src/testBasic/rs
-                    file://./app/src/testBar/rs
-                    file://./app/src/testBasicBar/rs
-                    file://./app/src/testDebug/rs
-                    file://./app/src/testBasicBarDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/test/res
                     file://./app/src/testBasic/res
@@ -922,13 +848,6 @@ MODULE: project.app
                     file://./app/src/androidTestBasicBar/jniLibs
                     file://./app/src/androidTestDebug/jniLibs
                     file://./app/src/androidTestBasicBarDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTest/rs
-                    file://./app/src/androidTestBasic/rs
-                    file://./app/src/androidTestBar/rs
-                    file://./app/src/androidTestBasicBar/rs
-                    file://./app/src/androidTestDebug/rs
-                    file://./app/src/androidTestBasicBarDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTest/res
                     file://./app/src/androidTestBasic/res
@@ -960,9 +879,7 @@ MODULE: project.app
                     file://./app/build/generated/ap_generated_sources/basicBarDebug/out
                     file://./app/build/generated/aidl_source_output_dir/basicBarDebug/out
                     file://./app/build/generated/source/buildConfig/basicBar/debug
-                    file://./app/build/generated/renderscript_source_output_dir/basicBarDebug/out
                 ResDirectoryUrls:
-                    file://./app/build/generated/res/rs/basicBar/debug
                     file://./app/build/generated/res/resValues/basicBar/debug
         GeneratedUnitTestSources:
             GeneratedUnitTestSources (IDEA)
@@ -976,9 +893,7 @@ MODULE: project.app
                     file://./app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out
                     file://./app/build/generated/aidl_source_output_dir/basicBarDebugAndroidTest/out
                     file://./app/build/generated/source/buildConfig/androidTest/basicBar/debug
-                    file://./app/build/generated/renderscript_source_output_dir/basicBarDebugAndroidTest/out
                 ResDirectoryUrls:
-                    file://./app/build/generated/res/rs/androidTest/basicBar/debug
                     file://./app/build/generated/res/resValues/androidTest/basicBar/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -1009,8 +924,6 @@ MODULE: project.app
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/main/rs
                 ResDirectoryUrls:
                     file://./app/src/main/res
                 ResDirectories:
@@ -1036,8 +949,6 @@ MODULE: project.app
                     file://./app/src/bar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/bar/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/bar/rs
                 ResDirectoryUrls:
                     file://./app/src/bar/res
                 ResourcesDirectoryUrls:
@@ -1061,8 +972,6 @@ MODULE: project.app
                     file://./app/src/basic/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/basic/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/basic/rs
                 ResDirectoryUrls:
                     file://./app/src/basic/res
                 ResourcesDirectoryUrls:
@@ -1086,8 +995,6 @@ MODULE: project.app
                     file://./app/src/basicBar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/basicBar/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/basicBar/rs
                 ResDirectoryUrls:
                     file://./app/src/basicBar/res
                 ResourcesDirectoryUrls:
@@ -1111,8 +1018,6 @@ MODULE: project.app
                     file://./app/src/basicBarDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/basicBarDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/basicBarDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/basicBarDebug/res
                 ResourcesDirectoryUrls:
@@ -1136,8 +1041,6 @@ MODULE: project.app
                     file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/debug/rs
                 ResDirectoryUrls:
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
@@ -1161,8 +1064,6 @@ MODULE: project.app
                     file://./app/src/otherBar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/otherBar/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/otherBar/rs
                 ResDirectoryUrls:
                     file://./app/src/otherBar/res
                 ResourcesDirectoryUrls:
@@ -1194,8 +1095,6 @@ MODULE: project.app
                     file://./app/src/paid/java
                 JniLibsDirectoryUrls:
                     file://./app/src/paid/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/paid/rs
                 ResDirectoryUrls:
                     file://./app/src/paid/res
                 ResDirectories:
@@ -1221,8 +1120,6 @@ MODULE: project.app
                     file://./app/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/release/rs
                 ResDirectoryUrls:
                     file://./app/src/release/res
                 ResourcesDirectoryUrls:
@@ -1246,8 +1143,6 @@ MODULE: project.app
                     file://./app/src/specialRelease/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/specialRelease/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/specialRelease/rs
                 ResDirectoryUrls:
                     file://./app/src/specialRelease/res
                 ResourcesDirectoryUrls:
@@ -1280,8 +1175,6 @@ MODULE: project.app
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/main/rs
                 ResDirectoryUrls:
                     file://./app/src/main/res
                 ResDirectories:
@@ -1307,8 +1200,6 @@ MODULE: project.app
                     file://./app/src/basic/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/basic/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/basic/rs
                 ResDirectoryUrls:
                     file://./app/src/basic/res
                 ResourcesDirectoryUrls:
@@ -1332,8 +1223,6 @@ MODULE: project.app
                     file://./app/src/bar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/bar/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/bar/rs
                 ResDirectoryUrls:
                     file://./app/src/bar/res
                 ResourcesDirectoryUrls:
@@ -1357,8 +1246,6 @@ MODULE: project.app
                     file://./app/src/basicBar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/basicBar/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/basicBar/rs
                 ResDirectoryUrls:
                     file://./app/src/basicBar/res
                 ResourcesDirectoryUrls:
@@ -1382,8 +1269,6 @@ MODULE: project.app
                     file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/debug/rs
                 ResDirectoryUrls:
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
@@ -1407,8 +1292,6 @@ MODULE: project.app
                     file://./app/src/basicBarDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/basicBarDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/basicBarDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/basicBarDebug/res
                 ResourcesDirectoryUrls:
@@ -1433,8 +1316,6 @@ MODULE: project.app
                     file://./app/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/test/rs
                 ResDirectoryUrls:
                     file://./app/src/test/res
                 ResourcesDirectoryUrls:
@@ -1458,8 +1339,6 @@ MODULE: project.app
                     file://./app/src/testBasic/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testBasic/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/testBasic/rs
                 ResDirectoryUrls:
                     file://./app/src/testBasic/res
                 ResourcesDirectoryUrls:
@@ -1483,8 +1362,6 @@ MODULE: project.app
                     file://./app/src/testBar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testBar/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/testBar/rs
                 ResDirectoryUrls:
                     file://./app/src/testBar/res
                 ResourcesDirectoryUrls:
@@ -1508,8 +1385,6 @@ MODULE: project.app
                     file://./app/src/testBasicBar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testBasicBar/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/testBasicBar/rs
                 ResDirectoryUrls:
                     file://./app/src/testBasicBar/res
                 ResourcesDirectoryUrls:
@@ -1533,8 +1408,6 @@ MODULE: project.app
                     file://./app/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/testDebug/res
                 ResourcesDirectoryUrls:
@@ -1558,8 +1431,6 @@ MODULE: project.app
                     file://./app/src/testBasicBarDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testBasicBarDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/testBasicBarDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/testBasicBarDebug/res
                 ResourcesDirectoryUrls:
@@ -1584,8 +1455,6 @@ MODULE: project.app
                     file://./app/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTest/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTest/res
                 ResourcesDirectoryUrls:
@@ -1609,8 +1478,6 @@ MODULE: project.app
                     file://./app/src/androidTestBasic/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestBasic/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestBasic/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTestBasic/res
                 ResourcesDirectoryUrls:
@@ -1634,8 +1501,6 @@ MODULE: project.app
                     file://./app/src/androidTestBar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestBar/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestBar/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTestBar/res
                 ResourcesDirectoryUrls:
@@ -1659,8 +1524,6 @@ MODULE: project.app
                     file://./app/src/androidTestBasicBar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestBasicBar/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestBasicBar/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTestBasicBar/res
                 ResourcesDirectoryUrls:
@@ -1684,8 +1547,6 @@ MODULE: project.app
                     file://./app/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
@@ -1709,8 +1570,6 @@ MODULE: project.app
                     file://./app/src/androidTestBasicBarDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestBasicBarDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestBasicBarDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTestBasicBarDebug/res
                 ResourcesDirectoryUrls:
@@ -1741,8 +1600,6 @@ MODULE: project.dyn_feature
                 file://./dyn_feature/src/main/kotlin
             JniLibsDirectoryUrls:
                 file://./dyn_feature/src/main/jniLibs
-            RenderscriptDirectoryUrls:
-                file://./dyn_feature/src/main/rs
             ResDirectoryUrls:
                 file://./dyn_feature/src/main/res
             ResourcesDirectoryUrls:
@@ -1764,8 +1621,6 @@ MODULE: project.dyn_feature
                 ./dyn_feature/src/main/kotlin
             JniLibsDirectories:
                 ./dyn_feature/src/main/jniLibs
-            RenderscriptDirectories:
-                ./dyn_feature/src/main/rs
             ResDirectories:
                 ./dyn_feature/src/main/res
             ResourcesDirectories:
@@ -1787,8 +1642,6 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/main/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./dyn_feature/src/main/rs
                 ResDirectories:
                     ./dyn_feature/src/main/res
                 ResourcesDirectories:
@@ -1809,8 +1662,6 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/debug/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./dyn_feature/src/debug/rs
                 ResDirectories:
                     ./dyn_feature/src/debug/res
                 ResourcesDirectories:
@@ -1832,8 +1683,6 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/main/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./dyn_feature/src/main/rs
                 ResDirectories:
                     ./dyn_feature/src/main/res
                 ResourcesDirectories:
@@ -1854,8 +1703,6 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/debug/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./dyn_feature/src/debug/rs
                 ResDirectories:
                     ./dyn_feature/src/debug/res
                 ResourcesDirectories:
@@ -1876,8 +1723,6 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/release/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/release/jniLibs
-                RenderscriptDirectories:
-                    ./dyn_feature/src/release/rs
                 ResDirectories:
                     ./dyn_feature/src/release/res
                 ResourcesDirectories:
@@ -1899,8 +1744,6 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/test/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/test/jniLibs
-                RenderscriptDirectories:
-                    ./dyn_feature/src/test/rs
                 ResDirectories:
                     ./dyn_feature/src/test/res
                 ResourcesDirectories:
@@ -1921,8 +1764,6 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/testDebug/jniLibs
-                RenderscriptDirectories:
-                    ./dyn_feature/src/testDebug/rs
                 ResDirectories:
                     ./dyn_feature/src/testDebug/res
                 ResourcesDirectories:
@@ -1944,8 +1785,6 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./dyn_feature/src/androidTest/rs
                 ResDirectories:
                     ./dyn_feature/src/androidTest/res
                 ResourcesDirectories:
@@ -1966,8 +1805,6 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./dyn_feature/src/androidTestDebug/rs
                 ResDirectories:
                     ./dyn_feature/src/androidTestDebug/res
                 ResourcesDirectories:
@@ -2008,9 +1845,6 @@ MODULE: project.dyn_feature
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/main/jniLibs
                     file://./dyn_feature/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./dyn_feature/src/main/rs
-                    file://./dyn_feature/src/debug/rs
                 ResDirectoryUrls:
                     file://./dyn_feature/src/main/res
                     file://./dyn_feature/src/debug/res
@@ -2046,9 +1880,6 @@ MODULE: project.dyn_feature
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/test/jniLibs
                     file://./dyn_feature/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./dyn_feature/src/test/rs
-                    file://./dyn_feature/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./dyn_feature/src/test/res
                     file://./dyn_feature/src/testDebug/res
@@ -2084,9 +1915,6 @@ MODULE: project.dyn_feature
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/androidTest/jniLibs
                     file://./dyn_feature/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/rs
-                    file://./dyn_feature/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./dyn_feature/src/androidTest/res
                     file://./dyn_feature/src/androidTestDebug/res
@@ -2106,9 +1934,7 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/build/generated/ap_generated_sources/debug/out
                     file://./dyn_feature/build/generated/aidl_source_output_dir/debug/out
                     file://./dyn_feature/build/generated/source/buildConfig/debug
-                    file://./dyn_feature/build/generated/renderscript_source_output_dir/debug/out
                 ResDirectoryUrls:
-                    file://./dyn_feature/build/generated/res/rs/debug
                     file://./dyn_feature/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
             GeneratedUnitTestSources (IDEA)
@@ -2122,9 +1948,7 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out
                     file://./dyn_feature/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./dyn_feature/build/generated/source/buildConfig/androidTest/debug
-                    file://./dyn_feature/build/generated/renderscript_source_output_dir/debugAndroidTest/out
                 ResDirectoryUrls:
-                    file://./dyn_feature/build/generated/res/rs/androidTest/debug
                     file://./dyn_feature/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -2151,8 +1975,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./dyn_feature/src/main/rs
                 ResDirectoryUrls:
                     file://./dyn_feature/src/main/res
                 ResourcesDirectoryUrls:
@@ -2176,8 +1998,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./dyn_feature/src/debug/rs
                 ResDirectoryUrls:
                     file://./dyn_feature/src/debug/res
                 ResourcesDirectoryUrls:
@@ -2201,8 +2021,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./dyn_feature/src/release/rs
                 ResDirectoryUrls:
                     file://./dyn_feature/src/release/res
                 ResourcesDirectoryUrls:
@@ -2231,8 +2049,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./dyn_feature/src/main/rs
                 ResDirectoryUrls:
                     file://./dyn_feature/src/main/res
                 ResourcesDirectoryUrls:
@@ -2256,8 +2072,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./dyn_feature/src/debug/rs
                 ResDirectoryUrls:
                     file://./dyn_feature/src/debug/res
                 ResourcesDirectoryUrls:
@@ -2282,8 +2096,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/test/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./dyn_feature/src/test/rs
                 ResDirectoryUrls:
                     file://./dyn_feature/src/test/res
                 ResourcesDirectoryUrls:
@@ -2307,8 +2119,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./dyn_feature/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./dyn_feature/src/testDebug/res
                 ResourcesDirectoryUrls:
@@ -2333,8 +2143,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/rs
                 ResDirectoryUrls:
                     file://./dyn_feature/src/androidTest/res
                 ResourcesDirectoryUrls:
@@ -2358,8 +2166,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./dyn_feature/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
@@ -2394,8 +2200,6 @@ MODULE: project.lib
                 file://./lib/src/main/java
             JniLibsDirectoryUrls:
                 file://./lib/src/main/jniLibs
-            RenderscriptDirectoryUrls:
-                file://./lib/src/main/rs
             ResDirectoryUrls:
                 file://./lib/src/main/res
             ResDirectories:
@@ -2419,8 +2223,6 @@ MODULE: project.lib
                 ./lib/src/main/kotlin
             JniLibsDirectories:
                 ./lib/src/main/jniLibs
-            RenderscriptDirectories:
-                ./lib/src/main/rs
             ResDirectories:
                 ./lib/src/main/res
             ResourcesDirectories:
@@ -2442,8 +2244,6 @@ MODULE: project.lib
                     ./lib/src/main/kotlin
                 JniLibsDirectories:
                     ./lib/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/main/rs
                 ResDirectories:
                     ./lib/src/main/res
                 ResourcesDirectories:
@@ -2464,8 +2264,6 @@ MODULE: project.lib
                     ./lib/src/debug/kotlin
                 JniLibsDirectories:
                     ./lib/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/debug/rs
                 ResDirectories:
                     ./lib/src/debug/res
                 ResourcesDirectories:
@@ -2487,8 +2285,6 @@ MODULE: project.lib
                     ./lib/src/main/kotlin
                 JniLibsDirectories:
                     ./lib/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/main/rs
                 ResDirectories:
                     ./lib/src/main/res
                 ResourcesDirectories:
@@ -2509,8 +2305,6 @@ MODULE: project.lib
                     ./lib/src/debug/kotlin
                 JniLibsDirectories:
                     ./lib/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/debug/rs
                 ResDirectories:
                     ./lib/src/debug/res
                 ResourcesDirectories:
@@ -2531,8 +2325,6 @@ MODULE: project.lib
                     ./lib/src/release/kotlin
                 JniLibsDirectories:
                     ./lib/src/release/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/release/rs
                 ResDirectories:
                     ./lib/src/release/res
                 ResourcesDirectories:
@@ -2554,8 +2346,6 @@ MODULE: project.lib
                     ./lib/src/test/kotlin
                 JniLibsDirectories:
                     ./lib/src/test/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/test/rs
                 ResDirectories:
                     ./lib/src/test/res
                 ResourcesDirectories:
@@ -2576,8 +2366,6 @@ MODULE: project.lib
                     ./lib/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./lib/src/testDebug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/testDebug/rs
                 ResDirectories:
                     ./lib/src/testDebug/res
                 ResourcesDirectories:
@@ -2599,8 +2387,6 @@ MODULE: project.lib
                     ./lib/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./lib/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/androidTest/rs
                 ResDirectories:
                     ./lib/src/androidTest/res
                 ResourcesDirectories:
@@ -2621,8 +2407,6 @@ MODULE: project.lib
                     ./lib/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./lib/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/androidTestDebug/rs
                 ResDirectories:
                     ./lib/src/androidTestDebug/res
                 ResourcesDirectories:
@@ -2667,9 +2451,6 @@ MODULE: project.lib
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
                     file://./lib/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/main/rs
-                    file://./lib/src/debug/rs
                 ResDirectoryUrls:
                     file://./lib/src/main/res
                     file://./lib/src/debug/res
@@ -2707,9 +2488,6 @@ MODULE: project.lib
                 JniLibsDirectoryUrls:
                     file://./lib/src/test/jniLibs
                     file://./lib/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/test/rs
-                    file://./lib/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/test/res
                     file://./lib/src/testDebug/res
@@ -2745,9 +2523,6 @@ MODULE: project.lib
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTest/jniLibs
                     file://./lib/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/androidTest/rs
-                    file://./lib/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/androidTest/res
                     file://./lib/src/androidTestDebug/res
@@ -2767,9 +2542,7 @@ MODULE: project.lib
                     file://./lib/build/generated/ap_generated_sources/debug/out
                     file://./lib/build/generated/aidl_source_output_dir/debug/out
                     file://./lib/build/generated/source/buildConfig/debug
-                    file://./lib/build/generated/renderscript_source_output_dir/debug/out
                 ResDirectoryUrls:
-                    file://./lib/build/generated/res/rs/debug
                     file://./lib/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
             GeneratedUnitTestSources (IDEA)
@@ -2783,9 +2556,7 @@ MODULE: project.lib
                     file://./lib/build/generated/ap_generated_sources/debugAndroidTest/out
                     file://./lib/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./lib/build/generated/source/buildConfig/androidTest/debug
-                    file://./lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out
                 ResDirectoryUrls:
-                    file://./lib/build/generated/res/rs/androidTest/debug
                     file://./lib/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -2816,8 +2587,6 @@ MODULE: project.lib
                     file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/main/rs
                 ResDirectoryUrls:
                     file://./lib/src/main/res
                 ResDirectories:
@@ -2843,8 +2612,6 @@ MODULE: project.lib
                     file://./lib/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/debug/rs
                 ResDirectoryUrls:
                     file://./lib/src/debug/res
                 ResourcesDirectoryUrls:
@@ -2868,8 +2635,6 @@ MODULE: project.lib
                     file://./lib/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/release/rs
                 ResDirectoryUrls:
                     file://./lib/src/release/res
                 ResourcesDirectoryUrls:
@@ -2902,8 +2667,6 @@ MODULE: project.lib
                     file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/main/rs
                 ResDirectoryUrls:
                     file://./lib/src/main/res
                 ResDirectories:
@@ -2929,8 +2692,6 @@ MODULE: project.lib
                     file://./lib/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/debug/rs
                 ResDirectoryUrls:
                     file://./lib/src/debug/res
                 ResourcesDirectoryUrls:
@@ -2955,8 +2716,6 @@ MODULE: project.lib
                     file://./lib/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/test/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/test/rs
                 ResDirectoryUrls:
                     file://./lib/src/test/res
                 ResourcesDirectoryUrls:
@@ -2980,8 +2739,6 @@ MODULE: project.lib
                     file://./lib/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/testDebug/res
                 ResourcesDirectoryUrls:
@@ -3006,8 +2763,6 @@ MODULE: project.lib
                     file://./lib/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/androidTest/rs
                 ResDirectoryUrls:
                     file://./lib/src/androidTest/res
                 ResourcesDirectoryUrls:
@@ -3031,8 +2786,6 @@ MODULE: project.lib
                     file://./lib/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
@@ -3063,8 +2816,6 @@ MODULE: project.nested1
                 file://./nested1/src/main/kotlin
             JniLibsDirectoryUrls:
                 file://./nested1/src/main/jniLibs
-            RenderscriptDirectoryUrls:
-                file://./nested1/src/main/rs
             ResDirectoryUrls:
                 file://./nested1/src/main/res
             ResourcesDirectoryUrls:
@@ -3086,8 +2837,6 @@ MODULE: project.nested1
                 ./nested1/src/main/kotlin
             JniLibsDirectories:
                 ./nested1/src/main/jniLibs
-            RenderscriptDirectories:
-                ./nested1/src/main/rs
             ResDirectories:
                 ./nested1/src/main/res
             ResourcesDirectories:
@@ -3109,8 +2858,6 @@ MODULE: project.nested1
                     ./nested1/src/main/kotlin
                 JniLibsDirectories:
                     ./nested1/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/src/main/rs
                 ResDirectories:
                     ./nested1/src/main/res
                 ResourcesDirectories:
@@ -3131,8 +2878,6 @@ MODULE: project.nested1
                     ./nested1/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested1/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/src/debug/rs
                 ResDirectories:
                     ./nested1/src/debug/res
                 ResourcesDirectories:
@@ -3154,8 +2899,6 @@ MODULE: project.nested1
                     ./nested1/src/main/kotlin
                 JniLibsDirectories:
                     ./nested1/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/src/main/rs
                 ResDirectories:
                     ./nested1/src/main/res
                 ResourcesDirectories:
@@ -3176,8 +2919,6 @@ MODULE: project.nested1
                     ./nested1/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested1/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/src/debug/rs
                 ResDirectories:
                     ./nested1/src/debug/res
                 ResourcesDirectories:
@@ -3198,8 +2939,6 @@ MODULE: project.nested1
                     ./nested1/src/release/kotlin
                 JniLibsDirectories:
                     ./nested1/src/release/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/src/release/rs
                 ResDirectories:
                     ./nested1/src/release/res
                 ResourcesDirectories:
@@ -3221,8 +2960,6 @@ MODULE: project.nested1
                     ./nested1/src/test/kotlin
                 JniLibsDirectories:
                     ./nested1/src/test/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/src/test/rs
                 ResDirectories:
                     ./nested1/src/test/res
                 ResourcesDirectories:
@@ -3243,8 +2980,6 @@ MODULE: project.nested1
                     ./nested1/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./nested1/src/testDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/src/testDebug/rs
                 ResDirectories:
                     ./nested1/src/testDebug/res
                 ResourcesDirectories:
@@ -3266,8 +3001,6 @@ MODULE: project.nested1
                     ./nested1/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./nested1/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/src/androidTest/rs
                 ResDirectories:
                     ./nested1/src/androidTest/res
                 ResourcesDirectories:
@@ -3288,8 +3021,6 @@ MODULE: project.nested1
                     ./nested1/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./nested1/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/src/androidTestDebug/rs
                 ResDirectories:
                     ./nested1/src/androidTestDebug/res
                 ResourcesDirectories:
@@ -3330,9 +3061,6 @@ MODULE: project.nested1
                 JniLibsDirectoryUrls:
                     file://./nested1/src/main/jniLibs
                     file://./nested1/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/src/main/rs
-                    file://./nested1/src/debug/rs
                 ResDirectoryUrls:
                     file://./nested1/src/main/res
                     file://./nested1/src/debug/res
@@ -3368,9 +3096,6 @@ MODULE: project.nested1
                 JniLibsDirectoryUrls:
                     file://./nested1/src/test/jniLibs
                     file://./nested1/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/src/test/rs
-                    file://./nested1/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./nested1/src/test/res
                     file://./nested1/src/testDebug/res
@@ -3406,9 +3131,6 @@ MODULE: project.nested1
                 JniLibsDirectoryUrls:
                     file://./nested1/src/androidTest/jniLibs
                     file://./nested1/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/src/androidTest/rs
-                    file://./nested1/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./nested1/src/androidTest/res
                     file://./nested1/src/androidTestDebug/res
@@ -3428,9 +3150,7 @@ MODULE: project.nested1
                     file://./nested1/build/generated/ap_generated_sources/debug/out
                     file://./nested1/build/generated/aidl_source_output_dir/debug/out
                     file://./nested1/build/generated/source/buildConfig/debug
-                    file://./nested1/build/generated/renderscript_source_output_dir/debug/out
                 ResDirectoryUrls:
-                    file://./nested1/build/generated/res/rs/debug
                     file://./nested1/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
             GeneratedUnitTestSources (IDEA)
@@ -3444,9 +3164,7 @@ MODULE: project.nested1
                     file://./nested1/build/generated/ap_generated_sources/debugAndroidTest/out
                     file://./nested1/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./nested1/build/generated/source/buildConfig/androidTest/debug
-                    file://./nested1/build/generated/renderscript_source_output_dir/debugAndroidTest/out
                 ResDirectoryUrls:
-                    file://./nested1/build/generated/res/rs/androidTest/debug
                     file://./nested1/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -3473,8 +3191,6 @@ MODULE: project.nested1
                     file://./nested1/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/src/main/rs
                 ResDirectoryUrls:
                     file://./nested1/src/main/res
                 ResourcesDirectoryUrls:
@@ -3498,8 +3214,6 @@ MODULE: project.nested1
                     file://./nested1/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/src/debug/rs
                 ResDirectoryUrls:
                     file://./nested1/src/debug/res
                 ResourcesDirectoryUrls:
@@ -3523,8 +3237,6 @@ MODULE: project.nested1
                     file://./nested1/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/src/release/rs
                 ResDirectoryUrls:
                     file://./nested1/src/release/res
                 ResourcesDirectoryUrls:
@@ -3553,8 +3265,6 @@ MODULE: project.nested1
                     file://./nested1/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/src/main/rs
                 ResDirectoryUrls:
                     file://./nested1/src/main/res
                 ResourcesDirectoryUrls:
@@ -3578,8 +3288,6 @@ MODULE: project.nested1
                     file://./nested1/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/src/debug/rs
                 ResDirectoryUrls:
                     file://./nested1/src/debug/res
                 ResourcesDirectoryUrls:
@@ -3604,8 +3312,6 @@ MODULE: project.nested1
                     file://./nested1/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/test/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/src/test/rs
                 ResDirectoryUrls:
                     file://./nested1/src/test/res
                 ResourcesDirectoryUrls:
@@ -3629,8 +3335,6 @@ MODULE: project.nested1
                     file://./nested1/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./nested1/src/testDebug/res
                 ResourcesDirectoryUrls:
@@ -3655,8 +3359,6 @@ MODULE: project.nested1
                     file://./nested1/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/src/androidTest/rs
                 ResDirectoryUrls:
                     file://./nested1/src/androidTest/res
                 ResourcesDirectoryUrls:
@@ -3680,8 +3382,6 @@ MODULE: project.nested1
                     file://./nested1/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./nested1/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
@@ -3712,8 +3412,6 @@ MODULE: project.nested1.deep
                 file://./nested1/deep/src/main/kotlin
             JniLibsDirectoryUrls:
                 file://./nested1/deep/src/main/jniLibs
-            RenderscriptDirectoryUrls:
-                file://./nested1/deep/src/main/rs
             ResDirectoryUrls:
                 file://./nested1/deep/src/main/res
             ResourcesDirectoryUrls:
@@ -3735,8 +3433,6 @@ MODULE: project.nested1.deep
                 ./nested1/deep/src/main/kotlin
             JniLibsDirectories:
                 ./nested1/deep/src/main/jniLibs
-            RenderscriptDirectories:
-                ./nested1/deep/src/main/rs
             ResDirectories:
                 ./nested1/deep/src/main/res
             ResourcesDirectories:
@@ -3758,8 +3454,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/main/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/deep/src/main/rs
                 ResDirectories:
                     ./nested1/deep/src/main/res
                 ResourcesDirectories:
@@ -3780,8 +3474,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/deep/src/debug/rs
                 ResDirectories:
                     ./nested1/deep/src/debug/res
                 ResourcesDirectories:
@@ -3803,8 +3495,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/main/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/deep/src/main/rs
                 ResDirectories:
                     ./nested1/deep/src/main/res
                 ResourcesDirectories:
@@ -3825,8 +3515,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/deep/src/debug/rs
                 ResDirectories:
                     ./nested1/deep/src/debug/res
                 ResourcesDirectories:
@@ -3847,8 +3535,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/release/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/release/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/deep/src/release/rs
                 ResDirectories:
                     ./nested1/deep/src/release/res
                 ResourcesDirectories:
@@ -3870,8 +3556,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/test/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/test/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/deep/src/test/rs
                 ResDirectories:
                     ./nested1/deep/src/test/res
                 ResourcesDirectories:
@@ -3892,8 +3576,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/testDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/deep/src/testDebug/rs
                 ResDirectories:
                     ./nested1/deep/src/testDebug/res
                 ResourcesDirectories:
@@ -3915,8 +3597,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/deep/src/androidTest/rs
                 ResDirectories:
                     ./nested1/deep/src/androidTest/res
                 ResourcesDirectories:
@@ -3937,8 +3617,6 @@ MODULE: project.nested1.deep
                     ./nested1/deep/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/deep/src/androidTestDebug/rs
                 ResDirectories:
                     ./nested1/deep/src/androidTestDebug/res
                 ResourcesDirectories:
@@ -3979,9 +3657,6 @@ MODULE: project.nested1.deep
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/main/jniLibs
                     file://./nested1/deep/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/deep/src/main/rs
-                    file://./nested1/deep/src/debug/rs
                 ResDirectoryUrls:
                     file://./nested1/deep/src/main/res
                     file://./nested1/deep/src/debug/res
@@ -4017,9 +3692,6 @@ MODULE: project.nested1.deep
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/test/jniLibs
                     file://./nested1/deep/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/deep/src/test/rs
-                    file://./nested1/deep/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./nested1/deep/src/test/res
                     file://./nested1/deep/src/testDebug/res
@@ -4055,9 +3727,6 @@ MODULE: project.nested1.deep
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/androidTest/jniLibs
                     file://./nested1/deep/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/rs
-                    file://./nested1/deep/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./nested1/deep/src/androidTest/res
                     file://./nested1/deep/src/androidTestDebug/res
@@ -4077,9 +3746,7 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/build/generated/ap_generated_sources/debug/out
                     file://./nested1/deep/build/generated/aidl_source_output_dir/debug/out
                     file://./nested1/deep/build/generated/source/buildConfig/debug
-                    file://./nested1/deep/build/generated/renderscript_source_output_dir/debug/out
                 ResDirectoryUrls:
-                    file://./nested1/deep/build/generated/res/rs/debug
                     file://./nested1/deep/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
             GeneratedUnitTestSources (IDEA)
@@ -4093,9 +3760,7 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out
                     file://./nested1/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./nested1/deep/build/generated/source/buildConfig/androidTest/debug
-                    file://./nested1/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out
                 ResDirectoryUrls:
-                    file://./nested1/deep/build/generated/res/rs/androidTest/debug
                     file://./nested1/deep/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -4122,8 +3787,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/deep/src/main/rs
                 ResDirectoryUrls:
                     file://./nested1/deep/src/main/res
                 ResourcesDirectoryUrls:
@@ -4147,8 +3810,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/deep/src/debug/rs
                 ResDirectoryUrls:
                     file://./nested1/deep/src/debug/res
                 ResourcesDirectoryUrls:
@@ -4172,8 +3833,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/deep/src/release/rs
                 ResDirectoryUrls:
                     file://./nested1/deep/src/release/res
                 ResourcesDirectoryUrls:
@@ -4202,8 +3861,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/deep/src/main/rs
                 ResDirectoryUrls:
                     file://./nested1/deep/src/main/res
                 ResourcesDirectoryUrls:
@@ -4227,8 +3884,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/deep/src/debug/rs
                 ResDirectoryUrls:
                     file://./nested1/deep/src/debug/res
                 ResourcesDirectoryUrls:
@@ -4253,8 +3908,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/test/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/deep/src/test/rs
                 ResDirectoryUrls:
                     file://./nested1/deep/src/test/res
                 ResourcesDirectoryUrls:
@@ -4278,8 +3931,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/deep/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./nested1/deep/src/testDebug/res
                 ResourcesDirectoryUrls:
@@ -4304,8 +3955,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/rs
                 ResDirectoryUrls:
                     file://./nested1/deep/src/androidTest/res
                 ResourcesDirectoryUrls:
@@ -4329,8 +3978,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/deep/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./nested1/deep/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
@@ -4361,8 +4008,6 @@ MODULE: project.nested2
                 file://./nested2/src/main/kotlin
             JniLibsDirectoryUrls:
                 file://./nested2/src/main/jniLibs
-            RenderscriptDirectoryUrls:
-                file://./nested2/src/main/rs
             ResDirectoryUrls:
                 file://./nested2/src/main/res
             ResourcesDirectoryUrls:
@@ -4384,8 +4029,6 @@ MODULE: project.nested2
                 ./nested2/src/main/kotlin
             JniLibsDirectories:
                 ./nested2/src/main/jniLibs
-            RenderscriptDirectories:
-                ./nested2/src/main/rs
             ResDirectories:
                 ./nested2/src/main/res
             ResourcesDirectories:
@@ -4407,8 +4050,6 @@ MODULE: project.nested2
                     ./nested2/src/main/kotlin
                 JniLibsDirectories:
                     ./nested2/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/main/rs
                 ResDirectories:
                     ./nested2/src/main/res
                 ResourcesDirectories:
@@ -4429,8 +4070,6 @@ MODULE: project.nested2
                     ./nested2/src/basic/kotlin
                 JniLibsDirectories:
                     ./nested2/src/basic/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/basic/rs
                 ResDirectories:
                     ./nested2/src/basic/res
                 ResourcesDirectories:
@@ -4451,8 +4090,6 @@ MODULE: project.nested2
                     ./nested2/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/debug/rs
                 ResDirectories:
                     ./nested2/src/debug/res
                 ResourcesDirectories:
@@ -4473,8 +4110,6 @@ MODULE: project.nested2
                     ./nested2/src/basicDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/basicDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/basicDebug/rs
                 ResDirectories:
                     ./nested2/src/basicDebug/res
                 ResourcesDirectories:
@@ -4496,8 +4131,6 @@ MODULE: project.nested2
                     ./nested2/src/main/kotlin
                 JniLibsDirectories:
                     ./nested2/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/main/rs
                 ResDirectories:
                     ./nested2/src/main/res
                 ResourcesDirectories:
@@ -4518,8 +4151,6 @@ MODULE: project.nested2
                     ./nested2/src/basic/kotlin
                 JniLibsDirectories:
                     ./nested2/src/basic/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/basic/rs
                 ResDirectories:
                     ./nested2/src/basic/res
                 ResourcesDirectories:
@@ -4540,8 +4171,6 @@ MODULE: project.nested2
                     ./nested2/src/basicDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/basicDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/basicDebug/rs
                 ResDirectories:
                     ./nested2/src/basicDebug/res
                 ResourcesDirectories:
@@ -4562,8 +4191,6 @@ MODULE: project.nested2
                     ./nested2/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/debug/rs
                 ResDirectories:
                     ./nested2/src/debug/res
                 ResourcesDirectories:
@@ -4584,8 +4211,6 @@ MODULE: project.nested2
                     ./nested2/src/paid/kotlin
                 JniLibsDirectories:
                     ./nested2/src/paid/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/paid/rs
                 ResDirectories:
                     ./nested2/src/paid/res
                 ResourcesDirectories:
@@ -4606,8 +4231,6 @@ MODULE: project.nested2
                     ./nested2/src/release/kotlin
                 JniLibsDirectories:
                     ./nested2/src/release/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/release/rs
                 ResDirectories:
                     ./nested2/src/release/res
                 ResourcesDirectories:
@@ -4629,8 +4252,6 @@ MODULE: project.nested2
                     ./nested2/src/test/kotlin
                 JniLibsDirectories:
                     ./nested2/src/test/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/test/rs
                 ResDirectories:
                     ./nested2/src/test/res
                 ResourcesDirectories:
@@ -4651,8 +4272,6 @@ MODULE: project.nested2
                     ./nested2/src/testBasic/kotlin
                 JniLibsDirectories:
                     ./nested2/src/testBasic/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/testBasic/rs
                 ResDirectories:
                     ./nested2/src/testBasic/res
                 ResourcesDirectories:
@@ -4673,8 +4292,6 @@ MODULE: project.nested2
                     ./nested2/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/testDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/testDebug/rs
                 ResDirectories:
                     ./nested2/src/testDebug/res
                 ResourcesDirectories:
@@ -4695,8 +4312,6 @@ MODULE: project.nested2
                     ./nested2/src/testBasicDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/testBasicDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/testBasicDebug/rs
                 ResDirectories:
                     ./nested2/src/testBasicDebug/res
                 ResourcesDirectories:
@@ -4718,8 +4333,6 @@ MODULE: project.nested2
                     ./nested2/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./nested2/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/androidTest/rs
                 ResDirectories:
                     ./nested2/src/androidTest/res
                 ResourcesDirectories:
@@ -4740,8 +4353,6 @@ MODULE: project.nested2
                     ./nested2/src/androidTestBasic/kotlin
                 JniLibsDirectories:
                     ./nested2/src/androidTestBasic/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/androidTestBasic/rs
                 ResDirectories:
                     ./nested2/src/androidTestBasic/res
                 ResourcesDirectories:
@@ -4762,8 +4373,6 @@ MODULE: project.nested2
                     ./nested2/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/androidTestDebug/rs
                 ResDirectories:
                     ./nested2/src/androidTestDebug/res
                 ResourcesDirectories:
@@ -4784,8 +4393,6 @@ MODULE: project.nested2
                     ./nested2/src/androidTestBasicDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/androidTestBasicDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/androidTestBasicDebug/rs
                 ResDirectories:
                     ./nested2/src/androidTestBasicDebug/res
                 ResourcesDirectories:
@@ -4842,11 +4449,6 @@ MODULE: project.nested2
                     file://./nested2/src/basic/jniLibs
                     file://./nested2/src/debug/jniLibs
                     file://./nested2/src/basicDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/main/rs
-                    file://./nested2/src/basic/rs
-                    file://./nested2/src/debug/rs
-                    file://./nested2/src/basicDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/src/main/res
                     file://./nested2/src/basic/res
@@ -4904,11 +4506,6 @@ MODULE: project.nested2
                     file://./nested2/src/testBasic/jniLibs
                     file://./nested2/src/testDebug/jniLibs
                     file://./nested2/src/testBasicDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/test/rs
-                    file://./nested2/src/testBasic/rs
-                    file://./nested2/src/testDebug/rs
-                    file://./nested2/src/testBasicDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/src/test/res
                     file://./nested2/src/testBasic/res
@@ -4966,11 +4563,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestBasic/jniLibs
                     file://./nested2/src/androidTestDebug/jniLibs
                     file://./nested2/src/androidTestBasicDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/androidTest/rs
-                    file://./nested2/src/androidTestBasic/rs
-                    file://./nested2/src/androidTestDebug/rs
-                    file://./nested2/src/androidTestBasicDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/src/androidTest/res
                     file://./nested2/src/androidTestBasic/res
@@ -4996,9 +4588,7 @@ MODULE: project.nested2
                     file://./nested2/build/generated/ap_generated_sources/basicDebug/out
                     file://./nested2/build/generated/aidl_source_output_dir/basicDebug/out
                     file://./nested2/build/generated/source/buildConfig/basic/debug
-                    file://./nested2/build/generated/renderscript_source_output_dir/basicDebug/out
                 ResDirectoryUrls:
-                    file://./nested2/build/generated/res/rs/basic/debug
                     file://./nested2/build/generated/res/resValues/basic/debug
         GeneratedUnitTestSources:
             GeneratedUnitTestSources (IDEA)
@@ -5012,9 +4602,7 @@ MODULE: project.nested2
                     file://./nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out
                     file://./nested2/build/generated/aidl_source_output_dir/basicDebugAndroidTest/out
                     file://./nested2/build/generated/source/buildConfig/androidTest/basic/debug
-                    file://./nested2/build/generated/renderscript_source_output_dir/basicDebugAndroidTest/out
                 ResDirectoryUrls:
-                    file://./nested2/build/generated/res/rs/androidTest/basic/debug
                     file://./nested2/build/generated/res/resValues/androidTest/basic/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -5041,8 +4629,6 @@ MODULE: project.nested2
                     file://./nested2/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/main/rs
                 ResDirectoryUrls:
                     file://./nested2/src/main/res
                 ResourcesDirectoryUrls:
@@ -5066,8 +4652,6 @@ MODULE: project.nested2
                     file://./nested2/src/basic/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/basic/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/basic/rs
                 ResDirectoryUrls:
                     file://./nested2/src/basic/res
                 ResourcesDirectoryUrls:
@@ -5091,8 +4675,6 @@ MODULE: project.nested2
                     file://./nested2/src/basicDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/basicDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/basicDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/src/basicDebug/res
                 ResourcesDirectoryUrls:
@@ -5116,8 +4698,6 @@ MODULE: project.nested2
                     file://./nested2/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/debug/rs
                 ResDirectoryUrls:
                     file://./nested2/src/debug/res
                 ResourcesDirectoryUrls:
@@ -5141,8 +4721,6 @@ MODULE: project.nested2
                     file://./nested2/src/paid/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/paid/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/paid/rs
                 ResDirectoryUrls:
                     file://./nested2/src/paid/res
                 ResourcesDirectoryUrls:
@@ -5166,8 +4744,6 @@ MODULE: project.nested2
                     file://./nested2/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/release/rs
                 ResDirectoryUrls:
                     file://./nested2/src/release/res
                 ResourcesDirectoryUrls:
@@ -5196,8 +4772,6 @@ MODULE: project.nested2
                     file://./nested2/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/main/rs
                 ResDirectoryUrls:
                     file://./nested2/src/main/res
                 ResourcesDirectoryUrls:
@@ -5221,8 +4795,6 @@ MODULE: project.nested2
                     file://./nested2/src/basic/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/basic/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/basic/rs
                 ResDirectoryUrls:
                     file://./nested2/src/basic/res
                 ResourcesDirectoryUrls:
@@ -5246,8 +4818,6 @@ MODULE: project.nested2
                     file://./nested2/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/debug/rs
                 ResDirectoryUrls:
                     file://./nested2/src/debug/res
                 ResourcesDirectoryUrls:
@@ -5271,8 +4841,6 @@ MODULE: project.nested2
                     file://./nested2/src/basicDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/basicDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/basicDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/src/basicDebug/res
                 ResourcesDirectoryUrls:
@@ -5297,8 +4865,6 @@ MODULE: project.nested2
                     file://./nested2/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/test/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/test/rs
                 ResDirectoryUrls:
                     file://./nested2/src/test/res
                 ResourcesDirectoryUrls:
@@ -5322,8 +4888,6 @@ MODULE: project.nested2
                     file://./nested2/src/testBasic/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/testBasic/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/testBasic/rs
                 ResDirectoryUrls:
                     file://./nested2/src/testBasic/res
                 ResourcesDirectoryUrls:
@@ -5347,8 +4911,6 @@ MODULE: project.nested2
                     file://./nested2/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/src/testDebug/res
                 ResourcesDirectoryUrls:
@@ -5372,8 +4934,6 @@ MODULE: project.nested2
                     file://./nested2/src/testBasicDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/testBasicDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/testBasicDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/src/testBasicDebug/res
                 ResourcesDirectoryUrls:
@@ -5398,8 +4958,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/androidTest/rs
                 ResDirectoryUrls:
                     file://./nested2/src/androidTest/res
                 ResourcesDirectoryUrls:
@@ -5423,8 +4981,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestBasic/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/androidTestBasic/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/androidTestBasic/rs
                 ResDirectoryUrls:
                     file://./nested2/src/androidTestBasic/res
                 ResourcesDirectoryUrls:
@@ -5448,8 +5004,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
@@ -5473,8 +5027,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestBasicDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/androidTestBasicDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/androidTestBasicDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/src/androidTestBasicDebug/res
                 ResourcesDirectoryUrls:
@@ -5505,8 +5057,6 @@ MODULE: project.nested2.deep
                 file://./nested2/deep/src/main/kotlin
             JniLibsDirectoryUrls:
                 file://./nested2/deep/src/main/jniLibs
-            RenderscriptDirectoryUrls:
-                file://./nested2/deep/src/main/rs
             ResDirectoryUrls:
                 file://./nested2/deep/src/main/res
             ResourcesDirectoryUrls:
@@ -5528,8 +5078,6 @@ MODULE: project.nested2.deep
                 ./nested2/deep/src/main/kotlin
             JniLibsDirectories:
                 ./nested2/deep/src/main/jniLibs
-            RenderscriptDirectories:
-                ./nested2/deep/src/main/rs
             ResDirectories:
                 ./nested2/deep/src/main/res
             ResourcesDirectories:
@@ -5551,8 +5099,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/main/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/deep/src/main/rs
                 ResDirectories:
                     ./nested2/deep/src/main/res
                 ResourcesDirectories:
@@ -5573,8 +5119,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/deep/src/debug/rs
                 ResDirectories:
                     ./nested2/deep/src/debug/res
                 ResourcesDirectories:
@@ -5596,8 +5140,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/main/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/deep/src/main/rs
                 ResDirectories:
                     ./nested2/deep/src/main/res
                 ResourcesDirectories:
@@ -5618,8 +5160,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/deep/src/debug/rs
                 ResDirectories:
                     ./nested2/deep/src/debug/res
                 ResourcesDirectories:
@@ -5640,8 +5180,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/release/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/release/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/deep/src/release/rs
                 ResDirectories:
                     ./nested2/deep/src/release/res
                 ResourcesDirectories:
@@ -5663,8 +5201,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/test/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/test/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/deep/src/test/rs
                 ResDirectories:
                     ./nested2/deep/src/test/res
                 ResourcesDirectories:
@@ -5685,8 +5221,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/testDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/deep/src/testDebug/rs
                 ResDirectories:
                     ./nested2/deep/src/testDebug/res
                 ResourcesDirectories:
@@ -5708,8 +5242,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/deep/src/androidTest/rs
                 ResDirectories:
                     ./nested2/deep/src/androidTest/res
                 ResourcesDirectories:
@@ -5730,8 +5262,6 @@ MODULE: project.nested2.deep
                     ./nested2/deep/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/deep/src/androidTestDebug/rs
                 ResDirectories:
                     ./nested2/deep/src/androidTestDebug/res
                 ResourcesDirectories:
@@ -5772,9 +5302,6 @@ MODULE: project.nested2.deep
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/main/jniLibs
                     file://./nested2/deep/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/deep/src/main/rs
-                    file://./nested2/deep/src/debug/rs
                 ResDirectoryUrls:
                     file://./nested2/deep/src/main/res
                     file://./nested2/deep/src/debug/res
@@ -5810,9 +5337,6 @@ MODULE: project.nested2.deep
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/test/jniLibs
                     file://./nested2/deep/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/deep/src/test/rs
-                    file://./nested2/deep/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/deep/src/test/res
                     file://./nested2/deep/src/testDebug/res
@@ -5848,9 +5372,6 @@ MODULE: project.nested2.deep
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/androidTest/jniLibs
                     file://./nested2/deep/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/rs
-                    file://./nested2/deep/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/deep/src/androidTest/res
                     file://./nested2/deep/src/androidTestDebug/res
@@ -5870,9 +5391,7 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/build/generated/ap_generated_sources/debug/out
                     file://./nested2/deep/build/generated/aidl_source_output_dir/debug/out
                     file://./nested2/deep/build/generated/source/buildConfig/debug
-                    file://./nested2/deep/build/generated/renderscript_source_output_dir/debug/out
                 ResDirectoryUrls:
-                    file://./nested2/deep/build/generated/res/rs/debug
                     file://./nested2/deep/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
             GeneratedUnitTestSources (IDEA)
@@ -5886,9 +5405,7 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out
                     file://./nested2/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./nested2/deep/build/generated/source/buildConfig/androidTest/debug
-                    file://./nested2/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out
                 ResDirectoryUrls:
-                    file://./nested2/deep/build/generated/res/rs/androidTest/debug
                     file://./nested2/deep/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -5915,8 +5432,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/deep/src/main/rs
                 ResDirectoryUrls:
                     file://./nested2/deep/src/main/res
                 ResourcesDirectoryUrls:
@@ -5940,8 +5455,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/deep/src/debug/rs
                 ResDirectoryUrls:
                     file://./nested2/deep/src/debug/res
                 ResourcesDirectoryUrls:
@@ -5965,8 +5478,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/deep/src/release/rs
                 ResDirectoryUrls:
                     file://./nested2/deep/src/release/res
                 ResourcesDirectoryUrls:
@@ -5995,8 +5506,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/deep/src/main/rs
                 ResDirectoryUrls:
                     file://./nested2/deep/src/main/res
                 ResourcesDirectoryUrls:
@@ -6020,8 +5529,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/deep/src/debug/rs
                 ResDirectoryUrls:
                     file://./nested2/deep/src/debug/res
                 ResourcesDirectoryUrls:
@@ -6046,8 +5553,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/test/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/deep/src/test/rs
                 ResDirectoryUrls:
                     file://./nested2/deep/src/test/res
                 ResourcesDirectoryUrls:
@@ -6071,8 +5576,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/deep/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/deep/src/testDebug/res
                 ResourcesDirectoryUrls:
@@ -6097,8 +5600,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/rs
                 ResDirectoryUrls:
                     file://./nested2/deep/src/androidTest/res
                 ResourcesDirectoryUrls:
@@ -6122,8 +5623,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/deep/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
@@ -6154,8 +5653,6 @@ MODULE: project.nested2.trans.deep2
                 file://./nested2/trans/deep2/src/main/kotlin
             JniLibsDirectoryUrls:
                 file://./nested2/trans/deep2/src/main/jniLibs
-            RenderscriptDirectoryUrls:
-                file://./nested2/trans/deep2/src/main/rs
             ResDirectoryUrls:
                 file://./nested2/trans/deep2/src/main/res
             ResourcesDirectoryUrls:
@@ -6177,8 +5674,6 @@ MODULE: project.nested2.trans.deep2
                 ./nested2/trans/deep2/src/main/kotlin
             JniLibsDirectories:
                 ./nested2/trans/deep2/src/main/jniLibs
-            RenderscriptDirectories:
-                ./nested2/trans/deep2/src/main/rs
             ResDirectories:
                 ./nested2/trans/deep2/src/main/res
             ResourcesDirectories:
@@ -6200,8 +5695,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/main/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/trans/deep2/src/main/rs
                 ResDirectories:
                     ./nested2/trans/deep2/src/main/res
                 ResourcesDirectories:
@@ -6222,8 +5715,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/trans/deep2/src/debug/rs
                 ResDirectories:
                     ./nested2/trans/deep2/src/debug/res
                 ResourcesDirectories:
@@ -6245,8 +5736,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/main/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/trans/deep2/src/main/rs
                 ResDirectories:
                     ./nested2/trans/deep2/src/main/res
                 ResourcesDirectories:
@@ -6267,8 +5756,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/trans/deep2/src/debug/rs
                 ResDirectories:
                     ./nested2/trans/deep2/src/debug/res
                 ResourcesDirectories:
@@ -6289,8 +5776,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/release/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/release/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/trans/deep2/src/release/rs
                 ResDirectories:
                     ./nested2/trans/deep2/src/release/res
                 ResourcesDirectories:
@@ -6312,8 +5797,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/test/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/test/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/trans/deep2/src/test/rs
                 ResDirectories:
                     ./nested2/trans/deep2/src/test/res
                 ResourcesDirectories:
@@ -6334,8 +5817,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/testDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/trans/deep2/src/testDebug/rs
                 ResDirectories:
                     ./nested2/trans/deep2/src/testDebug/res
                 ResourcesDirectories:
@@ -6357,8 +5838,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/trans/deep2/src/androidTest/rs
                 ResDirectories:
                     ./nested2/trans/deep2/src/androidTest/res
                 ResourcesDirectories:
@@ -6379,8 +5858,6 @@ MODULE: project.nested2.trans.deep2
                     ./nested2/trans/deep2/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/rs
                 ResDirectories:
                     ./nested2/trans/deep2/src/androidTestDebug/res
                 ResourcesDirectories:
@@ -6421,9 +5898,6 @@ MODULE: project.nested2.trans.deep2
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/jniLibs
                     file://./nested2/trans/deep2/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/trans/deep2/src/main/rs
-                    file://./nested2/trans/deep2/src/debug/rs
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/res
                     file://./nested2/trans/deep2/src/debug/res
@@ -6459,9 +5933,6 @@ MODULE: project.nested2.trans.deep2
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/jniLibs
                     file://./nested2/trans/deep2/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/trans/deep2/src/test/rs
-                    file://./nested2/trans/deep2/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/res
                     file://./nested2/trans/deep2/src/testDebug/res
@@ -6497,9 +5968,6 @@ MODULE: project.nested2.trans.deep2
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/jniLibs
                     file://./nested2/trans/deep2/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/rs
-                    file://./nested2/trans/deep2/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/res
                     file://./nested2/trans/deep2/src/androidTestDebug/res
@@ -6519,9 +5987,7 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/build/generated/ap_generated_sources/debug/out
                     file://./nested2/trans/deep2/build/generated/aidl_source_output_dir/debug/out
                     file://./nested2/trans/deep2/build/generated/source/buildConfig/debug
-                    file://./nested2/trans/deep2/build/generated/renderscript_source_output_dir/debug/out
                 ResDirectoryUrls:
-                    file://./nested2/trans/deep2/build/generated/res/rs/debug
                     file://./nested2/trans/deep2/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
             GeneratedUnitTestSources (IDEA)
@@ -6535,9 +6001,7 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out
                     file://./nested2/trans/deep2/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./nested2/trans/deep2/build/generated/source/buildConfig/androidTest/debug
-                    file://./nested2/trans/deep2/build/generated/renderscript_source_output_dir/debugAndroidTest/out
                 ResDirectoryUrls:
-                    file://./nested2/trans/deep2/build/generated/res/rs/androidTest/debug
                     file://./nested2/trans/deep2/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -6564,8 +6028,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/trans/deep2/src/main/rs
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/res
                 ResourcesDirectoryUrls:
@@ -6589,8 +6051,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/trans/deep2/src/debug/rs
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/res
                 ResourcesDirectoryUrls:
@@ -6614,8 +6074,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/trans/deep2/src/release/rs
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/src/release/res
                 ResourcesDirectoryUrls:
@@ -6644,8 +6102,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/trans/deep2/src/main/rs
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/res
                 ResourcesDirectoryUrls:
@@ -6669,8 +6125,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/trans/deep2/src/debug/rs
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/res
                 ResourcesDirectoryUrls:
@@ -6695,8 +6149,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/trans/deep2/src/test/rs
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/res
                 ResourcesDirectoryUrls:
@@ -6720,8 +6172,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/trans/deep2/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug/res
                 ResourcesDirectoryUrls:
@@ -6746,8 +6196,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/rs
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/res
                 ResourcesDirectoryUrls:
@@ -6771,8 +6219,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTestDebug/res
                 ResourcesDirectoryUrls:

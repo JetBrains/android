@@ -37,7 +37,7 @@ class RenderScriptDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPr
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = AgpUpgradeComponentNecessity.standardPointNecessity(current, new, GradleVersion.parse("8.0.0-alpha04"))
+  override fun necessity() = AgpUpgradeComponentNecessity.standardPointNecessity(current, new, GradleVersion.parse("8.0.0-alpha02"))
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()

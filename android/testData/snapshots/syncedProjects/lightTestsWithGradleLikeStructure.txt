@@ -26,11 +26,9 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -112,11 +110,9 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -128,9 +124,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/build/generated/res/rs/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/src/androidTestDebug [-]
@@ -138,11 +132,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
@@ -152,7 +142,6 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTest/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTest/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTestDebug/assets [-]
@@ -160,7 +149,6 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -229,11 +217,9 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -245,9 +231,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/build/generated/renderscript_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/build/generated/res/rs/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/src/main [-]
@@ -255,11 +239,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/build/generated/renderscript_source_output_dir/debug/out [-]
-            Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/build/generated/res/resValues/debug [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/build/generated/res/rs/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/build/generated/source/buildConfig/debug [-]
             Generated                     : true
@@ -269,7 +249,6 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/main/assets [-]
@@ -277,7 +256,6 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -344,11 +322,9 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -369,7 +345,6 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/test/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/test/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/testDebug/assets [-]
@@ -377,7 +352,6 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/testDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false

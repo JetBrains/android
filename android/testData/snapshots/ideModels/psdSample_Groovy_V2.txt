@@ -1715,7 +1715,6 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
             AidlDirectories               : <ROOT>/app/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app/src/main/rs [-]
             ResDirectories                : <ROOT>/app/src/main/res
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
@@ -1731,7 +1730,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
@@ -1746,7 +1744,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
                     AidlDirectories               : <ROOT>/app/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/test/rs [-]
                     ResDirectories                : <ROOT>/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
@@ -1768,7 +1765,6 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
             AidlDirectories               : <ROOT>/app/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app/src/debug/rs [-]
             ResDirectories                : <ROOT>/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
@@ -1784,7 +1780,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
@@ -1800,7 +1795,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
@@ -1826,7 +1820,6 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
             AidlDirectories               : <ROOT>/app/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app/src/release/rs [-]
             ResDirectories                : <ROOT>/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
@@ -1842,7 +1835,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
@@ -1864,7 +1856,6 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/specialRelease/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/specialRelease/resources [-]
             AidlDirectories               : <ROOT>/app/src/specialRelease/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app/src/specialRelease/rs [-]
             ResDirectories                : <ROOT>/app/src/specialRelease/res [-]
             AssetsDirectories             : <ROOT>/app/src/specialRelease/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/specialRelease/jniLibs [-]
@@ -1880,7 +1871,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testSpecialRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testSpecialRelease/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testSpecialRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testSpecialRelease/rs [-]
                     ResDirectories                : <ROOT>/app/src/testSpecialRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testSpecialRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testSpecialRelease/jniLibs [-]
@@ -1899,7 +1889,6 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/basic/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/basic/resources [-]
             AidlDirectories               : <ROOT>/app/src/basic/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app/src/basic/rs [-]
             ResDirectories                : <ROOT>/app/src/basic/res [-]
             AssetsDirectories             : <ROOT>/app/src/basic/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/basic/jniLibs [-]
@@ -1915,7 +1904,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestBasic/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestBasic/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestBasic/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTestBasic/rs [-]
                     ResDirectories                : <ROOT>/app/src/androidTestBasic/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestBasic/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestBasic/jniLibs [-]
@@ -1930,7 +1918,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testBasic/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testBasic/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testBasic/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testBasic/rs [-]
                     ResDirectories                : <ROOT>/app/src/testBasic/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testBasic/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBasic/jniLibs [-]
@@ -1965,7 +1952,6 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/paid/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/paid/resources [-]
             AidlDirectories               : <ROOT>/app/src/paid/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app/src/paid/rs [-]
             ResDirectories                : <ROOT>/app/src/paid/res
             AssetsDirectories             : <ROOT>/app/src/paid/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/paid/jniLibs [-]
@@ -1981,7 +1967,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestPaid/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestPaid/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestPaid/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTestPaid/rs [-]
                     ResDirectories                : <ROOT>/app/src/androidTestPaid/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestPaid/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestPaid/jniLibs [-]
@@ -1996,7 +1981,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testPaid/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testPaid/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testPaid/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testPaid/rs [-]
                     ResDirectories                : <ROOT>/app/src/testPaid/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testPaid/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testPaid/jniLibs [-]
@@ -2014,7 +1998,6 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/bar/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/bar/resources [-]
             AidlDirectories               : <ROOT>/app/src/bar/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app/src/bar/rs [-]
             ResDirectories                : <ROOT>/app/src/bar/res [-]
             AssetsDirectories             : <ROOT>/app/src/bar/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/bar/jniLibs [-]
@@ -2030,7 +2013,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestBar/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestBar/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestBar/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTestBar/rs [-]
                     ResDirectories                : <ROOT>/app/src/androidTestBar/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestBar/jniLibs [-]
@@ -2045,7 +2027,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testBar/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testBar/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testBar/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testBar/rs [-]
                     ResDirectories                : <ROOT>/app/src/testBar/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBar/jniLibs [-]
@@ -2065,7 +2046,6 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/otherBar/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/otherBar/resources [-]
             AidlDirectories               : <ROOT>/app/src/otherBar/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app/src/otherBar/rs [-]
             ResDirectories                : <ROOT>/app/src/otherBar/res [-]
             AssetsDirectories             : <ROOT>/app/src/otherBar/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/otherBar/jniLibs [-]
@@ -2081,7 +2061,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestOtherBar/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestOtherBar/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestOtherBar/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTestOtherBar/rs [-]
                     ResDirectories                : <ROOT>/app/src/androidTestOtherBar/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestOtherBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestOtherBar/jniLibs [-]
@@ -2096,7 +2075,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testOtherBar/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testOtherBar/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testOtherBar/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testOtherBar/rs [-]
                     ResDirectories                : <ROOT>/app/src/testOtherBar/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testOtherBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testOtherBar/jniLibs [-]
@@ -2251,7 +2229,6 @@ MODULE                        : project.app
                 IdeSetupTaskNames             : generateBasicBarDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebug/classes [-]
@@ -2263,7 +2240,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/basicBarDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/basicBarDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/basicBarDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/basicBarDebug/rs [-]
                     ResDirectories                : <ROOT>/app/src/basicBarDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/basicBarDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/basicBarDebug/jniLibs [-]
@@ -2276,7 +2252,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/basicBar/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/basicBar/resources [-]
                     AidlDirectories               : <ROOT>/app/src/basicBar/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/basicBar/rs [-]
                     ResDirectories                : <ROOT>/app/src/basicBar/res [-]
                     AssetsDirectories             : <ROOT>/app/src/basicBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/basicBar/jniLibs [-]
@@ -2929,7 +2904,6 @@ MODULE                        : project.app
                     BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
                     ApkFromBundleTaskName         : extractApksForBasicBarDebug
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
@@ -2944,7 +2918,6 @@ MODULE                        : project.app
                 IdeSetupTaskNames             : generateBasicBarDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
@@ -2956,7 +2929,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestBasicBarDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestBasicBarDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestBasicBarDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTestBasicBarDebug/rs [-]
                     ResDirectories                : <ROOT>/app/src/androidTestBasicBarDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestBasicBarDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestBasicBarDebug/jniLibs [-]
@@ -2969,7 +2941,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestBasicBar/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestBasicBar/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestBasicBar/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTestBasicBar/rs [-]
                     ResDirectories                : <ROOT>/app/src/androidTestBasicBar/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestBasicBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestBasicBar/jniLibs [-]
@@ -3221,7 +3192,6 @@ MODULE                        : project.app
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleBasicBarDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/basicBar/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -3244,7 +3214,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testBasicBarDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testBasicBarDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testBasicBarDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testBasicBarDebug/rs [-]
                     ResDirectories                : <ROOT>/app/src/testBasicBarDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testBasicBarDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBasicBarDebug/jniLibs [-]
@@ -3257,7 +3226,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testBasicBar/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testBasicBar/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testBasicBar/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testBasicBar/rs [-]
                     ResDirectories                : <ROOT>/app/src/testBasicBar/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testBasicBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBasicBar/jniLibs [-]
@@ -3509,7 +3477,6 @@ MODULE                        : project.dyn_feature
             KotlinDirectories             : <ROOT>/dyn_feature/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/dyn_feature/src/main/resources [-]
             AidlDirectories               : <ROOT>/dyn_feature/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/dyn_feature/src/main/rs [-]
             ResDirectories                : <ROOT>/dyn_feature/src/main/res [-]
             AssetsDirectories             : <ROOT>/dyn_feature/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/dyn_feature/src/main/jniLibs [-]
@@ -3525,7 +3492,6 @@ MODULE                        : project.dyn_feature
                     KotlinDirectories             : <ROOT>/dyn_feature/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/dyn_feature/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/dyn_feature/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/dyn_feature/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/dyn_feature/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/dyn_feature/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/androidTest/jniLibs [-]
@@ -3540,7 +3506,6 @@ MODULE                        : project.dyn_feature
                     KotlinDirectories             : <ROOT>/dyn_feature/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/dyn_feature/src/test/resources [-]
                     AidlDirectories               : <ROOT>/dyn_feature/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/dyn_feature/src/test/rs [-]
                     ResDirectories                : <ROOT>/dyn_feature/src/test/res [-]
                     AssetsDirectories             : <ROOT>/dyn_feature/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/test/jniLibs [-]
@@ -3562,7 +3527,6 @@ MODULE                        : project.dyn_feature
             KotlinDirectories             : <ROOT>/dyn_feature/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/dyn_feature/src/debug/resources [-]
             AidlDirectories               : <ROOT>/dyn_feature/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/dyn_feature/src/debug/rs [-]
             ResDirectories                : <ROOT>/dyn_feature/src/debug/res [-]
             AssetsDirectories             : <ROOT>/dyn_feature/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/dyn_feature/src/debug/jniLibs [-]
@@ -3578,7 +3542,6 @@ MODULE                        : project.dyn_feature
                     KotlinDirectories             : <ROOT>/dyn_feature/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/dyn_feature/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/dyn_feature/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/dyn_feature/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/dyn_feature/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/dyn_feature/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/androidTestDebug/jniLibs [-]
@@ -3594,7 +3557,6 @@ MODULE                        : project.dyn_feature
                     KotlinDirectories             : <ROOT>/dyn_feature/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/dyn_feature/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/dyn_feature/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/dyn_feature/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/dyn_feature/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/dyn_feature/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/testDebug/jniLibs [-]
@@ -3615,7 +3577,6 @@ MODULE                        : project.dyn_feature
             KotlinDirectories             : <ROOT>/dyn_feature/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/dyn_feature/src/release/resources [-]
             AidlDirectories               : <ROOT>/dyn_feature/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/dyn_feature/src/release/rs [-]
             ResDirectories                : <ROOT>/dyn_feature/src/release/res [-]
             AssetsDirectories             : <ROOT>/dyn_feature/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/dyn_feature/src/release/jniLibs [-]
@@ -3631,7 +3592,6 @@ MODULE                        : project.dyn_feature
                     KotlinDirectories             : <ROOT>/dyn_feature/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/dyn_feature/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/dyn_feature/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/dyn_feature/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/dyn_feature/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/dyn_feature/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/testRelease/jniLibs [-]
@@ -3670,7 +3630,6 @@ MODULE                        : project.dyn_feature
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/javac/debug/classes [-]
@@ -3682,7 +3641,6 @@ MODULE                        : project.dyn_feature
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
                     AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
@@ -3697,7 +3655,6 @@ MODULE                        : project.dyn_feature
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/javac/debugAndroidTest/classes [-]
@@ -3716,7 +3673,6 @@ MODULE                        : project.dyn_feature
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -3870,7 +3826,6 @@ MODULE                        : project.lib
             KotlinDirectories             : <ROOT>/lib/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/lib/src/main/resources [-]
             AidlDirectories               : <ROOT>/lib/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/lib/src/main/rs [-]
             ResDirectories                : <ROOT>/lib/src/main/res
             AssetsDirectories             : <ROOT>/lib/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/main/jniLibs [-]
@@ -3886,7 +3841,6 @@ MODULE                        : project.lib
                     KotlinDirectories             : <ROOT>/lib/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/lib/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/lib/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/androidTest/jniLibs [-]
@@ -3901,7 +3855,6 @@ MODULE                        : project.lib
                     KotlinDirectories             : <ROOT>/lib/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/test/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/lib/src/test/rs [-]
                     ResDirectories                : <ROOT>/lib/src/test/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/test/jniLibs [-]
@@ -3923,7 +3876,6 @@ MODULE                        : project.lib
             KotlinDirectories             : <ROOT>/lib/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/lib/src/debug/resources [-]
             AidlDirectories               : <ROOT>/lib/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/lib/src/debug/rs [-]
             ResDirectories                : <ROOT>/lib/src/debug/res [-]
             AssetsDirectories             : <ROOT>/lib/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/debug/jniLibs [-]
@@ -3939,7 +3891,6 @@ MODULE                        : project.lib
                     KotlinDirectories             : <ROOT>/lib/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/lib/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/lib/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/androidTestDebug/jniLibs [-]
@@ -3955,7 +3906,6 @@ MODULE                        : project.lib
                     KotlinDirectories             : <ROOT>/lib/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/lib/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/lib/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/testDebug/jniLibs [-]
@@ -3979,7 +3929,6 @@ MODULE                        : project.lib
             KotlinDirectories             : <ROOT>/lib/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/lib/src/release/resources [-]
             AidlDirectories               : <ROOT>/lib/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/lib/src/release/rs [-]
             ResDirectories                : <ROOT>/lib/src/release/res [-]
             AssetsDirectories             : <ROOT>/lib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
@@ -3995,7 +3944,6 @@ MODULE                        : project.lib
                     KotlinDirectories             : <ROOT>/lib/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/lib/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/lib/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/testRelease/jniLibs [-]
@@ -4037,7 +3985,6 @@ MODULE                        : project.lib
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
@@ -4172,7 +4119,6 @@ MODULE                        : project.lib
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
@@ -4187,7 +4133,6 @@ MODULE                        : project.lib
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
@@ -4329,7 +4274,6 @@ MODULE                        : project.lib
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/lib/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -4576,7 +4520,6 @@ MODULE                        : project.nested1
             KotlinDirectories             : <ROOT>/nested1/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested1/src/main/resources [-]
             AidlDirectories               : <ROOT>/nested1/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested1/src/main/rs [-]
             ResDirectories                : <ROOT>/nested1/src/main/res [-]
             AssetsDirectories             : <ROOT>/nested1/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/src/main/jniLibs [-]
@@ -4592,7 +4535,6 @@ MODULE                        : project.nested1
                     KotlinDirectories             : <ROOT>/nested1/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/nested1/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/nested1/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/nested1/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/androidTest/jniLibs [-]
@@ -4607,7 +4549,6 @@ MODULE                        : project.nested1
                     KotlinDirectories             : <ROOT>/nested1/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/src/test/resources [-]
                     AidlDirectories               : <ROOT>/nested1/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/src/test/rs [-]
                     ResDirectories                : <ROOT>/nested1/src/test/res [-]
                     AssetsDirectories             : <ROOT>/nested1/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/test/jniLibs [-]
@@ -4629,7 +4570,6 @@ MODULE                        : project.nested1
             KotlinDirectories             : <ROOT>/nested1/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested1/src/debug/resources [-]
             AidlDirectories               : <ROOT>/nested1/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested1/src/debug/rs [-]
             ResDirectories                : <ROOT>/nested1/src/debug/res [-]
             AssetsDirectories             : <ROOT>/nested1/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/src/debug/jniLibs [-]
@@ -4645,7 +4585,6 @@ MODULE                        : project.nested1
                     KotlinDirectories             : <ROOT>/nested1/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested1/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/nested1/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested1/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/androidTestDebug/jniLibs [-]
@@ -4661,7 +4600,6 @@ MODULE                        : project.nested1
                     KotlinDirectories             : <ROOT>/nested1/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested1/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/nested1/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested1/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/testDebug/jniLibs [-]
@@ -4682,7 +4620,6 @@ MODULE                        : project.nested1
             KotlinDirectories             : <ROOT>/nested1/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested1/src/release/resources [-]
             AidlDirectories               : <ROOT>/nested1/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested1/src/release/rs [-]
             ResDirectories                : <ROOT>/nested1/src/release/res [-]
             AssetsDirectories             : <ROOT>/nested1/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/src/release/jniLibs [-]
@@ -4698,7 +4635,6 @@ MODULE                        : project.nested1
                     KotlinDirectories             : <ROOT>/nested1/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/nested1/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/nested1/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/nested1/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/testRelease/jniLibs [-]
@@ -4735,7 +4671,6 @@ MODULE                        : project.nested1
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested1/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/nested1/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested1/build/intermediates/javac/debug/classes [-]
@@ -4746,7 +4681,6 @@ MODULE                        : project.nested1
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                GeneratedResourceFolders      : <ROOT>/nested1/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
@@ -4761,7 +4695,6 @@ MODULE                        : project.nested1
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested1/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/nested1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested1/build/intermediates/javac/debugAndroidTest/classes [-]
@@ -4784,7 +4717,6 @@ MODULE                        : project.nested1
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/nested1/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/nested1/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -4908,7 +4840,6 @@ MODULE                        : project.nested1.deep
             KotlinDirectories             : <ROOT>/nested1/deep/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested1/deep/src/main/resources [-]
             AidlDirectories               : <ROOT>/nested1/deep/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested1/deep/src/main/rs [-]
             ResDirectories                : <ROOT>/nested1/deep/src/main/res [-]
             AssetsDirectories             : <ROOT>/nested1/deep/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/deep/src/main/jniLibs [-]
@@ -4924,7 +4855,6 @@ MODULE                        : project.nested1.deep
                     KotlinDirectories             : <ROOT>/nested1/deep/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/deep/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/nested1/deep/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/deep/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/nested1/deep/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/nested1/deep/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/androidTest/jniLibs [-]
@@ -4939,7 +4869,6 @@ MODULE                        : project.nested1.deep
                     KotlinDirectories             : <ROOT>/nested1/deep/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/deep/src/test/resources [-]
                     AidlDirectories               : <ROOT>/nested1/deep/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/deep/src/test/rs [-]
                     ResDirectories                : <ROOT>/nested1/deep/src/test/res [-]
                     AssetsDirectories             : <ROOT>/nested1/deep/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/test/jniLibs [-]
@@ -4961,7 +4890,6 @@ MODULE                        : project.nested1.deep
             KotlinDirectories             : <ROOT>/nested1/deep/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested1/deep/src/debug/resources [-]
             AidlDirectories               : <ROOT>/nested1/deep/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested1/deep/src/debug/rs [-]
             ResDirectories                : <ROOT>/nested1/deep/src/debug/res [-]
             AssetsDirectories             : <ROOT>/nested1/deep/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/deep/src/debug/jniLibs [-]
@@ -4977,7 +4905,6 @@ MODULE                        : project.nested1.deep
                     KotlinDirectories             : <ROOT>/nested1/deep/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/deep/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested1/deep/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/deep/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/nested1/deep/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested1/deep/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/androidTestDebug/jniLibs [-]
@@ -4993,7 +4920,6 @@ MODULE                        : project.nested1.deep
                     KotlinDirectories             : <ROOT>/nested1/deep/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/deep/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested1/deep/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/deep/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/nested1/deep/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested1/deep/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/testDebug/jniLibs [-]
@@ -5014,7 +4940,6 @@ MODULE                        : project.nested1.deep
             KotlinDirectories             : <ROOT>/nested1/deep/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested1/deep/src/release/resources [-]
             AidlDirectories               : <ROOT>/nested1/deep/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested1/deep/src/release/rs [-]
             ResDirectories                : <ROOT>/nested1/deep/src/release/res [-]
             AssetsDirectories             : <ROOT>/nested1/deep/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/deep/src/release/jniLibs [-]
@@ -5030,7 +4955,6 @@ MODULE                        : project.nested1.deep
                     KotlinDirectories             : <ROOT>/nested1/deep/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/deep/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/nested1/deep/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested1/deep/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/nested1/deep/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/nested1/deep/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/testRelease/jniLibs [-]
@@ -5070,7 +4994,6 @@ MODULE                        : project.nested1.deep
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/javac/debug/classes [-]
@@ -5081,7 +5004,6 @@ MODULE                        : project.nested1.deep
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                GeneratedResourceFolders      : <ROOT>/nested1/deep/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/deep/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
@@ -5096,7 +5018,6 @@ MODULE                        : project.nested1.deep
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/javac/debugAndroidTest/classes [-]
@@ -5119,7 +5040,6 @@ MODULE                        : project.nested1.deep
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/nested1/deep/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/nested1/deep/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/deep/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -5248,7 +5168,6 @@ MODULE                        : project.nested2
             KotlinDirectories             : <ROOT>/nested2/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/src/main/resources [-]
             AidlDirectories               : <ROOT>/nested2/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested2/src/main/rs [-]
             ResDirectories                : <ROOT>/nested2/src/main/res [-]
             AssetsDirectories             : <ROOT>/nested2/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/main/jniLibs [-]
@@ -5264,7 +5183,6 @@ MODULE                        : project.nested2
                     KotlinDirectories             : <ROOT>/nested2/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/nested2/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTest/jniLibs [-]
@@ -5279,7 +5197,6 @@ MODULE                        : project.nested2
                     KotlinDirectories             : <ROOT>/nested2/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/test/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/test/rs [-]
                     ResDirectories                : <ROOT>/nested2/src/test/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/test/jniLibs [-]
@@ -5301,7 +5218,6 @@ MODULE                        : project.nested2
             KotlinDirectories             : <ROOT>/nested2/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/src/debug/resources [-]
             AidlDirectories               : <ROOT>/nested2/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested2/src/debug/rs [-]
             ResDirectories                : <ROOT>/nested2/src/debug/res [-]
             AssetsDirectories             : <ROOT>/nested2/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/debug/jniLibs [-]
@@ -5317,7 +5233,6 @@ MODULE                        : project.nested2
                     KotlinDirectories             : <ROOT>/nested2/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/nested2/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestDebug/jniLibs [-]
@@ -5333,7 +5248,6 @@ MODULE                        : project.nested2
                     KotlinDirectories             : <ROOT>/nested2/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/nested2/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testDebug/jniLibs [-]
@@ -5354,7 +5268,6 @@ MODULE                        : project.nested2
             KotlinDirectories             : <ROOT>/nested2/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/src/release/resources [-]
             AidlDirectories               : <ROOT>/nested2/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested2/src/release/rs [-]
             ResDirectories                : <ROOT>/nested2/src/release/res [-]
             AssetsDirectories             : <ROOT>/nested2/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/release/jniLibs [-]
@@ -5370,7 +5283,6 @@ MODULE                        : project.nested2
                     KotlinDirectories             : <ROOT>/nested2/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/nested2/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testRelease/jniLibs [-]
@@ -5388,7 +5300,6 @@ MODULE                        : project.nested2
             KotlinDirectories             : <ROOT>/nested2/src/basic/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/src/basic/resources [-]
             AidlDirectories               : <ROOT>/nested2/src/basic/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested2/src/basic/rs [-]
             ResDirectories                : <ROOT>/nested2/src/basic/res [-]
             AssetsDirectories             : <ROOT>/nested2/src/basic/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/basic/jniLibs [-]
@@ -5404,7 +5315,6 @@ MODULE                        : project.nested2
                     KotlinDirectories             : <ROOT>/nested2/src/androidTestBasic/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/androidTestBasic/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/androidTestBasic/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/androidTestBasic/rs [-]
                     ResDirectories                : <ROOT>/nested2/src/androidTestBasic/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/androidTestBasic/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestBasic/jniLibs [-]
@@ -5419,7 +5329,6 @@ MODULE                        : project.nested2
                     KotlinDirectories             : <ROOT>/nested2/src/testBasic/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/testBasic/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/testBasic/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/testBasic/rs [-]
                     ResDirectories                : <ROOT>/nested2/src/testBasic/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/testBasic/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testBasic/jniLibs [-]
@@ -5436,7 +5345,6 @@ MODULE                        : project.nested2
             KotlinDirectories             : <ROOT>/nested2/src/paid/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/src/paid/resources [-]
             AidlDirectories               : <ROOT>/nested2/src/paid/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested2/src/paid/rs [-]
             ResDirectories                : <ROOT>/nested2/src/paid/res [-]
             AssetsDirectories             : <ROOT>/nested2/src/paid/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/paid/jniLibs [-]
@@ -5452,7 +5360,6 @@ MODULE                        : project.nested2
                     KotlinDirectories             : <ROOT>/nested2/src/androidTestPaid/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/androidTestPaid/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/androidTestPaid/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/androidTestPaid/rs [-]
                     ResDirectories                : <ROOT>/nested2/src/androidTestPaid/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/androidTestPaid/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestPaid/jniLibs [-]
@@ -5467,7 +5374,6 @@ MODULE                        : project.nested2
                     KotlinDirectories             : <ROOT>/nested2/src/testPaid/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/testPaid/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/testPaid/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/testPaid/rs [-]
                     ResDirectories                : <ROOT>/nested2/src/testPaid/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/testPaid/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testPaid/jniLibs [-]
@@ -5514,7 +5420,6 @@ MODULE                        : project.nested2
                 IdeSetupTaskNames             : generateBasicDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/aidl_source_output_dir/basicDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/build/generated/renderscript_source_output_dir/basicDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/source/buildConfig/basic/debug [-]
                 ClassesFolder                 : <ROOT>/nested2/build/intermediates/compile_r_class_jar/basicDebug/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested2/build/intermediates/javac/basicDebug/classes [-]
@@ -5526,7 +5431,6 @@ MODULE                        : project.nested2
                     KotlinDirectories             : <ROOT>/nested2/src/basicDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/basicDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/basicDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/basicDebug/rs [-]
                     ResDirectories                : <ROOT>/nested2/src/basicDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/basicDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/basicDebug/jniLibs [-]
@@ -5538,7 +5442,6 @@ MODULE                        : project.nested2
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleBasicDebug
-                GeneratedResourceFolders      : <ROOT>/nested2/build/generated/res/rs/basic/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/build/generated/res/resValues/basic/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
@@ -5553,7 +5456,6 @@ MODULE                        : project.nested2
                 IdeSetupTaskNames             : generateBasicDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/aidl_source_output_dir/basicDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/build/generated/renderscript_source_output_dir/basicDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/source/buildConfig/androidTest/basic/debug [-]
                 ClassesFolder                 : <ROOT>/nested2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested2/build/intermediates/javac/basicDebugAndroidTest/classes [-]
@@ -5565,7 +5467,6 @@ MODULE                        : project.nested2
                     KotlinDirectories             : <ROOT>/nested2/src/androidTestBasicDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/androidTestBasicDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/androidTestBasicDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/androidTestBasicDebug/rs [-]
                     ResDirectories                : <ROOT>/nested2/src/androidTestBasicDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/androidTestBasicDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestBasicDebug/jniLibs [-]
@@ -5589,7 +5490,6 @@ MODULE                        : project.nested2
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleBasicDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/nested2/build/intermediates/apk_ide_redirect_file/basicDebugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/nested2/build/generated/res/rs/androidTest/basic/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/build/generated/res/resValues/androidTest/basic/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -5612,7 +5512,6 @@ MODULE                        : project.nested2
                     KotlinDirectories             : <ROOT>/nested2/src/testBasicDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/testBasicDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/testBasicDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/src/testBasicDebug/rs [-]
                     ResDirectories                : <ROOT>/nested2/src/testBasicDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/testBasicDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testBasicDebug/jniLibs [-]
@@ -5723,7 +5622,6 @@ MODULE                        : project.nested2.deep
             KotlinDirectories             : <ROOT>/nested2/deep/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/deep/src/main/resources [-]
             AidlDirectories               : <ROOT>/nested2/deep/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested2/deep/src/main/rs [-]
             ResDirectories                : <ROOT>/nested2/deep/src/main/res [-]
             AssetsDirectories             : <ROOT>/nested2/deep/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/deep/src/main/jniLibs [-]
@@ -5739,7 +5637,6 @@ MODULE                        : project.nested2.deep
                     KotlinDirectories             : <ROOT>/nested2/deep/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/deep/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/nested2/deep/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/deep/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/nested2/deep/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/nested2/deep/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/androidTest/jniLibs [-]
@@ -5754,7 +5651,6 @@ MODULE                        : project.nested2.deep
                     KotlinDirectories             : <ROOT>/nested2/deep/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/deep/src/test/resources [-]
                     AidlDirectories               : <ROOT>/nested2/deep/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/deep/src/test/rs [-]
                     ResDirectories                : <ROOT>/nested2/deep/src/test/res [-]
                     AssetsDirectories             : <ROOT>/nested2/deep/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/test/jniLibs [-]
@@ -5776,7 +5672,6 @@ MODULE                        : project.nested2.deep
             KotlinDirectories             : <ROOT>/nested2/deep/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/deep/src/debug/resources [-]
             AidlDirectories               : <ROOT>/nested2/deep/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested2/deep/src/debug/rs [-]
             ResDirectories                : <ROOT>/nested2/deep/src/debug/res [-]
             AssetsDirectories             : <ROOT>/nested2/deep/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/deep/src/debug/jniLibs [-]
@@ -5792,7 +5687,6 @@ MODULE                        : project.nested2.deep
                     KotlinDirectories             : <ROOT>/nested2/deep/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/deep/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/deep/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/deep/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/nested2/deep/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/deep/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/androidTestDebug/jniLibs [-]
@@ -5808,7 +5702,6 @@ MODULE                        : project.nested2.deep
                     KotlinDirectories             : <ROOT>/nested2/deep/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/deep/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/deep/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/deep/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/nested2/deep/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/deep/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/testDebug/jniLibs [-]
@@ -5829,7 +5722,6 @@ MODULE                        : project.nested2.deep
             KotlinDirectories             : <ROOT>/nested2/deep/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/deep/src/release/resources [-]
             AidlDirectories               : <ROOT>/nested2/deep/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested2/deep/src/release/rs [-]
             ResDirectories                : <ROOT>/nested2/deep/src/release/res [-]
             AssetsDirectories             : <ROOT>/nested2/deep/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/deep/src/release/jniLibs [-]
@@ -5845,7 +5737,6 @@ MODULE                        : project.nested2.deep
                     KotlinDirectories             : <ROOT>/nested2/deep/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/deep/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/nested2/deep/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/deep/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/nested2/deep/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/nested2/deep/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/testRelease/jniLibs [-]
@@ -5882,7 +5773,6 @@ MODULE                        : project.nested2.deep
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/javac/debug/classes [-]
@@ -5893,7 +5783,6 @@ MODULE                        : project.nested2.deep
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                GeneratedResourceFolders      : <ROOT>/nested2/deep/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/deep/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
@@ -5908,7 +5797,6 @@ MODULE                        : project.nested2.deep
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/javac/debugAndroidTest/classes [-]
@@ -5931,7 +5819,6 @@ MODULE                        : project.nested2.deep
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/nested2/deep/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/nested2/deep/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/deep/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -6066,7 +5953,6 @@ MODULE                        : project.nested2.trans.deep2
             KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/main/resources [-]
             AidlDirectories               : <ROOT>/nested2/trans/deep2/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/main/rs [-]
             ResDirectories                : <ROOT>/nested2/trans/deep2/src/main/res [-]
             AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/main/jniLibs [-]
@@ -6082,7 +5968,6 @@ MODULE                        : project.nested2.trans.deep2
                     KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/nested2/trans/deep2/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/nested2/trans/deep2/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/androidTest/jniLibs [-]
@@ -6097,7 +5982,6 @@ MODULE                        : project.nested2.trans.deep2
                     KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/test/resources [-]
                     AidlDirectories               : <ROOT>/nested2/trans/deep2/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/test/rs [-]
                     ResDirectories                : <ROOT>/nested2/trans/deep2/src/test/res [-]
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/test/jniLibs [-]
@@ -6119,7 +6003,6 @@ MODULE                        : project.nested2.trans.deep2
             KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/debug/resources [-]
             AidlDirectories               : <ROOT>/nested2/trans/deep2/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/debug/rs [-]
             ResDirectories                : <ROOT>/nested2/trans/deep2/src/debug/res [-]
             AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/debug/jniLibs [-]
@@ -6135,7 +6018,6 @@ MODULE                        : project.nested2.trans.deep2
                     KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/trans/deep2/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/nested2/trans/deep2/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/androidTestDebug/jniLibs [-]
@@ -6151,7 +6033,6 @@ MODULE                        : project.nested2.trans.deep2
                     KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/trans/deep2/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/nested2/trans/deep2/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/testDebug/jniLibs [-]
@@ -6172,7 +6053,6 @@ MODULE                        : project.nested2.trans.deep2
             KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/release/resources [-]
             AidlDirectories               : <ROOT>/nested2/trans/deep2/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/release/rs [-]
             ResDirectories                : <ROOT>/nested2/trans/deep2/src/release/res [-]
             AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/release/jniLibs [-]
@@ -6188,7 +6068,6 @@ MODULE                        : project.nested2.trans.deep2
                     KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/nested2/trans/deep2/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/nested2/trans/deep2/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/testRelease/jniLibs [-]
@@ -6225,7 +6104,6 @@ MODULE                        : project.nested2.trans.deep2
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
@@ -6236,7 +6114,6 @@ MODULE                        : project.nested2.trans.deep2
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                GeneratedResourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
@@ -6251,7 +6128,6 @@ MODULE                        : project.nested2.trans.deep2
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugAndroidTest/classes [-]
@@ -6274,7 +6150,6 @@ MODULE                        : project.nested2.trans.deep2
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/nested2/trans/deep2/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions

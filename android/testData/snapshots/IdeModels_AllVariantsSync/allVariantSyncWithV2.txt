@@ -112,7 +112,6 @@ DefaultConfig
         KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
         ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
         AidlDirectories               : <ROOT>/app/src/main/aidl [-]
-        RenderscriptDirectories       : <ROOT>/app/src/main/rs [-]
         ResDirectories                : <ROOT>/app/src/main/res
         AssetsDirectories             : <ROOT>/app/src/main/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
@@ -128,7 +127,6 @@ DefaultConfig
                 KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
                 AidlDirectories               : <ROOT>/app/src/androidTest/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTest/rs [-]
                 ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
@@ -143,7 +141,6 @@ DefaultConfig
                 KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
                 AidlDirectories               : <ROOT>/app/src/test/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/test/rs [-]
                 ResDirectories                : <ROOT>/app/src/test/res [-]
                 AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
@@ -165,7 +162,6 @@ BuildTypes
         KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
         ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
         AidlDirectories               : <ROOT>/app/src/debug/aidl [-]
-        RenderscriptDirectories       : <ROOT>/app/src/debug/rs [-]
         ResDirectories                : <ROOT>/app/src/debug/res [-]
         AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
@@ -181,7 +177,6 @@ BuildTypes
                 KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
                 AidlDirectories               : <ROOT>/app/src/androidTestDebug/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTestDebug/rs [-]
                 ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
@@ -197,7 +192,6 @@ BuildTypes
                 KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testDebug/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testDebug/rs [-]
                 ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
@@ -223,7 +217,6 @@ BuildTypes
         KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
         ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
         AidlDirectories               : <ROOT>/app/src/release/aidl [-]
-        RenderscriptDirectories       : <ROOT>/app/src/release/rs [-]
         ResDirectories                : <ROOT>/app/src/release/res [-]
         AssetsDirectories             : <ROOT>/app/src/release/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
@@ -239,7 +232,6 @@ BuildTypes
                 KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/testRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
@@ -261,7 +253,6 @@ BuildTypes
         KotlinDirectories             : <ROOT>/app/src/specialRelease/kotlin [-]
         ResourcesDirectories          : <ROOT>/app/src/specialRelease/resources [-]
         AidlDirectories               : <ROOT>/app/src/specialRelease/aidl [-]
-        RenderscriptDirectories       : <ROOT>/app/src/specialRelease/rs [-]
         ResDirectories                : <ROOT>/app/src/specialRelease/res [-]
         AssetsDirectories             : <ROOT>/app/src/specialRelease/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/specialRelease/jniLibs [-]
@@ -277,7 +268,6 @@ BuildTypes
                 KotlinDirectories             : <ROOT>/app/src/testSpecialRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testSpecialRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testSpecialRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testSpecialRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/testSpecialRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testSpecialRelease/jniLibs [-]
@@ -296,7 +286,6 @@ ProductFlavors
         KotlinDirectories             : <ROOT>/app/src/basic/kotlin [-]
         ResourcesDirectories          : <ROOT>/app/src/basic/resources [-]
         AidlDirectories               : <ROOT>/app/src/basic/aidl [-]
-        RenderscriptDirectories       : <ROOT>/app/src/basic/rs [-]
         ResDirectories                : <ROOT>/app/src/basic/res [-]
         AssetsDirectories             : <ROOT>/app/src/basic/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/basic/jniLibs [-]
@@ -312,7 +301,6 @@ ProductFlavors
                 KotlinDirectories             : <ROOT>/app/src/androidTestBasic/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/androidTestBasic/resources [-]
                 AidlDirectories               : <ROOT>/app/src/androidTestBasic/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTestBasic/rs [-]
                 ResDirectories                : <ROOT>/app/src/androidTestBasic/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestBasic/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBasic/jniLibs [-]
@@ -327,7 +315,6 @@ ProductFlavors
                 KotlinDirectories             : <ROOT>/app/src/testBasic/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testBasic/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testBasic/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testBasic/rs [-]
                 ResDirectories                : <ROOT>/app/src/testBasic/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasic/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasic/jniLibs [-]
@@ -362,7 +349,6 @@ ProductFlavors
         KotlinDirectories             : <ROOT>/app/src/paid/kotlin [-]
         ResourcesDirectories          : <ROOT>/app/src/paid/resources [-]
         AidlDirectories               : <ROOT>/app/src/paid/aidl [-]
-        RenderscriptDirectories       : <ROOT>/app/src/paid/rs [-]
         ResDirectories                : <ROOT>/app/src/paid/res
         AssetsDirectories             : <ROOT>/app/src/paid/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/paid/jniLibs [-]
@@ -378,7 +364,6 @@ ProductFlavors
                 KotlinDirectories             : <ROOT>/app/src/androidTestPaid/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/androidTestPaid/resources [-]
                 AidlDirectories               : <ROOT>/app/src/androidTestPaid/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTestPaid/rs [-]
                 ResDirectories                : <ROOT>/app/src/androidTestPaid/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestPaid/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestPaid/jniLibs [-]
@@ -393,7 +378,6 @@ ProductFlavors
                 KotlinDirectories             : <ROOT>/app/src/testPaid/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testPaid/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testPaid/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testPaid/rs [-]
                 ResDirectories                : <ROOT>/app/src/testPaid/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaid/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaid/jniLibs [-]
@@ -411,7 +395,6 @@ ProductFlavors
         KotlinDirectories             : <ROOT>/app/src/bar/kotlin [-]
         ResourcesDirectories          : <ROOT>/app/src/bar/resources [-]
         AidlDirectories               : <ROOT>/app/src/bar/aidl [-]
-        RenderscriptDirectories       : <ROOT>/app/src/bar/rs [-]
         ResDirectories                : <ROOT>/app/src/bar/res [-]
         AssetsDirectories             : <ROOT>/app/src/bar/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/bar/jniLibs [-]
@@ -427,7 +410,6 @@ ProductFlavors
                 KotlinDirectories             : <ROOT>/app/src/androidTestBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/androidTestBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/androidTestBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTestBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/androidTestBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBar/jniLibs [-]
@@ -442,7 +424,6 @@ ProductFlavors
                 KotlinDirectories             : <ROOT>/app/src/testBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/testBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBar/jniLibs [-]
@@ -462,7 +443,6 @@ ProductFlavors
         KotlinDirectories             : <ROOT>/app/src/otherBar/kotlin [-]
         ResourcesDirectories          : <ROOT>/app/src/otherBar/resources [-]
         AidlDirectories               : <ROOT>/app/src/otherBar/aidl [-]
-        RenderscriptDirectories       : <ROOT>/app/src/otherBar/rs [-]
         ResDirectories                : <ROOT>/app/src/otherBar/res [-]
         AssetsDirectories             : <ROOT>/app/src/otherBar/assets [-]
         JniLibsDirectories            : <ROOT>/app/src/otherBar/jniLibs [-]
@@ -478,7 +458,6 @@ ProductFlavors
                 KotlinDirectories             : <ROOT>/app/src/androidTestOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/androidTestOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/androidTestOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTestOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/androidTestOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestOtherBar/jniLibs [-]
@@ -493,7 +472,6 @@ ProductFlavors
                 KotlinDirectories             : <ROOT>/app/src/testOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/testOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testOtherBar/jniLibs [-]
@@ -648,7 +626,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebug/classes [-]
@@ -660,7 +637,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/basicBarDebug/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/basicBarDebug/resources [-]
                 AidlDirectories               : <ROOT>/app/src/basicBarDebug/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/basicBarDebug/rs [-]
                 ResDirectories                : <ROOT>/app/src/basicBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBarDebug/jniLibs [-]
@@ -673,7 +649,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/basicBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/basicBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/basicBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/basicBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/basicBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBar/jniLibs [-]
@@ -1390,7 +1365,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             ModelSyncFile
@@ -1405,7 +1379,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebugAndroidTest/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
@@ -1417,7 +1390,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/androidTestBasicBarDebug/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/androidTestBasicBarDebug/resources [-]
                 AidlDirectories               : <ROOT>/app/src/androidTestBasicBarDebug/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTestBasicBarDebug/rs [-]
                 ResDirectories                : <ROOT>/app/src/androidTestBasicBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestBasicBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBasicBarDebug/jniLibs [-]
@@ -1430,7 +1402,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/androidTestBasicBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/androidTestBasicBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/androidTestBasicBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTestBasicBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/androidTestBasicBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestBasicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBasicBar/jniLibs [-]
@@ -1584,7 +1555,6 @@ IdeVariants
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicBarDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebugAndroidTest/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/basicBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             TestOptions
@@ -1607,7 +1577,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testBasicBarDebug/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testBasicBarDebug/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testBasicBarDebug/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testBasicBarDebug/rs [-]
                 ResDirectories                : <ROOT>/app/src/testBasicBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicBarDebug/jniLibs [-]
@@ -1620,7 +1589,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testBasicBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testBasicBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testBasicBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testBasicBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/testBasicBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicBar/jniLibs [-]
@@ -1841,7 +1809,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicOtherBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicOtherBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicOtherBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicOtherBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebug/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebug/classes [-]
@@ -1853,7 +1820,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/basicOtherBarDebug/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/basicOtherBarDebug/resources [-]
                 AidlDirectories               : <ROOT>/app/src/basicOtherBarDebug/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/basicOtherBarDebug/rs [-]
                 ResDirectories                : <ROOT>/app/src/basicOtherBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBarDebug/jniLibs [-]
@@ -1866,7 +1832,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/basicOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/basicOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/basicOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/basicOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/basicOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBar/jniLibs [-]
@@ -2061,7 +2026,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicOtherBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             ModelSyncFile
@@ -2076,7 +2040,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicOtherBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicOtherBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicOtherBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/basicOtherBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebugAndroidTest/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebugAndroidTest/classes [-]
@@ -2088,7 +2051,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/androidTestBasicOtherBarDebug/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/androidTestBasicOtherBarDebug/resources [-]
                 AidlDirectories               : <ROOT>/app/src/androidTestBasicOtherBarDebug/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTestBasicOtherBarDebug/rs [-]
                 ResDirectories                : <ROOT>/app/src/androidTestBasicOtherBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestBasicOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBasicOtherBarDebug/jniLibs [-]
@@ -2101,7 +2063,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/androidTestBasicOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/androidTestBasicOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/androidTestBasicOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTestBasicOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/androidTestBasicOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestBasicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestBasicOtherBar/jniLibs [-]
@@ -2255,7 +2216,6 @@ IdeVariants
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicOtherBarDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarDebugAndroidTest/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/basicOtherBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/basicOtherBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             TestOptions
@@ -2278,7 +2238,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testBasicOtherBarDebug/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testBasicOtherBarDebug/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testBasicOtherBarDebug/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testBasicOtherBarDebug/rs [-]
                 ResDirectories                : <ROOT>/app/src/testBasicOtherBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicOtherBarDebug/jniLibs [-]
@@ -2291,7 +2250,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testBasicOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testBasicOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testBasicOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testBasicOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/testBasicOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicOtherBar/jniLibs [-]
@@ -2513,7 +2471,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebug/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebug/classes [-]
@@ -2525,7 +2482,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/paidBarDebug/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/paidBarDebug/resources [-]
                 AidlDirectories               : <ROOT>/app/src/paidBarDebug/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/paidBarDebug/rs [-]
                 ResDirectories                : <ROOT>/app/src/paidBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBarDebug/jniLibs [-]
@@ -2538,7 +2494,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/paidBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/paidBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/paidBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/paidBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/paidBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBar/jniLibs [-]
@@ -2733,7 +2688,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarDebug/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarDebug/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             ModelSyncFile
@@ -2748,7 +2702,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/paidBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebugAndroidTest/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebugAndroidTest/classes [-]
@@ -2760,7 +2713,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/androidTestPaidBarDebug/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/androidTestPaidBarDebug/resources [-]
                 AidlDirectories               : <ROOT>/app/src/androidTestPaidBarDebug/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTestPaidBarDebug/rs [-]
                 ResDirectories                : <ROOT>/app/src/androidTestPaidBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestPaidBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestPaidBarDebug/jniLibs [-]
@@ -2773,7 +2725,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/androidTestPaidBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/androidTestPaidBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/androidTestPaidBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTestPaidBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/androidTestPaidBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestPaidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestPaidBar/jniLibs [-]
@@ -2927,7 +2878,6 @@ IdeVariants
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidBarDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarDebugAndroidTest/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/paidBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/paidBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             TestOptions
@@ -2950,7 +2900,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testPaidBarDebug/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testPaidBarDebug/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testPaidBarDebug/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testPaidBarDebug/rs [-]
                 ResDirectories                : <ROOT>/app/src/testPaidBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidBarDebug/jniLibs [-]
@@ -2963,7 +2912,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testPaidBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testPaidBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testPaidBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testPaidBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/testPaidBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidBar/jniLibs [-]
@@ -3188,7 +3136,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidOtherBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidOtherBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidOtherBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidOtherBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebug/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebug/classes [-]
@@ -3200,7 +3147,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/paidOtherBarDebug/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/paidOtherBarDebug/resources [-]
                 AidlDirectories               : <ROOT>/app/src/paidOtherBarDebug/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/paidOtherBarDebug/rs [-]
                 ResDirectories                : <ROOT>/app/src/paidOtherBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBarDebug/jniLibs [-]
@@ -3213,7 +3159,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/paidOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/paidOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/paidOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/paidOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/paidOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBar/jniLibs [-]
@@ -3408,7 +3353,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidOtherBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             ModelSyncFile
@@ -3423,7 +3367,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidOtherBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidOtherBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidOtherBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/paidOtherBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebugAndroidTest/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebugAndroidTest/classes [-]
@@ -3435,7 +3378,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/androidTestPaidOtherBarDebug/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/androidTestPaidOtherBarDebug/resources [-]
                 AidlDirectories               : <ROOT>/app/src/androidTestPaidOtherBarDebug/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTestPaidOtherBarDebug/rs [-]
                 ResDirectories                : <ROOT>/app/src/androidTestPaidOtherBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestPaidOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestPaidOtherBarDebug/jniLibs [-]
@@ -3448,7 +3390,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/androidTestPaidOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/androidTestPaidOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/androidTestPaidOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/androidTestPaidOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/androidTestPaidOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/androidTestPaidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/androidTestPaidOtherBar/jniLibs [-]
@@ -3602,7 +3543,6 @@ IdeVariants
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidOtherBarDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarDebugAndroidTest/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/paidOtherBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/paidOtherBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             TestOptions
@@ -3625,7 +3565,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testPaidOtherBarDebug/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testPaidOtherBarDebug/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testPaidOtherBarDebug/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testPaidOtherBarDebug/rs [-]
                 ResDirectories                : <ROOT>/app/src/testPaidOtherBarDebug/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidOtherBarDebug/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidOtherBarDebug/jniLibs [-]
@@ -3638,7 +3577,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testPaidOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testPaidOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testPaidOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testPaidOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/testPaidOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidOtherBar/jniLibs [-]
@@ -3859,7 +3797,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/release [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarRelease/classes [-]
@@ -3871,7 +3808,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/basicBarRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/basicBarRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/basicBarRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/basicBarRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/basicBarRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBarRelease/jniLibs [-]
@@ -3884,7 +3820,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/basicBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/basicBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/basicBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/basicBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/basicBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBar/jniLibs [-]
@@ -4079,7 +4014,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             ModelSyncFile
@@ -4103,7 +4037,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testBasicBarRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testBasicBarRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testBasicBarRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testBasicBarRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/testBasicBarRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicBarRelease/jniLibs [-]
@@ -4116,7 +4049,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testBasicBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testBasicBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testBasicBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testBasicBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/testBasicBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicBar/jniLibs [-]
@@ -4344,7 +4276,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicOtherBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicOtherBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicOtherBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicOtherBar/release [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarRelease/classes [-]
@@ -4356,7 +4287,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/basicOtherBarRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/basicOtherBarRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/basicOtherBarRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/basicOtherBarRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/basicOtherBarRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBarRelease/jniLibs [-]
@@ -4369,7 +4299,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/basicOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/basicOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/basicOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/basicOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/basicOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBar/jniLibs [-]
@@ -4564,7 +4493,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicOtherBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             ModelSyncFile
@@ -4588,7 +4516,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testBasicOtherBarRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testBasicOtherBarRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testBasicOtherBarRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testBasicOtherBarRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/testBasicOtherBarRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicOtherBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicOtherBarRelease/jniLibs [-]
@@ -4601,7 +4528,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testBasicOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testBasicOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testBasicOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testBasicOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/testBasicOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicOtherBar/jniLibs [-]
@@ -4830,7 +4756,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidBar/release [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarRelease/classes [-]
@@ -4842,7 +4767,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/paidBarRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/paidBarRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/paidBarRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/paidBarRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/paidBarRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBarRelease/jniLibs [-]
@@ -4855,7 +4779,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/paidBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/paidBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/paidBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/paidBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/paidBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBar/jniLibs [-]
@@ -5050,7 +4973,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             ModelSyncFile
@@ -5074,7 +4996,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testPaidBarRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testPaidBarRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testPaidBarRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testPaidBarRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/testPaidBarRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidBarRelease/jniLibs [-]
@@ -5087,7 +5008,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testPaidBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testPaidBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testPaidBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testPaidBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/testPaidBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidBar/jniLibs [-]
@@ -5319,7 +5239,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidOtherBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidOtherBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidOtherBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidOtherBar/release [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarRelease/classes [-]
@@ -5331,7 +5250,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/paidOtherBarRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/paidOtherBarRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/paidOtherBarRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/paidOtherBarRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/paidOtherBarRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBarRelease/jniLibs [-]
@@ -5344,7 +5262,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/paidOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/paidOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/paidOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/paidOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/paidOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBar/jniLibs [-]
@@ -5539,7 +5456,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidOtherBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             ModelSyncFile
@@ -5563,7 +5479,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testPaidOtherBarRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testPaidOtherBarRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testPaidOtherBarRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testPaidOtherBarRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/testPaidOtherBarRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidOtherBarRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidOtherBarRelease/jniLibs [-]
@@ -5576,7 +5491,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testPaidOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testPaidOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testPaidOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testPaidOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/testPaidOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidOtherBar/jniLibs [-]
@@ -5798,7 +5712,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/specialRelease [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarSpecialRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarSpecialRelease/classes [-]
@@ -5810,7 +5723,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/basicBarSpecialRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/basicBarSpecialRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/basicBarSpecialRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/basicBarSpecialRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/basicBarSpecialRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBarSpecialRelease/jniLibs [-]
@@ -5823,7 +5735,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/basicBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/basicBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/basicBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/basicBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/basicBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicBar/jniLibs [-]
@@ -6017,7 +5928,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             ModelSyncFile
@@ -6041,7 +5951,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testBasicBarSpecialRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testBasicBarSpecialRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testBasicBarSpecialRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testBasicBarSpecialRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/testBasicBarSpecialRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicBarSpecialRelease/jniLibs [-]
@@ -6054,7 +5963,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testBasicBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testBasicBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testBasicBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testBasicBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/testBasicBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicBar/jniLibs [-]
@@ -6279,7 +6187,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicOtherBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicOtherBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicOtherBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicOtherBar/specialRelease [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarSpecialRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarSpecialRelease/classes [-]
@@ -6291,7 +6198,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/basicOtherBarSpecialRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/basicOtherBarSpecialRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/basicOtherBarSpecialRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/basicOtherBarSpecialRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/basicOtherBarSpecialRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBarSpecialRelease/jniLibs [-]
@@ -6304,7 +6210,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/basicOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/basicOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/basicOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/basicOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/basicOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/basicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/basicOtherBar/jniLibs [-]
@@ -6498,7 +6403,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicOtherBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             ModelSyncFile
@@ -6522,7 +6426,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testBasicOtherBarSpecialRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testBasicOtherBarSpecialRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testBasicOtherBarSpecialRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testBasicOtherBarSpecialRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/testBasicOtherBarSpecialRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicOtherBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicOtherBarSpecialRelease/jniLibs [-]
@@ -6535,7 +6438,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testBasicOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testBasicOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testBasicOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testBasicOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/testBasicOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testBasicOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testBasicOtherBar/jniLibs [-]
@@ -6761,7 +6663,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidBar/specialRelease [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarSpecialRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarSpecialRelease/classes [-]
@@ -6773,7 +6674,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/paidBarSpecialRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/paidBarSpecialRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/paidBarSpecialRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/paidBarSpecialRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/paidBarSpecialRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBarSpecialRelease/jniLibs [-]
@@ -6786,7 +6686,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/paidBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/paidBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/paidBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/paidBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/paidBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidBar/jniLibs [-]
@@ -6980,7 +6879,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             ModelSyncFile
@@ -7004,7 +6902,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testPaidBarSpecialRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testPaidBarSpecialRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testPaidBarSpecialRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testPaidBarSpecialRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/testPaidBarSpecialRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidBarSpecialRelease/jniLibs [-]
@@ -7017,7 +6914,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testPaidBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testPaidBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testPaidBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testPaidBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/testPaidBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidBar/jniLibs [-]
@@ -7246,7 +7142,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidOtherBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidOtherBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidOtherBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidOtherBar/specialRelease [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarSpecialRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarSpecialRelease/classes [-]
@@ -7258,7 +7153,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/paidOtherBarSpecialRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/paidOtherBarSpecialRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/paidOtherBarSpecialRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/paidOtherBarSpecialRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/paidOtherBarSpecialRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBarSpecialRelease/jniLibs [-]
@@ -7271,7 +7165,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/paidOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/paidOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/paidOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/paidOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/paidOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/paidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/paidOtherBar/jniLibs [-]
@@ -7465,7 +7358,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidOtherBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             ModelSyncFile
@@ -7489,7 +7381,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testPaidOtherBarSpecialRelease/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testPaidOtherBarSpecialRelease/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testPaidOtherBarSpecialRelease/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testPaidOtherBarSpecialRelease/rs [-]
                 ResDirectories                : <ROOT>/app/src/testPaidOtherBarSpecialRelease/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidOtherBarSpecialRelease/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidOtherBarSpecialRelease/jniLibs [-]
@@ -7502,7 +7393,6 @@ IdeVariants
                 KotlinDirectories             : <ROOT>/app/src/testPaidOtherBar/kotlin [-]
                 ResourcesDirectories          : <ROOT>/app/src/testPaidOtherBar/resources [-]
                 AidlDirectories               : <ROOT>/app/src/testPaidOtherBar/aidl [-]
-                RenderscriptDirectories       : <ROOT>/app/src/testPaidOtherBar/rs [-]
                 ResDirectories                : <ROOT>/app/src/testPaidOtherBar/res [-]
                 AssetsDirectories             : <ROOT>/app/src/testPaidOtherBar/assets [-]
                 JniLibsDirectories            : <ROOT>/app/src/testPaidOtherBar/jniLibs [-]

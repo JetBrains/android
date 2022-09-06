@@ -82,11 +82,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -164,11 +162,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -180,9 +176,7 @@ PROJECT                       : project
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/rs/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/src/androidTestDebug [-]
@@ -190,11 +184,7 @@ PROJECT                       : project
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
@@ -204,7 +194,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/ads-sdk-implementation/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/ads-sdk-implementation/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/src/androidTest/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/src/androidTest/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/ads-sdk-implementation/src/androidTestDebug/assets [-]
@@ -212,7 +201,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/ads-sdk-implementation/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/ads-sdk-implementation/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -277,11 +265,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -293,9 +279,7 @@ PROJECT                       : project
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/renderscript_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/rs/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation/src/main
@@ -305,11 +289,7 @@ PROJECT                       : project
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/ads-sdk-implementation/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/ads-sdk-implementation/build/generated/renderscript_source_output_dir/debug/out [-]
-            Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/debug [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/ads-sdk-implementation/build/generated/res/rs/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/ads-sdk-implementation/build/generated/source/buildConfig/debug [-]
             Generated                     : true
@@ -319,13 +299,11 @@ PROJECT                       : project
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/ads-sdk-implementation/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/ads-sdk-implementation/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/ads-sdk-implementation/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/ads-sdk-implementation/src/debug/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/ads-sdk-implementation/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/ads-sdk-implementation/src/main/aidl [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/ads-sdk-implementation/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/ads-sdk-implementation/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/ads-sdk-implementation/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/ads-sdk-implementation/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/ads-sdk-implementation/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -391,11 +369,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -416,7 +392,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/ads-sdk-implementation/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/ads-sdk-implementation/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/src/test/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/src/test/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/ads-sdk-implementation/src/testDebug/assets [-]
@@ -424,7 +399,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/ads-sdk-implementation/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/ads-sdk-implementation/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/src/testDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/ads-sdk-implementation/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -490,11 +464,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -579,11 +551,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -669,11 +639,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -705,9 +673,7 @@ PROJECT                       : project
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/rs/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app-with-dynamic-feature/src/androidTest/java
@@ -716,11 +682,7 @@ PROJECT                       : project
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
@@ -729,7 +691,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app-with-dynamic-feature/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app-with-dynamic-feature/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/src/androidTest/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/src/androidTest/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app-with-dynamic-feature/src/androidTestDebug/assets [-]
@@ -737,7 +698,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app-with-dynamic-feature/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app-with-dynamic-feature/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -902,11 +862,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -938,9 +896,7 @@ PROJECT                       : project
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/renderscript_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/rs/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature/src/main
@@ -950,11 +906,7 @@ PROJECT                       : project
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app-with-dynamic-feature/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app-with-dynamic-feature/build/generated/renderscript_source_output_dir/debug/out [-]
-            Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/debug [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/rs/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app-with-dynamic-feature/build/generated/source/buildConfig/debug [-]
             Generated                     : true
@@ -964,13 +916,11 @@ PROJECT                       : project
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app-with-dynamic-feature/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app-with-dynamic-feature/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app-with-dynamic-feature/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app-with-dynamic-feature/src/debug/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app-with-dynamic-feature/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app-with-dynamic-feature/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app-with-dynamic-feature/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app-with-dynamic-feature/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app-with-dynamic-feature/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app-with-dynamic-feature/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app-with-dynamic-feature/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -1079,11 +1029,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -1124,7 +1072,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app-with-dynamic-feature/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app-with-dynamic-feature/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/src/test/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/src/test/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app-with-dynamic-feature/src/testDebug/assets [-]
@@ -1132,7 +1079,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app-with-dynamic-feature/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app-with-dynamic-feature/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/src/testDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app-with-dynamic-feature/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -1277,11 +1223,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -1313,9 +1257,7 @@ PROJECT                       : project
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
@@ -1324,11 +1266,7 @@ PROJECT                       : project
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
@@ -1337,7 +1275,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
@@ -1345,7 +1282,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -1510,11 +1446,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -1546,9 +1480,7 @@ PROJECT                       : project
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/rs/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main
@@ -1558,11 +1490,7 @@ PROJECT                       : project
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
-            Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
             Generated                     : true
@@ -1572,13 +1500,11 @@ PROJECT                       : project
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -1687,11 +1613,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -1732,7 +1656,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
@@ -1740,7 +1663,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -1884,11 +1806,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/feature/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/feature/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/feature/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/feature/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/feature/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/feature/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/feature/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/feature/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -1970,11 +1890,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/feature/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/feature/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/feature/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/feature/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/feature/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/feature/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/feature/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/feature/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -2006,9 +1924,7 @@ PROJECT                       : project
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/res/rs/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature/src/androidTest
             JavaSource (test)             : file://<PROJECT>/feature/src/androidTest/java
@@ -2017,11 +1933,7 @@ PROJECT                       : project
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
@@ -2030,7 +1942,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/src/androidTest/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/src/androidTest/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature/src/androidTestDebug/assets [-]
@@ -2038,7 +1949,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -2165,11 +2075,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/feature/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/feature/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/feature/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/feature/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/feature/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/feature/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/feature/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/feature/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -2201,9 +2109,7 @@ PROJECT                       : project
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/renderscript_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/res/rs/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature/src/main
@@ -2213,11 +2119,7 @@ PROJECT                       : project
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature/build/generated/renderscript_source_output_dir/debug/out [-]
-            Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature/build/generated/res/resValues/debug [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature/build/generated/res/rs/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature/build/generated/source/buildConfig/debug [-]
             Generated                     : true
@@ -2227,13 +2129,11 @@ PROJECT                       : project
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature/src/debug/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -2317,11 +2217,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/feature/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/feature/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/feature/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/feature/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/feature/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/feature/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/feature/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/feature/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -2362,7 +2260,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/src/test/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/src/test/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature/src/testDebug/assets [-]
@@ -2370,7 +2267,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/src/testDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false

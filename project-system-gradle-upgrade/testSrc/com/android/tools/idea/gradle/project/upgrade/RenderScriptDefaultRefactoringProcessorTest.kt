@@ -27,7 +27,7 @@ import org.junit.Test
 @RunsInEdt
 class RenderScriptDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   override val projectRule = AndroidProjectRule.withAndroidModel(
-    AndroidProjectBuilder().withMainSourceProvider { buildMainSourceProviderStub() }
+    AndroidProjectBuilder(includeRenderScriptSources = { true }).withMainSourceProvider { buildMainSourceProviderStub() }
   )
 
   @Test

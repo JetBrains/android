@@ -1081,7 +1081,6 @@ MODULE                        : MultiFlavor.app
                 IdeSetupTaskNames             : generateFirstAbcSecondAbcDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/firstAbcSecondAbc/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebug/classes [-]
@@ -1597,7 +1596,6 @@ MODULE                        : MultiFlavor.app
                     BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/firstAbcSecondAbcDebug/redirect.txt [-]
                     ApkFromBundleTaskName         : extractApksForFirstAbcSecondAbcDebug
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/firstAbcSecondAbcDebug/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/firstAbcSecondAbc/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
@@ -1607,7 +1605,6 @@ MODULE                        : MultiFlavor.app
                 IdeSetupTaskNames             : generateFirstAbcSecondAbcDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/firstAbcSecondAbc/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugAndroidTest/classes [-]
@@ -1910,7 +1907,6 @@ MODULE                        : MultiFlavor.app
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleFirstAbcSecondAbcDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/firstAbcSecondAbcDebugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/firstAbcSecondAbc/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug [-]
                 TestOptions
                     AnimationsDisabled            : false

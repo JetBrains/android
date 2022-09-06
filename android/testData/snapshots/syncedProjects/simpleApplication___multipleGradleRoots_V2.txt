@@ -52,11 +52,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -142,11 +140,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -158,9 +154,7 @@ PROJECT                       : project
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/build/generated/res/rs/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/gradle_project_1/app/src/androidTest/java
@@ -169,11 +163,7 @@ PROJECT                       : project
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_1/app/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_1/app/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
@@ -182,7 +172,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_1/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_1/app/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/src/androidTest/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/src/androidTest/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_1/app/src/androidTestDebug/assets [-]
@@ -190,7 +179,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_1/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_1/app/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -353,11 +341,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -369,9 +355,7 @@ PROJECT                       : project
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/build/generated/renderscript_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/build/generated/res/rs/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_1/app/src/main
@@ -381,11 +365,7 @@ PROJECT                       : project
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_1/app/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_1/app/build/generated/renderscript_source_output_dir/debug/out [-]
-            Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/gradle_project_1/app/build/generated/res/resValues/debug [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/gradle_project_1/app/build/generated/res/rs/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_1/app/build/generated/source/buildConfig/debug [-]
             Generated                     : true
@@ -395,13 +375,11 @@ PROJECT                       : project
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_1/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/gradle_project_1/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/gradle_project_1/app/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_1/app/src/debug/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_1/app/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_1/app/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/gradle_project_1/app/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_1/app/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/gradle_project_1/app/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_1/app/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_1/app/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -507,11 +485,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_1/app/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_1/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -532,7 +508,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_1/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_1/app/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/src/test/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/src/test/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_1/app/src/testDebug/assets [-]
@@ -540,7 +515,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_1/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_1/app/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/src/testDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_1/app/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -706,11 +680,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -796,11 +768,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -812,9 +782,7 @@ PROJECT                       : project
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/build/generated/res/rs/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/gradle_project_2/app/src/androidTest/java
@@ -823,11 +791,7 @@ PROJECT                       : project
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_2/app/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_2/app/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
@@ -836,7 +800,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_2/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_2/app/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/src/androidTest/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/src/androidTest/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_2/app/src/androidTestDebug/assets [-]
@@ -844,7 +807,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_2/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_2/app/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -1007,11 +969,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -1023,9 +983,7 @@ PROJECT                       : project
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/build/generated/ap_generated_sources/debug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/build/generated/renderscript_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/build/generated/res/rs/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/gradle_project_2/app/src/main
@@ -1035,11 +993,7 @@ PROJECT                       : project
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_2/app/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_2/app/build/generated/renderscript_source_output_dir/debug/out [-]
-            Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/gradle_project_2/app/build/generated/res/resValues/debug [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/gradle_project_2/app/build/generated/res/rs/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_2/app/build/generated/source/buildConfig/debug [-]
             Generated                     : true
@@ -1049,13 +1003,11 @@ PROJECT                       : project
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_2/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/gradle_project_2/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/gradle_project_2/app/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_2/app/src/debug/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_2/app/src/debug/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_2/app/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/gradle_project_2/app/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_2/app/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/gradle_project_2/app/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_2/app/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/gradle_project_2/app/src/main/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -1161,11 +1113,9 @@ PROJECT                       : project
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/build/generated/res/rs/debug [-]
             - ResFoldersRelativePath      : file://<PROJECT>/gradle_project_2/app/build/generated/res/resValues/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/build/generated/res/rs/androidTest/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/gradle_project_2/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -1186,7 +1136,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_2/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_2/app/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/src/test/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/src/test/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_2/app/src/testDebug/assets [-]
@@ -1194,7 +1143,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_2/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/gradle_project_2/app/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/src/testDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/gradle_project_2/app/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false

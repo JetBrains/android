@@ -25,8 +25,6 @@ MODULE: project.app
                 file://./app/src/main/java
             JniLibsDirectoryUrls:
                 file://./app/src/main/jniLibs
-            RenderscriptDirectoryUrls:
-                file://./app/src/main/rs
             ResDirectoryUrls:
                 file://./app/src/main/res
             ResDirectories:
@@ -50,8 +48,6 @@ MODULE: project.app
                 ./app/src/main/kotlin
             JniLibsDirectories:
                 ./app/src/main/jniLibs
-            RenderscriptDirectories:
-                ./app/src/main/rs
             ResDirectories:
                 ./app/src/main/res
             ResourcesDirectories:
@@ -73,8 +69,6 @@ MODULE: project.app
                     ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/main/rs
                 ResDirectories:
                     ./app/src/main/res
                 ResourcesDirectories:
@@ -95,8 +89,6 @@ MODULE: project.app
                     ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/debug/rs
                 ResDirectories:
                     ./app/src/debug/res
                 ResourcesDirectories:
@@ -118,8 +110,6 @@ MODULE: project.app
                     ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/main/rs
                 ResDirectories:
                     ./app/src/main/res
                 ResourcesDirectories:
@@ -140,8 +130,6 @@ MODULE: project.app
                     ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/debug/rs
                 ResDirectories:
                     ./app/src/debug/res
                 ResourcesDirectories:
@@ -162,8 +150,6 @@ MODULE: project.app
                     ./app/src/release/kotlin
                 JniLibsDirectories:
                     ./app/src/release/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/release/rs
                 ResDirectories:
                     ./app/src/release/res
                 ResourcesDirectories:
@@ -185,8 +171,6 @@ MODULE: project.app
                     ./app/src/test/kotlin
                 JniLibsDirectories:
                     ./app/src/test/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/test/rs
                 ResDirectories:
                     ./app/src/test/res
                 ResourcesDirectories:
@@ -207,8 +191,6 @@ MODULE: project.app
                     ./app/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/testDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/testDebug/rs
                 ResDirectories:
                     ./app/src/testDebug/res
                 ResourcesDirectories:
@@ -230,8 +212,6 @@ MODULE: project.app
                     ./app/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTest/rs
                 ResDirectories:
                     ./app/src/androidTest/res
                 ResourcesDirectories:
@@ -252,8 +232,6 @@ MODULE: project.app
                     ./app/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestDebug/rs
                 ResDirectories:
                     ./app/src/androidTestDebug/res
                 ResourcesDirectories:
@@ -298,9 +276,6 @@ MODULE: project.app
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                     file://./app/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/main/rs
-                    file://./app/src/debug/rs
                 ResDirectoryUrls:
                     file://./app/src/main/res
                     file://./app/src/debug/res
@@ -344,9 +319,6 @@ MODULE: project.app
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
                     file://./app/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/test/rs
-                    file://./app/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/test/res
                     file://./app/src/testDebug/res
@@ -388,9 +360,6 @@ MODULE: project.app
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
                     file://./app/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTest/rs
-                    file://./app/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTest/res
                     file://./app/src/androidTestDebug/res
@@ -410,9 +379,7 @@ MODULE: project.app
                     file://./app/build/generated/ap_generated_sources/debug/out
                     file://./app/build/generated/aidl_source_output_dir/debug/out
                     file://./app/build/generated/source/buildConfig/debug
-                    file://./app/build/generated/renderscript_source_output_dir/debug/out
                 ResDirectoryUrls:
-                    file://./app/build/generated/res/rs/debug
                     file://./app/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
             GeneratedUnitTestSources (IDEA)
@@ -426,9 +393,7 @@ MODULE: project.app
                     file://./app/build/generated/ap_generated_sources/debugAndroidTest/out
                     file://./app/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./app/build/generated/source/buildConfig/androidTest/debug
-                    file://./app/build/generated/renderscript_source_output_dir/debugAndroidTest/out
                 ResDirectoryUrls:
-                    file://./app/build/generated/res/rs/androidTest/debug
                     file://./app/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -459,8 +424,6 @@ MODULE: project.app
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/main/rs
                 ResDirectoryUrls:
                     file://./app/src/main/res
                 ResDirectories:
@@ -486,8 +449,6 @@ MODULE: project.app
                     file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/debug/rs
                 ResDirectoryUrls:
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
@@ -511,8 +472,6 @@ MODULE: project.app
                     file://./app/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/release/rs
                 ResDirectoryUrls:
                     file://./app/src/release/res
                 ResourcesDirectoryUrls:
@@ -545,8 +504,6 @@ MODULE: project.app
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/main/rs
                 ResDirectoryUrls:
                     file://./app/src/main/res
                 ResDirectories:
@@ -572,8 +529,6 @@ MODULE: project.app
                     file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/debug/rs
                 ResDirectoryUrls:
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
@@ -604,8 +559,6 @@ MODULE: project.app
                     file://./app/src/test/java
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/test/rs
                 ResDirectoryUrls:
                     file://./app/src/test/res
                 ResourcesDirectoryUrls:
@@ -629,8 +582,6 @@ MODULE: project.app
                     file://./app/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/testDebug/res
                 ResourcesDirectoryUrls:
@@ -661,8 +612,6 @@ MODULE: project.app
                     file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTest/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTest/res
                 ResourcesDirectoryUrls:
@@ -686,8 +635,6 @@ MODULE: project.app
                     file://./app/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
@@ -722,8 +669,6 @@ MODULE: project.lib
                 file://./lib/src/main/java
             JniLibsDirectoryUrls:
                 file://./lib/src/main/jniLibs
-            RenderscriptDirectoryUrls:
-                file://./lib/src/main/rs
             ResDirectoryUrls:
                 file://./lib/src/main/res
             ResDirectories:
@@ -747,8 +692,6 @@ MODULE: project.lib
                 ./lib/src/main/kotlin
             JniLibsDirectories:
                 ./lib/src/main/jniLibs
-            RenderscriptDirectories:
-                ./lib/src/main/rs
             ResDirectories:
                 ./lib/src/main/res
             ResourcesDirectories:
@@ -770,8 +713,6 @@ MODULE: project.lib
                     ./lib/src/main/kotlin
                 JniLibsDirectories:
                     ./lib/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/main/rs
                 ResDirectories:
                     ./lib/src/main/res
                 ResourcesDirectories:
@@ -792,8 +733,6 @@ MODULE: project.lib
                     ./lib/src/debug/kotlin
                 JniLibsDirectories:
                     ./lib/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/debug/rs
                 ResDirectories:
                     ./lib/src/debug/res
                 ResourcesDirectories:
@@ -815,8 +754,6 @@ MODULE: project.lib
                     ./lib/src/main/kotlin
                 JniLibsDirectories:
                     ./lib/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/main/rs
                 ResDirectories:
                     ./lib/src/main/res
                 ResourcesDirectories:
@@ -837,8 +774,6 @@ MODULE: project.lib
                     ./lib/src/debug/kotlin
                 JniLibsDirectories:
                     ./lib/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/debug/rs
                 ResDirectories:
                     ./lib/src/debug/res
                 ResourcesDirectories:
@@ -859,8 +794,6 @@ MODULE: project.lib
                     ./lib/src/release/kotlin
                 JniLibsDirectories:
                     ./lib/src/release/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/release/rs
                 ResDirectories:
                     ./lib/src/release/res
                 ResourcesDirectories:
@@ -882,8 +815,6 @@ MODULE: project.lib
                     ./lib/src/test/kotlin
                 JniLibsDirectories:
                     ./lib/src/test/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/test/rs
                 ResDirectories:
                     ./lib/src/test/res
                 ResourcesDirectories:
@@ -904,8 +835,6 @@ MODULE: project.lib
                     ./lib/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./lib/src/testDebug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/testDebug/rs
                 ResDirectories:
                     ./lib/src/testDebug/res
                 ResourcesDirectories:
@@ -927,8 +856,6 @@ MODULE: project.lib
                     ./lib/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./lib/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/androidTest/rs
                 ResDirectories:
                     ./lib/src/androidTest/res
                 ResourcesDirectories:
@@ -949,8 +876,6 @@ MODULE: project.lib
                     ./lib/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./lib/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/androidTestDebug/rs
                 ResDirectories:
                     ./lib/src/androidTestDebug/res
                 ResourcesDirectories:
@@ -972,8 +897,6 @@ MODULE: project.lib
                     ./lib/src/testFixtures/kotlin
                 JniLibsDirectories:
                     ./lib/src/testFixtures/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/testFixtures/rs
                 ResDirectories:
                     ./lib/src/testFixtures/res
                 ResourcesDirectories:
@@ -994,8 +917,6 @@ MODULE: project.lib
                     ./lib/src/testFixturesDebug/kotlin
                 JniLibsDirectories:
                     ./lib/src/testFixturesDebug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/testFixturesDebug/rs
                 ResDirectories:
                     ./lib/src/testFixturesDebug/res
                 ResourcesDirectories:
@@ -1039,9 +960,6 @@ MODULE: project.lib
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
                     file://./lib/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/main/rs
-                    file://./lib/src/debug/rs
                 ResDirectoryUrls:
                     file://./lib/src/main/res
                     file://./lib/src/debug/res
@@ -1085,9 +1003,6 @@ MODULE: project.lib
                 JniLibsDirectoryUrls:
                     file://./lib/src/test/jniLibs
                     file://./lib/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/test/rs
-                    file://./lib/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/test/res
                     file://./lib/src/testDebug/res
@@ -1123,9 +1038,6 @@ MODULE: project.lib
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTest/jniLibs
                     file://./lib/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/androidTest/rs
-                    file://./lib/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/androidTest/res
                     file://./lib/src/androidTestDebug/res
@@ -1167,9 +1079,6 @@ MODULE: project.lib
                 JniLibsDirectoryUrls:
                     file://./lib/src/testFixtures/jniLibs
                     file://./lib/src/testFixturesDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/testFixtures/rs
-                    file://./lib/src/testFixturesDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/testFixtures/res
                     file://./lib/src/testFixturesDebug/res
@@ -1188,9 +1097,7 @@ MODULE: project.lib
                     file://./lib/build/generated/ap_generated_sources/debug/out
                     file://./lib/build/generated/aidl_source_output_dir/debug/out
                     file://./lib/build/generated/source/buildConfig/debug
-                    file://./lib/build/generated/renderscript_source_output_dir/debug/out
                 ResDirectoryUrls:
-                    file://./lib/build/generated/res/rs/debug
                     file://./lib/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
             GeneratedUnitTestSources (IDEA)
@@ -1204,9 +1111,7 @@ MODULE: project.lib
                     file://./lib/build/generated/ap_generated_sources/debugAndroidTest/out
                     file://./lib/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./lib/build/generated/source/buildConfig/androidTest/debug
-                    file://./lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out
                 ResDirectoryUrls:
-                    file://./lib/build/generated/res/rs/androidTest/debug
                     file://./lib/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -1241,8 +1146,6 @@ MODULE: project.lib
                     file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/main/rs
                 ResDirectoryUrls:
                     file://./lib/src/main/res
                 ResDirectories:
@@ -1268,8 +1171,6 @@ MODULE: project.lib
                     file://./lib/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/debug/rs
                 ResDirectoryUrls:
                     file://./lib/src/debug/res
                 ResourcesDirectoryUrls:
@@ -1293,8 +1194,6 @@ MODULE: project.lib
                     file://./lib/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/release/rs
                 ResDirectoryUrls:
                     file://./lib/src/release/res
                 ResourcesDirectoryUrls:
@@ -1327,8 +1226,6 @@ MODULE: project.lib
                     file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/main/rs
                 ResDirectoryUrls:
                     file://./lib/src/main/res
                 ResDirectories:
@@ -1354,8 +1251,6 @@ MODULE: project.lib
                     file://./lib/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/debug/rs
                 ResDirectoryUrls:
                     file://./lib/src/debug/res
                 ResourcesDirectoryUrls:
@@ -1386,8 +1281,6 @@ MODULE: project.lib
                     file://./lib/src/test/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/test/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/test/rs
                 ResDirectoryUrls:
                     file://./lib/src/test/res
                 ResourcesDirectoryUrls:
@@ -1411,8 +1304,6 @@ MODULE: project.lib
                     file://./lib/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/testDebug/res
                 ResourcesDirectoryUrls:
@@ -1437,8 +1328,6 @@ MODULE: project.lib
                     file://./lib/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/androidTest/rs
                 ResDirectoryUrls:
                     file://./lib/src/androidTest/res
                 ResourcesDirectoryUrls:
@@ -1462,8 +1351,6 @@ MODULE: project.lib
                     file://./lib/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
@@ -1494,8 +1381,6 @@ MODULE: project.lib
                     file://./lib/src/testFixtures/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/testFixtures/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/testFixtures/rs
                 ResDirectoryUrls:
                     file://./lib/src/testFixtures/res
                 ResDirectories:
@@ -1521,8 +1406,6 @@ MODULE: project.lib
                     file://./lib/src/testFixturesDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/testFixturesDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/testFixturesDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/testFixturesDebug/res
                 ResourcesDirectoryUrls:

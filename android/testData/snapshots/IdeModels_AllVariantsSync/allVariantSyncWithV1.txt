@@ -650,7 +650,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebug/classes [-]
@@ -1423,7 +1422,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/debug [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
@@ -1433,7 +1431,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebugAndroidTest/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
@@ -1614,7 +1611,6 @@ IdeVariants
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicBarDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebugAndroidTest/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/basicBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
             TestOptions
                 AnimationsDisabled            : false
@@ -1872,7 +1868,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicOtherBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicOtherBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicOtherBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicOtherBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebug/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebug/classes [-]
@@ -2092,7 +2087,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicOtherBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/debug [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
@@ -2102,7 +2096,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicOtherBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicOtherBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicOtherBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/basicOtherBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebugAndroidTest/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebugAndroidTest/classes [-]
@@ -2283,7 +2276,6 @@ IdeVariants
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicOtherBarDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarDebugAndroidTest/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/basicOtherBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/basicOtherBar/debug [-]
             TestOptions
                 AnimationsDisabled            : false
@@ -2542,7 +2534,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebug/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebug/classes [-]
@@ -2762,7 +2753,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarDebug/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarDebug/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/debug [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
@@ -2772,7 +2762,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/paidBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebugAndroidTest/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebugAndroidTest/classes [-]
@@ -2953,7 +2942,6 @@ IdeVariants
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidBarDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarDebugAndroidTest/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/paidBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/paidBar/debug [-]
             TestOptions
                 AnimationsDisabled            : false
@@ -3215,7 +3203,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidOtherBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidOtherBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidOtherBarDebug/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidOtherBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebug/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebug/classes [-]
@@ -3435,7 +3422,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarDebug
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidOtherBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/debug [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
@@ -3445,7 +3431,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidOtherBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidOtherBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidOtherBarDebugAndroidTest/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/paidOtherBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebugAndroidTest/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebugAndroidTest/classes [-]
@@ -3626,7 +3611,6 @@ IdeVariants
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidOtherBarDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarDebugAndroidTest/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/paidOtherBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/paidOtherBar/debug [-]
             TestOptions
                 AnimationsDisabled            : false
@@ -3884,7 +3868,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/release [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarRelease/classes [-]
@@ -4104,7 +4087,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/release [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
@@ -4366,7 +4348,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicOtherBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicOtherBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicOtherBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicOtherBar/release [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarRelease/classes [-]
@@ -4586,7 +4567,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicOtherBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/release [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
@@ -4849,7 +4829,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidBar/release [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarRelease/classes [-]
@@ -5069,7 +5048,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/release [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
@@ -5335,7 +5313,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidOtherBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidOtherBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidOtherBarRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidOtherBar/release [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarRelease/classes [-]
@@ -5555,7 +5532,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidOtherBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/release [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
@@ -5811,7 +5787,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/specialRelease [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarSpecialRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarSpecialRelease/classes [-]
@@ -6030,7 +6005,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/specialRelease [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
@@ -6289,7 +6263,6 @@ IdeVariants
             IdeSetupTaskNames             : generateBasicOtherBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/basicOtherBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/basicOtherBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicOtherBar/specialRelease [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarSpecialRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarSpecialRelease/classes [-]
@@ -6508,7 +6481,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicOtherBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/specialRelease [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
@@ -6768,7 +6740,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidBar/specialRelease [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarSpecialRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarSpecialRelease/classes [-]
@@ -6987,7 +6958,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/specialRelease [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
@@ -7250,7 +7220,6 @@ IdeVariants
             IdeSetupTaskNames             : generatePaidOtherBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/paidOtherBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/paidOtherBarSpecialRelease/out [-]
             GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidOtherBar/specialRelease [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarSpecialRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarSpecialRelease/classes [-]
@@ -7469,7 +7438,6 @@ IdeVariants
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarSpecialRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
-            GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidOtherBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/specialRelease [-]
         UnitTestArtifact
             Name                          : UNIT_TEST

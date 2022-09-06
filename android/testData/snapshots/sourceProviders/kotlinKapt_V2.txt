@@ -25,8 +25,6 @@ MODULE: MainActivity.app
                 file://./app/src/main/java
             JniLibsDirectoryUrls:
                 file://./app/src/main/jniLibs
-            RenderscriptDirectoryUrls:
-                file://./app/src/main/rs
             ResDirectoryUrls:
                 file://./app/src/main/res
             ResDirectories:
@@ -50,8 +48,6 @@ MODULE: MainActivity.app
                 ./app/src/main/java
             JniLibsDirectories:
                 ./app/src/main/jniLibs
-            RenderscriptDirectories:
-                ./app/src/main/rs
             ResDirectories:
                 ./app/src/main/res
             ResourcesDirectories:
@@ -73,8 +69,6 @@ MODULE: MainActivity.app
                     ./app/src/main/java
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/main/rs
                 ResDirectories:
                     ./app/src/main/res
                 ResourcesDirectories:
@@ -95,8 +89,6 @@ MODULE: MainActivity.app
                     ./app/src/local/java
                 JniLibsDirectories:
                     ./app/src/local/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/local/rs
                 ResDirectories:
                     ./app/src/local/res
                 ResourcesDirectories:
@@ -117,8 +109,6 @@ MODULE: MainActivity.app
                     ./app/src/debug/java
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/debug/rs
                 ResDirectories:
                     ./app/src/debug/res
                 ResourcesDirectories:
@@ -136,12 +126,10 @@ MODULE: MainActivity.app
                     ./app/src/localDebug/java
                     ./app/build/generated/source/kapt/localDebug
                 KotlinDirectories:
-                    ./app/src/localDebug/java
                     ./app/src/localDebug/kotlin
+                    ./app/src/localDebug/java
                 JniLibsDirectories:
                     ./app/src/localDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/localDebug/rs
                 ResDirectories:
                     ./app/src/localDebug/res
                 ResourcesDirectories:
@@ -163,8 +151,6 @@ MODULE: MainActivity.app
                     ./app/src/main/java
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/main/rs
                 ResDirectories:
                     ./app/src/main/res
                 ResourcesDirectories:
@@ -185,8 +171,6 @@ MODULE: MainActivity.app
                     ./app/src/debug/java
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/debug/rs
                 ResDirectories:
                     ./app/src/debug/res
                 ResourcesDirectories:
@@ -207,8 +191,6 @@ MODULE: MainActivity.app
                     ./app/src/local/java
                 JniLibsDirectories:
                     ./app/src/local/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/local/rs
                 ResDirectories:
                     ./app/src/local/res
                 ResourcesDirectories:
@@ -226,12 +208,10 @@ MODULE: MainActivity.app
                     ./app/src/localDebug/java
                     ./app/build/generated/source/kapt/localDebug
                 KotlinDirectories:
-                    ./app/src/localDebug/java
                     ./app/src/localDebug/kotlin
+                    ./app/src/localDebug/java
                 JniLibsDirectories:
                     ./app/src/localDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/localDebug/rs
                 ResDirectories:
                     ./app/src/localDebug/res
                 ResourcesDirectories:
@@ -252,8 +232,6 @@ MODULE: MainActivity.app
                     ./app/src/release/java
                 JniLibsDirectories:
                     ./app/src/release/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/release/rs
                 ResDirectories:
                     ./app/src/release/res
                 ResourcesDirectories:
@@ -274,8 +252,6 @@ MODULE: MainActivity.app
                     ./app/src/remote/java
                 JniLibsDirectories:
                     ./app/src/remote/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/remote/rs
                 ResDirectories:
                     ./app/src/remote/res
                 ResourcesDirectories:
@@ -297,8 +273,6 @@ MODULE: MainActivity.app
                     ./app/src/test/java
                 JniLibsDirectories:
                     ./app/src/test/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/test/rs
                 ResDirectories:
                     ./app/src/test/res
                 ResourcesDirectories:
@@ -319,8 +293,6 @@ MODULE: MainActivity.app
                     ./app/src/testLocal/java
                 JniLibsDirectories:
                     ./app/src/testLocal/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/testLocal/rs
                 ResDirectories:
                     ./app/src/testLocal/res
                 ResourcesDirectories:
@@ -341,8 +313,6 @@ MODULE: MainActivity.app
                     ./app/src/testDebug/java
                 JniLibsDirectories:
                     ./app/src/testDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/testDebug/rs
                 ResDirectories:
                     ./app/src/testDebug/res
                 ResourcesDirectories:
@@ -364,8 +334,6 @@ MODULE: MainActivity.app
                     ./app/src/testLocalDebug/java
                 JniLibsDirectories:
                     ./app/src/testLocalDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/testLocalDebug/rs
                 ResDirectories:
                     ./app/src/testLocalDebug/res
                 ResourcesDirectories:
@@ -387,8 +355,6 @@ MODULE: MainActivity.app
                     ./app/src/androidTest/java
                 JniLibsDirectories:
                     ./app/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTest/rs
                 ResDirectories:
                     ./app/src/androidTest/res
                 ResourcesDirectories:
@@ -409,8 +375,6 @@ MODULE: MainActivity.app
                     ./app/src/androidTestLocal/java
                 JniLibsDirectories:
                     ./app/src/androidTestLocal/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestLocal/rs
                 ResDirectories:
                     ./app/src/androidTestLocal/res
                 ResourcesDirectories:
@@ -431,8 +395,6 @@ MODULE: MainActivity.app
                     ./app/src/androidTestDebug/java
                 JniLibsDirectories:
                     ./app/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestDebug/rs
                 ResDirectories:
                     ./app/src/androidTestDebug/res
                 ResourcesDirectories:
@@ -454,8 +416,6 @@ MODULE: MainActivity.app
                     ./app/src/androidTestLocalDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestLocalDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestLocalDebug/rs
                 ResDirectories:
                     ./app/src/androidTestLocalDebug/res
                 ResourcesDirectories:
@@ -508,8 +468,8 @@ MODULE: MainActivity.app
                     file://./app/src/local/java
                     file://./app/src/debug/kotlin
                     file://./app/src/debug/java
-                    file://./app/src/localDebug/java
                     file://./app/src/localDebug/kotlin
+                    file://./app/src/localDebug/java
                 KotlinDirectories:
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
@@ -517,11 +477,6 @@ MODULE: MainActivity.app
                     file://./app/src/local/jniLibs
                     file://./app/src/debug/jniLibs
                     file://./app/src/localDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/main/rs
-                    file://./app/src/local/rs
-                    file://./app/src/debug/rs
-                    file://./app/src/localDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/main/res
                     file://./app/src/local/res
@@ -588,11 +543,6 @@ MODULE: MainActivity.app
                     file://./app/src/testLocal/jniLibs
                     file://./app/src/testDebug/jniLibs
                     file://./app/src/testLocalDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/test/rs
-                    file://./app/src/testLocal/rs
-                    file://./app/src/testDebug/rs
-                    file://./app/src/testLocalDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/test/res
                     file://./app/src/testLocal/res
@@ -657,11 +607,6 @@ MODULE: MainActivity.app
                     file://./app/src/androidTestLocal/jniLibs
                     file://./app/src/androidTestDebug/jniLibs
                     file://./app/src/androidTestLocalDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTest/rs
-                    file://./app/src/androidTestLocal/rs
-                    file://./app/src/androidTestDebug/rs
-                    file://./app/src/androidTestLocalDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTest/res
                     file://./app/src/androidTestLocal/res
@@ -688,10 +633,8 @@ MODULE: MainActivity.app
                     file://./app/build/generated/ap_generated_sources/localDebug/out
                     file://./app/build/generated/aidl_source_output_dir/localDebug/out
                     file://./app/build/generated/source/buildConfig/local/debug
-                    file://./app/build/generated/renderscript_source_output_dir/localDebug/out
                     file://./app/build/generated/source/kaptKotlin/localDebug
                 ResDirectoryUrls:
-                    file://./app/build/generated/res/rs/local/debug
                     file://./app/build/generated/res/resValues/local/debug
         GeneratedUnitTestSources:
             GeneratedUnitTestSources (IDEA)
@@ -708,10 +651,8 @@ MODULE: MainActivity.app
                     file://./app/build/generated/ap_generated_sources/localDebugAndroidTest/out
                     file://./app/build/generated/aidl_source_output_dir/localDebugAndroidTest/out
                     file://./app/build/generated/source/buildConfig/androidTest/local/debug
-                    file://./app/build/generated/renderscript_source_output_dir/localDebugAndroidTest/out
                     file://./app/build/generated/source/kaptKotlin/localDebugAndroidTest
                 ResDirectoryUrls:
-                    file://./app/build/generated/res/rs/androidTest/local/debug
                     file://./app/build/generated/res/resValues/androidTest/local/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -742,8 +683,6 @@ MODULE: MainActivity.app
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/main/rs
                 ResDirectoryUrls:
                     file://./app/src/main/res
                 ResDirectories:
@@ -769,8 +708,6 @@ MODULE: MainActivity.app
                     file://./app/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/debug/rs
                 ResDirectoryUrls:
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
@@ -794,8 +731,6 @@ MODULE: MainActivity.app
                     file://./app/src/local/java
                 JniLibsDirectoryUrls:
                     file://./app/src/local/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/local/rs
                 ResDirectoryUrls:
                     file://./app/src/local/res
                 ResourcesDirectoryUrls:
@@ -816,12 +751,10 @@ MODULE: MainActivity.app
                     file://./app/src/localDebug/java
                     file://./app/build/generated/source/kapt/localDebug
                 KotlinDirectoryUrls:
-                    file://./app/src/localDebug/java
                     file://./app/src/localDebug/kotlin
+                    file://./app/src/localDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/localDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/localDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/localDebug/res
                 ResourcesDirectoryUrls:
@@ -845,8 +778,6 @@ MODULE: MainActivity.app
                     file://./app/src/release/java
                 JniLibsDirectoryUrls:
                     file://./app/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/release/rs
                 ResDirectoryUrls:
                     file://./app/src/release/res
                 ResourcesDirectoryUrls:
@@ -870,8 +801,6 @@ MODULE: MainActivity.app
                     file://./app/src/remote/java
                 JniLibsDirectoryUrls:
                     file://./app/src/remote/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/remote/rs
                 ResDirectoryUrls:
                     file://./app/src/remote/res
                 ResourcesDirectoryUrls:
@@ -904,8 +833,6 @@ MODULE: MainActivity.app
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/main/rs
                 ResDirectoryUrls:
                     file://./app/src/main/res
                 ResDirectories:
@@ -931,8 +858,6 @@ MODULE: MainActivity.app
                     file://./app/src/local/java
                 JniLibsDirectoryUrls:
                     file://./app/src/local/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/local/rs
                 ResDirectoryUrls:
                     file://./app/src/local/res
                 ResourcesDirectoryUrls:
@@ -956,8 +881,6 @@ MODULE: MainActivity.app
                     file://./app/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/debug/rs
                 ResDirectoryUrls:
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
@@ -978,12 +901,10 @@ MODULE: MainActivity.app
                     file://./app/src/localDebug/java
                     file://./app/build/generated/source/kapt/localDebug
                 KotlinDirectoryUrls:
-                    file://./app/src/localDebug/java
                     file://./app/src/localDebug/kotlin
+                    file://./app/src/localDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/localDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/localDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/localDebug/res
                 ResourcesDirectoryUrls:
@@ -1014,8 +935,6 @@ MODULE: MainActivity.app
                     file://./app/src/test/java
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/test/rs
                 ResDirectoryUrls:
                     file://./app/src/test/res
                 ResourcesDirectoryUrls:
@@ -1039,8 +958,6 @@ MODULE: MainActivity.app
                     file://./app/src/testLocal/java
                 JniLibsDirectoryUrls:
                     file://./app/src/testLocal/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/testLocal/rs
                 ResDirectoryUrls:
                     file://./app/src/testLocal/res
                 ResourcesDirectoryUrls:
@@ -1064,8 +981,6 @@ MODULE: MainActivity.app
                     file://./app/src/testDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/testDebug/res
                 ResourcesDirectoryUrls:
@@ -1090,8 +1005,6 @@ MODULE: MainActivity.app
                     file://./app/src/testLocalDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/testLocalDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/testLocalDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/testLocalDebug/res
                 ResourcesDirectoryUrls:
@@ -1122,8 +1035,6 @@ MODULE: MainActivity.app
                     file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTest/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTest/res
                 ResourcesDirectoryUrls:
@@ -1147,8 +1058,6 @@ MODULE: MainActivity.app
                     file://./app/src/androidTestLocal/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestLocal/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestLocal/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTestLocal/res
                 ResourcesDirectoryUrls:
@@ -1172,8 +1081,6 @@ MODULE: MainActivity.app
                     file://./app/src/androidTestDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
@@ -1198,8 +1105,6 @@ MODULE: MainActivity.app
                     file://./app/src/androidTestLocalDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestLocalDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestLocalDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTestLocalDebug/res
                 ResourcesDirectoryUrls:
@@ -1230,8 +1135,6 @@ MODULE: MainActivity.lib
                 file://./lib/src/main/java
             JniLibsDirectoryUrls:
                 file://./lib/src/main/jniLibs
-            RenderscriptDirectoryUrls:
-                file://./lib/src/main/rs
             ResDirectoryUrls:
                 file://./lib/src/main/res
             ResourcesDirectoryUrls:
@@ -1253,8 +1156,6 @@ MODULE: MainActivity.lib
                 ./lib/src/main/java
             JniLibsDirectories:
                 ./lib/src/main/jniLibs
-            RenderscriptDirectories:
-                ./lib/src/main/rs
             ResDirectories:
                 ./lib/src/main/res
             ResourcesDirectories:
@@ -1276,8 +1177,6 @@ MODULE: MainActivity.lib
                     ./lib/src/main/java
                 JniLibsDirectories:
                     ./lib/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/main/rs
                 ResDirectories:
                     ./lib/src/main/res
                 ResourcesDirectories:
@@ -1298,8 +1197,6 @@ MODULE: MainActivity.lib
                     ./lib/src/debug/java
                 JniLibsDirectories:
                     ./lib/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/debug/rs
                 ResDirectories:
                     ./lib/src/debug/res
                 ResourcesDirectories:
@@ -1321,8 +1218,6 @@ MODULE: MainActivity.lib
                     ./lib/src/main/java
                 JniLibsDirectories:
                     ./lib/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/main/rs
                 ResDirectories:
                     ./lib/src/main/res
                 ResourcesDirectories:
@@ -1343,8 +1238,6 @@ MODULE: MainActivity.lib
                     ./lib/src/debug/java
                 JniLibsDirectories:
                     ./lib/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/debug/rs
                 ResDirectories:
                     ./lib/src/debug/res
                 ResourcesDirectories:
@@ -1365,8 +1258,6 @@ MODULE: MainActivity.lib
                     ./lib/src/release/java
                 JniLibsDirectories:
                     ./lib/src/release/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/release/rs
                 ResDirectories:
                     ./lib/src/release/res
                 ResourcesDirectories:
@@ -1388,8 +1279,6 @@ MODULE: MainActivity.lib
                     ./lib/src/test/java
                 JniLibsDirectories:
                     ./lib/src/test/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/test/rs
                 ResDirectories:
                     ./lib/src/test/res
                 ResourcesDirectories:
@@ -1410,8 +1299,6 @@ MODULE: MainActivity.lib
                     ./lib/src/testDebug/java
                 JniLibsDirectories:
                     ./lib/src/testDebug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/testDebug/rs
                 ResDirectories:
                     ./lib/src/testDebug/res
                 ResourcesDirectories:
@@ -1433,8 +1320,6 @@ MODULE: MainActivity.lib
                     ./lib/src/androidTest/java
                 JniLibsDirectories:
                     ./lib/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/androidTest/rs
                 ResDirectories:
                     ./lib/src/androidTest/res
                 ResourcesDirectories:
@@ -1455,8 +1340,6 @@ MODULE: MainActivity.lib
                     ./lib/src/androidTestDebug/java
                 JniLibsDirectories:
                     ./lib/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/androidTestDebug/rs
                 ResDirectories:
                     ./lib/src/androidTestDebug/res
                 ResourcesDirectories:
@@ -1497,9 +1380,6 @@ MODULE: MainActivity.lib
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
                     file://./lib/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/main/rs
-                    file://./lib/src/debug/rs
                 ResDirectoryUrls:
                     file://./lib/src/main/res
                     file://./lib/src/debug/res
@@ -1535,9 +1415,6 @@ MODULE: MainActivity.lib
                 JniLibsDirectoryUrls:
                     file://./lib/src/test/jniLibs
                     file://./lib/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/test/rs
-                    file://./lib/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/test/res
                     file://./lib/src/testDebug/res
@@ -1573,9 +1450,6 @@ MODULE: MainActivity.lib
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTest/jniLibs
                     file://./lib/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/androidTest/rs
-                    file://./lib/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/androidTest/res
                     file://./lib/src/androidTestDebug/res
@@ -1595,9 +1469,7 @@ MODULE: MainActivity.lib
                     file://./lib/build/generated/ap_generated_sources/debug/out
                     file://./lib/build/generated/aidl_source_output_dir/debug/out
                     file://./lib/build/generated/source/buildConfig/debug
-                    file://./lib/build/generated/renderscript_source_output_dir/debug/out
                 ResDirectoryUrls:
-                    file://./lib/build/generated/res/rs/debug
                     file://./lib/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
             GeneratedUnitTestSources (IDEA)
@@ -1611,9 +1483,7 @@ MODULE: MainActivity.lib
                     file://./lib/build/generated/ap_generated_sources/debugAndroidTest/out
                     file://./lib/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./lib/build/generated/source/buildConfig/androidTest/debug
-                    file://./lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out
                 ResDirectoryUrls:
-                    file://./lib/build/generated/res/rs/androidTest/debug
                     file://./lib/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -1640,8 +1510,6 @@ MODULE: MainActivity.lib
                     file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/main/rs
                 ResDirectoryUrls:
                     file://./lib/src/main/res
                 ResourcesDirectoryUrls:
@@ -1665,8 +1533,6 @@ MODULE: MainActivity.lib
                     file://./lib/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/debug/rs
                 ResDirectoryUrls:
                     file://./lib/src/debug/res
                 ResourcesDirectoryUrls:
@@ -1690,8 +1556,6 @@ MODULE: MainActivity.lib
                     file://./lib/src/release/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/release/rs
                 ResDirectoryUrls:
                     file://./lib/src/release/res
                 ResourcesDirectoryUrls:
@@ -1720,8 +1584,6 @@ MODULE: MainActivity.lib
                     file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/main/rs
                 ResDirectoryUrls:
                     file://./lib/src/main/res
                 ResourcesDirectoryUrls:
@@ -1745,8 +1607,6 @@ MODULE: MainActivity.lib
                     file://./lib/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/debug/rs
                 ResDirectoryUrls:
                     file://./lib/src/debug/res
                 ResourcesDirectoryUrls:
@@ -1771,8 +1631,6 @@ MODULE: MainActivity.lib
                     file://./lib/src/test/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/test/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/test/rs
                 ResDirectoryUrls:
                     file://./lib/src/test/res
                 ResourcesDirectoryUrls:
@@ -1796,8 +1654,6 @@ MODULE: MainActivity.lib
                     file://./lib/src/testDebug/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/testDebug/res
                 ResourcesDirectoryUrls:
@@ -1822,8 +1678,6 @@ MODULE: MainActivity.lib
                     file://./lib/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/androidTest/rs
                 ResDirectoryUrls:
                     file://./lib/src/androidTest/res
                 ResourcesDirectoryUrls:
@@ -1847,8 +1701,6 @@ MODULE: MainActivity.lib
                     file://./lib/src/androidTestDebug/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/androidTestDebug/res
                 ResourcesDirectoryUrls:

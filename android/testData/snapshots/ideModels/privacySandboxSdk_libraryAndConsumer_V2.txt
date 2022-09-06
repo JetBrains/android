@@ -903,7 +903,6 @@ MODULE                        : project.ads-sdk-implementation
             KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/main/resources [-]
             AidlDirectories               : <ROOT>/ads-sdk-implementation/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/ads-sdk-implementation/src/main/rs [-]
             ResDirectories                : <ROOT>/ads-sdk-implementation/src/main/res [-]
             AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/main/assets
             JniLibsDirectories            : <ROOT>/ads-sdk-implementation/src/main/jniLibs [-]
@@ -919,7 +918,6 @@ MODULE                        : project.ads-sdk-implementation
                     KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/ads-sdk-implementation/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/ads-sdk-implementation/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/ads-sdk-implementation/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/ads-sdk-implementation/src/androidTest/jniLibs [-]
@@ -934,7 +932,6 @@ MODULE                        : project.ads-sdk-implementation
                     KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/test/resources [-]
                     AidlDirectories               : <ROOT>/ads-sdk-implementation/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/ads-sdk-implementation/src/test/rs [-]
                     ResDirectories                : <ROOT>/ads-sdk-implementation/src/test/res [-]
                     AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/ads-sdk-implementation/src/test/jniLibs [-]
@@ -956,7 +953,6 @@ MODULE                        : project.ads-sdk-implementation
             KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/debug/resources [-]
             AidlDirectories               : <ROOT>/ads-sdk-implementation/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/ads-sdk-implementation/src/debug/rs [-]
             ResDirectories                : <ROOT>/ads-sdk-implementation/src/debug/res [-]
             AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/ads-sdk-implementation/src/debug/jniLibs [-]
@@ -972,7 +968,6 @@ MODULE                        : project.ads-sdk-implementation
                     KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/ads-sdk-implementation/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/ads-sdk-implementation/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/ads-sdk-implementation/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/ads-sdk-implementation/src/androidTestDebug/jniLibs [-]
@@ -988,7 +983,6 @@ MODULE                        : project.ads-sdk-implementation
                     KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/ads-sdk-implementation/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/ads-sdk-implementation/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/ads-sdk-implementation/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/ads-sdk-implementation/src/testDebug/jniLibs [-]
@@ -1009,7 +1003,6 @@ MODULE                        : project.ads-sdk-implementation
             KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/release/resources [-]
             AidlDirectories               : <ROOT>/ads-sdk-implementation/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/ads-sdk-implementation/src/release/rs [-]
             ResDirectories                : <ROOT>/ads-sdk-implementation/src/release/res [-]
             AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/ads-sdk-implementation/src/release/jniLibs [-]
@@ -1025,7 +1018,6 @@ MODULE                        : project.ads-sdk-implementation
                     KotlinDirectories             : <ROOT>/ads-sdk-implementation/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/ads-sdk-implementation/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/ads-sdk-implementation/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/ads-sdk-implementation/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/ads-sdk-implementation/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/ads-sdk-implementation/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/ads-sdk-implementation/src/testRelease/jniLibs [-]
@@ -1063,7 +1055,6 @@ MODULE                        : project.ads-sdk-implementation
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debug/classes [-]
@@ -1080,7 +1071,6 @@ MODULE                        : project.ads-sdk-implementation
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                GeneratedResourceFolders      : <ROOT>/ads-sdk-implementation/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/ads-sdk-implementation/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
@@ -1095,7 +1085,6 @@ MODULE                        : project.ads-sdk-implementation
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debugAndroidTest/classes [-]
@@ -1122,7 +1111,6 @@ MODULE                        : project.ads-sdk-implementation
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/ads-sdk-implementation/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/ads-sdk-implementation/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/ads-sdk-implementation/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -1265,7 +1253,6 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/main/java
             ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
             AidlDirectories               : <ROOT>/app/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app/src/main/rs [-]
             ResDirectories                : <ROOT>/app/src/main/res
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
@@ -1281,7 +1268,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/androidTest/java
                     ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
@@ -1296,7 +1282,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/test/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
                     AidlDirectories               : <ROOT>/app/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/test/rs [-]
                     ResDirectories                : <ROOT>/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
@@ -1318,7 +1303,6 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
             AidlDirectories               : <ROOT>/app/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app/src/debug/rs [-]
             ResDirectories                : <ROOT>/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
@@ -1334,7 +1318,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
@@ -1350,7 +1333,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
@@ -1371,7 +1353,6 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/release/java [-]
             ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
             AidlDirectories               : <ROOT>/app/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app/src/release/rs [-]
             ResDirectories                : <ROOT>/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
@@ -1387,7 +1368,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
@@ -1440,7 +1420,6 @@ MODULE                        : project.app
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
@@ -2142,7 +2121,6 @@ MODULE                        : project.app
                     BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
                     ApkFromBundleTaskName         : extractApksForDebug
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
@@ -2157,7 +2135,6 @@ MODULE                        : project.app
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
@@ -2455,7 +2432,6 @@ MODULE                        : project.app
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -2971,7 +2947,6 @@ MODULE                        : project.app-with-dynamic-feature
             KotlinDirectories             : <ROOT>/app-with-dynamic-feature/src/main/java
             ResourcesDirectories          : <ROOT>/app-with-dynamic-feature/src/main/resources [-]
             AidlDirectories               : <ROOT>/app-with-dynamic-feature/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app-with-dynamic-feature/src/main/rs [-]
             ResDirectories                : <ROOT>/app-with-dynamic-feature/src/main/res
             AssetsDirectories             : <ROOT>/app-with-dynamic-feature/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app-with-dynamic-feature/src/main/jniLibs [-]
@@ -2987,7 +2962,6 @@ MODULE                        : project.app-with-dynamic-feature
                     KotlinDirectories             : <ROOT>/app-with-dynamic-feature/src/androidTest/java
                     ResourcesDirectories          : <ROOT>/app-with-dynamic-feature/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/app-with-dynamic-feature/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app-with-dynamic-feature/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/app-with-dynamic-feature/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/app-with-dynamic-feature/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app-with-dynamic-feature/src/androidTest/jniLibs [-]
@@ -3002,7 +2976,6 @@ MODULE                        : project.app-with-dynamic-feature
                     KotlinDirectories             : <ROOT>/app-with-dynamic-feature/src/test/java [-]
                     ResourcesDirectories          : <ROOT>/app-with-dynamic-feature/src/test/resources [-]
                     AidlDirectories               : <ROOT>/app-with-dynamic-feature/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app-with-dynamic-feature/src/test/rs [-]
                     ResDirectories                : <ROOT>/app-with-dynamic-feature/src/test/res [-]
                     AssetsDirectories             : <ROOT>/app-with-dynamic-feature/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app-with-dynamic-feature/src/test/jniLibs [-]
@@ -3024,7 +2997,6 @@ MODULE                        : project.app-with-dynamic-feature
             KotlinDirectories             : <ROOT>/app-with-dynamic-feature/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/app-with-dynamic-feature/src/debug/resources [-]
             AidlDirectories               : <ROOT>/app-with-dynamic-feature/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app-with-dynamic-feature/src/debug/rs [-]
             ResDirectories                : <ROOT>/app-with-dynamic-feature/src/debug/res [-]
             AssetsDirectories             : <ROOT>/app-with-dynamic-feature/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app-with-dynamic-feature/src/debug/jniLibs [-]
@@ -3040,7 +3012,6 @@ MODULE                        : project.app-with-dynamic-feature
                     KotlinDirectories             : <ROOT>/app-with-dynamic-feature/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/app-with-dynamic-feature/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/app-with-dynamic-feature/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app-with-dynamic-feature/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/app-with-dynamic-feature/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/app-with-dynamic-feature/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app-with-dynamic-feature/src/androidTestDebug/jniLibs [-]
@@ -3056,7 +3027,6 @@ MODULE                        : project.app-with-dynamic-feature
                     KotlinDirectories             : <ROOT>/app-with-dynamic-feature/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/app-with-dynamic-feature/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/app-with-dynamic-feature/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app-with-dynamic-feature/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/app-with-dynamic-feature/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/app-with-dynamic-feature/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app-with-dynamic-feature/src/testDebug/jniLibs [-]
@@ -3077,7 +3047,6 @@ MODULE                        : project.app-with-dynamic-feature
             KotlinDirectories             : <ROOT>/app-with-dynamic-feature/src/release/java [-]
             ResourcesDirectories          : <ROOT>/app-with-dynamic-feature/src/release/resources [-]
             AidlDirectories               : <ROOT>/app-with-dynamic-feature/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app-with-dynamic-feature/src/release/rs [-]
             ResDirectories                : <ROOT>/app-with-dynamic-feature/src/release/res [-]
             AssetsDirectories             : <ROOT>/app-with-dynamic-feature/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app-with-dynamic-feature/src/release/jniLibs [-]
@@ -3093,7 +3062,6 @@ MODULE                        : project.app-with-dynamic-feature
                     KotlinDirectories             : <ROOT>/app-with-dynamic-feature/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/app-with-dynamic-feature/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/app-with-dynamic-feature/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app-with-dynamic-feature/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/app-with-dynamic-feature/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/app-with-dynamic-feature/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app-with-dynamic-feature/src/testRelease/jniLibs [-]
@@ -3146,7 +3114,6 @@ MODULE                        : project.app-with-dynamic-feature
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/app-with-dynamic-feature/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app-with-dynamic-feature/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app-with-dynamic-feature/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app-with-dynamic-feature/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/javac/debug/classes [-]
@@ -3335,7 +3302,6 @@ MODULE                        : project.app-with-dynamic-feature
                     BundleTaskOutputListingFile   : <ROOT>/app-with-dynamic-feature/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
                     ApkFromBundleTaskName         : extractApksForDebug
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app-with-dynamic-feature/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/app-with-dynamic-feature/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app-with-dynamic-feature/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
@@ -3350,7 +3316,6 @@ MODULE                        : project.app-with-dynamic-feature
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app-with-dynamic-feature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app-with-dynamic-feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app-with-dynamic-feature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app-with-dynamic-feature/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/javac/debugAndroidTest/classes [-]
@@ -3527,7 +3492,6 @@ MODULE                        : project.app-with-dynamic-feature
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/app-with-dynamic-feature/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/app-with-dynamic-feature/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app-with-dynamic-feature/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -4036,7 +4000,6 @@ MODULE                        : project.feature
             KotlinDirectories             : <ROOT>/feature/src/main/java
             ResourcesDirectories          : <ROOT>/feature/src/main/resources [-]
             AidlDirectories               : <ROOT>/feature/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/feature/src/main/rs [-]
             ResDirectories                : <ROOT>/feature/src/main/res
             AssetsDirectories             : <ROOT>/feature/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/feature/src/main/jniLibs [-]
@@ -4052,7 +4015,6 @@ MODULE                        : project.feature
                     KotlinDirectories             : <ROOT>/feature/src/androidTest/java
                     ResourcesDirectories          : <ROOT>/feature/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/feature/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/feature/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/feature/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/feature/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/feature/src/androidTest/jniLibs [-]
@@ -4067,7 +4029,6 @@ MODULE                        : project.feature
                     KotlinDirectories             : <ROOT>/feature/src/test/java [-]
                     ResourcesDirectories          : <ROOT>/feature/src/test/resources [-]
                     AidlDirectories               : <ROOT>/feature/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/feature/src/test/rs [-]
                     ResDirectories                : <ROOT>/feature/src/test/res [-]
                     AssetsDirectories             : <ROOT>/feature/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/feature/src/test/jniLibs [-]
@@ -4089,7 +4050,6 @@ MODULE                        : project.feature
             KotlinDirectories             : <ROOT>/feature/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/feature/src/debug/resources [-]
             AidlDirectories               : <ROOT>/feature/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/feature/src/debug/rs [-]
             ResDirectories                : <ROOT>/feature/src/debug/res [-]
             AssetsDirectories             : <ROOT>/feature/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/feature/src/debug/jniLibs [-]
@@ -4105,7 +4065,6 @@ MODULE                        : project.feature
                     KotlinDirectories             : <ROOT>/feature/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/feature/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/feature/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/feature/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/feature/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/feature/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/feature/src/androidTestDebug/jniLibs [-]
@@ -4121,7 +4080,6 @@ MODULE                        : project.feature
                     KotlinDirectories             : <ROOT>/feature/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/feature/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/feature/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/feature/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/feature/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/feature/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/feature/src/testDebug/jniLibs [-]
@@ -4142,7 +4100,6 @@ MODULE                        : project.feature
             KotlinDirectories             : <ROOT>/feature/src/release/java [-]
             ResourcesDirectories          : <ROOT>/feature/src/release/resources [-]
             AidlDirectories               : <ROOT>/feature/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/feature/src/release/rs [-]
             ResDirectories                : <ROOT>/feature/src/release/res [-]
             AssetsDirectories             : <ROOT>/feature/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/feature/src/release/jniLibs [-]
@@ -4158,7 +4115,6 @@ MODULE                        : project.feature
                     KotlinDirectories             : <ROOT>/feature/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/feature/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/feature/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/feature/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/feature/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/feature/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/feature/src/testRelease/jniLibs [-]
@@ -4198,7 +4154,6 @@ MODULE                        : project.feature
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/feature/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/feature/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/feature/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/feature/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/feature/build/intermediates/javac/debug/classes [-]
@@ -4295,7 +4250,6 @@ MODULE                        : project.feature
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
                     AssembleTaskOutputListingFile : <ROOT>/feature/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/feature/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/feature/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
@@ -4310,7 +4264,6 @@ MODULE                        : project.feature
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/feature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/feature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/feature/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/feature/build/intermediates/javac/debugAndroidTest/classes [-]
@@ -4435,7 +4388,6 @@ MODULE                        : project.feature
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/feature/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/feature/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/feature/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
