@@ -1101,12 +1101,6 @@
     <option name="download" hit="Download location" />
     <option name="location" hit="Download location" />
   </configurable>
-  <configurable id="device.monitor" configurable_name="Device Monitor">
-    <option name="device" hit="Device Monitor" />
-    <option name="monitor" hit="Device Monitor" />
-    <option name="download" hit="Download location" />
-    <option name="location" hit="Download location" />
-  </configurable>
   <configurable id="memory.settings" configurable_name="Memory Settings">
     <option name="" hit=" Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance." />
     <option name="allocate" hit=" Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance." />

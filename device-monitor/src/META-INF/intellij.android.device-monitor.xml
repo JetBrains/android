@@ -16,9 +16,6 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup id="Device Monitor" displayType="BALLOON"/>
-    <applicationConfigurable groupId="tools" id="device.monitor"
-                             provider="com.android.tools.idea.device.monitor.options.DeviceMonitorConfigurableProvider"/>
-    <applicationService serviceImplementation="com.android.tools.idea.device.monitor.options.DeviceMonitorSettings"/>
     <projectService serviceImplementation="com.android.tools.idea.device.monitor.adbimpl.AdbDeviceListService"/>
     <!-- TODO: Custom icon -->
     <toolWindow id="Device Monitor"
