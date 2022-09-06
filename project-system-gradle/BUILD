@@ -141,7 +141,7 @@ maven_repository(
         "@maven//:androidx.core.core-ktx_1.0.1",
         "@maven//:androidx.core.core-ktx_1.2.0",
         "@maven//:androidx.core.core-ktx_1.6.0",
-        "@maven//:androidx.core.core-ktx_1.7.0",
+        "@maven//:androidx.core.core-ktx_1.8.0",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.legacy.legacy-support-v4_1.0.0",

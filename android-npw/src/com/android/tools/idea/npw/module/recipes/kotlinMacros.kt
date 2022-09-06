@@ -22,8 +22,8 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 
 fun RecipeExecutor.addKotlinDependencies(androidX: Boolean, targetApi: Int) {
   if (androidX) {
-    val dependency = if (targetApi < 31) "androidx.core:core-ktx:1.6.+" else "androidx.core:core-ktx:1.7.+"
-    val minRev = if (targetApi < 31) "1.6.0" else "1.7.0"
+    val dependency = if (targetApi < 31) "androidx.core:core-ktx:1.6.+" else "androidx.core:core-ktx:1.8.+"
+    val minRev = if (targetApi < 31) "1.6.0" else "1.8.0"
     addDependency(dependency, minRev = minRev)
   }
 }

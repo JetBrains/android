@@ -4162,26 +4162,42 @@ MODULE                        : project.feature
                     compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core-ktx:1.7.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core-ktx:1.7.0@aar (IdeAndroidLibraryImpl)
-                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/aidl [-]
-                                artifact                      : <M2>/androidx/core/core-ktx/1.7.0/core-ktx-1.7.0.aar
-                                artifactAddress               : androidx.core:core-ktx:1.7.0@aar
-                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/assets [-]
-                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/jars/classes.jar
-                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/annotations.zip [-]
-                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0
-                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/jni [-]
-                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/AndroidManifest.xml
-                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/proguard.txt [-]
-                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/public.txt
-                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/rs [-]
-                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/res
-                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/res.apk [-]
-                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/jars/classes.jar
-                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/R.txt
-                        - androidLibraries            : androidx.core:core:1.7.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core:1.7.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/aidl [-]
+                                artifact                      : <M2>/androidx/core/core-ktx/1.8.0/core-ktx-1.8.0.aar
+                                artifactAddress               : androidx.core:core-ktx:1.8.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/annotations.zip [-]
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/proguard.txt [-]
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/public.txt
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/res
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/R.txt
+                        - androidLibraries            : androidx.core:core:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : androidx.core:core:1.8.0@aar (IdeAndroidLibraryImpl)
+                                aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/aidl
+                                artifact                      : <M2>/androidx/core/core/1.8.0/core-1.8.0.aar
+                                artifactAddress               : androidx.core:core:1.8.0@aar
+                                assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/assets [-]
+                                - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/jars/classes.jar
+                                externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/annotations.zip
+                                folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0
+                                jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/jni [-]
+                                manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/AndroidManifest.xml
+                                proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/proguard.txt
+                                publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/public.txt
+                                renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/rs [-]
+                                resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/res
+                                resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/res.apk [-]
+                                - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/jars/classes.jar
+                                symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/R.txt
                         - androidLibraries            : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -4211,10 +4227,10 @@ MODULE                        : project.feature
                             target                        : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.arch.core:core-runtime:2.1.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.arch.core:core-runtime:2.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core-ktx:1.7.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core-ktx:1.7.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core:1.7.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core:1.7.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : androidx.core:core:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : androidx.core:core:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -4272,10 +4288,10 @@ MODULE                        : project.feature
                     compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core-ktx:1.7.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core-ktx:1.7.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core:1.7.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core:1.7.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : androidx.core:core:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : androidx.core:core:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.lifecycle:lifecycle-runtime:2.3.1@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.lifecycle:lifecycle-runtime:2.3.1@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.test.espresso:espresso-core:3.4.0@aar (IdeAndroidLibraryDependencyImpl)
@@ -4373,8 +4389,8 @@ MODULE                        : project.feature
                     - provided                    : androidx.annotation:annotation-experimental:1.1.0@aar
                     - provided                    : androidx.arch.core:core-common:2.1.0
                     - provided                    : androidx.collection:collection:1.0.0
-                    - provided                    : androidx.core:core-ktx:1.7.0@aar
-                    - provided                    : androidx.core:core:1.7.0@aar
+                    - provided                    : androidx.core:core-ktx:1.8.0@aar
+                    - provided                    : androidx.core:core:1.8.0@aar
                     - provided                    : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
                     - provided                    : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -4407,10 +4423,10 @@ MODULE                        : project.feature
                     compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core-ktx:1.7.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core-ktx:1.7.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core:1.7.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core:1.7.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : androidx.core:core:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : androidx.core:core:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -4446,10 +4462,10 @@ MODULE                        : project.feature
                             target                        : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.arch.core:core-runtime:2.1.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.arch.core:core-runtime:2.1.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core-ktx:1.7.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core-ktx:1.7.0@aar (IdeAndroidLibraryImpl) (*seen*)
-                        - androidLibraries            : androidx.core:core:1.7.0@aar (IdeAndroidLibraryDependencyImpl)
-                            target                        : androidx.core:core:1.7.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : androidx.core:core-ktx:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : androidx.core:core:1.8.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : androidx.core:core:1.8.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryDependencyImpl)
                             target                        : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryImpl) (*seen*)
                         - androidLibraries            : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -4501,12 +4517,12 @@ MODULE                        : project.feature
                     assertionsMode                : legacy
                     backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1-api.jar
                     - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.4.0/lifecycle-common-2.4.0.jar
@@ -4541,10 +4557,10 @@ MODULE                        : project.feature
                     - classpath                   : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
                     - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1-api.jar
                     - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.4.0/lifecycle-common-2.4.0.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1-api.jar
@@ -4584,12 +4600,12 @@ MODULE                        : project.feature
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/junit/junit/4.13.2/junit-4.13.2.jar
                     - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0-api.jar
+                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1-api.jar
                     - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.4.0/lifecycle-common-2.4.0.jar

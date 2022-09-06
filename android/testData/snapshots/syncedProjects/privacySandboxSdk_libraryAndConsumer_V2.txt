@@ -1964,9 +1964,9 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.collection:collection:1.0.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.core:core-ktx:1.7.0@aar [=]
+        LIBRARY                       : Gradle: androidx.core:core-ktx:1.8.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.core:core:1.7.0@aar [=]
+        LIBRARY                       : Gradle: androidx.core:core:1.8.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.4.0 [=]
             Scope                         : Test
@@ -2145,8 +2145,8 @@ PROJECT                       : project
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.3.0 [=]
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
-        LIBRARY                       : Gradle: androidx.core:core-ktx:1.7.0@aar [=]
-        LIBRARY                       : Gradle: androidx.core:core:1.7.0@aar [=]
+        LIBRARY                       : Gradle: androidx.core:core-ktx:1.8.0@aar [=]
+        LIBRARY                       : Gradle: androidx.core:core:1.8.0@aar [=]
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.4.0 [=]
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.4.0@aar [=]
         LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.1@aar [=]
@@ -2282,9 +2282,9 @@ PROJECT                       : project
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.core:core-ktx:1.7.0@aar [=]
+        LIBRARY                       : Gradle: androidx.core:core-ktx:1.8.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.core:core:1.7.0@aar [=]
+        LIBRARY                       : Gradle: androidx.core:core:1.8.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.4.0 [=]
             Scope                         : Test
@@ -2379,15 +2379,20 @@ PROJECT                       : project
             *CLASSES                      : jar://<M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar!/
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0
             *CLASSES                      : jar://<M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar!/
-        LIBRARY                       : Gradle: androidx.core:core-ktx:1.7.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.7.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.core:core-ktx:1.8.0@aar
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/res
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.8.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.core:core:1.7.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/AndroidManifest.xml
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/res
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/jars/classes.jar!/
             *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/annotations.zip!/
+        LIBRARY                       : Gradle: androidx.core:core:1.8.0@aar
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/res
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.8.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar!/

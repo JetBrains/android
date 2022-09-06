@@ -222,7 +222,7 @@ class TomlVersionRefCompletionContributorTest : AndroidTestCase() {
         [libraries]
         compat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
         compose = { module = "androidx.appcompat:compose", version.ref = "compose" }
-        core = 'androidx.core:core-ktx:1.7.0'
+        core = 'androidx.core:core-ktx:1.8.0'
 
         [bundles]
         core = [ "c$caret", "compat" ]

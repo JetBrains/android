@@ -104,7 +104,7 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:androidx.activity.activity-compose_1.3.1",
+        "@maven//:androidx.activity.activity-compose_1.5.1",
         "@maven//:androidx.activity.activity-ktx_1.4.0",
         "@maven//:androidx.annotation.annotation_1.2.0-rc01",
         "@maven//:androidx.appcompat.appcompat_1.4.1",
@@ -116,7 +116,7 @@ maven_repository(
         "@maven//:androidx.compose.ui.ui-test-manifest_1.2.0",
         "@maven//:androidx.compose.ui.ui-tooling_1.2.0",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
-        "@maven//:androidx.core.core-ktx_1.7.0",
+        "@maven//:androidx.core.core-ktx_1.8.0",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.games.games-activity_1.0.0",

@@ -199,14 +199,14 @@ maven_repository(
     name = "compose_preview_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:androidx.activity.activity-compose_1.3.1",
+        "@maven//:androidx.activity.activity-compose_1.5.1",
         "@maven//:androidx.compose.compiler.compiler_1.2.0",
         "@maven//:androidx.compose.material.material_1.2.0",
         "@maven//:androidx.compose.ui.ui-test-manifest_1.2.0",
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.2.0",
         "@maven//:androidx.compose.ui.ui-tooling_1.2.0",
         "@maven//:androidx.compose.ui.ui_1.2.0",
-        "@maven//:androidx.core.core-ktx_1.7.0",
+        "@maven//:androidx.core.core-ktx_1.8.0",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
         "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.3.1",
         "@maven//:com.android.tools.build.aapt2_7.1.0-7984345",
