@@ -24,7 +24,7 @@ import org.junit.Test
 class NodeNameParserTest {
 
   @Test
-  fun `test cpp methods parsing`() {
+  fun `cpp method with no parameters`() {
     NodeNameParser.parseNodeName("art::ArtMethod::Invoke()", true).apply {
       assertThat(this).isInstanceOf(CppFunctionModel::class.java)
       this as CppFunctionModel
@@ -35,7 +35,10 @@ class NodeNameParserTest {
       assertThat(parameters).isEmpty()
       assertThat(isUserCode).isTrue()
     }
+  }
 
+  @Test
+  fun `cpp method with multiple parameters`() {
     NodeNameParser.parseNodeName("art::interpreter::DoCall(bool, art::Thread*)", false).apply {
       assertThat(this).isInstanceOf(CppFunctionModel::class.java)
       this as CppFunctionModel
@@ -46,7 +49,10 @@ class NodeNameParserTest {
       assertThat(parameters).containsExactly("bool", "art::Thread*")
       assertThat(isUserCode).isFalse()
     }
+  }
 
+  @Test
+  fun `cpp templated method method`() {
     NodeNameParser.parseNodeName("art::SomeClass::add<int>()", true).apply {
       assertThat(this).isInstanceOf(CppFunctionModel::class.java)
       this as CppFunctionModel
@@ -57,7 +63,10 @@ class NodeNameParserTest {
       assertThat(parameters).isEmpty()
       assertThat(isUserCode).isTrue()
     }
+  }
 
+  @Test
+  fun `cpp method with templated parameter`() {
     NodeNameParser.parseNodeName("Shader::Render(glm::detail::tmat4x4<float, (glm::precision)0>*)", false).apply {
       assertThat(this).isInstanceOf(CppFunctionModel::class.java)
       this as CppFunctionModel
@@ -68,7 +77,10 @@ class NodeNameParserTest {
       assertThat(parameters).containsExactly("glm::detail::tmat4x4*")
       assertThat(isUserCode).isFalse()
     }
+  }
 
+  @Test
+  fun `cpp const method`() {
     NodeNameParser.parseNodeName("art::StackVisitor::GetDexPc(bool) const", true).apply {
       assertThat(this).isInstanceOf(CppFunctionModel::class.java)
       this as CppFunctionModel
@@ -79,7 +91,10 @@ class NodeNameParserTest {
       assertThat(parameters).containsExactly("bool")
       assertThat(isUserCode).isTrue()
     }
+  }
 
+  @Test
+  fun `cpp everything is a template`() {
     NodeNameParser.parseNodeName("Type1<int> Type2<float>::FuncTemplate<Type3<2>>(Type4<bool>)", false).apply {
       assertThat(this).isInstanceOf(CppFunctionModel::class.java)
       this as CppFunctionModel
@@ -90,7 +105,10 @@ class NodeNameParserTest {
       assertThat(parameters).containsExactly("Type4")
       assertThat(isUserCode).isFalse()
     }
+  }
 
+  @Test
+  fun `cpp method with return type`() {
     NodeNameParser.parseNodeName("int Abc123(bool)", true).apply {
       assertThat(this).isInstanceOf(CppFunctionModel::class.java)
       this as CppFunctionModel
@@ -133,7 +151,7 @@ class NodeNameParserTest {
   }
 
   @Test
-  fun `test cpp operator overloading method`() {
+  fun `cpp operator overloading`() {
     NodeNameParser.parseNodeName("std::__1::basic_ostream<char, std::__1::char_traits<char> >::operator<<(int)", false).apply {
       assertThat(this).isInstanceOf(CppFunctionModel::class.java)
       this as CppFunctionModel
@@ -143,8 +161,10 @@ class NodeNameParserTest {
       assertThat(classOrNamespace).isEqualTo("std::__1::basic_ostream")
       assertThat(parameters).containsExactly("int")
     }
+  }
 
-    // Test a method with "operator" as a substring of its name
+  @Test
+  fun `cpp method with operator as a substring of its name (1)`() {
     NodeNameParser.parseNodeName("void MyNameSpace::my_operator<int>::my_method(int)", false).apply {
       assertThat(this).isInstanceOf(CppFunctionModel::class.java)
       this as CppFunctionModel
@@ -154,7 +174,10 @@ class NodeNameParserTest {
       assertThat(classOrNamespace).isEqualTo("MyNameSpace::my_operator")
       assertThat(parameters).containsExactly("int")
     }
+  }
 
+  @Test
+  fun `cpp method with operator as a substring of its name (2)`() {
     NodeNameParser.parseNodeName("void MyNameSpace::operator_my<int>::my_method(int)", false).apply {
       assertThat(this).isInstanceOf(CppFunctionModel::class.java)
       this as CppFunctionModel
@@ -164,8 +187,10 @@ class NodeNameParserTest {
       assertThat(classOrNamespace).isEqualTo("MyNameSpace::operator_my")
       assertThat(parameters).containsExactly("int")
     }
+  }
 
-    // Test a method with "operator" as a substring of its parameter
+  @Test
+  fun `cpp method with operator as a substring of its parameter`() {
     NodeNameParser.parseNodeName("std::__1::basic_ostream<char, std::__1::char_traits<char> >::operator<<(my_operator_type)", false).apply {
       assertThat(this).isInstanceOf(CppFunctionModel::class.java)
       this as CppFunctionModel
@@ -191,20 +216,25 @@ class NodeNameParserTest {
   }
 
   @Test
-  fun `abi arch filename and vaddress passed to cpp model`() {
-    val expectedFileName = "myfile.so"
-    val expectedVAddress = 0x013F01F0D4L
-
-    NodeNameParser.parseNodeName("void MyNameSpace::my_method(int)", false, expectedFileName, expectedVAddress).apply {
+  fun `abi arch filename to cpp model`() {
+    NodeNameParser.parseNodeName("void MyNameSpace::my_method(int)", false, "myfile.so", 0x013F01F0D4L).apply {
       assertThat(this).isInstanceOf(CppFunctionModel::class.java)
       this as CppFunctionModel
-      assertThat(fileName).isEqualTo(expectedFileName)
-      assertThat(vAddress).isEqualTo(expectedVAddress)
+      assertThat(fileName).isEqualTo("myfile.so")
     }
   }
 
   @Test
-  fun `test cpp operator bool overloading`() {
+  fun `vaddress passed to cpp model`() {
+    NodeNameParser.parseNodeName("void MyNameSpace::my_method(int)", false, "myfile.so", 0x013F01F0D4L).apply {
+      assertThat(this).isInstanceOf(CppFunctionModel::class.java)
+      this as CppFunctionModel
+      assertThat(vAddress).isEqualTo(0x013F01F0D4L)
+    }
+  }
+
+  @Test
+  fun `cpp namespace operator bool overloading`() {
     NodeNameParser.parseNodeName("MyNamespace::operator bool()", false).apply {
       assertThat(this).isInstanceOf(CppFunctionModel::class.java)
       this as CppFunctionModel
@@ -214,7 +244,10 @@ class NodeNameParserTest {
       assertThat(classOrNamespace).isEqualTo("MyNamespace")
       assertThat(parameters).isEmpty()
     }
+  }
 
+  @Test
+  fun `cpp operator bool overloading`() {
     NodeNameParser.parseNodeName("operator bool()", false).apply {
       assertThat(this).isInstanceOf(CppFunctionModel::class.java)
       this as CppFunctionModel
@@ -240,7 +273,7 @@ class NodeNameParserTest {
   }
 
   @Test
-  fun `test java methods parsing`() {
+  fun `java method`() {
     NodeNameParser.parseNodeName("java.util.String.toString", true).apply {
       assertThat(this).isInstanceOf(JavaMethodModel::class.java)
       this as JavaMethodModel
@@ -250,7 +283,10 @@ class NodeNameParserTest {
       assertThat(className).isEqualTo("java.util.String")
       assertThat(signature).isEmpty()
     }
+  }
 
+  @Test
+  fun `java duplicate method`() {
     NodeNameParser.parseNodeName("java.lang.Object.internalClone [DEDUPED]", true).apply {
       assertThat(this).isInstanceOf(JavaMethodModel::class.java)
       this as JavaMethodModel
@@ -263,7 +299,7 @@ class NodeNameParserTest {
   }
 
   @Test
-  fun `test syscall parsing`() {
+  fun syscall() {
     NodeNameParser.parseNodeName("write", true).apply {
       assertThat(this).isInstanceOf(SyscallModel::class.java)
       assertThat(name).isEqualTo("write")
