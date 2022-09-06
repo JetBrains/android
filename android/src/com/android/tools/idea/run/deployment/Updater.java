@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
@@ -196,7 +197,12 @@ final class Updater {
     }
 
     myPresentation.setEnabled(false);
-    myPresentation.setDescription("Not applicable for the \"" + configuration.getName() + "\" configuration");
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      myPresentation.setDescription("Not applicable for the \"" + configuration.getName() + "\" configuration");
+    }
+    else {
+      myPresentation.setVisible(false);
+    }
   }
 
   private boolean configurationDeploysToLocalDevice() {

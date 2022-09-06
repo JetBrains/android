@@ -347,7 +347,9 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     updater.update();
     updateTooltip(project);
-    setActiveExecutionTarget(project, getSelectedTargets(project, devices));
+    if (presentation.isVisible()) {
+      setActiveExecutionTarget(project, getSelectedTargets(project, devices));
+    }
   }
 
   private void updateTooltip(@NotNull Project project) {
