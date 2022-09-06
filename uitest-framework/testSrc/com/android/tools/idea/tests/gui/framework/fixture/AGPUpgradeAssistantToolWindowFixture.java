@@ -117,7 +117,7 @@ public class AGPUpgradeAssistantToolWindowFixture extends ToolWindowFixture{
   public HashMap getAgpVersionsDict() {
     //Mapping Android studio version to agp version
     HashMap<String, String> agpVersionsDict = new HashMap<>();
-    agpVersionsDict.put("flamingo", "7.5.0");
+    agpVersionsDict.put("flamingo", "8.0.0");
     agpVersionsDict.put("electric eel", "7.4.0");
     agpVersionsDict.put("dolphin", "7.3.0");
     agpVersionsDict.put("chipmunk", "7.2.0");
@@ -135,7 +135,7 @@ public class AGPUpgradeAssistantToolWindowFixture extends ToolWindowFixture{
   }
 
   private String getTipOfTree() {
-    String tipOfTree = "Electric Eel";
+    String tipOfTree = "Flamingo";
     return tipOfTree.toLowerCase();
   }
 }

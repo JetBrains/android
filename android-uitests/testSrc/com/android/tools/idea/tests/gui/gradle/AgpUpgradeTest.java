@@ -46,7 +46,7 @@ public class AgpUpgradeTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
-  @RunIn(TestGroup.FAST_BAZEL)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testAgpUpgradeUsingGradleBuildFie() {
 
