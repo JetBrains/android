@@ -346,10 +346,6 @@ class DeviceView(
     }
   }
 
-  override fun dispatchTouch(p: Point) {
-    sendMotionEventDisplayCoordinates(p, MotionEventMessage.ACTION_DOWN)
-  }
-
   override fun dispatchKey(keyCode: Int) {
     deviceController?.sendControlMessage(KeyEventMessage(ACTION_DOWN_AND_UP, keyCode, metaState = 0))
   }

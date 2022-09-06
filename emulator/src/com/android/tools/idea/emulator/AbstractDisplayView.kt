@@ -272,10 +272,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     fun frameRendered(frameNumber: Int, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage)
   }
 
-  // TODO(b/243838958): Remove these methods after figuring out how to unify event dispatch.
-  /** Dispatches a touch to the [Point] [p] in the device's native coordinates. */
-  internal abstract fun dispatchTouch(p: Point)
-  /** Dispatches a keystroke to the device. */
+  /** Dispatches a keystroke to the device. This allows us to dispatch keystrokes that are not covered by virtual keycodes in Swing. */
   internal abstract fun dispatchKey(keyCode: Int)
 
   internal fun toDeviceDisplayCoordinates(p: Point): Point? {

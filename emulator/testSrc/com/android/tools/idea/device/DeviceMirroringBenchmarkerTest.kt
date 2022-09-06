@@ -20,7 +20,9 @@ import com.android.testutils.MockitoKt.argumentCaptor
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.emulator.AbstractDisplayView
+import com.android.tools.idea.emulator.location
 import com.google.common.truth.Truth.assertThat
+import com.intellij.util.ui.UIUtil
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -34,6 +36,8 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.event.MouseEvent
+import java.awt.event.MouseListener
 import java.awt.image.BufferedImage
 import java.util.Timer
 import java.util.TimerTask
@@ -51,7 +55,8 @@ import kotlin.time.TestTimeSource
 @RunWith(JUnit4::class)
 class DeviceMirroringBenchmarkerTest {
   private val view = TestDisplayView(Dimension(WIDTH, HEIGHT))
-  private val dispatchedTouches: MutableList<Point> = mutableListOf()
+  private val mousePressedLocations: MutableList<Point> = mutableListOf()
+  private val mouseReleasedLocations: MutableList<Point> = mutableListOf()
   private val dispatchedKeys: MutableList<Int> = mutableListOf()
   private val benchmarkResults: MutableList<DeviceMirroringBenchmarker.BenchmarkResults> = mutableListOf()
   private val testTimeSource = TestTimeSource()
@@ -89,9 +94,10 @@ class DeviceMirroringBenchmarkerTest {
     val expectedFrameDurationMillis = (1.seconds / TOUCH_RATE_HZ).inWholeMilliseconds
     val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), eq(0), eq(expectedFrameDurationMillis))
-    assertThat(dispatchedTouches).isEmpty()
+    assertThat(mousePressedLocations).isEmpty()
     taskCaptor.value.run()
-    assertThat(dispatchedTouches).hasSize(1)
+    UIUtil.pump() // Wait for dispatched events to be processed.
+    assertThat(mousePressedLocations).hasSize(1)
     verifyNoMoreInteractions(mockTimer)
   }
 
@@ -115,11 +121,12 @@ class DeviceMirroringBenchmarkerTest {
 
     val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
-    assertThat(dispatchedTouches).isEmpty()
+    assertThat(mousePressedLocations).isEmpty()
 
     repeat(MAX_TOUCHES) {taskCaptor.value.run() }
 
-    assertThat(dispatchedTouches).hasSize(MAX_TOUCHES)
+    UIUtil.pump() // Wait for dispatched events to be processed.
+    assertThat(mousePressedLocations).hasSize(MAX_TOUCHES)
     verify(mockTimer).cancel()
   }
 
@@ -131,11 +138,45 @@ class DeviceMirroringBenchmarkerTest {
     view.notifyFrame(ALL_TOUCHABLE_FRAME)
     val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
-    assertThat(dispatchedTouches).isEmpty()
+    assertThat(mousePressedLocations).isEmpty()
     repeat(numTouchablePixels) { taskCaptor.value.run() }
-    assertThat(dispatchedTouches).hasSize(numTouchablePixels)
+
+    UIUtil.pump() // Wait for dispatched events to be processed.
+    assertThat(mousePressedLocations).hasSize(numTouchablePixels)
 
     verify(mockTimer).cancel()
+  }
+
+  @Test
+  fun releasesMouseWhenBenchmarkingEnds() {
+    benchmarker.start()
+    view.notifyFrame(TOUCHABLE_AREA_FRAME)
+
+    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
+    assertThat(mousePressedLocations).isEmpty()
+
+    repeat(MAX_TOUCHES) {taskCaptor.value.run() }
+
+    UIUtil.pump() // Wait for dispatched events to be processed.
+    assertThat(mouseReleasedLocations).containsExactly(mousePressedLocations.last())
+  }
+
+  @Test
+  fun releasesMouseWhenBenchmarkingCanceled() {
+    benchmarker.start()
+    view.notifyFrame(TOUCHABLE_AREA_FRAME)
+
+    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
+    assertThat(mousePressedLocations).isEmpty()
+
+    // Just touch once
+    taskCaptor.value.run()
+    benchmarker.stop()
+    UIUtil.pump() // Wait for dispatched events to be processed.
+
+    assertThat(mouseReleasedLocations).containsExactly(mousePressedLocations.last())
   }
 
   @Test
@@ -163,18 +204,19 @@ class DeviceMirroringBenchmarkerTest {
     view.notifyFrame(TOUCHABLE_AREA_FRAME)
     val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
-    assertThat(dispatchedTouches).isEmpty()
+    assertThat(mousePressedLocations).isEmpty()
     val numTouchablePixels = (WIDTH - 2) * (HEIGHT - 2)
 
     repeat(numTouchablePixels) { taskCaptor.value.run() }
 
-    assertThat(dispatchedTouches).hasSize(numTouchablePixels)
+    UIUtil.pump() // Wait for dispatched events to be processed.
+    assertThat(mousePressedLocations).hasSize(numTouchablePixels)
     // Shouldn't include any points on the border.
-    dispatchedTouches.forEach {
+    mousePressedLocations.forEach {
       assertThat(it.x).isIn(1 until WIDTH - 1)
       assertThat(it.y).isIn(1 until HEIGHT - 1)
     }
-    assertThat(dispatchedTouches).containsNoDuplicates()
+    assertThat(mousePressedLocations).containsNoDuplicates()
   }
 
   @Test
@@ -187,11 +229,12 @@ class DeviceMirroringBenchmarkerTest {
     val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
     repeat(step * MAX_TOUCHES) { taskCaptor.value.run() }
+    UIUtil.pump() // Wait for dispatched events to be processed.
     oneStepBenchmarker.stop()
-    assertThat(dispatchedTouches).hasSize(step * MAX_TOUCHES)
+    assertThat(mousePressedLocations).hasSize(step * MAX_TOUCHES)
     // Save these as we will reuse the mutable list.
-    val benchmarkerTouches = ArrayList(dispatchedTouches)
-    dispatchedTouches.clear()
+    val benchmarkerTouches = ArrayList(mousePressedLocations)
+    mousePressedLocations.clear()
 
     // Now one that uses a step
     val twoStepBenchmarker = createBenchmarker(maxTouches = MAX_TOUCHES, step = step)
@@ -199,12 +242,13 @@ class DeviceMirroringBenchmarkerTest {
     view.notifyFrame(TOUCHABLE_AREA_FRAME)
     verify(mockTimer, times(2)).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
     repeat(MAX_TOUCHES) { taskCaptor.value.run() }
-    assertThat(dispatchedTouches).hasSize(MAX_TOUCHES)
+    UIUtil.pump() // Wait for dispatched events to be processed.
+    assertThat(mousePressedLocations).hasSize(MAX_TOUCHES)
 
     benchmarkerTouches.forEachIndexed { i, touch ->
       when (i % step) {
-        0 -> assertThat(dispatchedTouches).contains(touch)
-        else -> assertThat(dispatchedTouches).doesNotContain(touch)
+        0 -> assertThat(mousePressedLocations).contains(touch)
+        else -> assertThat(mousePressedLocations).doesNotContain(touch)
       }
     }
   }
@@ -219,8 +263,9 @@ class DeviceMirroringBenchmarkerTest {
 
     repeat(MAX_TOUCHES + 1) { taskCaptor.value.run() }
 
-    assertThat(dispatchedTouches).hasSize(MAX_TOUCHES)
-    dispatchedTouches.forEach {
+    UIUtil.pump() // Wait for dispatched events to be processed.
+    assertThat(mousePressedLocations).hasSize(MAX_TOUCHES)
+    mousePressedLocations.forEach {
       view.notifyFrame(it.toBufferedImage(WIDTH, HEIGHT))
     }
     // All touches should be received now, so we should be in state COMPLETE.
@@ -243,18 +288,19 @@ class DeviceMirroringBenchmarkerTest {
     view.notifyFrame(ALL_TOUCHABLE_FRAME)
     val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
-    assertThat(dispatchedTouches).isEmpty()
+    assertThat(mousePressedLocations).isEmpty()
 
     val latencyMs = 15
     val numTouchablePixels = WIDTH * HEIGHT
     repeat(numTouchablePixels) {
       taskCaptor.value.run()
+      UIUtil.pump() // Wait for dispatched event to be processed.
       testTimeSource += it.seconds  // Each touch will take 1s longer than the last.
-      view.notifyFrame(dispatchedTouches.last().toBufferedImage(WIDTH, HEIGHT, latencyMs))
+      view.notifyFrame(mousePressedLocations.last().toBufferedImage(WIDTH, HEIGHT, latencyMs))
     }
-    assertThat(dispatchedTouches).hasSize(numTouchablePixels)
+    assertThat(mousePressedLocations).hasSize(numTouchablePixels)
     assertThat(allPointsBenchmarker.isDone()).isTrue()
-    val expectedRawResults = (0 until numTouchablePixels).associate { dispatchedTouches[it] to (it.seconds - latencyMs.milliseconds) }
+    val expectedRawResults = (0 until numTouchablePixels).associate { mousePressedLocations[it] to (it.seconds - latencyMs.milliseconds) }
     assertThat(benchmarkResults[0].raw).containsExactlyEntriesIn(expectedRawResults)
     // This distribution just increases linearly, so each percentile is a relative fraction of the max.
     val maxDurationMillis = (numTouchablePixels - 1).seconds.toDouble(DurationUnit.MILLISECONDS)
@@ -278,15 +324,16 @@ class DeviceMirroringBenchmarkerTest {
 
     repeat(MAX_TOUCHES + 1) { taskCaptor.value.run() }
 
-    assertThat(dispatchedTouches).hasSize(MAX_TOUCHES)
+    UIUtil.pump() // Wait for dispatched events to be processed.
+    assertThat(mousePressedLocations).hasSize(MAX_TOUCHES)
 
-    dispatchedTouches.forEach {
+    mousePressedLocations.forEach {
       view.notifyFrame(it.toBufferedImage(WIDTH, HEIGHT))
     }
 
-    assertThat(progressValues).hasSize(dispatchedTouches.size)
+    assertThat(progressValues).hasSize(mousePressedLocations.size)
     assertThat(progressValues.map{it.second}).isStrictlyOrdered()
-    assertThat(progressValues.first().second).isWithin(0.000001).of(1 / dispatchedTouches.size.toDouble())
+    assertThat(progressValues.first().second).isWithin(0.000001).of(1 / mousePressedLocations.size.toDouble())
     assertThat(progressValues.last().second).isWithin(0.000001).of(1.0)
     progressValues.map{it.first}.forEach {
       assertThat(it).isWithin(0.000001).of(1.0)
@@ -314,14 +361,27 @@ class DeviceMirroringBenchmarkerTest {
   inner class TestDisplayView(override val deviceDisplaySize: Dimension) : AbstractDisplayView(0) {
     init {
       displayRectangle = Rectangle(deviceDisplaySize)
+      val mouseListener = object : MouseListener {
+        override fun mouseClicked(e: MouseEvent) {}
+
+        override fun mousePressed(e: MouseEvent) {
+          mousePressedLocations.add(e.location)
+        }
+
+        override fun mouseReleased(e: MouseEvent) {
+          mouseReleasedLocations.add(e.location)
+        }
+
+        override fun mouseEntered(e: MouseEvent) {}
+
+        override fun mouseExited(e: MouseEvent) {}
+      }
+      addMouseListener(mouseListener)
     }
     override val displayOrientationQuadrants = 0
     override fun canZoom() = false
     override fun computeActualSize() = deviceDisplaySize
     override fun dispose() {}
-    override fun dispatchTouch(p: Point) {
-      dispatchedTouches.add(p)
-    }
     override fun dispatchKey(keyCode: Int) {
       dispatchedKeys.add(keyCode)
     }

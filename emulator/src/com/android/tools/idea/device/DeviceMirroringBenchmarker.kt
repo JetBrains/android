@@ -16,23 +16,24 @@
 package com.android.tools.idea.device
 
 import com.android.tools.idea.emulator.AbstractDisplayView
-import com.android.tools.idea.emulator.right
 import com.android.tools.idea.emulator.bottom
+import com.android.tools.idea.emulator.right
 import com.android.tools.idea.emulator.rotatedByQuadrants
 import com.android.tools.idea.emulator.scaled
 import com.android.tools.idea.emulator.scaledUnbiased
 import com.android.tools.idea.util.fsm.StateMachine
 import com.google.common.math.Quantiles
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.util.Timer
 import kotlin.concurrent.scheduleAtFixedRate
 import kotlin.math.min
-import kotlin.math.round
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 import kotlin.math.sin
@@ -73,7 +74,6 @@ class DeviceMirroringBenchmarker(
   //     │          │          │          │       ┌───────┐
   //     └──────────┴──────────┴──────────┴──────►│STOPPED│
   //                                              └───────┘
-  // TODO(b/243841143): Convert to suspend function/coroutines.
   private val stateMachine = StateMachine.stateMachine(
     State.INITIALIZED, StateMachine.Config(logger = LOG, timeSource = timeSource)) {
     State.INITIALIZED.transitionsTo(State.FINDING_TOUCHABLE_AREA, State.STOPPED)
@@ -91,7 +91,10 @@ class DeviceMirroringBenchmarker(
           dispatchNextTouch()
         }
       }
-      onExit { timer.cancel() }
+      onExit {
+        lastPressed?.let { click(it, MouseEvent.MOUSE_RELEASED) }
+        timer.cancel()
+      }
     }
     State.WAITING_FOR_OUTSTANDING_TOUCHES.transitionsTo(State.STOPPED, State.COMPLETE)
     State.STOPPED.onEnter {
@@ -119,6 +122,7 @@ class DeviceMirroringBenchmarker(
   }
   private val outstandingTouches: MutableMap<Point, TimeMark> = LinkedHashMap()
   private val touchRoundTrips: MutableMap<Point, Duration> = mutableMapOf()
+  private var lastPressed: Point? = null
 
   @Synchronized
   fun addOnStoppedCallback(callback: () -> Unit) {
@@ -150,25 +154,27 @@ class DeviceMirroringBenchmarker(
   private fun dispatchNextTouch() {
     if (pointsToTouch.hasNext()) {
       pointsToTouch.next().let {
+        lastPressed = it
         outstandingTouches[it] = timeSource.markNow()
-        LOG.trace("Dispatching touch at $it.")
-        abstractDisplayView.toDeviceDisplayCoordinates(it)?.let { converted ->
-          abstractDisplayView.dispatchTouch(converted)
-        }
-        // TODO(b/243838958): Convert this to use the below code once we figure out why it causes a
-        //  deadlock/race condition.
-        // abstractDisplayView.dispatchEvent(
-        //   MouseEvent(abstractDisplayView,
-        //              MouseEvent.MOUSE_PRESSED,
-        //              System.currentTimeMillis(),
-        //              0,
-        //              it.x,
-        //              it.y,
-        //              1,
-        //              false,
-        //              MouseEvent.BUTTON1))
+        LOG.trace("Pressing mouse at $it.")
+        click(it)
       }
       if (!pointsToTouch.hasNext()) state = State.WAITING_FOR_OUTSTANDING_TOUCHES
+    }
+  }
+
+  private fun click(location: Point, mouseEventType: Int = MouseEvent.MOUSE_PRESSED) {
+    UIUtil.invokeLaterIfNeeded {
+      abstractDisplayView.dispatchEvent(
+        MouseEvent(abstractDisplayView,
+                   mouseEventType,
+                   System.currentTimeMillis(),
+                   0,
+                   location.x,
+                   location.y,
+                   1,
+                   false,
+                   MouseEvent.BUTTON1))
     }
   }
 

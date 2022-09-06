@@ -341,11 +341,6 @@ class EmulatorView(
     }
   }
 
-  override fun dispatchTouch(p: Point) {
-    // Not sure why the +1 is needed here - for some reason when I send (x,y) the device sees (x,y-1)
-    emulator.sendMouse(com.android.emulator.control.MouseEvent.newBuilder().setX(p.x).setY(p.y + 1).setButtons(1).build())
-  }
-
   override fun dispatchKey(keyCode: Int) {
     emulator.sendKey(KeyboardEvent.newBuilder().setKeyCode(keyCode).build())
   }
