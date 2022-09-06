@@ -29,7 +29,6 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
-import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 
@@ -145,27 +144,17 @@ internal fun BuildController.findNativeModuleModel(
   }
 }
 
-// TODO(b/244573612): Migrate to another way of determining if a module is a KMP one.
-private fun BuildController.isKotlinMppProject(root: Model) = findModel(root, KotlinMPPGradleModel::class.java) != null
 private val androidArtifactSuffixes = listOf("", "unitTest", "androidTest")
 
 /** Kotlin related models that are fetched when importing Android projects. */
 internal data class AllKotlinModels(val kotlinModel: KotlinGradleModel?, val kaptModel: KaptGradleModel?)
 
 internal fun BuildController.findKotlinModelsForAndroidProject(root: Model, variantName: String): AllKotlinModels {
-  // Do not apply single-variant sync optimization to Kotlin multi-platform projects. We do not know the exact set of source sets
-  // that needs to be processed.
-  return if (isKotlinMppProject(root)) {
-    val kotlinModel = findModel(root, KotlinGradleModel::class.java)
-    val kaptModel = findModel(root, KaptGradleModel::class.java)
-    AllKotlinModels(kotlinModel, kaptModel)
-  } else {
-    val kotlinModel = findModel(root, KotlinGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
-      it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> variantName.appendCapitalized(artifactSuffix) }
-    }
-    val kaptModel = findModel(root, KaptGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
-      it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> variantName.appendCapitalized(artifactSuffix) }
-    }
-    AllKotlinModels(kotlinModel, kaptModel)
+  val kotlinModel = findModel(root, KotlinGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
+    it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> variantName.appendCapitalized(artifactSuffix) }
   }
+  val kaptModel = findModel(root, KaptGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
+    it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> variantName.appendCapitalized(artifactSuffix) }
+  }
+  return AllKotlinModels(kotlinModel, kaptModel)
 }
