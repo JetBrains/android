@@ -182,17 +182,23 @@ fun htmlTextLabelWithFixedLines(htmlBodyContent: String, linksHandler: HtmlLinks
     caretPosition = 0
   }
 
-fun HtmlBuilder.createTaskCategoryIssueMessage(taskCategoryIssues: List<BuildAnalyzerTaskCategoryIssueUiData>, linksHandler: HtmlLinksHandler) {
+fun HtmlBuilder.createTaskCategoryIssueMessage(taskCategoryIssues: List<BuildAnalyzerTaskCategoryIssueUiData>, linksHandler: HtmlLinksHandler, actionHandlers: ViewActionHandlers) {
   val iconToUse = if (taskCategoryIssues[0].buildAnalyzerTaskCategoryIssue.severity == IssueSeverity.INFO) infoIconHtml else warnIconHtml
   beginTable("VALIGN=TOP")
   taskCategoryIssues.forEach { issue ->
+    var description = issue.message
     if (issue.link != null) {
-      val description = "${issue.message}\n${linksHandler.externalLink("Learn more", issue.link)}".replace("\n", "<BR/>")
-      addTableRow(iconToUse, description)
-    } else {
-      val description = issue.message.replace("\n", "<BR/>")
-      addTableRow(iconToUse, description)
+      description += "\n"
+      if (issue.buildAnalyzerTaskCategoryIssue == BuildAnalyzerTaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED) {
+        val migrateRClassLink = linksHandler.actionLink("Migrate to non-transitive R classes", "AndroidMigrateToNonTransitiveRClassesAction") {
+          actionHandlers.migrateToNonTransitiveRClass()
+        }
+        description += "${migrateRClassLink}, "
+      }
+      description += linksHandler.externalLink("Learn more", issue.link)
     }
+    description = description.replace("\n", "<BR/>")
+    addTableRow(iconToUse, description)
   }
   endTable()
 }

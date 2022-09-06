@@ -96,4 +96,6 @@ interface ViewActionHandlers {
   fun runCheckJetifierTask()
   fun turnJetifierOffInProperties(sourceRelativePointSupplier: Supplier<RelativePoint>)
   fun createFindSelectedLibVersionDeclarationAction(selectionSupplier: Supplier<JetifierWarningDetailsView.DirectDependencyDescriptor?>): AnAction
+
+  fun migrateToNonTransitiveRClass()
 }

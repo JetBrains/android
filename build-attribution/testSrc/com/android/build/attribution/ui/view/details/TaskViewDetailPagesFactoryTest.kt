@@ -296,7 +296,7 @@ which it must do in order to support incremental builds.<BR/>
       1 warning associated with Android Resources category.<BR/>
 
       <table><tr><td VALIGN=TOP><icon alt='Warning' src='AllIcons.General.BalloonWarning'></td><td VALIGN=TOP>test<BR/>
-      <a href='NON_TRANSITIVE_R_CLASS'>Learn more</a><icon src='AllIcons.Ide.External_link_arrow'></td></tr>
+      <a href='AndroidMigrateToNonTransitiveRClassesAction'>Migrate to non-transitive R classes</a>, <a href='NON_TRANSITIVE_R_CLASS'>Learn more</a><icon src='AllIcons.Ide.External_link_arrow'></td></tr>
       </table>
     """.trimIndent())
   }

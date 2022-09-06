@@ -47,6 +47,7 @@ import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
 import com.google.common.base.Stopwatch
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.lang.properties.IProperty
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
@@ -207,6 +208,12 @@ class BuildAnalyzerViewController(
   override fun turnConfigurationCachingOnInProperties() {
     StudioProvidedInfo.turnOnConfigurationCacheInProperties(project)
     analytics.turnConfigurationCacheOnInPropertiesClicked()
+  }
+
+  override fun migrateToNonTransitiveRClass() {
+    ActionManager.getInstance().tryToExecute(
+      ActionManager.getInstance().getAction("AndroidMigrateToNonTransitiveRClassesAction"),
+      null, null, null, true)
   }
 
   override fun updatePluginClicked(pluginWarningData: IncompatiblePluginWarning) {

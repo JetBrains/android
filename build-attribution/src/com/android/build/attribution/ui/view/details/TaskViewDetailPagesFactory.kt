@@ -103,7 +103,7 @@ class TaskViewDetailPagesFactory(
       if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
         val taskCategoryInfos = descriptor.entryData.taskCategoryInfos
         if (taskCategoryInfos.isNotEmpty()) {
-          createTaskCategoryIssueMessage(taskCategoryInfos, linksHandler)
+          createTaskCategoryIssueMessage(taskCategoryInfos, linksHandler, actionHandlers)
           newline()
         }
       }
@@ -129,7 +129,7 @@ class TaskViewDetailPagesFactory(
         }
         if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
           if (descriptor.entryData.taskCategoryWarnings.isNotEmpty()) {
-            createTaskCategoryIssueMessage(descriptor.entryData.taskCategoryWarnings, linksHandler)
+            createTaskCategoryIssueMessage(descriptor.entryData.taskCategoryWarnings, linksHandler, actionHandlers)
             warningCount -= descriptor.entryData.taskCategoryWarnings.size
           }
         }

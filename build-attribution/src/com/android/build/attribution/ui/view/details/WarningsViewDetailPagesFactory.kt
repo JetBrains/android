@@ -175,7 +175,7 @@ class WarningsViewDetailPagesFactory(
       add("Number of tasks:  ${ tasksNumber.withPluralization("task") }").newline()
       newline()
       addBold(taskCategoryData.taskCategoryWarnings.size.withPluralization("warning")).newline()
-      createTaskCategoryIssueMessage(taskCategoryData.taskCategoryWarnings, linksHandler)
+      createTaskCategoryIssueMessage(taskCategoryData.taskCategoryWarnings, linksHandler, actionHandlers)
     }.html
   }
 
