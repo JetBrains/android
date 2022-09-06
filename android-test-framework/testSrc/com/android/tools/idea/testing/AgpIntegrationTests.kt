@@ -44,7 +44,8 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
    */
   val modelVersion: ModelVersion = ModelVersion.V2
 ) {
-  AGP_32("3.3.2", gradleVersion = "5.5", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1),
+  AGP_31("3.1", gradleVersion = "5.3.1", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1),
+  AGP_33("3.3.2", gradleVersion = "5.5", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1),
   AGP_35("3.5.0", gradleVersion = "5.5", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1),
   AGP_40("4.0.0", gradleVersion = "6.7.1", modelVersion = ModelVersion.V1),
   AGP_41("4.1.0", gradleVersion = "6.7.1", modelVersion = ModelVersion.V1),
@@ -65,6 +66,13 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   companion object {
     val AGP_CURRENT_V1 = AGP_80_V1
     val AGP_CURRENT = AGP_80
+    val selected: AgpVersionSoftwareEnvironmentDescriptor
+      get() {
+        if (OldAgpSuite.AGP_VERSION == null && OldAgpSuite.GRADLE_VERSION == null) return AGP_CURRENT
+        val applicableAgpVersions = applicableAgpVersions()
+        return applicableAgpVersions.singleOrNull()
+          ?: error("Multiple AGP versions selected: $applicableAgpVersions. A parameterised test is required.")
+      }
   }
 }
 

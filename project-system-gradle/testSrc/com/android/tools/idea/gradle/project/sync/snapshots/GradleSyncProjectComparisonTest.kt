@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_32
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidModuleDependency
@@ -81,9 +81,9 @@ data class ProjectStructureSnapshotTestDef(
 
   companion object {
     val tests: List<ProjectStructureSnapshotTestDef> = listOf(
-      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION, compatibleWith = setOf(AGP_32, AGP_CURRENT)),
-      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK, compatibleWith = setOf(AGP_32, AGP_CURRENT)),
-      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK, compatibleWith = setOf(AGP_32, AGP_CURRENT)),
+      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION, compatibleWith = setOf(AGP_33, AGP_CURRENT)),
+      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK, compatibleWith = setOf(AGP_33, AGP_CURRENT)),
+      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK, compatibleWith = setOf(AGP_33, AGP_CURRENT)),
       ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT),
       ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS),
       ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION),

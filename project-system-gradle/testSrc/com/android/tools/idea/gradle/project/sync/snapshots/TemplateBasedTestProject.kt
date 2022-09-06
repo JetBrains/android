@@ -24,7 +24,6 @@ import com.android.tools.idea.testing.FileSubject
 import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.SnapshotComparisonTest
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.utils.FileUtils
@@ -32,7 +31,6 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.util.PathUtil
 import com.intellij.util.io.exists
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.SystemIndependent
@@ -287,7 +285,8 @@ internal fun createEmptyGradleSettingsFile(projectRootPath: File) {
 private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
   AgpVersionSoftwareEnvironmentDescriptor.AGP_80 -> "_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_80_V1 -> "_NewAgp_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_32 -> "_Agp_3.2_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_31 -> "_Agp_3.1_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_33 -> "_Agp_3.3_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_35 -> "_Agp_3.5_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_40 -> "_Agp_4.0_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_41 -> "_Agp_4.1_"

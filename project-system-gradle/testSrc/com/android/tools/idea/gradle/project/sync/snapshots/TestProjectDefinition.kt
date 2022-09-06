@@ -42,7 +42,7 @@ interface TestProjectDefinition {
     fun IntegrationTestEnvironment.prepareTestProject(
       testProject: TestProjectDefinition,
       name: String = "project",
-      agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+      agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.selected
     ): PreparedTestProject {
       return testProject.preparedTestProject(this, name, agpVersion)
     }
