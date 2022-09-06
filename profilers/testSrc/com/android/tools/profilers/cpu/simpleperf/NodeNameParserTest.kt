@@ -24,7 +24,7 @@ import org.junit.Test
 class NodeNameParserTest {
 
   @Test
-  fun testCppMethodsParsing() {
+  fun `test cpp methods parsing`() {
     var model = NodeNameParser.parseNodeName("art::ArtMethod::Invoke()", true)
     assertThat(model).isInstanceOf(CppFunctionModel::class.java)
     assertThat(model.name).isEqualTo("Invoke")
@@ -96,7 +96,7 @@ class NodeNameParserTest {
   }
 
   @Test
-  fun unmatchingParenthesisShouldntThrowException() {
+  fun `un-matching parenthesis shouldn't throw exceptions`() {
     val model = NodeNameParser.parseNodeName("malformed::method(a))", true)
     assertThat(model).isInstanceOf(CppFunctionModel::class.java)
     // Instead of throwing an exception when finding matching parenthesis, we include all the parenthesis in the method name.
@@ -110,7 +110,7 @@ class NodeNameParserTest {
   }
 
   @Test
-  fun unmatchingAngleBracketsShouldntThrowException() {
+  fun `un-matching angle brackets shouldn't throw exceptions`() {
     val model = NodeNameParser.parseNodeName("malformed::method<(a, b)", false)
     assertThat(model).isInstanceOf(CppFunctionModel::class.java)
     // Instead of throwing an exception when finding matching parenthesis, we include all the parenthesis in the method name.
@@ -126,7 +126,7 @@ class NodeNameParserTest {
   }
 
   @Test
-  fun testCppOperatorOverloadingMethod() {
+  fun `test cpp operator overloading method`() {
     (NodeNameParser.parseNodeName("std::__1::basic_ostream<char, std::__1::char_traits<char> >::operator<<(int)",
                                   false) as CppFunctionModel).apply {
       expect(name = "operator<<",
@@ -167,7 +167,7 @@ class NodeNameParserTest {
   }
 
   @Test
-  fun testCppOperatorOverloadingAndTemplatesInParameterAndInNamespace() {
+  fun `test cpp operator overloading and templates in parameter and in namespace`() {
     (NodeNameParser.parseNodeName("std::__1::basic_ostream<char, std::__1::char_traits<char> >::operator<<(MyTemplate<int>)",
                                   false) as CppFunctionModel).apply {
       expect(name = "operator<<",
@@ -179,7 +179,7 @@ class NodeNameParserTest {
   }
 
   @Test
-  fun abiArchFileNameAndVAddressPassedToCppModel() {
+  fun `abi arch filename and vaddress passed to cpp model`() {
     val fileName = "myfile.so"
     val vAddress = 0x013F01F0D4L
     val model = NodeNameParser.parseNodeName("void MyNameSpace::my_method(int)", false, fileName, vAddress) as CppFunctionModel
@@ -188,7 +188,7 @@ class NodeNameParserTest {
   }
 
   @Test
-  fun testCppOperatorBoolOverloading() {
+  fun `test cpp operator bool overloading`() {
     (NodeNameParser.parseNodeName("MyNamespace::operator bool()",
                                   false) as CppFunctionModel).apply {
       expect(name = "operator bool",
@@ -209,7 +209,7 @@ class NodeNameParserTest {
   }
 
   @Test
-  fun testStartsWithOperatorRemovesTemplateInfo() {
+  fun `test starts with operator removes template info`() {
     (NodeNameParser.parseNodeName("MyNamespace::operatorManager<Type>()",
                                   false) as CppFunctionModel).apply {
       expect(name = "operatorManager",
@@ -221,7 +221,7 @@ class NodeNameParserTest {
   }
 
   @Test
-  fun testJavaMethodsParsing() {
+  fun `test java methods parsing`() {
     var model = NodeNameParser.parseNodeName("java.util.String.toString", true)
     assertThat(model).isInstanceOf(JavaMethodModel::class.java)
     assertThat(model.name).isEqualTo("toString")
@@ -242,7 +242,7 @@ class NodeNameParserTest {
   }
 
   @Test
-  fun testSyscallParsing() {
+  fun `test syscall parsing`() {
     val model = NodeNameParser.parseNodeName("write", true)
     assertThat(model).isInstanceOf(SyscallModel::class.java)
     assertThat(model.name).isEqualTo("write")
