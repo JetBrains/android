@@ -395,10 +395,7 @@ b/145809317 */
               if (!projectsStillOpen.isEmpty()) {
                 Project project = projectsStillOpen.iterator().next();
                 projectsStillOpen.clear();
-/* b/162777200
-                throw new AssertionError("Test project is not disposed: " + project + ";\n created in: " +
-                                         ProjectRule.getCreationPlace(project));
-b/162777200 */ throw new AssertionError("Test project is not disposed: " + project);
+                throw new AssertionError("Test project is not disposed: " + project);
               }
             }
           }
