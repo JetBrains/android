@@ -13,263 +13,229 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.idea.res
 
-import static com.android.tools.idea.res.ResourceUpdateTracer.pathForLogging;
-import static com.android.tools.idea.res.ResourceUpdateTracer.pathsForLogging;
-
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.tools.idea.concurrency.AndroidIoManager;
-import com.android.tools.idea.model.Namespacing;
-import com.android.utils.TraceUtils;
-import com.android.utils.concurrency.CacheUtils;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
-import com.intellij.ProjectTopics;
-import com.intellij.facet.ProjectFacetManager;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.project.DumbModeTask;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootEvent;
-import com.intellij.openapi.roots.ModuleRootListener;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiTreeChangeListener;
-import com.intellij.util.Consumer;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.function.BiConsumer;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.idea.concurrency.AndroidIoManager.Companion.getInstance
+import com.android.tools.idea.model.Namespacing
+import com.android.tools.idea.res.ResourceUpdateTracer.pathForLogging
+import com.android.tools.idea.res.ResourceUpdateTracer.pathsForLogging
+import com.android.utils.TraceUtils
+import com.android.utils.concurrency.getAndUnwrap
+import com.google.common.cache.Cache
+import com.google.common.cache.CacheBuilder
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.Sets
+import com.intellij.ProjectTopics
+import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.project.DumbModeTask
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ModuleRootEvent
+import com.intellij.openapi.roots.ModuleRootListener
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiTreeChangeListener
+import com.intellij.util.Consumer
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
+import org.jetbrains.annotations.VisibleForTesting
+import java.io.IOException
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executor
+import java.util.concurrent.Future
+import java.util.function.BiConsumer
 
 /**
- * A project service that manages {@link ResourceFolderRepository} instances, creating them as necessary and reusing repositories for
- * the same directories when multiple modules need them. For every directory a namespaced and non-namespaced repository may be created,
- * if needed.
+ * A project service that manages [ResourceFolderRepository] instances, creating them as necessary
+ * and reusing repositories for the same directories when multiple modules need them. For every
+ * directory a namespaced and non-namespaced repository may be created, if needed.
  */
-public class ResourceFolderRegistry implements Disposable {
-  @NotNull private final Project myProject;
-  @NotNull private final Cache<VirtualFile, ResourceFolderRepository> myNamespacedCache = buildCache();
-  @NotNull private final Cache<VirtualFile, ResourceFolderRepository> myNonNamespacedCache = buildCache();
-  @NotNull private final ImmutableList<Cache<VirtualFile, ResourceFolderRepository>> myCaches =
-      ImmutableList.of(myNamespacedCache, myNonNamespacedCache);
+class ResourceFolderRegistry(val project: Project) : Disposable {
+  private val myNamespacedCache = buildCache()
+  private val myNonNamespacedCache = buildCache()
+  private val myCaches = ImmutableList.of(myNamespacedCache, myNonNamespacedCache)
 
-  public ResourceFolderRegistry(@NotNull Project project) {
-    myProject = project;
-    project.getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
-      @Override
-      public void rootsChanged(@NotNull ModuleRootEvent event) {
-        removeStaleEntries();
+  init {
+    project.messageBus.connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, object : ModuleRootListener {
+      override fun rootsChanged(event: ModuleRootEvent) {
+        removeStaleEntries()
       }
-    });
+    })
   }
 
-  private static @NotNull Cache<VirtualFile, ResourceFolderRepository> buildCache() {
-    return CacheBuilder.newBuilder().build();
-  }
-
-  public static @NotNull ResourceFolderRegistry getInstance(@NotNull Project project) {
-    return project.getService(ResourceFolderRegistry.class);
-  }
-
-  public @NotNull ResourceFolderRepository get(@NotNull AndroidFacet facet, @NotNull VirtualFile dir) {
-    // ResourceFolderRepository.create may require the IDE read lock. To avoid deadlocks it is always obtained first, before the caches
-    // locks.
-    return ReadAction.compute(() -> get(facet, dir, ResourceRepositoryManager.getInstance(facet).getNamespace()));
+  operator fun get(facet: AndroidFacet, dir: VirtualFile): ResourceFolderRepository {
+    // ResourceFolderRepository.create may require the IDE read lock. To avoid deadlocks it is
+    // always obtained first, before the caches locks.
+    return ReadAction.compute<ResourceFolderRepository, RuntimeException> {
+      get(
+        facet,
+        dir,
+        ResourceRepositoryManager.getInstance(facet).namespace
+      )
+    }
   }
 
   @VisibleForTesting
-  @NotNull ResourceFolderRepository get(@NotNull AndroidFacet facet, @NotNull VirtualFile dir, @NotNull ResourceNamespace namespace) {
-    Cache<VirtualFile, ResourceFolderRepository> cache =
-        namespace == ResourceNamespace.RES_AUTO ? myNonNamespacedCache : myNamespacedCache;
-
-    ResourceFolderRepository repository = CacheUtils.getAndUnwrap(cache, dir, () -> createRepository(facet, dir, namespace));
-
-    assert repository.getNamespace().equals(namespace);
+  operator fun get(facet: AndroidFacet, dir: VirtualFile, namespace: ResourceNamespace): ResourceFolderRepository {
+    val cache = if (namespace === ResourceNamespace.RES_AUTO) myNonNamespacedCache else myNamespacedCache
+    val repository = cache.getAndUnwrap(dir) { createRepository(facet, dir, namespace) }
+    assert(repository.namespace == namespace)
 
     // TODO(b/80179120): figure out why this is not always true.
     // assert repository.getFacet().equals(facet);
-
-    return repository;
+    return repository
   }
 
   /**
    * Returns the resource repository for the given directory, or null if such repository doesn't already exist.
    */
-  public @Nullable ResourceFolderRepository getCached(@NotNull VirtualFile dir, @NotNull Namespacing namespacing) {
-    var cache = namespacing == Namespacing.REQUIRED ? myNamespacedCache : myNonNamespacedCache;
-    return cache.getIfPresent(dir);
+  fun getCached(dir: VirtualFile, namespacing: Namespacing): ResourceFolderRepository? {
+    val cache = if (namespacing === Namespacing.REQUIRED) myNamespacedCache else myNonNamespacedCache
+    return cache.getIfPresent(dir)
   }
 
-  private static @NotNull ResourceFolderRepository createRepository(@NotNull AndroidFacet facet,
-                                                                    @NotNull VirtualFile dir,
-                                                                    @NotNull ResourceNamespace namespace) {
-    // Don't create a persistent cache in tests to avoid unnecessary overhead.
-    Executor executor = ApplicationManager.getApplication().isUnitTestMode() ?
-                        runnable -> {} : AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
-    ResourceFolderRepositoryCachingData cachingData =
-        ResourceFolderRepositoryFileCacheService.get().getCachingData(facet.getModule().getProject(), dir, executor);
-    return ResourceFolderRepository.create(facet, dir, namespace, cachingData);
+  fun reset() {
+    ResourceUpdateTracer.logDirect { "${TraceUtils.getSimpleId(this)}.reset()" }
+    myNamespacedCache.invalidateAll()
+    myNonNamespacedCache.invalidateAll()
   }
 
-  public void reset() {
-    ResourceUpdateTracer.logDirect(() -> TraceUtils.getSimpleId(this) + ".reset()");
-    myNamespacedCache.invalidateAll();
-    myNonNamespacedCache.invalidateAll();
-  }
-
-  private void removeStaleEntries() {
+  private fun removeStaleEntries() {
     // TODO(namespaces): listen to changes in modules' namespacing modes and dispose repositories which are no longer needed.
-    ResourceUpdateTracer.logDirect(() -> TraceUtils.getSimpleId(this) + ".removeStaleEntries()");
-    removeStaleEntries(myNamespacedCache);
-    removeStaleEntries(myNonNamespacedCache);
+    ResourceUpdateTracer.logDirect { "${TraceUtils.getSimpleId(this)}.removeStaleEntries()" }
+    removeStaleEntries(myNamespacedCache)
+    removeStaleEntries(myNonNamespacedCache)
   }
 
-  private void removeStaleEntries(@NotNull Cache<VirtualFile, ResourceFolderRepository> cache) {
-    Map<VirtualFile, ResourceFolderRepository> cacheAsMap = cache.asMap();
+  private fun removeStaleEntries(cache: Cache<VirtualFile, ResourceFolderRepository>) {
+    val cacheAsMap = cache.asMap()
     if (cacheAsMap.isEmpty()) {
-      ResourceUpdateTracer.logDirect(() -> TraceUtils.getSimpleId(this) + ".removeStaleEntries: cache is empty");
-      return;
+      ResourceUpdateTracer.logDirect { TraceUtils.getSimpleId(this) + ".removeStaleEntries: cache is empty" }
+      return
     }
-    Set<AndroidFacet> facets = Sets.newHashSetWithExpectedSize(cacheAsMap.size());
-    Set<VirtualFile> newResourceFolders = Sets.newHashSetWithExpectedSize(cacheAsMap.size());
-    for (ResourceFolderRepository repository : cacheAsMap.values()) {
-      AndroidFacet facet = repository.getFacet();
-      if (!facet.isDisposed() && facets.add(facet)) {
-        ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
-        newResourceFolders.addAll(folderManager.getFolders());
-        newResourceFolders.addAll(folderManager.getTestFolders());
+    val facets: MutableSet<AndroidFacet> = Sets.newHashSetWithExpectedSize(cacheAsMap.size)
+    val newResourceFolders: MutableSet<VirtualFile> = Sets.newHashSetWithExpectedSize(cacheAsMap.size)
+    for (repository in cacheAsMap.values) {
+      val facet = repository.facet
+      if (!facet.isDisposed && facets.add(facet)) {
+        val folderManager = getInstance(facet)
+        newResourceFolders.addAll(folderManager.folders)
+        newResourceFolders.addAll(folderManager.testFolders)
       }
     }
-    ResourceUpdateTracer.logDirect(() ->
-        TraceUtils.getSimpleId(this) + ".removeStaleEntries retained " + pathsForLogging(newResourceFolders, myProject)
-    );
-
-    cacheAsMap.keySet().retainAll(newResourceFolders);
+    ResourceUpdateTracer.logDirect {
+      "${TraceUtils.getSimpleId(this)}.removeStaleEntries retained ${pathsForLogging(newResourceFolders, project)}"
+    }
+    cacheAsMap.keys.retainAll(newResourceFolders)
   }
 
-  @Override
-  public void dispose() {
-    reset();
+  override fun dispose() {
+    reset()
   }
 
-  void dispatchToRepositories(@NotNull VirtualFile file, @NotNull BiConsumer<ResourceFolderRepository, VirtualFile> handler) {
-    ResourceUpdateTracer.log(() -> "ResourceFolderRegistry.dispatchToRepositories(" +  pathForLogging(file) + ", ...) VFS change");
-    ApplicationManager.getApplication().assertWriteAccessAllowed();
-    for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
-      for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
-        ResourceFolderRepository repository = cache.getIfPresent(dir);
+  fun dispatchToRepositories(file: VirtualFile, handler: BiConsumer<ResourceFolderRepository?, VirtualFile?>) {
+    ResourceUpdateTracer.log { "ResourceFolderRegistry.dispatchToRepositories(${pathForLogging(file)}, ...) VFS change" }
+    ApplicationManager.getApplication().assertWriteAccessAllowed()
+    var dir = if (file.isDirectory) file else file.parent
+    while (dir != null) {
+      for (cache in myCaches) {
+        val repository = cache.getIfPresent(dir)
         if (repository != null) {
-          handler.accept(repository, file);
+          handler.accept(repository, file)
         }
       }
+      dir = dir.parent
     }
   }
 
-  void dispatchToRepositories(@NotNull VirtualFile file, @NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
-    ResourceUpdateTracer.log(() -> "ResourceFolderRegistry.dispatchToRepositories(" +  pathForLogging(file) + ", ...) PSI change");
-    ApplicationManager.getApplication().assertWriteAccessAllowed();
-    for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
-      for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
-        ResourceFolderRepository repository = cache.getIfPresent(dir);
+  fun dispatchToRepositories(file: VirtualFile, invokeCallback: Consumer<PsiTreeChangeListener?>) {
+    ResourceUpdateTracer.log { "ResourceFolderRegistry.dispatchToRepositories(${pathForLogging(file)}, ...) PSI change" }
+    ApplicationManager.getApplication().assertWriteAccessAllowed()
+    var dir = if (file.isDirectory) file else file.parent
+    while (dir != null) {
+      for (cache in myCaches) {
+        val repository = cache.getIfPresent(dir)
         if (repository != null) {
-          invokeCallback.consume(repository.getPsiListener());
+          invokeCallback.consume(repository.psiListener)
         }
       }
+      dir = dir.parent
     }
   }
 
-  public @NotNull Project getProject() {
-    return myProject;
+  private fun buildCache(): Cache<VirtualFile, ResourceFolderRepository> {
+    return CacheBuilder.newBuilder().build()
+  }
+
+  private fun createRepository(facet: AndroidFacet, dir: VirtualFile, namespace: ResourceNamespace): ResourceFolderRepository {
+    // Don't create a persistent cache in tests to avoid unnecessary overhead.
+    val executor = if (ApplicationManager.getApplication().isUnitTestMode) Executor { _: Runnable? -> }
+    else getInstance().getBackgroundDiskIoExecutor()
+    val cachingData = ResourceFolderRepositoryFileCacheService.get().getCachingData(facet.module.project, dir, executor)
+    return ResourceFolderRepository.create(facet, dir, namespace, cachingData)
+  }
+
+  companion object {
+
+    @JvmStatic
+    fun getInstance(project: Project): ResourceFolderRegistry {
+      return project.getService(ResourceFolderRegistry::class.java)
+    }
   }
 
   /**
    * Populate the registry's in-memory ResourceFolderRepository caches (if not already cached).
    */
-  public static class PopulateCachesTask extends DumbModeTask {
-    @NotNull private final Project myProject;
+  class PopulateCachesTask(private val myProject: Project) : DumbModeTask() {
 
-    public PopulateCachesTask(@NotNull Project project) {
-      myProject = project;
-    }
+    override fun tryMergeWith(taskFromQueue: DumbModeTask): DumbModeTask? =
+      if (taskFromQueue is PopulateCachesTask && taskFromQueue.myProject == myProject) this else null
 
-    @Nullable
-    @Override
-    public DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
-      if (taskFromQueue instanceof PopulateCachesTask && ((PopulateCachesTask)taskFromQueue).myProject.equals(myProject)) return this;
-      return null;
-    }
-
-    @Override
-    public void performInDumbMode(@NotNull ProgressIndicator indicator) {
-      List<AndroidFacet> facets = ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID);
+    override fun performInDumbMode(indicator: ProgressIndicator) {
+      val facets = ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID)
       if (facets.isEmpty()) {
-        return;
+        return
       }
       // Some directories in the registry may already be populated by this point, so filter them out.
-      indicator.setText("Indexing resources");
-      indicator.setIndeterminate(false);
-      Map<VirtualFile, AndroidFacet> resDirectories = IdeResourcesUtil.getResourceDirectoriesForFacets(facets);
+      indicator.text = "Indexing resources"
+      indicator.isIndeterminate = false
+      val resDirectories = getResourceDirectoriesForFacets(facets)
       // Might already be done, as there can be a race for filling the memory caches.
       if (resDirectories.isEmpty()) {
-        return;
+        return
       }
 
       // Make sure the cache root is created before parallel execution to avoid racing to create the root.
       try {
-        ResourceFolderRepositoryFileCacheService.get().createDirForProject(myProject);
+        ResourceFolderRepositoryFileCacheService.get().createDirForProject(myProject)
+      } catch (e: IOException) {
+        return
       }
-      catch (IOException e) {
-        return;
+      val application = ApplicationManager.getApplication()
+      assert(!application.isWriteAccessAllowed)
+      var numDone = 0
+      val parallelExecutor = getInstance().getBackgroundDiskIoExecutor()
+      val repositoryJobs: MutableList<Future<ResourceFolderRepository>> = ArrayList()
+      for ((dir, facet) in resDirectories) {
+        val registry = getInstance(myProject)
+        repositoryJobs.add(parallelExecutor.submit<ResourceFolderRepository> { registry[facet, dir] })
       }
-
-      Application application = ApplicationManager.getApplication();
-      // Beware if the current thread is holding the write lock. The current thread will
-      // end up waiting for helper threads to finish, and the helper threads will be
-      // acquiring a read lock (which would then block because of the write lock).
-      assert !application.isWriteAccessAllowed();
-
-      int numDone = 0;
-
-      ExecutorService parallelExecutor = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
-      List<Future<ResourceFolderRepository>> repositoryJobs = new ArrayList<>();
-      for (Map.Entry<VirtualFile, AndroidFacet> entry : resDirectories.entrySet()) {
-        AndroidFacet facet = entry.getValue();
-        VirtualFile dir = entry.getKey();
-        ResourceFolderRegistry registry = getInstance(myProject);
-        repositoryJobs.add(parallelExecutor.submit(() -> registry.get(facet, dir)));
-      }
-
-      for (Future<ResourceFolderRepository> job : repositoryJobs) {
-        if (indicator.isCanceled()) {
-          break;
+      for (job in repositoryJobs) {
+        if (indicator.isCanceled) {
+          break
         }
-        indicator.setFraction((double)numDone / resDirectories.size());
+        indicator.fraction = numDone.toDouble() / resDirectories.size
         try {
-          job.get();
-        }
-        catch (ExecutionException e) {
+          job.get()
+        } catch (e: ExecutionException) {
           // If we get an exception, that's okay -- we stop pre-populating the cache, which is just for performance.
+        } catch (e: InterruptedException) {
+          Thread.currentThread().interrupt()
         }
-        catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        }
-        ++numDone;
+        ++numDone
       }
     }
   }
