@@ -20,9 +20,10 @@ import java.util.IdentityHashMap
 class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
   val leaktrace: Leaktrace = leakRoot.getLeaktrace()
   val childrenObjects = leakRoot.childObjects.uniqueByIdentity()
+  val prevChildren = prevLeakRoot.children
   val prevChildrenObjects = prevLeakRoot.childObjects.uniqueByIdentity()
   val addedChildrenObjects = childrenObjects.filter { c -> prevChildrenObjects.all { it !== c } }
-  val addedChildren = leakRoot.children.filter { c -> prevLeakRoot.children.all { it.obj !== c.obj }}
+  val addedChildren = leakRoot.children.filter { c -> prevChildren.all { it.obj !== c.obj }}
   val retainedByNewChildren = g.dominatedNodes(addedChildren.toSet())
   val retainedByAllChildren = g.dominatedNodes(leakRoot.children.toSet())
 
