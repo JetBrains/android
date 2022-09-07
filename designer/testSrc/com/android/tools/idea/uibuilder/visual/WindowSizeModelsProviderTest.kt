@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.type.ZoomableDrawableFileType
@@ -54,6 +55,29 @@ class WindowSizeModelsProviderTest : LayoutTestCase() {
     val modelsProvider = WindowSizeModelsProvider
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
     assertEmpty(nlModels)
+  }
+
+  fun testReflectConfigurationFromSource() {
+    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
+    myFixture.addFileToProject("/res/layout-en/test.xml", LAYOUT_FILE_CONTENT)
+    myFixture.addFileToProject("/res/layout-fr/test.xml", LAYOUT_FILE_CONTENT)
+    myFixture.addFileToProject("/res/layout-jp/test.xml", LAYOUT_FILE_CONTENT)
+
+    val manager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val sourceConfig = manager.getConfiguration(file.virtualFile)
+
+    val modelsProvider = WindowSizeModelsProvider
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+
+    verifyAdaptiveShapeReflected(sourceConfig, nlModels, true)
+    verifyDeviceReflected(sourceConfig, nlModels, false)
+    verifyDeviceStateReflected(sourceConfig, nlModels, true)
+    verifyUiModeReflected(sourceConfig, nlModels, true)
+    verifyNightModeReflected(sourceConfig, nlModels, true)
+    verifyThemeReflected(sourceConfig, nlModels, true)
+    verifyTargetReflected(sourceConfig, nlModels, true)
+    verifyLocaleReflected(sourceConfig, nlModels, true)
+    verifyFontReflected(sourceConfig, nlModels, true)
   }
 }
 

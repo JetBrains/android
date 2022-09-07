@@ -19,17 +19,28 @@ import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.AdditionalDeviceService
+import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
 
 private const val PORTRAIT_DEVICE_KEYWORD = "phone"
+
+private const val EFFECTIVE_FLAGS = ConfigurationListener.CFG_ADAPTIVE_SHAPE or
+  ConfigurationListener.CFG_DEVICE_STATE or
+  ConfigurationListener.CFG_UI_MODE or
+  ConfigurationListener.CFG_NIGHT_MODE or
+  ConfigurationListener.CFG_THEME or
+  ConfigurationListener.CFG_TARGET or
+  ConfigurationListener.CFG_LOCALE or
+  ConfigurationListener.CFG_FONT_SCALE
 
 object WindowSizeModelsProvider : VisualizationModelsProvider {
 
@@ -54,12 +65,15 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
       val config = defaultConfig.clone()
       config.setDevice(device, false)
       val betterFile = ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
-      val builder = NlModel.builder(facet, betterFile, config)
+      val model = NlModel.builder(facet, betterFile, config)
         .withParentDisposable(parentDisposable)
         .withModelDisplayName(device.displayName)
         .withModelTooltip(config.toHtmlTooltip())
         .withComponentRegistrar(NlComponentRegistrar)
-      models.add(builder.build())
+        .build()
+      models.add(model)
+
+      registerModelsProviderConfigurationListener(model, defaultConfig, config, EFFECTIVE_FLAGS)
     }
     return models
   }

@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import org.intellij.lang.annotations.Language
-import org.mockito.Mockito
 
 class LargeFontModelsProviderTest : LayoutTestCase() {
 
@@ -38,6 +38,29 @@ class LargeFontModelsProviderTest : LayoutTestCase() {
     assertEquals(0.85f, nlModels[1].configuration.fontScale)
     assertEquals(1.15f, nlModels[2].configuration.fontScale)
     assertEquals(1.3f, nlModels[3].configuration.fontScale)
+  }
+
+  fun testReflectConfigurationFromSource() {
+    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
+    myFixture.addFileToProject("/res/layout-en/test.xml", LAYOUT_FILE_CONTENT)
+    myFixture.addFileToProject("/res/layout-fr/test.xml", LAYOUT_FILE_CONTENT)
+    myFixture.addFileToProject("/res/layout-jp/test.xml", LAYOUT_FILE_CONTENT)
+
+    val manager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val sourceConfig = manager.getConfiguration(file.virtualFile)
+
+    val modelsProvider = LargeFontModelsProvider
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+
+    verifyAdaptiveShapeReflected(sourceConfig, nlModels, true)
+    verifyDeviceReflected(sourceConfig, nlModels, true)
+    verifyDeviceStateReflected(sourceConfig, nlModels, true)
+    verifyUiModeReflected(sourceConfig, nlModels, true)
+    verifyNightModeReflected(sourceConfig, nlModels, true)
+    verifyThemeReflected(sourceConfig, nlModels, true)
+    verifyTargetReflected(sourceConfig, nlModels, true)
+    verifyLocaleReflected(sourceConfig, nlModels, true)
+    verifyFontReflected(sourceConfig, nlModels, false)
   }
 }
 

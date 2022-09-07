@@ -19,8 +19,8 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
+import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.annotations.VisibleForTesting
@@ -35,6 +35,15 @@ import java.util.ArrayList
  */
 @VisibleForTesting
 val WEAR_DEVICES_TO_DISPLAY = listOf("Wear OS Small Round", "Wear OS Square","Wear OS Large Round", "Wear OS Rectangular")
+
+private const val EFFECTIVE_FLAGS = ConfigurationListener.CFG_ADAPTIVE_SHAPE or
+  ConfigurationListener.CFG_DEVICE_STATE or
+  ConfigurationListener.CFG_UI_MODE or
+  ConfigurationListener.CFG_NIGHT_MODE or
+  ConfigurationListener.CFG_THEME or
+  ConfigurationListener.CFG_TARGET or
+  ConfigurationListener.CFG_LOCALE or
+  ConfigurationListener.CFG_FONT_SCALE
 
 /**
  * This class provides the [NlModel]s with predefined Wear devices for [VisualizationForm].
@@ -73,12 +82,15 @@ object WearDeviceModelsProvider: VisualizationModelsProvider {
       // Round and Circle device must be portrait, and Chin device must be landscape
       val screenOrientation = if (device.chinSize == 0) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
       config.deviceState = device.getState(screenOrientation.shortDisplayValue)
-      models.add(NlModel.builder(facet, virtualFile, config)
-                   .withParentDisposable(parentDisposable)
-                   .withModelDisplayName(device.displayName)
-                   .withModelTooltip(config.toHtmlTooltip())
-                   .withComponentRegistrar(NlComponentRegistrar)
-                   .build())
+      val model = NlModel.builder(facet, virtualFile, config)
+        .withParentDisposable(parentDisposable)
+        .withModelDisplayName(device.displayName)
+        .withModelTooltip(config.toHtmlTooltip())
+        .withComponentRegistrar(NlComponentRegistrar)
+        .build()
+      models.add(model)
+
+      registerModelsProviderConfigurationListener(model, defaultConfig, config, EFFECTIVE_FLAGS)
     }
     return models
   }

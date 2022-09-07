@@ -15,26 +15,37 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
+import org.assertj.core.util.VisibleForTesting
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.function.Consumer
 
+private const val EFFECTIVE_FLAGS = ConfigurationListener.CFG_ADAPTIVE_SHAPE or
+  ConfigurationListener.CFG_DEVICE or
+  ConfigurationListener.CFG_DEVICE_STATE or
+  ConfigurationListener.CFG_UI_MODE or
+  ConfigurationListener.CFG_NIGHT_MODE or
+  ConfigurationListener.CFG_THEME or
+  ConfigurationListener.CFG_TARGET or
+  ConfigurationListener.CFG_LOCALE
 
 object LargeFontModelsProvider : VisualizationModelsProvider {
 
   // scale factors here matches the framework.
-  private const val SCALE_LARGER = 1.15f
-  private const val SCALE_SMALLER = 0.85f
-  private const val SCALE_LARGEST = 1.3f
+  @VisibleForTesting
+  val SCALE_TO_DISPLAY_NAME_PAIRS = mutableListOf(
+    (1f to "Default (100%)"),
+    (0.85f to "Small (85%)"),
+    (1.15f to "Large (115%)"),
+    (1.3f to "Largest (130%)"),
+  )
 
   override fun createNlModels(parentDisposable: Disposable, file: PsiFile, facet: AndroidFacet): List<NlModel> {
 
@@ -48,40 +59,21 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
     val defaultConfig = configurationManager.getConfiguration(virtualFile)
 
     val models = mutableListOf<NlModel>()
-    models.add(NlModel.builder(facet, virtualFile, defaultConfig)
-                 .withParentDisposable(parentDisposable)
-                 .withModelDisplayName("Default (100%)")
-                 .withModelTooltip(defaultConfig.toHtmlTooltip())
-                 .withComponentRegistrar(NlComponentRegistrar)
-                 .build())
 
-    val smallerFontConfig = Configuration.create(defaultConfig, virtualFile)
-    smallerFontConfig.fontScale = SCALE_SMALLER
-    val largerFontConfig = Configuration.create(defaultConfig, virtualFile)
-    largerFontConfig.fontScale = SCALE_LARGER
-    val largestFontConfig = Configuration.create(defaultConfig, virtualFile)
-    largestFontConfig.fontScale = SCALE_LARGEST
+    for ((scale, displayName) in SCALE_TO_DISPLAY_NAME_PAIRS) {
+      val fontConfig = Configuration.create(defaultConfig, virtualFile)
+      fontConfig.fontScale = scale
+      val fontModel = NlModel.builder(facet, virtualFile, fontConfig)
+        .withParentDisposable(parentDisposable)
+        .withModelDisplayName(displayName)
+        .withModelTooltip(fontConfig.toHtmlTooltip())
+        .withComponentRegistrar(NlComponentRegistrar)
+        .build()
+      models.add(fontModel)
 
-    models.add(NlModel.builder(facet, virtualFile, smallerFontConfig)
-                 .withParentDisposable(parentDisposable)
-                 .withModelDisplayName("Small (85%)")
-                 .withModelTooltip(smallerFontConfig.toHtmlTooltip())
-                 .withComponentRegistrar(NlComponentRegistrar)
-                 .build())
+      registerModelsProviderConfigurationListener(fontModel, defaultConfig, fontConfig, EFFECTIVE_FLAGS)
+    }
 
-    models.add(NlModel.builder(facet, virtualFile, largerFontConfig)
-                 .withParentDisposable(parentDisposable)
-                 .withModelDisplayName("Large (115%)")
-                 .withModelTooltip(largerFontConfig.toHtmlTooltip())
-                 .withComponentRegistrar(NlComponentRegistrar)
-                 .build())
-
-    models.add(NlModel.builder(facet, virtualFile, largestFontConfig)
-                 .withParentDisposable(parentDisposable)
-                 .withModelDisplayName("Largest (130%)")
-                 .withModelTooltip(largestFontConfig.toHtmlTooltip())
-                 .withComponentRegistrar(NlComponentRegistrar)
-                 .build())
     return models
   }
 }

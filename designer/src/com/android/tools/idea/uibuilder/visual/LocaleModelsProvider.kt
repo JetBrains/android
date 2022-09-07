@@ -19,6 +19,7 @@ import com.android.ide.common.resources.Locale
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -27,6 +28,15 @@ import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.facet.AndroidFacet
+
+private const val EFFECTIVE_FLAGS = ConfigurationListener.CFG_ADAPTIVE_SHAPE or
+  ConfigurationListener.CFG_DEVICE or
+  ConfigurationListener.CFG_DEVICE_STATE or
+  ConfigurationListener.CFG_UI_MODE or
+  ConfigurationListener.CFG_NIGHT_MODE or
+  ConfigurationListener.CFG_THEME or
+  ConfigurationListener.CFG_TARGET or
+  ConfigurationListener.CFG_FONT_SCALE
 
 /**
  * This class provides the [NlModel]s with projects locales for [VisualizationForm].<br>
@@ -58,12 +68,18 @@ object LocaleModelsProvider: VisualizationModelsProvider {
     // The layout file used when there is no particular layout for device's locale.
     val defaultFile = ConfigurationMatcher.getBetterMatch(currentFileConfig, null, null, Locale.ANY, null) ?: currentFile
     val defaultLocaleConfig = Configuration.create(currentFileConfig, defaultFile).apply { locale = Locale.ANY}
-    models.add(NlModel.builder(facet, defaultFile, defaultLocaleConfig)
-                 .withParentDisposable(parentDisposable)
-                 .withModelDisplayName("Default (no locale)")
-                 .withModelTooltip(defaultLocaleConfig.toHtmlTooltip())
-                 .withComponentRegistrar(NlComponentRegistrar)
-                 .build())
+
+    run {
+      val firstModel = NlModel.builder(facet, defaultFile, defaultLocaleConfig)
+        .withParentDisposable(parentDisposable)
+        .withModelDisplayName("Default (no locale)")
+        .withModelTooltip(defaultLocaleConfig.toHtmlTooltip())
+        .withComponentRegistrar(NlComponentRegistrar)
+        .build()
+      models.add(firstModel)
+
+      registerModelsProviderConfigurationListener(firstModel, currentFileConfig, defaultLocaleConfig, EFFECTIVE_FLAGS)
+    }
 
     val locales = ResourceRepositoryManager.getInstance(facet).localesInProject.sortedWith(
       Locale.LANGUAGE_CODE_COMPARATOR)
@@ -73,12 +89,15 @@ object LocaleModelsProvider: VisualizationModelsProvider {
       val config = Configuration.create(defaultLocaleConfig, betterFile)
       config.locale = locale
       val label = Locale.getLocaleLabel(locale, false)
-      models.add(NlModel.builder(facet, betterFile, config)
-                   .withParentDisposable(parentDisposable)
-                   .withModelDisplayName(label)
-                   .withModelTooltip(config.toHtmlTooltip())
-                   .withComponentRegistrar(NlComponentRegistrar)
-                   .build())
+      val model = NlModel.builder(facet, betterFile, config)
+        .withParentDisposable(parentDisposable)
+        .withModelDisplayName(label)
+        .withModelTooltip(config.toHtmlTooltip())
+        .withComponentRegistrar(NlComponentRegistrar)
+        .build()
+      models.add(model)
+
+      registerModelsProviderConfigurationListener(model, currentFileConfig, config, EFFECTIVE_FLAGS)
     }
     return models
   }

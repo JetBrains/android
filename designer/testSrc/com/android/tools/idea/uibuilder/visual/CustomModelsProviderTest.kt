@@ -153,6 +153,31 @@ class CustomModelsProviderTest : LayoutTestCase() {
     assertEquals(defaultFile.virtualFile, nlModels[0].virtualFile)
     assertEquals(landFile.virtualFile, nlModels[1].virtualFile)
   }
+
+  fun testReflectConfigurationFromSource() {
+    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
+    myFixture.addFileToProject("/res/layout-en/test.xml", LAYOUT_FILE_CONTENT)
+    myFixture.addFileToProject("/res/layout-fr/test.xml", LAYOUT_FILE_CONTENT)
+    myFixture.addFileToProject("/res/layout-jp/test.xml", LAYOUT_FILE_CONTENT)
+
+    val manager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val sourceConfig = manager.getConfiguration(file.virtualFile)
+
+    val listener = Mockito.mock(ConfigurationSetListener::class.java)
+    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
+    // The first NlModel use the sourceConfig. Do not test it.
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet).drop(1)
+
+    verifyAdaptiveShapeReflected(sourceConfig, nlModels, false)
+    verifyDeviceReflected(sourceConfig, nlModels, false)
+    verifyDeviceStateReflected(sourceConfig, nlModels, false)
+    verifyUiModeReflected(sourceConfig, nlModels, false)
+    verifyNightModeReflected(sourceConfig, nlModels, false)
+    verifyThemeReflected(sourceConfig, nlModels, false)
+    verifyTargetReflected(sourceConfig, nlModels, false)
+    verifyLocaleReflected(sourceConfig, nlModels, false)
+    verifyFontReflected(sourceConfig, nlModels, false)
+  }
 }
 
 @Language("Xml")
