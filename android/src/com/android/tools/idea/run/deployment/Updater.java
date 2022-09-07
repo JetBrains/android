@@ -23,6 +23,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolder;
 import icons.StudioIcons;
@@ -197,7 +198,7 @@ final class Updater {
     }
 
     myPresentation.setEnabled(false);
-    if (IdeInfo.getInstance().isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio() || ApplicationManager.getApplication().isUnitTestMode()) {
       myPresentation.setDescription("Not applicable for the \"" + configuration.getName() + "\" configuration");
     }
     else {
