@@ -23,12 +23,12 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import javax.swing.JCheckBox
 
 /**
@@ -36,9 +36,8 @@ import javax.swing.JCheckBox
  */
 @RunsInEdt
 class EmulatorSettingsUiTest {
-  private val projectRule = AndroidProjectRule.inMemory()
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  val ruleChain = RuleChain(AndroidProjectRule.inMemory(), EdtRule())
 
   private val settings
     get() = EmulatorSettings.getInstance()
@@ -58,8 +57,7 @@ class EmulatorSettingsUiTest {
     val provider = EmulatorConfigurableProvider()
     assertThat(provider.canCreateConfigurable()).isTrue()
     val settingsUi = provider.createConfigurable()
-    val component = settingsUi.createComponent()!!
-    val ui = FakeUi(component)
+    val ui = FakeUi(settingsUi.createComponent()!!)
     val launchInToolWindowCheckBox = ui.getComponent<JCheckBox> { c -> c.text == "Launch in a tool window" }
     val synchronizeClipboardCheckBox = ui.getComponent<JCheckBox> { c -> c.text == "Enable clipboard sharing" }
     val snapshotAutoDeletionPolicyComboBox = ui.getComponent<ComboBox<*>> { it.selectedItem is SnapshotAutoDeletionPolicy }
