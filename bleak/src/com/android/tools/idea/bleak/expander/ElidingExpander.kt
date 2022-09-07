@@ -26,15 +26,27 @@ import java.util.IdentityHashMap
  * to them).
  */
 class ElidingExpander(val baseTypeName: String, val childFinder: Any.() -> List<Any>): Expander() {
+  private val labelToNodeMap: MutableMap<Node, MutableMap<Label, Node>> = mutableMapOf()
   override fun canExpand(obj: Any) = obj.javaClass.name == baseTypeName
 
   override fun expand(n: Node) {
+    val children = childFinder(n.obj)
+    val map = if (children.size > LABEL_MAP_DEGREE_THRESHOLD) {
+      labelToNodeMap[n] = mutableMapOf()
+      labelToNodeMap[n]
+    } else null
     for (child in childFinder(n.obj)) {
-      n.addEdgeTo(child, ObjectLabel(child))
+      val label = ObjectLabel(child);
+      val childNode = n.addEdgeTo(child, ObjectLabel(child))
+      if (childNode != null && map != null && map[label] == null) {
+        map[label] = childNode
+      }
     }
   }
 
   override fun canPotentiallyGrowIndefinitely(n: Node) = true
+
+  override fun getChildForLabel(n: Node, label: Label): Node? = labelToNodeMap[n]?.get(label) ?: super.getChildForLabel(n, label)
 
   companion object {
     private fun List<Any>.fields(vararg names: String): List<Any> = flatMap { obj ->
@@ -71,5 +83,6 @@ class ElidingExpander(val baseTypeName: String, val childFinder: Any.() -> List<
     )
 
     fun getExpanders() = childFinders.map { ElidingExpander(it.first, it.second) }
+    private const val LABEL_MAP_DEGREE_THRESHOLD = 50
   }
 }
