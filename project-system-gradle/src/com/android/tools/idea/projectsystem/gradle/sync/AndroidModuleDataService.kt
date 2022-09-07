@@ -45,6 +45,8 @@ import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModu
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.getAllLinkedModules
+import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.run.RunConfigurationChecker
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
@@ -121,7 +123,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
           ?: createAndroidFacet(module, facetModel)
         // Configure that Android facet from the information in the AndroidModuleModel.
         val gradleAndroidModel = modelFactory(androidModel)
-        configureFacet(androidFacet, gradleAndroidModel)
+        configureFacet(androidFacet, module, gradleAndroidModel)
 
         moduleValidator.validate(module, gradleAndroidModel)
       }
@@ -294,7 +296,7 @@ private fun createAndroidFacet(module: Module, facetModel: ModifiableFacetModel)
  *
  * Note: we use the currently selected variant of the [androidModuleModel] to perform the configuration.
  */
-private fun configureFacet(androidFacet: AndroidFacet, androidModuleModel: GradleAndroidModel) {
+private fun configureFacet(androidFacet: AndroidFacet, module: Module, androidModuleModel: GradleAndroidModel) {
   @Suppress("DEPRECATION") // One of the legitimate assignments to the property.
   androidFacet.properties.ALLOW_USER_CONFIGURATION = false
   @Suppress("DEPRECATION")
@@ -314,19 +316,27 @@ private fun configureFacet(androidFacet: AndroidFacet, androidModuleModel: Gradl
   androidFacet.properties.RES_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider.resDirectories.firstOrNull())
   androidFacet.properties.ASSETS_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider.assetsDirectories.firstOrNull())
 
-  androidFacet.properties.RES_FOLDERS_RELATIVE_PATH = (androidModuleModel.activeSourceProviders.flatMap { provider ->
-    provider.resDirectories
-  } + androidModuleModel.mainArtifact.generatedResourceFolders).joinToString(PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
-    VfsUtilCore.pathToUrl(file.absolutePath)
+  androidFacet.properties.RES_FOLDERS_RELATIVE_PATH = when {
+    module.isMainModule() ->
+      (androidModuleModel.activeSourceProviders.flatMap { provider ->
+        provider.resDirectories
+      } + androidModuleModel.mainArtifact.generatedResourceFolders).joinToString(PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
+        VfsUtilCore.pathToUrl(file.absolutePath)
+      }
+    else -> ""
   }
 
   val testGenResources = androidModuleModel.getArtifactForAndroidTest()?.generatedResourceFolders ?: listOf()
   // Why don't we include the standard unit tests source providers here?
   val testSourceProviders = androidModuleModel.androidTestSourceProviders
-  androidFacet.properties.TEST_RES_FOLDERS_RELATIVE_PATH = (testSourceProviders.flatMap { provider ->
-    provider.resDirectories
-  } + testGenResources).joinToString(PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
-    VfsUtilCore.pathToUrl(file.absolutePath)
+  androidFacet.properties.TEST_RES_FOLDERS_RELATIVE_PATH = when {
+    module.isAndroidTestModule() ->
+      (testSourceProviders.flatMap { provider ->
+        provider.resDirectories
+      } + testGenResources).joinToString(PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
+        VfsUtilCore.pathToUrl(file.absolutePath)
+      }
+    else -> ""
   }
 
   AndroidModel.set(androidFacet, androidModuleModel)

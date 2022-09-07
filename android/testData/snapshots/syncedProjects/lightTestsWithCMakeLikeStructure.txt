@@ -24,12 +24,8 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -112,9 +108,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/build/generated/res/resValues/debug [-]
+            - ResFoldersRelativePath      :  [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTestDebug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
@@ -222,9 +216,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
             - ResFoldersRelativePath      : file://<PROJECT>/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/src/debug/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -324,12 +316,8 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0

@@ -147,14 +147,16 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
   }
 
   private fun readFromFacetState(facet: AndroidFacet): Folders {
-    val state = facet.configuration.state
-    val mainFolders = state.RES_FOLDERS_RELATIVE_PATH
+    // TODO(b/246530964): can we use SourceProviders to get this information?
+    val mainFolders = facet.mainModule.androidFacet?.configuration?.state?.RES_FOLDERS_RELATIVE_PATH
     return if (mainFolders != null) {
       // We have state saved in the facet.
       val manager = VirtualFileManager.getInstance()
       Folders(
         main = mainFolders.toVirtualFiles(manager),
-        test = state.TEST_RES_FOLDERS_RELATIVE_PATH?.toVirtualFiles(manager).orEmpty()
+        test = facet
+          .androidTestModule?.androidFacet?.configuration?.state?.TEST_RES_FOLDERS_RELATIVE_PATH?.toVirtualFiles(manager)
+          .orEmpty()
       )
     }
     else {

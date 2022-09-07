@@ -23,11 +23,8 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /AndroidManifest.xml
             ResFolderRelativePath         : /res
-            - ResFoldersRelativePath      : file://<TEMP>/res
-            - ResFoldersRelativePath      : file://<TEMP>/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<TEMP>/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/build/generated/res/resValues/androidTest/debug [-]
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
             PackTestCode                  : false
@@ -105,9 +102,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /AndroidManifest.xml
             ResFolderRelativePath         : /res
-            - ResFoldersRelativePath      : file://<TEMP>/res
-            - ResFoldersRelativePath      : file://<TEMP>/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<TEMP>/build/generated/res/resValues/debug [-]
+            - ResFoldersRelativePath      :  [-]
             - TestResFoldersRelativePath  : file://<TEMP>/src/androidTestDebug/res [-]
             - TestResFoldersRelativePath  : file://<TEMP>/build/generated/res/resValues/androidTest/debug [-]
             LibsFolderRelativePath        : /libs
@@ -205,8 +200,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             - ResFoldersRelativePath      : file://<TEMP>/res
             - ResFoldersRelativePath      : file://<TEMP>/src/debug/res [-]
             - ResFoldersRelativePath      : file://<TEMP>/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/build/generated/res/resValues/androidTest/debug [-]
+            - TestResFoldersRelativePath  :  [-]
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
             PackTestCode                  : false
@@ -303,11 +297,8 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /AndroidManifest.xml
             ResFolderRelativePath         : /res
-            - ResFoldersRelativePath      : file://<TEMP>/res
-            - ResFoldersRelativePath      : file://<TEMP>/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<TEMP>/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/build/generated/res/resValues/androidTest/debug [-]
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
             PackTestCode                  : false

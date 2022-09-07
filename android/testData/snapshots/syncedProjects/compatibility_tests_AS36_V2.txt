@@ -52,12 +52,8 @@ PROJECT                       : AS36
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -140,9 +136,7 @@ PROJECT                       : AS36
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
+            - ResFoldersRelativePath      :  [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
@@ -348,9 +342,7 @@ PROJECT                       : AS36
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -489,12 +481,8 @@ PROJECT                       : AS36
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -690,12 +678,8 @@ PROJECT                       : AS36
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/androidTest/debug [-]
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 6
@@ -774,9 +758,7 @@ PROJECT                       : AS36
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/debug [-]
+            - ResFoldersRelativePath      :  [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/androidTest/debug [-]
@@ -884,9 +866,7 @@ PROJECT                       : AS36
             - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/src/debug/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/androidTest/debug [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 6
@@ -987,12 +967,8 @@ PROJECT                       : AS36
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/androidTest/debug [-]
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 6
@@ -1086,12 +1062,8 @@ PROJECT                       : AS36
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/androidTest/debug [-]
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 6
@@ -1170,9 +1142,7 @@ PROJECT                       : AS36
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/debug [-]
+            - ResFoldersRelativePath      :  [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/androidTest/debug [-]
@@ -1280,9 +1250,7 @@ PROJECT                       : AS36
             - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/src/debug/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/androidTest/debug [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 6
@@ -1383,12 +1351,8 @@ PROJECT                       : AS36
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/androidTest/debug [-]
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 6
@@ -1510,12 +1474,8 @@ PROJECT                       : AS36
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/build/generated/res/resValues/androidTest/debug [-]
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -1590,9 +1550,7 @@ PROJECT                       : AS36
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/build/generated/res/resValues/debug [-]
+            - ResFoldersRelativePath      :  [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/androidTestDebug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/build/generated/res/resValues/androidTest/debug [-]
@@ -1790,9 +1748,7 @@ PROJECT                       : AS36
             - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/src/debug/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/build/generated/res/resValues/androidTest/debug [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -1923,12 +1879,8 @@ PROJECT                       : AS36
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/build/generated/res/resValues/androidTest/debug [-]
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
