@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
+import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.DumbService.DUMB_MODE
@@ -43,7 +44,7 @@ internal class SourceCodePreview(psiFile: PsiFile, textEditor: Editor, providers
       }
     })
 
-    updateRepresentations()
+    project.runWhenSmartAndSynced(parentDisposable = this, callback = { updateRepresentations() })
 
     setupChangeListener(project, psiFile, {
       updateRepresentations()
