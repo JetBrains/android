@@ -1,0 +1,260 @@
+syntax = "proto3";
+package com.android.build.attribution;
+option java_package = "com.android.build.attribution";
+option java_multiple_files = true;
+option java_outer_classname = "BuildAnalysisResultsOuterClass";
+
+message BuildAnalysisResultsMessage {
+  optional RequestData requestData = 12;
+  optional AnnotationProcessorsAnalyzerResult annotationProcessorsAnalyzerResult = 1;
+  optional AlwaysRunTasksAnalyzerResult alwaysRunTasksAnalyzerResult = 2;
+  optional CriticalPathAnalyzerResult criticalPathAnalyzerResult = 3;
+  optional NoncacheableTasksAnalyzerResult noncacheableTasksAnalyzerResult= 4;
+  optional GarbageCollectionAnalyzerResult garbageCollectionAnalyzerResult = 5;
+  optional ProjectConfigurationAnalyzerResult projectConfigurationAnalyzerResult = 6;
+  optional TasksConfigurationIssuesAnalyzerResult tasksConfigurationAnalyzerResult = 7;
+  optional JetifierUsageAnalyzerResult jetifierUsageAnalyzerResult = 8;
+  optional DownloadsAnalyzerResult downloadsAnalyzerResult = 9;
+  optional string buildSessionID = 11;
+  optional TaskCache taskCache = 13;
+  optional PluginCache pluginCache = 14;
+
+  message Duration {
+    int64 seconds = 1;
+    int32 nanos = 2;
+  }
+
+  message AnnotationProcessorsAnalyzerResult {
+    repeated AnnotationProcessorsData annotationProcessorsData = 1;
+    repeated AnnotationProcessorsData nonIncrementalAnnotationProcessorsData = 2;
+
+    message AnnotationProcessorsData {
+      optional string className = 1;
+      optional Duration compilationDuration = 2;
+    }
+  }
+
+  message TaskCache {
+    repeated TaskData values = 1;
+  }
+
+  message PluginCache {
+    repeated PluginData values = 1;
+  }
+
+  message AlwaysRunTasksAnalyzerResult {
+    repeated AlwaysRunTasksData alwaysRunTasksData = 1;
+
+    message AlwaysRunTasksData {
+      optional string taskId = 1;
+      optional Reason reason = 2;
+
+      enum Reason {
+        UNSPECIFIED = 0;
+        NO_OUTPUTS_WITH_ACTIONS = 1;
+        UP_TO_DATE_WHEN_FALSE = 2;
+      }
+    }
+  }
+
+  message CriticalPathAnalyzerResult {
+    repeated string taskIdsDeterminingBuildDuration = 1;
+    repeated PluginBuildData pluginsDeterminingBuildDuration = 2;
+    optional int64 buildStartedTimestamp = 3;
+    optional int64 buildFinishedTimestamp = 4;
+
+    message PluginBuildData {
+      optional string pluginID = 1;
+      optional int64 buildDuration = 2;
+    }
+  }
+
+  message PluginData {
+    optional PluginType pluginType = 1;
+    optional string idName = 2;
+
+    enum PluginType {
+      UNKNOWN = 0;
+      BINARY_PLUGIN = 1;
+      BUILDSRC_PLUGIN = 2;
+      SCRIPT = 3;
+    }
+  }
+
+  message TaskData {
+    optional string taskName = 1;
+    optional string projectPath = 2;
+    optional string originPluginId = 3;
+    optional int64 executionStartTime = 4;
+    optional int64 executionEndTime = 5;
+    optional TaskExecutionMode executionMode = 6;
+    repeated string executionReasons = 7;
+
+    enum TaskExecutionMode {
+      UNKNOWN = 0;
+      FROM_CACHE = 1;
+      UP_TO_DATE = 2;
+      INCREMENTAL = 3;
+      FULL = 4;
+    }
+  }
+
+  message NoncacheableTasksAnalyzerResult {
+    repeated string noncacheableTaskIds = 1;
+  }
+
+  message GarbageCollectionAnalyzerResult {
+    repeated GarbageCollectionData garbageCollectionData = 1;
+    optional int32 javaVersion = 2;
+    optional TrueFalseUnknown isSettingSet = 3;
+
+    enum TrueFalseUnknown {
+      UNKNOWN = 0;
+      TRUE = 1;
+      FALSE = 2;
+    }
+
+    message GarbageCollectionData {
+      optional string name = 1;
+      optional int64 collectionTimeMs = 2;
+    }
+  }
+
+  message ProjectConfigurationAnalyzerResult {
+    repeated PluginDataLongMap pluginsConfigurationDataMap = 1;
+    repeated StringPluginDataMap allAppliedPlugins = 2;
+    repeated ProjectConfigurationData projectConfigurationData = 3;
+
+    message  StringPluginDataMap {
+      optional string appliedPlugins = 1;
+      repeated PluginData plugins = 2;
+    }
+
+    message ProjectConfigurationData {
+      optional string projectPath = 1;
+      optional int64 totalConfigurationTime = 2;
+      repeated PluginConfigurationData pluginsConfigurationData = 3;
+      repeated ConfigurationStep configurationSteps = 4;
+
+      message PluginConfigurationData {
+        optional PluginData plugin = 1;
+        optional int64 configurationTimeMS = 2;
+      }
+
+      message ConfigurationStep {
+        optional Type type = 1;
+        optional int64 configurationTimeMs = 2;
+        enum Type {
+          UNKNOWN = 0;
+          NOTIFYING_BUILD_LISTENERS = 1;
+          RESOLVING_DEPENDENCIES = 2;
+          COMPILING_BUILD_SCRIPTS = 3;
+          EXECUTING_BUILD_SCRIPT_BLOCKS = 4;
+          OTHER = 5;
+        }
+      }
+    }
+
+    message PluginDataLongMap {
+      optional PluginData pluginData = 1;
+      optional int64 long = 2;
+    }
+  }
+
+  message TasksConfigurationIssuesAnalyzerResult {
+    repeated TasksSharingOutputData tasksSharingOutputData = 1;
+    message TasksSharingOutputData {
+      optional string outputFilePath = 1;
+      repeated string taskIdList = 2;
+    }
+  }
+
+  message RequestData {
+    optional BuildMode buildMode = 1;
+    optional string rootProjectPathString = 2;
+    repeated string gradleTasks = 3;
+    repeated string jvmArguments = 4;
+    repeated string commandLineArguments = 5;
+    repeated Env env = 6;
+    optional bool isPassParentEnvs = 7;
+
+    message Env {
+      optional string envKey = 1;
+      optional string envValue = 2;
+    }
+    enum BuildMode {
+      UNSPECIFIED = 0;
+      COMPILE_JAVA = 1;
+      ASSEMBLE = 2;
+      REBUILD = 3;
+      CLEAN = 4;
+      SOURCE_GEN = 5;
+      BUNDLE = 6;
+      APK_FROM_BUNDLE = 7;
+    }
+  }
+
+  message JetifierUsageAnalyzerResult {
+    optional JetifierUsageProjectStatus projectStatus = 1;
+    optional int64 lastCheckJetifierBuildTimestamp = 2;
+    optional bool checkJetifierBuild = 3;
+
+    enum JetifierUsageProjectStatus {
+       ANALYZER_NOT_RUN = 0;
+       JETIFIER_NOT_USED = 1;
+       JETIFIER_USED_CHECK_REQUIRED = 2;
+       JETIFIER_CAN_BE_REMOVED = 3;
+       IS_JETIFIER_REQUIRED_FOR_LIBRARIES = 4;
+    }
+  }
+
+  message DownloadsAnalyzerResult {
+    optional ActiveResult activeResult = 1;
+    optional ResultStatus resultStatus = 2;
+
+    enum ResultStatus {
+      ANALYZER_IS_DISABLED = 0;
+      GRADLE_DOES_NOT_PROVIDE_EVENTS = 1;
+      ACTIVE_RESULT = 2;
+    }
+
+    message ActiveResult {
+      repeated RepositoryResult repositoryResult = 1;
+      message RepositoryResult {
+        optional Repository repository = 1;
+        repeated DownloadResult downloads = 2;
+      }
+    }
+
+    message Repository {
+      optional RepositoryType analyticsType = 1;
+      optional string host = 2;
+      enum RepositoryType {
+        UNKNOWN_REPOSITORY = 0;
+        GOOGLE = 1;
+        MAVEN_CENTRAL = 2;
+        JCENTER = 3;
+        OTHER_REPOSITORY = 4;
+      }
+
+    }
+
+    message DownloadResult {
+      optional int64 timestamp = 1;
+      optional Repository repository = 2;
+      optional string url = 3;
+      optional DownloadStatus status = 4;
+      optional int64 duration = 5;
+      optional int64 bytes = 6;
+      optional string failureMessage = 7;
+
+      enum DownloadStatus {
+        UNKNOWN = 0;
+        FAILURE = 1;
+        SUCCESS = 2;
+        MISSED = 3;
+      }
+    }
+  }
+}
+

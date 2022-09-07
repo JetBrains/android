@@ -25,6 +25,7 @@ import org.gradle.tooling.events.ScriptPluginIdentifier
  */
 class PluginContainer {
   private val pluginCache = HashMap<String, PluginData>()
+  val allPlugins: Map<String, PluginData> get() = pluginCache
   private val pluginDisplayNamesToPlugin = HashMap<PluginData.DisplayName, PluginData>()
 
   fun getPlugin(pluginIdentifier: PluginIdentifier?, projectPath: String): PluginData {

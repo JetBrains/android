@@ -167,3 +167,5 @@ object ConfigurationCachingTurnedOff : ConfigurationCachingCompatibilityProjectR
 
 /** Analyzer result for test CC builds started from Build Analyzer. */
 object ConfigurationCacheCompatibilityTestFlow : ConfigurationCachingCompatibilityProjectResult()
+
+object NoDataFromSavedResult : ConfigurationCachingCompatibilityProjectResult()

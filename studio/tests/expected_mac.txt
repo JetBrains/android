@@ -1901,6 +1901,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/asm-tree-9.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/auto-common-0.10.jar
 Android Studio Preview.app/Contents/plugins/android/lib/backgroundtask_inspector_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/baksmali-2.5.2.jar
+Android Studio Preview.app/Contents/plugins/android/lib/build_analysis_results_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/build-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/commons-lang-2.6.jar
 Android Studio Preview.app/Contents/plugins/android/lib/compilerCommon.antlr.shaded_jar.jar

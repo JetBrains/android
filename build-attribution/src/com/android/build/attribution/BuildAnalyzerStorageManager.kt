@@ -49,7 +49,7 @@ interface BuildAnalyzerStorageManager {
     val DATA_IS_READY_TOPIC: Topic<Listener> =
       Topic.create("com.android.build.attribution.BuildAnalyzerStorageManager", Listener::class.java)
 
-    fun getInstance(project: Project): BuildAnalyzerStorageManager {
+    fun getInstance(project: Project) : BuildAnalyzerStorageManager {
       return project.getService(BuildAnalyzerStorageManager::class.java)
     }
   }
