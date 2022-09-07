@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution
 
+import com.android.annotations.concurrency.Slow
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.data.BuildRequestHolder
@@ -79,6 +80,24 @@ class BuildAnalyzerStorageManagerImpl(
   override fun getLatestBuildAnalysisResults(): BuildAnalysisResults {
     if (hasData()) return buildResults!!
     else throw IllegalStateException("Storage Manager does not have data to return.")
+  }
+
+  /**
+   * Attempts to delete the contents of build-analyzer-history-data. Returns true if the deletion is
+   * successful, and otherwise returns false.
+   *
+   * @return Boolean
+   */
+  @Slow
+  override fun clearBuildResultsStored(): Boolean {
+    if(dataFolder != null) {
+      FileUtils.deleteDirectoryContents(dataFolder)
+      return true
+    }
+    else {
+      log.error("could not find build-analyzer-history-data folder.")
+      return false
+    }
   }
 
   override fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID: String, requestHolder: BuildRequestHolder) {
@@ -147,6 +166,34 @@ class BuildAnalyzerStorageManagerImpl(
 
   override fun getHistoricBuildResultByID(buildID: String): BuildAnalysisResults {
     return historicBuildResults[buildID] ?: throw NoSuchElementException("No such build result was found.")
+  }
+
+  /**
+   * Does not take in input, returns the size of the build-analyzer-history-data folder in bytes.
+   * If it fails to locate the folder then 0 is returned.
+   * @return Bytes
+   */
+  override fun getCurrentBuildHistoryDataSize() : Long {
+    var size = 0L
+    if(dataFolder != null) {
+      FileUtils.mkdirs(dataFolder)
+      FileUtils.getAllFiles(dataFolder).forEach { size += it.length() }
+    }
+    return size
+  }
+
+  /**
+   * Does not take an input, returns the number of files in the build-analyzer-history-data folder.
+   * If it fails to locate the folder then 0 is returned.
+   * @return Number of files in build-analyzer-history-data folder
+   */
+  override fun getNumberOfBuildFilesStored() : Int {
+    var size = 0
+    if(dataFolder != null) {
+      FileUtils.mkdirs(dataFolder)
+      size = FileUtils.getAllFiles(dataFolder).size()
+    }
+    return size
   }
 
   override fun getListOfHistoricBuildDescriptors(): Set<BuildDescriptor> {

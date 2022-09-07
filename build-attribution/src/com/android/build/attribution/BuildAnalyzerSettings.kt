@@ -15,6 +15,8 @@
  */
 package com.android.build.attribution
 
+import com.android.build.attribution.ui.view.ClearBuildResultsAction
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.options.BoundSearchableConfigurable
@@ -22,6 +24,8 @@ import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.openapi.util.text.Formats
+import com.intellij.ui.dsl.builder.bindIntText
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 
@@ -37,7 +41,9 @@ class BuildAnalyzerSettings : PersistentStateComponent<BuildAnalyzerSettings.Sta
   }
 
   data class State(
-    var notifyAboutWarnings: Boolean = true
+    var notifyAboutWarnings: Boolean = true,
+    var maxNumberOfBuildsStored: Int = 0,
+    var maxStorageSpaceKilobytes: Int = 0,
   )
 
   override fun getState(): State = settingsState
@@ -60,10 +66,39 @@ class BuildAnalyzerConfigurableProvider(val project: Project) : ConfigurableProv
 private class BuildAnalyzerConfigurable(val project: Project) : BoundSearchableConfigurable(
   displayName = BuildAnalyzerConfigurableProvider.DISPLAY_NAME,
   helpTopic = "build.analyzer"
-){
+) {
   private val buildAnalyzerSettings = BuildAnalyzerSettings.getInstance(project)
 
   override fun createPanel(): DialogPanel = panel {
+    if (StudioFlags.BUILD_ANALYZER_HISTORY.get()) {
+      row {
+        text("Number of build results stored: ${BuildAnalyzerStorageManager.getInstance(project).getNumberOfBuildFilesStored()}")
+        text("File size taken up by stored build results: ${
+          Formats.formatFileSize(BuildAnalyzerStorageManager.getInstance(project).getCurrentBuildHistoryDataSize())
+        }")
+      }
+
+      row {
+        text("Maximum number of build results stored")
+        intTextField(IntRange(0, 100)).bindIntText(
+          getter = { buildAnalyzerSettings.settingsState.maxNumberOfBuildsStored },
+          setter = { buildAnalyzerSettings.settingsState.maxNumberOfBuildsStored = it }
+        )
+      }
+
+      row {
+        text("Maximum storage capacity in kilobytes")
+        intTextField(IntRange(0, 100000)).bindIntText(
+          getter = { buildAnalyzerSettings.settingsState.maxStorageSpaceKilobytes },
+          setter = { buildAnalyzerSettings.settingsState.maxStorageSpaceKilobytes = it }
+        )
+      }
+
+      row {
+        button("Clear Build Results Data", ClearBuildResultsAction())
+      }
+    }
+
     row {
       checkBox("Notify about new warning types").bindSelected(
         getter = { buildAnalyzerSettings.settingsState.notifyAboutWarnings },

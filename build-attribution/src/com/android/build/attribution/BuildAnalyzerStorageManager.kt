@@ -40,6 +40,9 @@ interface BuildAnalyzerStorageManager {
    */
   fun getHistoricBuildResultByID(buildID : String) : BuildAnalysisResults
   fun getListOfHistoricBuildDescriptors(): Set<BuildDescriptor>
+  fun clearBuildResultsStored(): Boolean
+  fun getCurrentBuildHistoryDataSize(): Long
+  fun getNumberOfBuildFilesStored(): Int
 
   interface Listener {
     fun newDataAvailable()
