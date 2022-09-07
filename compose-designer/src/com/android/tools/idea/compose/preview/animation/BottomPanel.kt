@@ -66,7 +66,7 @@ class BottomPanel(val previewState: AnimationPreviewState,
     override fun createCustomComponent(presentation: Presentation,
                                        place: String): JComponent =
       (super.createCustomComponent(presentation, place) as JBLabel).apply {
-        font = JBFont.small()
+        font = JBFont.smallOrNewUiMedium()
         foreground = UIUtil.getContextHelpForeground()
         border = JBUI.Borders.empty(6) // Empty border to align label vertically.
       }
