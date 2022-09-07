@@ -16,13 +16,10 @@
 package com.android.tools.idea.preview.actions
 
 import com.android.tools.adtui.InformationPopup
-import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.error.IssuePanelService
-import com.android.tools.idea.common.error.setIssuePanelVisibilityNoTracking
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.projectsystem.requestBuild
-import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.icons.AllIcons
 import com.intellij.notification.EventLog
 import com.intellij.openapi.Disposable
@@ -219,7 +216,7 @@ class BuildAndRefresh(private val fileProvider: () -> PsiFile?) : AnAction() {
 }
 
 /**
- * [AnAction] that shows the "Problems" panel.
+ * [AnAction] that shows the "Problems" panel with the "Current File" tab selected.
  */
 class ShowProblemsPanel : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
