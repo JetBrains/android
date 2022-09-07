@@ -18,6 +18,8 @@ package com.android.tools.idea.annotations
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.project.DumbService
+import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
@@ -78,6 +80,38 @@ class AnnotatedMethodsFinderTest {
     assertEquals(1, CacheKeysManager.map().size)
     assertFalse(hasAnnotations(project, sourceFile.virtualFile, setOf("com.android.annotations.IDoNotExist"), "IDoNotExist"))
     assertEquals(2, CacheKeysManager.map().size)
+  }
+
+  @Test
+  fun `test hasAnnotations dumb mode`() {
+    fixture.addFileToProjectAndInvalidate(
+      "com/android/annotations/MyAnnotation.kt",
+      // language=kotlin
+      """
+        package com.android.annotations
+
+        annotation class MyAnnotation
+        """.trimIndent())
+    val sourceFile = fixture.addFileToProjectAndInvalidate(
+      "com/android/test/SourceFile.kt",
+      // language=kotlin
+      """
+        package com.android.test
+
+        import com.android.annotations.MyAnnotation
+
+        @MyAnnotation
+        fun Foo1() { }
+        """.trimIndent())
+
+    val testDumbService = TestDumbService(fixture.project)
+    fixture.project.replaceService(DumbService::class.java, testDumbService, project)
+
+    assertFalse(hasAnnotations(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotation"), "MyAnnotation"))
+
+    testDumbService.dumbMode = false
+
+    assertTrue(hasAnnotations(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotation"), "MyAnnotation"))
   }
 
   @Test

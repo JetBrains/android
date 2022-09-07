@@ -45,6 +45,7 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.isRejected
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.caches.resolve.util.isInDumbMode
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -65,6 +66,9 @@ private fun hasAnnotationsUncached(project: Project, vFile: VirtualFile,
                                    annotations: Set<String>,
                                    shortAnnotationName: String,
                                    filter: (KtAnnotationEntry) -> Boolean): Boolean = runReadAction {
+  if (project.isInDumbMode()) {
+    return@runReadAction false
+  }
   // This method can not call any methods that require smart mode.
   fun isFullNameAnnotation(annotation: KtAnnotationEntry) =
     // We use text() to avoid obtaining the FQN as that requires smart mode
@@ -124,9 +128,10 @@ fun hasAnnotations(
   return CachedValuesManager.getManager(project).getCachedValue(
     psiFile,
     CacheKeysManager.getKey(HasFilteredAnnotationsKey(annotations, shortAnnotationName, filter))) {
-    CachedValueProvider.Result.createSingleDependency(
+    CachedValueProvider.Result.create(
       hasAnnotationsUncached(project, vFile, annotations, shortAnnotationName, filter),
-      psiFile
+      psiFile,
+      DumbService.getInstance(project).modificationTracker
     )
   }
 }

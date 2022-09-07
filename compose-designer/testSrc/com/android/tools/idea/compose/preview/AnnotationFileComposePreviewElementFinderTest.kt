@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.flags.junit.SetFlagRule
+import com.android.tools.idea.annotations.TestDumbService
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ParametrizedComposePreviewElementTemplate
@@ -27,10 +28,11 @@ import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.tree.injected.changesHandler.range
+import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.GlobalScope
@@ -468,6 +470,8 @@ class AnnotationFileComposePreviewElementFinderTest(
    */
   @Test
   fun testDumbMode() = runBlocking {
+    val dumbService = TestDumbService(project)
+    project.replaceService(DumbService::class.java, dumbService, project)
     val composeTest =
       fixture.addFileToProjectAndInvalidate(
         "src/Test.kt",
@@ -489,8 +493,7 @@ class AnnotationFileComposePreviewElementFinderTest(
       )
 
     runInEdtAndWait {
-      DumbServiceImpl.getInstance(project).isDumb = true
-      assertTrue(
+      assertFalse(
         AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
       )
     }
@@ -502,7 +505,12 @@ class AnnotationFileComposePreviewElementFinderTest(
       withTimeout(2500) { result.await() }
       fail("The result should not have been returned in non-smart mode")
     } catch (_: TimeoutCancellationException) {}
-    runInEdtAndWait { DumbServiceImpl.getInstance(project).isDumb = false }
+    runInEdtAndWait {
+      dumbService.dumbMode = false
+      assertTrue(
+        AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+      )
+    }
     assertEquals(2, result.await().size)
   }
 
