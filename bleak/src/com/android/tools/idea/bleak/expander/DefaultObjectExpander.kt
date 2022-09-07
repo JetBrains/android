@@ -55,7 +55,14 @@ open class DefaultObjectExpander(val shouldOmitEdge: (Any, Field, Any) -> Boolea
   override fun expandCorrespondingEdge(n: Node, e: Edge): Node? {
     if (e.label is FieldLabel && e.label.field.declaringClass.isAssignableFrom(n.type)) {
       val obj = e.label.field.get(n.obj)
-      if (obj != null) return n.addEdgeTo(obj, e.label)
+      if (obj != null) {
+        val existingEdge = n.edges.find { it.label == e.label }
+        if (existingEdge == null) {
+          return n.addEdgeTo(obj, e.label)
+        } else {
+          return existingEdge.end
+        }
+      }
     }
     return null
   }

@@ -70,8 +70,13 @@ class MainBleakCheck(ignoreList: IgnoreList<LeakInfo>,
   }
 
   override fun middleIterationFinished() {
-    g2 = buildGraph()
-    g1.propagateGrowing(g2)
+    if (g1.leakRoots.size < INCREMENTAL_PROPAGATION_THRESHOLD) {
+      g2 = HeapGraph(options(), forbiddenObjects)
+      g1.propagateGrowingIncremental(g2)
+    } else {
+      g2 = buildGraph()
+      g1.propagateGrowing(g2)
+    }
     g1 = g2
   }
 
@@ -82,6 +87,10 @@ class MainBleakCheck(ignoreList: IgnoreList<LeakInfo>,
 
   override fun getResults(ignoreList: IgnoreList<LeakInfo>): List<LeakInfo> {
     return g2.getLeaks(g1, ignoreList, dominatorTimeout)
+  }
+
+  companion object {
+    private const val INCREMENTAL_PROPAGATION_THRESHOLD = 5_000
   }
 
 }

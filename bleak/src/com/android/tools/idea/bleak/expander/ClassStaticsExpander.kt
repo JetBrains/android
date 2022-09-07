@@ -42,7 +42,14 @@ class ClassStaticsExpander: Expander() {
   override fun expandCorrespondingEdge(n: Node, e: Edge): Node? {
     if (e.label is FieldLabel && (e.label.field.modifiers and Modifier.STATIC) != 0) {
       val obj = e.label.field.get(null)
-      if (obj != null) return n.addEdgeTo(obj, e.label)
+      if (obj != null) {
+        val existingEdge = n.edges.find { it.label == e.label }
+        if (existingEdge == null) {
+          return n.addEdgeTo(obj, e.label)
+        } else {
+          return existingEdge.end
+        }
+      }
     }
     return null
   }
