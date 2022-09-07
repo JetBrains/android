@@ -705,6 +705,12 @@
     <iw.actionProvider implementation="com.android.tools.idea.editors.liveedit.ui.LiveEditActionProvider"/>
 
     <notificationGroup id="Fast Preview Notification" displayType="NONE"/>
+    <regExpLanguageHost forClass="com.intellij.psi.impl.source.tree.java.PsiLiteralExpressionImpl"
+                        implementationClass="com.android.tools.idea.editors.AndroidRegExpHost"
+                        order="first" />
+    <regExpLanguageHost forClass="org.jetbrains.kotlin.psi.KtStringTemplateExpression"
+                        implementationClass="com.android.tools.idea.editors.AndroidRegExpHost"
+                        order="first" />
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
