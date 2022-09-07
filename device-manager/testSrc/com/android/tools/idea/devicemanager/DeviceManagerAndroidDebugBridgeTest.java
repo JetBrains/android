@@ -34,7 +34,6 @@ import org.mockito.Mockito;
 public final class DeviceManagerAndroidDebugBridgeTest {
   private final @NotNull IDevice myDevice;
   private final @NotNull DeviceManagerAndroidDebugBridge myBridge;
-  private final @NotNull Key myKey;
 
   public DeviceManagerAndroidDebugBridgeTest() {
     myDevice = Mockito.mock(IDevice.class);
@@ -44,7 +43,6 @@ public final class DeviceManagerAndroidDebugBridgeTest {
     Mockito.when(bridge.getDevices()).thenReturn(new IDevice[]{myDevice});
 
     myBridge = new DeviceManagerAndroidDebugBridge(project -> Futures.immediateFuture(bridge));
-    myKey = TestVirtualDevices.newKey("Pixel_5_API_31");
   }
 
   @Test
@@ -53,7 +51,7 @@ public final class DeviceManagerAndroidDebugBridgeTest {
     Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(null));
 
     // Act
-    Future<IDevice> future = myBridge.findDevice(null, myKey);
+    Future<IDevice> future = myBridge.findDevice(null, TestVirtualDevices.PIXEL_5_API_31_KEY);
 
     // Assert
     assertNull(TestDeviceManagerFutures.get(future));
@@ -62,10 +60,11 @@ public final class DeviceManagerAndroidDebugBridgeTest {
   @Test
   public void findDevice() throws Exception {
     // Arrange
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData("Pixel_5_API_31", myKey.toString())));
+    AvdData avd = new AvdData("Pixel_5_API_31", TestVirtualDevices.PIXEL_5_API_31_KEY.toString());
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(avd));
 
     // Act
-    Future<IDevice> future = myBridge.findDevice(null, myKey);
+    Future<IDevice> future = myBridge.findDevice(null, TestVirtualDevices.PIXEL_5_API_31_KEY);
 
     // Assert
     assertEquals(myDevice, TestDeviceManagerFutures.get(future));

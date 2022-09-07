@@ -22,12 +22,14 @@ import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 
 public final class TestVirtualDevices {
+  public static final @NotNull Key PIXEL_5_API_31_KEY = newKey("Pixel_5_API_31");
+
   private TestVirtualDevices() {
   }
 
   public static @NotNull VirtualDevice pixel5Api31(@NotNull AvdInfo avd) {
     return new VirtualDevice.Builder()
-      .setKey(newKey("Pixel_5_API_31"))
+      .setKey(PIXEL_5_API_31_KEY)
       .setName("Pixel 5 API 31")
       .setTarget("Android 12.0 Google APIs")
       .setCpuArchitecture("x86_64")
@@ -38,7 +40,7 @@ public final class TestVirtualDevices {
 
   static @NotNull VirtualDevice onlinePixel5Api31(@NotNull AvdInfo avd) {
     return new VirtualDevice.Builder()
-      .setKey(newKey("Pixel_5_API_31"))
+      .setKey(PIXEL_5_API_31_KEY)
       .setName("Pixel 5 API 31")
       .setTarget("Android 12.0 Google APIs")
       .setCpuArchitecture("x86_64")

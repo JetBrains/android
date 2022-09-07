@@ -32,6 +32,7 @@ import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.S
 import com.android.tools.idea.testing.swing.TableModelEventArgumentMatcher;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import java.util.List;
@@ -94,7 +95,7 @@ public final class VirtualDeviceTableModelTest {
   public void isCellEditableCaseLaunchOrStopModelColumnIndex() {
     // Arrange
     VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(TestVirtualDevices.newKey("Pixel_5_API_31"))
+      .setKey(TestVirtualDevices.PIXEL_5_API_31_KEY)
       .setName("Pixel 5 API 31")
       .setTarget("Android 12.0 Google APIs")
       .setCpuArchitecture("x86_64")
@@ -168,7 +169,7 @@ public final class VirtualDeviceTableModelTest {
 
     // Assert
     Object device = new VirtualDevice.Builder()
-      .setKey(TestVirtualDevices.newKey("Pixel_5_API_31"))
+      .setKey(TestVirtualDevices.PIXEL_5_API_31_KEY)
       .setName("Pixel 5 API 31")
       .setTarget("Android 12.0 Google APIs")
       .setCpuArchitecture("x86_64")
@@ -227,7 +228,7 @@ public final class VirtualDeviceTableModelTest {
     Mockito.when(myConnection.isAvdRunning(myAvd)).thenReturn(true);
 
     DeviceManagerAndroidDebugBridge bridge = Mockito.mock(DeviceManagerAndroidDebugBridge.class);
-    Mockito.when(bridge.findDevice(null, TestVirtualDevices.newKey("Pixel_5_API_31"))).thenReturn(Futures.immediateFuture(null));
+    Mockito.when(bridge.findDevice(null, TestVirtualDevices.PIXEL_5_API_31_KEY)).thenReturn(Futures.immediateFuture(null));
 
     @SuppressWarnings("unchecked")
     BiConsumer<Throwable, Project> showErrorDialog = Mockito.mock(BiConsumer.class);
@@ -286,10 +287,10 @@ public final class VirtualDeviceTableModelTest {
   public void setValueAtStopSucceeded() throws Exception {
     // Arrange
     CountDownLatch latch = new CountDownLatch(1);
-    Key key = TestVirtualDevices.newKey("Pixel_5_API_31");
+    ListenableFuture<IDevice> future = Futures.immediateFuture(Mockito.mock(IDevice.class));
 
     DeviceManagerAndroidDebugBridge bridge = Mockito.mock(DeviceManagerAndroidDebugBridge.class);
-    Mockito.when(bridge.findDevice(null, key)).thenReturn(Futures.immediateFuture(Mockito.mock(IDevice.class)));
+    Mockito.when(bridge.findDevice(null, TestVirtualDevices.PIXEL_5_API_31_KEY)).thenReturn(future);
 
     EmulatorConsole console = Mockito.mock(EmulatorConsole.class);
 
@@ -311,7 +312,7 @@ public final class VirtualDeviceTableModelTest {
     CountDownLatchAssert.await(latch);
 
     Object device = new VirtualDevice.Builder()
-      .setKey(key)
+      .setKey(TestVirtualDevices.PIXEL_5_API_31_KEY)
       .setName("Pixel 5 API 31")
       .setTarget("Android 12.0 Google APIs")
       .setCpuArchitecture("x86_64")

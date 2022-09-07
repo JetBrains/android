@@ -49,7 +49,7 @@ public final class VirtualDeviceDetailsPanelTest {
     VirtualDevice virtualDevice = TestVirtualDevices.onlinePixel5Api31(myAvd);
 
     Device device = new VirtualDevice.Builder()
-      .setKey(TestVirtualDevices.newKey("Pixel_5_API_31"))
+      .setKey(TestVirtualDevices.PIXEL_5_API_31_KEY)
       .setName("Pixel 5 API 31")
       .setTarget("Android 12.0 Google APIs")
       .setCpuArchitecture("x86_64")
