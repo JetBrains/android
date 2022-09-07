@@ -61,9 +61,8 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
     row {
       synchronizeClipboardCheckBox =
         checkBox("Enable clipboard sharing")
-          .enabledIf(launchInToolWindowCheckBox.selected)
           .component
-    }.topGap(TopGap.SMALL)
+    }.topGap(TopGap.SMALL).enabledIf(launchInToolWindowCheckBox.selected)
     row {
       panel {
         row("When encountering snapshots incompatible with the current configuration:") {}
@@ -73,11 +72,10 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
                      renderer = SimpleListCellRenderer.create(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY.displayName) { it.displayName })
               .bindItem(snapshotAutoDeletionPolicyComboBoxModel::getSelectedItem,
                         snapshotAutoDeletionPolicyComboBoxModel::setSelectedItem)
-              .enabledIf(launchInToolWindowCheckBox.selected)
               .component
         }
       }
-    }.topGap(TopGap.SMALL)
+    }.topGap(TopGap.SMALL).enabledIf(launchInToolWindowCheckBox.selected)
     row {
       panel {
         row("Velocity control keys for virtual scene camera:") {}
@@ -87,11 +85,10 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
                      renderer = SimpleListCellRenderer.create(DEFAULT_CAMERA_VELOCITY_CONTROLS.label) { it.label })
               .bindItem(cameraVelocityControlComboBoxModel::getSelectedItem,
                         cameraVelocityControlComboBoxModel::setSelectedItem)
-              .enabledIf(launchInToolWindowCheckBox.selected)
               .component
         }
       }
-    }.topGap(TopGap.SMALL)
+    }.topGap(TopGap.SMALL).enabledIf(launchInToolWindowCheckBox.selected)
   }
 
   override fun isModified(): Boolean {
