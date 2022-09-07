@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.deployer.tasks.LiveUpdateDeployer
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.psi.PsiFile
 
 /**
  * Centralized place to handle errors reporting and metrics.
@@ -30,12 +31,14 @@ fun reportLiveEditError(exception: LiveEditUpdateException) {
 }
 
 fun errorMessage(exception: LiveEditUpdateException) : String {
+  val source: PsiFile? = exception.source ?: return "${exception.error.message}: \n ${exception.details} \n"
+
   when (exception.error) {
     LiveEditUpdateException.Error.COMPILATION_ERROR -> {
-      return "Compilation Error${exception.source?.let {" in ${it.name}"}}. Live Edit is temporary paused until all errors are fixed."
+      return "Compilation Error in $source. Live Edit is temporary paused until all errors are fixed."
     }
     LiveEditUpdateException.Error.ANALYSIS_ERROR -> {
-      return "Compilation Error${exception.source?.let {" in ${it.name}"}}. Live Edit is temporary paused until all errors are fixed."
+      return "Analysis Error in $source. Live Edit is temporary paused until all errors are fixed."
     }
   }
   return "${exception.error.message}: \n ${exception.details} \n"
