@@ -144,7 +144,7 @@ class SuspendingChannelsTest {
     runBlocking {
       SuspendingSocketChannel.open().use { channel ->
         channel.connect(serverChannel.localAddress)
-        assertThat(connected.await(2, TimeUnit.MILLISECONDS)).isTrue()
+        assertThat(connected.await(5, TimeUnit.MILLISECONDS)).isTrue()
 
         assertThat(closed.await(2, TimeUnit.MILLISECONDS)).isTrue()
         assertThrows(IOException::class.java) {
