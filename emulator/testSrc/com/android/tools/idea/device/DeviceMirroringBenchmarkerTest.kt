@@ -57,7 +57,6 @@ class DeviceMirroringBenchmarkerTest {
   private val view = TestDisplayView(Dimension(WIDTH, HEIGHT))
   private val mousePressedLocations: MutableList<Point> = mutableListOf()
   private val mouseReleasedLocations: MutableList<Point> = mutableListOf()
-  private val dispatchedKeys: MutableList<Int> = mutableListOf()
   private val benchmarkResults: MutableList<DeviceMirroringBenchmarker.BenchmarkResults> = mutableListOf()
   private val testTimeSource = TestTimeSource()
   private val mockTimer: Timer = mock()
@@ -363,17 +362,9 @@ class DeviceMirroringBenchmarkerTest {
       displayRectangle = Rectangle(deviceDisplaySize)
       val mouseListener = object : MouseListener {
         override fun mouseClicked(e: MouseEvent) {}
-
-        override fun mousePressed(e: MouseEvent) {
-          mousePressedLocations.add(e.location)
-        }
-
-        override fun mouseReleased(e: MouseEvent) {
-          mouseReleasedLocations.add(e.location)
-        }
-
+        override fun mousePressed(e: MouseEvent) { mousePressedLocations.add(e.location) }
+        override fun mouseReleased(e: MouseEvent) { mouseReleasedLocations.add(e.location) }
         override fun mouseEntered(e: MouseEvent) {}
-
         override fun mouseExited(e: MouseEvent) {}
       }
       addMouseListener(mouseListener)
@@ -382,9 +373,6 @@ class DeviceMirroringBenchmarkerTest {
     override fun canZoom() = false
     override fun computeActualSize() = deviceDisplaySize
     override fun dispose() {}
-    override fun dispatchKey(keyCode: Int) {
-      dispatchedKeys.add(keyCode)
-    }
     fun notifyFrame(frame: BufferedImage) {
       notifyFrameListeners(Rectangle(), frame)
     }

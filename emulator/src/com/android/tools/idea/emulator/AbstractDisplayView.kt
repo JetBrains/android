@@ -272,9 +272,6 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     fun frameRendered(frameNumber: Int, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage)
   }
 
-  /** Dispatches a keystroke to the device. This allows us to dispatch keystrokes that are not covered by virtual keycodes in Swing. */
-  internal abstract fun dispatchKey(keyCode: Int)
-
   internal fun toDeviceDisplayCoordinates(p: Point): Point? {
     val displayRectangle = displayRectangle ?: return null
     val imageSize = displayRectangle.size.rotatedByQuadrants(displayOrientationQuadrants)

@@ -29,6 +29,7 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.util.Timer
@@ -142,7 +143,7 @@ class DeviceMirroringBenchmarker(
   @Synchronized
   fun start() {
     state = State.FINDING_TOUCHABLE_AREA
-    abstractDisplayView.dispatchKey(AKEYCODE_VOLUME_UP)
+    press(KeyEvent.VK_UP)
   }
 
   @Synchronized
@@ -175,6 +176,13 @@ class DeviceMirroringBenchmarker(
                    1,
                    false,
                    MouseEvent.BUTTON1))
+    }
+  }
+
+  private fun press(keyCode: Int, keyChar: Char = KeyEvent.CHAR_UNDEFINED) {
+    UIUtil.invokeLaterIfNeeded {
+      abstractDisplayView.dispatchEvent(
+        KeyEvent(abstractDisplayView, KeyEvent.KEY_PRESSED, System.currentTimeMillis(),0, keyCode, keyChar))
     }
   }
 

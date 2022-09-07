@@ -341,10 +341,6 @@ class EmulatorView(
     }
   }
 
-  override fun dispatchKey(keyCode: Int) {
-    emulator.sendKey(KeyboardEvent.newBuilder().setKeyCode(keyCode).build())
-  }
-
   private fun updateConnectionState(connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
       hideDisconnectedStateMessage()

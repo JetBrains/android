@@ -346,10 +346,6 @@ class DeviceView(
     }
   }
 
-  override fun dispatchKey(keyCode: Int) {
-    deviceController?.sendControlMessage(KeyEventMessage(ACTION_DOWN_AND_UP, keyCode, metaState = 0))
-  }
-
   private fun sendMotionEvent(p: Point, action: Int) {
     val displayCoordinates = toDeviceDisplayCoordinates(p) ?: return
 

@@ -96,7 +96,7 @@ class InputEventRenderingActivity : AppCompatActivity() {
 
   private fun processKey(keyCode: Int) : Boolean {
     when (keyCode) {
-      KeyEvent.KEYCODE_VOLUME_UP -> showTouchableArea()
+      KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_DPAD_UP -> showTouchableArea()
       else -> return false
     }
     return true
