@@ -142,14 +142,7 @@ fun ProjectDumper.dump(module: Module) {
 
     prop("ModuleFile") { moduleFile }
     prop("ModuleTypeName") { module.moduleTypeName }
-    FacetManager.getInstance(module).allFacets.sortedBy { it.name }.forEach {
-      // Don't print the AndroidFact for every module only print the holder modules, they will be the same for all modules produced
-      // from the same Gradle project.
-      if (it.typeId == AndroidFacet.ID && !(it as AndroidFacet).shouldDumpFullFacet()) {
-        head("HIDDEN FACET") { it.name }
-        return@forEach
-      } else dump(it)
-    }
+    FacetManager.getInstance(module).allFacets.sortedBy { it.name }.forEach { dump(it) }
     val moduleRootManager = ModuleRootManager.getInstance(module)
     prop("ExternalSource.DisplayName") { moduleRootManager.externalSource?.displayName?.takeUnless { it == "Gradle" } }
     prop("ExternalSource.Id") { moduleRootManager.externalSource?.id?.takeUnless { it == "GRADLE" } }
@@ -530,15 +523,6 @@ private fun ProjectDumper.dump(linkedAndroidModuleGroup: LinkedAndroidModuleGrou
     prop("androidTest") { linkedAndroidModuleGroup.androidTest?.name }
     prop("testFixtures") { linkedAndroidModuleGroup.testFixtures?.name }
   }
-}
-
-private fun AndroidFacet.shouldDumpFullFacet() : Boolean {
-  val holderFacet = holderModule.androidFacet
-  // Display the holder facet
-  if (holderFacet == this || holderFacet == null) return true
-  if (holderFacet.configuration.state.SELECTED_BUILD_VARIANT != configuration.state.SELECTED_BUILD_VARIANT) return true
-  if (AndroidModuleModel.get(module) != AndroidModuleModel.get(holderFacet.module)) return true
-  return false
 }
 
 private fun String.toSystemIndependent() = FileUtils.toSystemIndependentPath(this)

@@ -98,7 +98,29 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/.idea/modules/testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        HIDDEN FACET                  : Android
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /AndroidManifest.xml
+            ResFolderRelativePath         : /res
+            - ResFoldersRelativePath      : file://<TEMP>/res
+            - ResFoldersRelativePath      : file://<TEMP>/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<TEMP>/build/generated/res/rs/debug [-]
+            - ResFoldersRelativePath      : file://<TEMP>/build/generated/res/resValues/debug [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/build/generated/res/rs/androidTest/debug [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/build/generated/res/resValues/androidTest/debug [-]
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 0
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<TEMP>/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<TEMP>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<TEMP>/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -182,7 +204,29 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/.idea/modules/testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        HIDDEN FACET                  : Android
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /AndroidManifest.xml
+            ResFolderRelativePath         : /res
+            - ResFoldersRelativePath      : file://<TEMP>/res
+            - ResFoldersRelativePath      : file://<TEMP>/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<TEMP>/build/generated/res/rs/debug [-]
+            - ResFoldersRelativePath      : file://<TEMP>/build/generated/res/resValues/debug [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/build/generated/res/rs/androidTest/debug [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/build/generated/res/resValues/androidTest/debug [-]
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 0
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<TEMP>/AndroidManifest.xml
         CONENT_ENTRY                  : file://<TEMP>/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<TEMP>/build/generated/ap_generated_sources/debug/out [-]
@@ -270,7 +314,29 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/.idea/modules/testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        HIDDEN FACET                  : Android
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /AndroidManifest.xml
+            ResFolderRelativePath         : /res
+            - ResFoldersRelativePath      : file://<TEMP>/res
+            - ResFoldersRelativePath      : file://<TEMP>/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<TEMP>/build/generated/res/rs/debug [-]
+            - ResFoldersRelativePath      : file://<TEMP>/build/generated/res/resValues/debug [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/build/generated/res/rs/androidTest/debug [-]
+            - TestResFoldersRelativePath  : file://<TEMP>/build/generated/res/resValues/androidTest/debug [-]
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 0
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<TEMP>/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<TEMP>/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<TEMP>/build/generated/ap_generated_sources/debugUnitTest/out [-]
