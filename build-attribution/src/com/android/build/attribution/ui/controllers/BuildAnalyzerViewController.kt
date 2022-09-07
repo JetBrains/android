@@ -214,6 +214,7 @@ class BuildAnalyzerViewController(
     ActionManager.getInstance().tryToExecute(
       ActionManager.getInstance().getAction("AndroidMigrateToNonTransitiveRClassesAction"),
       null, null, null, true)
+    analytics.migrateToNonTransitiveRClassesClicked()
   }
 
   override fun updatePluginClicked(pluginWarningData: IncompatiblePluginWarning) {

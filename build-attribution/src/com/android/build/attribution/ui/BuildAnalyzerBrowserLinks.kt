@@ -64,15 +64,14 @@ enum class BuildAnalyzerBrowserLinks(
   RENDERSCRIPT_MIGRATE(
     // TODO(b/246718450): Create redirect link
     "https://developer.android.com/guide/topics/renderscript/migrate",
-    // TODO(b/245517105): Add OutgoingLinkTarget
-    BuildAttributionUiEvent.OutgoingLinkTarget.UNKNOWN_OUTGOING_LINK_TARGET
+    BuildAttributionUiEvent.OutgoingLinkTarget.RENDERSCRIPT_MIGRATE
   ),
   AIDL_INFO(
     "https://developer.android.com/guide/components/aidl",
-    BuildAttributionUiEvent.OutgoingLinkTarget.UNKNOWN_OUTGOING_LINK_TARGET
+    BuildAttributionUiEvent.OutgoingLinkTarget.AIDL_INFO
   ),
   NON_TRANSITIVE_R_CLASS(
     "https://developer.android.com/studio/build/optimize-your-build#use-non-transitive-r-classes",
-    BuildAttributionUiEvent.OutgoingLinkTarget.UNKNOWN_OUTGOING_LINK_TARGET
+    BuildAttributionUiEvent.OutgoingLinkTarget.NON_TRANSITIVE_R_CLASS
   )
 }

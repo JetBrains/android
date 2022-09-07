@@ -407,8 +407,7 @@ class TaskCategoryWarningNodeDescriptor(
   val taskCategoryData: CriticalPathTaskCategoryUiData
 ) : WarningsTreePresentableNodeDescriptor() {
   override val pageId: WarningsPageId = WarningsPageId.taskCategory(taskCategoryData.taskCategory)
-  // TODO(b/245517105): Add PageType
-  override val analyticsPageType = PageType.UNKNOWN_PAGE
+  override val analyticsPageType = PageType.TASK_CATEGORY_WARNING_ROOT
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = taskCategoryData.name,

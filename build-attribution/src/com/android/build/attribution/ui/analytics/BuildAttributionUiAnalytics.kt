@@ -192,6 +192,11 @@ class BuildAttributionUiAnalytics(
       .setEventProcessingTimeMs(duration.toMillis())
   )
 
+  fun migrateToNonTransitiveRClassesClicked() = doLog(
+    newUiEventBuilder()
+      .setEventType(BuildAttributionUiEvent.EventType.MIGRATE_NON_TRANSITIVE_R_CLASS_ACTION_CLICKED)
+  )
+
   fun turnJetifierOffClicked(duration: Duration) = doLog(
     newUiEventBuilder()
       .setEventType(BuildAttributionUiEvent.EventType.REMOVE_JETIFIER_PROPERTY_CLICKED)
