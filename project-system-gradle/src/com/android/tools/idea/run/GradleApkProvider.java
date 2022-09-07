@@ -56,7 +56,6 @@ import com.android.tools.idea.gradle.util.BuildOutputUtil;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath;
@@ -70,7 +69,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
@@ -593,17 +591,7 @@ public final class GradleApkProvider implements ApkProvider {
 
     final String message =
       AndroidBundle.message("run.error.apk.not.signed", androidModuleModel.getSelectedVariant().getDisplayName());
-
-    Runnable quickFix = () -> {
-      ProjectSettingsService service = ProjectSettingsService.getInstance(module.getProject());
-      if (service instanceof AndroidProjectSettingsService) {
-        ((AndroidProjectSettingsService)service).openSigningConfiguration(module);
-      }
-      else {
-        service.openModuleSettings(module);
-      }
-    };
-
+    Runnable quickFix = new UnsignedApkQuickFix(module, androidModuleModel.getSelectedVariant().getBuildType());
     result.add(ValidationError.fatal(message, quickFix));
     return result.build();
   }
