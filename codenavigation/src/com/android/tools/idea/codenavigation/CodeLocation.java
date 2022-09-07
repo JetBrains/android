@@ -249,8 +249,10 @@ public final class CodeLocation {
    * as-is.
    */
   @NotNull
-  public static String getOuterClass(@NotNull String className) {
-    int innerCharIndex = className.indexOf('$');
-    return innerCharIndex < 0 ? className : className.substring(0, innerCharIndex);
+  public String getOuterClass() {
+    if (myClassName == null) return "";
+
+    int innerCharIndex = myClassName.indexOf('$');
+    return innerCharIndex < 0 ? myClassName : myClassName.substring(0, innerCharIndex);
   }
 }

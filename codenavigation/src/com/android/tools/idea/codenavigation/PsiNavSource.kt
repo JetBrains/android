@@ -73,9 +73,7 @@ class PsiNavSource(private val project: Project): NavSource {
       // Kotlin code, which caused us to abort navigating. However, if we have the outer class
       // (which is easier for PsiManager to find) and a line number, that's enough information to
       // help us navigate. So, to be more robust against PsiManager error, we try one more time.
-
-      var outerClassName = CodeLocation.getOuterClass(className);
-      psiClass = ClassUtil.findPsiClassByJVMName(manager, outerClassName);
+      psiClass = ClassUtil.findPsiClassByJVMName(manager, location.outerClass);
     }
 
     return psiClass
