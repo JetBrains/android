@@ -36,6 +36,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile.GradleBundleRefLiteral;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -116,6 +118,8 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
         ArtifactDependencyModel compactNotation = ArtifactDependencyModelImpl.CompactNotation.create(
           configurationName, (GradleDslSimpleExpression)element, configurationElement, maintainer, methodName);
         if (compactNotation != null) {
+          if(element instanceof GradleBundleRefLiteral && ((GradleBundleRefLiteral)element).isReference())
+            compactNotation.enableSetThrough();
           dest.add(compactNotation);
         }
       }

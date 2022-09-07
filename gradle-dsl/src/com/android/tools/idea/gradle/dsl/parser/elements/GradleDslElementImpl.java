@@ -819,8 +819,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
     return propertiesDslFile != null ? propertiesDslFile.getPropertyElement(referenceText) : null;
   }
 
-  private static @Nullable GradleDslElement resolveReferenceInVersionCatalogs(@NotNull GradleBuildFile buildFile, @NotNull String text) {
-    List<String> referenceParts = GradleNameElement.split(text);
+  private static @Nullable GradleDslElement resolveReferenceInVersionCatalogs(@NotNull GradleBuildFile buildFile, @NotNull List<String> referenceParts) {
     if (referenceParts.size() < 2) return null;
     String catalog = referenceParts.get(0);
     GradleDslElement result1;
@@ -945,7 +944,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
         rootProjectBuildFile = parentModuleDslFile;
       }
 
-      GradleDslElement versionCatalogElement = resolveReferenceInVersionCatalogs(rootProjectBuildFile, text);
+      GradleDslElement versionCatalogElement = resolveReferenceInVersionCatalogs(rootProjectBuildFile, referenceText);
       if (versionCatalogElement != null) return versionCatalogElement;
 
       if (buildFile == rootProjectBuildFile) {

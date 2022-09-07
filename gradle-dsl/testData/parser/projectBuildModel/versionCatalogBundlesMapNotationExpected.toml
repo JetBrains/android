@@ -1,0 +1,7 @@
+[libraries]
+foo = { group = 'com.example', name = 'foo', version = "2.3.4" }
+bar = { module = 'com.example:bar', version = '1.2.3' }
+baz = { module = 'com.example:baz', version = '1.2.3' }
+
+[bundles]
+core = [ "foo", "bar" ]

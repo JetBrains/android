@@ -61,6 +61,26 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     replaceLibraryRefsInBundlesWithInjections();
   }
 
+  /**
+   * Represents reference to libraries from bundles.
+   * Difference from literal is that bundle reference cannot become an expression
+   */
+  public static class GradleBundleRefLiteral extends GradleDslLiteral {
+
+    public GradleBundleRefLiteral(@NotNull GradleDslElement parent,
+                                  @NotNull GradleNameElement name) {
+      super(parent, name);
+    }
+
+    public GradleBundleRefLiteral(@NotNull GradleDslElement parent,
+                                  @NotNull PsiElement psiElement,
+                                  @NotNull GradleNameElement name,
+                                  @NotNull PsiElement literal,
+                                  @NotNull LiteralType literalType) {
+      super(parent, psiElement, name, literal, literalType);
+    }
+  }
+
   public static class GradleDslVersionLiteral extends GradleDslLiteral {
     GradleDslVersionLiteral(
       @NotNull GradleDslElement parent,
@@ -239,7 +259,7 @@ public class GradleVersionCatalogFile extends GradleDslFile {
           GradleDslElement targetProperty = libraries.getPropertyElement(targetName);
           if (targetProperty != null) {
             GradleDslLiteral reference =
-              new GradleDslLiteral(bundle, ref.getPsiElement(), targetProperty.getNameElement(),
+              new GradleBundleRefLiteral(bundle, ref.getPsiElement(), targetProperty.getNameElement(),
                                           ref.getPsiElement(), REFERENCE);
             GradleReferenceInjection injection =
               new GradleReferenceInjection(reference, targetProperty, ref.getPsiElement(), targetName);
