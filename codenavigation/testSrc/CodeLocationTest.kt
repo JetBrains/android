@@ -1,6 +1,5 @@
 import com.android.tools.idea.codenavigation.CodeLocation
 import com.google.common.truth.Truth.assertThat
-import org.junit.Ignore
 import org.junit.Test
 
 class CodeLocationTest {
@@ -47,7 +46,6 @@ class CodeLocationTest {
     assertThat(locationB).isEqualTo(locationA)
   }
 
-  @Ignore
   @Test
   fun equalityOfDifferentValue() {
     val locationA = CodeLocation.Builder("outerClass")
@@ -89,7 +87,6 @@ class CodeLocationTest {
     assertThat(locationB.hashCode()).isEqualTo(locationA.hashCode())
   }
 
-  @Ignore
   @Test
   fun hashOfDifferentValue() {
     val locationA = CodeLocation.Builder("outerClass")

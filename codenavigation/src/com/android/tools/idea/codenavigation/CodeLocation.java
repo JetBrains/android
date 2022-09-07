@@ -16,25 +16,31 @@
 package com.android.tools.idea.codenavigation;
 
 import com.intellij.openapi.util.text.StringUtil;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public final class CodeLocation {
   public static final int INVALID_LINE_NUMBER = -1;
+
   @Nullable
   private final String myClassName;
+
   @Nullable
   private final String myFileName;
+
   @Nullable
   private final String myMethodName;
+
   /**
    * See {@link Builder#setMethodSignature(String)} for details about this field.
    */
   @Nullable
   private final String mySignature;
+
   /**
    * See {@link Builder#setMethodParameters(List)} (String)} for details about this field.
    */
@@ -42,14 +48,15 @@ public final class CodeLocation {
   private final List<String> myMethodParameters;
 
   private final int myLineNumber;
+
   private final boolean myNativeCode;
   /**
    * See {@link Builder#setNativeVAddress(long)} for details about this field.
    */
   private final long myNativeVAddress;
+
   @Nullable
   private final String myNativeModuleName;
-  private final int myHashcode;
 
   private CodeLocation(@NotNull Builder builder) {
     myClassName = builder.myClassName;
@@ -61,13 +68,6 @@ public final class CodeLocation {
     myNativeCode = builder.myNativeCode;
     myNativeVAddress = builder.myNativeVAddress;
     myNativeModuleName = builder.myNativeModuleName;
-    myHashcode = Arrays.hashCode(new int[]{
-      myClassName == null ? 0 : myClassName.hashCode(),
-      myFileName == null ? 0 : myFileName.hashCode(),
-      myMethodName == null ? 0 : myMethodName.hashCode(),
-      mySignature == null ? 0 : mySignature.hashCode(),
-      myNativeModuleName == null ? 0 : myNativeModuleName.hashCode(),
-      Integer.hashCode(myLineNumber)});
   }
 
   @TestOnly
@@ -105,7 +105,7 @@ public final class CodeLocation {
 
   @Nullable
   public List<String> getMethodParameters() {
-    return myMethodParameters;
+    return myMethodParameters == null ? null : new ArrayList<>(myMethodParameters);
   }
 
   public boolean isNativeCode() {
@@ -122,24 +122,32 @@ public final class CodeLocation {
   }
 
   @Override
-  public int hashCode() {
-    return myHashcode;
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    CodeLocation location = (CodeLocation)o;
+    return myLineNumber == location.myLineNumber &&
+           myNativeCode == location.myNativeCode &&
+           myNativeVAddress == location.myNativeVAddress &&
+           Objects.equals(myClassName, location.myClassName) &&
+           Objects.equals(myFileName, location.myFileName) &&
+           Objects.equals(myMethodName, location.myMethodName) &&
+           Objects.equals(mySignature, location.mySignature) &&
+           Objects.equals(myMethodParameters, location.myMethodParameters) &&
+           Objects.equals(myNativeModuleName, location.myNativeModuleName);
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (!(obj instanceof CodeLocation)) {
-      return false;
-    }
-
-    CodeLocation other = (CodeLocation)obj;
-    return StringUtil.equals(myClassName, other.myClassName) &&
-           StringUtil.equals(myFileName, other.myFileName) &&
-           StringUtil.equals(myMethodName, other.myMethodName) &&
-           StringUtil.equals(mySignature, other.mySignature) &&
-           StringUtil.equals(myNativeModuleName, other.myNativeModuleName) &&
-           myLineNumber == other.myLineNumber &&
-           myNativeCode == other.myNativeCode;
+  public int hashCode() {
+    return Objects.hash(myClassName,
+                        myFileName,
+                        myMethodName,
+                        mySignature,
+                        myMethodParameters,
+                        myLineNumber,
+                        myNativeCode,
+                        myNativeVAddress,
+                        myNativeModuleName);
   }
 
   public static final class Builder {
