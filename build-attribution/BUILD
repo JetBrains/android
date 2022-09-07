@@ -30,6 +30,8 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
+        "//tools/adt/idea/.idea/libraries:studio-proto",
+        "//tools/adt/idea/build-attribution:build-analysis-results-proto",
     ],
 )
 
@@ -98,6 +100,8 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
+        "//tools/adt/idea/.idea/libraries:studio-proto",
+        "//tools/adt/idea/build-attribution:build-analysis-results-proto",
     ],
 )
 
@@ -152,4 +156,13 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.0",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
+)
+
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "build-analysis-results-proto",
+    jars = ["//tools/adt/idea/build-attribution/proto:build-analysis-results-proto.jar"],
+    visibility = ["//visibility:public"],
 )

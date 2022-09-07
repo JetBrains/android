@@ -18,9 +18,8 @@ package com.android.build.attribution
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.data.BuildRequestHolder
-import com.intellij.openapi.project.Project
 import com.android.tools.idea.flags.StudioFlags
-
+import com.intellij.openapi.project.Project
 
 class BuildAnalyzerStorageManagerImpl(
   val project: Project
@@ -30,10 +29,10 @@ class BuildAnalyzerStorageManagerImpl(
 
   private fun notifyDataListeners() {
     var publisher = project.messageBus.syncPublisher(BuildAnalyzerStorageManager.DATA_IS_READY_TOPIC);
-    publisher.newDataAvailable();
+    publisher.newDataAvailable()
   }
 
-  private fun createBuildResultsObject(analyzersProxy: BuildEventsAnalyzersProxy, buildSessionID : String, requestHolder : BuildRequestHolder): BuildAnalysisResults {
+  private fun createBuildResultsObject(analyzersProxy: BuildEventsAnalyzersProxy, buildSessionID : String, requestHolder : BuildRequestHolder) : BuildAnalysisResults {
     return BuildAnalysisResults(
       buildRequestData = requestHolder.buildRequest.data,
       annotationProcessorAnalyzerResult = analyzersProxy.annotationProcessorsAnalyzer.result,
@@ -46,7 +45,9 @@ class BuildAnalyzerStorageManagerImpl(
       configurationCachingCompatibilityAnalyzerResult = analyzersProxy.configurationCachingCompatibilityAnalyzer.result,
       jetifierUsageAnalyzerResult = analyzersProxy.jetifierUsageAnalyzer.result,
       downloadsAnalyzerResult = analyzersProxy.downloadsAnalyzer?.result ?: DownloadsAnalyzer.AnalyzerIsDisabled,
-      buildSessionID = buildSessionID
+      buildSessionID = buildSessionID,
+      taskMap = analyzersProxy.taskContainer.allTasks,
+      pluginMap = analyzersProxy.pluginContainer.allPlugins
     )
   }
 

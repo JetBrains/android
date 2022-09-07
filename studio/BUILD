@@ -71,6 +71,7 @@ studio_plugin(
         "//tools/vendor/google/game-tools/main:game-tools-protos",
         "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/data-binding:compilerCommon.antlr.shaded",
+        "//tools/adt/idea/build-attribution:build-analysis-results-proto",
     ],
     licenses = [
         "//prebuilts/r8:license",

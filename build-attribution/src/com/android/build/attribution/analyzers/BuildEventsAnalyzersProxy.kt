@@ -88,8 +88,8 @@ interface BuildEventsAnalysisResult {
  * Used to fetch the final data from the analyzers after the build is complete.
  */
 class BuildEventsAnalyzersProxy(
-  taskContainer: TaskContainer,
-  pluginContainer: PluginContainer
+  val taskContainer: TaskContainer,
+  val pluginContainer: PluginContainer
 ) {
   val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(taskContainer, pluginContainer)
   val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(taskContainer, pluginContainer)
