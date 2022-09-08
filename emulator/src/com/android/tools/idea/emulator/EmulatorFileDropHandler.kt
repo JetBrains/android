@@ -148,11 +148,11 @@ private class EmulatorFileDropHandler(
   private fun createAdbClient(device: IDevice) = AdbClient(device, LogWrapper(EmulatorFileDropHandler::class.java))
 
   private fun notifyOfSuccess(message: String) {
-    EMULATOR_NOTIFICATION_GROUP.createNotification(message, NotificationType.INFORMATION).notify(project)
+    RUNNING_DEVICES_NOTIFICATION_GROUP.createNotification(message, NotificationType.INFORMATION).notify(project)
   }
 
   private fun notifyOfError(message: String) {
-    EMULATOR_NOTIFICATION_GROUP.createNotification(message, NotificationType.WARNING).notify(project)
+    RUNNING_DEVICES_NOTIFICATION_GROUP.createNotification(message, NotificationType.WARNING).notify(project)
   }
 
   private fun findDevice(): ListenableFuture<IDevice> {
