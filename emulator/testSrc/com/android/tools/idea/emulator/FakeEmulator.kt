@@ -738,6 +738,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
                                              headers: Metadata,
                                              handler: ServerCallHandler<ReqT, RespT>): ServerCall.Listener<ReqT> {
       val callRecord = GrpcCallRecord(call.methodDescriptor.fullMethodName)
+      grpcCallLog.add(callRecord)
 
       val forwardingCall = object : SimpleForwardingServerCall<ReqT, RespT>(call) {
         override fun sendMessage(response: RespT) {
@@ -750,8 +751,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       return object : SimpleForwardingServerCallListener<ReqT>(handler.startCall(forwardingCall, headers)) {
         override fun onMessage(request: ReqT) {
           grpcSemaphore.withPermit {
-            callRecord.request = request as MessageOrBuilder
-            grpcCallLog.add(callRecord)
+            callRecord.requestMessages.put(request as MessageOrBuilder)
             super.onMessage(request)
           }
         }
@@ -770,7 +770,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   class GrpcCallRecord(val methodName: String) {
-    lateinit var request: MessageOrBuilder
+    val request: MessageOrBuilder
+      get() {
+        while (true) {
+          val request = requestMessages.poll(1, TimeUnit.SECONDS)
+          if (request != null) {
+            return request
+          }
+        }
+      }
+
+    val requestMessages = LinkedBlockingDeque<MessageOrBuilder>()
 
     /** One element is added to this queue for every response message sent to the client. */
     val responseMessageCounter = LinkedBlockingDeque<Unit>()

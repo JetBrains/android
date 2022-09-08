@@ -152,8 +152,6 @@ class FindEmulatorAndSetupRetentionTest {
     assertThat(emulator.getNextGrpcCall(5, TimeUnit.SECONDS).methodName)
       .matches("android.emulation.control.SnapshotService/PushSnapshot")
     assertThat(emulator.getNextGrpcCall(5, TimeUnit.SECONDS).methodName)
-      .matches("android.emulation.control.SnapshotService/PushSnapshot")
-    assertThat(emulator.getNextGrpcCall(5, TimeUnit.SECONDS).methodName)
       .matches("android.emulation.control.SnapshotService/LoadSnapshot")
   }
 
