@@ -29,12 +29,14 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
 import com.intellij.psi.xml.XmlToken
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EditorTestUtil
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 
@@ -44,6 +46,9 @@ import org.junit.Test
 @RunsInEdt
 class GoToAndroidResourceContributorTest {
   val projectRule = AndroidProjectRule.withAndroidModel(AndroidProjectBuilder()).named(this::class.simpleName)
+
+  @ClassRule
+  val disposableRule = DisposableRule()
 
   @get:Rule
   val chain = RuleChain(projectRule, EdtRule())
@@ -77,7 +82,7 @@ class GoToAndroidResourceContributorTest {
   }
 
   private fun navigate(name: String, pattern: String, expectedNumberOfResults: Int = 1, selectResult: Int = 0): PsiElement {
-    val model = GotoSymbolModel2(projectRule.project)
+    val model = GotoSymbolModel2(projectRule.project, disposableRule.disposable)
     val searchResults = model.getElementsByName(name, false, pattern)
     assertThat(searchResults).hasLength(expectedNumberOfResults)
     val result = searchResults[selectResult]
