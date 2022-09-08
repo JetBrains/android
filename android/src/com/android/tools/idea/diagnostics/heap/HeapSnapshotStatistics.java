@@ -22,6 +22,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
 import com.intellij.diagnostic.hprof.util.HeapReportUtils;
+import com.intellij.ide.PowerSaveMode;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.PrintWriter;
@@ -53,6 +54,7 @@ final class HeapSnapshotStatistics {
   int myEnumeratedGarbageCollectedObjects = 0;
   int myUnsuccessfulFieldAccessCounter = 0;
   int myHeapObjectCount = 0;
+  private short myTraverseSessionId;
 
   public HeapSnapshotStatistics(@NotNull final ComponentsSet componentSet) {
     myComponentsSet = componentSet;
@@ -174,11 +176,67 @@ final class HeapSnapshotStatistics {
   }
 
   @NotNull
+  private MemoryUsageReportEvent.ObjectsStatistics buildObjectStatistics(@NotNull final
+                                                                         ClusterObjectsStatistics.MemoryTrafficStatistics.ObjectsStatistics objectsStatistics) {
+    return MemoryUsageReportEvent.ObjectsStatistics.newBuilder().setObjectsCount(objectsStatistics.getObjectsCount())
+      .setTotalSizeBytes(objectsStatistics.getTotalSizeInBytes()).build();
+  }
+
+  @NotNull
+  private MemoryUsageReportEvent.MemoryTrafficStatistics buildMemoryTrafficStatistics(@NotNull final ClusterObjectsStatistics.MemoryTrafficStatistics memoryTrafficStatistics) {
+    return MemoryUsageReportEvent.MemoryTrafficStatistics.newBuilder()
+      .setTotalStats(buildObjectStatistics(memoryTrafficStatistics.getObjectsStatistics()))
+      .setNewGenerationStats(buildObjectStatistics(memoryTrafficStatistics.getNewObjectsStatistics()))
+      .build();
+  }
+
+  @NotNull
+  private MemoryUsageReportEvent.ClusterObjectsStatistics buildClusterObjectsStatistics(@NotNull final ClusterObjectsStatistics componentStatistics) {
+    return MemoryUsageReportEvent.ClusterObjectsStatistics.newBuilder()
+      .setOwnedClusterStats(buildMemoryTrafficStatistics(componentStatistics.getOwnedClusterStat()))
+      .setRetainedClusterStats(buildMemoryTrafficStatistics(
+        componentStatistics.getRetainedClusterStat())).build();
+  }
+
+  @NotNull
   public MemoryUsageReportEvent buildMemoryUsageReportEvent(StatusCode statusCode,
-                                                            long executionTimeMs) {
-    // TODO(viuginick): finish when studio_stats MemoryUsageReportEvent proto will be approved and cherry picked.
+                                                            long executionTimeMs,
+                                                            long executionStartMs) {
     MemoryUsageReportEvent.Builder builder = MemoryUsageReportEvent.newBuilder();
+
+    for (ComponentClusterObjectsStatistics componentStat : myComponentStats) {
+      builder.addComponentStats(
+        MemoryUsageReportEvent.ClusterMemoryUsage.newBuilder().setLabel(componentStat.getComponent().getComponentLabel())
+          .setStats(buildClusterObjectsStatistics(componentStat)));
+    }
+
+    for (SharedClusterStatistics sharedStat : myMaskToSharedComponentStats.values()) {
+      builder.addSharedComponentStats(MemoryUsageReportEvent.SharedClusterMemoryUsage.newBuilder().addAllIds(sharedStat.getComponentKinds())
+                                        .setStats(buildMemoryTrafficStatistics(sharedStat.getStatistics())));
+    }
+    for (CategoryClusterObjectsStatistics categoryStat : myCategoryComponentStats) {
+      builder.addComponentCategoryStats(
+        MemoryUsageReportEvent.ClusterMemoryUsage.newBuilder().setLabel(categoryStat.getComponentCategory().getComponentCategoryLabel())
+          .setStats(buildClusterObjectsStatistics(categoryStat)));
+    }
+
+    builder.setMetadata(
+      MemoryUsageReportEvent.MemoryUsageCollectionMetadata.newBuilder().setStatusCode(statusCode)
+        .setTotalHeapObjectsStats(buildMemoryTrafficStatistics(myTotalStats))
+        .setFieldCacheCountPeak(myMaxFieldsCacheSize)
+        .setObjectQueueLengthPeak(myMaxObjectsQueueSize)
+        .setGarbageCollectedBefore2PassCount(myEnumeratedGarbageCollectedObjects)
+        .setCollectionTimeSeconds((double)executionTimeMs / (double)1000)
+        .setIsInPowerSaveMode(PowerSaveMode.isEnabled())
+        .setUnsuccessfulFieldAccessesCount(myUnsuccessfulFieldAccessCounter)
+        .setCollectionStartTimestampSeconds((double)executionStartMs / (double)1000)
+        .setCollectionIteration(myTraverseSessionId));
+
     return builder.build();
+  }
+
+  public void setTraverseSessionId(short traverseSessionId) {
+    myTraverseSessionId = traverseSessionId;
   }
 
   static class SharedClusterStatistics {

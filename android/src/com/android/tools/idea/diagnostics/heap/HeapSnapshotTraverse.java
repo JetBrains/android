@@ -152,6 +152,7 @@ public final class HeapSnapshotTraverse {
       }
 
       myStatistics.setHeapObjectCount(myLastObjectId);
+      myStatistics.setTraverseSessionId(myIterationId);
 
       // iterate over objects in topological order and update masks
       for (int i = myLastObjectId; i > 0; i--) {
@@ -467,7 +468,8 @@ public final class HeapSnapshotTraverse {
     UsageTracker.log(AndroidStudioEvent.newBuilder()
                        .setKind(AndroidStudioEvent.EventKind.MEMORY_USAGE_REPORT_EVENT)
                        .setMemoryUsageReportEvent(
-                         stats.buildMemoryUsageReportEvent(statusCode, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime))));
+                         stats.buildMemoryUsageReportEvent(statusCode, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime),
+                                                           TimeUnit.NANOSECONDS.toMillis(startTime))));
     return statusCode;
   }
 

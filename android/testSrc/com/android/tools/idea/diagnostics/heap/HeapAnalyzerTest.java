@@ -16,13 +16,18 @@
 package com.android.tools.idea.diagnostics.heap;
 
 import static com.android.tools.idea.diagnostics.heap.ComponentsSet.UNCATEGORIZED_CATEGORY_LABEL;
+import static com.android.tools.idea.diagnostics.heap.ComponentsSet.UNCATEGORIZED_COMPONENT_LABEL;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
+import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.diagnostics.TruncatingStringBuilder;
 import com.android.tools.idea.flags.StudioFlags;
+import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
+import com.intellij.ide.PowerSaveMode;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.LowMemoryWatcher;
+import com.intellij.testFramework.PlatformLiteFixture;
 import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
@@ -32,11 +37,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
-public class HeapAnalyzerTest {
+public class HeapAnalyzerTest extends PlatformLiteFixture {
 
   private static final int MAX_DEPTH = 100;
+
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+    initApplication();
+    getApplication().registerService(PropertiesComponent.class, new PropertiesComponentMock());
+  }
 
   @After
   public void cleanUp() {
@@ -239,47 +252,6 @@ public class HeapAnalyzerTest {
     Assert.assertEquals(56, componentStats.get(2).getRetainedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
   }
 
-  @org.junit.Ignore("b/243081723")
-  @Test
-  public void testDisposerTreeReferences() {
-    C c = new C();
-    try {
-      ComponentsSet componentsSet = new ComponentsSet();
-      ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("DEFAULT");
-      componentsSet.addComponentWithPackagesAndClassNames("A", defaultCategory,
-                                                          Collections.emptyList(),
-                                                          List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"));
-      componentsSet.addComponentWithPackagesAndClassNames("C", defaultCategory,
-                                                          Collections.emptyList(),
-                                                          List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$C"));
-      B b = new B();
-
-      Disposer.register(c, b);
-
-      HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-      Assert.assertEquals(StatusCode.NO_ERROR,
-                          new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A(b), c)));
-
-      List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
-      Assert.assertEquals(3, componentStats.size());
-      Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                          componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
-
-      Assert.assertEquals("A", componentStats.get(1).getComponent().getComponentLabel());
-      Assert.assertEquals("C", componentStats.get(2).getComponent().getComponentLabel());
-
-      // a and it's static int
-      Assert.assertEquals(2, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
-      Assert.assertEquals(40, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
-      // c and b
-      Assert.assertEquals(2, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
-      Assert.assertEquals(32, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
-    }
-    finally {
-      Disposer.dispose(c);
-    }
-  }
-
   @Test
   public void testTraverseMetadata() {
     ComponentsSet componentsSet = new ComponentsSet();
@@ -425,6 +397,58 @@ public class HeapAnalyzerTest {
         consumer.accept(value, ownershipWeight);
       }, fieldCache);
     }
+  }
+
+  @Test
+  public void testStudioStatsProtoCreation() {
+    StudioFlags.DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT.override(true);
+    PowerSaveMode.setEnabled(true);
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("diagnostics_main",
+                                                        defaultCategory,
+                                                        List.of("com.android.tools.idea.diagnostics"),
+                                                        Collections.emptyList());
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(new HeapSnapshotStatistics(componentsSet)).walkObjects(MAX_DEPTH, List.of(
+                          new E(new TruncatingStringBuilder(0, "")))));
+
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new E(new TruncatingStringBuilder(0, "")))));
+    MemoryUsageReportEvent event = stats.buildMemoryUsageReportEvent(StatusCode.NO_ERROR, 1500, 1000);
+
+    // ANDROID_REST, diagnostics
+    Assert.assertEquals(2, event.getComponentStatsCount());
+
+    Assert.assertEquals(UNCATEGORIZED_COMPONENT_LABEL, event.getComponentStats(0).getLabel());
+    Assert.assertEquals(0, event.getComponentStats(0).getStats().getOwnedClusterStats().getTotalStats().getObjectsCount());
+    Assert.assertEquals(0, event.getComponentStats(0).getStats().getOwnedClusterStats().getTotalStats().getTotalSizeBytes());
+
+    Assert.assertEquals("diagnostics_main", event.getComponentStats(1).getLabel());
+    Assert.assertEquals(8, event.getComponentStats(1).getStats().getOwnedClusterStats().getTotalStats().getObjectsCount());
+    Assert.assertEquals(192, event.getComponentStats(1).getStats().getOwnedClusterStats().getTotalStats().getTotalSizeBytes());
+
+    Assert.assertEquals(5, event.getComponentStats(1).getStats().getOwnedClusterStats().getNewGenerationStats().getObjectsCount());
+    Assert.assertEquals(136, event.getComponentStats(1).getStats().getOwnedClusterStats().getNewGenerationStats().getTotalSizeBytes());
+
+    Assert.assertEquals(0, event.getSharedComponentStatsCount());
+
+    // ANDROID_REST and diagnostics
+    Assert.assertEquals(2, event.getComponentCategoryStatsCount());
+    Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL, event.getComponentCategoryStats(0).getLabel());
+    Assert.assertEquals("diagnostics", event.getComponentCategoryStats(1).getLabel());
+    Assert.assertEquals(8, event.getComponentCategoryStats(1).getStats().getOwnedClusterStats().getTotalStats().getObjectsCount());
+    Assert.assertEquals(192, event.getComponentCategoryStats(1).getStats().getOwnedClusterStats().getTotalStats().getTotalSizeBytes());
+
+    Assert.assertEquals(8, event.getMetadata().getTotalHeapObjectsStats().getTotalStats().getObjectsCount());
+    Assert.assertEquals(192, event.getMetadata().getTotalHeapObjectsStats().getTotalStats().getTotalSizeBytes());
+    Assert.assertEquals(5, event.getMetadata().getTotalHeapObjectsStats().getNewGenerationStats().getObjectsCount());
+    Assert.assertEquals(136, event.getMetadata().getTotalHeapObjectsStats().getNewGenerationStats().getTotalSizeBytes());
+    Assert.assertEquals(StatusCode.NO_ERROR, event.getMetadata().getStatusCode());
+    Assert.assertEquals(1.5, event.getMetadata().getCollectionTimeSeconds(), 0);
+    Assert.assertEquals(1, event.getMetadata().getCollectionStartTimestampSeconds(), 0);
   }
 
   private static class A {
