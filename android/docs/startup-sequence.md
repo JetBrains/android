@@ -7,6 +7,14 @@ WARNING: IntelliJ changes their startup lifecycle often as they try to fix perfo
   * Splash screen shown -- no loading bar yet
   * This is **explicitly listed as not to be used by 3rd party plugins**.
   * `AndroidPluginInitializer` is invoked to initialize analytics & studio progress manager (which should be moved further down)
+  * called on a background thread
+* `ApplicationService` with `preload=true` (not guaranteed), or `preload=await`
+  * Application Services can be preloaded (as a last resort) if `preload` attribute is set in the service registration.
+  * In this case, they are initialized from a background thread.
+  * `preload=await` implies that the startup will wait for this service to be initialized before moving to the next phase in startup.
+  * `preload=true` implies that the startup sequence will not wait for the service to be initialized, but these may not be initialized
+    at all in some modes of the IDE (such as LIGHT_MODE).
+  * Since this happens so early in startup, you cannot rely on much of the IntelliJ infrastructure being initialized at this time.
 * `ApplicationComponent` constructors are called
   * Splash screen loading bar is moving
   * **ApplicationComponents are deprecated.** Please do not add new ones, or add more functionality into existing ones.
@@ -43,6 +51,12 @@ WARNING: IntelliJ changes their startup lifecycle often as they try to fix perfo
   * Under project loading dialog; deprecated
 * `AppLifecycleListener.appStarted`
   * For some reason **this is called after project loading has started if "reopen projects on startup" is enabled**.
+
+-----------
+
+The following extensions are safe to use, whereas the ones above should be used with caution and perhaps a review
+with someone from the platform team.
+
 * `StartupActivity.DumbAware.runActivity`
   * On background thread after project open
   * Runs under the progress loading dialog if registered using the startupActivity EP. Otherwise, if registered
