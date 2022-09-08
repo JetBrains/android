@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.editors.translations;
 
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.DEFAULT_VALUE_COLUMN;
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN;
-import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.RESOURCE_FOLDER_COLUMN;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -25,7 +24,6 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.fixture.DeleteDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.DialogBuilderFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
@@ -39,8 +37,6 @@ import com.intellij.notification.Notification;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
-import java.awt.event.KeyEvent;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -49,7 +45,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import javax.swing.JTextField;
-import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
@@ -220,21 +215,6 @@ public final class TranslationsEditorTest {
   }
 
   @Test
-  public void resourceFolderColumn() throws IOException {
-    importSimpleApplication();
-
-    Object expectedColumn = Arrays.asList(
-      "app/src/debug/res",
-      "app/src/main/res",
-      "app/src/main/res",
-      "app/src/main/res",
-      "app/src/main/res",
-      "app/src/main/res");
-
-    assertEquals(expectedColumn, myGuiTest.ideFrame().getEditor().getTranslationsEditor().getTable().columnAt(RESOURCE_FOLDER_COLUMN));
-  }
-
-  @Test
   public void keyColumnWidthDoesntResetWhenAddingKey() throws IOException {
     importSimpleApplication();
     TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
@@ -386,26 +366,6 @@ public final class TranslationsEditorTest {
     editor.clickOk();
 
     table.cell(helloWorldEnglish).requireValue("Multiline\nTest");
-  }
-
-  @Test
-  public void deleteString() throws IOException {
-    importSimpleApplication();
-
-    EditorFixture editor = myGuiTest.ideFrame().getEditor();
-    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
-
-    // delete just the translation
-    translationsEditor.getTable().selectCell(translationsEditor.cell("hello_world", "app/src/main/res", ENGLISH_COLUMN));
-    myGuiTest.robot().pressAndReleaseKey(KeyEvent.VK_DELETE);
-
-    // gone from en
-    editor.open("app/src/main/res/values-en/strings.xml");
-    assertFalse(editor.getCurrentFileContents().contains("hello_world"));
-
-    // still in other languages
-    editor.open("app/src/main/res/values-ta/strings.xml");
-    assertTrue(editor.getCurrentFileContents().contains("hello_world"));
   }
 
   @Test

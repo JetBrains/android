@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.editors.strings
 
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.Locale
+import com.android.ide.common.resources.ResourceItem
+import com.android.resources.ResourceType
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
@@ -29,6 +33,7 @@ import com.android.tools.idea.editors.strings.action.ReloadStringResourcesAction
 import com.android.tools.idea.editors.strings.action.RemoveKeysAction
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.FIXED_COLUMN_COUNT
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel.RESOURCE_FOLDER_COLUMN
 import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.createTestModuleRepository
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -42,6 +47,7 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.concurrency.SameThreadExecutor
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -50,6 +56,7 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.awt.event.KeyEvent
+import java.util.concurrent.CountDownLatch
 
 @RunWith(JUnit4::class)
 class StringResourceViewPanelFakeUiTest {
@@ -100,6 +107,7 @@ class StringResourceViewPanelFakeUiTest {
     val locales = (FIXED_COLUMN_COUNT until stringResourceViewPanel.table.columnCount)
       .map(stringResourceViewPanel.table::getColumnName)
     assertThat(locales).isEqualTo(Companion.DEFAULT_LOCALES)
+    assertThat(stringResourceViewPanel.table.getColumnAt(RESOURCE_FOLDER_COLUMN)).isEqualTo(List(DEFAULT_KEYS.size) { "res" })
   }
 
   @Test
@@ -124,8 +132,9 @@ class StringResourceViewPanelFakeUiTest {
     val column = 4
     val initialValues = stringResourceViewPanel.table.getColumnAt(column)
     // Make sure there's something to remove.
-    assertThat(initialValues[row].toString()).isNotNull()
     assertThat(initialValues[row].toString()).isNotEmpty()
+    val locale = stringResourceViewPanel.table.model.getLocale(column)!!
+    assertThat(getResourceItem(DEFAULT_KEYS[row], locale)?.resourceValue?.value).isEqualTo(initialValues[row])
 
     stringResourceViewPanel.table.selectCellAt(row, column)
     fakeUi.keyboard.setFocus(stringResourceViewPanel.table.scrollableTable)
@@ -133,9 +142,26 @@ class StringResourceViewPanelFakeUiTest {
 
     // Should not have removed any keys
     assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN)).isEqualTo(DEFAULT_KEYS)
+    // The value should be gone from the table.
     val expected = initialValues.take(row) + "" + initialValues.drop(row + 1)
     assertThat(stringResourceViewPanel.table.getColumnAt(column)).isEqualTo(expected)
+    // And the actual file should also be updated.
+    localResourceRepository.waitForPendingUpdates()
+    assertThat(getResourceItem(DEFAULT_KEYS[row], locale)).isNull()
   }
+
+  private fun LocalResourceRepository.waitForPendingUpdates() {
+    val latch = CountDownLatch(1)
+    invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) {
+      latch.countDown()
+    }
+    latch.await()
+  }
+
+  private fun getResourceItem(name: String, locale: Locale): ResourceItem? =
+    localResourceRepository
+      .getResources(ResourceNamespace.RES_AUTO, ResourceType.STRING, name)
+      .find { locale.qualifier == it.configuration.localeQualifier }
 
   companion object {
     val DEFAULT_KEYS = listOf("key1", "key2", "key3", "key5", "key6", "key7", "key8", "key4", "key9", "key10")
