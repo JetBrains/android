@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.glance.preview
 
-import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -57,8 +56,6 @@ import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.locks.ReentrantLock
 import javax.swing.JComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -330,24 +327,6 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
   override fun onActivate() = lifecycleManager.activate()
 
   override fun onDeactivate() = lifecycleManager.deactivate()
-
-  /**
-   * Lock used during the [onActivate]/[onDeactivate]/[onDeactivationTimeout] to avoid activations
-   * happening in the middle.
-   */
-  private val activationLock = ReentrantLock()
-
-  /**
-   * Tracks whether this preview is active or not. The value tracks the [onActivate] and
-   * [onDeactivate] calls.
-   */
-  private val isActive = AtomicBoolean(false)
-
-  /**
-   * Tracks whether the preview has received an [onActivate] call before or not. This is used to
-   * decide whether [onInit] must be called.
-   */
-  @GuardedBy("activationLock") private var isFirstActivation = true
 
   private fun CoroutineScope.initializeFlows() {
     with(this@initializeFlows) {

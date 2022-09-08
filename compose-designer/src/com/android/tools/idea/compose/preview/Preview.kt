@@ -993,10 +993,6 @@ class ComposePreviewRepresentation(
   override fun updateNotifications(parentEditor: FileEditor) =
     composeWorkBench.updateNotifications(parentEditor)
 
-  private fun getPreviewDataContextForPreviewElement(
-    previewElement: ComposePreviewElementInstance
-  ) = PreviewElementDataContext(project, this@ComposePreviewRepresentation, previewElement)
-
   private fun configureLayoutlibSceneManagerForPreviewElement(
     displaySettings: PreviewDisplaySettings,
     layoutlibSceneManager: LayoutlibSceneManager
