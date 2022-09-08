@@ -63,6 +63,7 @@ import com.android.tools.idea.layoutinspector.model.ROOT2
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
+import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcess
@@ -611,6 +612,20 @@ class DeviceViewPanelWithFullInspectorTest {
   @RunsInEdt
   @Test
   fun testGotoDeclaration() {
+    gotoDeclaration(VIEW2)
+    fileOpenCaptureRule.checkEditor("demo.xml", lineNumber = 4, "<v2 android:id=\"@+id/v2\"/>")
+  }
+
+  @RunsInEdt
+  @Test
+  fun testGotoDeclarationOfViewWithoutAnId() {
+    gotoDeclaration(VIEW3)
+    fileOpenCaptureRule.checkNoNavigation()
+    assertThat(InspectorBannerService.getInstance(inspectorRule.project).notification?.message)
+      .isEqualTo("It appears that the v3 in the layout demo.xml doesnt have an id.")
+  }
+
+  private fun gotoDeclaration(selectedView: Long) {
     installCommandHandlers()
     latch = CountDownLatch(1)
     connect(MODERN_PROCESS)
@@ -621,6 +636,7 @@ class DeviceViewPanelWithFullInspectorTest {
       <v1 xmlns:android="http://schemas.android.com/apk/res/android"
           android:id="@+id/v1">
         <v2 android:id="@+id/v2"/>
+        <v3/>
       </v1>
     """.trimIndent())
 
@@ -646,13 +662,11 @@ class DeviceViewPanelWithFullInspectorTest {
     val dispatcher = IdeKeyEventDispatcher(null)
     val modifier = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
 
-    // Press ctrl-B / command-B when VIEW2 is selected:
-    model.setSelection(model[VIEW2], SelectionOrigin.INTERNAL)
+    // Press ctrl-B / command-B when the selectedView is selected:
+    model.setSelection(model[selectedView], SelectionOrigin.INTERNAL)
     dispatcher.dispatchKeyEvent(KeyEvent(panel, KeyEvent.KEY_PRESSED, 0, modifier, KeyEvent.VK_B, 'B'))
     GotoDeclarationAction.lastAction?.get()
     UIUtil.dispatchAllInvocationEvents()
-
-    fileOpenCaptureRule.checkEditor("demo.xml", lineNumber = 4, "<v2 android:id=\"@+id/v2\"/>")
   }
 
   private fun checkDeviceAction(action: AnAction, enabled: Boolean, icon: Icon?, text: String) {
@@ -678,6 +692,7 @@ class DeviceViewPanelWithFullInspectorTest {
       val window = window("w1", 1L, imageType = lastImageType) {
         view(VIEW1, 0, 0, 10, 10, qualifiedName = "v1", layout = demoLayout, viewId = view1Id) {
           view(VIEW2, 0, 0, 10, 10, qualifiedName = "v2", layout = demoLayout, viewId = view2Id)
+          view(VIEW3, 0, 5, 10, 5, qualifiedName = "v3", layout = demoLayout)
         }
       }
       inspectorRule.inspectorModel.update(window, listOf("w1"), 1)

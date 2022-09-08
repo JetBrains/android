@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.util
 
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
@@ -30,6 +31,8 @@ import org.junit.rules.ExternalResource
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import org.mockito.Mockito.anyBoolean
+import org.mockito.Mockito.never
 import org.mockito.Mockito.timeout
 
 private const val TIMEOUT = 1000L // milliseconds
@@ -60,7 +63,7 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
   }
 
   fun checkNoNavigation() {
-    Mockito.verifyNoInteractions(fileManager!!)
+    Mockito.verify(fileManager!!, never()).openEditor(any(), anyBoolean())
   }
 
   private fun findLineAtOffset(file: VirtualFile, offset: Int): Pair<LineColumn, String> {
