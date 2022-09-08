@@ -101,6 +101,9 @@ message WaitForIndexResponse {}
 message OpenFileRequest {
   string project = 1;
   string file = 2;
+
+  optional uint32 line = 3;
+  optional uint32 column = 4;
 }
 
 message OpenFileResponse {

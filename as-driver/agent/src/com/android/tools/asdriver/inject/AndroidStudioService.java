@@ -26,11 +26,16 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ex.ApplicationEx;
+import com.intellij.openapi.editor.CaretModel;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbService;
@@ -38,9 +43,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.testFramework.MapDataContext;
 import java.io.File;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
@@ -48,7 +54,6 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-import javax.swing.JFrame;
 
 public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBase {
 
@@ -162,8 +167,16 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       projectForContext = findProjectByName(projectName);
     }
 
-    JFrame frame = WindowManager.getInstance().getFrame(projectForContext);
-    return DataManager.getInstance().getDataContext(frame);
+    // Attempting to create a DataContext via DataManager.getInstance.getDataContext(Component c)
+    // causes all sorts of strange issues depending on which component is used. If it's a project,
+    // then editor-specific actions like ToggleLineBreakpoint won't work. If it's an editor, then
+    // the editor has to be showing or else performDumbAwareWithCallbacks will suppress the action.
+    //
+    // ...so instead, we create our own DataContext rather than getting one from a component.
+    MapDataContext dataContext = new MapDataContext();
+    dataContext.put(CommonDataKeys.PROJECT, projectForContext);
+    dataContext.put(CommonDataKeys.EDITOR, FileEditorManager.getInstance(projectForContext).getSelectedTextEditor());
+    return dataContext;
   }
 
   @Override
@@ -254,6 +267,8 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
 
         FileEditorManager manager = FileEditorManager.getInstance(project);
         manager.openTextEditor(new OpenFileDescriptor(project, virtualFile), true);
+        goToLine(request.hasLine() ? request.getLine() : null, request.hasColumn() ? request.getColumn() : null);
+
         builder.setResult(ASDriver.OpenFileResponse.Result.OK);
       }
       catch (Exception e) {
@@ -279,5 +294,39 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     }
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
+  }
+
+  /**
+   * @param line 0-indexed line number. If null, use the current line. This default (and the
+   *             column's default) match {@link com.intellij.ide.util.GotoLineNumberDialog}'s
+   *             defaults.
+   * @param column 0-indexed column number. If null, use column 0.
+   */
+  private void goToLine(Integer line, Integer column) {
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      try {
+        Project[] projects = ProjectManager.getInstance().getOpenProjects();
+        if (projects.length != 1) {
+          System.err.format("Expected exactly one open project, but found %d. If you have a valid test case where >1 project is expected " +
+                            "to be open, then this framework can be changed to allow for project selection.%n", projects.length);
+          return;
+        }
+        Project firstProject = projects[0];
+        Editor editor = FileEditorManager.getInstance(firstProject).getSelectedTextEditor();
+        CaretModel caretModel = editor.getCaretModel();
+        int lineToUse = line == null ? caretModel.getLogicalPosition().line : line;
+        int columnToUse = column == null ? 0 : column;
+
+        LogicalPosition position = new LogicalPosition(lineToUse, columnToUse);
+        caretModel.removeSecondaryCarets();
+        caretModel.moveToLogicalPosition(position);
+        editor.getScrollingModel().scrollToCaret(ScrollType.CENTER);
+        editor.getSelectionModel().removeSelection();
+        IdeFocusManager.getGlobalInstance().requestFocus(editor.getContentComponent(), true);
+      }
+      catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 }

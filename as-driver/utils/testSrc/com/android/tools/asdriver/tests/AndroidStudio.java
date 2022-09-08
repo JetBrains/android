@@ -229,18 +229,36 @@ public class AndroidStudio implements AutoCloseable {
     ASDriver.WaitForIndexResponse ignore = androidStudio.waitForIndex(rq);
   }
 
-  public void openFile(String project, String file) {
-    ASDriver.OpenFileRequest rq = ASDriver.OpenFileRequest.newBuilder().setProject(project).setFile(file).build();
+  /**
+   * Opens a file and then goes to a specific line and column in the first open project's selected
+   * text editor.
+   * @param line 0-indexed line number.
+   * @param column 0-indexed column number.
+   * @see com.intellij.openapi.editor.LogicalPosition
+   */
+  public void openFile(String project, String file, Integer line, Integer column) {
+    ASDriver.OpenFileRequest.Builder builder = ASDriver.OpenFileRequest.newBuilder().setProject(project).setFile(file);
+    if (line != null) {
+      builder.setLine(line);
+    }
+    if (column != null) {
+      builder.setColumn(column);
+    }
+    ASDriver.OpenFileRequest rq = builder.build();
     ASDriver.OpenFileResponse response = androidStudio.openFile(rq);
     switch (response.getResult()) {
       case OK:
         return;
       case ERROR:
-        throw new IllegalStateException(String.format("Could not open file \"%s\" in project \"%s\". Check the Android Studio " +
-                                                      "stderr log for the cause.", file, project));
+        throw new IllegalStateException(String.format("Could not open file \"%s\" in project \"%s\" to line %d:%d. Check the Android " +
+                                                      "Studio stderr log for the cause.", file, project, line, column));
       default:
         throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
+  }
+
+  public void openFile(String project, String file) {
+    openFile(project, file, null, null);
   }
 
   public void waitForComponent(String componentText) {
