@@ -52,9 +52,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.LightVirtualFile
-import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugSession
-import com.intellij.xdebugger.XDebuggerManager
 import com.sun.jdi.Location
 import com.sun.jdi.ReferenceType
 import com.sun.jdi.request.ClassPrepareRequest
@@ -102,15 +100,9 @@ class AndroidPositionManagerTest {
     whenever(mockDebugProcessImpl.managerThread).thenReturn(mockDebuggerManagerThreadImpl)
     whenever(mockDebugProcessImpl.project).thenReturn(myAndroidProjectRule.project)
     whenever(mockDebugProcessImpl.searchScope).thenReturn(GlobalSearchScope.allScope(myAndroidProjectRule.project))
+    whenever(mockDebugProcessImpl.processHandler).thenReturn(mockProcessHandler)
     whenever(mockDebuggerSession.xDebugSession).thenReturn(mockXDebugSession)
 
-    val mockXDebuggerManager = myAndroidProjectRule.mockProjectService(XDebuggerManager::class.java)
-    val mockXDebugSession: XDebugSession = mock()
-    val mockXDebugProcess: XDebugProcess = mock()
-
-    whenever(mockXDebuggerManager.currentSession).thenReturn(mockXDebugSession)
-    whenever(mockXDebugSession.debugProcess).thenReturn(mockXDebugProcess)
-    whenever(mockXDebugProcess.processHandler).thenReturn(mockProcessHandler)
     whenever(mockProcessHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).thenAnswer { targetDeviceAndroidVersion }
 
     myPositionManager = AndroidPositionManager(mockDebugProcessImpl)
@@ -520,28 +512,6 @@ class Foo {
 
       myOriginalLocalPackages = null
     }
-  }
-
-  @Test
-  fun androidVersionFromDebugSession_nullSession() {
-    val mockXDebuggerManager = myAndroidProjectRule.mockProjectService(XDebuggerManager::class.java)
-
-    whenever(mockXDebuggerManager.currentSession).thenReturn(null)
-
-    assertThat(AndroidPositionManager.getAndroidVersionFromDebugSession(myAndroidProjectRule.project)).isNull()
-  }
-
-  @Test
-  fun androidVersionFromDebugSession_nullAndroidVersion() {
-    whenever(mockProcessHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).thenAnswer { null }
-
-    assertThat(AndroidPositionManager.getAndroidVersionFromDebugSession(myAndroidProjectRule.project)).isNull()
-  }
-
-  @Test
-  fun androidVersionFromDebugSession_androidVersionExists() {
-    assertThat(AndroidPositionManager.getAndroidVersionFromDebugSession(myAndroidProjectRule.project))
-      .isSameAs(targetDeviceAndroidVersion)
   }
 
   @Test

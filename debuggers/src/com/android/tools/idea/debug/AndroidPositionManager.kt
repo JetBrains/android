@@ -50,7 +50,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiManager
 import com.intellij.xdebugger.XDebugSessionListener
-import com.intellij.xdebugger.XDebuggerManager
 import com.sun.jdi.Location
 import com.sun.jdi.ReferenceType
 import com.sun.jdi.request.ClassPrepareRequest
@@ -73,7 +72,7 @@ import java.util.function.Supplier
  */
 class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : PositionManagerImpl(myDebugProcess) {
 
-  private val myAndroidVersion: AndroidVersion? = getAndroidVersionFromDebugSession(myDebugProcess.project)
+  private val myAndroidVersion: AndroidVersion? = myDebugProcess.processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)
 
   private var mySourceFolder: Supplier<VirtualFile?> = Suppliers.memoize { createSourcePackageForApiLevel(false) }
   private var myGeneratedPsiFile: PsiFile? = null
@@ -241,11 +240,6 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
 
     private const val GENERATED_FILE_NAME = "Unavailable Source"
     private val LOG = Logger.getInstance(AndroidPositionManager::class.java)
-
-    @VisibleForTesting
-    fun getAndroidVersionFromDebugSession(project: Project): AndroidVersion? =
-      XDebuggerManager.getInstance(project)
-        .currentSession?.debugProcess?.processHandler?.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)
 
     @VisibleForTesting
     fun getRelPathForJavaSource(project: Project, file: PsiFile): String? {

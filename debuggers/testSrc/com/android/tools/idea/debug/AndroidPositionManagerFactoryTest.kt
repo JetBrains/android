@@ -44,6 +44,7 @@ class AndroidPositionManagerFactoryTest {
   @Before
   fun setup() {
     whenever(mockDebugProcessImpl.project).thenReturn(myAndroidProjectRule.project)
+    whenever(mockDebugProcessImpl.processHandler).thenReturn(mock())
   }
 
   @Test
