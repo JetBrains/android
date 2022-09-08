@@ -15,10 +15,16 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.SdkConstants
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.PropertySetterRule
+import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtUiCursorType
@@ -26,6 +32,7 @@ import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.TestAdtUiCursorsProvider
 import com.android.tools.adtui.common.replaceAdtUiCursorWithPredefinedCursor
 import com.android.tools.adtui.swing.FakeKeyboard
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeMouse.Button
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
@@ -53,6 +60,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.ROOT2
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -62,9 +70,13 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
+import com.android.tools.idea.layoutinspector.resource.data.AppContext
+import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
+import com.android.tools.idea.layoutinspector.util.TestStringTable
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command.SpecializedCase.UPDATE_SCREENSHOT_TYPE_COMMAND
 import com.android.tools.idea.layoutinspector.window
@@ -82,6 +94,8 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -100,6 +114,7 @@ import org.junit.rules.RuleChain
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
+import java.awt.event.KeyEvent
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.Icon
@@ -121,11 +136,13 @@ class DeviceViewPanelWithFullInspectorTest {
     clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
     isPreferredProcess =  { it.name == MODERN_PROCESS.name }
   )
+  private val fileOpenCaptureRule = FileOpenCaptureRule(inspectorRule.projectRule)
 
   @get:Rule
   val ruleChain = RuleChain
     .outerRule(appInspectorRule)
     .around(inspectorRule)
+    .around(fileOpenCaptureRule)
     .around(IconLoaderRule())
     .around(EdtRule())
     .around(executorRule)
@@ -136,10 +153,16 @@ class DeviceViewPanelWithFullInspectorTest {
   private val commands = mutableListOf<LayoutInspectorViewProtocol.Command>()
 
   private val deviceModel = DeviceModel(inspectorRule.processes)
+  private val appNamespace = ResourceNamespace.fromPackageName("com.example")
+  private val demoLayout = ResourceReference(appNamespace, ResourceType.LAYOUT, "demo")
+  private val view1Id = ResourceReference(appNamespace, ResourceType.ID, "v1")
+  private val view2Id = ResourceReference(appNamespace, ResourceType.ID, "v2")
 
   @Before
   fun before() {
     inspectorRule.attachDevice(MODERN_DEVICE)
+    inspectorRule.projectRule.fixture.testDataPath =
+      TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
   }
 
   @Test
@@ -585,6 +608,53 @@ class DeviceViewPanelWithFullInspectorTest {
     checkDeviceAction(children[3], enabled = true, StudioIcons.Shell.Toolbar.STOP, "Stop Inspector")
   }
 
+  @RunsInEdt
+  @Test
+  fun testGotoDeclaration() {
+    installCommandHandlers()
+    latch = CountDownLatch(1)
+    connect(MODERN_PROCESS)
+    assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
+    inspectorRule.projectRule.fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
+    inspectorRule.projectRule.fixture.addFileToProject("res/layout/demo.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <v1 xmlns:android="http://schemas.android.com/apk/res/android"
+          android:id="@+id/v1">
+        <v2 android:id="@+id/v2"/>
+      </v1>
+    """.trimIndent())
+
+    val model = inspectorRule.inspectorModel
+    val stringTable = TestStringTable()
+    val theme = stringTable.add(ResourceReference.style(appNamespace, "AppTheme"))!!
+    val context = AppContext(theme, screenWidth = 600, screenHeight = 800)
+    model.resourceLookup.updateConfiguration(FolderConfiguration(), 1f, context, stringTable, MODERN_PROCESS)
+    inspectorRule.inspector.treeSettings.hideSystemNodes = false
+    val panel = DeviceViewPanel(
+      deviceModel,
+      inspectorRule.processes,
+      {},
+      {},
+      {},
+      inspectorRule.inspector,
+      FakeDeviceViewSettings(),
+      inspectorRule.projectRule.fixture.testRootDisposable
+    )
+    delegateDataProvider(panel)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
+    focusManager.focusOwner = flatten(panel).filterIsInstance<DeviceViewContentPanel>().single()
+    val dispatcher = IdeKeyEventDispatcher(null)
+    val modifier = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
+
+    // Press ctrl-B / command-B when VIEW2 is selected:
+    model.setSelection(model[VIEW2], SelectionOrigin.INTERNAL)
+    dispatcher.dispatchKeyEvent(KeyEvent(panel, KeyEvent.KEY_PRESSED, 0, modifier, KeyEvent.VK_B, 'B'))
+    GotoDeclarationAction.lastAction?.get()
+    UIUtil.dispatchAllInvocationEvents()
+
+    fileOpenCaptureRule.checkEditor("demo.xml", lineNumber = 4, "<v2 android:id=\"@+id/v2\"/>")
+  }
+
   private fun checkDeviceAction(action: AnAction, enabled: Boolean, icon: Icon?, text: String) {
     val presentation = action.templatePresentation.clone()
     val event: AnActionEvent = mock()
@@ -606,8 +676,8 @@ class DeviceViewPanelWithFullInspectorTest {
         else -> {}
       }
       val window = window("w1", 1L, imageType = lastImageType) {
-        view(VIEW1, 0, 0, 10, 10, qualifiedName = "v1") {
-          view(VIEW2, 0, 0, 10, 10, qualifiedName = "v2")
+        view(VIEW1, 0, 0, 10, 10, qualifiedName = "v1", layout = demoLayout, viewId = view1Id) {
+          view(VIEW2, 0, 0, 10, 10, qualifiedName = "v2", layout = demoLayout, viewId = view2Id)
         }
       }
       inspectorRule.inspectorModel.update(window, listOf("w1"), 1)
@@ -963,7 +1033,7 @@ class DeviceViewPanelTest {
     val viewport = flatten(panel).filterIsInstance<JViewport>().first()
 
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider {
-      id -> if (id == LAYOUT_INSPECTOR_DATA_KEY.name) inspector else null
+        id -> if (id == LAYOUT_INSPECTOR_DATA_KEY.name) inspector else null
     }
 
     assertThat(processes.selectedProcess).isNotNull()

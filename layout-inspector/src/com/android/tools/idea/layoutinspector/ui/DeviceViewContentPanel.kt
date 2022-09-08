@@ -32,13 +32,16 @@ import com.android.tools.idea.layoutinspector.model.getFoldStroke
 import com.android.tools.idea.layoutinspector.model.getLabelFontSize
 import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.ui.GotItTooltip
@@ -254,6 +257,8 @@ class DeviceViewContentPanel(
       revalidate()
       repaint()
     }
+    ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet
+      ?.let { GotoDeclarationAction.registerCustomShortcutSet(it, this, disposableParent) }
   }
 
   private fun findComponentsAt(x: Int, y: Int) = model.findViewsAt((x - size.width / 2.0) / viewSettings.scaleFraction,
