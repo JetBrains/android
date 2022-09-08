@@ -33,6 +33,7 @@ import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
+import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.CodeOutOfDateTracker
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -201,7 +202,8 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
     val showingPreviewElements =
-      surface.updateGlancePreviewsAndRefresh(
+      surface.updatePreviewsAndRefresh(
+        true,
         previewElementProvider,
         LOG,
         psiFile,

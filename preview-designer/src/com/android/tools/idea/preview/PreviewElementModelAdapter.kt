@@ -18,6 +18,8 @@ package com.android.tools.idea.preview
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.LightVirtualFile
 
 /**
  * Ideally, this functionality should be a part of the model (currently only [NlModel]) implementation for the case where the previewable
@@ -45,6 +47,14 @@ interface PreviewElementModelAdapter<T : PreviewElement, M> {
   fun createDataContext(previewElement: T): DataContext
 
   fun toLogString(previewElement: T): String
+
+  /**
+   * Creates an in-memory XML file that model can pass to Layoutlib so that the [PreviewElement] can be rendered.
+   * @param content text content of an XML file, usually some custom view adapter for the [PreviewElement].
+   * @param backedFile the actual file where the [PreviewElement] is located.
+   * @param id an identifier used for debugging purposes.
+   */
+  fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long): LightVirtualFile
 }
 
 open class DelegatingPreviewElementModelAdapter<T : PreviewElement, M>(private val delegate: PreviewElementModelAdapter<T, M>):

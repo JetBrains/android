@@ -17,6 +17,8 @@ package com.android.tools.idea.preview
 
 import com.android.tools.idea.configurations.Configuration
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.LightVirtualFile
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -41,6 +43,7 @@ private class TextAdapter(private val modelsToElements: Map<Any, TestPreviewElem
   override fun applyToConfiguration(previewElement: TestPreviewElement, configuration: Configuration) { }
   override fun createDataContext(previewElement: TestPreviewElement) = DataContext { }
   override fun toLogString(previewElement: TestPreviewElement) = ""
+  override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) = LightVirtualFile()
 }
 
 class MatchElementsToModelTest {

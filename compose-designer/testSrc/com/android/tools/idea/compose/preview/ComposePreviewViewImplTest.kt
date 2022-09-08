@@ -33,6 +33,7 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
@@ -251,8 +252,8 @@ class ComposePreviewViewImplTest {
           TestPreviewElementDataContext(project, composePreviewManager, previewElement)
       }
     runBlocking(workerThread) {
-      surface.updateComposePreviewsAndRefresh(
-        false,
+      surface.updatePreviewsAndRefresh(
+        true,
         previewProvider,
         Logger.getInstance(ComposePreviewViewImplTest::class.java),
         mainFileSmartPointer.element!!,

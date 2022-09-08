@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NopSelectionModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionHandler
@@ -23,13 +22,6 @@ import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManage
 import com.android.tools.idea.compose.preview.scene.COMPOSE_SCREEN_VIEW_PROVIDER
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
-import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
-import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
-import com.android.tools.idea.preview.PreviewDisplaySettings
-import com.android.tools.idea.preview.PreviewElement
-import com.android.tools.idea.preview.PreviewElementModelAdapter
-import com.android.tools.idea.preview.PreviewElementProvider
-import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -41,10 +33,7 @@ import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutMana
 import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiFile
 
 /** List of available layouts for the Compose Preview Surface. */
 internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
@@ -161,35 +150,3 @@ internal fun createPinnedDesignSurfaceBuilder(
         NlConstants.SCREEN_DELTA
       )
     )
-
-/**
- * Compose-specific implementation of [updatePreviewsAndRefresh].
- *
- * If [quickRefresh] is true, the preview surfaces for the same [PreviewElement]s do not get
- * reinflated, allowing to save time for the static to animated preview transition.
- */
-internal suspend fun NlDesignSurface.updateComposePreviewsAndRefresh(
-  quickRefresh: Boolean,
-  previewElementProvider: PreviewElementProvider<ComposePreviewElementInstance>,
-  log: Logger,
-  psiFile: PsiFile,
-  parentDisposable: Disposable,
-  progressIndicator: ProgressIndicator,
-  onRenderCompleted: () -> Unit,
-  previewElementModelAdapter: PreviewElementModelAdapter<ComposePreviewElementInstance, NlModel>,
-  configureLayoutlibSceneManager:
-    (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
-): List<ComposePreviewElementInstance> {
-  return updatePreviewsAndRefresh(
-    !quickRefresh,
-    previewElementProvider,
-    log,
-    psiFile,
-    parentDisposable,
-    progressIndicator,
-    onRenderCompleted,
-    previewElementModelAdapter,
-    ::ComposeAdapterLightVirtualFile,
-    configureLayoutlibSceneManager
-  )
-}

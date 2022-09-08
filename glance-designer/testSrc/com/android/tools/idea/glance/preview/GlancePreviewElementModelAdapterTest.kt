@@ -19,8 +19,10 @@ import com.android.tools.idea.common.model.DataContextHolder
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.testFramework.LightVirtualFile
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -42,6 +44,9 @@ private fun simplestDisplaySettings() = PreviewDisplaySettings("", null, false, 
 
 internal class TestAdapter : GlancePreviewElementModelAdapter<TestPreviewElement, TestModel>() {
   override fun toXml(previewElement: TestPreviewElement) = ""
+
+  override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) =
+    LightVirtualFile()
 }
 
 class GlancePreviewElementModelAdapterTest {

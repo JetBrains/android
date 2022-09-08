@@ -16,11 +16,14 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.applyTo
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.LightVirtualFile
 
 /** [PreviewElementModelAdapter] adapting [ComposePreviewElementInstance] to [NlModel]. */
 abstract class ComposePreviewElementModelAdapter :
@@ -62,4 +65,11 @@ abstract class ComposePreviewElementModelAdapter :
         displayName=${previewElement.displaySettings.name}
         methodName=${previewElement.composableMethodFqn}
   """.trimIndent()
+
+  override fun createLightVirtualFile(
+    content: String,
+    backedFile: VirtualFile,
+    id: Long
+  ): LightVirtualFile =
+    ComposeAdapterLightVirtualFile("compose-model-$id.xml", content) { backedFile }
 }
