@@ -18,46 +18,34 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension.Companion.getKaptModel
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension.Companion.getKotlinModel
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension.Companion.registerTestHelperProjectResolver
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
-import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Expect
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 @RunsInEdt
-class KotlinSingleVariantSyncIntegrationTest : GradleIntegrationTest {
+class KotlinSingleVariantSyncIntegrationTest {
+  @get:Rule
+  var projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  var expect: Expect = Expect.createAndEnableStackTrace()
 
   @Test
-  fun kotlinSingleVariantSync() {
+  fun kotlinAndKaptSingleVariantSync() {
     registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
-    prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
-    openPreparedProject("project") { project ->
-      assertThat(getKotlinModel(project.gradleModule(":app")!!)?.testSourceSetNames().orEmpty())
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.KOTLIN_KAPT)
+    preparedProject.open { project ->
+      expect.that(getKotlinModel(project.gradleModule(":app")!!)?.testSourceSetNames().orEmpty())
+        .containsExactly("debugAndroidTest", "debug", "debugUnitTest")
+      expect.that(getKaptModel(project.gradleModule(":app")!!)?.testSourceSetNames().orEmpty())
         .containsExactly("debugAndroidTest", "debug", "debugUnitTest")
     }
   }
-
-  @Test
-  fun kaptSingleVariantSync() {
-    registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
-    prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
-    openPreparedProject("project") { project ->
-      assertThat(getKaptModel(project.gradleModule(":app")!!)?.testSourceSetNames().orEmpty())
-        .containsExactly("debugAndroidTest", "debug", "debugUnitTest")
-    }
-  }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData"
-  override fun getAdditionalRepos(): Collection<File> = emptyList()
 }

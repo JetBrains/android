@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.switchVariant
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -55,6 +56,8 @@ interface TemplateBasedTestProject : TestProjectDefinition {
   val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit
   val expectedSyncIssues: Set<Int>
   val verifyOpened: ((Project) -> Unit)?
+  class VariantSelection(val gradlePath: String, val variant: String)
+  val switchVariant: VariantSelection? get() = null
 
   val projectName: String  get() = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
   val templateAbsolutePath: File  get() = resolveTestDataPath(template)
@@ -79,14 +82,15 @@ interface TemplateBasedTestProject : TestProjectDefinition {
   override fun preparedTestProject(
     integrationTestEnvironment: IntegrationTestEnvironment,
     name: String,
-    agpVersion: AgpVersionSoftwareEnvironmentDescriptor
+    agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
+    ndkVersion: String?
   ): PreparedTestProject {
     val root = integrationTestEnvironment.prepareGradleProject(
       templateAbsolutePath,
       additionalRepositories,
       name,
       agpVersion,
-      ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
+      ndkVersion = ndkVersion
     )
     if (autoMigratePackageAttribute && agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80_V1) {
       migratePackageAttribute(root)
@@ -104,6 +108,13 @@ interface TemplateBasedTestProject : TestProjectDefinition {
           ) { project ->
             invokeAndWaitIfNeeded {
               AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+            }
+            switchVariant?.let { switchVariant ->
+              switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
+              invokeAndWaitIfNeeded {
+                AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+              }
+              verifyOpened?.invoke(project)// Second time.
             }
             body(project)
           }

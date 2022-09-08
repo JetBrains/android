@@ -51,7 +51,8 @@ enum class TestProject(
   override val setup: () -> () -> Unit = { {} },
   override val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
   override val expectedSyncIssues: Set<Int> = emptySet(),
-  override val verifyOpened: ((Project) -> Unit)? = null
+  override val verifyOpened: ((Project) -> Unit)? = null,
+  override val switchVariant: TemplateBasedTestProject.VariantSelection? = null
 ) : TemplateBasedTestProject {
   APP_WITH_ML_MODELS(TestProjectToSnapshotPaths.APP_WITH_ML_MODELS),
   APP_WITH_BUILDSRC(TestProjectToSnapshotPaths.APP_WITH_BUILDSRC),
@@ -240,6 +241,11 @@ enum class TestProject(
     }
   ),
   MULTI_FLAVOR(TestProjectToSnapshotPaths.MULTI_FLAVOR),
+  MULTI_FLAVOR_SWITCH_VARIANT(
+    TestProjectToSnapshotPaths.MULTI_FLAVOR,
+    testName = "switchVariant",
+    switchVariant = TemplateBasedTestProject.VariantSelection(":app", "firstXyzSecondXyzRelease")
+  ),
   MULTI_FLAVOR_WITH_FILTERING(
     TestProjectToSnapshotPaths.MULTI_FLAVOR,
     testName = "_withFiltering",

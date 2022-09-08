@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,17 +23,9 @@ import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.EdtAndroidProjectRule;
-import com.android.tools.idea.testing.GradleIntegrationTest;
-import com.android.tools.idea.testing.TestProjectPaths;
 import com.google.common.truth.Expect;
 import com.intellij.testFramework.RunsInEdt;
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.SystemDependent;
-import org.jetbrains.annotations.SystemIndependent;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,7 +36,7 @@ import org.junit.runners.JUnit4;
  */
 @RunWith(JUnit4.class)
 @RunsInEdt
-public class GradleProjectsTest implements GradleIntegrationTest {
+public class GradleProjectsTest {
   @Rule
   public EdtAndroidProjectRule projectRule = onEdt(AndroidProjectRule.withAndroidModels());
 
@@ -63,29 +55,5 @@ public class GradleProjectsTest implements GradleIntegrationTest {
 
     expect.that(facet.getProperties().ALLOW_USER_CONFIGURATION).isFalse();
     expect.that(ProjectSystemUtil.requiresAndroidModel(projectRule.getProject())).isTrue();
-  }
-
-  @NotNull
-  @Override
-  public @SystemDependent String getBaseTestPath() {
-    return projectRule.getFixture().getTempDirPath();
-  }
-
-  @NotNull
-  @Override
-  public @SystemIndependent String getTestDataDirectoryWorkspaceRelativePath() {
-    return TestProjectPaths.TEST_DATA_PATH;
-  }
-
-  @NotNull
-  @Override
-  public Collection<File> getAdditionalRepos() {
-    return Collections.emptyList();
-  }
-
-  @NotNull
-  @Override
-  public File resolveTestDataPath(@NotNull @SystemIndependent String testDataPath) {
-    return GradleIntegrationTest.super.resolveTestDataPath(testDataPath);
   }
 }

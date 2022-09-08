@@ -19,32 +19,29 @@ import com.android.sdklib.devices.Abi
 import com.android.sdklib.devices.Abi.ARMEABI_V7A
 import com.android.sdklib.devices.Abi.X86
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.mockDeviceFor
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.withSimulatedSyncError
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
-class MakeBeforeRunTaskProviderIntegrationTest : GradleIntegrationTest {
+class MakeBeforeRunTaskProviderIntegrationTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels()
 
   @Test
   fun testModelsAreNotFetchedForSyncedAbi() {
-    prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.DEPENDENT_NATIVE_MODULES)
+    preparedProject.open { project ->
       val ndkFacet = NdkFacet.getInstance(project.gradleModule(":app") ?: error(":app module not found"))
       val selectedVariant = ndkFacet?.selectedVariantAbi
 
@@ -66,8 +63,8 @@ class MakeBeforeRunTaskProviderIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testModelsAreFetchedForNotSyncedAbi() {
-    prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.DEPENDENT_NATIVE_MODULES)
+    preparedProject.open { project ->
       val ndkFacet = NdkFacet.getInstance(project.gradleModule(":app") ?: error(":app module not found"))
       val selectedVariant = ndkFacet?.selectedVariantAbi
 
@@ -89,10 +86,6 @@ class MakeBeforeRunTaskProviderIntegrationTest : GradleIntegrationTest {
         .containsExactly(X86.toString(), ARMEABI_V7A.toString())
     }
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
 }
 
 private const val errorMessage: String = "Unexpected attempt to resolve a project."

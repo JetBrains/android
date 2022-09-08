@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
+import com.android.tools.idea.gradle.project.sync.GradleModuleSystemIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.navigator.AndroidProjectViewSnapshotComparisonTestDef
 import com.android.tools.idea.navigator.SourceProvidersTestDef
@@ -27,8 +28,10 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT_V1
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.onEdt
+import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -65,6 +68,7 @@ abstract class SyncedProjectTest(
     val testProject: TestProject
     override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): TestDef
     fun setup(root: File) = Unit
+    fun runTest(root: File, project: Project, expect: Expect) = runTest(root, project)
     fun runTest(root: File, project: Project)
     fun verifyAfterClosing(root: File) = Unit
   }
@@ -77,12 +81,16 @@ abstract class SyncedProjectTest(
         AndroidProjectViewSnapshotComparisonTestDef.tests +
         GradleSyncLoggedEventsTestDef.tests +
         GradleModuleHierarchyProviderTest.tests +
+        GradleModuleSystemIntegrationTest.tests +
         selfChecks()
       ).groupBy { it.testProject }
   }
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+
+  @get:Rule
+  val expectRule: Expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun testSimpleApplication() = testProject(TestProject.SIMPLE_APPLICATION)
@@ -186,6 +194,9 @@ abstract class SyncedProjectTest(
 
   @Test
   fun testMultiFlavor() = testProject(TestProject.MULTI_FLAVOR)
+
+  @Test
+  fun testMultiFlavor_switchVariant() = testProject(TestProject.MULTI_FLAVOR_SWITCH_VARIANT)
 
   @Test
   fun testMultiFlavorWithFiltering() = testProject(TestProject.MULTI_FLAVOR_WITH_FILTERING)
@@ -293,7 +304,7 @@ abstract class SyncedProjectTest(
         ) { project ->
           tests.mapNotNull {
             println("${it::class.java.simpleName}(${testProject.projectName})\n    $preparedProject.root")
-            kotlin.runCatching { it.runTest(preparedProject.root, project) }.exceptionOrNull()
+            kotlin.runCatching { it.runTest(preparedProject.root, project, expectRule) }.exceptionOrNull()
           }
         }
       }
