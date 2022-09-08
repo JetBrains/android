@@ -33,9 +33,11 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
@@ -120,7 +122,7 @@ public class StringResourceViewPanel implements Disposable {
 
   private void initTable() {
     myDeleteAction = new DeleteStringAction(this);
-    myGoToAction = new GoToDeclarationAction(this);
+    myGoToAction = new GoToDeclarationAction(myFacet.getModule().getProject());
 
     myTable = new StringResourceTable();
 
