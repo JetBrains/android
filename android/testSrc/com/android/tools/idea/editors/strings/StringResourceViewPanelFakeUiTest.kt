@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.editors.strings
 
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
+import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.actions.BrowserHelpAction
 import com.android.tools.idea.editors.strings.action.AddKeyAction
@@ -24,34 +27,56 @@ import com.android.tools.idea.editors.strings.action.FilterKeysAction
 import com.android.tools.idea.editors.strings.action.FilterLocalesAction
 import com.android.tools.idea.editors.strings.action.ReloadStringResourcesAction
 import com.android.tools.idea.editors.strings.action.RemoveKeysAction
-import com.google.common.truth.Truth.assertThat
-
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel.FIXED_COLUMN_COUNT
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN
+import com.android.tools.idea.res.LocalResourceRepository
+import com.android.tools.idea.res.createTestModuleRepository
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.Separator
-import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.application.AppUIExecutor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.awt.Component
+import java.awt.event.KeyEvent
 
 @RunWith(JUnit4::class)
 class StringResourceViewPanelFakeUiTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.withAndroidModel()
 
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
   private lateinit var stringResourceViewPanel: StringResourceViewPanel
   private lateinit var fakeUi: FakeUi
+  private lateinit var resourceDirectory: VirtualFile
+  private lateinit var localResourceRepository: LocalResourceRepository
+  private lateinit var facet: AndroidFacet
 
   @Before
   fun setUp() {
+    facet = AndroidFacet.getInstance(projectRule.module)!!
+    projectRule.fixture.testDataPath =
+      resolveWorkspacePath("tools/adt/idea/android/testData").toString()
+    resourceDirectory = projectRule.fixture.copyDirectoryToProject("stringsEditor/base/res", "res")
+    localResourceRepository = createTestModuleRepository(facet, listOf(resourceDirectory))
+
     stringResourceViewPanel = StringResourceViewPanel(projectRule.module.androidFacet, projectRule.testRootDisposable)
     invokeAndWaitIfNeeded {
       fakeUi = FakeUi(stringResourceViewPanel.loadingPanel)
       fakeUi.root.validate()
+    }
+    AppUIExecutor.onWriteThread().run {
+      ResourceLoadingTask(stringResourceViewPanel).queue()
     }
   }
 
@@ -67,5 +92,54 @@ class StringResourceViewPanelFakeUiTest {
     assertThat(toolbar.actions[5]).isInstanceOf(ReloadStringResourcesAction::class.java)
     assertThat(toolbar.actions[6]).isInstanceOf(BrowserHelpAction::class.java)
     assertThat(toolbar.actions[7]).isInstanceOf(Separator::class.java)
+  }
+
+  @Test
+  fun dataLoadCorrectly() {
+    assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN)).isEqualTo(DEFAULT_KEYS)
+    val locales = (FIXED_COLUMN_COUNT until stringResourceViewPanel.table.columnCount)
+      .map(stringResourceViewPanel.table::getColumnName)
+    assertThat(locales).isEqualTo(Companion.DEFAULT_LOCALES)
+  }
+
+  @Test
+  @RunsInEdt
+  fun removeKeyWithStringResourceWriter() {
+    val row = 2
+    enableHeadlessDialogs(projectRule.project)
+
+    stringResourceViewPanel.table.selectCellAt(row, KEY_COLUMN)
+    fakeUi.keyboard.setFocus(stringResourceViewPanel.table.frozenTable)
+    createModalDialogAndInteractWithIt({ fakeUi.keyboard.press(KeyEvent.VK_DELETE)}) {
+      it.close(DialogWrapper.OK_EXIT_CODE)
+    }
+    assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN))
+      .isEqualTo(DEFAULT_KEYS.slice(DEFAULT_KEYS.indices.minus(row)))
+  }
+
+  @Test
+  @RunsInEdt
+  fun removeValue() {
+    val row = 2
+    val column = 4
+    val initialValues = stringResourceViewPanel.table.getColumnAt(column)
+    // Make sure there's something to remove.
+    assertThat(initialValues[row].toString()).isNotNull()
+    assertThat(initialValues[row].toString()).isNotEmpty()
+
+    stringResourceViewPanel.table.selectCellAt(row, column)
+    fakeUi.keyboard.setFocus(stringResourceViewPanel.table.scrollableTable)
+    fakeUi.keyboard.press(KeyEvent.VK_DELETE)
+
+    // Should not have removed any keys
+    assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN)).isEqualTo(DEFAULT_KEYS)
+    val expected = initialValues.take(row) + "" + initialValues.drop(row + 1)
+    assertThat(stringResourceViewPanel.table.getColumnAt(column)).isEqualTo(expected)
+  }
+
+  companion object {
+    val DEFAULT_KEYS = listOf("key1", "key2", "key3", "key5", "key6", "key7", "key8", "key4", "key9", "key10")
+    val DEFAULT_LOCALES =
+      listOf("English (en)", "English (en) in India (IN)", "English (en) in United Kingdom (GB)", "French (fr)", "Hindi (hi)")
   }
 }

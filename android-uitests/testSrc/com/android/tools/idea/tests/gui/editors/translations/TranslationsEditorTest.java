@@ -68,14 +68,12 @@ public final class TranslationsEditorTest {
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
   private Path myStringsXmlPath;
-  private Path myTamilStringsXmlPath;
 
   @Before
   public void initPaths() {
     FileSystem fileSystem = FileSystems.getDefault();
 
     myStringsXmlPath = fileSystem.getPath("app", "src", "main", "res", "values", "strings.xml");
-    myTamilStringsXmlPath = fileSystem.getPath("app", "src", "main", "res", "values-ta", "strings.xml");
   }
 
   private void importSimpleApplication() throws IOException {
@@ -91,75 +89,6 @@ public final class TranslationsEditorTest {
     panel.performAction("Open editor");
 
     editor.getTranslationsEditor().finishLoading();
-  }
-
-  @Test
-  public void basics() throws IOException {
-    importSimpleApplication();
-
-    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
-    FrozenColumnTableFixture table = translationsEditor.getTable();
-
-    assertEquals(Arrays.asList("app_name", "app_name", "hello_world", "action_settings", "some_id", "cancel"), table.columnAt(KEY_COLUMN));
-
-    Object expected = Arrays.asList(
-      "Chinese (zh) in China (CN)",
-      "English (en)",
-      "English (en) in United Kingdom (GB)",
-      "Hebrew (iw)",
-      "Tamil (ta)");
-    assertEquals(expected, translationsEditor.locales());
-  }
-
-  @Test
-  public void removeKeyWithDeleteHandler() throws Exception {
-    importSimpleApplication();
-
-    EditorFixture editor = myGuiTest.ideFrame().getEditor();
-    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
-    FrozenColumnTableFixture table = translationsEditor.getTable();
-    TableCell helloWorldKey = translationsEditor.cell("hello_world", "app/src/main/res", KEY_COLUMN);
-
-    table.pressAndReleaseKey(helloWorldKey, KeyPressInfo.keyCode(KeyEvent.VK_DELETE));
-
-    DeleteDialogFixture.find(myGuiTest.ideFrame()).unsafeDelete();
-
-    translationsEditor.finishLoading();
-    assertEquals(Arrays.asList("app_name", "app_name", "action_settings", "some_id", "cancel"), table.columnAt(KEY_COLUMN));
-
-    editor.open(myStringsXmlPath);
-    assertFalse(editor.getCurrentFileContents().contains("hello_world"));
-
-    editor.open(myTamilStringsXmlPath);
-    assertFalse(editor.getCurrentFileContents().contains("hello_world"));
-  }
-
-  @Test
-  public void removeKeyWithSafeDeleteProcessor() throws Exception {
-    importSimpleApplication();
-
-    EditorFixture editor = myGuiTest.ideFrame().getEditor();
-    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
-    FrozenColumnTableFixture table = translationsEditor.getTable();
-    TableCell helloWorldKey = translationsEditor.cell("hello_world", "app/src/main/res", KEY_COLUMN);
-
-    table.pressAndReleaseKey(helloWorldKey, KeyPressInfo.keyCode(KeyEvent.VK_DELETE));
-
-    DeleteDialogFixture.find(myGuiTest.ideFrame()).safeDelete().deleteAnyway();
-
-    translationsEditor.finishLoading();
-
-    // Sort the keys for a determinate order. Otherwise we get [app_name, app_name, action_settings, cancel, some_id] often for an
-    // undetermined reason when we expect [app_name, app_name, action_settings, some_id, cancel].
-    table.clickHeaderColumn(KEY_COLUMN);
-
-    assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "some_id"), table.columnAt(KEY_COLUMN));
-
-    editor.open(myStringsXmlPath);
-    assertFalse(editor.getCurrentFileContents().contains("hello_world"));
-
-    editor.open(myTamilStringsXmlPath);
-    assertFalse(editor.getCurrentFileContents().contains("hello_world"));
   }
 
   // TODO(b/232444069): Test that filters work at the table level and remove these tests.

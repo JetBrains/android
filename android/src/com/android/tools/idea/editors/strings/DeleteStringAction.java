@@ -50,8 +50,7 @@ public class DeleteStringAction extends AbstractAction {
 
     // nothing is selected, select cell under mouse
     if ((rows.length == 0 || cols.length == 0) && tableRow >= 0 && tableColumn >= 0) {
-      table.setRowSelectionInterval(tableRow, tableRow);
-      table.setColumnSelectionInterval(tableColumn, tableColumn);
+      table.selectCellAt(tableRow, tableColumn);
       rows = table.getSelectedModelRowIndices();
       cols = table.getSelectedModelColumnIndices();
     }

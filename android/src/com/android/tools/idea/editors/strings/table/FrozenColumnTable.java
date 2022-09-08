@@ -497,28 +497,6 @@ public class FrozenColumnTable<M extends TableModel> {
     myRowSorter = rowSorter;
   }
 
-  public final void setRowSelectionInterval(int viewRowIndex1, int viewRowIndex2) {
-    myFrozenTable.setRowSelectionInterval(viewRowIndex1, viewRowIndex2);
-    assert Arrays.equals(myFrozenTable.getSelectedRows(), myScrollableTable.getSelectedRows());
-  }
-
-  public final void setColumnSelectionInterval(int viewColumnIndex1, int viewColumnIndex2) {
-    assert viewColumnIndex1 <= viewColumnIndex2;
-    int count = myFrozenTable.getColumnCount();
-
-    if (viewColumnIndex2 < count) {
-      myFrozenTable.setColumnSelectionInterval(viewColumnIndex1, viewColumnIndex2);
-      return;
-    }
-
-    if (viewColumnIndex1 >= count) {
-      myScrollableTable.setColumnSelectionInterval(viewColumnIndex1 - count, viewColumnIndex2 - count);
-      return;
-    }
-
-    throw new UnsupportedOperationException();
-  }
-
   public final int getSelectedRow() {
     int row = myFrozenTable.getSelectedRow();
     assert row == myScrollableTable.getSelectedRow();
