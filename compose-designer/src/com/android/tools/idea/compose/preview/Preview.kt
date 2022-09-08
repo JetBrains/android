@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.rendering.api.Bridge
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
@@ -36,7 +37,6 @@ import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.containsOffset
-import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -68,6 +68,7 @@ import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.CodeOutOfDateTracker
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -935,7 +936,7 @@ class ComposePreviewRepresentation(
   private fun hasErrorsAndNeedsBuild(): Boolean =
     renderedElements.isNotEmpty() &&
       (!hasRenderedAtLeastOnce.get() ||
-        surface.sceneManagers.any { it.renderResult.isComposeErrorResult() })
+        surface.sceneManagers.any { it.renderResult.isErrorResult(COMPOSE_VIEW_ADAPTER_FQN) })
 
   private fun hasSyntaxErrors(): Boolean =
     WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)

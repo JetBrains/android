@@ -26,29 +26,36 @@ import com.android.tools.idea.glance.preview.mvvm.PreviewView
 import com.android.tools.idea.glance.preview.mvvm.PreviewViewModel
 import com.android.tools.idea.glance.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.projectsystem.requestBuild
+import com.android.tools.idea.rendering.RenderResult
+import com.android.tools.idea.rendering.isErrorResult
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import org.apache.commons.lang.time.DurationFormatUtils
 
 /** [PreviewViewModel] for the Glance previews. */
 class GlancePreviewViewModel(
+  private val adapterViewFqcn: String,
   private val previewView: PreviewView,
   private val projectBuildStatusManager: ProjectBuildStatusManager,
   private val project: Project,
-  private val psiFilePointer: SmartPsiElementPointer<PsiFile>
+  private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
+  private val renderResultsProvider: () -> List<RenderResult?>
 ) : PreviewViewModel, PreviewViewModelStatus {
   private val refreshCallsCount = AtomicInteger(0)
-  private var hasRendered = false
+  private val hasRendered = AtomicBoolean(false)
+  private val hasPreviews = AtomicBoolean(false)
 
   override fun checkForNativeCrash(runnable: Runnable): Boolean {
     if (Bridge.hasNativeCrash()) {
@@ -81,7 +88,7 @@ class GlancePreviewViewModel(
   }
 
   override fun afterPreviewsRefreshed() {
-    hasRendered = true
+    hasRendered.set(true)
     updateViewAndNotifications()
   }
 
@@ -103,7 +110,7 @@ class GlancePreviewViewModel(
     updateViewAndNotifications()
 
     invokeLater {
-      if (hasRendered) {
+      if (hasRendered.get()) {
         // Only notify the preview refresh time if there are previews to show.
         val durationString = Duration.ofMillis(durationNanos / 1_000_000).toDisplayString()
         val notification =
@@ -150,7 +157,7 @@ class GlancePreviewViewModel(
       }
     }
   private fun updateView() {
-    if (hasRendered) {
+    if (hasRendered.get()) {
       previewView.showContent()
     } else {
       when {
@@ -168,6 +175,20 @@ class GlancePreviewViewModel(
 
   override val isRefreshing: Boolean
     get() = refreshCallsCount.get() > 0
+
+  override val hasErrorsAndNeedsBuild: Boolean
+    get() =
+      hasPreviews.get() &&
+        (!hasRendered.get() || renderResultsProvider().any { it.isErrorResult(adapterViewFqcn) })
+
+  override val hasSyntaxErrors: Boolean
+    get() = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
+
+  override val isOutOfDate: Boolean
+    get() = projectBuildStatusManager.status == ProjectStatus.OutOfDate
+
+  override val previewedFile: PsiFile?
+    get() = psiFilePointer.element
 }
 
 /**

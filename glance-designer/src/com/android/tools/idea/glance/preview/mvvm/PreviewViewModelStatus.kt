@@ -15,10 +15,20 @@
  */
 package com.android.tools.idea.glance.preview.mvvm
 
+import com.intellij.psi.PsiFile
+
 /**
  * An interface providing [PreviewViewModel] status to the [PreviewView] entities that model can not
  * update directly (e.g. Actions).
  */
 interface PreviewViewModelStatus {
   val isRefreshing: Boolean
+
+  val hasErrorsAndNeedsBuild: Boolean
+
+  val hasSyntaxErrors: Boolean
+
+  val isOutOfDate: Boolean
+
+  val previewedFile: PsiFile?
 }

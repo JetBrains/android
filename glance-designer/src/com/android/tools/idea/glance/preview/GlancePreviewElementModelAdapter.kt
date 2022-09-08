@@ -75,7 +75,7 @@ abstract class GlancePreviewElementModelAdapter<T : MethodPreviewElement, M : Da
   override fun toLogString(previewElement: T) = "displayName=${previewElement.displaySettings.name}"
 }
 
-private const val APP_WIDGET_VIEW_ADAPTER =
+internal const val APP_WIDGET_VIEW_ADAPTER =
   "androidx.glance.appwidget.preview.GlanceAppWidgetViewAdapter"
 
 object AppWidgetModelAdapter : GlancePreviewElementModelAdapter<GlancePreviewElement, NlModel>() {
@@ -94,12 +94,12 @@ object AppWidgetModelAdapter : GlancePreviewElementModelAdapter<GlancePreviewEle
     GlanceAppWidgetAdapterLightVirtualFile("model-appwidget-$id.xml", content) { backedFile }
 }
 
-private const val TILE_VIEW_ADAPTER =
+internal const val WEAR_TILE_VIEW_ADAPTER =
   "androidx.glance.wear.tiles.preview.GlanceTileServiceViewAdapter"
 
 object WearTilesModelAdapter : GlancePreviewElementModelAdapter<GlancePreviewElement, NlModel>() {
   override fun toXml(previewElement: GlancePreviewElement) =
-    PreviewXmlBuilder(TILE_VIEW_ADAPTER)
+    PreviewXmlBuilder(WEAR_TILE_VIEW_ADAPTER)
       .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, "wrap_content")
       .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, "wrap_content")
       .toolsAttribute("composableName", previewElement.methodFqcn)

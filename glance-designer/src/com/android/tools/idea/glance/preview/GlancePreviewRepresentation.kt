@@ -70,6 +70,7 @@ private val GLANCE_APPWIDGET_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE
 
 /** A generic [MethodPreviewElement] [PreviewRepresentation]. */
 internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
+  adapterViewFqcn: String,
   psiFile: PsiFile,
   previewProvider: PreviewElementProvider<T>,
   previewElementModelAdapterDelegate: GlancePreviewElementModelAdapter<T, NlModel>
@@ -127,8 +128,17 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
     )
   }
 
+  private val surface: NlDesignSurface
+    get() = previewView.surface
+
   private val previewViewModel: GlancePreviewViewModel =
-    GlancePreviewViewModel(previewView, projectBuildStatusManager, project, psiFilePointer)
+    GlancePreviewViewModel(
+      adapterViewFqcn,
+      previewView,
+      projectBuildStatusManager,
+      project,
+      psiFilePointer
+    ) { surface.sceneManagers.map { it.renderResult } }
 
   private val previewFreshnessTracker =
     CodeOutOfDateTracker.create(module, this) { requestRefresh() }
@@ -136,9 +146,6 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
   private val previewElementProvider =
     MemoizedPreviewElementProvider(previewProvider, previewFreshnessTracker)
   private var renderedElements: List<T> = emptyList()
-
-  private val surface: NlDesignSurface
-    get() = previewView.surface
 
   // TODO(b/239802877): We need to cover the case where the RefreshRequest with invalidate=true gets
   // called but also gets cancelled early (because of the next RefreshRequest gets collected) and

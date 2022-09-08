@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.glance.preview
 
-import com.android.tools.idea.common.actions.IssueNotificationAction
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.glance.preview.actions.GlanceIssueNotificationAction
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
@@ -47,7 +47,7 @@ internal class GlanceAppWidgetPreviewToolbar(surface: DesignSurface<*>) :
   }
 
   override fun getNorthEastGroup(): ActionGroup =
-    DefaultActionGroup().apply { add(IssueNotificationAction.getInstance()) }
+    DefaultActionGroup(listOf(GlanceIssueNotificationAction()))
 }
 
 /** Provider of the [PreviewRepresentation] for Glance App Widget code primitives. */
@@ -91,7 +91,12 @@ class AppWidgetPreviewRepresentationProvider(
             .asSequence()
       }
 
-    return GlancePreviewRepresentation(psiFile, previewProvider, AppWidgetModelAdapter)
+    return GlancePreviewRepresentation(
+      APP_WIDGET_VIEW_ADAPTER,
+      psiFile,
+      previewProvider,
+      AppWidgetModelAdapter
+    )
   }
 
   override val displayName = GlancePreviewBundle.message("glance.preview.appwidget.title")

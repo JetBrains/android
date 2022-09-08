@@ -36,8 +36,7 @@ import com.android.tools.idea.preview.actions.ReEnableFastPreview
 import com.android.tools.idea.preview.actions.ShowEventLogAction
 import com.android.tools.idea.preview.actions.ShowProblemsPanel
 import com.android.tools.idea.preview.actions.actionLink
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
@@ -61,22 +60,6 @@ private val GREEN_REFRESH_BUTTON =
     AllIcons.Actions.ForceRefresh,
     JBColor(0x59A869, 0x499C54)
   )
-
-/**
- * Utility getter that indicates if the project needs a build. This is the case if the previews
- * build is not valid, like after a clean or cancelled, or if it has failed.
- */
-internal val Project.needsBuild: Boolean
-  get() {
-    val lastBuildResult =
-      ProjectSystemService.getInstance(project = this)
-        .projectSystem
-        .getBuildManager()
-        .getLastBuildResult()
-    return lastBuildResult.status == ProjectSystemBuildManager.BuildStatus.CANCELLED ||
-      lastBuildResult.status == ProjectSystemBuildManager.BuildStatus.FAILED ||
-      lastBuildResult.mode == ProjectSystemBuildManager.BuildMode.CLEAN
-  }
 
 @VisibleForTesting
 internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewStatusNotification? {

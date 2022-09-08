@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.glance.preview
 
-import com.android.tools.idea.common.actions.IssueNotificationAction
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.glance.preview.actions.GlanceIssueNotificationAction
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
@@ -46,7 +46,7 @@ internal class GlanceTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
   }
 
   override fun getNorthEastGroup(): ActionGroup =
-    DefaultActionGroup().apply { add(IssueNotificationAction.getInstance()) }
+    DefaultActionGroup(listOf(GlanceIssueNotificationAction()))
 }
 
 /** Provider of the [PreviewRepresentation] for Glance Tile code primitives. */
@@ -89,7 +89,12 @@ class TilePreviewRepresentationProvider(
             .asSequence()
       }
 
-    return GlancePreviewRepresentation(psiFile, previewProvider, WearTilesModelAdapter)
+    return GlancePreviewRepresentation(
+      WEAR_TILE_VIEW_ADAPTER,
+      psiFile,
+      previewProvider,
+      WearTilesModelAdapter
+    )
   }
 
   override val displayName = GlancePreviewBundle.message("glance.preview.tile.title")

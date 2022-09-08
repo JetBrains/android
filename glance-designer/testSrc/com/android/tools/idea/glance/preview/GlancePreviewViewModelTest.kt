@@ -84,7 +84,10 @@ class GlancePreviewViewModelTest {
     val file = fixture.configureByText("foo.txt", "")
     val filePtr = runReadAction { SmartPointerManager.createPointer(file) }
 
-    viewModel = GlancePreviewViewModel(testView, statusManager, project, filePtr)
+    viewModel =
+      GlancePreviewViewModel("foo.bar.AdapterView", testView, statusManager, project, filePtr) {
+        listOf()
+      }
   }
 
   @After

@@ -27,9 +27,10 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
 import icons.StudioIcons
+import org.jetbrains.annotations.VisibleForTesting
 
-internal val PREVIEW_VIEW_MODEL_STATUS =
-  DataKey.create<PreviewViewModelStatus>("PreviewViewModelStatus")
+@VisibleForTesting
+val PREVIEW_VIEW_MODEL_STATUS = DataKey.create<PreviewViewModelStatus>("PreviewViewModelStatus")
 
 /** [AnAction] that can be used to show an icon according to the [PreviewViewModelStatus]. */
 internal class GlancePreviewStatusIcon(private val sceneView: SceneView?) : AnAction() {
