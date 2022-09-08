@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 32
-
+    namespace "com.example.lib"
 
     defaultConfig {
         minSdkVersion 16

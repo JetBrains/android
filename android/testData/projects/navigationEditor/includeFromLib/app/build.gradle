@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 32
+    namespace "com.example.navgraph"
 
 
     defaultConfig {

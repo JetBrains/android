@@ -18,6 +18,7 @@ apply plugin: 'android'
 android {
   compileSdkVersion 19
   buildToolsVersion '19.1.0'
+  namespace "com.example.android.app"
 
   defaultConfig {
     minSdkVersion 15

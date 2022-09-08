@@ -63,6 +63,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
                  "android {\n" +
                  "    compileSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
                  "    buildToolsVersion \"" + SdkConstants.CURRENT_BUILD_TOOLS_VERSION + "\"\n" +
+                 "    namespace \"com.example.google.migrate2appcompat\"\n" +
                  "    defaultConfig {\n" +
                  "        applicationId \"com.example.google.migrate2appcompat\"\n" +
                  "        minSdkVersion 23\n" +
@@ -85,6 +86,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
                  "android {\n" +
                  "    compileSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
                  "    buildToolsVersion \"" + SdkConstants.CURRENT_BUILD_TOOLS_VERSION + "\"\n" +
+                 "    namespace \"com.example.appandmodules.mylibarybase\"\n" +
                  "    defaultConfig {\n" +
                  "        minSdkVersion 23\n" +
                  "        targetSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
@@ -118,8 +120,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
 
     assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "          xmlns:tools=\"http://schemas.android.com/tools\"\n" +
-                 "          package=\"com.example.google.migrate2appcompat\">\n" +
+                 "          xmlns:tools=\"http://schemas.android.com/tools\">\n" +
                  "\n" +
                  "    <application\n" +
                  "        android:allowBackup=\"true\"\n" +

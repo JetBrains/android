@@ -16,13 +16,11 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
@@ -33,7 +31,7 @@ import org.junit.Test
 import java.io.File
 
 @RunsInEdt
-class TaskConfigurationNotTriggeredDuringSyncTest : GradleIntegrationTest {
+class TaskConfigurationNotTriggeredDuringSyncTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
@@ -46,10 +44,10 @@ class TaskConfigurationNotTriggeredDuringSyncTest : GradleIntegrationTest {
     // We do not allow Gradle tasks configuration by default on AS.
     assertThat(GradleExperimentalSettings.getInstance().SKIP_GRADLE_TASKS_LIST).isEqualTo(true)
 
-    val prepared = prepareGradleProject(SIMPLE_APPLICATION, "project")
+    val prepared = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
 
     val failureMessage = "task should not be configured"
-    val buildFile = prepared.resolve("app").resolve("build.gradle")
+    val buildFile = prepared.root.resolve("app").resolve("build.gradle")
     buildFile.writeText(
       buildFile.readText() + """
           tasks.register("shouldNotBeConfigured", Test.class).configure {
@@ -58,15 +56,7 @@ class TaskConfigurationNotTriggeredDuringSyncTest : GradleIntegrationTest {
         """.trimIndent()
     )
     val outputLog = StringBuilder()
-    openPreparedProject(
-      "project",
-      options = OpenPreparedProjectOptions(outputHandler = { outputLog.append(it) })
-    ) {}
+    prepared.open(updateOptions = { preparedProjectOptions -> preparedProjectOptions.copy(outputHandler = { outputLog.append(it) }) }) {}
     assertThat(outputLog.toString()).doesNotContain(failureMessage)
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
-  override fun getAdditionalRepos(): Collection<File> =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(SIMPLE_APPLICATION)))
 }

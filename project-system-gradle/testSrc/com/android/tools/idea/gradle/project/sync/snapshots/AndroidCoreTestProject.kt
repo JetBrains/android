@@ -56,7 +56,9 @@ enum class AndroidCoreTestProject(
   RUN_APP_36(TestProjectPaths.RUN_APP_36),
   PROJECT_WITH_APP_AND_LIB_DEPENDENCY(TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY),
   RUN_CONFIG_ACTIVITY(TestProjectPaths.RUN_CONFIG_ACTIVITY),
+  RUN_CONFIG_WATCHFACE(TestProjectPaths.RUN_CONFIG_WATCHFACE),
   TRANSITIVE_DEPENDENCIES(TestProjectPaths.TRANSITIVE_DEPENDENCIES),
+  UNIT_TESTING(TestProjectPaths.UNIT_TESTING),
   ;
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData"

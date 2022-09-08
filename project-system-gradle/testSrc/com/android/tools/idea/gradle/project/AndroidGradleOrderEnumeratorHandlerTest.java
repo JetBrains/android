@@ -18,6 +18,9 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidModuleModelBuilder;
+import com.android.tools.idea.testing.AndroidProjectBuilder;
+import com.android.tools.idea.testing.JavaModuleModelBuilder;
 import com.google.common.collect.Collections2;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ProjectUtil;
@@ -36,6 +39,7 @@ import java.util.Collection;
 import org.junit.Assert;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_KAPT;
 import static com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_FIXTURES;
@@ -170,7 +174,11 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
   }
 
   public void testAndroidModulesRecursiveAndJavaModulesNot() throws Exception {
-    loadProject(PSD_SAMPLE_GROOVY);
+    setupTestProjectFromAndroidModel(getProject(),
+                                     ProjectUtil.guessProjectDir(getProject()).toNioPath().toFile(),
+                                     JavaModuleModelBuilder.getRootModuleBuilder(),
+                                     new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
+                                     new JavaModuleModelBuilder(":jav", true));
 
     Module appModule = getModule("app");
     Module libModule = getModule("jav");

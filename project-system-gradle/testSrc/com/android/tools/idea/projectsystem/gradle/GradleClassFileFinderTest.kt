@@ -15,42 +15,67 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.onEdt
+import com.google.common.truth.Expect
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
+import org.junit.Test
 
-class GradleClassFileFinderTest : AndroidGradleTestCase() {
+@RunsInEdt
+class GradleClassFileFinderTest {
+
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+
+  @get:Rule
+  val expect: Expect = Expect.createAndEnableStackTrace()
+
   /**
    * Regression test for b/206060369
    */
+  @Test
   fun testClassFileFinder() {
-    loadProject(TestProjectPaths.UNIT_TESTING)
-    GradleProjectSystemBuildManager(project).compileProject()
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.UNIT_TESTING)
+    preparedProject.open { project ->
+      GradleProjectSystemBuildManager(project).compileProject()
 
-    val classFinder = GradleClassFileFinder(project.findAppModule())
-    assertNotNull(classFinder.findClassFile("com.example.app.AppJavaClass"))
-    assertNotNull(classFinder.findClassFile("com.example.app.AppKotlinClass"))
+      val classFinder = GradleClassFileFinder(project.findAppModule())
+      expect.that(classFinder.findClassFile("com.example.app.AppJavaClass")).isNotNull()
+      expect.that(classFinder.findClassFile("com.example.app.AppKotlinClass")).isNotNull()
+    }
   }
 
+  @Test
   fun testClassFileFinder_androidTest() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-    GradleProjectSystemBuildManager(project).compileProject()
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    preparedProject.open { project ->
+      GradleProjectSystemBuildManager(project).compileProject()
 
-    val classFinder = GradleClassFileFinder(project.findAppModule(), true)
+      val classFinder = GradleClassFileFinder(project.findAppModule(), true)
 
-    // Fqcns present in the main module or in android test files should be found
-    assertNotNull(classFinder.findClassFile("google.simpleapplication.ApplicationTest"))
-    assertNotNull(classFinder.findClassFile("google.simpleapplication.MyActivity"))
+      // Fqcns present in the main module or in android test files should be found
+      expect.that(classFinder.findClassFile("google.simpleapplication.ApplicationTest")).isNotNull()
+      expect.that(classFinder.findClassFile("google.simpleapplication.MyActivity")).isNotNull()
+    }
   }
 
+  @Test
   fun testClassFileFinder_nonAndroidTest() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-    GradleProjectSystemBuildManager(project).compileProject()
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    preparedProject.open { project ->
+      GradleProjectSystemBuildManager(project).compileProject()
 
-    val classFinder = GradleClassFileFinder(project.findAppModule())
+      val classFinder = GradleClassFileFinder(project.findAppModule())
 
-    // Only fqcns present in the main module should be found
-    assertNull(classFinder.findClassFile("google.simpleapplication.ApplicationTest"))
-    assertNotNull(classFinder.findClassFile("google.simpleapplication.MyActivity"))
+      // Only fqcns present in the main module should be found
+      expect.that(classFinder.findClassFile("google.simpleapplication.ApplicationTest")).isNull()
+      expect.that(classFinder.findClassFile("google.simpleapplication.MyActivity")).isNotNull()
+    }
   }
 }

@@ -4,6 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 27
+    namespace "com.example.google.androidx"
     defaultConfig {
         applicationId "com.example.google.androidx"
         minSdkVersion 15
