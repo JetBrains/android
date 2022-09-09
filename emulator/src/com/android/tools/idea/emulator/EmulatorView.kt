@@ -822,7 +822,6 @@ class EmulatorView(
         lastTouchCoordinates = null
         val adjustedX = displayX.coerceIn(deviceDisplayRegion.x, deviceDisplayRegion.width - 1)
         val adjustedY = displayY.coerceIn(deviceDisplayRegion.y, deviceDisplayRegion.height - 1)
-        sendMouseOrTouchEvent(adjustedX, adjustedY, buttons, deviceDisplayRegion)
         sendMouseOrTouchEvent(adjustedX, adjustedY, 0, deviceDisplayRegion)
       }
     }

@@ -400,9 +400,6 @@ class EmulatorViewTest {
       ui.mouse.dragTo(180, 100)
       call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-      assertThat(shortDebugString(call.request)).isEqualTo("x: 1439 y: 1014 buttons: 1")
-      call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
       assertThat(shortDebugString(call.request)).isEqualTo("x: 1439 y: 1014")
     }
     catch (e: Throwable) {
