@@ -45,6 +45,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("prefab", false, buildFeatures.prefab())
     assertEquals("renderScript", false, buildFeatures.renderScript())
     assertEquals("buildConfig", false, buildFeatures.buildConfig())
+    assertEquals("aidl", false, buildFeatures.aidl())
   }
 
   @Test
@@ -58,6 +59,9 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
     assertEquals("viewBinding", false, buildFeatures.viewBinding())
     assertEquals("prefab", false, buildFeatures.prefab())
+    assertEquals("renderScript", false, buildFeatures.renderScript())
+    assertEquals("buildConfig", false, buildFeatures.buildConfig())
+    assertEquals("aidl", false, buildFeatures.aidl())
     buildFeatures.compose().setValue(true)
     buildFeatures.dataBinding().setValue(true)
     buildFeatures.mlModelBinding().setValue(true)
@@ -65,6 +69,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     buildFeatures.prefab().setValue(true)
     buildFeatures.renderScript().setValue(true)
     buildFeatures.buildConfig().setValue(true)
+    buildFeatures.aidl().setValue(true)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_EDIT_ELEMENTS_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
@@ -75,6 +80,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("prefab", true, buildFeatures.prefab())
     assertEquals("renderScript", true, buildFeatures.renderScript())
     assertEquals("buildConfig", true, buildFeatures.buildConfig())
+    assertEquals("aidl", true, buildFeatures.aidl())
   }
 
   @Test
@@ -90,6 +96,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertMissingProperty("prefab", buildFeatures.prefab())
     assertMissingProperty("renderScript", buildFeatures.renderScript())
     assertMissingProperty("buildConfig", buildFeatures.buildConfig())
+    assertMissingProperty("aidl", buildFeatures.aidl())
     buildFeatures.compose().setValue(false)
     buildFeatures.dataBinding().setValue(false)
     buildFeatures.mlModelBinding().setValue(false)
@@ -97,6 +104,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     buildFeatures.prefab().setValue(false)
     buildFeatures.renderScript().setValue(false)
     buildFeatures.buildConfig().setValue(false)
+    buildFeatures.aidl().setValue(false)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_ADD_ELEMENTS_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
@@ -107,6 +115,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("prefab", false, buildFeatures.prefab())
     assertEquals("renderScript", false, buildFeatures.renderScript())
     assertEquals("buildConfig", false, buildFeatures.buildConfig())
+    assertEquals("aidl", false, buildFeatures.aidl())
   }
 
   @Test
@@ -122,6 +131,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertMissingProperty("prefab", buildFeatures.prefab())
     assertMissingProperty("renderScript", buildFeatures.renderScript())
     assertMissingProperty("buildConfig", buildFeatures.buildConfig())
+    assertMissingProperty("aidl", buildFeatures.aidl())
     buildFeatures.compose().setValue(false)
     buildFeatures.dataBinding().setValue(false)
     buildFeatures.mlModelBinding().setValue(false)
@@ -129,6 +139,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     buildFeatures.prefab().setValue(false)
     buildFeatures.renderScript().setValue(false)
     buildFeatures.buildConfig().setValue(false)
+    buildFeatures.aidl().setValue(false)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
@@ -139,6 +150,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("prefab", false, buildFeatures.prefab())
     assertEquals("renderScript", false, buildFeatures.renderScript())
     assertEquals("buildConfig", false, buildFeatures.buildConfig())
+    assertEquals("aidl", false, buildFeatures.aidl())
   }
 
   @Test
@@ -155,6 +167,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertEquals("prefab", false, buildFeatures.prefab())
     assertEquals("renderScript", false, buildFeatures.renderScript())
     assertEquals("buildConfig", false, buildFeatures.buildConfig())
+    assertEquals("aidl", false, buildFeatures.aidl())
     buildFeatures.compose().delete()
     buildFeatures.dataBinding().delete()
     buildFeatures.mlModelBinding().delete()
@@ -162,6 +175,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     buildFeatures.prefab().delete()
     buildFeatures.renderScript().delete()
     buildFeatures.buildConfig().delete()
+    buildFeatures.aidl().delete()
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, "")
     buildFeatures = buildModel.android().buildFeatures()
@@ -173,5 +187,6 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     assertMissingProperty("prefab", buildFeatures.prefab())
     assertMissingProperty("renderScript", buildFeatures.renderScript())
     assertMissingProperty("buildConfig", buildFeatures.buildConfig())
+    assertMissingProperty("aidl", buildFeatures.aidl())
   }
 }
