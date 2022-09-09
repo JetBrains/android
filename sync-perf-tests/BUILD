@@ -85,7 +85,7 @@ iml_module(
         "DolphinV1": {
             "data": [
                 "//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a",
-                "//prebuilts/studio/sdk:ndk-21",
+                "//prebuilts/studio/sdk:ndk",
             ],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTestV1",
             "tags": SYNC_PERFGATE_TAGS,
