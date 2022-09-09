@@ -1,1 +1,0 @@
-assets is not a supported folder type within res
