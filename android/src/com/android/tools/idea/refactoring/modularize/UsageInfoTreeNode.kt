@@ -27,6 +27,8 @@ import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_SMALLER
 import com.intellij.usageView.UsageInfo
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtDeclaration
 import javax.swing.Icon
 
 class UsageInfoTreeNode(usageInfo: UsageInfo, referenceCount: Int) : DependencyTreeNode(usageInfo, referenceCount) {
@@ -39,11 +41,23 @@ class UsageInfoTreeNode(usageInfo: UsageInfo, referenceCount: Int) : DependencyT
 
     when (psiElement) {
       is PsiFile -> {
+        // Currently, we only move entire code files
         renderer.append(psiElement.name, textAttributes)
         renderQualifiers(getFolderConfiguration(psiElement), renderer, textAttributes)
         renderReferenceCount(renderer, textAttributes)
       }
       is PsiClass -> {
+        // Unused
+        renderer.append(psiElement.name ?: "<unknown>", textAttributes)
+        renderReferenceCount(renderer, textAttributes)
+      }
+      is KtClass -> {
+        // Unused
+        renderer.append(psiElement.name ?: "<unknown>", textAttributes)
+        renderReferenceCount(renderer, textAttributes)
+      }
+      is KtDeclaration -> {
+        // Unused
         renderer.append(psiElement.name ?: "<unknown>", textAttributes)
         renderReferenceCount(renderer, textAttributes)
       }

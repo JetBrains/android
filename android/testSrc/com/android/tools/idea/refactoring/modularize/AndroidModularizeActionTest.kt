@@ -128,7 +128,7 @@ class AndroidModularizeActionTest {
         Case(expected = false, FileInfo(mockFileType(), hasAndroidFacets = true)),
         // kotlin file
         Case(expected = false, FileInfo(KotlinFileType.INSTANCE, hasAndroidFacets = false)),
-        Case(expected = false, FileInfo(KotlinFileType.INSTANCE, hasAndroidFacets = true)),
+        Case(expected = true, FileInfo(KotlinFileType.INSTANCE, hasAndroidFacets = true)),
         // java file
         Case(expected = false, FileInfo(JavaFileType.INSTANCE, hasAndroidFacets = false)),
         Case(expected = true, FileInfo(JavaFileType.INSTANCE, hasAndroidFacets = true)),

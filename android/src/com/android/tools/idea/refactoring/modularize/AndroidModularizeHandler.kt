@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.refactoring.modularize
 
+import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.projectsystem.containsFile
-import com.android.tools.idea.projectsystem.getManifestFiles
-import com.intellij.openapi.actionSystem.LangDataKeys.TARGET_MODULE
-
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceItem
@@ -27,10 +24,21 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.projectsystem.*
-import com.android.tools.idea.res.*
+import com.android.tools.idea.projectsystem.containsFile
+import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.getManifestFiles
+import com.android.tools.idea.res.LocalResourceRepository
+import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.findResourceFieldsForFileResource
+import com.android.tools.idea.res.findResourceFieldsForValueResource
+import com.android.tools.idea.res.getFolderType
+import com.android.tools.idea.res.getItemPsiFile
+import com.android.tools.idea.res.getItemTag
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.LangDataKeys.TARGET_MODULE
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
@@ -42,12 +50,13 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.JavaRecursiveElementWalkingVisitor
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiJavaCodeReferenceElement
+import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiReferenceExpression
-import com.intellij.psi.PsiTypeParameter
 import com.intellij.psi.SyntheticElement
 import com.intellij.psi.XmlRecursiveElementWalkingVisitor
 import com.intellij.psi.search.GlobalSearchScope
@@ -63,6 +72,17 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.annotations.NotNull
+import org.jetbrains.kotlin.asJava.classes.KtLightClass
+import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.structuralsearch.visitor.KotlinRecursiveElementWalkingVisitor
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtReferenceExpression
+import org.jetbrains.kotlin.psi.KtTypeParameter
+import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import java.util.Locale
 
 class AndroidModularizeHandler : RefactoringActionHandler {
@@ -103,32 +123,43 @@ class AndroidModularizeHandler : RefactoringActionHandler {
 
     ProgressManager.getInstance().runProcessWithProgressSynchronously(
       { ApplicationManager.getApplication().runReadAction { scanner.accumulate(*elements) } },
-      "Computing References", false, project)
+      "Computing references", false, project)
 
     return AndroidModularizeProcessor(project,
                                       elements,
                                       scanner.classReferences,
                                       scanner.resourceReferences,
                                       scanner.manifestReferences,
+                                      scanner.codeFileReferences,
                                       scanner.referenceGraph
     )
   }
 
   private class CodeAndResourcesReferenceCollector(private val myProject: Project) {
 
-    val classReferences = LinkedHashSet<PsiClass>()
+    val classReferences = LinkedHashSet<PsiElement>()
     val resourceReferences = LinkedHashSet<ResourceItem>(RESOURCE_SET_INITIAL_SIZE)
     val manifestReferences = HashSet<PsiElement>()
+    val codeFileReferences = LinkedHashSet<PsiFile>()
 
     private val myVisitQueue = ArrayDeque<PsiElement>()
     private val myGraphBuilder = AndroidCodeAndResourcesGraph.Builder()
 
+    private val PsiElement.isClass: Boolean
+      get() = when (this.language) {
+        JavaLanguage.INSTANCE -> this is PsiClass
+        KotlinLanguage.INSTANCE -> this is KtClass
+        else -> false
+      }
+
     fun accumulate(vararg roots: PsiElement) {
       myVisitQueue.clear()
       for (element in roots) {
-        val ownerClass = if (element is PsiClass) element else PsiTreeUtil.getParentOfType(element, PsiClass::class.java)
-        ownerClass?.let {
-          if (classReferences.add(it)) {
+        if (element is PsiClass || element is KtClass) {
+          classReferences.add(element)
+        }
+        element.containingFile?.let {
+          if (codeFileReferences.add(it)) {
             myVisitQueue.add(it)
             myGraphBuilder.addRoot(it)
           }
@@ -162,13 +193,37 @@ class AndroidModularizeHandler : RefactoringActionHandler {
             indicator.fraction = ((numVisited.toDouble()) / (numVisited + myVisitQueue.size))
           }
 
-          if (element is PsiClass) {
-            element.accept(JavaReferenceVisitor(facet, element))
+          if (element !is PsiFile) {
+            // Must be a resource or manifest entry
 
-            // Check for manifest entries referencing this class (this applies to activities, content providers, etc).
+            // Scope building: we try to be as precise as possible when computing the enclosing scope. For example we include the (selected)
+            // activity tags in a manifest file but not the entire file, which may contain references to resources we would otherwise move.
+            elementScope.add(element)
+            element.accept(XmlResourceReferenceVisitor(facet, element))
+            continue
+          }
+
+          fileScope.add(element.virtualFile)
+
+          when (element.language) {
+            JavaLanguage.INSTANCE -> element.accept(JavaReferenceVisitor(facet, element))
+            KotlinLanguage.INSTANCE -> element.accept(KotlinReferenceVisitor(facet, element))
+            else -> {
+              element.accept(XmlResourceReferenceVisitor(facet, element)); continue
+            }
+          }
+
+          // Check for manifest entries referencing classes within this file. (this applies to activities, content providers, etc).
+          val classes = when (element) {
+            is PsiJavaFile -> element.classes
+            is KtFile -> element.classes
+            else -> null
+          }!!
+
+          for (clazz in classes) {
             val manifestScope = GlobalSearchScope.filesScope(myProject, facet.getManifestFiles())
 
-            ReferencesSearch.search(element, manifestScope).forEach { reference ->
+            ReferencesSearch.search(clazz, manifestScope).forEach { reference ->
               val tag: PsiElement = reference.element
 
               PsiTreeUtil.getParentOfType(tag, XmlTag::class.java)?.let { parentTag ->
@@ -179,26 +234,6 @@ class AndroidModularizeHandler : RefactoringActionHandler {
                 myGraphBuilder.markReference(element, parentTag)
               }
             }
-
-            // Scope building: we try to be as precise as possible when computing the enclosing scope. For example we include the (selected)
-            // activity tags in a manifest file but not the entire file, which may contain references to resources we would otherwise move.
-
-            if (element.containingClass != null) {
-              fileScope.add(element.containingFile.virtualFile)
-            }
-            else {
-              elementScope.add(element)
-            }
-          }
-          else {
-            if (element is PsiFile) {
-              fileScope.add(element.virtualFile)
-            }
-            else {
-              elementScope.add(element)
-            }
-
-            element.accept(XmlResourceReferenceVisitor(facet, element))
           }
         }
 
@@ -215,6 +250,16 @@ class AndroidModularizeHandler : RefactoringActionHandler {
           ReferencesSearch.search(clazz, globalSearchScope).forEach { reference ->
             myGraphBuilder.markReferencedOutsideScope(clazz)
             LOGGER.debug("$clazz referenced from ${reference.element.containingFile}")
+          }
+          // If the class has a companion object, we want to count references to it
+          // as references to the class itself
+          if (clazz is KtClass) {
+            clazz.companionObjects.forEach { companion ->
+              ReferencesSearch.search(companion, globalSearchScope).forEach { reference ->
+                myGraphBuilder.markReferencedOutsideScope(clazz)
+                LOGGER.debug("$clazz referenced from ${reference.element.containingFile}")
+              }
+            }
           }
         }
 
@@ -267,29 +312,27 @@ class AndroidModularizeHandler : RefactoringActionHandler {
       override fun visitXmlToken(token: XmlToken) = processPotentialReference(token.text)
 
       private fun processPotentialReference(text: String) {
-        ResourceUrl.parse(text)?.let { url ->
-          if (!url.isFramework && !url.isCreate && url.type != ResourceType.ID) {
-            val matches: List<ResourceItem> = myResourceRepository.getResources(ResourceNamespace.TODO(), url.type, url.name)
-            for (match in matches) {
-              getResourceDefinition(match)?.let { target ->
-                if (resourceReferences.add(match)) {
-                  myVisitQueue.add(target)
-                }
-                myGraphBuilder.markReference(mySource, target)
-              }
-            }
-          }
-          else {
-            // Perhaps this is a reference to a Java class
-            JavaPsiFacade.getInstance(myProject).findClass(
-              text, myFacet.module.getModuleScope(false)
-            )?.let { target ->
-              if (classReferences.add(target)) {
+        val url = ResourceUrl.parse(text) ?: return
+        if (!url.isFramework && !url.isCreate && url.type != ResourceType.ID) {
+          val matches: List<ResourceItem> = myResourceRepository.getResources(ResourceNamespace.TODO(), url.type, url.name)
+          for (match in matches) {
+            getResourceDefinition(match)?.let { target ->
+              if (resourceReferences.add(match)) {
                 myVisitQueue.add(target)
               }
               myGraphBuilder.markReference(mySource, target)
             }
           }
+        }
+        else {
+          // Perhaps this is a reference to a Java or Kotlin class
+          val psiClass = JavaPsiFacade.getInstance(myProject).findClass(text, myFacet.module.getModuleScope(false)) ?: return
+          val file = psiClass.containingFile ?: return
+          classReferences.add(psiClass)
+          if (codeFileReferences.add(file)) {
+            myVisitQueue.add(file)
+          }
+          myGraphBuilder.markReference(mySource, file)
         }
       }
     }
@@ -299,47 +342,92 @@ class AndroidModularizeHandler : RefactoringActionHandler {
       private val myResourceRepository: LocalResourceRepository = ResourceRepositoryManager.getModuleResources(myFacet)
 
       override fun visitReferenceExpression(expression: PsiReferenceExpression) {
-        val element = expression.resolve()
-        if (element is PsiField) {
-          val referenceType = AndroidPsiUtils.getResourceReferenceType(expression)
-
-          if (referenceType == AndroidPsiUtils.ResourceReferenceType.APP) {
-            // This is a resource we might be able to move
-            AndroidPsiUtils.getResourceType(expression)?.let { type ->
-              if (type != ResourceType.ID) {
-                val name = AndroidPsiUtils.getResourceName(expression)
-
-                val matches = myResourceRepository.getResources(ResourceNamespace.TODO(), type, name)
-                for (match in matches) {
-                  getResourceDefinition(match)?.let { target ->
-                    if (resourceReferences.add(match)) {
-                      myVisitQueue.add(target)
-                    }
-                    myGraphBuilder.markReference(mySource, target)
-                  }
-                }
-              }
-            }
-            return
-          }
-        }
+        expression.resolve()?.let { element -> commonVisitReferenceExpression(expression, element, mySource, myResourceRepository) }
         super.visitReferenceExpression(expression)
       }
 
       override fun visitReferenceElement(reference: PsiJavaCodeReferenceElement) {
-        val target = reference.advancedResolve(false).element
-        if (target is PsiClass) {
-          if (target !is PsiTypeParameter && target !is SyntheticElement) {
-            val source = target.getContainingFile().virtualFile
-            if (SourceProviderManager.getInstance(myFacet).sources.containsFile(source)) {
-              // This is a local source file, therefore a candidate to be moved
-              if (classReferences.add(target)) {
-                myVisitQueue.add(target)
+        commonVisitReferenceElement(reference.advancedResolve(false).element ?: return, mySource, myFacet)
+      }
+    }
+
+    private inner class KotlinReferenceVisitor(private val myFacet: AndroidFacet,
+                                               private val mySource: PsiElement) : KotlinRecursiveElementWalkingVisitor() {
+      private val myResourceRepository: LocalResourceRepository = ResourceRepositoryManager.getModuleResources(myFacet)
+
+      override fun visitReferenceExpression(expression: KtReferenceExpression) {
+        expression.references.forEach {
+          it?.resolve()?.let { element ->
+            commonVisitReferenceExpression(it.element, element, mySource, myResourceRepository)
+            commonVisitReferenceElement(element, mySource, myFacet)
+          }
+        }
+        super.visitReferenceExpression(expression)
+      }
+    }
+
+    private fun commonVisitReferenceExpression(reference: PsiElement,
+                                               element: PsiElement,
+                                               mySource: PsiElement,
+                                               myResourceRepository: LocalResourceRepository) {
+      if (element is PsiField || element is KtProperty) {
+        if (isAppResource(element)) {
+          // This is a resource we might be able to move
+          getResourceType(element)?.let { type ->
+            if (type != ResourceType.ID) {
+              val name = if (reference.language == JavaLanguage.INSTANCE) {
+                AndroidPsiUtils.getResourceName(reference)
               }
-              if (target != mySource) { // Don't add self-references
-                myGraphBuilder.markReference(mySource, target)
+              else {
+                reference.text
+              }
+
+              val matches = myResourceRepository.getResources(ResourceNamespace.TODO(), type, name)
+              for (match in matches) {
+                getResourceDefinition(match)?.let { target ->
+                  if (resourceReferences.add(match)) {
+                    myVisitQueue.add(target)
+                  }
+                  myGraphBuilder.markReference(
+                    mySource, target)
+                }
               }
             }
+          }
+          return
+        }
+      }
+    }
+
+    private fun commonVisitReferenceElement(target: PsiElement, mySource: PsiElement, myFacet: AndroidFacet) {
+      if ((target is PsiClass
+           || target is KtClass
+           || target is KtDeclaration && target.containingClass() == null
+           || target is KtObjectDeclaration && target.isCompanion())
+          && target !is KtTypeParameter
+          && target !is SyntheticElement) {
+
+        val file = target.containingFile
+        if (SourceProviderManager.getInstance(myFacet).sources.containsFile(file.virtualFile)) {
+          // This is a local source file, therefore a candidate to be moved
+          if (target is KtClass || target is PsiClass) {
+            classReferences.add(target)
+          }
+
+          // Since we are only moving entire code files, we need to mark all the classes in the file
+          // TODO: this code isn't the best
+          when (file) {
+            is PsiJavaFile -> file.classes
+            is KtFile -> (file.classes).map { (((it as KtLightClass).kotlinOrigin) as? KtClass) }.toTypedArray()
+            else -> null
+          }!!.forEach {
+            classReferences.add(it ?: return@forEach)
+          }
+          if (codeFileReferences.add(file)) {
+            myVisitQueue.add(file)
+          }
+          if (target != mySource && file != mySource) { // Don't add self-references
+            myGraphBuilder.markReference(mySource, file)
           }
         }
       }
@@ -351,3 +439,32 @@ class AndroidModularizeHandler : RefactoringActionHandler {
     private const val RESOURCE_SET_INITIAL_SIZE = 100
   }
 }
+
+// TODO: Both of these functions are modified from Java-specific methods in AndroidPsiUtils. Can we avoid this?
+// There is the extension function AndroidUtil.getResourceReferenceType() whose receiver is a property, but it is marked internal
+// See AndroidKotlinResourceExternalAnnotator for an example use
+
+// Mirrors AndroidPsiUtils.getResourceReferenceType
+fun isAppResource(resolvedElement: PsiElement): Boolean {
+  // Examples of valid resources references are my.package.R.string.app_name or my.package.R.color.my_black
+  // First parent is the resource type - eg string or color, etc
+  val elementType = resolvedElement.parent as? PsiClass ?: return false
+
+  // Second parent is the package
+  val elementPackage = elementType.parent as? PsiClass ?: return false
+  if (SdkConstants.R_CLASS == elementPackage.name) {
+    val elemParent3 = elementPackage.parent
+    return !(elemParent3 is PsiClassOwner && SdkConstants.ANDROID_PKG == elemParent3.packageName)
+  }
+  return false
+}
+
+// Mirrors AndroidPsiUtils.getResourceType
+fun getResourceType(resolvedElement: PsiElement): ResourceType? {
+  val elemParent = resolvedElement.parent
+  return if (elemParent !is PsiClass) {
+    null
+  }
+  else ResourceType.fromClassName(elemParent.name!!)
+}
+

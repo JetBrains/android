@@ -41,7 +41,6 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiBinaryFile
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -57,7 +56,6 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.PackageWrapper
-import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesUtil
 import com.intellij.refactoring.move.moveFilesOrDirectories.MoveFilesOrDirectoriesUtil
 import com.intellij.refactoring.util.RefactoringUIUtil
 import com.intellij.usageView.UsageInfo
@@ -68,18 +66,22 @@ import org.jetbrains.android.AndroidFileTemplateProvider
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.SourceProviderManager
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtFile
 import java.util.Locale
 import javax.swing.JComponent
 
 
-class AndroidModularizeProcessor(project: Project,
-                                 private val myRoots: Array<PsiElement>,
-                                 private val myClasses: Set<PsiClass>,
-                                 private val myResources: Set<ResourceItem>,
-                                 val myManifestEntries: Set<PsiElement>,
-                                 @VisibleForTesting
-                                 val referenceGraph: AndroidCodeAndResourcesGraph)
-  : BaseRefactoringProcessor(project) {
+class AndroidModularizeProcessor(
+  project: Project,
+  private val myRoots: Array<PsiElement>,
+  private val myClasses: Set<PsiElement>,
+  private val myResources: Set<ResourceItem>,
+  private val myManifestEntries: Set<PsiElement>,
+  private val myCodeFiles: Set<PsiFile>,
+  @VisibleForTesting
+  val referenceGraph: AndroidCodeAndResourcesGraph
+) : BaseRefactoringProcessor(project) {
 
   private lateinit var myTargetModule: Module
 
@@ -98,7 +100,28 @@ class AndroidModularizeProcessor(project: Project,
     }
   }
 
-  val classesCount: Int get() = myClasses.size
+  val ktTopLevelDeclarationsCount: Int by lazy {
+      var count = 0
+      for (file in myCodeFiles) {
+        if (file is KtFile) {
+          count += file.declarations.filter { it !is KtClass }.size
+        }
+      }
+      count
+  }
+
+  val classesCount: Int by lazy {
+    var count = 0
+    for (file in myCodeFiles) {
+      val classes = when (file) {
+        is PsiJavaFile -> file.classes
+        is KtFile -> file.classes
+        else -> continue
+      }
+      count += classes.size
+    }
+    count
+  }
 
   val resourcesCount: Int get() = myResources.size
 
@@ -115,6 +138,7 @@ class AndroidModularizeProcessor(project: Project,
 
     myClasses.forEach { result.add(UsageInfo(it)) }
     myManifestEntries.forEach { result.add(UsageInfo(it)) }
+    myCodeFiles.forEach { result.add(UsageInfo(it)) }
 
     for (resource in myResources) {
       val psiFile = getItemPsiFile(myProject, resource)
@@ -127,9 +151,6 @@ class AndroidModularizeProcessor(project: Project,
         // the UsageInfo class asserts in the constructor if the element doesn't have
         // a text range.)
 
-        // The usage view doesn't handle binaries at all. Work around this (for example,
-        // the UsageInfo class asserts in the constructor if the element doesn't have
-        // a text range.)
         val smartPointerManager = SmartPointerManager.getInstance(myProject)
         val smartPointer = smartPointerManager.createSmartPsiElementPointer<PsiElement>(psiFile)
         val smartFileRange = smartPointerManager.createSmartPsiFileRangePointer(psiFile, TextRange.EMPTY_RANGE)
@@ -159,8 +180,9 @@ class AndroidModularizeProcessor(project: Project,
     val facet = AndroidFacet.getInstance(myTargetModule)!! // We know this has to be an Android module
 
     val sources: IdeaSourceProvider = SourceProviderManager.getInstance(facet).sources
-    val sourceFolders = Iterables.concat(sources.javaDirectories, sources.kotlinDirectories)
-    val javaTargetDir = Iterables.getFirst(sourceFolders, null)
+
+    val javaTargetDir = Iterables.getFirst(Iterables.concat(sources.javaDirectories, sources.kotlinDirectories), null)
+    val kotlinTargetDir = Iterables.getFirst(Iterables.concat(sources.kotlinDirectories, sources.javaDirectories), null)
 
     val resDir = ResourceFolderManager.getInstance(facet).folders[0]
     val repo = ResourceFolderRegistry.getInstance(myProject)[facet, resDir]
@@ -220,14 +242,26 @@ class AndroidModularizeProcessor(project: Project,
           })
         }
       }
-      else if (element is PsiClass) {
-        val packageName = (element.containingFile as PsiJavaFile).packageName
+      else if (element is PsiJavaFile || element is KtFile) {
+        val packageName = when (element) {
+          is PsiJavaFile -> element.packageName
+          is KtFile -> element.packageFqName.toString()
+          else -> null
+        }!!
 
-        MoveClassesOrPackagesUtil.doMoveClass(
-          element,
-          CommonJavaRefactoringUtil
-            .createPackageDirectoryInSourceRoot(PackageWrapper(PsiManager.getInstance(myProject), packageName), javaTargetDir!!),
-          true)
+        val targetDir = when (element) {
+          is PsiJavaFile -> javaTargetDir
+          is KtFile -> kotlinTargetDir
+          else -> null
+        }!!
+
+        val packageDir = CommonJavaRefactoringUtil
+          .createPackageDirectoryInSourceRoot(PackageWrapper(PsiManager.getInstance(myProject), packageName), targetDir)
+
+        MoveFilesOrDirectoriesUtil.doMoveFile(element as PsiFile, packageDir)
+
+        // Refresh the project index
+        packageDir.findFile(element.name)
       }
     }
 
@@ -326,17 +360,21 @@ open class ResourceXmlUsageInfo : UsageInfo {
     this.resourceItem = resourceItem
   }
 
-  constructor (smartPointer: SmartPsiElementPointer<*>,
-               psiFileRange: SmartPsiFileRange,
-               resourceItem: ResourceItem) : super(smartPointer, psiFileRange, false, false) {
+  constructor (
+    smartPointer: SmartPsiElementPointer<*>,
+    psiFileRange: SmartPsiFileRange,
+    resourceItem: ResourceItem
+  ) : super(smartPointer, psiFileRange, false, false) {
     this.resourceItem = resourceItem
   }
 }
 
-class PreviewDialog(project: Project?,
-                    graph: AndroidCodeAndResourcesGraph,
-                    infos: Array<UsageInfo>,
-                    shouldSelectAllReferences: Boolean) : DialogWrapper(project, true) {
+class PreviewDialog(
+  project: Project?,
+  graph: AndroidCodeAndResourcesGraph,
+  infos: Array<UsageInfo>,
+  shouldSelectAllReferences: Boolean
+) : DialogWrapper(project, true) {
 
   private val myPanel = AndroidModularizePreviewPanel(graph, infos, shouldSelectAllReferences)
 

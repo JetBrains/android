@@ -17,6 +17,7 @@ package com.android.tools.idea.refactoring.modularize
 
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.intellij.ide.highlighter.JavaFileType
+import org.jetbrains.kotlin.idea.KotlinFileType
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
@@ -27,13 +28,17 @@ import com.intellij.refactoring.actions.BaseJavaRefactoringAction
 import org.jetbrains.android.util.AndroidUtils
 
 // open for testing
+
+// TODO: do we actually want to extend BaseJavaRefactoringAction? Do we want to support starting from any piece of code?
+// and how would this work in Kotlin?
 open class AndroidModularizeAction : BaseJavaRefactoringAction() {
 
   override fun isAvailableInEditorOnly() = false
 
   override fun isAvailableForFile(file: PsiFile?): Boolean {
     return file != null && // file exists
-           file.fileType == JavaFileType.INSTANCE && // is Java
+           ( file.fileType == JavaFileType.INSTANCE ||
+             file.fileType == KotlinFileType.INSTANCE ) && // is Java or Kotlin
            AndroidUtils.hasAndroidFacets(file.project) // and is Android
   }
 

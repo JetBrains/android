@@ -52,7 +52,10 @@ class AndroidModularizeDialog(
     val panel = JPanel(BorderLayout())
 
     panel.add(
-      JLabel(String.format(Locale.US, "Move %1\$d classes and %2\$d resources to:", processor.classesCount, processor.resourcesCount)),
+      JLabel(String.format(
+        Locale.US,
+        "Move %1\$d classes, ${if (processor.ktTopLevelDeclarationsCount != 0) "%2\$d top-level declarations, " else ""}and %3\$d resources to:",
+        processor.classesCount, processor.ktTopLevelDeclarationsCount, processor.resourcesCount)),
       BorderLayout.NORTH)
 
     val model: ComboBoxModel<Module> = CollectionComboBoxModel(targetModules)
