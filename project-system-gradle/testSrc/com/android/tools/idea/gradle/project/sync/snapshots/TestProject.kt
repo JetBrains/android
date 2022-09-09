@@ -314,6 +314,31 @@ enum class TestProject(
     listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 }
 
+/**
+ * Other test projects not included in `SyncedProjectTest`.
+ */
+enum class TestProjectOther(
+  override val template: String,
+  override val pathToOpen: String = "",
+  override val testName: String? = null,
+  override val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
+  override val autoMigratePackageAttribute: Boolean = true,
+  override val setup: () -> () -> Unit = { {} },
+  override val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
+  override val expectedSyncIssues: Set<Int> = emptySet(),
+  override val verifyOpened: ((Project) -> Unit)? = null,
+  override val switchVariant: TemplateBasedTestProject.VariantSelection? = null
+) : TemplateBasedTestProject {
+  JPS_WITH_QUALIFIED_NAMES(TestProjectToSnapshotPaths.JPS_WITH_QUALIFIED_NAMES),
+  SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40),
+  ;
+
+  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
+
+  override fun getAdditionalRepos(): Collection<File> =
+    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
+}
+
 open class TestProjectTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels()

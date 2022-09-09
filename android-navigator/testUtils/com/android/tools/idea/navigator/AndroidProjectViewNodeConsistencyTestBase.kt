@@ -16,13 +16,14 @@
 package com.android.tools.idea.navigator
 
 import com.android.testutils.AssumeUtil
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.navigator.nodes.FileGroupNode
 import com.android.tools.idea.navigator.nodes.FolderGroupNode
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.util.toIoFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.FileSelectInContext
@@ -43,13 +44,13 @@ import java.util.ArrayDeque
  * [ProjectViewNode.canRepresent] and [ProjectViewNode.contains] are used by the platform to locate a node by a file and are essential
  * to refresh the tree in response to changes in the virtual file system.
  */
-abstract class AndroidProjectViewNodeConsistencyTestBase : GradleIntegrationTest {
+abstract class AndroidProjectViewNodeConsistencyTestBase : IntegrationTestEnvironment {
 
-  data class TestProject(val template: String, val pathToOpen: String = "", val skipWindows: Boolean = false)
+  data class TestProjectDef(val template: TestProjectDefinition, val skipWindows: Boolean = false)
 
   @JvmField
   @Parameterized.Parameter
-  var testProjectName: TestProject? = null
+  var testProjectName: TestProjectDef? = null
 
 
   @get:Rule
@@ -73,8 +74,8 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : GradleIntegrationTest
   private fun runTest(test: TestContext.() -> Unit) {
     val testProjectName = testProjectName ?: error("unit test parameter not initialized")
     if (testProjectName.skipWindows ?: true) AssumeUtil.assumeNotWindows()
-    val root = prepareGradleProject(testProjectName.template, "project")
-    openPreparedProject("project${testProjectName?.pathToOpen}") { project ->
+    val preparedProject = projectRule.prepareTestProject(testProjectName.template)
+    preparedProject.open { project ->
       val oldHideEmptyPackages = ProjectView.getInstance(project).isHideEmptyMiddlePackages(AndroidProjectViewPane.ID)
       ProjectView.getInstance(project).apply {
         setHideEmptyPackages(AndroidProjectViewPane.ID, true)
@@ -89,7 +90,7 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : GradleIntegrationTest
         with(object : TestContext {
           override val viewPane: AndroidProjectViewPane get() = viewPane
           override val rootElement = (treeStructure?.rootElement ?: error("No root element")) as ProjectViewNode<*>
-          override val projectRoot = root
+          override val projectRoot = preparedProject.root
           override fun reportProblem(node: NodeWithParents, problem: String) {
             val message = buildString {
               var prefix = ""

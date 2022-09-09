@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator
 
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.PathUtil
@@ -33,10 +34,10 @@ class AndroidProjectViewNodeConsistencyTest : AndroidProjectViewNodeConsistencyT
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun testProjects(): Collection<*> = listOf(
-      TestProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
-      TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD),
-      TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
-      TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp")
+      TestProjectDef(TestProject.PSD_SAMPLE_GROOVY),
+      TestProjectDef(TestProject.COMPOSITE_BUILD),
+      TestProjectDef(TestProject.NON_STANDARD_SOURCE_SETS),
+      TestProjectDef(TestProject.LINKED)
     )
   }
 
@@ -45,8 +46,4 @@ class AndroidProjectViewNodeConsistencyTest : AndroidProjectViewNodeConsistencyT
 
   @Test
   fun testCanRepresent() = super.testCanRepresentImpl()
-
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
-  override fun getAdditionalRepos() =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 }

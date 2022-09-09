@@ -141,7 +141,7 @@ private fun Path.replaceInContent(oldValue: String, newValue: String) {
   toFile().replaceInContent(oldValue, newValue)
 }
 
-internal fun migratePackageAttribute(root: File) {
+fun migratePackageAttribute(root: File) {
   Files.walk(root.toPath()).asSequence().filter { it.endsWith("AndroidManifest.xml") }.forEach { manifestPath ->
     val namespace = updateXmlDoc(manifestPath) { doc ->
       val attribute = doc.documentElement.getAttribute("package").takeUnless { it.isEmpty() } ?: return@updateXmlDoc null

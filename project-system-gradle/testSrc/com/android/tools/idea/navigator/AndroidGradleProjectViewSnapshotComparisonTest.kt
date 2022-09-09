@@ -17,34 +17,34 @@
 
 package com.android.tools.idea.navigator
 
-import com.android.testutils.TestUtils
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.sync.snapshots.SnapshotContext
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectOther
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidGradleTests.addJdk8ToTableButUseCurrent
 import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
-import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.android.tools.idea.testing.ProjectViewSettings
 import com.android.tools.idea.testing.SnapshotComparisonTest
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.dumpAndroidProjectView
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
-import com.intellij.ide.util.treeView.AbstractTreeNode
+import com.android.tools.idea.testing.onEdt
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
-import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
-import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.util.PathUtil
-import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.annotations.SystemIndependent
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.CoreIconManager
+import com.intellij.ui.IconManager
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TestName
 import java.io.File
 
 /**
@@ -126,50 +126,40 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
   }
 }
 
-class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), GradleIntegrationTest, SnapshotComparisonTest {
-  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/projectViews"
-  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
-  override fun getAdditionalRepos() =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
+class AndroidGradleProjectViewSnapshotComparisonTest : SnapshotComparisonTest {
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
-  override fun isIconRequired() = true
+  @get:Rule
+  var testName = TestName()
 
-  override fun setUp() {
-    super.setUp()
-    IconLoader.activate()
-  }
-
+  @Test
   fun testKotlinKapt() {
-    prepareProjectForImport(TestProjectToSnapshotPaths.KOTLIN_KAPT)
-    importProject()
-    invokeGradle(project, GradleBuildInvoker::rebuild)
-    AndroidTestBase.refreshProjectFiles()
-    val text = project.dumpAndroidProjectView(ProjectViewSettings(), Unit, { _, _ -> Unit })
-    assertIsEqualToSnapshot(text)
-  }
-
-  fun testJpsWithQualifiedNames() {
-    val srcPath = File(myFixture.testDataPath, toSystemDependentName(TestProjectToSnapshotPaths.JPS_WITH_QUALIFIED_NAMES))
-    // Prepare project in a different directory (_jps) to avoid closing the currently opened project.
-    val projectPath = File(toSystemDependentName(project.basePath + "_jps"))
-
-    AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath) { projectRoot ->
-      // Override settings just for tests (e.g. sdk.dir)
-      AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk().toFile())
+    val preparedProject = projectRule.prepareTestProject(TestProject.KOTLIN_KAPT)
+    preparedProject.open { project ->
+      project.buildAndWait { invoker -> invoker.assemble(TestCompileType.ALL) }
+      val text = invokeAndWaitIfNeeded { project.dumpAndroidProjectView(ProjectViewSettings(flattenPackages = true), Unit, { _, _ -> Unit }) }
+      assertIsEqualToSnapshot(text)
     }
-
-    val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath(), testRootDisposable)
-    val text = project.dumpAndroidProjectView()
-    PlatformTestUtil.forceCloseProjectWithoutSaving(project)
-
-    assertIsEqualToSnapshot(text)
   }
 
+  @Test
+  @RunsInEdt
+  fun testJpsWithQualifiedNames() {
+    val preparedProject = projectRule.prepareTestProject(TestProjectOther.JPS_WITH_QUALIFIED_NAMES)
+    preparedProject.open { project ->
+      val text = project.dumpAndroidProjectView()
+      assertIsEqualToSnapshot(text)
+    }
+  }
+
+  @Test
+  @RunsInEdt
   fun testMissingImlIsIgnored() {
     addJdk8ToTableButUseCurrent()
     try {
-      prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40, "testMissingImlIsIgnored_Test")
-      val text = openPreparedProject("testMissingImlIsIgnored_Test") { project: Project ->
+      val preparedProject = projectRule.prepareTestProject(TestProjectOther.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40)
+      val text = preparedProject.open { project: Project ->
         project.dumpAndroidProjectView()
       }
 
@@ -179,24 +169,17 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     }
   }
 
-  private fun importSyncAndDumpProject(
-    projectDir: String,
-    patch: ((projectRootPath: File) -> Unit)? = null,
-    projectViewSettings: ProjectViewSettings = ProjectViewSettings()
-  ): String =
-    importSyncAndDumpProject(projectDir, patch, projectViewSettings, Unit, { _, _ -> Unit })
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/projectViews"
 
-  private fun <T : Any> importSyncAndDumpProject(
-    projectDir: String,
-    patch: ((projectRootPath: File) -> Unit)? = null,
-    projectViewSettings: ProjectViewSettings = ProjectViewSettings(),
-    initialState: T,
-    filter: (element: AbstractTreeNode<*>, state: T) -> T?
-  ): String {
-    val projectRootPath = prepareProjectForImport(projectDir)
-    patch?.invoke(projectRootPath)
-    importProject()
+  override fun getName(): String = testName.methodName
 
-    return project.dumpAndroidProjectView(projectViewSettings, initialState, filter)
+  init {
+    // Avoid depending on the execution order and initializing icons with dummies.
+    try {
+      IconManager.activate(CoreIconManager())
+      IconLoader.activate()
+    } catch (e: Throwable) {
+      e.printStackTrace()
+    }
   }
 }
