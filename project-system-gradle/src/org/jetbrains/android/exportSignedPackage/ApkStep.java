@@ -16,6 +16,8 @@
 
 package org.jetbrains.android.exportSignedPackage;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
@@ -47,11 +49,12 @@ import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.artifact.ProGuardConfigFilesPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.SaveFileListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.android.facet.AndroidFacetProperties;
+import org.jetbrains.annotations.VisibleForTesting;
 
 class ApkStep extends ExportSignedPackageWizardStep {
   public static final String APK_PATH_PROPERTY = "ExportedApkPath";
@@ -110,19 +113,10 @@ class ApkStep extends ExportSignedPackageWizardStep {
     Module module = facet.getModule();
 
     PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
-    String lastModule = properties.getValue(KeystoreStep.getModuleProperty(myIsBundle));
-    String lastApkPath = properties.getValue(getApkPathPropertyName());
-    if (lastApkPath != null && module.getName().equals(lastModule)) {
-      myApkPathField.setText(FileUtil.toSystemDependentName(lastApkPath));
+    String initialApkPath = getInitialPath(properties, module);
+    if (!isNullOrEmpty(initialApkPath)) {
+      myApkPathField.setText(FileUtil.toSystemDependentName(initialApkPath));
     }
-    else {
-      String contentRootPath = getContentRootPath(module);
-      if (contentRootPath != null) {
-        String defaultPath = FileUtil.toSystemDependentName(contentRootPath + "/" + module.getName() + ".apk");
-        myApkPathField.setText(defaultPath);
-      }
-    }
-
     final String runProguardPropValue = properties.getValue(RUN_PROGUARD_PROPERTY);
     boolean selected;
 
@@ -194,8 +188,9 @@ class ApkStep extends ExportSignedPackageWizardStep {
     return builder.toString();
   }
 
-  private String getApkPathPropertyName() {
-    return myWizard.isSigned() ? APK_PATH_PROPERTY : APK_PATH_PROPERTY_UNSIGNED;
+  @VisibleForTesting
+  String getApkPathPropertyName(String moduleName) {
+    return (myWizard.isSigned() ? APK_PATH_PROPERTY : APK_PATH_PROPERTY_UNSIGNED) + (isNullOrEmpty(moduleName) ? "" : "For" + moduleName);
   }
 
   @Override
@@ -222,8 +217,9 @@ class ApkStep extends ExportSignedPackageWizardStep {
 
     AndroidFacet facet = myWizard.getFacet();
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
-    properties.setValue(KeystoreStep.getModuleProperty(myIsBundle), facet != null ? facet.getModule().getName() : "");
-    properties.setValue(getApkPathPropertyName(), apkPath);
+    @NotNull String moduleName = facet != null ? facet.getModule().getName() : "";
+    properties.setValue(KeystoreStep.getModuleProperty(myIsBundle), moduleName);
+    properties.setValue(getApkPathPropertyName(moduleName), apkPath);
 
     File folder = new File(apkPath).getParentFile();
     if (folder == null) {
@@ -276,5 +272,18 @@ class ApkStep extends ExportSignedPackageWizardStep {
         return myWizard.getFacet();
       }
     };
+  }
+
+  @VisibleForTesting
+  String getInitialPath(PropertiesComponent properties, @NotNull Module module) {
+    String lastApkFolderPath = properties.getValue(getApkPathPropertyName(module.getName()));
+    if (!isNullOrEmpty(lastApkFolderPath)) {
+      return lastApkFolderPath;
+    }
+    String contentRootPath = getContentRootPath(module);
+    if (contentRootPath != null) {
+      return contentRootPath + File.separator + module.getName() + ".apk";
+    }
+    return null;
   }
 }

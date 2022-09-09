@@ -107,7 +107,6 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private List<String> myBuildVariants;
   private GradleSigningInfo myGradleSigningInfo;
 
-
   public ExportSignedPackageWizard(@NotNull Project project,
                                    @NotNull List<AndroidFacet> facets,
                                    boolean signed,

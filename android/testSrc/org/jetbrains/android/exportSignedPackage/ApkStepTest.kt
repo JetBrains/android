@@ -18,16 +18,38 @@ package org.jetbrains.android.exportSignedPackage
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.google.common.truth.Truth
+import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.testFramework.LightPlatformTestCase
+import org.jetbrains.kotlin.konan.file.File
 import org.mockito.Mockito
 
 class ApkStepTest : LightPlatformTestCase() {
-  fun testGetHelpId() {
-    val wizard = Mockito.mock(ExportSignedPackageWizard::class.java)
-    whenever(wizard.project).thenReturn(project)
-    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
+  private val myWizard = Mockito.mock(ExportSignedPackageWizard::class.java)
 
-    val apkStep = ApkStep(wizard)
+  override fun setUp() {
+    super.setUp()
+    whenever(myWizard.project).thenReturn(project)
+    whenever(myWizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+  }
+
+  fun testGetHelpId() {
+    val apkStep = ApkStep(myWizard)
     Truth.assertThat(apkStep.helpId).startsWith(AndroidWebHelpProvider.HELP_PREFIX + "studio/publish/app-signing")
+  }
+
+  fun testInitialDestinationNotSet() {
+    val apkStep = ApkStep(myWizard)
+    val properties = PropertiesComponent.getInstance()
+    val projectPath = ModuleRootManager.getInstance(module).contentRoots[0].path + File.separator + module.name + ".apk"
+    Truth.assertThat(apkStep.getInitialPath(properties, module)).isEqualTo(projectPath)
+  }
+
+  fun testInitialDestinationSet() {
+    val apkStep = ApkStep(myWizard)
+    val properties = PropertiesComponent.getInstance()
+    val testPath = this.homePath + File.separator + "custom.apk"
+    properties.setValue(apkStep.getApkPathPropertyName(module.name), testPath)
+    Truth.assertThat(apkStep.getInitialPath(properties, module)).isEqualTo(testPath)
   }
 }
