@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture;
+package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.ui.content.Content;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -25,13 +26,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JEditorPane;
+import javax.swing.JPanel;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
+public class AGPUpgradeAssistantToolWindowFixture extends ToolWindowFixture {
 
-public class AGPUpgradeAssistantToolWindowFixture extends ToolWindowFixture{
-
-  @NotNull private final IdeFrameFixture ideFrame;
+  @NotNull
+  private final IdeFrameFixture ideFrame;
 
   public AGPUpgradeAssistantToolWindowFixture(@NotNull IdeFrameFixture projectFrame) {
     super("Upgrade Assistant", projectFrame.getProject(), projectFrame.robot());
@@ -40,44 +43,82 @@ public class AGPUpgradeAssistantToolWindowFixture extends ToolWindowFixture{
   }
 
   @NotNull
-  public AGPUpgradeAssistantToolWindowFixture clickRunSelectedStepsButton() {
-    JButton button = GuiTests.waitUntilShowing(robot(), Matchers.byText(JButton.class, "Run selected steps").andIsEnabled());
+  public void clickRunSelectedStepsButton() {
+    JButton button = GuiTests.waitUntilShowing(robot(),
+                                               Matchers.byText(JButton.class, "Run selected steps").andIsEnabled());
     myRobot.click(button);
-    return this;
   }
 
   @NotNull
-  public AGPUpgradeAssistantToolWindowFixture clickRefreshButton() {
+  public boolean isRunSelectedStepsButtonEnabled() {
+    JButton button = GuiTests.waitUntilShowing(robot(),
+                                               Matchers.byText(JButton.class, "Run selected steps"));
+    return button.isEnabled();
+  }
+
+  @NotNull
+  public void clickRefreshButton() {
     JButton button = GuiTests.waitUntilShowing(robot(), Matchers.byText(JButton.class, "Refresh").andIsEnabled());
     myRobot.click(button);
-    return this;
   }
 
   @NotNull
-  public AGPUpgradeAssistantToolWindowFixture clickShowUsagesButton() {
-    JButton button = GuiTests.waitUntilShowing(robot(), Matchers.byText(JButton.class, "Show Usages").andIsEnabled());
+  public boolean isRefreshButtonEnabled() {
+    JButton button = GuiTests.waitUntilShowing(robot(),
+                                               Matchers.byText(JButton.class, "Refresh"));
+    return button.isEnabled();
+  }
+
+  @NotNull
+  public void clickShowUsagesButton() {
+    JButton button = GuiTests.waitUntilShowing(robot(),
+                                               Matchers.byText(JButton.class, "Show Usages").andIsEnabled());
     myRobot.click(button);
-    return this;
   }
 
   @NotNull
-  public List <String> getAGPVersions() {
-    JComboBoxFixture comboBoxFixture =
-      new JComboBoxFixture(robot(), robot().finder().findByType(myToolWindow.getComponent(), JComboBox.class));
+  public boolean isShowUsagesEnabled() {
+    JButton button = GuiTests.waitUntilShowing(robot(),
+                                               Matchers.byText(JButton.class, "Show Usages"));
+    return button.isEnabled();
+  }
+
+  @NotNull
+  public void clickRevertProjectFiles() {
+    JButton button = GuiTests.waitUntilShowing(robot(),
+                                               Matchers.byText(JButton.class, "Revert Project Files").andIsEnabled());
+    myRobot.click(button);
+  }
+
+  @NotNull
+  public List<String> getAGPVersions() {
+    JComboBoxFixture comboBoxFixture = new JComboBoxFixture(robot(),
+                                                            robot().finder().findByType(myToolWindow.getComponent(), JComboBox.class));
     List agpVersions = Arrays.asList(comboBoxFixture.contents());
     return agpVersions;
   }
 
   @NotNull
-  public AGPUpgradeAssistantToolWindowFixture selectAGPVersion(@NotNull String agpVersion) {
-    JComboBoxFixture comboBoxFixture =
-      new JComboBoxFixture(robot(), robot().finder().findByType(myToolWindow.getComponent(), JComboBox.class));
+  public void selectAGPVersion(@NotNull String agpVersion) {
+    JComboBoxFixture comboBoxFixture = new JComboBoxFixture(robot(),
+                                                            robot().finder().findByType(myToolWindow.getComponent(), JComboBox.class));
     comboBoxFixture.click();
     comboBoxFixture.selectItem(agpVersion);
-    return this;
   }
+
+  public boolean getSyncStatus() {
+    JEditorPane panelInfo2 = robot().finder().findByType(myToolWindow.getComponent(), JEditorPane.class);
+    String text = panelInfo2.getText();
+    if (text.contains("Sync succeeded")) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   @NotNull
   public String generateAGPVersion(@NotNull String studioVersion) {
+    //This method generates the AGP version of the Android Studio Build dynamically by checking the Android Studio version, release type and build.
     String studioVersionName = studioVersion.toLowerCase();
     String agpVersion; // Check for StringBuilder
     String releaseVersion;
@@ -107,7 +148,8 @@ public class AGPUpgradeAssistantToolWindowFixture extends ToolWindowFixture{
           }
         }
       } else {
-        throw new AssertionError("Failed to match Android Studio Version from the string: " + studioVersionName);
+        throw new AssertionError(
+          "Failed to match Android Studio Version from the string: " + studioVersionName);
       }
     }
     return agpVersion;
@@ -115,7 +157,7 @@ public class AGPUpgradeAssistantToolWindowFixture extends ToolWindowFixture{
 
   @NotNull
   public HashMap getAgpVersionsDict() {
-    //Mapping Android studio version to agp version
+    // Mapping Android studio version to agp version
     HashMap<String, String> agpVersionsDict = new HashMap<>();
     agpVersionsDict.put("flamingo", "8.0.0");
     agpVersionsDict.put("electric eel", "7.4.0");
@@ -126,7 +168,7 @@ public class AGPUpgradeAssistantToolWindowFixture extends ToolWindowFixture{
 
   @NotNull
   public HashMap getAgpReleaseTypeDict() {
-    //Mapping Android studio release type to agp release type
+    // Mapping Android studio release type to agp release type
     HashMap<String, String> agpReleaseTypeDict = new HashMap<>();
     agpReleaseTypeDict.put("canary", "alpha");
     agpReleaseTypeDict.put("beta", "beta");
@@ -135,7 +177,9 @@ public class AGPUpgradeAssistantToolWindowFixture extends ToolWindowFixture{
   }
 
   private String getTipOfTree() {
+    // This falls under test mantainance as the TIT needs to be updated for every relase for no failures or flakiness.
     String tipOfTree = "Flamingo";
     return tipOfTree.toLowerCase();
   }
 }
+
