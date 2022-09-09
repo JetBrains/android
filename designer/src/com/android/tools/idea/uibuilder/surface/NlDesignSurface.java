@@ -390,7 +390,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @NotNull private ScreenViewProvider myScreenViewProvider = NlScreenViewProvider.Companion.loadPreferredMode();
   private boolean myIsCanvasResizing = false;
-  private boolean myMockupVisible;
   private final boolean myIsInPreview;
   private final RenderListener myRenderListener = this::modelRendered;
   @NotNull private ImmutableList<? extends IssueProvider> myRenderIssueProviders = ImmutableList.of();
@@ -775,15 +774,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       handler.onActivateInDesignSurface(component, x, y);
     }
     super.notifyComponentActivate(component, x, y);
-  }
-
-  public void setMockupVisible(boolean mockupVisible) {
-    myMockupVisible = mockupVisible;
-    repaint();
-  }
-
-  public boolean isMockupVisible() {
-    return myMockupVisible;
   }
 
   /**
