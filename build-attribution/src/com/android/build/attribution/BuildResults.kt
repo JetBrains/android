@@ -30,7 +30,6 @@ import com.android.build.attribution.analyzers.ProjectConfigurationAnalyzer
 import com.android.build.attribution.analyzers.TasksConfigurationIssuesAnalyzer
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
-import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.GarbageCollectionData
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginConfigurationData
@@ -54,9 +53,7 @@ data class BuildAnalysisResults(
   private val configurationCachingCompatibilityAnalyzerResult: ConfigurationCachingCompatibilityProjectResult,
   private val jetifierUsageAnalyzerResult: JetifierUsageAnalyzerResult,
   private val downloadsAnalyzerResult: DownloadsAnalyzer.Result,
-  private val buildSessionID: String,
-  private val taskMap: Map<String, TaskData>,
-  private val pluginMap: Map<String, PluginData>
+  private val buildSessionID: String
 ) : BuildEventsAnalysisResult {
 
   @Override
@@ -64,31 +61,8 @@ data class BuildAnalysisResults(
     return buildRequestData
   }
 
-  fun getAnnotationProcessorAnalyzerResult(): AnnotationProcessorsAnalyzer.Result {
-    return annotationProcessorAnalyzerResult
-  }
-
-  fun getTaskMap(): Map<String, TaskData> {
-    return taskMap
-  }
-
-  fun getPluginMap(): Map<String, PluginData> {
-    return pluginMap
-  }
-
-  fun getProjectConfigurationAnalyzerResult(): ProjectConfigurationAnalyzer.Result {
-    return projectConfigurationAnalyzerResult
-  }
-
-  fun getCriticalPathAnalyzerResult(): CriticalPathAnalyzer.Result {
-    return criticalPathAnalyzerResult
-  }
-  fun getBuildStartedTimestamp(): Long {
+  fun getBuildStartedTimestamp() : Long{
     return criticalPathAnalyzerResult.buildStartedTimestamp
-  }
-
-  fun getGarbageCollectionAnalyzerResult(): GarbageCollectionAnalyzer.Result {
-    return garbageCollectionAnalyzerResult
   }
 
   @Override

@@ -24,7 +24,6 @@ import org.gradle.tooling.events.task.TaskFinishEvent
  */
 class TaskContainer {
   private val taskCache = HashMap<String, TaskData>()
-  val allTasks: Map<String, TaskData> get() = taskCache
 
   fun getTask(taskPath: String): TaskData? {
     return taskCache[taskPath]

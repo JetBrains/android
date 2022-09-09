@@ -28,7 +28,6 @@ import com.android.build.attribution.analyzers.JetifierNotUsed
 import com.android.build.attribution.analyzers.JetifierRequiredForLibraries
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
-import com.android.build.attribution.analyzers.NoDataFromSavedResult
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
@@ -453,7 +452,6 @@ class ConfigurationCachingRootNodeDescriptor(
         ConfigurationCachingTurnedOn -> ""
         ConfigurationCacheCompatibilityTestFlow -> ""
         ConfigurationCachingTurnedOff -> ""
-        NoDataFromSavedResult -> ""
       },
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(projectConfigurationTime.timeMs)
     )
@@ -492,7 +490,6 @@ private fun ConfigurationCachingCompatibilityProjectResult.warningsCount() = whe
   ConfigurationCacheCompatibilityTestFlow -> 1
   ConfigurationCachingTurnedOn -> 0
   ConfigurationCachingTurnedOff -> 0
-  NoDataFromSavedResult -> 0
 }
 
 fun ConfigurationCachingCompatibilityProjectResult.shouldShowWarning(): Boolean = warningsCount() != 0

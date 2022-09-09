@@ -30,15 +30,5 @@
     <orderEntry type="library" name="studio-plugin-properties" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="TEST" />
-    <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/build-attribution/proto/build-analysis-results-proto.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
   </component>
 </module>

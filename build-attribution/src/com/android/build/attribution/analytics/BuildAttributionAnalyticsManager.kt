@@ -29,7 +29,6 @@ import com.android.build.attribution.analyzers.JetifierNotUsed
 import com.android.build.attribution.analyzers.JetifierRequiredForLibraries
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
-import com.android.build.attribution.analyzers.NoDataFromSavedResult
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
@@ -253,7 +252,6 @@ class BuildAttributionAnalyticsManager(
         ConfigurationCachingTurnedOn -> ConfigurationCacheCompatibilityData.CompatibilityState.CONFIGURATION_CACHE_TURNED_ON
         ConfigurationCacheCompatibilityTestFlow -> ConfigurationCacheCompatibilityData.CompatibilityState.CONFIGURATION_CACHE_TRIAL_FLOW_BUILD
         ConfigurationCachingTurnedOff -> ConfigurationCacheCompatibilityData.CompatibilityState.CONFIGURATION_CACHE_TURNED_OFF
-        NoDataFromSavedResult -> ConfigurationCacheCompatibilityData.CompatibilityState.UNKNOWN_STATE
       }
       if (configurationCachingCompatibilityState is IncompatiblePluginsDetected) {
         addAllIncompatiblePlugins(configurationCachingCompatibilityState.incompatiblePluginWarnings.map { transformPluginData(it.plugin) })
