@@ -35,10 +35,10 @@ fun errorMessage(exception: LiveEditUpdateException) : String {
 
   when (exception.error) {
     LiveEditUpdateException.Error.COMPILATION_ERROR -> {
-      return "Compilation Error in $source. Live Edit is temporary paused until all errors are fixed."
+      return "Compilation Error${exception.source?.let {" in ${it.name}"}}. Live Edit is temporarily paused until all errors are fixed."
     }
     LiveEditUpdateException.Error.ANALYSIS_ERROR -> {
-      return "Analysis Error in $source. Live Edit is temporary paused until all errors are fixed."
+      return "Compilation Error${exception.source?.let {" in ${it.name}"}}. Live Edit is temporarily paused until all errors are fixed."
     }
   }
   return "${exception.error.message}: \n ${exception.details} \n"
