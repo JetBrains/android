@@ -223,7 +223,7 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
       numberOfCancelledActions = tasksToCancel.size
       tasksToCancel
     }.forEach {
-      it.cancel(false)
+      it.completeExceptionally(Exception("This task is cancelled and should not be accessed"))
     }
     return numberOfCancelledActions
   }
