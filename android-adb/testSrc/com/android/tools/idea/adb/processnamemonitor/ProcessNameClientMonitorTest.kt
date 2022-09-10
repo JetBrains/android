@@ -24,6 +24,7 @@ import com.intellij.openapi.util.use
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.test.TestCoroutineScope
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Before
 import org.junit.Rule
