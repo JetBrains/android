@@ -1,11 +1,11 @@
 <component name="libraryTable">
   <library name="jetbrains.kotlinx.coroutines.test">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-test/1.5.0/kotlinx-coroutines-test-1.5.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-test-jvm/1.6.4/kotlinx-coroutines-test-jvm-1.6.4.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-test/1.5.0/kotlinx-coroutines-test-1.5.0-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-test-jvm/1.6.4/kotlinx-coroutines-test-jvm-1.6.4-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

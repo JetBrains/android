@@ -170,7 +170,7 @@ class RegexTextFieldTest {
     regexTextField.text = "foo"
 
     verify(mockOnChangeListener, never()).onChange(regexTextField)
-    advanceTimeBy(1000)
+    testScheduler.apply { advanceTimeBy(1000); runCurrent() }
     verify(mockOnChangeListener).onChange(regexTextField)
   }
 

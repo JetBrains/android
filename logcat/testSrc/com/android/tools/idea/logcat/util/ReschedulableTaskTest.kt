@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.util
 
 import com.android.testutils.MockitoKt.mock
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
 import org.mockito.Mockito.never
