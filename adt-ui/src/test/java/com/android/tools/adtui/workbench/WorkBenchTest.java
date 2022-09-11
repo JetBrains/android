@@ -38,6 +38,7 @@ import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.EventDispatcher;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
@@ -55,9 +56,10 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
-import kotlin.Suppress;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
+import sun.awt.AWTAccessor;
+import sun.awt.NullComponentPeer;
 
 public class WorkBenchTest extends WorkBenchTestCase {
   @Mock
@@ -397,11 +399,51 @@ public class WorkBenchTest extends WorkBenchTestCase {
     verify(myRightMinimizePanel).dragDrop(eq(myToolWindow1), eq(20));
   }
 
+  public void testMoveToolToLeftAndBackToRight() {
+    // Regression test for b/245085070
+    // myToolWindow2 is currently showing in the right side panel. Moving it to the left side panel caused the peer and thereby the
+    // tool window to be made invisible. The code in SidePanel.addVisibleTools should take this into account and make them visible
+    // after moving the tool window.
+    JComponent component = myToolWindow2.getComponent();
+
+    // There is code in the JDK that clears the peers visibility (See Component.removeNotify). Emulate that here in tests:
+    FakePanelPeer.install(component);
+    FakePanelPeer.install(component.getParent());
+
+    myToolWindow2.setPropertyAndUpdate(PropertyType.LEFT, true);
+    assertThat(component.isVisible()).isTrue();
+  }
+
   @SuppressWarnings("SameParameterValue")
   private void fireButtonDropped(@NotNull JComponent dragImage, int xStart, int yStart, int x, int y) {
     AbstractButton button = myToolWindow1.getMinimizedButton();
     MouseEvent mouseEvent = new MouseEvent(button, MouseEvent.MOUSE_RELEASED, 1, InputEvent.BUTTON1_MASK, x, y, 1, false);
     DragEvent event = new DragEvent(mouseEvent, dragImage, new Point(xStart, yStart));
     myToolWindow1.fireButtonDropped(event);
+  }
+
+  private static class FakePanelPeer extends NullComponentPeer {
+    private Component myComponent;
+
+    public static void install(Component component) {
+      AWTAccessor.getComponentAccessor().setPeer(component, new FakePanelPeer(component));
+    }
+
+    FakePanelPeer(Component component) {
+      myComponent = component;
+    }
+
+    @Override
+    public void setVisible(boolean b) {
+      myComponent.setVisible(b);
+    }
+
+    public void show() {
+      setVisible(true);
+    }
+
+    public void hide() {
+      setVisible(false);
+    }
   }
 }
