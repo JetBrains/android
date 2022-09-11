@@ -475,8 +475,6 @@ MODULE: MultiFlavor.app
                     ./app/src/testFirstAbcSecondAbcDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/testFirstAbcSecondAbcDebug/jniLibs
-                ResDirectories:
-                    ./app/src/testFirstAbcSecondAbcDebug/res
                 ResourcesDirectories:
                     ./app/src/testFirstAbcSecondAbcDebug/resources
                 ShadersDirectories:
@@ -783,7 +781,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testSecondAbc/res
                     file://./app/src/testFirstAbcSecondAbc/res
                     file://./app/src/testDebug/res
-                    file://./app/src/testFirstAbcSecondAbcDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/test/resources
                     file://./app/src/testFirstAbc/resources
@@ -1466,8 +1463,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testFirstAbcSecondAbcDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/testFirstAbcSecondAbcDebug/jniLibs
-                ResDirectoryUrls:
-                    file://./app/src/testFirstAbcSecondAbcDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testFirstAbcSecondAbcDebug/resources
                 ShadersDirectoryUrls:

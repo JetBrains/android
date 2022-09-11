@@ -491,8 +491,6 @@ MODULE: project.app
                     ./app/src/testBasicBarDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/testBasicBarDebug/jniLibs
-                ResDirectories:
-                    ./app/src/testBasicBarDebug/res
                 ResourcesDirectories:
                     ./app/src/testBasicBarDebug/resources
                 ShadersDirectories:
@@ -775,7 +773,6 @@ MODULE: project.app
                     file://./app/src/testBar/res
                     file://./app/src/testBasicBar/res
                     file://./app/src/testDebug/res
-                    file://./app/src/testBasicBarDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/test/resources
                     file://./app/src/testBasic/resources
@@ -1431,8 +1428,6 @@ MODULE: project.app
                     file://./app/src/testBasicBarDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testBasicBarDebug/jniLibs
-                ResDirectoryUrls:
-                    file://./app/src/testBasicBarDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testBasicBarDebug/resources
                 ShadersDirectoryUrls:
@@ -4312,8 +4307,6 @@ MODULE: project.nested2
                     ./nested2/src/testBasicDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/testBasicDebug/jniLibs
-                ResDirectories:
-                    ./nested2/src/testBasicDebug/res
                 ResourcesDirectories:
                     ./nested2/src/testBasicDebug/resources
                 ShadersDirectories:
@@ -4510,7 +4503,6 @@ MODULE: project.nested2
                     file://./nested2/src/test/res
                     file://./nested2/src/testBasic/res
                     file://./nested2/src/testDebug/res
-                    file://./nested2/src/testBasicDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/test/resources
                     file://./nested2/src/testBasic/resources
@@ -4934,8 +4926,6 @@ MODULE: project.nested2
                     file://./nested2/src/testBasicDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/testBasicDebug/jniLibs
-                ResDirectoryUrls:
-                    file://./nested2/src/testBasicDebug/res
                 ResourcesDirectoryUrls:
                     file://./nested2/src/testBasicDebug/resources
                 ShadersDirectoryUrls:

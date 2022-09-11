@@ -555,7 +555,6 @@ PROJECT                       : project
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testExampleDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testExampleDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testExampleDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testExampleDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testExampleDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testExampleDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK

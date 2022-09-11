@@ -586,7 +586,6 @@ PROJECT                       : MultiFlavor
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testSecondAbc/aidl [-]

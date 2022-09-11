@@ -334,8 +334,6 @@ MODULE: MainActivity.app
                     ./app/src/testLocalDebug/java
                 JniLibsDirectories:
                     ./app/src/testLocalDebug/jniLibs
-                ResDirectories:
-                    ./app/src/testLocalDebug/res
                 ResourcesDirectories:
                     ./app/src/testLocalDebug/resources
                 ShadersDirectories:
@@ -547,7 +545,6 @@ MODULE: MainActivity.app
                     file://./app/src/test/res
                     file://./app/src/testLocal/res
                     file://./app/src/testDebug/res
-                    file://./app/src/testLocalDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/test/resources
                     file://./app/src/testLocal/resources
@@ -1005,8 +1002,6 @@ MODULE: MainActivity.app
                     file://./app/src/testLocalDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/testLocalDebug/jniLibs
-                ResDirectoryUrls:
-                    file://./app/src/testLocalDebug/res
                 ResourcesDirectoryUrls:
                     file://./app/src/testLocalDebug/resources
                 ShadersDirectoryUrls:

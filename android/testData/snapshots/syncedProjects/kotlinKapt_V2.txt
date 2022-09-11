@@ -676,7 +676,6 @@ PROJECT                       : MainActivity
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testLocalDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testLocalDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testLocalDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testLocalDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testLocalDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testLocalDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK

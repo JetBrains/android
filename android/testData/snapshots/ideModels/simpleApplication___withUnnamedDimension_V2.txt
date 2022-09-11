@@ -1404,7 +1404,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testExampleDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testExampleDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testExampleDebug/aidl [-]
-                    ResDirectories                : <ROOT>/app/src/testExampleDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testExampleDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testExampleDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testExampleDebug/shaders [-]
