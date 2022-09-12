@@ -45,6 +45,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.event.ActionListener;
+import java.text.Collator;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -147,7 +148,8 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   private static @NotNull RowSorter<@NotNull TableModel> newRowSorter(@NotNull TableModel model) {
     DefaultRowSorter<TableModel, Integer> sorter = new TableRowSorter<>(model);
 
-    sorter.setComparator(VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX, Comparator.comparing(VirtualDevice::getName));
+    sorter.setComparator(VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX,
+                         Comparator.comparing(VirtualDevice::getName, Collator.getInstance()));
     sorter.setComparator(VirtualDeviceTableModel.API_MODEL_COLUMN_INDEX, Comparator.naturalOrder().reversed());
     sorter.setComparator(VirtualDeviceTableModel.SIZE_ON_DISK_MODEL_COLUMN_INDEX, Comparator.naturalOrder().reversed());
     sorter.setSortable(VirtualDeviceTableModel.LAUNCH_OR_STOP_MODEL_COLUMN_INDEX, false);
