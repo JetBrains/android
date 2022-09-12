@@ -17,13 +17,12 @@ package org.jetbrains.android.actions;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.res.AndroidDependenciesCache;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.IdeResourceNameValidator;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.TextFieldWithBooleanBoxKt;
@@ -38,9 +37,14 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
@@ -55,8 +59,11 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
+import javax.swing.text.JTextComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,7 +97,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   private JPanel myDirectoriesPanel;
   private JBLabel myDirectoriesLabel;
 
-  private JTextField myValueField;
+  private JTextComponent myValueField;
 
   private CreateXmlResourceSubdirPanel mySubdirPanel;
 
@@ -107,6 +114,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
                                     @Nullable VirtualFile defaultFile,
                                     @Nullable VirtualFile contextFile,
                                     @NotNull final Function<Module, IdeResourceNameValidator> nameValidatorFactory) {
+    myResourceType = resourceType;
     setChangeNameVisible(false);
     setChangeValueVisible(false);
     setChangeFileNameVisible(chooseFilename);
@@ -123,11 +131,12 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
       // For Color values, we want a TextField with a ColorPicker so we wrap the TextField with a custom component.
       Color defaultColor = IdeResourcesUtil.parseColor(resourceValue);
       myValueFieldContainer.removeAll();
-      myValueFieldContainer.add(TextFieldWithColorPickerKt.wrapWithColorPickerIcon(myValueField, defaultColor));
+      myValueFieldContainer.add(TextFieldWithColorPickerKt.wrapWithColorPickerIcon((JTextField)myValueField, defaultColor));
     }
     else if (resourceType == ResourceType.BOOL) {
       myValueFieldContainer.removeAll();
-      myValueFieldContainer.add(TextFieldWithBooleanBoxKt.wrapWithBooleanCheckBox(myValueField, Boolean.parseBoolean(resourceValue)));
+      myValueFieldContainer.add(
+        TextFieldWithBooleanBoxKt.wrapWithBooleanCheckBox((JTextField)myValueField, Boolean.parseBoolean(resourceValue)));
     }
 
     if (chooseValue) {
@@ -140,14 +149,10 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
 
       setChangeValueVisible(true);
       if (!StringUtil.isEmpty(resourceValue)) {
-        // Need to escape the string to properly represent it in the JTextField.
-        // E.g: If the string is "foo \n bar" we need to pass "foo \\n bar" to properly see it in the JTextField.
-        String value = (resourceType == ResourceType.STRING) ? ValueXmlHelper.escapeResourceString(resourceValue, false) : resourceValue;
-        myValueField.setText(value);
+        myValueField.setText(resourceValue);
       }
     }
 
-    myResourceType = resourceType;
     final Set<Module> modulesSet = new HashSet<>();
     modulesSet.add(module);
 
@@ -201,17 +206,62 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   }
 
   private void createUIComponents() {
-    myValueField = new JTextField();
-    myValueField.setName("Resource value field"); // For ui-test
-
     // this panel just holds the value field component within the swing form, so we strip any UI from it and use a very simple LayoutManager
     myValueFieldContainer = new JPanel();
     myValueFieldContainer.setFocusable(false);
     myValueFieldContainer.setLayout(new BoxLayout(myValueFieldContainer, BoxLayout.Y_AXIS));
     myValueFieldContainer.setUI(null);
-    myValueFieldContainer.setBorder(JBUI.Borders.empty());
     myValueFieldContainer.setOpaque(false);
-    myValueFieldContainer.add(myValueField);
+
+    if (myResourceType == ResourceType.STRING) {
+      JTextArea textArea = new JTextArea();
+      textArea.setRows(3);
+      myValueField = textArea;
+
+      JBScrollPane scrollPane = new JBScrollPane(textArea);
+
+      Border unfocusedBorder = setupBordersForTextArea(textArea);
+      myValueFieldContainer.setBorder(unfocusedBorder);
+      myValueFieldContainer.add(scrollPane);
+    }
+    else {
+      myValueField = new JTextField();
+      myValueFieldContainer.setBorder(JBUI.Borders.empty());
+      myValueFieldContainer.add(myValueField);
+    }
+
+    myValueField.setName("Resource value area"); // For ui-test
+  }
+
+  /**
+   * Configures borders for a JTextArea, so that the border of its container is highlighted when it gains focus. The border for a JTextArea
+   * has to be manually set to match focus behavior for the other JTextFields in this panel, since default IJ themes don't do that
+   * automatically.
+   *
+   * @return the unfocused border.
+   */
+  @NotNull
+  private Border setupBordersForTextArea(@NotNull JTextArea textArea) {
+    Border empty1pixel = JBUI.Borders.empty(1);
+    Border empty3pixel = JBUI.Borders.empty(3);
+    Border unfocusedLine = JBUI.Borders.customLine(JBColor.border(), 1);
+    Border focusedLine = JBUI.Borders.customLine(UIUtil.getFocusedBorderColor(), 2);
+
+    Border unfocusedBorder = JBUI.Borders.merge(empty3pixel, unfocusedLine, false);
+    Border focusedBorder = JBUI.Borders.merge(empty1pixel, JBUI.Borders.merge(focusedLine, unfocusedLine, false), false);
+    textArea.addFocusListener(new FocusListener() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        myValueFieldContainer.setBorder(focusedBorder);
+      }
+
+      @Override
+      public void focusLost(FocusEvent e) {
+        myValueFieldContainer.setBorder(unfocusedBorder);
+      }
+    });
+
+    return unfocusedBorder;
   }
 
   @Override
@@ -383,10 +433,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   @Override
   @NotNull
   public String getValue() {
-    String value = myValueField.getText();
-    // When we need to get the desired value for a string resource, the text has to be unescaped.
-    // E.g: If the user types "foo \n bar" JTextField.getText will return "foo \\n bar" so it has to be unescaped.
-    return (myResourceType == ResourceType.STRING) ? ValueXmlHelper.unescapeResourceString(value, false, false) : value;
+    return myValueField.getText();
   }
 
   @Override
