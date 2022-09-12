@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItem;
@@ -47,6 +48,7 @@ import org.jetbrains.annotations.Nullable;
  * Represents a single entry in the translations editor.
  */
 public final class StringResource {
+  private static final Logger LOGGER = Logger.getInstance(StringResource.class);
   @NotNull
   private final StringResourceKey myKey;
 
@@ -55,6 +57,9 @@ public final class StringResource {
 
   private boolean myTranslatable;
 
+  /** Holds the String default value we're in the process of assigning, to prevent duplicates. */
+  @Nullable
+  private String myTentativeDefaultValue = null;
   @Nullable
   private ResourceItemEntry myDefaultValue;
 
@@ -73,7 +78,7 @@ public final class StringResource {
 
     for (ResourceItem item : data.getRepository().getItems(key)) {
       if (!(item instanceof PsiResourceItem || item instanceof DynamicValueResourceItem)) {
-        Logger.getInstance(StringResource.class).warn(item + " has an unexpected class " + item.getClass().getName());
+       LOGGER.warn(item + " has an unexpected class " + item.getClass().getName());
       }
 
       XmlTag tag = IdeResourcesUtil.getItemTag(data.getProject(), item);
@@ -117,10 +122,17 @@ public final class StringResource {
     return myDefaultValue == null ? "" : myDefaultValue.myString;
   }
 
-  public @NotNull ListenableFuture<@NotNull Boolean> setDefaultValue(@NotNull String defaultValue) {
+  @UiThread
+  @NotNull
+  public ListenableFuture<@NotNull Boolean> setDefaultValue(@NotNull String defaultValue) {
     if (myDefaultValue == null) {
+      if (defaultValue.equals(myTentativeDefaultValue)) {
+        return Futures.immediateFuture(false);
+      }
+      myTentativeDefaultValue = defaultValue;
       ListenableFuture<ResourceItem> futureItem = createDefaultValue(defaultValue);
       return Futures.transform(futureItem, item -> {
+        myTentativeDefaultValue = null;
         if (item == null) {
           return false;
         }

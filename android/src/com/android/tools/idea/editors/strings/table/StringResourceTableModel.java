@@ -138,7 +138,7 @@ public class StringResourceTableModel extends AbstractTableModel {
         break;
 
       case DEFAULT_VALUE_COLUMN:
-        Futures.addCallback(getStringResourceAt(row).setDefaultValue((String)value), new FutureCallback<Boolean>() {
+        Futures.addCallback(getStringResourceAt(row).setDefaultValue((String)value), new FutureCallback<>() {
           @Override
           public void onSuccess(@Nullable Boolean changed) {
             if (changed != null && changed) {
