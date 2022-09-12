@@ -2214,12 +2214,14 @@ Android Studio Preview.app/Contents/plugins/android/resources/device-art-resourc
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/watch_square/mask.png
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/watch_square/shadow.png
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_large_round/device_bezel.png
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_large_round/device_mask.png
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_large_round/hardware.ini
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_large_round/layout
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_rect/device_bezel.png
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_rect/hardware.ini
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_rect/layout
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_small_round/device_bezel.png
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_small_round/device_mask.png
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_small_round/hardware.ini
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_small_round/layout
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/wearos_square/device_bezel.png
