@@ -201,6 +201,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   "Media Service" -> TemplateRenderer.AUTOMOTIVE_MEDIA_SERVICE
   "Google Pay Activity" -> TemplateRenderer.GOOGLE_PAY_ACTIVITY
   "Empty Wear OS Compose Activity" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
+  "Google Wallet Activity" -> TemplateRenderer.GOOGLE_WALLET_ACTIVITY
 
   "Fullscreen Fragment" -> TemplateRenderer.FRAGMENT_FULLSCREEN
   "Google AdMob Ads Fragment" -> TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS
@@ -298,6 +299,7 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.WEAR_OS_COMPOSE_ACTIVITY -> TemplateType.EMPTY_ACTIVITY
     TemplateRenderer.RESPONSIVE_ACTIVITY -> TemplateType.RESPONSIVE_ACTIVITY
     TemplateRenderer.GOOGLE_PAY_ACTIVITY -> TemplateType.GOOGLE_PAY_ACTIVITY
+    TemplateRenderer.GOOGLE_WALLET_ACTIVITY -> TemplateType.GOOGLE_WALLET_ACTIVITY
 
     TemplateRenderer.BLANK_ACTIVITY,
     TemplateRenderer.ANDROID_MODULE,

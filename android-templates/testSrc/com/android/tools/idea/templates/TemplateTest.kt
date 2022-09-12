@@ -363,6 +363,18 @@ class TemplateTest {
 
   @TemplateCheck
   @Test
+  fun testGoogleWalletActivity() {
+    checkCreateTemplate("Google Wallet Activity")
+  }
+
+  @TemplateCheck
+  @Test
+  fun testGoogleWalletActivityWithKotlin() {
+    checkCreateTemplate("Google Wallet Activity", withKotlin)
+  }
+
+  @TemplateCheck
+  @Test
   fun testGameActivity(){
     checkCreateTemplate("Game Activity (C++)", avoidModifiedModuleName = true)
   }

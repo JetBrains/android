@@ -143,6 +143,7 @@ maven_repository(
         "@maven//:com.google.android.gms.play-services-ads_20.6.0",
         "@maven//:com.google.android.gms.play-services-base_17.6.0",
         "@maven//:com.google.android.gms.play-services-maps_18.0.2",
+        "@maven//:com.google.android.gms.play-services-pay_16.0.3",
         "@maven//:com.google.android.gms.play-services-wallet_19.1.0",
         "@maven//:com.google.android.gms.play-services-wearable_17.1.0",
         "@maven//:com.google.android.libraries.mapsplatform.secrets-gradle-plugin.secrets-gradle-plugin_2.0.1",
