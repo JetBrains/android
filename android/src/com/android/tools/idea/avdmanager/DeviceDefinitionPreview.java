@@ -115,7 +115,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
 
   @Override
   protected void paintComponent(Graphics g) {
-    GraphicsUtil.setupAntialiasing(g);
+    GraphicsUtil.setupAntialiasing(g, true, true);
     GraphicsUtil.setupAAPainting(g);
     super.paintComponent(g);
     Graphics2D g2d = (Graphics2D)g;
@@ -349,18 +349,23 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
         infoSegmentX = PADDING;
         infoSegmentY = round(JBUI.scale(100) + screenSize.height + PADDING);
       }
-      infoSegmentY += stringHeight;
-      ScreenSize size = ScreenSize.getScreenSize(myDeviceData.diagonalScreenSize().get());
 
-      g2d.drawString("Size:      " + size.getResourceValue(), infoSegmentX, infoSegmentY);
+      int valueOffsetX = metrics.stringWidth("Density:") + metrics.stringWidth(" ");
+      infoSegmentY += stringHeight;
+
+      ScreenSize size = ScreenSize.getScreenSize(myDeviceData.diagonalScreenSize().get());
+      g2d.drawString("Size:", infoSegmentX, infoSegmentY);
+      g2d.drawString(size.getResourceValue(), infoSegmentX + valueOffsetX, infoSegmentY);
       infoSegmentY += stringHeight;
 
       ScreenRatio ratio =
         AvdScreenData.getScreenRatio(myDeviceData.screenResolutionWidth().get(), myDeviceData.screenResolutionHeight().get());
-      g2d.drawString("Ratio:    " + ratio.getResourceValue(), infoSegmentX, infoSegmentY);
+      g2d.drawString("Ratio:", infoSegmentX, infoSegmentY);
+      g2d.drawString(ratio.getResourceValue(), infoSegmentX + valueOffsetX, infoSegmentY);
       infoSegmentY += stringHeight;
 
-      g2d.drawString("Density: " + myDeviceData.density().get().getResourceValue(), infoSegmentX, infoSegmentY);
+      g2d.drawString("Density:", infoSegmentX, infoSegmentY);
+      g2d.drawString(myDeviceData.density().get().getResourceValue(), infoSegmentX + valueOffsetX, infoSegmentY);
 
       // Foldable / Rollable
       if (myDeviceData.isFoldable().get()) {

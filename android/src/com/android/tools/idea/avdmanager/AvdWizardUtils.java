@@ -114,9 +114,9 @@ public class AvdWizardUtils {
   public static final String HAS_HARDWARE_KEYBOARD_KEY = HardwareProperties.HW_KEYBOARD;
 
   // Fonts
-  public static final Font STANDARD_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 12));
-  public static final Font FIGURE_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 10));
-  public static final Font TITLE_FONT = JBFont.create(new Font("Sans", Font.BOLD, 16));
+  public static final Font STANDARD_FONT = JBFont.create(new Font("DroidSans", Font.PLAIN, 12));
+  public static final Font FIGURE_FONT = JBFont.create(new Font("DroidSans", Font.PLAIN, 10));
+  public static final Font TITLE_FONT = JBFont.create(new Font("DroidSans", Font.BOLD, 16));
 
   // Tags
   public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, DESKTOP_TAG,
