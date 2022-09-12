@@ -136,8 +136,8 @@ MODULE: MainActivity.app
                     ./app/src/localDebug/java
                     ./app/build/generated/source/kapt/localDebug
                 KotlinDirectories:
-                    ./app/src/localDebug/java
                     ./app/src/localDebug/kotlin
+                    ./app/src/localDebug/java
                 JniLibsDirectories:
                     ./app/src/localDebug/jniLibs
                 RenderscriptDirectories:
@@ -226,8 +226,8 @@ MODULE: MainActivity.app
                     ./app/src/localDebug/java
                     ./app/build/generated/source/kapt/localDebug
                 KotlinDirectories:
-                    ./app/src/localDebug/java
                     ./app/src/localDebug/kotlin
+                    ./app/src/localDebug/java
                 JniLibsDirectories:
                     ./app/src/localDebug/jniLibs
                 RenderscriptDirectories:
@@ -450,8 +450,8 @@ MODULE: MainActivity.app
                     ./app/src/androidTestLocalDebug/java
                     ./app/build/generated/source/kapt/localDebugAndroidTest
                 KotlinDirectories:
-                    ./app/src/androidTestLocalDebug/java
                     ./app/src/androidTestLocalDebug/kotlin
+                    ./app/src/androidTestLocalDebug/java
                 JniLibsDirectories:
                     ./app/src/androidTestLocalDebug/jniLibs
                 RenderscriptDirectories:
@@ -508,8 +508,8 @@ MODULE: MainActivity.app
                     file://./app/src/local/java
                     file://./app/src/debug/kotlin
                     file://./app/src/debug/java
-                    file://./app/src/localDebug/java
                     file://./app/src/localDebug/kotlin
+                    file://./app/src/localDebug/java
                 KotlinDirectories:
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
@@ -648,8 +648,8 @@ MODULE: MainActivity.app
                     file://./app/src/androidTestLocal/java
                     file://./app/src/androidTestDebug/kotlin
                     file://./app/src/androidTestDebug/java
-                    file://./app/src/androidTestLocalDebug/java
                     file://./app/src/androidTestLocalDebug/kotlin
+                    file://./app/src/androidTestLocalDebug/java
                 KotlinDirectories:
                     file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
@@ -816,8 +816,8 @@ MODULE: MainActivity.app
                     file://./app/src/localDebug/java
                     file://./app/build/generated/source/kapt/localDebug
                 KotlinDirectoryUrls:
-                    file://./app/src/localDebug/java
                     file://./app/src/localDebug/kotlin
+                    file://./app/src/localDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/localDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -978,8 +978,8 @@ MODULE: MainActivity.app
                     file://./app/src/localDebug/java
                     file://./app/build/generated/source/kapt/localDebug
                 KotlinDirectoryUrls:
-                    file://./app/src/localDebug/java
                     file://./app/src/localDebug/kotlin
+                    file://./app/src/localDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/localDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1194,8 +1194,8 @@ MODULE: MainActivity.app
                     file://./app/src/androidTestLocalDebug/java
                     file://./app/build/generated/source/kapt/localDebugAndroidTest
                 KotlinDirectoryUrls:
-                    file://./app/src/androidTestLocalDebug/java
                     file://./app/src/androidTestLocalDebug/kotlin
+                    file://./app/src/androidTestLocalDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestLocalDebug/jniLibs
                 RenderscriptDirectoryUrls:
