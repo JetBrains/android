@@ -142,7 +142,7 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
     runTestOn(AndroidCoreTestProject.APPLICATION_ID_SUFFIX) { project ->
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
       expect.that(project.appModuleSystem().getTestPackageName())
-        .isEqualTo(if (testDefinition!!.agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80_V1) "one.name.test" else "one.name.test_app")
+        .isEqualTo(if (testDefinition!!.agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80) "one.name.test" else "one.name.test_app")
       expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
       expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
 

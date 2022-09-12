@@ -26,7 +26,6 @@ import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT_V1
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.android.tools.idea.testing.ModelVersion
@@ -347,7 +346,6 @@ private fun skipTest(message: String): Nothing {
   error(message)
 }
 
-class CurrentAgpV1 : SyncedProjectTest(agpVersion = AGP_CURRENT_V1)
 class CurrentAgpV2 : SyncedProjectTest(agpVersion = AGP_CURRENT)
 
 @Ignore

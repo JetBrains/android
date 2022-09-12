@@ -86,7 +86,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
       agpVersion,
       ndkVersion = ndkVersion
     )
-    if (autoMigratePackageAttribute && agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80_V1) {
+    if (autoMigratePackageAttribute && agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80) {
       migratePackageAttribute(root)
     }
     patch(agpVersion, root)

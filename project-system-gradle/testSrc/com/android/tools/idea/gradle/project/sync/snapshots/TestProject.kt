@@ -274,7 +274,7 @@ enum class TestProject(
     }),
   MAIN_IN_ROOT(
     TestProjectToSnapshotPaths.MAIN_IN_ROOT,
-    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80_V1 }
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80 }
     ),
   NESTED_MODULE(TestProjectToSnapshotPaths.NESTED_MODULE),
   TRANSITIVE_DEPENDENCIES(TestProjectToSnapshotPaths.TRANSITIVE_DEPENDENCIES),

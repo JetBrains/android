@@ -179,7 +179,6 @@ internal fun createEmptyGradleSettingsFile(projectRootPath: File) {
 
 private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
   AgpVersionSoftwareEnvironmentDescriptor.AGP_80 -> "_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_80_V1 -> "_NewAgp_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_31 -> "_Agp_3.1_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1 -> "_Agp_3.3_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_33 -> "_Agp_3.3_"
