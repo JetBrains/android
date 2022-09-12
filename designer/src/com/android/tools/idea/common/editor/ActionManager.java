@@ -35,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class ActionManager<S extends DesignSurface<?>> {
   protected final S mySurface;
-  @Nullable private JComponent mySurfaceToolbar;
 
   protected ActionManager(@NotNull S surface) {
     mySurface = surface;
@@ -63,15 +62,9 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
     return new ActionsToolbar(mySurface, mySurface).getToolbarComponent();
   }
 
-  /**
-   * Return the toolbar which shows at bottom-right side of {@link DesignSurface}. The toolbar is a singleton and it is created lazily.
-   */
   @NotNull
-  public JComponent getDesignSurfaceToolbar() {
-    if (mySurfaceToolbar == null) {
-      mySurfaceToolbar = new DesignSurfaceFloatingActionsToolbarProvider(mySurface, mySurface, mySurface).getFloatingToolbar();
-    }
-    return mySurfaceToolbar;
+  public JComponent createDesignSurfaceToolbar() {
+    return new DesignSurfaceFloatingActionsToolbarProvider(mySurface, mySurface, mySurface).getFloatingToolbar();
   }
 
   /**

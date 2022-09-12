@@ -447,7 +447,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       };
 
       myLayeredPane.add(zoomControlsLayerPane, JLayeredPane.DRAG_LAYER);
-      zoomControlsLayerPane.add(myActionManager.getDesignSurfaceToolbar(), BorderLayout.EAST);
+      zoomControlsLayerPane.add(myActionManager.createDesignSurfaceToolbar(), BorderLayout.EAST);
       if (myZoomControlsPolicy == ZoomControlsPolicy.AUTO_HIDE) {
         zoomControlsLayerPane.setVisible(false);
         Toolkit.getDefaultToolkit().addAWTEventListener(myOnHoverListener, AWTEvent.MOUSE_EVENT_MASK);

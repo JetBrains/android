@@ -369,7 +369,7 @@ internal class ComposePreviewViewImpl(
               border = JBUI.Borders.empty(UIUtil.getScrollBarWidth())
               isOpaque = false
               isFocusable = false
-              add(mainSurface.actionManager.designSurfaceToolbar, BorderLayout.EAST)
+              add(mainSurface.actionManager.createDesignSurfaceToolbar(), BorderLayout.EAST)
             }
         this.add(zoomControlsLayerPane, JLayeredPane.DRAG_LAYER as Integer)
         this.add(scrollPane, JLayeredPane.POPUP_LAYER as Integer)

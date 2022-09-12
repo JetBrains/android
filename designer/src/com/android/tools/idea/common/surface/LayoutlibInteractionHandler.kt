@@ -52,9 +52,7 @@ class LayoutlibInteractionHandler(private val surface: DesignSurface<*>) : Inter
     surface.zoom(type, mouseX, mouseY)
   }
 
-  override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) {
-    surface.actionManager.designSurfaceToolbar.isVisible = true
-  }
+  override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) { }
 
   override fun stayHovering(mouseX: Int, mouseY: Int) {
     for (sceneView in surface.sceneViews) {
@@ -77,7 +75,5 @@ class LayoutlibInteractionHandler(private val surface: DesignSurface<*>) : Inter
 
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) { }
 
-  override fun mouseExited() {
-    surface.actionManager.designSurfaceToolbar.isVisible = false
-  }
+  override fun mouseExited() { }
 }
