@@ -68,7 +68,7 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
         return getUrlName(data.url)
       }
     },
-    SIZE(0.25 / 4, Int::class.java) {
+    SIZE(0.25 / 4, java.lang.Integer::class.java) {
       override fun getValueFrom(data: HttpData): Any {
         return data.responsePayload.size()
       }
@@ -80,7 +80,7 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
         return mimeTypeParts[mimeTypeParts.size - 1]
       }
     },
-    STATUS(0.25 / 4, Int::class.java) {
+    STATUS(0.25 / 4, java.lang.Integer::class.java) {
       override fun getValueFrom(data: HttpData): Any {
         return data.responseHeader.statusCode
       }

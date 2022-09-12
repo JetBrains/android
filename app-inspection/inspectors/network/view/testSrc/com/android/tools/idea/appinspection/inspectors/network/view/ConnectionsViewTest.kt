@@ -29,6 +29,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.Ht
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.fakeResponseFields
+import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.EdtRule
@@ -48,11 +49,20 @@ import javax.swing.JPanel
 import javax.swing.JTable
 
 private val FAKE_DATA = listOf(
-  createFakeHttpData(1, 1, 2),
-  createFakeHttpData(2, 3, 5),
-  createFakeHttpData(3, 8, 13),
-  createFakeHttpData(4, 21, 34).copy(responseFields = fakeResponseFields(4, "bmp"))
+  createHttpData(1, 1, 2, ByteString.copyFromUtf8("1")),
+  createHttpData(2, 3,  5, ByteString.copyFromUtf8("12")),
+  createHttpData(3, 8,  13, ByteString.copyFromUtf8("1234")),
+  createHttpData(4, 21,  34, ByteString.copyFromUtf8("123"))
+    .copy(responseFields = fakeResponseFields(4, "bmp"))
 )
+
+private fun createHttpData(
+  id: Long,
+  startS: Long,
+  endS: Long,
+  responsePayload: ByteString
+) = createFakeHttpData(id, TimeUnit.SECONDS.toMicros(startS), TimeUnit.SECONDS.toMicros(startS), TimeUnit.SECONDS.toMicros(endS),
+                       TimeUnit.SECONDS.toMicros(endS), TimeUnit.SECONDS.toMicros(endS), responsePayload = responsePayload)
 
 @RunsInEdt
 class ConnectionsViewTest {
@@ -107,7 +117,7 @@ class ConnectionsViewTest {
 
     // ID is set as the URL name, e.g. example.com/{id}, by TestHttpData
     assertThat(ConnectionsView.Column.NAME.getValueFrom(data)).isEqualTo(data.id.toString())
-    assertThat(ConnectionsView.Column.SIZE.getValueFrom(data)).isEqualTo(8)
+    assertThat(ConnectionsView.Column.SIZE.getValueFrom(data)).isEqualTo(4)
     assertThat(FAKE_CONTENT_TYPE).endsWith(ConnectionsView.Column.TYPE.getValueFrom(data) as String)
     assertThat(ConnectionsView.Column.STATUS.getValueFrom(data)).isEqualTo(FAKE_RESPONSE_CODE)
     assertThat(ConnectionsView.Column.TIME.getValueFrom(data)).isEqualTo(TimeUnit.SECONDS.toMicros(5))
@@ -168,7 +178,7 @@ class ConnectionsViewTest {
   }
 
   @Test
-  fun tableCanBeSorted() {
+  fun tableCanBeSortedByTime() {
     model.timeline.selectionRange.set(0.0, TimeUnit.SECONDS.toMicros(100).toDouble())
     val view = inspectorView.connectionsView
     val table = getConnectionsTable(view)
@@ -194,6 +204,27 @@ class ConnectionsViewTest {
     assertThat(table.rowCount).isEqualTo(2)
     assertThat(table.convertRowIndexToView(0)).isEqualTo(1)
     assertThat(table.convertRowIndexToView(1)).isEqualTo(0)
+  }
+
+  @Test
+  fun tableCanBeSortedBySize() {
+    model.timeline.selectionRange.set(0.0, TimeUnit.SECONDS.toMicros(100).toDouble())
+    val view = inspectorView.connectionsView
+    val table = getConnectionsTable(view)
+
+    // Size should be sorted by raw size as opposed to alphabetically.
+    // Toggle once for ascending, twice for descending
+    table.rowSorter.toggleSortOrder(ConnectionsView.Column.SIZE.ordinal)
+    assertThat(table.convertRowIndexToView(0)).isEqualTo(0)
+    assertThat(table.convertRowIndexToView(1)).isEqualTo(1)
+    assertThat(table.convertRowIndexToView(2)).isEqualTo(3)
+    assertThat(table.convertRowIndexToView(3)).isEqualTo(2)
+
+    table.rowSorter.toggleSortOrder(ConnectionsView.Column.SIZE.ordinal)
+    assertThat(table.convertRowIndexToView(0)).isEqualTo(3)
+    assertThat(table.convertRowIndexToView(1)).isEqualTo(2)
+    assertThat(table.convertRowIndexToView(2)).isEqualTo(0)
+    assertThat(table.convertRowIndexToView(3)).isEqualTo(1)
   }
 
   @Test
