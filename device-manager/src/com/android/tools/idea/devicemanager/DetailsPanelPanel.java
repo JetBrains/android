@@ -65,6 +65,7 @@ final class DetailsPanelPanel extends JBPanel<DetailsPanelPanel> implements Disp
     mySplitter.setSecondComponent(detailsPanel);
 
     add(mySplitter);
+    revalidate();
   }
 
   public void removeSplitter() {
