@@ -34,6 +34,7 @@ import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.scale.JBUIScale;
+import java.text.Collator;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -93,7 +94,8 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
   private static @NotNull RowSorter<@NotNull TableModel> newRowSorter(@NotNull TableModel model) {
     DefaultRowSorter<TableModel, Integer> sorter = new TableRowSorter<>(model);
 
-    sorter.setComparator(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX, Comparator.comparing(PhysicalDevice::getName));
+    sorter.setComparator(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX,
+                         Comparator.comparing(PhysicalDevice::getName, Collator.getInstance()));
     sorter.setComparator(PhysicalDeviceTableModel.API_MODEL_COLUMN_INDEX, Comparator.naturalOrder().reversed());
     sorter.setSortable(PhysicalDeviceTableModel.TYPE_MODEL_COLUMN_INDEX, false);
     sorter.setSortable(PhysicalDeviceTableModel.ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX, false);
