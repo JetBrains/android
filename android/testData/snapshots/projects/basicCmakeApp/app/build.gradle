@@ -3,7 +3,6 @@ apply plugin: 'com.android.application'
 android {
     // ndkVersion "{placeholder}" // This value is replaced by logic in AndroidGradleTests.java (see NDK_VERSION_PLACEHOLDER)
     compileSdkVersion 25
-
     defaultConfig {
         applicationId "com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long"
         minSdkVersion 3

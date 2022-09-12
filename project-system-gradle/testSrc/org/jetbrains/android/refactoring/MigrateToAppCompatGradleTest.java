@@ -62,7 +62,6 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
                  "\n" +
                  "android {\n" +
                  "    compileSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
-                 "    buildToolsVersion \"" + SdkConstants.CURRENT_BUILD_TOOLS_VERSION + "\"\n" +
                  "    namespace \"com.example.google.migrate2appcompat\"\n" +
                  "    defaultConfig {\n" +
                  "        applicationId \"com.example.google.migrate2appcompat\"\n" +
@@ -85,7 +84,6 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
                  "\n" +
                  "android {\n" +
                  "    compileSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
-                 "    buildToolsVersion \"" + SdkConstants.CURRENT_BUILD_TOOLS_VERSION + "\"\n" +
                  "    namespace \"com.example.appandmodules.mylibarybase\"\n" +
                  "    defaultConfig {\n" +
                  "        minSdkVersion 23\n" +

@@ -3,7 +3,6 @@ apply plugin: 'com.android.application'
 android {
     namespace "webp.test"
     compileSdkVersion 24
-    buildToolsVersion "24.0.3"
     defaultConfig {
         applicationId "webp.test"
         minSdkVersion 18

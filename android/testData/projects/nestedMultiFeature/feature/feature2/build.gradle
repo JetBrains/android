@@ -17,7 +17,6 @@ apply plugin: 'com.android.feature'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "25.0.0"
 
     defaultConfig {
         minSdkVersion 16

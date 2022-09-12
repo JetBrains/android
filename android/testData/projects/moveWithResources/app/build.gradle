@@ -3,7 +3,6 @@ apply plugin: 'com.android.application'
 android {
     namespace "app.google.myapplication"
     compileSdkVersion 25
-    buildToolsVersion "25.0.2"
     defaultConfig {
         applicationId "app.google.myapplication"
         minSdkVersion 16
