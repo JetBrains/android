@@ -201,27 +201,3 @@ class AndroidTestNamespaceUsageInfo(
 
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.addTestNamespace.tooltipText")
 }
-
-private val List<String>.descriptionText: String
-  get() {
-    var col = 0
-    val sb = StringBuilder()
-    val last = this.size - 1
-    this.forEachIndexed moduleNames@{ index, name ->
-      when (index) {
-        0 -> name.let { col += it.length; sb.append(it) }
-        last -> name.let { if (index != 1) sb.append(","); sb.append(" and $it") }
-        in 1..7 -> {
-          sb.append(", ")
-          if (col > 72) {
-            sb.append("\n"); col = 0
-          }
-          col += name.length
-          sb.append(name)
-        }
-        else -> this.let { sb.append("and ${it.size - index} other modules"); return@moduleNames }
-      }
-    }
-    sb.append(".")
-    return sb.toString()
-  }
