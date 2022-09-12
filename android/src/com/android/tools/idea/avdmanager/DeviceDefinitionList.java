@@ -32,7 +32,6 @@ import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
@@ -48,12 +47,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -425,7 +424,9 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       int index = CATEGORY_ORDER.indexOf(category);
       return index >= 0 ? index : Integer.MAX_VALUE;
     }));
+    Collection<String> selection = myCategoryList.getSelection();
     myCategoryModel.setItems(categories);
+    myCategoryList.setSelection(selection);
   }
 
   /**
