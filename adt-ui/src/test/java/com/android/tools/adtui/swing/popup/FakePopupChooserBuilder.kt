@@ -27,6 +27,7 @@ import java.awt.Component
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.event.ActionListener
+import javax.swing.JComponent
 import javax.swing.KeyStroke
 import javax.swing.ListCellRenderer
 
@@ -174,6 +175,10 @@ internal class FakePopupChooserBuilder<T>(
   }
 
   override fun setAdText(ad: String?, alignment: Int): IPopupChooserBuilder<T> {
+    TODO("Not yet implemented")
+  }
+
+  override fun setAdvertiser(advertiser: JComponent): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
 
