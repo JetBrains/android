@@ -41,6 +41,7 @@
     <orderEntry type="module" module-name="app-inspection.inspectors.backgroundtask.ide" />
     <orderEntry type="module" module-name="intellij.android.debuggers" />
     <orderEntry type="module" module-name="intellij.android.logcat" />
+    <orderEntry type="module" module-name="intellij.android.device-explorer" />
     <orderEntry type="module" module-name="intellij.android.device-file-explorer-toolwindow" />
     <orderEntry type="module" module-name="intellij.android.device-monitor-toolwindow" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" />

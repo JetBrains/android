@@ -607,6 +607,14 @@ public final class StudioFlags {
     "Changing the value of this flag requires restarting Android Studio.",
     true);
 
+  public static final Flag<Boolean> MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED = Flag.create(
+    RUNDEBUG,
+    "adb.device.explorer.enable",
+    "Enable the \"Device Explorer\" tool window",
+    "Enable the \"Device Explorer\" tool window which merges Device File Explorer and Device Monitor tool windows.\n" +
+    "Changing the value of this flag requires restarting Android Studio.",
+    true);
+
   public static final Flag<Boolean> ADBLIB_MIGRATION_DEVICE_EXPLORER = Flag.create(
     RUNDEBUG,
     "adblib.migration.device.explorer",

@@ -167,6 +167,9 @@
       <module fileurl="file://$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.iml" filepath="$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.iml" />
       <module fileurl="file://$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.tests.iml" filepath="$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/designer/intellij.android.designer.tests.iml" filepath="$PROJECT_DIR$/designer/intellij.android.designer.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/device-explorer/intellij.android.device-explorer.iml" filepath="$PROJECT_DIR$/device-explorer/intellij.android.device-explorer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/device-explorer-files/intellij.android.device-explorer-files.iml" filepath="$PROJECT_DIR$/device-explorer-files/intellij.android.device-explorer-files.iml" />
+      <module fileurl="file://$PROJECT_DIR$/device-explorer-monitor/intellij.android.device-explorer-monitor.iml" filepath="$PROJECT_DIR$/device-explorer-monitor/intellij.android.device-explorer-monitor.iml" />
       <module fileurl="file://$PROJECT_DIR$/device-file-explorer-toolwindow/intellij.android.device-file-explorer-toolwindow.iml" filepath="$PROJECT_DIR$/device-file-explorer-toolwindow/intellij.android.device-file-explorer-toolwindow.iml" />
       <module fileurl="file://$PROJECT_DIR$/device-file-explorer-toolwindow/intellij.android.device-file-explorer-toolwindow.tests.iml" filepath="$PROJECT_DIR$/device-file-explorer-toolwindow/intellij.android.device-file-explorer-toolwindow.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/device-manager/intellij.android.device-manager.iml" filepath="$PROJECT_DIR$/device-manager/intellij.android.device-manager.iml" />
@@ -224,6 +227,8 @@
       <module fileurl="file://$PROJECT_DIR$/observable-ui/intellij.android.observable.ui.iml" filepath="$PROJECT_DIR$/observable-ui/intellij.android.observable.ui.iml" />
       <module fileurl="file://$PROJECT_DIR$/old-agp-tests/intellij.android.old-agp-tests.iml" filepath="$PROJECT_DIR$/old-agp-tests/intellij.android.old-agp-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-plugin/intellij.android.plugin.iml" filepath="$PROJECT_DIR$/android-plugin/intellij.android.plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.iml" filepath="$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.tests.iml" filepath="$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/profilers/intellij.android.profilers.iml" filepath="$PROJECT_DIR$/profilers/intellij.android.profilers.iml" />
       <module fileurl="file://$PROJECT_DIR$/profilers-atrace/intellij.android.profilers.atrace.iml" filepath="$PROJECT_DIR$/profilers-atrace/intellij.android.profilers.atrace.iml" />
       <module fileurl="file://$PROJECT_DIR$/profilers-ui/intellij.android.profilers.ui.iml" filepath="$PROJECT_DIR$/profilers-ui/intellij.android.profilers.ui.iml" />
@@ -262,8 +267,6 @@
       <module fileurl="file://$PROJECT_DIR$/android-transport/intellij.android.transport.iml" filepath="$PROJECT_DIR$/android-transport/intellij.android.transport.iml" />
       <module fileurl="file://$PROJECT_DIR$/transport-database/intellij.android.transportDatabase.iml" filepath="$PROJECT_DIR$/transport-database/intellij.android.transportDatabase.iml" />
       <module fileurl="file://$PROJECT_DIR$/studio-updater/intellij.android.updater.studio-updater.iml" filepath="$PROJECT_DIR$/studio-updater/intellij.android.updater.studio-updater.iml" />
-      <module fileurl="file://$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.iml" filepath="$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.iml" />
-      <module fileurl="file://$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.tests.iml" filepath="$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/updater-ui/intellij.android.updater.ui.iml" filepath="$PROJECT_DIR$/updater-ui/intellij.android.updater.ui.iml" />
       <module fileurl="file://$PROJECT_DIR$/wear-pairing/intellij.android.wear-pairing.iml" filepath="$PROJECT_DIR$/wear-pairing/intellij.android.wear-pairing.iml" />
       <module fileurl="file://$PROJECT_DIR$/wear-pairing/intellij.android.wear-pairing.tests.iml" filepath="$PROJECT_DIR$/wear-pairing/intellij.android.wear-pairing.tests.iml" />
