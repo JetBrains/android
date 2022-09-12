@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DEVICE_NAME;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.IDevice;
@@ -86,7 +88,8 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
 
   @Override
   public boolean supportsMultipleScreenFormats() {
-    return myAvdInfo.getAndroidVersion().isGreaterOrEqualThan(AndroidVersion.MIN_RESIZABLE_DEVICE_API) && "resizable".equals(myAvdInfo.getName());
+    return myAvdInfo.getAndroidVersion().isGreaterOrEqualThan(AndroidVersion.MIN_RESIZABLE_DEVICE_API)
+           && "resizable".equals(myAvdInfo.getProperties().get(AVD_INI_DEVICE_NAME));
   }
 
   @NotNull

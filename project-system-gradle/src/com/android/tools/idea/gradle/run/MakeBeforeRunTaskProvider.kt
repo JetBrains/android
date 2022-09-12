@@ -239,7 +239,6 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     val targetDevices = deviceFutures?.devices ?: emptyList()
     val targetDeviceSpec = createSpec(targetDevices)
 
-
     // Some configurations (e.g. native attach) don't require a build while running the configuration
     if (configuration is RunProfileWithCompileBeforeLaunchOption &&
       (configuration as RunProfileWithCompileBeforeLaunchOption).isExcludeCompileBeforeLaunchOption
@@ -366,8 +365,8 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
             properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API_CODENAME, version.codename!!))
           }
         }
-        if (deviceSpec.density != null) {
-          properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_DENSITY, deviceSpec.density!!.resourceValue))
+        deviceSpec.density?.let { density ->
+          properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_DENSITY, density.resourceValue))
         }
         if (deviceSpec.abis.isNotEmpty()) {
           properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(deviceSpec.abis)))

@@ -131,10 +131,23 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
                                                                          deviceSpec(myDevice))
     assertTrue(arguments.contains("-Pandroid.injected.build.api=20"))
     assertTrue(arguments.contains("-Pandroid.injected.build.abi=armeabi,x86"))
+    assertTrue(arguments.contains("-Pandroid.injected.build.density=xxxhdpi"))
     for (argument in arguments) {
       assertFalse("codename should not be set for a released version",
                   argument.startsWith("-Pandroid.injected.build.codename"))
     }
+  }
+
+  fun testResizableDevice() {
+    setUpTestProject()
+    whenever(myDevice.version).thenReturn(AndroidVersion(33, null))
+    whenever(myDevice.density).thenReturn(640)
+    whenever(myDevice.supportsMultipleScreenFormats()).thenReturn(true)
+    val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
+                                                                         myRunConfiguration,
+                                                                         deviceSpec(myDevice))
+    assertTrue(arguments.contains("-Pandroid.injected.build.api=33"))
+    arguments.forEach { assertFalse(it.startsWith("-Pandroid.injected.build.density")) }
   }
 
   fun testPreviewDeviceArguments() {
@@ -146,6 +159,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
       MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
     assertTrue(arguments.contains("-Pandroid.injected.build.api=23"))
     assertTrue(arguments.contains("-Pandroid.injected.build.codename=N"))
+    assertTrue(arguments.contains("-Pandroid.injected.build.density=xxxhdpi"))
   }
 
   fun testPreviewDeviceArgumentsForBundleConfiguration() {
@@ -214,6 +228,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
       MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
     assertTrue(arguments.contains("-Pandroid.injected.build.api=20"))
     assertTrue(arguments.contains("-Pandroid.injected.build.abi=armeabi"))
+    assertTrue(arguments.contains("-Pandroid.injected.build.density=xxxhdpi"))
   }
 
   fun testMultipleDeviceArgumentsMatchingApiLevels() {
@@ -232,6 +247,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     for (argument in arguments) {
       assertFalse("ABIs should not be passed to Gradle when there are multiple devices",
                   argument.startsWith("-Pandroid.injected.build.abi"))
+      assertFalse(argument.startsWith("-Pandroid.injected.build.density"))
     }
   }
 
@@ -252,6 +268,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
                   argument.startsWith("-Pandroid.injected.build.api"))
       assertFalse("ABIs should not be passed to Gradle when there are multiple devices",
                   argument.startsWith("-Pandroid.injected.build.abi"))
+      assertFalse(argument.startsWith("-Pandroid.injected.build.density"))
     }
   }
 

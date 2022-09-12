@@ -19,8 +19,10 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.AndroidVersion.MIN_RESIZABLE_DEVICE_API
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.internal.avd.AvdManager.AVD_INI_DEVICE_NAME
 import com.android.sdklib.internal.avd.HardwareProperties
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.AndroidDevice
@@ -155,13 +157,22 @@ class AndroidDeviceSpecUtilTest {
     val lowDensityDevice = mockDevice(AndroidVersion.DEFAULT, Density.LOW)
     val highDensityDevice = mockDevice(AndroidVersion.DEFAULT, Density.HIGH)
     val unsupportedResizableDevice = LaunchableAndroidDevice(mockAvdInfo(AndroidVersion.DEFAULT, "resizable"))
-    val supportedResizableDevice = LaunchableAndroidDevice(mockAvdInfo(AndroidVersion.DEFAULT, "resizable"))
+    val supportedResizableDevice = LaunchableAndroidDevice(mockAvdInfo(AndroidVersion(MIN_RESIZABLE_DEVICE_API), "resizable"))
 
     assertThat(createSpec(listOf(highDensityDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNotNull()
     assertThat(createSpec(listOf(unsupportedResizableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNotNull()
+    assertThat(createSpec(listOf(supportedResizableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNull()
     assertThat(createSpec(listOf(highDensityDevice, supportedResizableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNull()
     assertThat(createSpec(listOf(highDensityDevice, unsupportedResizableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNull()
     assertThat(createSpec(listOf(highDensityDevice, lowDensityDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNull()
+  }
+
+  @Test
+  fun `test density injection disabled for resizable emulator`() {
+    val resizeableDevice = mockDevice(version = AndroidVersion.DEFAULT, density = Density.HIGH, resizeable = true)
+    val specResizable = createSpec(listOf(resizeableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!
+
+    assertThat(specResizable.density).isNull()
   }
 
   private fun createJsonFile(fetchLanguages: Boolean, vararg devices: AndroidDevice): File {
@@ -179,7 +190,12 @@ class AndroidDeviceSpecUtilTest {
     whenever(avdInfo.androidVersion).thenReturn(version)
     whenever(avdInfo.name).thenReturn(name)
     whenever(avdInfo.displayName).thenReturn(displayName)
-    whenever(avdInfo.properties).thenReturn(mapOf(Pair(HardwareProperties.HW_LCD_DENSITY, density.dpiValue.toString())))
+    whenever(avdInfo.properties).thenReturn(
+      mapOf(
+        Pair(HardwareProperties.HW_LCD_DENSITY, density.dpiValue.toString()),
+        Pair(AVD_INI_DEVICE_NAME, name)
+      )
+    )
     return avdInfo
   }
 
@@ -187,12 +203,14 @@ class AndroidDeviceSpecUtilTest {
     version: AndroidVersion,
     density: Density = Density.DPI_260,
     abis: List<Abi> = listOf(Abi.MIPS),
-    config: String = EXAMPLE_DEVICE_CONFIG
+    config: String = EXAMPLE_DEVICE_CONFIG,
+    resizeable: Boolean = false
   ): AndroidDevice {
     val device = mock(AndroidDevice::class.java)
     whenever(device.version).thenReturn(version)
     whenever(device.density).thenReturn(density.dpiValue)
     whenever(device.abis).thenReturn(abis)
+    whenever(device.supportsMultipleScreenFormats()).thenReturn(resizeable)
     val launchedDevice = mock(IDevice::class.java)
     whenever(launchedDevice.version).thenReturn(version)
     if (config.isNotEmpty()) {
