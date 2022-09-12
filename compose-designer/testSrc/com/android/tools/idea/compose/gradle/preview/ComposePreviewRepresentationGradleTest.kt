@@ -119,6 +119,8 @@ class ComposePreviewRepresentationGradleTest {
       fakeUi.root.validate()
     }
 
+    runBlocking { waitForSmartMode(project) }
+
     runAndWaitForRefresh { composePreviewRepresentation.onActivate() }
 
     runAndWaitForRefresh {
@@ -312,6 +314,9 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `changes to code are reflected in the preview`() {
+    // This test only makes sense when fast preview is disabled,
+    // as some build related logic is being tested.
+    StudioFlags.COMPOSE_FAST_PREVIEW.override(false)
     val firstRender = findSceneViewRenderWithName("TwoElementsPreview")
 
     // Make a change to the preview
@@ -350,6 +355,9 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `MultiPreview annotation changes are reflected in the previews without rebuilding`() {
+    // This test only makes sense when fast preview is disabled,
+    // as some build related logic is being tested.
+    StudioFlags.COMPOSE_FAST_PREVIEW.override(false)
     val otherPreviewsFile = getPsiFile(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
 
     // Add an annotation class annotated with Preview in OtherPreviews.kt
@@ -386,6 +394,12 @@ class ComposePreviewRepresentationGradleTest {
       }
     )
 
+    // Simulate what happens when leaving the MainActivity.kt tab in the editor
+    // TODO(b/232092986) This is actually not a tab change, but currently we don't have a better
+    // way of simulating it, and this is the only relevant consequence of changing tabs for this
+    // test.
+    composePreviewRepresentation.onDeactivate()
+
     // Modify the Preview annotating MyAnnotation
     runWriteActionAndWait {
       fixture.openFileInEditor(otherPreviewsFile.virtualFile)
@@ -396,10 +410,9 @@ class ComposePreviewRepresentationGradleTest {
     }
 
     runAndWaitForRefresh(Duration.ofSeconds(35)) {
-      // Simulate what happens when changing to the MainActivity.kt tab in the editor
+      // Simulate what happens when changing back to the MainActivity.kt tab in the editor
       // TODO(b/232092986) This is actually not a tab change, but currently we don't have a better
-      // way
-      //  of simulating it, and this is the only relevant consequence of changing tabs for this
+      // way of simulating it, and this is the only relevant consequence of changing tabs for this
       // test.
       runWriteActionAndWait { fixture.openFileInEditor(psiMainFile.virtualFile) }
       composePreviewRepresentation.onActivate()
@@ -431,6 +444,9 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `updating different file triggers needs refresh`() {
+    // This test only makes sense when fast preview is disabled,
+    // as some build related logic is being tested.
+    StudioFlags.COMPOSE_FAST_PREVIEW.override(false)
     val otherFile =
       VfsUtil.findRelativeFile(
         SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path,
@@ -463,6 +479,7 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `fast preview request`() {
+    // This test only makes sense when fast preview is enabled
     StudioFlags.COMPOSE_FAST_PREVIEW.override(true)
     val requestCompleted = CompletableDeferred<Unit>()
     val testTracker = TestFastPreviewTrackerManager { requestCompleted.complete(Unit) }
@@ -497,8 +514,8 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `fast preview fixing syntax error triggers compilation`() {
+    // This test only makes sense when fast preview is enabled
     StudioFlags.COMPOSE_FAST_PREVIEW.override(true)
-
     runAndWaitForFastRefresh {
       project
         .messageBus
@@ -509,6 +526,7 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `file modification triggers refresh on other active preview representations`() {
+    // This test only makes sense when fast preview is disabled
     StudioFlags.COMPOSE_FAST_PREVIEW.override(false)
 
     val otherPreviewsFile = getPsiFile(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
@@ -534,6 +552,7 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `file modification don't trigger refresh on inactive preview representations`() {
+    // This test only makes sense when fast preview is disabled
     StudioFlags.COMPOSE_FAST_PREVIEW.override(false)
 
     val otherPreviewsFile = getPsiFile(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
