@@ -46,6 +46,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.concurrency.SameThreadExecutor
 import org.jetbrains.android.facet.AndroidFacet
@@ -148,6 +149,60 @@ class StringResourceViewPanelFakeUiTest {
     // And the actual file should also be updated.
     localResourceRepository.waitForPendingUpdates()
     assertThat(getResourceItem(DEFAULT_KEYS[row], locale)).isNull()
+  }
+
+  // These should really be tests on the model, but ain't nobody got time for that.
+  @Test
+  @RunsInEdt
+  fun overwriteKey() {
+    val row = 2
+    assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN)).isEqualTo(DEFAULT_KEYS)
+    val locales = (FIXED_COLUMN_COUNT until stringResourceViewPanel.table.columnCount)
+      .mapNotNull(stringResourceViewPanel.table.model::getLocale)
+    val oldResources = locales.mapNotNull { getResourceItem(DEFAULT_KEYS[row], it) }
+    val newKey = "new_key"
+
+    stringResourceViewPanel.table.model.setValueAt(newKey, row, KEY_COLUMN)
+    // Editing a key runs a refactor which happens in invokeLater(), so wait for that to finish.
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
+    assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN)).isEqualTo(
+      DEFAULT_KEYS.take(row) + DEFAULT_KEYS.drop(row + 1) + newKey)
+    localResourceRepository.waitForPendingUpdates()
+    assertThat(locales.mapNotNull { getResourceItem(DEFAULT_KEYS[row], it)}).isEmpty()
+
+    locales.mapNotNull { getResourceItem(newKey, it)}.zip(oldResources).forEach { (new, old) ->
+      assertThat(new.name).isEqualTo(newKey)
+      assertThat(new.type).isEqualTo(old.type)
+      assertThat(new.resourceValue?.resourceType).isEqualTo(old.resourceValue?.resourceType)
+      assertThat(new.resourceValue?.name).isEqualTo(newKey)
+      assertThat(new.resourceValue?.namespace).isEqualTo(old.resourceValue?.namespace)
+      assertThat(new.resourceValue?.value).isEqualTo(old.resourceValue?.value)
+      assertThat(new.source).isEqualTo(old.source)
+    }
+  }
+
+  @Test
+  @RunsInEdt
+  fun overwriteValue() {
+    val row = 2
+    val column = 4
+    val initialValues = stringResourceViewPanel.table.getColumnAt(column)
+    // Make sure there's something to remove.
+    assertThat(initialValues[row].toString()).isNotEmpty()
+    val locale = stringResourceViewPanel.table.model.getLocale(column)!!
+    assertThat(getResourceItem(DEFAULT_KEYS[row], locale)?.resourceValue?.value).isEqualTo(initialValues[row])
+
+    stringResourceViewPanel.table.model.setValueAt("new_value", row, column)
+
+    // Should not have removed any keys
+    assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN)).isEqualTo(DEFAULT_KEYS)
+    // The value should be updated in the table.
+    val expected = initialValues.take(row) + "new_value" + initialValues.drop(row + 1)
+    assertThat(stringResourceViewPanel.table.getColumnAt(column)).isEqualTo(expected)
+    // And the actual file should also be updated.
+    localResourceRepository.waitForPendingUpdates()
+    assertThat(getResourceItem(DEFAULT_KEYS[row], locale)?.resourceValue?.value).isEqualTo("new_value")
   }
 
   private fun LocalResourceRepository.waitForPendingUpdates() {

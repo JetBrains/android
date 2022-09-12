@@ -20,7 +20,6 @@ import static com.android.tools.idea.editors.strings.table.StringResourceTableMo
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -129,26 +128,6 @@ public final class TranslationsEditorTest {
   }
 
   @Test
-  public void paste() throws IOException {
-    importSimpleApplication();
-
-    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
-    FrozenColumnTableFixture table = translationsEditor.getTable();
-    TableCell appNameDefaultValue = translationsEditor.cell("app_name", "app/src/main/res", DEFAULT_VALUE_COLUMN);
-
-    table.selectCell(appNameDefaultValue);
-
-    String data = "app_name\tapp_name_zh_rcn\n" +
-                  "hello_world\thello_world_zh_rcn\n";
-
-    myGuiTest.robot().pasteText(data);
-    assertEquals("app_name", table.valueAt(appNameDefaultValue));
-    assertEquals("app_name_zh_rcn", table.valueAt(translationsEditor.cell("app_name", "app/src/main/res", CHINESE_IN_CHINA_COLUMN)));
-    assertEquals("hello_world", table.valueAt(translationsEditor.cell("hello_world", "app/src/main/res", DEFAULT_VALUE_COLUMN)));
-    assertEquals("hello_world_zh_rcn", table.valueAt(translationsEditor.cell("hello_world", "app/src/main/res", CHINESE_IN_CHINA_COLUMN)));
-  }
-
-  @Test
   public void goToDeclaration() throws IOException {
     importSimpleApplication();
 
@@ -159,59 +138,6 @@ public final class TranslationsEditorTest {
     translationsEditor.getTable().showPopupMenuAt(appNameEnglish).menuItemWithPath("Go to Declaration").click();
 
     assertEquals("<string name=\"app_name\">Simple Application</string>", editor.getCurrentLine().trim());
-  }
-
-  @Test
-  public void enteringValueUpdatesDebugStringsXml() throws IOException {
-    importSimpleApplication();
-
-    EditorFixture editor = myGuiTest.ideFrame().getEditor();
-    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
-
-    translationsEditor.getTable().enterValue(translationsEditor.cell("app_name", "app/src/debug/res", HEBREW_COLUMN), "app_name_debug_iw");
-
-    Object line = editor
-      .open("app/src/debug/res/values-iw/strings.xml")
-      .moveBetween("app_name", "\"")
-      .getCurrentLine()
-      .trim();
-
-    assertEquals("<string name=\"app_name\">app_name_debug_iw</string>", line);
-  }
-
-  @Test
-  public void enteringValueUpdatesMainStringsXml() throws IOException {
-    importSimpleApplication();
-
-    EditorFixture editor = myGuiTest.ideFrame().getEditor();
-    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
-
-    translationsEditor.getTable().enterValue(translationsEditor.cell("app_name", "app/src/main/res", HEBREW_COLUMN), "app_name_main_iw");
-
-    Object line = editor
-      .open("app/src/main/res/values-iw/strings.xml")
-      .moveBetween("app_name", "\"")
-      .getCurrentLine()
-      .trim();
-
-    assertEquals("<string name=\"app_name\">app_name_main_iw</string>", line);
-  }
-
-  @Test
-  public void rename() throws IOException {
-    importSimpleApplication();
-
-    EditorFixture editor = myGuiTest.ideFrame().getEditor();
-    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
-
-    translationsEditor.getTable().enterValue(translationsEditor.cell("hello_world", "app/src/main/res", KEY_COLUMN), "new_key");
-    myGuiTest.waitForBackgroundTasks();
-
-    String contents = editor.open("app/src/main/res/values/strings.xml", Tab.EDITOR).getCurrentFileContents();
-    assertTrue(contents.contains("<string name=\"new_key\">Hello world!</string>"));
-
-    contents = editor.open("app/src/main/res/values-en/strings.xml", Tab.EDITOR).getCurrentFileContents();
-    assertTrue(contents.contains("<string name=\"new_key\">Hello world!</string>"));
   }
 
   @Test
@@ -281,19 +207,6 @@ public final class TranslationsEditorTest {
     assertEquals(SimpleTextAttributes.STYLE_WAVED, component.myAttributes.getStyle());
     assertEquals(JBColor.RED, component.myAttributes.getFgColor());
     assertEquals("Invalid XML", component.myTooltipText);
-  }
-
-  @Test
-  public void selectedCellIsntLostAfterEnteringValue() throws IOException {
-    importSimpleApplication();
-
-    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
-    FrozenColumnTableFixture table = translationsEditor.getTable();
-    TableCell cell = translationsEditor.cell("app_name", "app/src/main/res", DEFAULT_VALUE_COLUMN);
-
-    table.enterValue(cell, "app_name");
-
-    assertEquals(cell, table.selectedCell());
   }
 
   @Test
