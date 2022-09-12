@@ -29,6 +29,7 @@ import java.awt.Component
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.event.ActionListener
+import javax.swing.JComponent
 import javax.swing.KeyStroke
 import javax.swing.ListCellRenderer
 
@@ -97,6 +98,8 @@ open class FakePopupChooserBuilder: IPopupChooserBuilder<SqliteDatabaseId> {
   override fun setAdText(ad: String?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setAdText(ad: String?, alignment: Int): IPopupChooserBuilder<SqliteDatabaseId> = this
+
+  override fun setAdvertiser(advertiser: JComponent): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setCancelOnWindowDeactivation(cancelOnWindowDeactivation: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
 
