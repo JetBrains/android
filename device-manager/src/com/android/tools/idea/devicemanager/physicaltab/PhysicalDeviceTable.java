@@ -82,7 +82,7 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
                        new ActivateDeviceFileExplorerWindowButtonTableCellRenderer<>(project, this));
 
     setDefaultRenderer(RemoveValue.class, new RemoveButtonTableCellRenderer());
-    setDefaultRenderer(PopUpMenuValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.More));
+    setDefaultRenderer(PopUpMenuValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.More, "More Actions"));
 
     setRowSorter(newRowSorter(model));
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

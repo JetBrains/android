@@ -112,7 +112,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
                        new ActivateDeviceFileExplorerWindowButtonTableCellRenderer<>(project, this));
 
     setDefaultRenderer(EditValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.Edit, "Edit this AVD"));
-    setDefaultRenderer(PopUpMenuValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.More));
+    setDefaultRenderer(PopUpMenuValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.More, "More Actions"));
 
     setRowSorter(newRowSorter(dataModel));
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
