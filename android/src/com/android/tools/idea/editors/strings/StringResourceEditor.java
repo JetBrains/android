@@ -15,25 +15,26 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.tools.idea.res.ResourceNotificationManager;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 public class StringResourceEditor extends UserDataHolderBase implements FileEditor {
 
   @NotNull private final StringsVirtualFile myStringsVirtualFile;
@@ -41,12 +42,22 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   public static final String NAME = "String Resource Editor";
 
   private StringResourceViewPanel myPanel;
+  private final ResourceNotificationManager.ResourceChangeListener myResourceChangeListener;
+  // We sometimes get extra calls to `selectNotify`. This ensures that we know when
+  // those calls represent a real transition.
+  private final AtomicBoolean mySelected = new AtomicBoolean();
+  private @Nullable ResourceNotificationManager.ResourceVersion myResourceVersion = null;
 
   StringResourceEditor(@NotNull StringsVirtualFile file) {
     myStringsVirtualFile = file;
     AndroidFacet facet = myStringsVirtualFile.getFacet();
     // Post startup activities (such as when reopening last open editors) are run from a background thread
     UIUtil.invokeAndWaitIfNeeded(() -> myPanel = new StringResourceViewPanel(facet, this));
+    myResourceChangeListener = reason -> {
+      if (reason.contains(ResourceNotificationManager.Reason.RESOURCE_EDIT)) {
+        myPanel.reloadData();
+      }
+    };
   }
 
   @NotNull
@@ -78,7 +89,6 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   }
 
   @Override
-  @Nullable
   public StringsVirtualFile getFile() {
     return myStringsVirtualFile;
   }
@@ -105,10 +115,16 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
 
   @Override
   public void selectNotify() {
+    if (mySelected.compareAndSet(false, true)) {
+      addListener();
+    }
   }
 
   @Override
   public void deselectNotify() {
+    if (mySelected.compareAndSet(true, false)) {
+      removeListener();
+    }
   }
 
   @Override
@@ -145,5 +161,22 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   @Override
   public String toString() {
     return "StringResourceEditor " + myPanel.getFacet() + " " + System.identityHashCode(this);
+  }
+
+  private void addListener() {
+    AndroidFacet facet = myStringsVirtualFile.getFacet();
+    Project project = facet.getModule().getProject();
+    ResourceNotificationManager.ResourceVersion latest = ResourceNotificationManager.getInstance(project)
+      .addListener(myResourceChangeListener, facet, /* file= */ null, /* configuration= */ null);
+    if (myResourceVersion != null && myResourceVersion != latest) {
+      myPanel.reloadData();
+    }
+  }
+
+  private void removeListener() {
+    AndroidFacet facet = myStringsVirtualFile.getFacet();
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(facet.getModule().getProject());
+    myResourceVersion = manager.getCurrentVersion(facet, /* file= */ null, /* configuration= */null);
+    manager.removeListener(myResourceChangeListener, facet, /* file= */ null, /* configuration= */ null);
   }
 }
