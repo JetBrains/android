@@ -32,7 +32,6 @@ import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.mockStatic
-import com.android.utils.FlightRecorder
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.ide.ui.LafManager
@@ -386,8 +385,6 @@ class EmulatorViewTest {
     getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     ui.render()
 
-    FlightRecorder.initialize(100)
-    FlightRecorder.log { "EmulatorViewTest.testSwipe" }
     ui.mouse.press(100, 100)
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
@@ -396,16 +393,10 @@ class EmulatorViewTest {
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
     assertThat(shortDebugString(call.request)).isEqualTo("x: 1168 y: 1014 buttons: 1")
-    try {
-      ui.mouse.dragTo(180, 100)
-      call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-      assertThat(shortDebugString(call.request)).isEqualTo("x: 1439 y: 1014")
-    }
-    catch (e: Throwable) {
-      FlightRecorder.print()
-      throw e
-    }
+    ui.mouse.dragTo(180, 100)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 1439 y: 1014")
   }
 
   @Test

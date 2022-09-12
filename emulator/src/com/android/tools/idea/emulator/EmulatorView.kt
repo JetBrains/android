@@ -42,8 +42,6 @@ import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListene
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
-import com.android.tools.idea.protobuf.TextFormat.shortDebugString
-import com.android.utils.FlightRecorder
 import com.google.protobuf.TextFormat.shortDebugString
 import com.intellij.ide.DataManager
 import com.intellij.ide.ui.LafManagerListener
@@ -705,7 +703,6 @@ class EmulatorView(
     private var buttons = 0
 
     override fun mousePressed(event: MouseEvent) {
-      FlightRecorder.log { "EmulatorView.MyMouseListener.mousePressed: ${event.paramString()}" }
       requestFocusInWindow()
       buttons = buttons or getButtonBit(event.button)
       if (isInsideDisplay(event)) {
@@ -716,7 +713,6 @@ class EmulatorView(
     }
 
     override fun mouseReleased(event: MouseEvent) {
-      FlightRecorder.log { "EmulatorView.MyMouseListener.mouseReleased: ${event.paramString()}" }
       buttons = buttons and getButtonBit(event.button).inv()
       if (event.button == BUTTON1) {
         lastTouchCoordinates = null
@@ -726,12 +722,10 @@ class EmulatorView(
     }
 
     override fun mouseEntered(event: MouseEvent) {
-      FlightRecorder.log { "EmulatorView.MyMouseListener.mouseEntered: ${event.paramString()}" }
       updateMultiTouchMode(event)
     }
 
     override fun mouseExited(event: MouseEvent) {
-      FlightRecorder.log { "EmulatorView.MyMouseListener.mouseExited: ${event.paramString()}" }
       if (lastTouchCoordinates != null) {
         // Moving over the edge of the display view will terminate the ongoing dragging.
         sendMouseEvent(event.x, event.y, 0)
@@ -741,7 +735,6 @@ class EmulatorView(
     }
 
     override fun mouseDragged(event: MouseEvent) {
-      FlightRecorder.log { "EmulatorView.MyMouseListener.mouseDragged: ${event.paramString()}" }
       updateMultiTouchMode(event)
       if (!virtualSceneCameraOperating && lastTouchCoordinates != null) {
         sendMouseEvent(event.x, event.y, buttons, drag = true)
@@ -749,7 +742,6 @@ class EmulatorView(
     }
 
     override fun mouseMoved(event: MouseEvent) {
-      FlightRecorder.log { "EmulatorView.MyMouseListener.mouseMoved: ${event.paramString()}" }
       updateMultiTouchMode(event)
       if (!virtualSceneCameraOperating && !multiTouchMode) {
         sendMouseEvent(event.x, event.y, 0)
@@ -835,7 +827,6 @@ class EmulatorView(
           .addTouches(
               createTouch(deviceDisplayRegion.width - 1 - displayX, deviceDisplayRegion.height - 1 - displayY, 1, pressure))
           .build()
-        FlightRecorder.log { "EmulatorView.MyMouseListener.sendMouseOrTouchEvent: ${shortDebugString(touchEvent)}" }
         emulator.sendTouch(touchEvent)
       }
       else {
@@ -845,7 +836,6 @@ class EmulatorView(
           .setY(displayY)
           .setButtons(buttons)
           .build()
-        FlightRecorder.log { "EmulatorView.MyMouseListener.sendMouseOrTouchEvent: ${shortDebugString(mouseEvent)}" }
         emulator.sendMouse(mouseEvent)
       }
     }
