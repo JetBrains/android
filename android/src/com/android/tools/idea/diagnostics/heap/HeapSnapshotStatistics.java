@@ -23,12 +23,11 @@ import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
 import com.intellij.diagnostic.hprof.util.HeapReportUtils;
 import com.intellij.ide.PowerSaveMode;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +43,7 @@ final class HeapSnapshotStatistics {
   private final List<CategoryClusterObjectsStatistics> myCategoryComponentStats = Lists.newArrayList();
 
   @NotNull
-  private final Int2ObjectMap<SharedClusterStatistics> myMaskToSharedComponentStats = new Int2ObjectOpenHashMap<>();
+  private final Long2ObjectMap<SharedClusterStatistics> myMaskToSharedComponentStats = new Long2ObjectOpenHashMap<>();
 
   @NotNull
   private final ComponentsSet myComponentsSet;
@@ -77,7 +76,7 @@ final class HeapSnapshotStatistics {
     return myCategoryComponentStats;
   }
 
-  public void addObjectSizeToSharedComponent(int sharedMask, long size, short objectAge) {
+  public void addObjectSizeToSharedComponent(long sharedMask, long size, short objectAge) {
     if (!myMaskToSharedComponentStats.containsKey(sharedMask)) {
       List<Integer> components = Lists.newArrayList();
       processMask(sharedMask, (index) -> components.add(myComponentsSet.getComponents().get(index).getId()));
@@ -142,11 +141,12 @@ final class HeapSnapshotStatistics {
       printClusterStats(out, stat.getRetainedClusterStat());
     }
 
-    for (Map.Entry<Integer, SharedClusterStatistics> entry : myMaskToSharedComponentStats.entrySet()) {
+    for (SharedClusterStatistics sharedClusterStatistics : myMaskToSharedComponentStats.values()) {
       out.printf("Shared component %s:\n",
-                 entry.getValue().getComponentKinds().stream().map(i -> myComponentsSet.getComponents().get(i).getComponentLabel()).collect(
-                   Collectors.toList()));
-      printClusterStats(out, entry.getValue().getStatistics());
+                 sharedClusterStatistics.getComponentKinds().stream().map(i -> myComponentsSet.getComponents().get(i).getComponentLabel())
+                   .collect(
+                     Collectors.toList()));
+      printClusterStats(out, sharedClusterStatistics.getStatistics());
     }
   }
 

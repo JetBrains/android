@@ -56,9 +56,9 @@ public class HeapTraverseUtil {
     return isInitialized;
   }
 
-  public static void processMask(int mask, @NotNull final Consumer<Integer> p) {
-    int trailingZeros = Integer.numberOfTrailingZeros(mask);
-    mask >>= Integer.numberOfTrailingZeros(mask);
+  public static void processMask(long mask, @NotNull final Consumer<Integer> p) {
+    int trailingZeros = Long.numberOfTrailingZeros(mask);
+    mask >>= Long.numberOfTrailingZeros(mask);
     for (int i = trailingZeros; mask != 0; i++, mask >>= 1) {
       if ((mask & 1) != 0) {
         p.accept(i);

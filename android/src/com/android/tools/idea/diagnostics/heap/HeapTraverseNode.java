@@ -21,8 +21,10 @@ import org.jetbrains.annotations.NotNull;
 
 class HeapTraverseNode {
   public RefWeight myOwnershipWeight = RefWeight.DEFAULT;
-  public int myOwnedByComponentMask = 0;
-  public int myRetainedMask = 0;
+
+  public long myOwnedByComponentMask = 0;
+  public long myRetainedMask = 0;
+
   // Retained mask that works in a component categories plane (for comparison: myRetainedMask works in a sub-category plane)
   public int myRetainedMaskForCategories = 0;
   @NotNull

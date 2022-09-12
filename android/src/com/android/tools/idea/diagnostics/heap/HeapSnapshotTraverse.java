@@ -16,7 +16,7 @@
 package com.android.tools.idea.diagnostics.heap;
 
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMask;
-import static com.google.common.math.IntMath.isPowerOfTwo;
+import static com.google.common.math.LongMath.isPowerOfTwo;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
 import com.android.tools.analytics.UsageTracker;
@@ -205,9 +205,9 @@ public final class HeapSnapshotTraverse {
   private void updateComponentRootMasks(HeapTraverseNode node,
                                         ComponentsSet.Component currentObjectComponent,
                                         HeapTraverseNode.RefWeight weight) {
-    node.myRetainedMask |= (1 << currentObjectComponent.getId());
+    node.myRetainedMask |= (1L << currentObjectComponent.getId());
     node.myRetainedMaskForCategories |= (1 << currentObjectComponent.getComponentCategory().getId());
-    node.myOwnedByComponentMask = (1 << currentObjectComponent.getId());
+    node.myOwnedByComponentMask = (1L << currentObjectComponent.getId());
     node.myOwnershipWeight = weight;
   }
 
