@@ -40,6 +40,33 @@ iml_module(
 iml_module(
     name = "intellij.android.projectSystem.gradle.psd.tests",
     iml_files = ["intellij.android.projectSystem.gradle.psd.tests.iml"],
+    split_test_targets = {
+        "gradle.structure": {
+            "shard_count": 6,
+            "test_filter": "com.android.tools.idea.gradle.structure",
+        },
+        "gradle.structure.configurables.variables.VariablesTableTest": {
+            # Takes too long (b/152650494)
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.structure.configurables.variables.VariablesTableTest",
+        },
+        "gradle.structure.model.DependencyManagementTest": {
+            # Path separators in map keys (b/151462469)
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.structure.model.DependencyManagementTest",
+        },
+        "gradle.structure.configurables.dependencies.treeview": {
+            # Path separators e.g. (..\lib) (b/152560457)
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.structure.configurables.dependencies.treeview",
+        },
+        "gradle.structure.model.android": {
+            "shard_count": 6,
+            # Timeout waiting to lock Artifact transforms cache (b/152652501)
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.structure.model.android",
+        },
+    },
     test_class = "com.android.tools.idea.gradle.structure.GradleProjectSystemStructureTestSuite",
     test_data = [
         ":test_deps",
@@ -59,6 +86,11 @@ iml_module(
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_srcs = ["testSrc"],
+    test_tags = [
+        "cpu:3",
+        "block-network",
+        "no_test_mac",
+    ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -76,6 +108,14 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
+        "//tools/adt/idea/observable:intellij.android.observable[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy[test]",
     ],
 )
 
