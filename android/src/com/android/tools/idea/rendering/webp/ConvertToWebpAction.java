@@ -15,35 +15,19 @@
  */
 package com.android.tools.idea.rendering.webp;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ICON;
-import static com.android.SdkConstants.ATTR_ROUND_ICON;
 import static com.android.SdkConstants.DOT_9PNG;
 import static com.android.SdkConstants.DOT_BMP;
 import static com.android.SdkConstants.DOT_GIF;
 import static com.android.SdkConstants.DOT_JPEG;
 import static com.android.SdkConstants.DOT_JPG;
 import static com.android.SdkConstants.DOT_PNG;
-import static com.android.SdkConstants.DRAWABLE_PREFIX;
-import static com.android.SdkConstants.FD_RES_DRAWABLE;
-import static com.android.SdkConstants.FD_RES_MIPMAP;
-import static com.android.SdkConstants.MIPMAP_PREFIX;
-import static com.android.SdkConstants.TAG_ACTIVITY;
-import static com.android.SdkConstants.TAG_ACTIVITY_ALIAS;
-import static com.android.SdkConstants.TAG_APPLICATION;
-import static com.android.SdkConstants.TAG_PROVIDER;
-import static com.android.SdkConstants.TAG_RECEIVER;
-import static com.android.SdkConstants.TAG_SERVICE;
 import static com.android.utils.SdkUtils.endsWithIgnoreCase;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
-import com.android.utils.XmlUtils;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -54,7 +38,6 @@ import com.intellij.openapi.application.EdtReplacementThread;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -67,11 +50,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
@@ -80,8 +61,6 @@ import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 /**
  * Action which converts source PNG and JPEG images into WEBP.
@@ -261,7 +240,6 @@ public class ConvertToWebpAction extends DumbAwareAction {
     private final WebpConversionSettings mySettings;
 
     private int myNinePatchCount;
-    private int myLauncherIconCount;
     private int myTransparentCount;
     private int myFileCount;
     private long mySaved;
@@ -333,14 +311,6 @@ public class ConvertToWebpAction extends DumbAwareAction {
               }
               else {
                 sb.append("<br>").append(myNinePatchCount).append(" 9-patch files were skipped");
-              }
-            }
-            if (myLauncherIconCount > 0) {
-              if (myLauncherIconCount == 1) {
-                sb.append("<br>").append("1 launcher icon was skipped");
-              }
-              else {
-                sb.append("<br>").append(myLauncherIconCount).append(" launcher icons were skipped");
               }
             }
             if (myTransparentCount > 0) {
@@ -431,83 +401,9 @@ public class ConvertToWebpAction extends DumbAwareAction {
       }
     }
 
-    private Set<String> getLauncherIconNames(LinkedList<VirtualFile> roots) {
-      // Find all the modules that apply to the file search roots
-      Set<Module> modules = new HashSet<>();
-      for (VirtualFile file : roots) {
-        Module module = ModuleUtilCore.findModuleForFile(file, myProject);
-        if (module != null) {
-          modules.add(module);
-        }
-      }
-
-      if (modules.isEmpty()) {
-        modules.addAll(Arrays.asList(ModuleManager.getInstance(myProject).getModules()));
-      }
-
-      // Find all the android modules/facets
-      Set<AndroidFacet> facets = new HashSet<>();
-      for (Module module : modules) {
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null) {
-          facets.add(facet);
-        }
-      }
-
-      // For each android facet, go through the merged manifest and gather up icons
-      // TODO: Prune out libraries here if we have the dependent app module too
-      Set<String> names = new HashSet<>();
-      for (AndroidFacet facet : facets) {
-        Document document = MergedManifestManager.getSnapshot(facet).getDocument();
-        if (document != null && document.getDocumentElement() != null) {
-          Element element = XmlUtils.getFirstSubTagByName(document.getDocumentElement(), TAG_APPLICATION);
-          if (element != null) {
-            addIcons(names, element);
-            for (Element child : XmlUtils.getSubTags(element)) {
-              String tagName = child.getTagName();
-              if (tagName.equals(TAG_ACTIVITY)
-                  || tagName.equals(TAG_ACTIVITY_ALIAS)
-                  || tagName.equals(TAG_SERVICE)
-                  || tagName.equals(TAG_PROVIDER)
-                  || tagName.equals(TAG_RECEIVER)) {
-                addIcons(names, element);
-              }
-            }
-          }
-        }
-      }
-
-      // Defaults
-      names.add("ic_launcher_round");
-      names.add("ic_launcher");
-
-      return names;
-    }
-
-    private static void addIcons(Set<String> names, Element element) {
-      String icon = element.getAttributeNS(ANDROID_URI, ATTR_ICON);
-      if (icon != null) {
-        if (icon.startsWith(DRAWABLE_PREFIX)) {
-          names.add(icon.substring(DRAWABLE_PREFIX.length()));
-        } else if (icon.startsWith(MIPMAP_PREFIX)) {
-          names.add(icon.substring(MIPMAP_PREFIX.length()));
-        }
-      }
-      icon = element.getAttributeNS(ANDROID_URI, ATTR_ROUND_ICON);
-      if (icon != null) {
-        if (icon.startsWith(DRAWABLE_PREFIX)) {
-          names.add(icon.substring(DRAWABLE_PREFIX.length()));
-        } else if (icon.startsWith(MIPMAP_PREFIX)) {
-          names.add(icon.substring(MIPMAP_PREFIX.length()));
-        }
-      }
-    }
-
     @NotNull
     private List<WebpConvertedFile> findImages(@NotNull ProgressIndicator progressIndicator, @NotNull LinkedList<VirtualFile> images) {
       List<WebpConvertedFile> files = new ArrayList<>();
-
-      Set<String> launcherIconNames = getLauncherIconNames(images);
 
       while (!images.isEmpty()) {
         progressIndicator.checkCanceled();
@@ -519,13 +415,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
           }
         }
         else if (isEligibleForConversion(file, null)) { // null settings: don't skip transparent/nine patches etc: we want to count those
-          if (launcherIconNames.contains(Lint.getBaseName(file.getName())) &&
-              file.getParent() != null && (
-                file.getParent().getName().startsWith(FD_RES_DRAWABLE)
-                || file.getParent().getName().startsWith(FD_RES_MIPMAP))) {
-            myLauncherIconCount++;
-          }
-          else if (isEligibleForConversion(file, mySettings)) {
+          if (isEligibleForConversion(file, mySettings)) {
             WebpConvertedFile convertedFile = WebpConvertedFile.create(file, mySettings);
             if (convertedFile != null) {
               files.add(convertedFile);
