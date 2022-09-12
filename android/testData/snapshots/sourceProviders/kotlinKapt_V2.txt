@@ -412,8 +412,8 @@ MODULE: MainActivity.app
                     ./app/src/androidTestLocalDebug/java
                     ./app/build/generated/source/kapt/localDebugAndroidTest
                 KotlinDirectories:
-                    ./app/src/androidTestLocalDebug/java
                     ./app/src/androidTestLocalDebug/kotlin
+                    ./app/src/androidTestLocalDebug/java
                 JniLibsDirectories:
                     ./app/src/androidTestLocalDebug/jniLibs
                 ResDirectories:
@@ -598,8 +598,8 @@ MODULE: MainActivity.app
                     file://./app/src/androidTestLocal/java
                     file://./app/src/androidTestDebug/kotlin
                     file://./app/src/androidTestDebug/java
-                    file://./app/src/androidTestLocalDebug/java
                     file://./app/src/androidTestLocalDebug/kotlin
+                    file://./app/src/androidTestLocalDebug/java
                 KotlinDirectories:
                     file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
@@ -1101,8 +1101,8 @@ MODULE: MainActivity.app
                     file://./app/src/androidTestLocalDebug/java
                     file://./app/build/generated/source/kapt/localDebugAndroidTest
                 KotlinDirectoryUrls:
-                    file://./app/src/androidTestLocalDebug/java
                     file://./app/src/androidTestLocalDebug/kotlin
+                    file://./app/src/androidTestLocalDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestLocalDebug/jniLibs
                 ResDirectoryUrls:
