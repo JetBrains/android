@@ -398,6 +398,9 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
         notifyCategoryListeners(selectedCategory, newItems);
       }
     }
+    else if (Objects.equals(selectedCategory, SEARCH_RESULTS)) {
+      updateSearchResults(mySearchTextField.getText());
+    }
   }
 
   private void notifyCategoryListeners(@Nullable String selectedCategory, @Nullable List<Device> items) {
@@ -430,8 +433,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   /**
-   * @return the category of the specified device. One of: 
-   * Automotive TV, Wear, Tablet, and Phone, or Other if the category 
+   * @return the category of the specified device. One of:
+   * Automotive TV, Wear, Tablet, and Phone, or Other if the category
    * cannot be determined.
    */
   @VisibleForTesting
