@@ -69,38 +69,17 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
   public @NotNull List<@NotNull JComponent> newItems() {
     List<JComponent> items = new ArrayList<>();
 
+    items.add(newColdBootNowItem());
+    addPairDeviceItems(items);
+    items.add(new Separator());
     items.add(newDuplicateItem());
     items.add(new WipeDataItem(this));
-    items.add(newColdBootNowItem());
-    items.add(newShowOnDiskItem());
-    items.add(MenuItems.newViewDetailsItem(myPanel));
-    items.add(new Separator());
-    addPairDeviceItems(items);
     items.add(new DeleteItem(this));
+    items.add(new Separator());
+    items.add(MenuItems.newViewDetailsItem(myPanel));
+    items.add(newShowOnDiskItem());
 
     return items;
-  }
-
-  private @NotNull JComponent newDuplicateItem() {
-    AbstractButton item = new JBMenuItem("Duplicate");
-    item.setToolTipText("Duplicate this AVD");
-
-    item.addActionListener(actionEvent -> {
-      DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
-        .setKind(EventKind.VIRTUAL_DUPLICATE_ACTION)
-        .build();
-
-      DeviceManagerUsageTracker.log(deviceManagerEvent);
-
-      VirtualDeviceTable table = getPanel().getTable();
-      AvdOptionsModel model = new AvdOptionsModel(getDevice().getAvdInfo());
-
-      if (AvdWizardUtils.createAvdWizardForDuplication(table, myPanel.getProject(), model).showAndGet()) {
-        table.addDevice(new VirtualDevicePath(model.getCreatedAvd().getId()));
-      }
-    });
-
-    return item;
   }
 
   private @NotNull JComponent newColdBootNowItem() {
@@ -131,21 +110,53 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
     return item;
   }
 
-  private static final class ShowErrorDialogFutureCallback implements FutureCallback<Object> {
-    private final @Nullable Project myProject;
-
-    private ShowErrorDialogFutureCallback(@Nullable Project project) {
-      myProject = project;
+  private void addPairDeviceItems(@NotNull Collection<@NotNull JComponent> items) {
+    if (!StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get()) {
+      return;
     }
 
-    @Override
-    public void onSuccess(@Nullable Object result) {
-    }
+    switch (myDevice.getType()) {
+      case PHONE:
+      case WEAR_OS:
+        items.add(newPairDeviceItem());
+        newViewPairedDevicesItem(EventKind.VIRTUAL_UNPAIR_DEVICE_ACTION).ifPresent(items::add);
+        break;
 
-    @Override
-    public void onFailure(@NotNull Throwable throwable) {
-      VirtualTabMessages.showErrorDialog(throwable, myProject);
+      default:
+        break;
     }
+  }
+
+  private @NotNull JComponent newPairDeviceItem() {
+    JComponent item = newPairWearableItem(EventKind.VIRTUAL_PAIR_DEVICE_ACTION);
+    VirtualDevice device = getDevice();
+
+    item.setEnabled(device.isPairable());
+    item.setToolTipText(device.getPairingMessage());
+
+    return item;
+  }
+
+  private @NotNull JComponent newDuplicateItem() {
+    AbstractButton item = new JBMenuItem("Duplicate");
+    item.setToolTipText("Duplicate this AVD");
+
+    item.addActionListener(actionEvent -> {
+      DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
+        .setKind(EventKind.VIRTUAL_DUPLICATE_ACTION)
+        .build();
+
+      DeviceManagerUsageTracker.log(deviceManagerEvent);
+
+      VirtualDeviceTable table = getPanel().getTable();
+      AvdOptionsModel model = new AvdOptionsModel(getDevice().getAvdInfo());
+
+      if (AvdWizardUtils.createAvdWizardForDuplication(table, myPanel.getProject(), model).showAndGet()) {
+        table.addDevice(new VirtualDevicePath(model.getCreatedAvd().getId()));
+      }
+    });
+
+    return item;
   }
 
   private @NotNull JComponent newShowOnDiskItem() {
@@ -164,34 +175,6 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
     return item;
   }
 
-  private void addPairDeviceItems(@NotNull Collection<@NotNull JComponent> items) {
-    if (!StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get()) {
-      return;
-    }
-
-    switch (myDevice.getType()) {
-      case PHONE:
-      case WEAR_OS:
-        items.add(newPairDeviceItem());
-        newViewPairedDevicesItem(EventKind.VIRTUAL_UNPAIR_DEVICE_ACTION).ifPresent(items::add);
-        items.add(new Separator());
-
-        break;
-      default:
-        break;
-    }
-  }
-
-  private @NotNull JComponent newPairDeviceItem() {
-    JComponent item = newPairWearableItem(EventKind.VIRTUAL_PAIR_DEVICE_ACTION);
-    VirtualDevice device = getDevice();
-
-    item.setEnabled(device.isPairable());
-    item.setToolTipText(device.getPairingMessage());
-
-    return item;
-  }
-
   @Override
   public @NotNull Component getTableCellEditorComponent(@NotNull JTable table,
                                                         @NotNull Object value,
@@ -202,5 +185,22 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
     myDevice = ((VirtualDeviceTable)table).getDeviceAt(viewRowIndex);
 
     return myButton;
+  }
+
+  private static final class ShowErrorDialogFutureCallback implements FutureCallback<Object> {
+    private final @Nullable Project myProject;
+
+    private ShowErrorDialogFutureCallback(@Nullable Project project) {
+      myProject = project;
+    }
+
+    @Override
+    public void onSuccess(@Nullable Object result) {
+    }
+
+    @Override
+    public void onFailure(@NotNull Throwable throwable) {
+      VirtualTabMessages.showErrorDialog(throwable, myProject);
+    }
   }
 }

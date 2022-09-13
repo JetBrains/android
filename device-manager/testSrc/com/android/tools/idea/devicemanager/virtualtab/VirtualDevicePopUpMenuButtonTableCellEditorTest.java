@@ -26,7 +26,6 @@ import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.google.common.util.concurrent.Futures;
-import java.util.Collection;
 import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
@@ -50,19 +49,6 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
   }
 
   @Test
-  public void newColdBootNowItemEmulatorDoesntSupportColdBooting() {
-    // Arrange
-    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(Mockito.mock(AvdInfo.class)));
-    myEditor.getTableCellEditorComponent(table, PopUpMenuValue.INSTANCE, false, 0, 6);
-
-    // Act
-    Collection<JComponent> items = myEditor.newItems();
-
-    // Assert
-    assertEquals(9, items.size());
-  }
-
-  @Test
   public void newColdBootNowItem() {
     // Arrange
     JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(Mockito.mock(AvdInfo.class)));
@@ -74,7 +60,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     // Assert
     assertEquals(9, items.size());
 
-    AbstractButton item = (AbstractButton)items.get(2);
+    AbstractButton item = (AbstractButton)items.get(0);
 
     assertEquals("Cold Boot Now", item.getText());
     assertEquals("Force one cold boot", item.getToolTipText());
@@ -101,7 +87,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     // Assert
     assertEquals(9, items.size());
 
-    AbstractButton item = (AbstractButton)items.get(6);
+    AbstractButton item = (AbstractButton)items.get(1);
 
     assertTrue(item.isEnabled());
     assertEquals("Pair Wearable", item.getText());
@@ -127,7 +113,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     // Assert
     assertEquals(9, items.size());
 
-    AbstractButton item = (AbstractButton)items.get(6);
+    AbstractButton item = (AbstractButton)items.get(1);
 
     assertFalse(item.isEnabled());
     assertEquals("Pair Wearable", item.getText());
@@ -146,7 +132,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     // Assert
     assertEquals(9, items.size());
 
-    AbstractButton item = (AbstractButton)items.get(6);
+    AbstractButton item = (AbstractButton)items.get(1);
 
     assertFalse(item.isEnabled());
     assertEquals("Pair Wearable", item.getText());
@@ -175,14 +161,13 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
 
     // Assert
     assertEquals(9, items.size());
-    assertTrue(items.get(5) instanceof Separator);
 
-    AbstractButton item = (AbstractButton)items.get(6);
+    AbstractButton item = (AbstractButton)items.get(1);
 
     assertTrue(item.isEnabled());
     assertEquals("Pair Wearable", item.getText());
     assertEquals("Wear OS virtual device pairing assistant", item.getToolTipText());
 
-    assertTrue(items.get(7) instanceof Separator);
+    assertTrue(items.get(2) instanceof Separator);
   }
 }
