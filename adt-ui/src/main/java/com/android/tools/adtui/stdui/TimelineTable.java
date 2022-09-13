@@ -44,8 +44,6 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
@@ -54,15 +52,15 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A class that represents a table which includes a timeline axis (that is, a set of ticks and time
  * values) in the header, with actual timeline bars appearing in the table cells below it.
- *
+ * <p>
  * Without having the axis in the header, you'd have to always jam it into the first row, which can
  * make it hard to read when it overlaps with real data.
- *
+ * <p>
  * In order to make it easier to ensure that your timeline cells line up with your timeline header,
  * this class also provides {@link CellRenderer}, which handles rendering the timeline markers at
  * appropriate intervals.
- *
- * Use {@link #create(TableModel, Timeline, int)} to create a table, and then set the
+ * <p>
+ * Use {@link #create(TableModel, Timeline, String, boolean)} to create a table, and then set the
  * appropriate column's renderer by extending {@link CellRenderer} and setting it using
  * {@link TableColumn#setCellRenderer(TableCellRenderer)}.
  */
@@ -71,15 +69,18 @@ public final class TimelineTable {
   private static final int TIMELINE_HEIGHT = 14;
 
   /**
-   * Create a timeline table. You have to specify the {@code column} that the timeline will appear
+   * Create a timeline table. You have to specify the {@code timelineColumnName} that the timeline will appear
    * in, as all other columns will be left blank.
    *
    * @param showsAllWhenEmpty if the table shows full timeline with an empty selection range
    */
   @NotNull
-  public static JBTable create(@NotNull TableModel model, @NotNull Timeline timeline, int column, boolean showsAllWhenEmpty) {
+  public static JBTable create(@NotNull TableModel model,
+                               @NotNull Timeline timeline,
+                               @NotNull String timelineColumnName,
+                               boolean showsAllWhenEmpty) {
     JBTable table = new HoverRowTable(model);
-    table.getTableHeader().setDefaultRenderer(new HeaderRenderer(table, timeline, column, showsAllWhenEmpty));
+    table.getTableHeader().setDefaultRenderer(new HeaderRenderer(table, timeline, timelineColumnName, showsAllWhenEmpty));
 
     AspectObserver timelineObserver = new AspectObserver();
     table.addHierarchyListener(e -> {
@@ -109,27 +110,19 @@ public final class TimelineTable {
       }
     });
 
-    boolean[] lastIsEmpty = new boolean[] { true };
-    table.getModel().addTableModelListener(new TableModelListener() {
-      @Override
-      public void tableChanged(TableModelEvent e) {
-        // The height of the header column changes whether or not the table is empty. Unfortunately
-        // the JTable class does not handle this case well, and if we don't force a resize then
-        // what will happen is the table header will be stretched or squashed into whatever the
-        // previous value was.
-        boolean isEmpty = table.getRowCount() == 0;
-        if (lastIsEmpty[0] != isEmpty) {
-          lastIsEmpty[0] = isEmpty;
-          table.getTableHeader().resizeAndRepaint();
-        }
+    boolean[] lastIsEmpty = new boolean[]{true};
+    table.getModel().addTableModelListener(e -> {
+      // The height of the header column changes whether or not the table is empty. Unfortunately
+      // the JTable class does not handle this case well, and if we don't force a resize then
+      // what will happen is the table header will be stretched or squashed into whatever the
+      // previous value was.
+      boolean isEmpty = table.getRowCount() == 0;
+      if (lastIsEmpty[0] != isEmpty) {
+        lastIsEmpty[0] = isEmpty;
+        table.getTableHeader().resizeAndRepaint();
       }
     });
     return table;
-  }
-
-  @NotNull
-  public static JBTable create(@NotNull TableModel model, @NotNull Timeline timeline, int column) {
-    return create(model, timeline, column, false);
   }
 
   @NotNull
@@ -157,15 +150,18 @@ public final class TimelineTable {
     private final TableCellRenderer myDelegateRenderer;
     @NotNull
     private final Timeline myTimeline;
-    private int myTimelineColumn;
+    @NotNull private final String myTimelineColumnName;
 
     private final boolean myShowsAllWhenEmpty;
 
-    private HeaderRenderer(@NotNull JTable table, @NotNull Timeline timeline, int timelineColumn, boolean showsAllWhenEmpty) {
+    private HeaderRenderer(@NotNull JTable table,
+                           @NotNull Timeline timeline,
+                           @NotNull String timelineColumnName,
+                           boolean showsAllWhenEmpty) {
       myDelegateRenderer = table.getTableHeader().getDefaultRenderer();
       myTimeline = timeline;
-      myTimelineColumn = timelineColumn;
       myShowsAllWhenEmpty = showsAllWhenEmpty;
+      myTimelineColumnName = timelineColumnName;
     }
 
     @Override
@@ -190,7 +186,7 @@ public final class TimelineTable {
       JPanel axisPanel = new JPanel(new BorderLayout());
       axisPanel.setBackground(StandardColors.DEFAULT_CONTENT_BACKGROUND_COLOR);
 
-      if (column == myTimelineColumn) {
+      if (value == myTimelineColumnName) {
         // Only show the timeline axis if we also show at least one timeline row below
         AxisComponent header = createAxis(myTimeline, myShowsAllWhenEmpty);
         header.setShowAxisLine(false);
@@ -276,10 +272,10 @@ public final class TimelineTable {
   // Minor hack: The timeline header ends up painting partially over the vertical grid lines in
   // this table. To restore them, we create a border which doesn't actually take up any space but
   // renders a single grid line (which lines up with how tables render their grid lines).
-  private static final class GridBorder implements Border {
+  public static final class GridBorder implements Border {
     private final Color myColor;
 
-    GridBorder(@NotNull JTable table) {
+    public GridBorder(@NotNull JTable table) {
       myColor = table.getGridColor();
     }
 

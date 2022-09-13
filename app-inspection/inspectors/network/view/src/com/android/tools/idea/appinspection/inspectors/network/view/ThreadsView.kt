@@ -67,8 +67,8 @@ import javax.swing.table.TableRowSorter
  * Displays network connection information of all threads.
  */
 class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) {
-  private enum class Column {
-    NAME, TIMELINE
+  private enum class Column(val displayName: String) {
+    NAME("Initiating thread"), TIMELINE("Timeline")
   }
 
   private val threadsTable: JTable
@@ -78,7 +78,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
 
   init {
     val tableModel = ThreadsTableModel(model.selectionRangeDataFetcher)
-    threadsTable = TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.ordinal, true)
+    threadsTable = TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.displayName, true)
     val timelineRenderer = TimelineRenderer(threadsTable, model)
     threadsTable.getColumnModel().getColumn(Column.NAME.ordinal).cellRenderer = BorderlessTableCellRenderer()
     threadsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal).cellRenderer = timelineRenderer
@@ -147,9 +147,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
 
     override fun getColumnCount() = 2
 
-    override fun getColumnName(column: Int): String {
-      return if (column == Column.NAME.ordinal) "Initiating thread" else "Timeline"
-    }
+    override fun getColumnName(column: Int) = Column.values()[column].displayName
 
     override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
       return if (columnIndex == Column.NAME.ordinal) {
