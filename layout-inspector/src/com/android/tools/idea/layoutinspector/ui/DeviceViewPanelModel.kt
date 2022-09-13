@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataKey
+import org.jetbrains.annotations.TestOnly
 import java.awt.Image
 import java.awt.Rectangle
 import java.awt.Shape
@@ -303,7 +304,32 @@ class DeviceViewPanelModel(
   }
 
   private fun DrawViewNode.intersects(other: DrawViewNode, useTransitiveBounds: Boolean = false) =
-    !Area(if (useTransitiveBounds) unfilteredOwner.transitiveBounds else bounds).apply { intersect(Area(other.bounds)) }.isEmpty
+    (if (useTransitiveBounds) unfilteredOwner.transitiveBounds else bounds).overlap(other.bounds)
+
+  @TestOnly
+  fun testOverlap(shape1: Shape, shape2: Shape): Boolean = shape1.overlap(shape2)
+
+  // Most shapes are simply Rectangles. For Rectangles use Rectangle#overlap, which is a lot  faster than using Area#intersect.
+  private fun Shape.overlap(other: Shape): Boolean {
+    val r1 = this as? Rectangle
+    val r2 = other as? Rectangle
+    return when {
+      r1 != null && r2 != null -> r1.overlap(r2)
+      r1 != null -> other.overlap(r1)
+      r2 != null -> overlap(r2)
+      else -> overlap(other.bounds) && !Area(this).apply { intersect(Area(other)) }.isEmpty
+    }
+  }
+
+  // Rectangle has an intersects(Rectangle) method but ad hoc tests has shown this is faster.
+  private fun Rectangle.overlap(other: Rectangle): Boolean =
+    x < other.x + other.width &&
+    other.x < x + width &&
+    y < other.y + other.height &&
+    other.y < y + height
+
+  private fun Shape.overlap(other: Rectangle): Boolean =
+    this.intersects(other.x.toDouble(), other.y.toDouble(), other.width.toDouble(), other.height.toDouble())
 
   private fun rebuildRectsForLevel(
     transform: AffineTransform,

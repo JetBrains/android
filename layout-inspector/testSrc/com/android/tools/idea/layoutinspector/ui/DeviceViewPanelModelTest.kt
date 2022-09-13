@@ -36,9 +36,11 @@ import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import java.awt.Polygon
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
+import java.awt.geom.Area
 
 private val activityMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 private const val EPSILON = 0.001
@@ -295,6 +297,40 @@ class DeviceViewPanelModelTest {
     assertThat(model.root.layoutBounds.width).isEqualTo(0)
     assertThat(model.root.layoutBounds.height).isEqualTo(0)
     assertThat(panelModel.maxWidth)
+  }
+
+  @Test
+  fun testFastIntersect() {
+    val r1 = Rectangle(0, 0, 100, 200)
+    val r2 = Rectangle(50, 50, 100, 200)
+    val r3 = Rectangle(100, 200, 100, 200)
+    val p1 = Polygon(intArrayOf(-5, 5, 80, 80), intArrayOf(5, -5, 80, 120), 4)
+    val p2 = Polygon(intArrayOf(80, 120, 5, -5), intArrayOf(-5, 5, 20, 10), 4)
+    val p3 = Polygon(intArrayOf(-5, 5, 80, 80), intArrayOf(200, 180, 380, 420), 4)
+    val model = DeviceViewPanelModel(model {}, FakeTreeSettings())
+    assertThat(model.testOverlap(r1, r2)).isTrue()
+    assertThat(model.testOverlap(r1, r3)).isFalse()
+    assertThat(model.testOverlap(p1, r1)).isTrue()
+    assertThat(model.testOverlap(r1, p1)).isTrue()
+    assertThat(model.testOverlap(p1, r3)).isFalse()
+    assertThat(model.testOverlap(r3, p1)).isFalse()
+    assertThat(model.testOverlap(p1, p2)).isTrue()
+    assertThat(model.testOverlap(p1, p3)).isFalse()
+    model.checkOverlapTiming(r1, r2) // 2 rectangles
+    model.checkOverlapTiming(r3, p1) // 1 rectangle and 1 polygon
+    model.checkOverlapTiming(p1, p3) // 2 polygons where the bounding boxes do not overlap
+  }
+
+  // Test that we are improving the default Area intersect with the DeviceViewPanelModel.overlap method:
+  private fun DeviceViewPanelModel.checkOverlapTiming(shape1: Shape, shape2: Shape) {
+    val t1 = System.currentTimeMillis()
+    for (i in 1..10000) { !Area(shape1).apply { intersect(Area(shape2)) }.isEmpty }
+    val t2 = System.currentTimeMillis()
+    for (i in 1..10000) { testOverlap(shape1, shape2) }
+    val t3 = System.currentTimeMillis()
+    val d1 = t2 - t1
+    val d2 = t3 - t2
+    assertThat(d2).isAtMost(d1 / 10)
   }
 
   private fun checkRects(expectedTransforms: Map<Long, AffineTransform>, xOff: Double, yOff: Double, hideSystemNodes: Boolean = false) {
