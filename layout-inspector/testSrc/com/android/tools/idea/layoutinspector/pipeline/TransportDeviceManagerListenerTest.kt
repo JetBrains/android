@@ -23,13 +23,13 @@ import org.junit.Test
 class TransportDeviceManagerListenerTest {
 
   @Test
-  fun flagIsDisabledByDefault() {
+  fun flagIsEnabledByDefault() {
     val transportDeviceManagerListener = TransportDeviceManagerListenerImpl()
     val daemonConfig = Transport.DaemonConfig.newBuilder()
     transportDeviceManagerListener.customizeDaemonConfig(daemonConfig)
 
     assertThat(daemonConfig.hasLayoutInspectorConfig()).isTrue()
-    assertThat(daemonConfig.layoutInspectorConfig.autoconnectEnabled).isFalse()
+    assertThat(daemonConfig.layoutInspectorConfig.autoconnectEnabled).isTrue()
   }
 
   @Test

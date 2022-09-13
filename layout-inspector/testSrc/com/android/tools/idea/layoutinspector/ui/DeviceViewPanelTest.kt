@@ -565,14 +565,19 @@ class DeviceViewPanelWithFullInspectorTest {
     waitForCondition(1, TimeUnit.SECONDS) { !contentPanel.showEmptyText }
 
     // Stop connecting, loading should stop
-    val selectProcessAction = contentPanel.selectTargetAction?.dropDownAction as? SelectProcessAction
-    selectProcessAction?.updateActions(mock())
+    val dropdownAction = contentPanel.selectTargetAction?.dropDownAction
+    if (dropdownAction is SelectProcessAction) {
+      dropdownAction.updateActions(mock())
+    }
+    else if (dropdownAction is SelectDeviceAction) {
+      dropdownAction.updateActions(mock())
+    }
     val actionEvent = mock<AnActionEvent>()
     whenever(actionEvent.actionManager).thenReturn(mock())
-    val stopAction = selectProcessAction?.getChildren(actionEvent)?.first { it.templateText == "Stop Inspector" }
+    val stopAction = dropdownAction?.getChildren(actionEvent)?.first { it.templateText == "Stop Inspector" }
     stopAction?.actionPerformed(mock())
 
-    waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading }
+    waitForCondition(10, TimeUnit.SECONDS) { !loadingPane.isLoading }
     assertThat(contentPanel.showEmptyText).isTrue()
 
     // Release the response from the agent such that all waiting threads can complete (cleanup).
@@ -595,18 +600,33 @@ class DeviceViewPanelWithFullInspectorTest {
     )
 
     val selectTargetAction = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first().selectTargetAction!!
-    val selectProcessAction = selectTargetAction.dropDownAction as SelectProcessAction
+    val dropDownAction = selectTargetAction.dropDownAction
     installCommandHandlers()
     connect(MODERN_PROCESS)
     inspectorRule.processNotifier.addDevice(LEGACY_DEVICE)
     inspectorRule.processNotifier.addDevice(OLDER_LEGACY_DEVICE)
-    selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
-    val children = selectProcessAction.getChildren(null)
-    assertThat(children).hasLength(4)
-    checkDeviceAction(children[0], enabled = true, ICON_PHONE, "Google Modern Model")
-    checkDeviceAction(children[1], enabled = true, ICON_LEGACY_PHONE, "Google Legacy Model (Live inspection disabled for API < 29)")
-    checkDeviceAction(children[2], enabled = false, ICON_PHONE, "Google Older Legacy Model (Unsupported for API < 23)")
-    checkDeviceAction(children[3], enabled = true, StudioIcons.Shell.Toolbar.STOP, "Stop Inspector")
+    if (dropDownAction is SelectProcessAction) {
+      dropDownAction.updateActions(DataContext.EMPTY_CONTEXT)
+
+      val children = dropDownAction.getChildren(null)
+      assertThat(children).hasLength(4)
+      // not alphabetically sorted in SelectProcessAction
+      checkDeviceAction(children[0], enabled = true, ICON_PHONE, "Google Modern Model")
+      checkDeviceAction(children[1], enabled = true, ICON_LEGACY_PHONE, "Google Legacy Model (Live inspection disabled for API < 29)")
+      checkDeviceAction(children[2], enabled = false, ICON_PHONE, "Google Older Legacy Model (Unsupported for API < 23)")
+      checkDeviceAction(children[3], enabled = true, StudioIcons.Shell.Toolbar.STOP, "Stop Inspector")
+    }
+    else if (dropDownAction is SelectDeviceAction) {
+      dropDownAction.updateActions(DataContext.EMPTY_CONTEXT)
+
+      val children = dropDownAction.getChildren(null)
+      assertThat(children).hasLength(4)
+      // alphabetically sorted in SelectDeviceAction
+      checkDeviceAction(children[0], enabled = true, ICON_LEGACY_PHONE, "Google Legacy Model (Live inspection disabled for API < 29)")
+      checkDeviceAction(children[1], enabled = true, ICON_PHONE, "Google Modern Model")
+      checkDeviceAction(children[2], enabled = false, ICON_PHONE, "Google Older Legacy Model (Unsupported for API < 23)")
+      checkDeviceAction(children[3], enabled = true, StudioIcons.Shell.Toolbar.STOP, "Stop Inspector")
+    }
   }
 
   @RunsInEdt

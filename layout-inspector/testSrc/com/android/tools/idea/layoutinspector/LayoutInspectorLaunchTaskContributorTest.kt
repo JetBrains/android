@@ -88,7 +88,7 @@ class LayoutInspectorLaunchTaskContributorTest {
   }
 
   @Test
-  fun testLaunchWithDebugAttributes() {
+  fun testLaunchWithDebugAttributes() = runWithFlagState(false) {
     val (iDevice, task) = createLaunchTask(MODERN_DEVICE, debugAttributes = true)
 
     // Start the process
@@ -110,7 +110,7 @@ class LayoutInspectorLaunchTaskContributorTest {
   }
 
   @Test
-  fun testLaunchWithDebugAttributesAlreadySet() {
+  fun testLaunchWithDebugAttributesAlreadySet() = runWithFlagState(false) {
     commandHandler.debugViewAttributesApplicationPackage = PROCESS_NAME
 
     val (iDevice, task) = createLaunchTask(MODERN_DEVICE, debugAttributes = true)
@@ -154,7 +154,7 @@ class LayoutInspectorLaunchTaskContributorTest {
   }
 
   @Test
-  fun testLaunchDebugSessionWithDebugAttributes() {
+  fun testLaunchDebugSessionWithDebugAttributes() = runWithFlagState(false) {
     val (iDevice, task) = createLaunchTask(MODERN_DEVICE, debugAttributes = true)
 
     // Start the process

@@ -63,6 +63,7 @@ import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.layoutinspector.BitmapType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.BrowserUtil
@@ -1167,6 +1168,9 @@ class DeviceViewContentPanelTest {
 
 class DeviceViewContentPanelWithScaledFontTest {
   @get:Rule
+  val projectRule = ProjectRule()
+
+  @get:Rule
   val fontRule = SetPortableUiFontRule(2.0f)
 
   @get:Rule
@@ -1175,6 +1179,8 @@ class DeviceViewContentPanelWithScaledFontTest {
   @Test
   fun testPaintEmpty() {
     AssumeUtil.assumeNotMac() // b/163289116
+    AssumeUtil.assumeNotWindows() // b/246912759
+    ApplicationManager.getApplication().replaceService(ActionManager::class.java, mock(), disposable.disposable)
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val model = model {}

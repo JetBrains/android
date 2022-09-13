@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.AdbServiceRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
@@ -46,7 +47,7 @@ class DebugViewAttributesTest {
   }
 
   @Test
-  fun testSetAndClear_perAppSetting() {
+  fun testSetAndClear_perAppSetting() = runWithFlagState(false) {
     val debugViewAttributes = DebugViewAttributes()
 
     assertThat(debugViewAttributes.set(projectRule.project, process)).isTrue()
@@ -61,7 +62,7 @@ class DebugViewAttributesTest {
   }
 
   @Test
-  fun testSetAndClearWhenPerDeviceIsZero_perAppSetting() {
+  fun testSetAndClearWhenPerDeviceIsZero_perAppSetting() = runWithFlagState(false) {
     val debugViewAttributes = DebugViewAttributes()
     commandHandler.debugViewAttributes = "0"
 
@@ -93,7 +94,7 @@ class DebugViewAttributesTest {
   }
 
   @Test
-  fun testSetAndClearWhenPerAppIsSet_perAppSetting() {
+  fun testSetAndClearWhenPerAppIsSet_perAppSetting() = runWithFlagState(false) {
     val debugViewAttributes = DebugViewAttributes()
     commandHandler.debugViewAttributesApplicationPackage = process.name
 
@@ -109,7 +110,7 @@ class DebugViewAttributesTest {
   }
 
   @Test
-  fun testSetAndClearWhenPerAppIsSetToDifferentProcess_perAppSetting() {
+  fun testSetAndClearWhenPerAppIsSetToDifferentProcess_perAppSetting() = runWithFlagState(false) {
     val debugViewAttributes = DebugViewAttributes()
     commandHandler.debugViewAttributesApplicationPackage = "com.example.MyOtherApp"
 
@@ -125,7 +126,7 @@ class DebugViewAttributesTest {
   }
 
   @Test
-  fun testClearWhenPerAppIsSetToDifferentProcess_perAppSetting() {
+  fun testClearWhenPerAppIsSetToDifferentProcess_perAppSetting() = runWithFlagState(false) {
     val debugViewAttributes = DebugViewAttributes()
 
     assertThat(debugViewAttributes.set(projectRule.project, process)).isTrue()
@@ -204,3 +205,15 @@ class DebugViewAttributesTest {
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
   }
 }
+
+private fun runWithFlagState(desiredFlagState: Boolean, task: () -> Unit) {
+  val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
+  val flagPreviousState = flag.get()
+  flag.override(desiredFlagState)
+
+  task()
+
+  // restore flag state
+  flag.override(flagPreviousState)
+}
+

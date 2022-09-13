@@ -397,7 +397,7 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
-  fun testViewDebugAttributesApplicationPackageSetAndReset() {
+  fun testViewDebugAttributesApplicationPackageSetAndReset() = runWithFlagState(false) {
     inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(inspectorRule.adbProperties.debugViewAttributesApplicationPackage).isEqualTo(MODERN_PROCESS.name)
@@ -415,7 +415,7 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
-  fun testViewDebugAttributesApplicationUntouchedIfAlreadySet() {
+  fun testViewDebugAttributesApplicationUntouchedIfAlreadySet() = runWithFlagState(false) {
     inspectorRule.adbProperties.debugViewAttributesApplicationPackage = MODERN_PROCESS.name
 
     inspectorRule.attachDevice(MODERN_DEVICE)
@@ -431,7 +431,7 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
-  fun testViewDebugAttributesApplicationPackageOverriddenAndReset() {
+  fun testViewDebugAttributesApplicationPackageOverriddenAndReset() = runWithFlagState(false) {
     inspectorRule.attachDevice(MODERN_PROCESS.device)
     inspectorRule.adbRule.bridge.executeShellCommand(MODERN_PROCESS.device,
                                                      "settings put global debug_view_attributes_application_package com.example.another-app")
@@ -446,7 +446,7 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
-  fun testViewDebugAttributesApplicationPackageNotOverriddenIfMatching() {
+  fun testViewDebugAttributesApplicationPackageNotOverriddenIfMatching() = runWithFlagState(false) {
     inspectorRule.attachDevice(MODERN_PROCESS.device)
     inspectorRule.adbRule.bridge.executeShellCommand(MODERN_PROCESS.device,
                                                      "settings put global debug_view_attributes_application_package ${MODERN_PROCESS.name}")
@@ -828,7 +828,7 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
-  fun testNoActivityRestartBannerShownWhenDebugAttributesAreAlreadySet() {
+  fun testNoActivityRestartBannerShownWhenDebugAttributesAreAlreadySet() = runWithFlagState(false) {
     inspectorRule.adbProperties.debugViewAttributesApplicationPackage = MODERN_PROCESS.name
     setUpRunConfiguration()
     preferredProcess = null
