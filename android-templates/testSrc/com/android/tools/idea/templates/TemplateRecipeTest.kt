@@ -55,7 +55,7 @@ class TemplateRecipeTest {
 
     runWriteCommandAction(projectRule.project) {
       val vfTo = projectRule.project.baseDir.findOrCreateChildData(this, "childTo")
-      vfTo.getOutputStream(this).use { os -> os.write('b'.toInt()) }
+      vfTo.getOutputStream(this).use { os -> os.write('b'.code) }
 
       val to = File(vfTo.path)
       val recipeExecutor = DefaultRecipeExecutor(renderingContext)
