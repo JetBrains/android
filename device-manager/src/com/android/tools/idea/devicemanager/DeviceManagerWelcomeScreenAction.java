@@ -49,8 +49,8 @@ final class DeviceManagerWelcomeScreenAction extends DumbAwareAction {
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
 
-    if (myIsChromeOSAndIsNotHWAccelerated.getAsBoolean()) {
-      presentation.setVisible(false);
+    if (myIsChromeOSAndIsNotHWAccelerated.getAsBoolean() || event.getProject() != null) {
+      presentation.setEnabledAndVisible(false);
       return;
     }
 
