@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.Component
@@ -51,7 +52,7 @@ class NlTreeCellRenderer(
   private val primaryLabel = JLabel()
   private val secondaryLabel = JLabel().apply {
     border = JBUI.Borders.emptyLeft(8)
-    foreground = UIUtil.getInactiveTextColor()
+    foreground = NamedColorUtil.getInactiveTextColor()
     font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
   }
 

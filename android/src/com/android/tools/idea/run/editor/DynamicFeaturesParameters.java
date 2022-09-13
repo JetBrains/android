@@ -33,6 +33,7 @@ import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.ui.components.labels.LinkListener;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.NamedColorUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Component;
@@ -95,7 +96,7 @@ public class DynamicFeaturesParameters {
 
   public DynamicFeaturesParameters() {
     // Additional text should show as "gray"
-    myAdditionalTextLabel.setForeground(UIUtil.getInactiveTextColor());
+    myAdditionalTextLabel.setForeground(NamedColorUtil.getInactiveTextColor());
 
     // Setup table: custom mode, ensure table header/grid/separators are not displayed
     myTable.setModel(myTableModel);
@@ -645,7 +646,7 @@ public class DynamicFeaturesParameters {
 
       // Set text to gray to de-emphasize the list of dependent features
       if (!isSelected) { // Only do this for non-selected rows, gray on blue is hard to read
-        this.setForeground(UIUtil.getInactiveTextColor());
+        this.setForeground(NamedColorUtil.getInactiveTextColor());
       }
 
       return component;

@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.ui.AppInsightsIssuesTableView.Companion.LOGGER
 import com.intellij.icons.AllIcons
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.StatusText
 import com.intellij.util.ui.UIUtil
 import java.awt.LayoutManager
@@ -56,7 +57,7 @@ val dateFormatter: DateTimeFormatter
 
 val EMPTY_STATE_TITLE_FORMAT = SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES
 val EMPTY_STATE_TEXT_FORMAT =
-  SimpleTextAttributes(SimpleTextAttributes.STYLE_SMALLER, UIUtil.getInactiveTextColor())
+  SimpleTextAttributes(SimpleTextAttributes.STYLE_SMALLER, NamedColorUtil.getInactiveTextColor())
 val EMPTY_STATE_LINK_FORMAT =
   SimpleTextAttributes(
     SimpleTextAttributes.STYLE_SMALLER or SimpleTextAttributes.LINK_ATTRIBUTES.style,

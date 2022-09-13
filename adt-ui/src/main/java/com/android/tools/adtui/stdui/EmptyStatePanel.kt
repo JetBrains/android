@@ -23,7 +23,7 @@ import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.RenderInstruction
 import com.android.tools.adtui.instructions.TextInstruction
 import com.intellij.icons.AllIcons
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtilities
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
@@ -58,7 +58,7 @@ class EmptyStatePanel @JvmOverloads constructor(
   private val reason: LabelData,
   helpUrlData: UrlData? = null,
   actionData: ActionData? = null,
-  textColor: Color = UIUtil.getInactiveTextColor()
+  textColor: Color = NamedColorUtil.getInactiveTextColor()
 ): JPanel(BorderLayout()) {
   init {
     add(createInstructionsPanel(this, reason, helpUrlData, actionData, textColor))

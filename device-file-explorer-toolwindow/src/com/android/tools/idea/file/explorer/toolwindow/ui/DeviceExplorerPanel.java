@@ -41,6 +41,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.NamedColorUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -72,7 +73,7 @@ public class DeviceExplorerPanel {
     myErrorPanel.setBackground(UIUtil.getTreeBackground());
 
     myErrorText.setFont(AdtUiUtils.EMPTY_TOOL_WINDOW_FONT);
-    myErrorText.setForeground(UIUtil.getInactiveTextColor());
+    myErrorText.setForeground(NamedColorUtil.getInactiveTextColor());
 
     // Disable toolbar until implementation is complete, as the "Device Explorer"
     // feature is enabled by default.
@@ -99,12 +100,12 @@ public class DeviceExplorerPanel {
   public JBScrollPane getColumnTreePane() { return (JBScrollPane)myColumnTreePane.getComponent(0); }
 
   public void showMessageLayer(@NotNull String message, boolean showDeviceList) {
-    showMessageLayerWorker(message, UIUtil.getInactiveTextColor(), null, showDeviceList);
+    showMessageLayerWorker(message, NamedColorUtil.getInactiveTextColor(), null, showDeviceList);
   }
 
   @SuppressWarnings("SameParameterValue")
   public void showMessageLayer(@NotNull String message, @NotNull Icon messageIcon, boolean showDeviceList) {
-    showMessageLayerWorker(message, UIUtil.getInactiveTextColor(), messageIcon, showDeviceList);
+    showMessageLayerWorker(message, NamedColorUtil.getInactiveTextColor(), messageIcon, showDeviceList);
   }
 
   public void showErrorMessageLayer(@NotNull String errorMessage, boolean showDeviceList) {

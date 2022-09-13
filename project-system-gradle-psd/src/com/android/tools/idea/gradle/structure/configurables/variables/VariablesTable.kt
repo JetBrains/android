@@ -64,6 +64,7 @@ import com.intellij.ui.treeStructure.treetable.TreeTableModelAdapter
 import com.intellij.util.ui.AbstractTableCellEditor
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.Component
@@ -334,7 +335,7 @@ class VariablesTable private constructor(
             text = (getNodeRendered() as EmptyValueNode).emptyValue
             foreground =
               if (isSelected) SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES.fgColor
-              else UIUtil.getInactiveTextColor()
+              else NamedColorUtil.getInactiveTextColor()
           }
 
         column == NAME -> getDefaultComponent()

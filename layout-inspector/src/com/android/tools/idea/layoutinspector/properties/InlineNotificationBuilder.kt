@@ -19,7 +19,7 @@ import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.NamedColorUtil
 import javax.swing.JTextArea
 
 class InlineNotificationBuilder(private val model: InspectorPropertiesModel) : InspectorBuilder<InspectorPropertyItem> {
@@ -35,7 +35,7 @@ class InlineNotificationBuilder(private val model: InspectorPropertiesModel) : I
     text.lineWrap = true
     text.isEditable = false
     text.isFocusable = false
-    text.foreground = UIUtil.getInactiveTextColor()
+    text.foreground = NamedColorUtil.getInactiveTextColor()
     text.border = JBUI.Borders.empty(4, 8)
     inspector.addComponent(text, titleModel)
   }

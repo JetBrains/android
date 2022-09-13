@@ -18,6 +18,7 @@ package com.android.tools.idea.device.explorer.ui;
 import com.android.sdklib.deviceprovisioner.DeviceHandle;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ui.NamedColorUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import javax.swing.Icon;
@@ -38,7 +39,7 @@ public class DeviceExplorerPanel {
   public DeviceExplorerPanel() {
     errorPanel.setBackground(UIUtil.getTreeBackground());
     errorText.setFont(AdtUiUtils.EMPTY_TOOL_WINDOW_FONT);
-    errorText.setForeground(UIUtil.getInactiveTextColor());
+    errorText.setForeground(NamedColorUtil.getInactiveTextColor());
   }
 
   @NotNull
@@ -66,7 +67,7 @@ public class DeviceExplorerPanel {
   }
 
   public void showMessageLayer(@NotNull String message, @Nullable Icon icon, boolean showDeviceList) {
-    showMessageLayerWorker(message, UIUtil.getInactiveTextColor(), icon, showDeviceList);
+    showMessageLayerWorker(message, NamedColorUtil.getInactiveTextColor(), icon, showDeviceList);
   }
 
   private void showMessageLayerWorker(@NotNull String message, @NotNull Color color, @Nullable Icon icon, boolean showDeviceList) {

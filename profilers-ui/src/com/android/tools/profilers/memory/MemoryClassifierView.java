@@ -56,7 +56,7 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.IconManager;
 import com.intellij.ui.PlatformIcons;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.NamedColorUtil;
 import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
@@ -436,7 +436,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
       new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), header),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
       new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT), desc))
-      .setColors(UIUtil.getInactiveTextColor(), null)
+      .setColors(NamedColorUtil.getInactiveTextColor(), null)
       .build();
   }
 
