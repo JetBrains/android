@@ -44,7 +44,7 @@ import com.intellij.ui.layout.enableIf
 import com.intellij.ui.layout.panel
 import com.intellij.ui.layout.selected
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.NamedColorUtil
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.GridLayout
 import java.awt.event.ItemEvent
@@ -306,7 +306,7 @@ internal abstract class LogcatFormatDialogBase(
   private fun LayoutBuilder.footerGroup() {
     row {
       component(sampleEditor.component).applyToComponent {
-        border = JBUI.Borders.customLine(UIUtil.getBoundsColor())
+        border = JBUI.Borders.customLine(NamedColorUtil.getBoundsColor())
       }
     }
   }
