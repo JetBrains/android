@@ -138,7 +138,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     private Function<DesignSurface<LayoutlibSceneManager>, InteractionHandler> myInteractionHandlerProvider = NlDesignSurface::defaultInteractionHandlerProvider;
     private Function<DesignSurface<LayoutlibSceneManager>, DesignSurfaceActionHandler> myActionHandlerProvider = NlDesignSurface::defaultActionHandlerProvider;
     @Nullable private SelectionModel mySelectionModel = null;
-    private ZoomControlsPolicy myZoomControlsPolicy = ZoomControlsPolicy.VISIBLE;
+    private ZoomControlsPolicy myZoomControlsPolicy = ZoomControlsPolicy.AUTO_HIDE;
     @NotNull private Set<NlSupportedActions> mySupportedActions = Collections.emptySet();
 
     private boolean myShouldRunVisualLintService = false;
