@@ -103,10 +103,12 @@ public final class HeapSnapshotTraverse {
       }
       final FieldCache fieldCache = new FieldCache(statistics);
 
+      Deque<Node> stack = new ArrayDeque<>();
       // enumerating heap objects in topological order
       for (Object root : startRoots) {
         if (root == null) continue;
-        depthFirstTraverseHeapObjects(root, maxDepth, fieldCache);
+        stack.clear();
+        depthFirstTraverseHeapObjects(root, maxDepth, stack, fieldCache);
       }
       // By this moment all the reachable heap objects are enumerated in topological order and
       // marked as visited. Order id, visited and the iteration id are stored in objects tags.
@@ -347,18 +349,22 @@ public final class HeapSnapshotTraverse {
 
   private void depthFirstTraverseHeapObjects(@NotNull final Object root,
                                              int maxDepth,
+                                             @NotNull final Deque<Node> stack,
                                              @NotNull final FieldCache fieldCache)
     throws HeapSnapshotTraverseException {
     if (wasVisited(root)) {
       return;
     }
-    Deque<Node> stack = new ArrayDeque<>(1_000_000);
     Node rootNode = new Node(root, 0);
     markVisited(root);
     stack.push(rootNode);
 
     // DFS starting from the given root object.
     while (!stack.isEmpty()) {
+      if (stack.size() > MAX_ALLOWED_OBJECT_MAP_SIZE) {
+        stack.clear();
+        throw new HeapSnapshotTraverseException(StatusCode.OBJECTS_MAP_IS_TOO_BIG);
+      }
       Node node = stack.peek();
       Object obj = node.getObject();
       if (obj == null) {

@@ -43,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class HeapSnapshotTraverseService {
 
-  private static final long REPORT_COLLECTION_DELAY_MILLISECONDS = Duration.ofMinutes(2).toMillis();
+  private static final long REPORT_COLLECTION_DELAY_MILLISECONDS = Duration.ofMinutes(30).toMillis();
   private static final String DIAGNOSTICS_HEAP_NATIVE_PATH =
     "tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native";
   private static final String JNI_OBJECT_TAGGER_LIB_NAME = "jni_object_tagger";
