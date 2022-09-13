@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.run.editor
 
-import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.debug.attachDebuggerAndShowTab
+import com.android.tools.idea.run.configuration.execution.DebugSessionStarter.attachDebuggerToClientAndShowTab
 import com.android.tools.idea.run.debug.startAndroidJavaDebuggerSession
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask
@@ -31,6 +30,7 @@ import com.intellij.debugger.engine.JavaDebugProcess
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.xdebugger.XDebugProcess
@@ -41,7 +41,7 @@ import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
 import java.util.Optional
 
-class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState?>() {
+class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
   override fun getId(): String {
     return ID
   }
@@ -87,35 +87,45 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState?>() {
     return true
   }
 
-  @Slow
   override fun attachToClient(project: Project, client: Client, debugState: AndroidDebuggerState?): Promise<XDebugSession> {
     val debugPort = getClientDebugPort(client)
 
     // Try to find existing debug session
-    val existingDebugSession = getExistingDebugSession(project, debugPort)
+    val existingDebugSession = getExistingDebugSession(debugPort)
     if (existingDebugSession != null) {
       activateDebugSessionWindow(project, existingDebugSession.runContentDescriptor)
       return resolvedPromise(existingDebugSession)
     }
-    val sessionName = "Android Debugger (${client.clientData.pid})"
 
-    return attachDebuggerAndShowTab(project, sessionName)
-    {
-      getDebugProcessStarter(project, client, null,
-                             { device -> device.forceStop(client.clientData.clientDescription) },
-                             true)
-    }
+    return attachDebuggerToClientAndShowTab(project, client, this, createState());
   }
 
-  fun getDebugProcessStarter(
+
+  fun getDebugProcessStarterForNewProcess(
     project: Project,
     client: Client,
+    state: AndroidDebuggerState,
     consoleViewToReuse: ConsoleView?,
-    onDebugProcessDestroyed: (IDevice) -> Unit,
-    detachIsDefault: Boolean = false,
-    ): Promise<XDebugProcessStarter> {
-    return startAndroidJavaDebuggerSession(project, client, consoleViewToReuse,
-                                           onDebugProcessDestroyed, detachIsDefault)
+    destroyRunningProcess: (IDevice) -> Unit
+  ): Promise<XDebugProcessStarter> {
+
+    return startAndroidJavaDebuggerSession(project, client, consoleViewToReuse, destroyRunningProcess, false)
+      .then { debuggerSession ->
+        return@then object : XDebugProcessStarter() {
+          override fun start(session: XDebugSession): XDebugProcess {
+            return JavaDebugProcess.create(session, debuggerSession)
+          }
+        }
+      }
+  }
+
+  fun getDebugProcessStarterForExistingProcess(
+    project: Project,
+    client: Client,
+    state: AndroidDebuggerState,
+  ): Promise<XDebugProcessStarter> {
+
+    return startAndroidJavaDebuggerSession(project, client, null, {}, true)
       .then { debuggerSession ->
         return@then object : XDebugProcessStarter() {
           override fun start(session: XDebugSession): XDebugProcess {
@@ -128,7 +138,7 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState?>() {
   companion object {
     const val ID = "Java"
 
-    private fun getExistingDebugSession(project: Project, debugPort: String): XDebugSession? {
+    private fun getExistingDebugSession(debugPort: String): XDebugSession? {
       val sessions: MutableList<XDebugSession> = ArrayList()
       val openProjects = ProjectManager.getInstance().openProjects
 

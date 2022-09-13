@@ -21,6 +21,7 @@ import com.android.tools.deployer.model.component.WearComponent
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.configuration.AppRunSettings
+import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
@@ -54,7 +55,7 @@ abstract class AndroidWearConfigurationExecutor(environment: ExecutionEnvironmen
     console: ConsoleView
   ): Promise<XDebugSessionImpl> {
     checkAndroidVersionForWearDebugging(device.version, console)
-    return DebugSessionStarter(environment, applicationIdProvider).attachDebuggerToClient(device, getStopCallback(console, true), console)
+    return DebugSessionStarter.attachDebuggerToStartedProcess(device, appId, environment, AndroidJavaDebugger(), AndroidJavaDebugger().createState(), getStopCallback (console, true), console)
   }
 
   protected fun showWatchFace(device: IDevice, console: ConsoleView) {

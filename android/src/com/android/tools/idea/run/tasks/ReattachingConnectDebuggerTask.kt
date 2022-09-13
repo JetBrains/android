@@ -70,12 +70,14 @@ class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
       // Reuse the current ConsoleView to retain the UI state and not to lose test results.
       val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
 
+      val appIds = setOfNotNull(base.applicationIdProvider.packageName, base.applicationIdProvider.testPackageName)
+
       executeOnPooledThread {
         startJavaReattachingDebugger(
-          base.myProject,
+          launchInfo.env.project,
           device,
           masterAndroidProcessName,
-          base.myApplicationIds.toSet(),
+          appIds,
           launchInfo.env,
           androidTestResultListener as? ConsoleView,
         )

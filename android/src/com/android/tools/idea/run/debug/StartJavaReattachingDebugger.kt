@@ -21,6 +21,7 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.AndroidProcessHandler
+import com.android.tools.idea.run.configuration.execution.DebugSessionStarter
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
 import com.intellij.execution.ExecutionException
@@ -36,6 +37,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.concurrency.Promise
+import org.jetbrains.concurrency.rejectedPromise
 
 /**
  * Starts JAVA debug session that attaches to new clients, ready for debug, if their app id is in [applicationIds].
@@ -74,11 +76,13 @@ fun startJavaReattachingDebugger(
   consoleViewToReuse: ConsoleView? = null,
 ): Promise<XDebugSessionImpl> {
 
-  fun startJavaSession(client: Client) =
-    attachDebugger(project, client, environment) {
-      AndroidJavaDebugger().getDebugProcessStarter(project, client, consoleViewToReuse,
-                                                   onDebugProcessDestroyed = { it.forceStop(client.clientData.clientDescription) })
-    }
+  fun startJavaSession(client: Client): Promise<XDebugSessionImpl> {
+    val appId = client.clientData.packageName ?: return rejectedPromise(
+      ExecutionException("Can't find package name for a process `${client.clientData.pid}`"))
+
+    return DebugSessionStarter.attachDebuggerToStartedProcess(client.device, appId, environment, AndroidJavaDebugger(), AndroidJavaDebugger().createState(), { it.forceStop(appId) },
+                                                              consoleViewToReuse, 300)
+  }
 
   return startReattachingDebugger(project, device, masterProcessHandler, applicationIds, ::startJavaSession)
 }

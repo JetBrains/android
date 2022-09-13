@@ -15,44 +15,148 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
-import com.android.annotations.concurrency.WorkerThread
+import com.android.annotations.concurrency.AnyThread
+import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.AndroidSessionInfo
 import com.android.tools.idea.run.ApplicationTerminator
-import com.android.tools.idea.run.configuration.RunConfigurationWithDebugger
-import com.android.tools.idea.run.debug.attachDebugger
+import com.android.tools.idea.run.debug.captureLogcatOutputToProcessHandler
+import com.android.tools.idea.run.debug.showError
 import com.android.tools.idea.run.debug.waitForClientReadyForDebug
+import com.android.tools.idea.run.editor.AndroidDebuggerState
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
+import com.intellij.execution.ExecutionException
+import com.intellij.execution.ExecutionTargetManager
+import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
+import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.Project
+import com.intellij.xdebugger.XDebugSession
+import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.impl.XDebugSessionImpl
+import icons.StudioIcons
+import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
+import org.jetbrains.concurrency.catchError
+import org.jetbrains.kotlin.idea.util.application.executeOnPooledThread
+import com.intellij.openapi.module.Module
 
-class DebugSessionStarter(private val environment: ExecutionEnvironment, applicationIdProvider: ApplicationIdProvider) {
+object DebugSessionStarter {
 
-  private val project = environment.project
-  private val appId = applicationIdProvider.packageName
-  private val debuggerContext = (environment.runProfile as RunConfigurationWithDebugger).androidDebuggerContext
-
-  @WorkerThread
-  fun attachDebuggerToClient(device: IDevice,
-                             destroyRunningProcess: (IDevice) -> Unit,
-                             consoleView: ConsoleView): Promise<XDebugSessionImpl> {
-
+  /**
+   * Starts a new debugging session for given [Client].
+   * Use this method only if debugging is started by using 'Debug' on configuration, otherwise use [AndroidJavaDebugger.attachToClient]
+   */
+  @AnyThread
+  fun attachDebuggerToStartedProcess(
+    device: IDevice,
+    appId: String,
+    environment: ExecutionEnvironment,
+    androidDebugger: AndroidJavaDebugger,
+    androidDebuggerState: AndroidDebuggerState,
+    destroyRunningProcess: (IDevice) -> Unit,
+    consoleView: ConsoleView? = null,
+    timeout: Long = 15
+  ): Promise<XDebugSessionImpl> {
     val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
     ProgressManager.checkCanceled()
     indicator?.text = "Waiting for a client"
-    val client = waitForClientReadyForDebug(device, listOf(appId))
+    val clientPromise = AsyncPromise<Client>()
+    executeOnPooledThread {
+      clientPromise.catchError {
+        clientPromise.setResult(waitForClientReadyForDebug(device, listOf(appId), timeout))
+      }
+    }
 
     ProgressManager.checkCanceled()
     indicator?.text = "Attaching debugger"
-    return attachDebugger(project, client, environment) {
-      (debuggerContext.androidDebugger as AndroidJavaDebugger).getDebugProcessStarter(project, client, consoleView, destroyRunningProcess)
-    }.onError {
-      destroyRunningProcess(device)
-      ApplicationTerminator(device, appId).killApp()  // Terminate the process to make it ready for future debugging.
-    }
+
+    return clientPromise
+      .thenAsync { client ->
+        androidDebugger.getDebugProcessStarterForNewProcess(environment.project, client,
+                                                            androidDebuggerState,
+                                                            consoleView, destroyRunningProcess)
+      }
+      .thenAsync { debugProcessStarter ->
+        val promise = AsyncPromise<XDebugSessionImpl>()
+
+        runInEdt {
+          promise.catchError {
+            val session = XDebuggerManager.getInstance(environment.project).startSession(environment, debugProcessStarter)
+            val debugProcessHandler = session.debugProcess.processHandler
+            debugProcessHandler.startNotify()
+            captureLogcatOutputToProcessHandler(clientPromise.get()!!, session.consoleView, debugProcessHandler)
+            val executor = environment.executor
+            AndroidSessionInfo.create(debugProcessHandler,
+                                      environment.runProfile as? RunConfiguration,
+                                      executor.id,
+                                      environment.executionTarget)
+            promise.setResult(session as XDebugSessionImpl)
+          }
+        }
+        promise
+      }
+      .onError {
+        executeOnPooledThread {
+          try {
+            destroyRunningProcess(device)
+          }
+          catch (e: Exception) {
+            Logger.getInstance(this::class.java).warn(e)
+          }
+          try {
+            // Terminate the process to make it ready for future debugging.
+            ApplicationTerminator(device, appId).killApp()
+          }
+          catch (e: Exception) {
+            Logger.getInstance(this::class.java).warn(e)
+          }
+        }
+      }
+  }
+
+  /**
+   * Starts a new Debugging session with [starter] and opens tab with [tabName] in Debug tool window.
+   */
+  @AnyThread
+  fun attachDebuggerToClientAndShowTab(
+    project: Project,
+    client: Client,
+    androidDebugger: AndroidJavaDebugger,
+    androidDebuggerState: AndroidDebuggerState
+  ): Promise<XDebugSession> {
+
+    val sessionName = "${androidDebugger.displayName} (${client.clientData.pid})"
+
+    return androidDebugger.getDebugProcessStarterForExistingProcess(project, client, androidDebuggerState)
+      .thenAsync { starter ->
+        val promise = AsyncPromise<XDebugSession>()
+        runInEdt {
+          promise.catchError {
+            val session = XDebuggerManager.getInstance(project).startSessionAndShowTab(sessionName, StudioIcons.Common.ANDROID_HEAD, null,
+                                                                                       false,
+                                                                                       starter)
+            val debugProcessHandler = session.debugProcess.processHandler
+            AndroidSessionInfo.create(debugProcessHandler,
+                                      null,
+                                      DefaultDebugExecutor.getDebugExecutorInstance().id,
+                                      ExecutionTargetManager.getActiveTarget(project))
+            promise.setResult(session)
+          }
+        }
+        promise
+      }.onError {
+        if (it is ExecutionException) {
+          showError(project, it, sessionName)
+        }
+        else {
+          Logger.getInstance(this::class.java).error(it)
+        }
+      }
   }
 }
