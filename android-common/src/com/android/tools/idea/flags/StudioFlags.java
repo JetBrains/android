@@ -1312,21 +1312,6 @@ public final class StudioFlags {
     true);
   // endregion
 
-  // region WorkManager Inspector
-  private static final FlagGroup WORK_MANAGER_INSPECTOR = new FlagGroup(FLAGS, "work.inspector", "WorkManager Inspector");
-  public static final Flag<Boolean> ENABLE_WORK_MANAGER_INSPECTOR_TAB = Flag.create(
-    WORK_MANAGER_INSPECTOR, "enable.tab", "Enable WorkManager Inspector Tab",
-    "Enables a WorkManager Inspector Tab in the App Inspection tool window",
-    true
-  );
-
-  public static final Flag<Boolean> ENABLE_WORK_MANAGER_GRAPH_VIEW = Flag.create(
-    WORK_MANAGER_INSPECTOR, "enable.graph.view", "Enable WorkManager Graph View",
-    "Enables a Graph View for visualizing work dependencies in the WorkManager Inspector Tab",
-    true
-  );
-  // endregion
-
   // region Network Inspector
   private static final FlagGroup NETWORK_INSPECTOR = new FlagGroup(FLAGS, "network.inspector", "Network Inspector");
   public static final Flag<Boolean> ENABLE_NETWORK_MANAGER_INSPECTOR_TAB = Flag.create(

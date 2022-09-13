@@ -37,7 +37,6 @@
     <orderEntry type="module" module-name="intellij.android.dagger" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
     <orderEntry type="module" module-name="intellij.android.testRetention" />
-    <orderEntry type="module" module-name="app-inspection.inspectors.workmanager.ide" />
     <orderEntry type="module" module-name="app-inspection.inspectors.network.ide" />
     <orderEntry type="module" module-name="app-inspection.inspectors.backgroundtask.ide" />
     <orderEntry type="module" module-name="intellij.android.debuggers" />

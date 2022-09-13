@@ -44,7 +44,6 @@ iml_module(
         "//tools/adt/idea/dagger:intellij.android.dagger[module]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module]",
         "//tools/adt/idea/android-test-retention:intellij.android.testRetention[module]",
-        "//tools/adt/idea/app-inspection/inspectors/workmanager/ide:app-inspection.inspectors.workmanager.ide[module]",
         "//tools/adt/idea/app-inspection/inspectors/network/ide:app-inspection.inspectors.network.ide[module]",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/ide:app-inspection.inspectors.backgroundtask.ide[module]",
         "//tools/adt/idea/debuggers:intellij.android.debuggers[module]",
