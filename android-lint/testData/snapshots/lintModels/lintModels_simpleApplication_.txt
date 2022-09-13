@@ -251,33 +251,33 @@ MODULE                        : project.app
         MinSdkVersion                 : API 19
         TargetSdkVersion              : API <SDK_VERSION>
         SourceProviders
-            ManifestFile                  : <ROOT>/app/src/main/AndroidManifest.xml
+            - ManifestFiles               : <ROOT>/app/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/app/src/main/java
             - JavaDirectories             : <ROOT>/app/src/main/kotlin [-]
             - ResDirectories              : <ROOT>/app/src/main/res
             - AssetsDirectories           : <ROOT>/app/src/main/assets [-]
-            ManifestFile                  : <ROOT>/app/src/debug/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/app/src/debug/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/app/src/debug/java [-]
             - JavaDirectories             : <ROOT>/app/src/debug/kotlin [-]
             - ResDirectories              : <ROOT>/app/src/debug/res [-]
             - AssetsDirectories           : <ROOT>/app/src/debug/assets [-]
         TestSourceProviders
-            ManifestFile                  : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/app/src/androidTest/java
             - JavaDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
             - ResDirectories              : <ROOT>/app/src/androidTest/res [-]
             - AssetsDirectories           : <ROOT>/app/src/androidTest/assets [-]
-            ManifestFile                  : <ROOT>/app/src/test/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/app/src/test/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/app/src/test/java
             - JavaDirectories             : <ROOT>/app/src/test/kotlin [-]
             - ResDirectories              : <ROOT>/app/src/test/res [-]
             - AssetsDirectories           : <ROOT>/app/src/test/assets [-]
-            ManifestFile                  : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
             - JavaDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
             - ResDirectories              : <ROOT>/app/src/androidTestDebug/res [-]
             - AssetsDirectories           : <ROOT>/app/src/androidTestDebug/assets [-]
-            ManifestFile                  : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/app/src/testDebug/java [-]
             - JavaDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
             - ResDirectories              : <ROOT>/app/src/testDebug/res [-]

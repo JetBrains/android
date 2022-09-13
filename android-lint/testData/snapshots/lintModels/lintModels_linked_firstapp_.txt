@@ -255,33 +255,33 @@ MODULE                        : My_First_App.app
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API <SDK_VERSION>
         SourceProviders
-            ManifestFile                  : <ROOT>/firstapp/app/src/main/AndroidManifest.xml
+            - ManifestFiles               : <ROOT>/firstapp/app/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/firstapp/app/src/main/java
             - JavaDirectories             : <ROOT>/firstapp/app/src/main/kotlin [-]
             - ResDirectories              : <ROOT>/firstapp/app/src/main/res
             - AssetsDirectories           : <ROOT>/firstapp/app/src/main/assets [-]
-            ManifestFile                  : <ROOT>/firstapp/app/src/debug/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/firstapp/app/src/debug/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/firstapp/app/src/debug/java [-]
             - JavaDirectories             : <ROOT>/firstapp/app/src/debug/kotlin [-]
             - ResDirectories              : <ROOT>/firstapp/app/src/debug/res [-]
             - AssetsDirectories           : <ROOT>/firstapp/app/src/debug/assets [-]
         TestSourceProviders
-            ManifestFile                  : <ROOT>/firstapp/app/src/androidTest/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/firstapp/app/src/androidTest/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/firstapp/app/src/androidTest/java
             - JavaDirectories             : <ROOT>/firstapp/app/src/androidTest/kotlin [-]
             - ResDirectories              : <ROOT>/firstapp/app/src/androidTest/res [-]
             - AssetsDirectories           : <ROOT>/firstapp/app/src/androidTest/assets [-]
-            ManifestFile                  : <ROOT>/firstapp/app/src/test/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/firstapp/app/src/test/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/firstapp/app/src/test/java
             - JavaDirectories             : <ROOT>/firstapp/app/src/test/kotlin [-]
             - ResDirectories              : <ROOT>/firstapp/app/src/test/res [-]
             - AssetsDirectories           : <ROOT>/firstapp/app/src/test/assets [-]
-            ManifestFile                  : <ROOT>/firstapp/app/src/androidTestDebug/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/firstapp/app/src/androidTestDebug/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/firstapp/app/src/androidTestDebug/java [-]
             - JavaDirectories             : <ROOT>/firstapp/app/src/androidTestDebug/kotlin [-]
             - ResDirectories              : <ROOT>/firstapp/app/src/androidTestDebug/res [-]
             - AssetsDirectories           : <ROOT>/firstapp/app/src/androidTestDebug/assets [-]
-            ManifestFile                  : <ROOT>/firstapp/app/src/testDebug/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/firstapp/app/src/testDebug/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/firstapp/app/src/testDebug/java [-]
             - JavaDirectories             : <ROOT>/firstapp/app/src/testDebug/kotlin [-]
             - ResDirectories              : <ROOT>/firstapp/app/src/testDebug/res [-]
@@ -945,33 +945,33 @@ MODULE                        : My_First_App.app.mysharedlibrary
         TargetSdkVersion              : API <SDK_VERSION>
         - ConsumerProguardFiles       : <ROOT>/shared/mysharedlibrary/consumer-rules.pro
         SourceProviders
-            ManifestFile                  : <ROOT>/shared/mysharedlibrary/src/main/AndroidManifest.xml
+            - ManifestFiles               : <ROOT>/shared/mysharedlibrary/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/shared/mysharedlibrary/src/main/java [-]
             - JavaDirectories             : <ROOT>/shared/mysharedlibrary/src/main/kotlin [-]
             - ResDirectories              : <ROOT>/shared/mysharedlibrary/src/main/res
             - AssetsDirectories           : <ROOT>/shared/mysharedlibrary/src/main/assets [-]
-            ManifestFile                  : <ROOT>/shared/mysharedlibrary/src/debug/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/shared/mysharedlibrary/src/debug/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/shared/mysharedlibrary/src/debug/java [-]
             - JavaDirectories             : <ROOT>/shared/mysharedlibrary/src/debug/kotlin [-]
             - ResDirectories              : <ROOT>/shared/mysharedlibrary/src/debug/res [-]
             - AssetsDirectories           : <ROOT>/shared/mysharedlibrary/src/debug/assets [-]
         TestSourceProviders
-            ManifestFile                  : <ROOT>/shared/mysharedlibrary/src/androidTest/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/shared/mysharedlibrary/src/androidTest/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTest/java
             - JavaDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTest/kotlin [-]
             - ResDirectories              : <ROOT>/shared/mysharedlibrary/src/androidTest/res [-]
             - AssetsDirectories           : <ROOT>/shared/mysharedlibrary/src/androidTest/assets [-]
-            ManifestFile                  : <ROOT>/shared/mysharedlibrary/src/test/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/shared/mysharedlibrary/src/test/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/shared/mysharedlibrary/src/test/java
             - JavaDirectories             : <ROOT>/shared/mysharedlibrary/src/test/kotlin [-]
             - ResDirectories              : <ROOT>/shared/mysharedlibrary/src/test/res [-]
             - AssetsDirectories           : <ROOT>/shared/mysharedlibrary/src/test/assets [-]
-            ManifestFile                  : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/java [-]
             - JavaDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/kotlin [-]
             - ResDirectories              : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/res [-]
             - AssetsDirectories           : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/assets [-]
-            ManifestFile                  : <ROOT>/shared/mysharedlibrary/src/testDebug/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/shared/mysharedlibrary/src/testDebug/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/shared/mysharedlibrary/src/testDebug/java [-]
             - JavaDirectories             : <ROOT>/shared/mysharedlibrary/src/testDebug/kotlin [-]
             - ResDirectories              : <ROOT>/shared/mysharedlibrary/src/testDebug/res [-]

@@ -246,7 +246,7 @@ private fun ProjectDumper.dump(lintModelDependencies: LintModelDependencies) {
 
 private fun ProjectDumper.dump(lintModelSourceProvider: LintModelSourceProvider) {
   with(lintModelSourceProvider) {
-    prop("ManifestFile") { manifestFile.path.toPrintablePath() }
+    manifestFiles.forEach { prop("- ManifestFiles") { it.path.toPrintablePath() } }
     javaDirectories.forEach { prop("- JavaDirectories") { it.path.toPrintablePath() } }
     resDirectories.forEach { prop("- ResDirectories") { it.path.toPrintablePath() } }
     assetsDirectories.forEach { prop("- AssetsDirectories") { it.path.toPrintablePath() } }
