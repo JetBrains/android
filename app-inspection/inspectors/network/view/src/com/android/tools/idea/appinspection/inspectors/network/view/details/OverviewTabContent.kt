@@ -37,12 +37,13 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.components.labels.BoldLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.PlatformColors
 import com.intellij.util.ui.UIUtil
+import java.awt.Color
 import java.awt.Cursor
 import java.awt.Dimension
+import java.awt.Font
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
@@ -142,7 +143,15 @@ class OverviewTabContent(private val componentsProvider: UiComponentsProvider) :
   /**
    * This is a label with bold font and does not wrap.
    */
-  private class NoWrapBoldLabel(text: String) : BoldLabel("<nobr>$text</nobr>")
+  private class NoWrapBoldLabel(text: String) : JLabel(text) {
+    init {
+      this.font = this.font.deriveFont(Font.BOLD)
+    }
+    override fun setFont(font: Font?) {
+      // override the style of the font to be bold. Other styles remain untouched.
+      super.setFont(font?.style?.or(Font.BOLD)?.let { font.deriveFont(it) })
+    }
+  }
 
   /**
    * This is a hyperlink which will break and wrap when it hits the right border of its container.
@@ -154,13 +163,17 @@ class OverviewTabContent(private val componentsProvider: UiComponentsProvider) :
       background = UIUtil.getLabelBackground()
       font = STANDARD_FONT.deriveFont(
         mapOf(
-          TextAttribute.FOREGROUND to PlatformColors.BLUE,
-          TextAttribute.BACKGROUND to UIUtil.getLabelBackground()
+          TextAttribute.FOREGROUND to PlatformColors.BLUE
         )
       )
       val mouseAdapter = getMouseAdapter(url)
       addMouseListener(mouseAdapter)
       addMouseMotionListener(mouseAdapter)
+    }
+
+    override fun setBackground(ignored: Color?) {
+      // ignore the input color and explicitly set the color provided by UIUtil.getLabelBackground()
+      super.setBackground(UIUtil.getLabelBackground())
     }
 
     private fun getMouseAdapter(url: String): MouseAdapter {
