@@ -66,6 +66,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -123,6 +124,20 @@ public final class GradleUtil {
 
     File moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module);
     return moduleRoot != null ? getGradleBuildFile(moduleRoot) : null;
+  }
+
+  /**
+   * Returns the build.gradle file in the given module.
+   */
+  @Nullable
+  public static File getGradleBuildFilePath(@NotNull Module module) {
+    GradleModuleModel moduleModel = getGradleModuleModel(module);
+    if (moduleModel != null) {
+      return moduleModel.getBuildFilePath();
+    }
+
+    File moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module);
+    return moduleRoot != null ? getGradleBuildFilePath(moduleRoot) : null;
   }
 
   /**
@@ -195,6 +210,15 @@ public final class GradleUtil {
     File gradleBuildFilePath = BuildScriptUtil.findGradleBuildFile(dirPath);
     VirtualFile result = findFileByIoFile(gradleBuildFilePath, false);
     return (result != null && result.isValid()) ? result : null;
+  }
+
+  /**
+   * Returns the build.gradle file that is expected right in the directory at the given path. For example, if the directory path is
+   * '~/myProject/myModule', this method will look for the file '~/myProject/myModule/build.gradle'.
+   */
+  @Nullable
+  public static File getGradleBuildFilePath(@NotNull File dirPath) {
+    return BuildScriptUtil.findGradleBuildFile(dirPath);
   }
 
   @NotNull
@@ -517,26 +541,22 @@ public final class GradleUtil {
    */
   public static Set<String> projectBuildFilesTypes(@NotNull Project project) {
     HashSet<String> result = new HashSet<>();
-    addBuildFileType(result, getGradleBuildFile(getBaseDirPath(project)));
+    addBuildFileType(result, getGradleBuildFilePath(getBaseDirPath(project)));
     ReadAction.run(() -> {
       for(Module module : ModuleManager.getInstance(project).getModules()) {
-        addBuildFileType(result, getGradleBuildFile(module));
+        addBuildFileType(result, getGradleBuildFilePath(module));
       }
     });
     return result;
   }
 
-  private static void addBuildFileType(@NotNull HashSet<String> result, @Nullable VirtualFile buildFile) {
+  private static void addBuildFileType(@NotNull HashSet<String> result, @Nullable File buildFile) {
     if (buildFile != null) {
-      String buildFileExtension = buildFile.getExtension();
-      if (buildFileExtension == null) {
-        return;
-      }
-      buildFileExtension = "." + buildFileExtension;
-      if (buildFileExtension.equalsIgnoreCase(DOT_GRADLE)) {
+      String buildFileName = buildFile.getName().toLowerCase(Locale.getDefault());
+      if (buildFileName.endsWith(DOT_GRADLE)) {
         result.add(DOT_GRADLE);
       }
-      else if (buildFileExtension.equalsIgnoreCase(DOT_KTS)) {
+      else if (buildFileName.endsWith(DOT_KTS)) {
         result.add(DOT_KTS);
       }
     }
