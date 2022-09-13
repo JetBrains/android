@@ -20,6 +20,7 @@ import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.projectRoots.JdkUtil.isModularRuntime;
@@ -125,7 +126,7 @@ public class IdeSdks {
   @NotNull public static final String ANDROID_STUDIO_DEFAULT_JDK_NAME = "Android Studio default JDK";
   @NotNull private static final Logger LOG = Logger.getInstance(IdeSdks.class);
   private static final JavaSdkVersion MIN_JDK_VERSION = JDK_1_8;
-  private static final JavaSdkVersion MAX_JDK_VERSION = JDK_11; // the largest LTS JDK compatible with SdkConstants.GRADLE_LATEST_VERSION = "6.1.1"
+  private static final JavaSdkVersion MAX_JDK_VERSION = JDK_17;
 
   @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final Jdks myJdks;

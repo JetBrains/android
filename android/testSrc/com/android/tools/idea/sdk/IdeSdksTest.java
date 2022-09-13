@@ -24,6 +24,11 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_12;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_14;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_15;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_16;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_18;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_19;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_7;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_9;
@@ -297,8 +302,13 @@ public class IdeSdksTest extends PlatformTestCase {
     assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_1_8)).isTrue();
     assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_1_9)).isTrue();
     assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_11)).isTrue();
-    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_12)).isFalse();
-    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_14)).isFalse();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_12)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_14)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_15)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_16)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_17)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_18)).isFalse();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_19)).isFalse();
   }
 
   public void testExistingJdkIsNotDuplicated() {
