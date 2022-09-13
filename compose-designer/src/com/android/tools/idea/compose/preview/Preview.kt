@@ -24,7 +24,7 @@ import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
-import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
+import com.android.tools.idea.compose.preview.actions.BuildAndRefresh
 import com.android.tools.idea.compose.preview.actions.PinAllPreviewElementsAction
 import com.android.tools.idea.compose.preview.actions.UnpinAllPreviewElementsAction
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
@@ -1151,7 +1151,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {
-    ForceCompileAndRefreshAction(surface).registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
+    BuildAndRefresh(this).registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
   }
 
   /**
