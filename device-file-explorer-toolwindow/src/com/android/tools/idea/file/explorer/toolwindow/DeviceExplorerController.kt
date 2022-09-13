@@ -1493,8 +1493,8 @@ class DeviceExplorerController(
 
   private fun showLoadingNode(treeModel: DefaultTreeModel, node: DeviceFileEntryNode) {
     node.allowsChildren = true
-    node.add(MyLoadingNode(node.entry))
-    treeModel.nodeStructureChanged(node)
+    val newChild = MyLoadingNode(node.entry)
+    treeModel.insertNodeInto(newChild, node, node.childCount)
   }
 
   private fun repaintTransferringNodes() {

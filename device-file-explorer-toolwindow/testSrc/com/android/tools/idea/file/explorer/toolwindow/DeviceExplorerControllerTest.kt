@@ -1700,6 +1700,7 @@ class DeviceExplorerControllerTest {
   private fun checkMockViewInitialState(controller: DeviceExplorerController, activeDevice: MockDeviceFileSystem) {
     checkMockViewComboBox(controller)
     checkMockViewActiveDevice(activeDevice)
+    pumpEventsAndWaitForFuture(myMockView.treeNodesInsertedTacker.consume())
   }
 
   private fun checkMockViewComboBox(controller: DeviceExplorerController) {
@@ -1730,7 +1731,6 @@ class DeviceExplorerControllerTest {
 
     // Check the file system tree is showing the first level of entries of the file system
     pumpEventsAndWaitForFuture(myMockView.treeModelChangedTracker.consume())
-    pumpEventsAndWaitForFuture(myMockView.treeStructureChangedTacker.consume())
     assertEquals(
       "mock: ${activeDevice.root.mockEntries} rootEntry: " + TreeUtil.getChildren(rootEntry).collect(Collectors.toList()),
       activeDevice.root.mockEntries.size, rootEntry.childCount
