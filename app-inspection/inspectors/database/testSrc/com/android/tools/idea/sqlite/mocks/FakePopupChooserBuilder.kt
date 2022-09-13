@@ -99,7 +99,7 @@ open class FakePopupChooserBuilder: IPopupChooserBuilder<SqliteDatabaseId> {
 
   override fun setAdText(ad: String?, alignment: Int): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setAdvertiser(advertiser: JComponent): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setAdvertiser(advertiser: JComponent?): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setCancelOnWindowDeactivation(cancelOnWindowDeactivation: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
 
