@@ -51,7 +51,7 @@ class TomlDslParserTest : PlatformTestCase() {
   fun testSingleLibraryBasicString() {
     val singleQuote = "\""
     val singleQuotedJunitWithEscapes = "junit:junit:4.13"
-      .mapIndexed { i, c -> if ((i % 2) == 0) c.toString() else String.format("\\u%04x", c.toInt()) }
+      .mapIndexed { i, c -> if ((i % 2) == 0) c.toString() else String.format("\\u%04x", c.code) }
       .joinToString(separator = "", prefix = singleQuote, postfix = singleQuote)
     val toml = """
       [libraries]
@@ -64,7 +64,7 @@ class TomlDslParserTest : PlatformTestCase() {
   fun testSingleLibraryMultiLineBasicString() {
     val tripleQuote = "\""
     val tripleQuotedJunitWithEscapes = "junit:junit:4.13"
-      .mapIndexed { i, c -> if ((i % 2) == 1) c.toString() else String.format("\\u%04x", c.toInt()) }
+      .mapIndexed { i, c -> if ((i % 2) == 1) c.toString() else String.format("\\u%04x", c.code) }
       .joinToString(separator = "", prefix = tripleQuote, postfix = tripleQuote)
     val toml = """
       [libraries]
@@ -89,7 +89,7 @@ class TomlDslParserTest : PlatformTestCase() {
     assumeTrue("Toml unescaper does not handle removal of initial newline: https://github.com/JetBrains/intellij-community/pull/1754/commits/11fcd6614b20c8f518acbebc6c34493963f2d6e4", false)
     val tripleQuote = "\"\"\""
     val junitWithEscapes = "junit:junit:4.13"
-      .mapIndexed { i, c -> if ((i % 2) == 1) c.toString() else String.format("\\u%04x", c.toInt()) }
+      .mapIndexed { i, c -> if ((i % 2) == 1) c.toString() else String.format("\\u%04x", c.code) }
       .joinToString(separator = "")
     val toml = """
       [libraries]
