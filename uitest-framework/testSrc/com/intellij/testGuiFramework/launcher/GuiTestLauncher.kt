@@ -188,6 +188,7 @@ object GuiTestLauncher {
       "--add-opens=java.desktop/java.awt.event=ALL-UNNAMED",
       "--add-opens=java.desktop/java.awt.image=ALL-UNNAMED",
       "--add-opens=java.desktop/java.awt.peer=ALL-UNNAMED",
+      "--add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED",
       "--add-opens=java.desktop/javax.swing=ALL-UNNAMED",
       "--add-opens=java.desktop/javax.swing.plaf.basic=ALL-UNNAMED",
       "--add-opens=java.desktop/javax.swing.text.html=ALL-UNNAMED",
@@ -204,6 +205,11 @@ object GuiTestLauncher {
       "--add-opens=jdk.internal.jvmstat/sun.jvmstat.monitor=ALL-UNNAMED",
       "--add-opens=jdk.jdi/com.sun.tools.jdi=ALL-UNNAMED",
     )
+    /* b/246634435 */
+    if (System.getProperty("embedded.jdk.path") != null) {
+      options += "-Dembedded.jdk.path=${System.getProperty("embedded.jdk.path")}"
+    }
+
     /* Move Menu bar into IDEA window on Mac OS. Required for test framework to access Menu */
     if (SystemInfo.isMac) {
       options += "-Dapple.laf.useScreenMenuBar=false"
