@@ -34,6 +34,7 @@ import com.intellij.codeInsight.template.macro.VariableOfTypeMacro
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.undo.UndoUtil
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.Messages
@@ -56,53 +57,54 @@ import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtEscapeStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
-
-class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTemplateEntry>(
-  KtLiteralStringTemplateEntry::class.java,
-  AndroidBundle.message("add.string.resource.intention.text")
+class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateExpression>(
+  KtStringTemplateExpression::class.java,
+  textGetter = { AndroidBundle.message("add.string.resource.intention.text") },
+  familyNameGetter = { AndroidBundle.message("add.string.resource.intention.text") }
 ) {
     private companion object {
-        private val CLASS_CONTEXT = "android.content.Context"
-        private val CLASS_FRAGMENT = "android.app.Fragment"
-        private val CLASS_SUPPORT_FRAGMENT = "android.support.v4.app.Fragment"
-        private val ANDROIDX_CLASS_SUPPORT_FRAGMENT = "androidx.fragment.app.Fragment"
-        private val CLASS_VIEW = "android.view.View"
+        private const val CLASS_CONTEXT = "android.content.Context"
+        private const val CLASS_FRAGMENT = "android.app.Fragment"
+        private const val CLASS_SUPPORT_FRAGMENT = "android.support.v4.app.Fragment"
+        private const val ANDROIDX_CLASS_SUPPORT_FRAGMENT = "androidx.fragment.app.Fragment"
+        private const val CLASS_VIEW = "android.view.View"
 
-        private val GET_STRING_METHOD = "getString"
-        private val EXTRACT_RESOURCE_DIALOG_TITLE = "Extract Resource"
-        private val PACKAGE_NOT_FOUND_ERROR = "package.not.found.error"
-        private val RESOURCE_DIR_ERROR = "check.resource.dir.error"
+        private const val GET_STRING_METHOD = "getString"
+        private const val EXTRACT_RESOURCE_DIALOG_TITLE = "Extract Resource"
+        private const val PACKAGE_NOT_FOUND_ERROR = "package.not.found.error"
+        private const val RESOURCE_DIR_ERROR = "check.resource.dir.error"
     }
 
     override fun startInWriteAction(): Boolean = false
 
-    override fun isApplicableTo(element: KtLiteralStringTemplateEntry, caretOffset: Int): Boolean {
+    override fun isApplicableTo(element: KtStringTemplateExpression, caretOffset: Int): Boolean {
         if (AndroidFacet.getInstance(element.containingFile) == null) {
             return false
         }
 
-        // Should not be available to strings with template expressions
-        // only to strings with single KtLiteralStringTemplateEntry inside
-        return element.parent.children.size == 1
+        // Should not be available to strings with template expressions. Only KtStringTemplateExpression with known constant/literal child
+        // types are allowed.
+        val applicableTypes = setOf(
+          KtEscapeStringTemplateEntry::class,
+          KtLiteralStringTemplateEntry::class,
+        )
+        return element.children.all { it::class in applicableTypes }
     }
 
-  override fun applyTo(element: KtLiteralStringTemplateEntry, editor: Editor?) {
+    override fun applyTo(element: KtStringTemplateExpression, editor: Editor?) {
         val facet = AndroidFacet.getInstance(element.containingFile)
-        if (editor == null) {
-            throw IllegalArgumentException("This intention requires an editor.")
-        }
-
-        if (facet == null) {
-            throw IllegalStateException("This intention requires android facet.")
-        }
+        requireNotNull(editor) { "This intention requires an editor." }
+        checkNotNull(facet) { "This intention requires android facet." }
 
         val file = element.containingFile as KtFile
         val project = file.project
@@ -130,9 +132,9 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTem
         }
     }
 
-    private fun getCreateXmlResourceParameters(module: Module, element: KtLiteralStringTemplateEntry,
+    private fun getCreateXmlResourceParameters(module: Module, element: KtStringTemplateExpression,
                                                contextFile: VirtualFile): CreateXmlResourceParameters? {
-        val stringValue = element.text
+        val stringValue = buildLiteralString(element)
 
         val showDialog = !ApplicationManager.getApplication().isUnitTestMode
         val resourceName = element.getUserData(CREATE_XML_RESOURCE_PARAMETERS_NAME_KEY)
@@ -161,6 +163,17 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTem
                                            dialog.dirNames)
     }
 
+    private fun buildLiteralString(element: KtStringTemplateExpression): String = buildString {
+        for (child in element.children) {
+            when (child) {
+                is KtEscapeStringTemplateEntry -> append(child.unescapedValue)
+                is KtLiteralStringTemplateEntry -> append(child.text)
+                else -> Logger.getInstance(KotlinAndroidAddStringResource::class.java).error(
+                  "Unexpected child element type: ${child::class.simpleName}")
+            }
+        }
+    }
+
     private fun createResourceReference(module: Module, editor: Editor, file: KtFile, element: PsiElement, aPackage: String,
                                         resName: String, resType: ResourceType) {
         val rFieldName = getRJavaFieldName(resName)
@@ -180,10 +193,9 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTem
             template.addVariable("context", marker, ConstantNode("context"), true)
         }
 
-        val containingLiteralExpression = element.parent
-        editor.caretModel.moveToOffset(containingLiteralExpression.textOffset)
-        editor.document.deleteString(containingLiteralExpression.textRange.startOffset, containingLiteralExpression.textRange.endOffset)
-        val marker = editor.document.createRangeMarker(containingLiteralExpression.textOffset, containingLiteralExpression.textOffset)
+        editor.caretModel.moveToOffset(element.textOffset)
+        editor.document.deleteString(element.textRange.startOffset, element.textRange.endOffset)
+        val marker = editor.document.createRangeMarker(element.textOffset, element.textOffset)
         marker.isGreedyToLeft = true
         marker.isGreedyToRight = true
 

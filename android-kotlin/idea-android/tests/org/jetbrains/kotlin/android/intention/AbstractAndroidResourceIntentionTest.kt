@@ -86,7 +86,7 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
         }
 
         val element = getTargetElement()
-        element?.putUserData(CREATE_XML_RESOURCE_PARAMETERS_NAME_KEY, "resource_id")
+        element?.parent?.putUserData(CREATE_XML_RESOURCE_PARAMETERS_NAME_KEY, "resource_id")
 
         myFixture.launchAction(intentionAction)
 
