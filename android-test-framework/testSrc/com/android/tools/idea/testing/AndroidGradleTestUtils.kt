@@ -1989,6 +1989,8 @@ data class OpenPreparedProjectOptions @JvmOverloads constructor(
   val disableKtsRelatedIndexing: Boolean = false,
 )
 
+fun OpenPreparedProjectOptions.withoutKtsRelatedIndexing(): OpenPreparedProjectOptions = copy(disableKtsRelatedIndexing = true)
+
 /**
  * Opens a test project previously prepared under the given [name], verifies the state of the project with [verifyOpened] and runs
  * a test [action] and then closes and disposes the project.

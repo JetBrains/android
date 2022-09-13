@@ -15,31 +15,34 @@
  */
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
-import com.android.tools.idea.gradle.structure.configurables.PsContextImpl
-import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.structure.model.android.psTestWithContext
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
-import com.android.tools.idea.gradle.structure.model.testResolve
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
-import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
-import com.intellij.openapi.util.Disposer
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
+import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Tests for [PsJavaModuleAnalyzerTest].
  */
-class PsJavaModuleAnalyzerTest : DependencyTestCase() {
+@RunsInEdt
+class PsJavaModuleAnalyzerTest {
 
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+
+  @Test
   fun testPromotionMessages() {
-    loadProject(PSD_DEPENDENCY)
-
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-    val disposable = Disposer.newDisposable()
-    try {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithContext(preparedProject, disableAnalysis = true) {
       val javaModule = project.findModuleByName("jModuleK") as PsJavaModule
-      val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
       val analyzer = PsJavaModuleAnalyzer(context)
       val messageCollection = analyzer.analyze(javaModule)
 
@@ -52,9 +55,6 @@ class PsJavaModuleAnalyzerTest : DependencyTestCase() {
         .toSet()
       // No promoton analysis so far.
       assertThat(messages, equalTo(emptySet()))
-    }
-    finally {
-      Disposer.dispose(disposable)
     }
   }
 }

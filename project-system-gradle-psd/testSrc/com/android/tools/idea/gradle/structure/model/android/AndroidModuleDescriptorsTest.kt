@@ -20,6 +20,8 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.helpers.matchHashStrings
 import com.android.tools.idea.gradle.structure.model.meta.DslText
@@ -27,28 +29,24 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.testResolve
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
-import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY
-import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_KOTLIN
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.withoutKtsRelatedIndexing
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.Assert.assertNull
 import junit.framework.Assert.assertTrue
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.notNullValue
+import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 @RunsInEdt
-class AndroidModuleDescriptorsTest : GradleIntegrationTest {
+class AndroidModuleDescriptorsTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
@@ -58,8 +56,8 @@ class AndroidModuleDescriptorsTest : GradleIntegrationTest {
 
   @Test
   fun testDescriptor() {
-    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
+    preparedProject.open { resolvedProject ->
       val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
       val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -69,8 +67,8 @@ class AndroidModuleDescriptorsTest : GradleIntegrationTest {
 
   @Test
   fun testProperties() {
-    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
+    preparedProject.open { resolvedProject ->
       val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
       val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -136,24 +134,24 @@ class AndroidModuleDescriptorsTest : GradleIntegrationTest {
 
   @Test
   fun testSetPropertiesKotlin() {
-    prepareGradleProject(PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN, "p")
+    preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { resolvedProject ->
       doTestSetProperties(resolvedProject)
     }
   }
 
   @Test
   fun testSetPropertiesGroovy() {
-    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
+    preparedProject.open { resolvedProject ->
       doTestSetProperties(resolvedProject)
     }
   }
 
   @Test
   fun testSetListReferencesKotlin() {
-    prepareGradleProject(PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN, "p")
+    preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { resolvedProject ->
       val expectedKtsRawValues = listOf("localList[0]", "(rootProject.extra[\"listProp\"] as List<*>)[0] as Int")
       doTestSetListReferences(resolvedProject, expectedKtsRawValues)
     }
@@ -161,8 +159,8 @@ class AndroidModuleDescriptorsTest : GradleIntegrationTest {
 
   @Test
   fun testSetListReferencesGroovy() {
-    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
+    preparedProject.open { resolvedProject ->
       val expectedGrRawValues = listOf("localList[0]", "listProp[0]")
       doTestSetListReferences(resolvedProject, expectedGrRawValues)
     }
@@ -210,13 +208,13 @@ class AndroidModuleDescriptorsTest : GradleIntegrationTest {
     ReferenceTo.createReferenceFromText("myVariable", existingAgpDependency!![0].version())?.let {
       existingAgpDependency!![0].version().setValue(it)
     }
-    ReferenceTo.createReferenceFromText("versionVal", existingAgpDependency!![1].version())?.let {
+    ReferenceTo.createReferenceFromText("versionVal", existingAgpDependency[1].version())?.let {
       existingAgpDependency!![1].version().setValue(it)
     }
-    ReferenceTo.createReferenceFromText("localList[0]", existingAgpDependency!![2].version())?.let {
+    ReferenceTo.createReferenceFromText("localList[0]", existingAgpDependency[2].version())?.let {
       existingAgpDependency!![2].version().setValue(it)
     }
-    ReferenceTo.createReferenceFromText("dependencyVersion", existingAgpDependency!![3].version())?.let {
+    ReferenceTo.createReferenceFromText("dependencyVersion", existingAgpDependency[3].version())?.let {
       existingAgpDependency!![3].version().setValue(it)
     }
 
@@ -230,29 +228,36 @@ class AndroidModuleDescriptorsTest : GradleIntegrationTest {
 
     assertTrue(existingAgpDependency != null && existingAgpDependency.size == 4)
     assertThat(existingAgpDependency!![0].compactNotation(), equalTo("com.android.support:appcompat-v7:26.1.0"))
-    assertThat(existingAgpDependency!![0].completeModel().getRawValue(STRING_TYPE),
-               equalTo<String>("com.android.support:appcompat-v7:${expectedValues[0]}"))
+    assertThat(
+      existingAgpDependency[0].completeModel().getRawValue(STRING_TYPE),
+      equalTo<String>("com.android.support:appcompat-v7:${expectedValues[0]}"))
 
-    assertThat(existingAgpDependency!![1].compactNotation(),
-               equalTo<String>("com.android.support.constraint:constraint-layout:28.0.0"))
-    assertThat(existingAgpDependency!![1].completeModel().getRawValue(STRING_TYPE),
-               equalTo<String>("com.android.support.constraint:constraint-layout:${expectedValues[1]}"))
+    assertThat(
+      existingAgpDependency[1].compactNotation(),
+      equalTo("com.android.support.constraint:constraint-layout:28.0.0"))
+    assertThat(
+      existingAgpDependency[1].completeModel().getRawValue(STRING_TYPE),
+      equalTo<String>("com.android.support.constraint:constraint-layout:${expectedValues[1]}"))
 
-    assertThat(existingAgpDependency!![2].compactNotation(),
-               equalTo<String>("com.android.support.test:runner:26.1.1"))
-    assertThat(existingAgpDependency!![2].completeModel().getRawValue(STRING_TYPE),
-               equalTo<String>("com.android.support.test:runner:${expectedValues[2]}"))
+    assertThat(
+      existingAgpDependency[2].compactNotation(),
+      equalTo("com.android.support.test:runner:26.1.1"))
+    assertThat(
+      existingAgpDependency[2].completeModel().getRawValue(STRING_TYPE),
+      equalTo<String>("com.android.support.test:runner:${expectedValues[2]}"))
 
-    assertThat(existingAgpDependency!![3].compactNotation(),
-               equalTo<String>("com.android.support.test.espresso:espresso-core:28.0.0"))
-    assertThat(existingAgpDependency!![3].completeModel().getRawValue(STRING_TYPE),
-               equalTo<String>("com.android.support.test.espresso:espresso-core:${expectedValues[3]}"))
+    assertThat(
+      existingAgpDependency[3].compactNotation(),
+      equalTo("com.android.support.test.espresso:espresso-core:28.0.0"))
+    assertThat(
+      existingAgpDependency[3].completeModel().getRawValue(STRING_TYPE),
+      equalTo<String>("com.android.support.test.espresso:espresso-core:${expectedValues[3]}"))
   }
 
   @Test
   fun testSetDependencyReferenceVersionGroovy() {
-    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
+    preparedProject.open { resolvedProject ->
       val expectedValues = listOf("${'$'}myVariable", "${'$'}versionVal", "${'$'}{localList[0]}", "${'$'}dependencyVersion")
       doTestSetDependencyReferenceVersion(resolvedProject, expectedValues)
     }
@@ -260,8 +265,8 @@ class AndroidModuleDescriptorsTest : GradleIntegrationTest {
 
   @Test
   fun testSetDependencyReferenceVersionKts() {
-    prepareGradleProject(PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN, "p")
+    preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { resolvedProject ->
       val expectedValues =
         listOf(
           "${'$'}myVariable",
@@ -272,8 +277,4 @@ class AndroidModuleDescriptorsTest : GradleIntegrationTest {
       doTestSetDependencyReferenceVersion(resolvedProject, expectedValues)
     }
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
 }

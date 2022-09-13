@@ -15,35 +15,46 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.testResolve
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
+import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
+import org.junit.Rule
+import org.junit.Test
 
-class PsResolvedVariantCollectionTest : AndroidGradleTestCase() {
+@RunsInEdt
+class PsResolvedVariantCollectionTest {
 
+  @get:Rule
+  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+
+  @Test
   fun testVariants() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    projectRule.psTestWithProject(preparedProject) {
+      val appModule = project.findModuleByGradlePath(":app") as PsAndroidModule
 
-    val appModule = project.findModuleByGradlePath(":app") as PsAndroidModule
-
-    assertThat(appModule.resolvedVariants.map { it.key }.toSet(), equalTo(setOf(
-      PsVariantKey("debug", listOf("paid", "bar")),
-      PsVariantKey("release", listOf("paid", "bar")),
-      PsVariantKey("specialRelease", listOf("paid", "bar")),
-      PsVariantKey("debug", listOf("paid", "otherBar")),
-      PsVariantKey("release", listOf("paid", "otherBar")),
-      PsVariantKey("specialRelease", listOf("paid", "otherBar")),
-      PsVariantKey("debug", listOf("basic", "bar")),
-      PsVariantKey("release", listOf("basic", "bar")),
-      PsVariantKey("specialRelease", listOf("basic", "bar")),
-      PsVariantKey("debug", listOf("basic", "otherBar")),
-      PsVariantKey("release", listOf("basic", "otherBar")),
-      PsVariantKey("specialRelease", listOf("basic", "otherBar"))
-    )))
+      assertThat(
+        appModule.resolvedVariants.map { it.key }.toSet(), equalTo(
+          setOf(
+            PsVariantKey("debug", listOf("paid", "bar")),
+            PsVariantKey("release", listOf("paid", "bar")),
+            PsVariantKey("specialRelease", listOf("paid", "bar")),
+            PsVariantKey("debug", listOf("paid", "otherBar")),
+            PsVariantKey("release", listOf("paid", "otherBar")),
+            PsVariantKey("specialRelease", listOf("paid", "otherBar")),
+            PsVariantKey("debug", listOf("basic", "bar")),
+            PsVariantKey("release", listOf("basic", "bar")),
+            PsVariantKey("specialRelease", listOf("basic", "bar")),
+            PsVariantKey("debug", listOf("basic", "otherBar")),
+            PsVariantKey("release", listOf("basic", "otherBar")),
+            PsVariantKey("specialRelease", listOf("basic", "otherBar"))
+          )
+        )
+      )
+    }
   }
 }

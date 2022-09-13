@@ -27,7 +27,6 @@ import com.android.tools.idea.projectsystem.gradle.CHECK_DIRECT_GRADLE_DEPENDENC
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.EdtAndroidProjectRule
-import com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP_WITH_DYNAMIC_FEATURES
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.onEdt

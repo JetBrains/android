@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.switchVariant
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.exists
 import org.jetbrains.annotations.SystemIndependent
 import org.w3c.dom.Document
@@ -149,11 +150,11 @@ fun migratePackageAttribute(root: File) {
       attribute
     } ?: return@forEach
 
-    val buildFileAttribute = when (manifestPath.parent.fileName.toString()) {
-      "main" -> "namespace"
-      "androidTest" -> null // It is ignored and does not play the role of `testNamespace`.
-      else -> null
-    } ?: return@forEach
+    when (manifestPath.parent.fileName.toString()) {
+      "main" -> Unit
+      "androidTest" -> return@forEach // It is ignored and does not play the role of `testNamespace`.
+      else -> return@forEach
+    }
 
     val buildGradle = manifestPath.parent?.parent?.parent?.resolve("build.gradle")
     val buildGradleKts = manifestPath.parent?.parent?.parent?.resolve("build.gradle.kts")
@@ -161,22 +162,16 @@ fun migratePackageAttribute(root: File) {
     when {
       buildGradle?.exists() == true -> {
         buildGradle.replaceContent {
-          it + """
-            android {
-              $buildFileAttribute = "$namespace"
-            }
-             """
+          it.placeNamespaceProperty(namespace)
         }
+        VfsUtil.markDirtyAndRefresh(false, false, false, buildGradle.toFile())
       }
 
       buildGradleKts?.exists() == true -> {
         buildGradleKts.replaceContent {
-          it + """
-            android {
-              $buildFileAttribute = "$namespace"
-            }
-             """
+          it.placeNamespaceProperty(namespace)
         }
+        VfsUtil.markDirtyAndRefresh(false, false, false, buildGradleKts.toFile())
       }
 
       else -> {
@@ -184,6 +179,18 @@ fun migratePackageAttribute(root: File) {
       }
     }
   }
+}
+
+private fun String.placeNamespaceProperty(namespace: String): String {
+  val marker = "\nandroid {\n"
+  val firstIndex = indexOf(marker)
+  val insertionIndex = if (firstIndex < 0) -1 else firstIndex + marker.length
+  return if (insertionIndex >= 0) substring(0, insertionIndex) + "\n  namespace = \"$namespace\"\n" + substring(insertionIndex, length)
+  else this + """
+  |android {
+  |  namespace = "$namespace"
+  |}
+  """.trimMargin()
 }
 
 private fun <T : Any> updateXmlDoc(manifestPath: Path, transform: (Document) -> T?): T? {

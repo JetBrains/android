@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.DslText
@@ -25,13 +27,10 @@ import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.testResolve
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
-import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.requestSyncAndWait
+import com.android.tools.idea.testing.withoutKtsRelatedIndexing
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
@@ -42,10 +41,9 @@ import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 @RunsInEdt
-class PsProductFlavorTest : GradleIntegrationTest {
+class PsProductFlavorTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
@@ -68,16 +66,16 @@ class PsProductFlavorTest : GradleIntegrationTest {
 
   @Test
   fun testDescriptorGroovy() {
-    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
+    preparedProject.open { resolvedProject ->
       doTestDescriptor(resolvedProject)
     }
   }
 
   @Test
   fun testDescriptorKotlin() {
-    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN, "p")
+    preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { resolvedProject ->
       doTestDescriptor(resolvedProject)
     }
   }
@@ -212,16 +210,16 @@ class PsProductFlavorTest : GradleIntegrationTest {
 
   @Test
   fun testPropertiesGroovy() {
-    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
+    preparedProject.open { resolvedProject ->
       doTestProperties(resolvedProject)
     }
   }
 
   @Test
   fun testPropertiesKotlin() {
-    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN, "p")
+    preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { resolvedProject ->
       doTestProperties(resolvedProject)
     }
   }
@@ -242,16 +240,16 @@ class PsProductFlavorTest : GradleIntegrationTest {
 
   @Test
   fun testDimensionsGroovy() {
-    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
+    preparedProject.open { resolvedProject ->
       doTestDimensions(resolvedProject)
     }
   }
 
   @Test
   fun testDimensionsKotlin() {
-    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN, "p")
+    preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { resolvedProject ->
       doTestDimensions(resolvedProject)
     }
   }
@@ -277,16 +275,16 @@ class PsProductFlavorTest : GradleIntegrationTest {
 
   @Test
   fun testChangingDimensionsGroovy() {
-    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
+    preparedProject.open { resolvedProject ->
       doTestChangingDimensions(resolvedProject)
     }
   }
 
   @Test
   fun testChangingDimensionsKotlin() {
-    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN, "p")
+    preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { resolvedProject ->
       doTestChangingDimensions(resolvedProject)
     }
   }
@@ -326,16 +324,16 @@ class PsProductFlavorTest : GradleIntegrationTest {
 
   @Test
   fun testEffectiveDimensionsGroovy() {
-    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
+    preparedProject.open { resolvedProject ->
       doTestEffectiveDimensions(resolvedProject)
     }
   }
 
   @Test
   fun testEffectiveDimensionsKotlin() {
-    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN, "p")
+    preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { resolvedProject ->
       doTestEffectiveDimensions(resolvedProject)
     }
   }
@@ -463,21 +461,17 @@ class PsProductFlavorTest : GradleIntegrationTest {
 
   @Test
   fun testSetPropertiesGroovy() {
-    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
+    preparedProject.open { resolvedProject ->
       doTestSetProperties(resolvedProject)
     }
   }
 
   @Test
   fun testSetPropertiesKotlin() {
-    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN, "p")
+    preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { resolvedProject ->
       doTestSetProperties(resolvedProject)
     }
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
 }

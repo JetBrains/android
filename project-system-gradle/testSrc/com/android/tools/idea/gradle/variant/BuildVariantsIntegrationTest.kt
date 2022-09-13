@@ -30,12 +30,9 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.BuildEnvironment
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.saveAndDump
 import com.android.tools.idea.testing.switchAbi

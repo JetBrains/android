@@ -15,19 +15,129 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
+import com.android.tools.idea.gradle.structure.configurables.PsContextImpl
 import com.android.tools.idea.gradle.structure.model.PsDependencyCollection
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_REPO
-import com.intellij.util.PathUtil.toSystemDependentName
-import org.jetbrains.android.AndroidTestBase
-import java.io.File
-
-abstract class DependencyTestCase : AndroidGradleTestCase() {
-  override fun getAdditionalRepos() = listOf(File(AndroidTestBase.getTestDataPath(), toSystemDependentName(PSD_SAMPLE_REPO)))
-}
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl
+import com.android.tools.idea.gradle.structure.model.testResolve
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
+import com.android.tools.idea.testing.requestSyncAndWait
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
 
 internal fun <T> PsDependencyCollection<*, *, *, T>.findModuleDependency(gradlePath: String)
   where T : PsModuleDependency = findModuleDependencies(gradlePath).singleOrNull()
 
 internal fun PsAndroidModule.findVariant(name: String): PsVariant? = resolvedVariants.singleOrNull { it.name == name }
+
+class PsTestContext(val resolvedProject: Project, val context: PsContextImpl, val project: PsProjectImpl)
+
+interface PsTestProject {
+  val resolvedProject: Project
+  val project: PsProjectImpl
+  fun reparse()
+  fun requestSyncAndWait()
+}
+
+fun <T> AndroidProjectRule.psTestWithContext(
+  preparedProject: PreparedTestProject,
+  disableAnalysis: Boolean = false,
+  resolveModels: Boolean = true,
+  body: PsTestContext.() -> T
+): T {
+  return preparedProject.open { resolvedProject ->
+    val project = PsProjectImpl(resolvedProject)
+    if (resolveModels) {
+      project.testResolve()
+    }
+
+    val context = PsContextImpl(
+      project,
+      testRootDisposable,
+      disableAnalysis = disableAnalysis,
+      disableResolveModels = !resolveModels
+    )
+      .also { Disposer.register(testRootDisposable, it) }
+    body(PsTestContext(resolvedProject, context, project))
+  }
+}
+
+fun <T> EdtAndroidProjectRule.psTestWithContext(
+  preparedProject: PreparedTestProject,
+  disableAnalysis: Boolean = false,
+  resolveModels: Boolean = true,
+  body: PsTestContext.() -> T
+): T {
+  return projectRule.psTestWithContext(
+    preparedProject,
+    disableAnalysis = disableAnalysis,
+    resolveModels = resolveModels,
+    body = body
+  )
+}
+
+fun <T> AndroidProjectRule.psTestWithProject(
+  preparedProject: PreparedTestProject,
+  resolveModels: Boolean = true,
+  expectSyncFailing: Boolean,
+  body: PsTestProject.() -> T
+): T {
+  fun updateOptions(options: OpenPreparedProjectOptions): OpenPreparedProjectOptions {
+    return options
+      .copy(disableKtsRelatedIndexing = true)
+      .let {
+        if (expectSyncFailing)
+          it.copy(
+            verifyOpened = { project -> assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult().isSuccessful).isFalse() }
+          )
+        else it
+      }
+  }
+
+  return preparedProject.open(
+    updateOptions = ::updateOptions
+  ) { resolvedProject ->
+    var psProject = PsProjectImpl(resolvedProject)
+    if (resolveModels) {
+      psProject.testResolve()
+    }
+
+    body(object: PsTestProject{
+      override val resolvedProject: Project = resolvedProject
+      override val project: PsProjectImpl
+        get() = psProject
+
+      override fun reparse() {
+        psProject = PsProjectImpl(resolvedProject)
+        if (resolveModels) {
+          psProject.testResolve()
+        }
+      }
+
+      override fun requestSyncAndWait() {
+        refreshProjectFiles()
+        resolvedProject.requestSyncAndWait()
+      }
+    })
+  }
+}
+
+fun <T> EdtAndroidProjectRule.psTestWithProject(
+  preparedProject: PreparedTestProject,
+  resolveModels: Boolean = true,
+  expectSyncFailing: Boolean = false,
+  body: PsTestProject.() -> T
+): T {
+  return projectRule.psTestWithProject(
+    preparedProject,
+    resolveModels = resolveModels,
+    expectSyncFailing = expectSyncFailing,
+    body = body
+  )
+}

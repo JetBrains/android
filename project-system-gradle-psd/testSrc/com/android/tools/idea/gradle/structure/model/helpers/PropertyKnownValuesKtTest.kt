@@ -16,40 +16,59 @@
 package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.repositories.search.FoundArtifact
 import com.android.tools.idea.gradle.repositories.search.SearchResult
 import com.android.tools.idea.gradle.repositories.search.combine
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl
+import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
+import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.core.IsEqual
 import org.junit.Assert.assertThat
+import org.junit.Rule
 import org.junit.Test
 
-class PropertyKnownValuesKtTest : AndroidGradleTestCase() {
+@RunsInEdt
+class PropertyKnownValuesKtTest {
 
+  @get:Rule
+  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+
+  @Test
   fun testBuildTypeMatchingFallbackValuesCore() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
+    preparedProject.open { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject)
 
-    assertThat(buildTypeMatchingFallbackValuesCore(project),
-               equalTo(listOf(ValueDescriptor("debug"), ValueDescriptor("release"), ValueDescriptor("specialRelease"))))
+      assertThat(
+        buildTypeMatchingFallbackValuesCore(project),
+        equalTo(listOf(ValueDescriptor("debug"), ValueDescriptor("release"), ValueDescriptor("specialRelease")))
+      )
+    }
   }
 
+  @Test
   fun testProductFlavorMatchingFallbackValuesCore() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY, "p")
+    preparedProject.open { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject)
 
-    assertThat(productFlavorMatchingFallbackValuesCore(project, "foo"),
-               equalTo(listOf(ValueDescriptor("basic"), ValueDescriptor("paid"))))
-    assertThat(productFlavorMatchingFallbackValuesCore(project, "bar"),
-               equalTo(listOf(ValueDescriptor("bar"), ValueDescriptor("otherBar"))))
+      assertThat(
+        productFlavorMatchingFallbackValuesCore(project, "foo"),
+        equalTo(listOf(ValueDescriptor("basic"), ValueDescriptor("paid")))
+      )
+      assertThat(
+        productFlavorMatchingFallbackValuesCore(project, "bar"),
+        equalTo(listOf(ValueDescriptor("bar"), ValueDescriptor("otherBar")))
+      )
+    }
   }
 
+  @Test
   fun testToVersionValueDescriptors() {
     val searchResults =
       listOf(

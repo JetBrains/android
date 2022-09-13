@@ -16,79 +16,89 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.targetModuleResolvedDependencies
 import com.android.tools.idea.gradle.structure.model.testResolve
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.*
 import org.junit.Assert.assertThat
+import org.junit.Rule
+import org.junit.Test
 
-class PsModuleAndroidDependencyTest : DependencyTestCase() {
+@RunsInEdt
+class PsModuleAndroidDependencyTest {
 
-  private lateinit var resolvedProject: Project
-  private lateinit var project: PsProject
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
-  override fun setUp() {
-    super.setUp()
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
-    reparse()
-  }
-
-  private fun reparse() {
-    resolvedProject = myFixture.project
-    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-  }
-
+  @Test
   fun testModuleDependenciesAreResolved() {
-    val appModule = project.findModuleByName("app") as PsAndroidModule
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
+      val appModule = project.findModuleByName("app") as PsAndroidModule
 
-    val freeReleaseMainArtifact = appModule.findVariant("freeRelease")?.findArtifact(IdeArtifactName.MAIN)!!
-    val artifactDependencies = freeReleaseMainArtifact.dependencies
+      val freeReleaseMainArtifact = appModule.findVariant("freeRelease")?.findArtifact(IdeArtifactName.MAIN)!!
+      val artifactDependencies = freeReleaseMainArtifact.dependencies
 
-    val moduleDependency = artifactDependencies.findModuleDependency(":mainModule")
-    assertThat(moduleDependency, notNullValue())
+      val moduleDependency = artifactDependencies.findModuleDependency(":mainModule")
+      assertThat(moduleDependency, notNullValue())
 
-    val referredArtifact = (moduleDependency?.targetModuleResolvedDependencies as? PsAndroidArtifactDependencyCollection)?.artifact
-    assertThat(referredArtifact, notNullValue())
-    assertThat(referredArtifact!!.parent.name, equalTo("freeRelease"))
-    assertThat(referredArtifact.resolvedName, equalTo(IdeArtifactName.MAIN))
+      val referredArtifact = (moduleDependency?.targetModuleResolvedDependencies as? PsAndroidArtifactDependencyCollection)?.artifact
+      assertThat(referredArtifact, notNullValue())
+      assertThat(referredArtifact!!.parent.name, equalTo("freeRelease"))
+      assertThat(referredArtifact.resolvedName, equalTo(IdeArtifactName.MAIN))
+    }
   }
 
+  @Test
   fun testUnitTestArtifactModuleDependenciesAreResolved() {
-    val appModule = project.findModuleByName("app") as PsAndroidModule
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
+      val appModule = project.findModuleByName("app") as PsAndroidModule
 
-    val freeReleaseMainArtifact = appModule.findVariant("freeRelease")?.findArtifact(IdeArtifactName.UNIT_TEST)!!
-    val artifactDependencies = freeReleaseMainArtifact.dependencies
+      val freeReleaseMainArtifact = appModule.findVariant("freeRelease")?.findArtifact(IdeArtifactName.UNIT_TEST)!!
+      val artifactDependencies = freeReleaseMainArtifact.dependencies
 
-    val moduleDependency = artifactDependencies.findModuleDependency(":mainModule")
-    assertThat(moduleDependency, notNullValue())
+      val moduleDependency = artifactDependencies.findModuleDependency(":mainModule")
+      assertThat(moduleDependency, notNullValue())
 
-    val referredArtifact = (moduleDependency?.targetModuleResolvedDependencies as? PsAndroidArtifactDependencyCollection)?.artifact
-    assertThat(referredArtifact, notNullValue())
-    assertThat(referredArtifact!!.parent.name, equalTo("freeRelease"))
-    assertThat(referredArtifact.resolvedName, equalTo(IdeArtifactName.MAIN))
+      val referredArtifact = (moduleDependency?.targetModuleResolvedDependencies as? PsAndroidArtifactDependencyCollection)?.artifact
+      assertThat(referredArtifact, notNullValue())
+      assertThat(referredArtifact!!.parent.name, equalTo("freeRelease"))
+      assertThat(referredArtifact.resolvedName, equalTo(IdeArtifactName.MAIN))
+    }
   }
 
+  @Test
   fun testDeclaredDependenciesReindexed() {
-    val appModule = project.findModuleByName("mainModule") as PsAndroidModule
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
+      val appModule = project.findModuleByName("mainModule") as PsAndroidModule
 
-    fun findLib(name: String, version: String) =
-      appModule.dependencies
-        .findLibraryDependencies("com.example.libs", name)
-        .find { (it as? PsLibraryDependency)?.spec?.version == version }
+      fun findLib(name: String, version: String) =
+        appModule.dependencies
+          .findLibraryDependencies("com.example.libs", name)
+          .find { (it as? PsLibraryDependency)?.spec?.version == version }
 
-    val releaseImplementationLib1 = findLib("lib1", "0.9.1")
+      val releaseImplementationLib1 = findLib("lib1", "0.9.1")
 
-    assertThat(releaseImplementationLib1, notNullValue())
+      assertThat(releaseImplementationLib1, notNullValue())
 
-    // Make a change that requires re-indexing.
-    releaseImplementationLib1!!.parsedModel.name().setValue("lib2")
-    appModule.dependencies.reindex()
+      // Make a change that requires re-indexing.
+      releaseImplementationLib1!!.parsedModel.name().setValue("lib2")
+      appModule.dependencies.reindex()
 
-    assertThat(findLib("lib1", "0.9.1"), nullValue())
-    assertThat(findLib("lib2", "0.9.1"), notNullValue())
+      assertThat(findLib("lib1", "0.9.1"), nullValue())
+      assertThat(findLib("lib2", "0.9.1"), notNullValue())
+    }
   }
 }

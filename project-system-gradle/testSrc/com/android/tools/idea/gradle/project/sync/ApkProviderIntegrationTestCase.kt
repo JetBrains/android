@@ -38,7 +38,6 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_73
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
-import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.gradleModule
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project

@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.DslText
@@ -47,7 +49,7 @@ import org.junit.Test
 import java.io.File
 
 @RunsInEdt
-class PsAndroidModuleDefaultConfigDescriptorsTest : GradleIntegrationTest {
+class PsAndroidModuleDefaultConfigDescriptorsTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
@@ -55,9 +57,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : GradleIntegrationTest {
   @get:Rule
   val expect = Expect.createAndEnableStackTrace()!!
 
-  private fun doTestDescriptor(resolvedProject: Project) {
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-
+  private fun PsTestProject.doTestDescriptor() {
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
     val defaultConfig = appModule.defaultConfig
@@ -68,23 +68,21 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : GradleIntegrationTest {
 
   @Test
   fun testDescriptorGroovy() {
-    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
-      doTestDescriptor(resolvedProject)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    projectRule.psTestWithProject(preparedProject) {
+      doTestDescriptor()
     }
   }
 
   @Test
   fun testDescriptorKotlin() {
-    prepareGradleProject(PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
-      doTestDescriptor(resolvedProject)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN)
+    projectRule.psTestWithProject(preparedProject) {
+      doTestDescriptor()
     }
   }
 
-  private fun doTestProperties(resolvedProject: Project) {
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-
+  private fun PsTestProject.doTestProperties() {
     run {
       val appModule = project.findModuleByName("app") as PsAndroidModule
       assertThat(appModule, notNullValue())
@@ -194,23 +192,21 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : GradleIntegrationTest {
 
   @Test
   fun testPropertiesGroovy() {
-    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
-      doTestProperties(resolvedProject)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    projectRule.psTestWithProject(preparedProject) {
+      doTestProperties()
     }
   }
 
   @Test
   fun testPropertiesKotlin() {
-    prepareGradleProject(PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
-      doTestProperties(resolvedProject)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN)
+    projectRule.psTestWithProject(preparedProject) {
+      doTestProperties()
     }
   }
 
-  private fun doTestSetProperties(resolvedProject: Project) {
-    var project = PsProjectImpl(resolvedProject)
-
+  private fun PsTestProject.doTestSetProperties() {
     var appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
 
@@ -307,8 +303,8 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : GradleIntegrationTest {
     verifyValues(defaultConfig)
 
     appModule.applyChanges()
-    resolvedProject.requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+    requestSyncAndWait()
+    reparse()
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.defaultConfig, afterSync = true)
@@ -316,23 +312,21 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : GradleIntegrationTest {
 
   @Test
   fun testSetPropertiesGroovy() {
-    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
-      doTestSetProperties(resolvedProject)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    projectRule.psTestWithProject(preparedProject) {
+      doTestSetProperties()
     }
   }
 
   @Test
   fun testSetPropertiesKotlin() {
-    prepareGradleProject(PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
-      doTestSetProperties(resolvedProject)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN)
+    projectRule.psTestWithProject(preparedProject) {
+      doTestSetProperties()
     }
   }
 
-  private fun doTestDeleteMapProperties(resolvedProject: Project) {
-    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-
+  private fun PsTestProject.doTestDeleteMapProperties() {
     var appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
 
@@ -357,7 +351,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : GradleIntegrationTest {
 
     appModule.applyChanges()
     resolvedProject.requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+    reparse()
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.defaultConfig, afterSync = true)
@@ -365,23 +359,21 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : GradleIntegrationTest {
 
   @Test
   fun testDeleteMapPropertiesGroovy() {
-    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
-      doTestDeleteMapProperties(resolvedProject)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    projectRule.psTestWithProject(preparedProject) {
+      doTestDeleteMapProperties()
     }
   }
 
   @Test
   fun testDeleteMapPropertiesKotlin() {
-    prepareGradleProject(PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
-      doTestDeleteMapProperties(resolvedProject)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN)
+    projectRule.psTestWithProject(preparedProject) {
+      doTestDeleteMapProperties()
     }
   }
 
-  private fun doTestEditorInsertMapProperties(resolvedProject: Project) {
-    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-
+  private fun PsTestProject.doTestEditorInsertMapProperties() {
     var appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
 
@@ -407,7 +399,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : GradleIntegrationTest {
 
     appModule.applyChanges()
     resolvedProject.requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+    reparse()
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.defaultConfig, afterSync = true)
@@ -415,23 +407,21 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : GradleIntegrationTest {
 
   @Test
   fun testEditorInsertMapPropertiesGroovy() {
-    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
-      doTestEditorInsertMapProperties(resolvedProject)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    projectRule.psTestWithProject(preparedProject) {
+      doTestEditorInsertMapProperties()
     }
   }
 
   @Test
   fun testEditorInsertMapPropertiesKotlin() {
-    prepareGradleProject(PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
-      doTestEditorInsertMapProperties(resolvedProject)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN)
+    projectRule.psTestWithProject(preparedProject) {
+      doTestEditorInsertMapProperties()
     }
   }
 
-  private fun doTestProGuardKnownValues(resolvedProject: Project) {
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-
+  private fun PsTestProject.doTestProGuardKnownValues() {
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
 
@@ -445,24 +435,22 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : GradleIntegrationTest {
   }
 
   @Test
-  fun testProGuardKnownValuesKotlin() {
-    prepareGradleProject(PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
-      doTestProGuardKnownValues(resolvedProject)
+  fun testProGuardKnownValuesGroovy() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN)
+    projectRule.psTestWithProject(preparedProject) {
+      doTestProGuardKnownValues()
     }
   }
 
   @Test
-  fun testProGuardKnownValuesGroovy() {
-    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
-      doTestProGuardKnownValues(resolvedProject)
+  fun testProGuardKnownValuesKotlin() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    projectRule.psTestWithProject(preparedProject) {
+      doTestProGuardKnownValues()
     }
   }
 
-  private fun doTestSetReferences(resolvedProject: Project, expectedValues: List<String>) {
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-
+  private fun PsTestProject.doTestSetReferences(expectedValues: List<String>) {
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
 
@@ -506,27 +494,23 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : GradleIntegrationTest {
 
   @Test
   fun testSetReferencesGroovy() {
-    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
-    openPreparedProject("p") { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    projectRule.psTestWithProject(preparedProject) {
       val expectedValues = listOf("localMap.KTSApp", "mapProp.key1", "valVersion", "variable1", "boolRoot")
-      doTestSetReferences(resolvedProject, expectedValues)
+      doTestSetReferences(expectedValues)
     }
   }
 
   @Test
   fun testSetReferencesKotlin() {
-    prepareGradleProject(PSD_SAMPLE_KOTLIN, "p")
-    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_KOTLIN)
+    projectRule.psTestWithProject(preparedProject) {
       val expectedValues =
         listOf(
           "localMap[\"KTSApp\"]", "(rootProject.extra[\"mapProp\"] as Map<*, *>)[\"key1\"] as String",
           "project.extra[\"valVersion\"] as Int", "variable1", "rootProject.extra[\"boolRoot\"] as Boolean"
         )
-      doTestSetReferences(resolvedProject, expectedValues)
+      doTestSetReferences(expectedValues)
     }
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
 }

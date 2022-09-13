@@ -15,38 +15,35 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph
 
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.testStructure
-import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
-import com.android.tools.idea.gradle.structure.model.testResolve
-import com.android.tools.idea.testing.TestProjectPaths
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.gradle.structure.model.android.psTestWithProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
+import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers
 import org.junit.Assert
+import org.junit.Rule
+import org.junit.Test
 
-class DependenciesTreeRootNodeTest : DependencyTestCase() {
-  private lateinit var resolvedProject: Project
-  private lateinit var project: PsProject
+@RunsInEdt
+class DependenciesTreeRootNodeTest {
 
-  override fun setUp() {
-    super.setUp()
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
-    reparse()
-  }
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
-  private fun reparse() {
-    resolvedProject = myFixture.project
-    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-  }
-
+  @Test
   fun testTreeStructure() {
-    val node = DependenciesTreeRootNode(project, PsUISettings())
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
+      val node = DependenciesTreeRootNode(project, PsUISettings())
 
-    // Note: indentation matters!
-    val expectedProjectStructure = """
-      testTreeStructure
+      // Note: indentation matters!
+      val expectedProjectStructure = """
+      project
           jModuleK
           jModuleL
           mainModule
@@ -104,8 +101,9 @@ class DependenciesTreeRootNodeTest : DependencyTestCase() {
           libspd
           libspr
           otherlibsfd""".trimIndent()
-    val treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
-    // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
-    Assert.assertThat(treeStructure.toString(), CoreMatchers.equalTo(expectedProjectStructure))
+      val treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
+      // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
+      Assert.assertThat(treeStructure.toString(), CoreMatchers.equalTo(expectedProjectStructure))
+    }
   }
 }

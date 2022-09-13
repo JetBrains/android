@@ -15,32 +15,34 @@
  */
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
-import com.android.tools.idea.gradle.structure.configurables.PsContextImpl
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.configurables.PsPathRendererImpl
-import com.android.tools.idea.gradle.structure.model.PsIssueCollection
-import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.gradle.structure.model.testResolve
+import com.android.tools.idea.gradle.structure.model.android.psTestWithContext
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
-import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
-import com.intellij.openapi.util.Disposer
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
+import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Tests for [PsAndroidModuleAnalyzer].
  */
-class PsAndroidModuleAnalyzerTest : DependencyTestCase() {
+@RunsInEdt
+class PsAndroidModuleAnalyzerTest {
 
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+
+  @Test
   fun testPromotionMessages() {
-    loadProject(PSD_DEPENDENCY)
-
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-    val disposable = Disposer.newDisposable()
-    try {
-      val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithContext(preparedProject, disableAnalysis = true) {
       val mainModule = project.findModuleByName("mainModule") as PsAndroidModule
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
       val messageCollection = analyzer.analyze(mainModule)
@@ -59,9 +61,6 @@ class PsAndroidModuleAnalyzerTest : DependencyTestCase() {
         "Gradle promoted library version from 0.6 to 1.0" to "in: freeImplementation",
         "Gradle promoted library version from 0.9.1 to 1.0" to "in: releaseImplementation"
       )))
-    }
-    finally {
-      Disposer.dispose(disposable)
     }
   }
 }

@@ -15,61 +15,73 @@
  */
 package com.android.tools.idea.gradle.structure.model.java
 
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.gradle.structure.model.testResolve
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.gradle.structure.model.android.psTestWithProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
+import com.intellij.testFramework.RunsInEdt
+import junit.framework.Assert.assertNotNull
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Tests for [PsAndroidModule].
  */
-class PsJavaModuleTest : DependencyTestCase() {
+@RunsInEdt
+class PsJavaModuleTest {
 
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+
+  @Test
   fun testImportantConfigurations() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    projectRule.psTestWithProject(preparedProject) {
+      val appModule = moduleWithSyncedModel(project, "jav")
+      assertNotNull(appModule)
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      Truth.assertThat(appModule.getConfigurations(onlyImportantFor = PsModule.ImportantFor.LIBRARY)).containsExactly(
+        "implementation",
+        "annotationProcessor",
+        "api",
+        "compile",
+        "runtime",
+        "testAnnotationProcessor",
+        "testImplementation",
+        "testRuntime"
+      )
 
-    val appModule = moduleWithSyncedModel(project, "jav")
-    assertNotNull(appModule)
-
-    Truth.assertThat(appModule.getConfigurations(onlyImportantFor = PsModule.ImportantFor.LIBRARY)).containsExactly(
-      "implementation",
-      "annotationProcessor",
-      "api",
-      "compile",
-      "runtime",
-      "testAnnotationProcessor",
-      "testImplementation",
-      "testRuntime")
-
-    Truth.assertThat(appModule.getConfigurations(onlyImportantFor = PsModule.ImportantFor.MODULE)).containsExactly(
-      "implementation",
-      "annotationProcessor",
-      "api",
-      "compile",
-      "runtime",
-      "testAnnotationProcessor",
-      "testImplementation",
-      "testRuntime")
+      Truth.assertThat(appModule.getConfigurations(onlyImportantFor = PsModule.ImportantFor.MODULE)).containsExactly(
+        "implementation",
+        "annotationProcessor",
+        "api",
+        "compile",
+        "runtime",
+        "testAnnotationProcessor",
+        "testImplementation",
+        "testRuntime"
+      )
+    }
   }
 
   // TODO(b/117969438) : Find out what the correct configurations are and implement.
+  @Test
+  @Ignore("b/117969438")
   fun /*testC*/onfigurations() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    projectRule.psTestWithProject(preparedProject) {
+      val appModule = moduleWithSyncedModel(project, "jav")
+      assertNotNull(appModule)
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-
-    val appModule = moduleWithSyncedModel(project, "jav")
-    assertNotNull(appModule)
-
-    TODO("b/117969438")
+      TODO("b/117969438")
+    }
   }
 
 }

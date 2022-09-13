@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.pom
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_REPO
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import org.hamcrest.CoreMatchers.hasItems
@@ -25,7 +24,7 @@ import org.junit.Assert.assertThat
 import org.junit.Test
 import java.io.File
 
-class MavenPomsTest : AndroidGradleTestCase() {
+class MavenPomsTest {
 
   private val sampleRepo = File(AndroidTestBase.getTestDataPath(), toSystemDependentName(PSD_SAMPLE_REPO))
 

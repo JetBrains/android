@@ -15,53 +15,63 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.psTestWithProject
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Tests for [PsModuleType].
  */
-class PsModuleTypeTest : DependencyTestCase() {
+@RunsInEdt
+class PsModuleTypeTest {
 
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+
+  @Test
   fun testProjectTypeDetection() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
-
-    Truth.assertThat(moduleWithSyncedModel(project, "app").projectType).isEqualTo(PsModuleType.ANDROID_APP)
-    Truth.assertThat(moduleWithSyncedModel(project, "lib").projectType).isEqualTo(PsModuleType.ANDROID_LIBRARY)
-    Truth.assertThat(moduleWithSyncedModel(project, "jav").projectType).isEqualTo(PsModuleType.JAVA)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    projectRule.psTestWithProject(preparedProject, resolveModels = false) {
+      Truth.assertThat(moduleWithSyncedModel(project, "app").projectType).isEqualTo(PsModuleType.ANDROID_APP)
+      Truth.assertThat(moduleWithSyncedModel(project, "lib").projectType).isEqualTo(PsModuleType.ANDROID_LIBRARY)
+      Truth.assertThat(moduleWithSyncedModel(project, "jav").projectType).isEqualTo(PsModuleType.JAVA)
+    }
   }
 
+  @Test
   fun testFallbackProjectTypeDetection() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
-
-    Truth.assertThat(moduleWithoutSyncedModel(project, "app").projectType).isEqualTo(PsModuleType.ANDROID_APP)
-    Truth.assertThat(moduleWithoutSyncedModel(project, "lib").projectType).isEqualTo(PsModuleType.ANDROID_LIBRARY)
-    Truth.assertThat(moduleWithoutSyncedModel(project, "jav").projectType).isEqualTo(PsModuleType.JAVA)
-    Truth.assertThat(moduleWithoutSyncedModel(project, "app").parsedModel?.parsedModelModuleType()).isEqualTo(PsModuleType.ANDROID_APP)
-    Truth.assertThat(moduleWithoutSyncedModel(project, "lib").parsedModel?.parsedModelModuleType()).isEqualTo(PsModuleType.ANDROID_LIBRARY)
-    Truth.assertThat(moduleWithoutSyncedModel(project, "jav").parsedModel?.parsedModelModuleType()).isEqualTo(PsModuleType.JAVA)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    projectRule.psTestWithProject(preparedProject, resolveModels = false) {
+      Truth.assertThat(moduleWithoutSyncedModel(project, "app").projectType).isEqualTo(PsModuleType.ANDROID_APP)
+      Truth.assertThat(moduleWithoutSyncedModel(project, "lib").projectType).isEqualTo(PsModuleType.ANDROID_LIBRARY)
+      Truth.assertThat(moduleWithoutSyncedModel(project, "jav").projectType).isEqualTo(PsModuleType.JAVA)
+      Truth.assertThat(moduleWithoutSyncedModel(project, "app").parsedModel?.parsedModelModuleType()).isEqualTo(PsModuleType.ANDROID_APP)
+      Truth.assertThat(moduleWithoutSyncedModel(project, "lib").parsedModel?.parsedModelModuleType())
+        .isEqualTo(PsModuleType.ANDROID_LIBRARY)
+      Truth.assertThat(moduleWithoutSyncedModel(project, "jav").parsedModel?.parsedModelModuleType()).isEqualTo(PsModuleType.JAVA)
+    }
   }
 
+  @Test
   fun testPluginsDsl() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_PLUGINS_DSL)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION_PLUGINS_DSL)
+    projectRule.psTestWithProject(preparedProject, resolveModels = false) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
-
-    // parsedModelModuleType() should return UNKNOWN on the root module, which means that it should not feature in the module collection,
-    // so only the app module should be present.
-    Truth.assertThat(project.modules.size).isEqualTo(1)
-    Truth.assertThat(moduleWithSyncedModel(project, "app").projectType).isEqualTo(PsModuleType.ANDROID_APP)
-    Truth.assertThat(moduleWithoutSyncedModel(project, "app").projectType).isEqualTo(PsModuleType.ANDROID_APP)
+      // parsedModelModuleType() should return UNKNOWN on the root module, which means that it should not feature in the module collection,
+      // so only the app module should be present.
+      Truth.assertThat(project.modules.size).isEqualTo(1)
+      Truth.assertThat(moduleWithSyncedModel(project, "app").projectType).isEqualTo(PsModuleType.ANDROID_APP)
+      Truth.assertThat(moduleWithoutSyncedModel(project, "app").projectType).isEqualTo(PsModuleType.ANDROID_APP)
+    }
   }
 }
 

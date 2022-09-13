@@ -15,51 +15,42 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.buildvariants
 
-import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.configurables.PsContextImpl
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.ProductFlavorsConfigurable
 import com.android.tools.idea.gradle.structure.configurables.createTreeModel
 import com.android.tools.idea.gradle.structure.configurables.ui.testStructure
-import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.gradle.structure.model.android.psTestWithContext
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
+import org.junit.Test
 
-class AndroidModuleBuildVariantsConfigurableTest : DependencyTestCase() {
+@RunsInEdt
+class AndroidModuleBuildVariantsConfigurableTest {
 
-  private lateinit var resolvedProject: Project
-  private lateinit var project: PsProject
-  private lateinit var context: PsContext
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
-  override fun setUp() {
-    super.setUp()
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
-    reparse()
-  }
-
-  private fun reparse() {
-    resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
-    this.project = project
-    context = PsContextImpl(project, testRootDisposable, disableAnalysis = true, disableResolveModels = true)
-      .also { Disposer.register(testRootDisposable, it) }
-  }
-
+  @Test
   fun testProductFlavorsTreeStructure() {
-    val module = project.findModuleByName("app") as PsAndroidModule
-    module.addNewFlavorDimension("foo")
-    module.addNewProductFlavor("foo", "foo1")
-    module.addNewProductFlavor("foo", "foo2")
-    module.addNewProductFlavor("bar", "bar1")
-    val treeModel = createTreeModel(ProductFlavorsConfigurable(module, context).also { Disposer.register(context, it) })
-    val node = treeModel.rootNode
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithContext(preparedProject, disableAnalysis = true, resolveModels = false) {
+      val module = project.findModuleByName("app") as PsAndroidModule
+      module.addNewFlavorDimension("foo")
+      module.addNewProductFlavor("foo", "foo1")
+      module.addNewProductFlavor("foo", "foo2")
+      module.addNewProductFlavor("bar", "bar1")
+      val treeModel = createTreeModel(ProductFlavorsConfigurable(module, context).also { Disposer.register(context, it) })
+      val node = treeModel.rootNode
 
-    // Note: indentation matters!
-    val expectedStructure = """
+      // Note: indentation matters!
+      val expectedStructure = """
       Flavor Dimensions
           dim1
               paid
@@ -69,8 +60,9 @@ class AndroidModuleBuildVariantsConfigurableTest : DependencyTestCase() {
               foo2
           (invalid)
               bar1""".trimIndent()
-    val treeStructure = node.testStructure()
-    // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
-    Truth.assertThat(treeStructure.toString()).isEqualTo(expectedStructure)
+      val treeStructure = node.testStructure()
+      // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
+      Truth.assertThat(treeStructure.toString()).isEqualTo(expectedStructure)
+    }
   }
 }

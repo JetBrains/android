@@ -15,43 +15,42 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview
 
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.testStructure
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
-import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.gradle.structure.model.testResolve
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.gradle.structure.model.android.PsTestProject
+import com.android.tools.idea.gradle.structure.model.android.psTestWithProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
-import com.intellij.openapi.project.Project
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
+import org.junit.Test
 import java.util.function.Consumer
 
-class TargetModulesTreeStructureTest: DependencyTestCase() {
-  private lateinit var resolvedProject: Project
-  private lateinit var project: PsProject
+@RunsInEdt
+class TargetModulesTreeStructureTest {
 
-  override fun setUp() {
-    super.setUp()
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
-    reparse()
-  }
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
-  private fun reparse() {
-    resolvedProject = myFixture.project
-    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-  }
-
+  @Test
   fun testTreeStructure() {
-    val targetModulesTreeStructure = TargetModulesTreeStructure(PsUISettings())
-    val node = targetModulesTreeStructure.rootElement as AbstractPsNode
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
 
-    targetModulesTreeStructure.displayTargetModules(findModelsForSelection("com.example.libs", "lib1"))
+      val targetModulesTreeStructure = TargetModulesTreeStructure(PsUISettings())
+      val node = targetModulesTreeStructure.rootElement as AbstractPsNode
 
-    // Note: indentation matters!
-    var expectedProjectStructure = """
+      targetModulesTreeStructure.displayTargetModules(findModelsForSelection("com.example.libs", "lib1"))
+
+      // Note: indentation matters!
+      var expectedProjectStructure = """
       (null)
           mainModule
               freeDebug
@@ -81,15 +80,15 @@ class TargetModulesTreeStructureTest: DependencyTestCase() {
               debug (androidTest)
               debug (test)
               release (test)""".trimIndent()
-    var treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
-    // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
-    Truth.assertThat(treeStructure.toString()).isEqualTo(expectedProjectStructure)
+      var treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
+      // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
+      Truth.assertThat(treeStructure.toString()).isEqualTo(expectedProjectStructure)
 
-    targetModulesTreeStructure.displayTargetModules(findModelsForSelection("com.example.libs", "lib2"))
+      targetModulesTreeStructure.displayTargetModules(findModelsForSelection("com.example.libs", "lib2"))
 
-    // Note: indentation matters!
-    // TODO(b/84996111): Tests artifact chains should also end with a declared dependency.
-    expectedProjectStructure = """
+      // Note: indentation matters!
+      // TODO(b/84996111): Tests artifact chains should also end with a declared dependency.
+      expectedProjectStructure = """
       (null)
           mainModule
               freeDebug
@@ -134,12 +133,12 @@ class TargetModulesTreeStructureTest: DependencyTestCase() {
                   (via) lib1:0.9.1 (com.example.libs)
               release (test)
                   (via) lib1:0.9.1 (com.example.libs)""".trimIndent()
-    treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
-    // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
-    Truth.assertThat(treeStructure.toString()).isEqualTo(expectedProjectStructure)
+      treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
+      // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
+      Truth.assertThat(treeStructure.toString()).isEqualTo(expectedProjectStructure)
 
-    targetModulesTreeStructure.displayTargetModules(findModelsForSelection("com.example.jlib", "lib4"))
-    expectedProjectStructure = """
+      targetModulesTreeStructure.displayTargetModules(findModelsForSelection("com.example.jlib", "lib4"))
+      expectedProjectStructure = """
       (null)
           mainModule
               freeDebug
@@ -216,12 +215,13 @@ class TargetModulesTreeStructureTest: DependencyTestCase() {
                   (via) lib3:1.0 (com.example.jlib)
                       (via) lib2:0.9.1 (com.example.libs)
                           (via) lib1:0.9.1 (com.example.libs)""".trimIndent()
-    treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
-    // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
-    Truth.assertThat(treeStructure.toString()).isEqualTo(expectedProjectStructure)
+      treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
+      // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
+      Truth.assertThat(treeStructure.toString()).isEqualTo(expectedProjectStructure)
+    }
   }
 
-  private fun findModelsForSelection(groupId: String, name: String): List<List<PsAndroidDependency>> {
+  private fun PsTestProject.findModelsForSelection(groupId: String, name: String): List<List<PsAndroidDependency>> {
     val nodeModels = mutableListOf<PsAndroidDependency>()
 
     // Simulate all-modules dependencies view single node selection.

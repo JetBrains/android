@@ -15,40 +15,36 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview
 
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.testStructure
-import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.gradle.structure.model.testResolve
-import com.android.tools.idea.testing.TestProjectPaths
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.gradle.structure.model.android.psTestWithProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
+import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
+import org.junit.Rule
+import org.junit.Test
 
+@RunsInEdt
+class ResolvedDependenciesTreeRootNodeTest {
 
-class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
-  private lateinit var resolvedProject: Project
-  private lateinit var project: PsProject
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
-  override fun setUp() {
-    super.setUp()
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
-    reparse()
-  }
-
-  private fun reparse() {
-    resolvedProject = myFixture.project
-    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-  }
-
+  @Test
   fun testTreeStructure() {
-    val appModule = project.findModuleByGradlePath(":app") as PsAndroidModule
-    val node = ResolvedDependenciesTreeRootNode(appModule, PsUISettings())
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
+      val appModule = project.findModuleByGradlePath(":app") as PsAndroidModule
+      val node = ResolvedDependenciesTreeRootNode(appModule, PsUISettings())
 
-    // Note: indentation matters!
-    val expectedProjectStructure = """
+      // Note: indentation matters!
+      val expectedProjectStructure = """
     app
         freeDebug
             mainModule
@@ -126,19 +122,23 @@ class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
                         lib2:1.0 (com.example.libs)
                             lib3:1.0 (com.example.jlib)
                                 lib4:1.0 (com.example.jlib)""".trimIndent()
-    val treeStructure = node.testStructure { !it.name.startsWith("appcompat-v7") }
-    // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
-    assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
+      val treeStructure = node.testStructure { !it.name.startsWith("appcompat-v7") }
+      // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
+      assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
+    }
   }
 
+  @Test
   fun testTreeStructure_javaModule() {
-    val module = project.findModuleByGradlePath(":jModuleZ")!!
-    val node = ResolvedDependenciesTreeRootNode(module, PsUISettings())
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
+      val module = project.findModuleByGradlePath(":jModuleZ")!!
+      val node = ResolvedDependenciesTreeRootNode(module, PsUISettings())
 
-    // Note: indentation matters!
-    val expectedProjectStructure = """
+      // Note: indentation matters!
+      val expectedProjectStructure = """
     jModuleZ
-        testTreeStructure_javaModulejModuleZ
+        projectjModuleZ
             jModuleK
                 jModuleL
                     lib3:1.0 (com.example.jlib)
@@ -155,8 +155,9 @@ class ResolvedDependenciesTreeRootNodeTest : DependencyTestCase() {
             lib4:0.6 (com.example.jlib)
             libsam1-1.1.jar (../lib)
             libsam2-1.1.jar (../lib)""".trimIndent()
-    val treeStructure = node.testStructure { !it.name.startsWith("appcompat-v7") }
-    // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
-    assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
+      val treeStructure = node.testStructure { !it.name.startsWith("appcompat-v7") }
+      // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
+      assertThat(treeStructure.toString(), equalTo(expectedProjectStructure))
+    }
   }
 }

@@ -15,47 +15,55 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.configurables.ui.TestTree
 import com.android.tools.idea.gradle.structure.configurables.ui.testStructure
-import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.gradle.structure.model.android.psTestWithContext
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
+import org.junit.Test
 
-class ModulesPerspectiveConfigurableTest : DependencyTestCase() {
+@RunsInEdt
+class ModulesPerspectiveConfigurableTest  {
 
-  private lateinit var resolvedProject: Project
-  private lateinit var project: PsProject
-  private lateinit var context: PsContext
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
+  @Test
   fun testModulesTreeWithBasicSingleModuleProject() {
-    val testStructure = getModulesTreeStructureFromConfigurableForProject(TestProjectPaths.BASIC)
+    val testStructure = getModulesTreeStructureFromConfigurableForProject(AndroidCoreTestProject.BASIC)
     // Note: indentation matters!
     val expectedStructure = """
       root
-          ${projectFolderPath.name}
+          project
       """.trimIndent()
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Truth.assertThat(testStructure.toString()).isEqualTo(expectedStructure)
   }
 
+  @Test
   fun testModulesTreeWhenPluginInTheRootWithSubmodules() {
-    val testStructure = getModulesTreeStructureFromConfigurableForProject(TestProjectPaths.NESTED_MODULE)
+    val testStructure = getModulesTreeStructureFromConfigurableForProject(AndroidCoreTestProject.NESTED_MODULE)
     // Note: indentation matters!
     val expectedStructure = """
       root
-          ${projectFolderPath.name}
+          project
               app
       """.trimIndent()
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Truth.assertThat(testStructure.toString()).isEqualTo(expectedStructure)
   }
 
+  @Test
   fun testModulesTreeWhenPluginInSubmodulesOnly() {
-    val testStructure = getModulesTreeStructureFromConfigurableForProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    val testStructure = getModulesTreeStructureFromConfigurableForProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     // Note: indentation matters!
     val expectedStructure = """
       root
@@ -74,23 +82,16 @@ class ModulesPerspectiveConfigurableTest : DependencyTestCase() {
     Truth.assertThat(testStructure.toString()).isEqualTo(expectedStructure)
   }
 
-  private fun reparse() {
-    resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject)
-    this.project = project
-    context = PsContextImpl(project, testRootDisposable, disableAnalysis = true, disableResolveModels = true)
-      .also { Disposer.register(testRootDisposable, it) }
-  }
+  private fun getModulesTreeStructureFromConfigurableForProject(testProject: TestProjectDefinition): TestTree {
+    val preparedProject = projectRule.prepareTestProject(testProject)
+    return projectRule.psTestWithContext(preparedProject, disableAnalysis = true, resolveModels = false) {
 
-  private fun getModulesTreeStructureFromConfigurableForProject(relativePath: String): TestTree {
-    loadProject(relativePath)
-    reparse()
+      val configurable = ModulesPerspectiveConfigurable(context).also {
+        Disposer.register(context, it)
+        it.reset()
+      }
 
-    val configurable = ModulesPerspectiveConfigurable(context).also {
-      Disposer.register(context, it)
-      it.reset()
+      (configurable.tree.model as ConfigurablesTreeModel).rootNode.testStructure()
     }
-
-    return (configurable.tree.model as ConfigurablesTreeModel).rootNode.testStructure()
   }
 }

@@ -15,28 +15,36 @@
  */
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.configurables.PsPathRenderer
 import com.android.tools.idea.gradle.structure.model.PsPath
-import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefaultConfigDescriptors
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.android.moduleWithSyncedModel
 import com.android.tools.idea.gradle.structure.model.android.moduleWithoutSyncedModel
+import com.android.tools.idea.gradle.structure.model.android.psTestWithProject
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.parents
-import com.android.tools.idea.gradle.structure.model.testResolve
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.util.SystemInfoRt
+import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
-import org.hamcrest.CoreMatchers.nullValue
 import org.junit.Assert.assertThat
 import org.junit.Assume.assumeThat
+import org.junit.Rule
+import org.junit.Test
 
-class PsAndroidModuleVariantsAnalyzerTest : DependencyTestCase() {
+@RunsInEdt
+class PsAndroidModuleVariantsAnalyzerTest {
+
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
   private val pathRenderer = object : PsPathRenderer {
     override fun PsPath.renderNavigation(specificPlace: PsPath): String {
@@ -49,313 +57,333 @@ class PsAndroidModuleVariantsAnalyzerTest : DependencyTestCase() {
     }
   }
 
+  @Test
   fun testNoIssues() {
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      val appModule = moduleWithoutSyncedModel(project, "app")
+      assumeThat(appModule, notNullValue())
 
-    val appModule = moduleWithoutSyncedModel(project, "app")
-    assumeThat(appModule, notNullValue())
-
-    val result = analyzeModuleDependencies(appModule, pathRenderer).toList()
-    assertThat(result, equalTo(emptyList()))
+      val result = analyzeModuleDependencies(appModule, pathRenderer).toList()
+      assertThat(result, equalTo(emptyList()))
+    }
   }
 
+  @Test
   fun testNoMatchingBuildTypeInTarget() {
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      val appModule = moduleWithoutSyncedModel(project, "app")
+      assumeThat(appModule, notNullValue())
 
-    val appModule = moduleWithoutSyncedModel(project, "app")
-    assumeThat(appModule, notNullValue())
+      val mainModule = moduleWithoutSyncedModel(project, "mainModule")
+      assumeThat(mainModule, notNullValue())
 
-    val mainModule = moduleWithoutSyncedModel(project, "mainModule")
-    assumeThat(mainModule, notNullValue())
+      appModule.addNewBuildType("newBuildType")
 
-    appModule.addNewBuildType("newBuildType")
-
-    val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
-    assertThat(result, equalTo(listOf(
-      "ERROR: No build type in module '<:mainModule> [./Build Variants/Build Types]' " +
-      "matches build type '<:app/Build Variants/Build Types/newBuildType> [.]'."
-    )))
+      val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
+      assertThat(
+        result, equalTo(
+          listOf(
+            "ERROR: No build type in module '<:mainModule> [./Build Variants/Build Types]' " +
+              "matches build type '<:app/Build Variants/Build Types/newBuildType> [.]'."
+          )
+        )
+      )
+    }
   }
 
+  @Test
   fun testReleaseAndDebugBuildTypeMatchesUndeclaredBeforeModelsAreFetched() {
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject, resolveModels = false) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject) // Do NOT resolve models.
+      val appModule = moduleWithSyncedModel(project, "app")
+      assumeThat(appModule, notNullValue())
+      assumeThat(appModule.findBuildType("debug"), notNullValue())
+      assumeThat(appModule.findBuildType("release"), notNullValue())
 
-    val appModule = moduleWithSyncedModel(project, "app")
-    assumeThat(appModule, notNullValue())
-    assumeThat(appModule.findBuildType("debug"), notNullValue())
-    assumeThat(appModule.findBuildType("release"), notNullValue())
+      val mainModule = moduleWithSyncedModel(project, "mainModule")
+      assumeThat(mainModule, notNullValue())
+      assumeThat(mainModule.findBuildType("debug"), notNullValue())
+      assumeThat(mainModule.findBuildType("release"), notNullValue())
 
-    val mainModule = moduleWithSyncedModel(project, "mainModule")
-    assumeThat(mainModule, notNullValue())
-    assumeThat(mainModule.findBuildType("debug"), notNullValue())
-    assumeThat(mainModule.findBuildType("release"), notNullValue())
+      mainModule.findBuildType("release")!!.debuggable = false.asParsed()  // Ensure explicitly declared.
+      mainModule.findBuildType("debug")!!.debuggable = true.asParsed()  // Ensure explicitly declared.
 
-    mainModule.findBuildType("release")!!.debuggable = false.asParsed()  // Ensure explicitly declared.
-    mainModule.findBuildType("debug")!!.debuggable = true.asParsed()  // Ensure explicitly declared.
-
-    val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
-    assertThat(result, equalTo(listOf()))
+      val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
+      assertThat(result, equalTo(listOf()))
+    }
   }
 
+  @Test
   fun testReleaseAndDebugBuildTypeMatchesUndeclaredAfterModelsAreFetched() {
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject, resolveModels = false) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() } // DO fetch models.
+      val appModule = moduleWithSyncedModel(project, "app")
+      assumeThat(appModule, notNullValue())
+      assumeThat(appModule.findBuildType("debug")?.isDeclared, equalTo(true))
+      assumeThat(appModule.findBuildType("release")?.isDeclared, equalTo(true))
 
-    val appModule = moduleWithSyncedModel(project, "app")
-    assumeThat(appModule, notNullValue())
-    assumeThat(appModule.findBuildType("debug")?.isDeclared, equalTo(true))
-    assumeThat(appModule.findBuildType("release")?.isDeclared, equalTo(true))
+      val mainModule = moduleWithSyncedModel(project, "mainModule")
+      assumeThat(mainModule, notNullValue())
+      assumeThat(mainModule.findBuildType("debug")?.isDeclared, equalTo(true))
+      assumeThat(mainModule.findBuildType("release")?.isDeclared, equalTo(true))
 
-    val mainModule = moduleWithSyncedModel(project, "mainModule")
-    assumeThat(mainModule, notNullValue())
-    assumeThat(mainModule.findBuildType("debug")?.isDeclared, equalTo(true))
-    assumeThat(mainModule.findBuildType("release")?.isDeclared, equalTo(true))
+      val releaseBuildType = appModule.findBuildType("release")!!
+      releaseBuildType.debuggable = false.asParsed()  // Declare in config.
+      val debugBuildType = appModule.findBuildType("debug")!!
+      debugBuildType.debuggable = true.asParsed()  // Declare in config.
 
-    val releaseBuildType = appModule.findBuildType("release")!!
-    releaseBuildType.debuggable = false.asParsed()  // Declare in config.
-    val debugBuildType = appModule.findBuildType("debug")!!
-    debugBuildType.debuggable = true.asParsed()  // Declare in config.
-
-    val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
-    assertThat(result, equalTo(listOf()))
+      val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
+      assertThat(result, equalTo(listOf()))
+    }
   }
 
+  @Test
   fun testNoMatchingBuildTypeInTargetButFallback() {
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      val appModule = moduleWithoutSyncedModel(project, "app")
+      assumeThat(appModule, notNullValue())
 
-    val appModule = moduleWithoutSyncedModel(project, "app")
-    assumeThat(appModule, notNullValue())
+      val mainModule = moduleWithoutSyncedModel(project, "mainModule")
+      assumeThat(mainModule, notNullValue())
 
-    val mainModule = moduleWithoutSyncedModel(project, "mainModule")
-    assumeThat(mainModule, notNullValue())
+      val newBuildType = appModule.addNewBuildType("newBuildType")
+      PsBuildType.BuildTypeDescriptors
+        .matchingFallbacks.bind(newBuildType)
+        .addItem(0).setParsedValue("debug".asParsed())
 
-    val newBuildType = appModule.addNewBuildType("newBuildType")
-    PsBuildType.BuildTypeDescriptors
-      .matchingFallbacks.bind(newBuildType)
-      .addItem(0).setParsedValue("debug".asParsed())
-
-    val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
-    assertThat(result, equalTo(emptyList()))
+      val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
+      assertThat(result, equalTo(emptyList()))
+    }
   }
 
+  @Test
   fun testDebugBuildTypeAlwaysMatches() {
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      val appModule = moduleWithoutSyncedModel(project, "app")
+      assumeThat(appModule, notNullValue())
 
-    val appModule = moduleWithoutSyncedModel(project, "app")
-    assumeThat(appModule, notNullValue())
+      val mainModule = moduleWithoutSyncedModel(project, "mainModule")
+      assumeThat(mainModule, notNullValue())
 
-    val mainModule = moduleWithoutSyncedModel(project, "mainModule")
-    assumeThat(mainModule, notNullValue())
+      assumeThat(appModule.findBuildType("debug"), notNullValue())
 
-    assumeThat(appModule.findBuildType("debug"), notNullValue())
-
-    val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
-    assertThat(result, equalTo(emptyList()))
+      val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
+      assertThat(result, equalTo(emptyList()))
+    }
   }
 
+  @Test
   fun testNoMatchingDimensionInTarget() {
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      val appModule = moduleWithoutSyncedModel(project, "app")
+      assumeThat(appModule, notNullValue())
 
-    val appModule = moduleWithoutSyncedModel(project, "app")
-    assumeThat(appModule, notNullValue())
+      val mainModule = moduleWithoutSyncedModel(project, "mainModule")
+      assumeThat(mainModule, notNullValue())
 
-    val mainModule = moduleWithoutSyncedModel(project, "mainModule")
-    assumeThat(mainModule, notNullValue())
+      appModule.addNewFlavorDimension("foo")
+      appModule.addNewProductFlavor("foo", "newProductFlavor")
 
-    appModule.addNewFlavorDimension("foo")
-    appModule.addNewProductFlavor("foo", "newProductFlavor")
-
-    val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
-    assertThat(result, equalTo(emptyList()))
+      val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
+      assertThat(result, equalTo(emptyList()))
+    }
   }
 
+  @Test
   fun testNotMatchingProductFlavorInTarget() {
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      val appModule = moduleWithoutSyncedModel(project, "app")
+      assumeThat(appModule, notNullValue())
 
-    val appModule = moduleWithoutSyncedModel(project, "app")
-    assumeThat(appModule, notNullValue())
+      val mainModule = moduleWithoutSyncedModel(project, "mainModule")
+      assumeThat(mainModule, notNullValue())
 
-    val mainModule = moduleWithoutSyncedModel(project, "mainModule")
-    assumeThat(mainModule, notNullValue())
+      appModule.addNewFlavorDimension("foo")
+      appModule.addNewProductFlavor("foo", "newProductFlavor")
+      mainModule.addNewFlavorDimension("foo")
 
-    appModule.addNewFlavorDimension("foo")
-    appModule.addNewProductFlavor("foo", "newProductFlavor")
-    mainModule.addNewFlavorDimension("foo")
-
-    val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
-    assertThat(result, equalTo(listOf(
-      "ERROR: No product flavor in module '<:mainModule> [./Build Variants/Product Flavors]' " +
-      "matches product flavor '<:app/Build Variants/Product Flavors/newProductFlavor> [.]' " +
-      "in dimension '<:app/Build Variants/Product Flavors/foo> [.]'."
-    )))
+      val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
+      assertThat(
+        result, equalTo(
+          listOf(
+            "ERROR: No product flavor in module '<:mainModule> [./Build Variants/Product Flavors]' " +
+              "matches product flavor '<:app/Build Variants/Product Flavors/newProductFlavor> [.]' " +
+              "in dimension '<:app/Build Variants/Product Flavors/foo> [.]'."
+          )
+        )
+      )
+    }
   }
 
+  @Test
   fun testNotMatchingProductFlavorInTargetButFallback() {
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      val appModule = moduleWithoutSyncedModel(project, "app")
+      assumeThat(appModule, notNullValue())
 
-    val appModule = moduleWithoutSyncedModel(project, "app")
-    assumeThat(appModule, notNullValue())
+      val mainModule = moduleWithoutSyncedModel(project, "mainModule")
+      assumeThat(mainModule, notNullValue())
 
-    val mainModule = moduleWithoutSyncedModel(project, "mainModule")
-    assumeThat(mainModule, notNullValue())
+      appModule.addNewFlavorDimension("foo")
+      val newProductFlavor = appModule.addNewProductFlavor("foo", "newProductFlavor")
+      mainModule.addNewFlavorDimension("foo")
+      mainModule.addNewProductFlavor("foo", "fallback")
+      PsProductFlavor.ProductFlavorDescriptors
+        .matchingFallbacks.bind(newProductFlavor)
+        .addItem(0)
+        .setParsedValue("fallback".asParsed())
 
-    appModule.addNewFlavorDimension("foo")
-    val newProductFlavor = appModule.addNewProductFlavor("foo", "newProductFlavor")
-    mainModule.addNewFlavorDimension("foo")
-    mainModule.addNewProductFlavor("foo", "fallback")
-    PsProductFlavor.ProductFlavorDescriptors
-      .matchingFallbacks.bind(newProductFlavor)
-      .addItem(0)
-      .setParsedValue("fallback".asParsed())
-
-    val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
-    assertThat(result, equalTo(emptyList()))
+      val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
+      assertThat(result, equalTo(emptyList()))
+    }
   }
 
+  @Test
   fun testNoMatchingDimensionInSourceAndSingleFlavorInTarget() {
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      val appModule = moduleWithoutSyncedModel(project, "app")
+      assumeThat(appModule, notNullValue())
 
-    val appModule = moduleWithoutSyncedModel(project, "app")
-    assumeThat(appModule, notNullValue())
+      val mainModule = moduleWithoutSyncedModel(project, "mainModule")
+      assumeThat(mainModule, notNullValue())
 
-    val mainModule = moduleWithoutSyncedModel(project, "mainModule")
-    assumeThat(mainModule, notNullValue())
+      mainModule.addNewFlavorDimension("foo")
+      mainModule.addNewProductFlavor("foo", "newProductFlavor")
 
-    mainModule.addNewFlavorDimension("foo")
-    mainModule.addNewProductFlavor("foo", "newProductFlavor")
-
-    val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
-    assertThat(result, equalTo(emptyList()))
+      val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
+      assertThat(result, equalTo(emptyList()))
+    }
   }
 
+  @Test
   fun testNoMatchingDimensionInSourceAndMultipleFlavorsInTarget() {
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      val appModule = moduleWithoutSyncedModel(project, "app")
+      assumeThat(appModule, notNullValue())
 
-    val appModule = moduleWithoutSyncedModel(project, "app")
-    assumeThat(appModule, notNullValue())
+      val mainModule = moduleWithoutSyncedModel(project, "mainModule")
+      assumeThat(mainModule, notNullValue())
 
-    val mainModule = moduleWithoutSyncedModel(project, "mainModule")
-    assumeThat(mainModule, notNullValue())
+      mainModule.addNewFlavorDimension("foo")
+      mainModule.addNewProductFlavor("foo", "newProductFlavor")
+      mainModule.addNewProductFlavor("foo", "anotherNewProductFlavor")
 
-    mainModule.addNewFlavorDimension("foo")
-    mainModule.addNewProductFlavor("foo", "newProductFlavor")
-    mainModule.addNewProductFlavor("foo", "anotherNewProductFlavor")
-
-    val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
-    assertThat(result, equalTo(listOf(
-      "ERROR: No flavor dimension in module '<:app> [./Build Variants/Product Flavors]' " +
-      "matches dimension '<:mainModule/Build Variants/Product Flavors/foo> [.]' " +
-      "from module <:mainModule> [./Build Variants/Product Flavors] " +
-      "on which module '<:app> [./Dependencies/mainModule]' depends."
-    )))
+      val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
+      assertThat(
+        result, equalTo(
+          listOf(
+            "ERROR: No flavor dimension in module '<:app> [./Build Variants/Product Flavors]' " +
+              "matches dimension '<:mainModule/Build Variants/Product Flavors/foo> [.]' " +
+              "from module <:mainModule> [./Build Variants/Product Flavors] " +
+              "on which module '<:app> [./Dependencies/mainModule]' depends."
+          )
+        )
+      )
+    }
   }
 
+  @Test
   fun testNoMatchingDimensionInSourceAndMultipleFlavorsInTargetButMissingDimensionStrategy() {
     if (SystemInfoRt.isWindows) return  // b/149874781
 
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      val appModule = moduleWithoutSyncedModel(project, "app")
+      assumeThat(appModule, notNullValue())
+      // TOdO(b/79563663): Edit missingDimensionStrategy via Ps-* properties when implemented.
+      PsAndroidModuleDefaultConfigDescriptors.getParsed(appModule.defaultConfig)
+        ?.addMissingDimensionStrategy("foo", "newProductFlavor")
 
-    val appModule = moduleWithoutSyncedModel(project, "app")
-    assumeThat(appModule, notNullValue())
-    // TOdO(b/79563663): Edit missingDimensionStrategy via Ps-* properties when implemented.
-    PsAndroidModuleDefaultConfigDescriptors.getParsed(appModule.defaultConfig)
-      ?.addMissingDimensionStrategy("foo", "newProductFlavor")
+      val mainModule = moduleWithoutSyncedModel(project, "mainModule")
+      assumeThat(mainModule, notNullValue())
 
-    val mainModule = moduleWithoutSyncedModel(project, "mainModule")
-    assumeThat(mainModule, notNullValue())
+      mainModule.addNewFlavorDimension("foo")
+      mainModule.addNewProductFlavor("foo", "newProductFlavor")
+      mainModule.addNewProductFlavor("foo", "anotherNewProductFlavor")
 
-    mainModule.addNewFlavorDimension("foo")
-    mainModule.addNewProductFlavor("foo", "newProductFlavor")
-    mainModule.addNewProductFlavor("foo", "anotherNewProductFlavor")
-
-    val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
-    assertThat(result, equalTo(emptyList()))
+      val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
+      assertThat(result, equalTo(emptyList()))
+    }
   }
 
+  @Test
   fun testNoFlavorDimensionWithOneDimension() {
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      val appModule = moduleWithoutSyncedModel(project, "app")
+      assumeThat(appModule, notNullValue())
 
-    val appModule = moduleWithoutSyncedModel(project, "app")
-    assumeThat(appModule, notNullValue())
+      assumeThat(appModule.flavorDimensions.size, equalTo(1))
+      appModule.addNewProductFlavor("foo", "newProductFlavor").configuredDimension = ParsedValue.NotSet
 
-    assumeThat(appModule.flavorDimensions.size, equalTo(1))
-    appModule.addNewProductFlavor("foo", "newProductFlavor").configuredDimension = ParsedValue.NotSet
-
-    val result = analyzeProductFlavors(appModule, pathRenderer).map { it.toString() }.toList()
-    assertThat(result, equalTo(emptyList()))
+      val result = analyzeProductFlavors(appModule, pathRenderer).map { it.toString() }.toList()
+      assertThat(result, equalTo(emptyList()))
+    }
   }
 
+  @Test
   fun testNoFlavorDimensionWithMultipleDimensions() {
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      val appModule = moduleWithoutSyncedModel(project, "app")
+      assumeThat(appModule, notNullValue())
 
-    val appModule = moduleWithoutSyncedModel(project, "app")
-    assumeThat(appModule, notNullValue())
+      assumeThat(appModule.flavorDimensions.size, equalTo(1))
+      appModule.addNewFlavorDimension("dim2")
+      appModule.addNewProductFlavor("foo", "newProductFlavor").configuredDimension = ParsedValue.NotSet
 
-    assumeThat(appModule.flavorDimensions.size, equalTo(1))
-    appModule.addNewFlavorDimension("dim2")
-    appModule.addNewProductFlavor("foo", "newProductFlavor").configuredDimension = ParsedValue.NotSet
-
-    val result = analyzeProductFlavors(appModule, pathRenderer).map { it.toString() }.toList()
-    assertThat(result, equalTo(listOf(
-      "ERROR: Flavor '<:app/Build Variants/Product Flavors/newProductFlavor> [.]' has no flavor dimension."
-    )))
+      val result = analyzeProductFlavors(appModule, pathRenderer).map { it.toString() }.toList()
+      assertThat(
+        result, equalTo(
+          listOf(
+            "ERROR: Flavor '<:app/Build Variants/Product Flavors/newProductFlavor> [.]' has no flavor dimension."
+          )
+        )
+      )
+    }
   }
 
+  @Test
   fun testUnknownFlavorDimension() {
-    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      val appModule = moduleWithoutSyncedModel(project, "app")
+      assumeThat(appModule, notNullValue())
 
-    val appModule = moduleWithoutSyncedModel(project, "app")
-    assumeThat(appModule, notNullValue())
+      appModule.addNewProductFlavor("foo", "newProductFlavor")
 
-    appModule.addNewProductFlavor("foo", "newProductFlavor")
-
-    val result = analyzeProductFlavors(appModule, pathRenderer).map { it.toString() }.toList()
-    assertThat(result, equalTo(listOf(
-      "ERROR: Flavor '<:app/Build Variants/Product Flavors/newProductFlavor> [.]' has unknown dimension 'foo'."
-    )))
+      val result = analyzeProductFlavors(appModule, pathRenderer).map { it.toString() }.toList()
+      assertThat(
+        result, equalTo(
+          listOf(
+            "ERROR: Flavor '<:app/Build Variants/Product Flavors/newProductFlavor> [.]' has unknown dimension 'foo'."
+          )
+        )
+      )
+    }
   }
 }
