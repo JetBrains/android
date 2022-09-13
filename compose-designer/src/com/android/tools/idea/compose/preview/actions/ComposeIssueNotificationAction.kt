@@ -17,10 +17,14 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.flags.ifEnabled
 import com.android.tools.adtui.InformationPopup
+import com.android.tools.adtui.common.ColoredIconGenerator
+import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
+import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
@@ -34,15 +38,29 @@ import com.android.tools.idea.preview.actions.ShowProblemsPanel
 import com.android.tools.idea.preview.actions.actionLink
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.requestBuild
+import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
+import com.intellij.ui.JBColor
+import com.intellij.util.ui.JBUI
 import java.lang.ref.WeakReference
 import org.jetbrains.annotations.VisibleForTesting
+
+private val GREEN_REFRESH_BUTTON =
+  ColoredIconGenerator.generateColoredIcon(
+    AllIcons.Actions.ForceRefresh,
+    JBColor(0x59A869, 0x499C54)
+  )
 
 /**
  * Utility getter that indicates if the project needs a build. This is the case if the previews
@@ -181,18 +199,61 @@ class ComposeIssueNotificationAction(
 ) : IssueNotificationAction(::getStatusInfo, createInformationPopup)
 
 /**
- * [ForceCompileAndRefreshAction] where the visibility is controlled by the
- * [PreviewStatusNotification.hasRefreshIcon].
+ * [AnAction] that triggers a compilation of the current module. The build will automatically
+ * trigger a refresh of the surface. The action visibility is controlled by the
+ * [PreviewStatusNotification.hasRefreshIcon]
  */
-private class ForceCompileAndRefreshActionForNotification(surface: DesignSurface<*>) :
-  ForceCompileAndRefreshAction(surface), RightAlignedToolbarAction {
+private class ForceCompileAndRefreshActionForNotification(private val surface: DesignSurface<*>) :
+  AnAction(
+    message("action.build.and.refresh.title"),
+    message("action.build.and.refresh.description"),
+    GREEN_REFRESH_BUTTON
+  ),
+  RightAlignedToolbarAction,
+  CustomComponentAction {
+
+  override fun actionPerformed(e: AnActionEvent) {
+    // Each ComposePreviewManager will avoid refreshing the corresponding previews if it detects
+    // that nothing has changed. But we want to always force a refresh when this button is pressed
+    findComposePreviewManagersForContext(e.dataContext).forEach { composePreviewManager ->
+      composePreviewManager.invalidateSavedBuildStatus()
+    }
+    if (!requestBuildForSurface(surface)) {
+      // If there are no models in the surface, we can not infer which models we should trigger
+      // the build for. The fallback is to find the virtual file for the editor and trigger that.
+      LangDataKeys.VIRTUAL_FILE.getData(e.dataContext)?.let { surface.project.requestBuild(it) }
+    }
+  }
+
   override fun update(e: AnActionEvent) {
-    super.update(e)
+    val presentation = e.presentation
+    if (e.project?.let { FastPreviewManager.getInstance(it) }?.isEnabled == true) {
+      presentation.isEnabledAndVisible = false
+      return
+    }
+    val isRefreshing =
+      findComposePreviewManagersForContext(e.dataContext).any { it.status().isRefreshing }
+    presentation.isEnabled = !isRefreshing
+    templateText?.let {
+      presentation.setText("$it${getBuildAndRefreshShortcut().asString()}", false)
+    }
 
     val project = e.project ?: return
-
     getStatusInfo(project, e.dataContext)?.let { e.presentation.isVisible = it.hasRefreshIcon }
   }
+
+  override fun createCustomComponent(presentation: Presentation, place: String) =
+    ActionButtonWithToolTipDescription(this, presentation, place).apply {
+      border = JBUI.Borders.empty(1, 2)
+    }
+
+  private fun requestBuildForSurface(surface: DesignSurface<*>) =
+    surface
+      .models
+      .map { it.virtualFile }
+      .distinct()
+      .also { surface.project.requestBuild(it) }
+      .isNotEmpty()
 }
 
 /**

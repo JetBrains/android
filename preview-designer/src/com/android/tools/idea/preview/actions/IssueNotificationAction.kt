@@ -206,7 +206,7 @@ class ReEnableFastPreview(private val allowAutoDisable: Boolean = true) : AnActi
 }
 
 /**
- * [AnAction] that re-enable the Fast Preview if disabled.
+ * [AnAction] that requests a build of the file returned by [fileProvider] and its dependencies.
  */
 class BuildAndRefresh(private val fileProvider: () -> PsiFile?) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
