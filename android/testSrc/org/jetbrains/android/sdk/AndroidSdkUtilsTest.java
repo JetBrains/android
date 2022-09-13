@@ -15,8 +15,10 @@
  */
 package org.jetbrains.android.sdk;
 
+import static com.android.SdkConstants.FN_ADB;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static org.mockito.Mockito.when;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
@@ -34,11 +36,14 @@ import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.util.EnvironmentUtil;
 import java.io.File;
 import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 /**
  * Tests for {@link AndroidSdkUtils}.
@@ -124,6 +129,17 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
 
     assertThat(AndroidSdkUtils.getAdb(myProject))
         .isEqualTo(new File(IdeSdks.getInstance().getAndroidSdkPath(), AndroidBuildCommonUtils.platformToolPath(SdkConstants.FN_ADB)));
+  }
+
+  public void testGetAdbInPath() throws Exception {
+    assertWithMessage("Precondition: project with no android facets")
+        .that(ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)).isFalse();
+    try (MockedStatic<EnvironmentUtil> mockEnvironment = Mockito.mockStatic(EnvironmentUtil.class)) {
+      String separator = System.getProperty("path.separator");
+      File fakeAdb = createTempFile(FN_ADB, "");
+      when(EnvironmentUtil.getValue("PATH")).thenReturn("foo" + separator + fakeAdb.getParent() + separator + "bar");
+      assertThat(AndroidSdkUtils.findAdb(myProject).adbPath).isEqualTo(fakeAdb);
+    }
   }
 
   private static void createAndroidSdk(@NotNull File androidHomePath, @NotNull String targetHashString, @NotNull Sdk javaSdk) {
