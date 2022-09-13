@@ -158,6 +158,10 @@ class TemplateTest {
     "New Folder Location" to location
   )
 
+  private fun withNewPackage(packageName: String):TemplateStateCustomizer = mapOf(
+    "Package name" to packageName
+  )
+
   //--- Activity templates ---
   @TemplateCheck
   @Test
@@ -255,6 +259,22 @@ class TemplateTest {
   @Test
   fun testNewFullscreenActivityWithKotlin() {
     checkCreateTemplate("Fullscreen Activity", withKotlin, avoidModifiedModuleName = true)
+  }
+
+  @TemplateCheck
+  @Test
+  fun testNewFullscreenActivity_activityNotInRootPackage() {
+    checkCreateTemplate("Fullscreen Activity", templateStateCustomizer = withNewPackage("com.mycompany.myapp.subpackage"))
+  }
+
+  @TemplateCheck
+  @Test
+  fun testNewFullscreenActivityWithKotlin_activityNotInRootPackage() {
+    checkCreateTemplate(
+      "Fullscreen Activity",
+      withKotlin,
+      avoidModifiedModuleName = true,
+      templateStateCustomizer = withNewPackage("com.mycompany.myapp.subpackage"))
   }
 
   @TemplateCheck
