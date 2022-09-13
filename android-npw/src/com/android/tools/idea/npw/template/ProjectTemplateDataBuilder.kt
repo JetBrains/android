@@ -39,8 +39,6 @@ private val log: Logger get() = logger<ProjectTemplateDataBuilder>()
  * Extracts information from various data sources.
  */
 
-const val FALLBACK_KOTLIN_VERSION = "1.4.31"
-
 class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var androidXSupport: Boolean? = null
   var gradlePluginVersion: GradleVersion? = null
@@ -67,9 +65,8 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   }
 
   private fun getBestKotlinVersion() : String {
-    // From IdeaKotlinVersionProviderService.getKotlinVersionFromCompiler().
-    val bundledVersion = KotlinPluginLayout.instance.standaloneCompilerVersion
-    return if (bundledVersion.isSnapshot) FALLBACK_KOTLIN_VERSION else bundledVersion.artifactVersion
+    // See IdeaKotlinVersionProviderService.getKotlinVersionFromCompiler().
+    return KotlinPluginLayout.instance.standaloneCompilerVersion.artifactVersion
   }
 
   /**
