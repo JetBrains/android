@@ -40,7 +40,7 @@
           <text resource-bundle="messages/AndroidAdbUiBundle" key="screenrecord.options.resolution"/>
         </properties>
       </component>
-      <component id="2a448" class="com.intellij.ui.components.JBLabel">
+      <component id="2a448" class="com.intellij.ui.components.JBLabel" binding="myRecordingLengthLabel">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>

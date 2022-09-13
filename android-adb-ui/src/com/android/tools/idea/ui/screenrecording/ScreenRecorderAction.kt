@@ -49,6 +49,8 @@ private const val REMOTE_PATH = "/sdcard/screen-recording-%d.mp4"
 private val WM_SIZE_OUTPUT_REGEX = Regex("(?<width>\\d+)x(?<height>\\d+)")
 private const val EMU_TMP_FILENAME = "tmp.webm"
 private val COMMAND_TIMEOUT = Duration.ofSeconds(2)
+private const val MAX_RECORDING_DURATION_MINUTES = 30 // Android 14+.
+private const val MAX_RECORDING_DURATION_MINUTES_LEGACY = 3
 
 /**
  * A [DumbAwareAction] that records the screen.
@@ -78,7 +80,10 @@ class ScreenRecorderAction : DumbAwareAction(
     val params = event.getData(SCREEN_RECORDER_PARAMETERS_KEY) ?: return
     val project = event.project ?: return
     val serialNumber = params.serialNumber
-    val dialog = ScreenRecorderOptionsDialog(project, serialNumber.isEmulator())
+    // TODO: Remove the !serialNumber.isEmulator() condition when b/246620847 is fixed.
+    val maxRecordingDurationMin =
+        if (params.apiLevel >= 34 && !serialNumber.isEmulator()) MAX_RECORDING_DURATION_MINUTES else MAX_RECORDING_DURATION_MINUTES_LEGACY
+    val dialog = ScreenRecorderOptionsDialog(project, serialNumber.isEmulator(), maxRecordingDurationMin)
     if (dialog.showAndGet()) {
       startRecordingAsync(params, dialog.useEmulatorRecording, project)
     }
@@ -105,7 +110,9 @@ class ScreenRecorderAction : DumbAwareAction(
     coroutineScope.launch(exceptionHandler) {
       val showTouchEnabled = isShowTouchEnabled(adbSession, serialNumber)
       val size = getDeviceScreenSize(adbSession, serialNumber)
-      val options: ScreenRecorderOptions = ScreenRecorderPersistentOptions.getInstance().toScreenRecorderOptions(size)
+      // TODO: Remove the !serialNumber.isEmulator() condition when b/246620847 is fixed.
+      val timeLimitSec = if (params.apiLevel >= 34 && !serialNumber.isEmulator()) MAX_RECORDING_DURATION_MINUTES * 60 else 0
+      val options: ScreenRecorderOptions = ScreenRecorderPersistentOptions.getInstance().toScreenRecorderOptions(size, timeLimitSec)
       if (options.showTouches != showTouchEnabled) {
         setShowTouch(adbSession, serialNumber, options.showTouches)
       }

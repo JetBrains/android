@@ -62,8 +62,8 @@ internal class EmulatorConsoleRecordingProvider(
   }
 
   companion object {
-    // Note that this is very similar to ShellCommandRecordingProvider getScreenRecordCommand() but there is guarantee that the args will be the
-    // same in the future so best to keep separate versions
+    // Note that this is very similar to ShellCommandRecordingProvider.getScreenRecordCommand, but there
+    // is no guarantee that the args will be the same in the future so best to keep separate versions.
     @VisibleForTesting
     internal fun getRecorderOptions(options: ScreenRecorderOptions): Array<String> {
       val args = mutableListOf<String>()
@@ -74,6 +74,10 @@ internal class EmulatorConsoleRecordingProvider(
       if (options.bitrateMbps > 0) {
         args.add("--bit-rate")
         args.add((options.bitrateMbps * 1000000).toString())
+      }
+      if (options.timeLimitSec != 0) {
+        args.add("--time-limit")
+        args.add(options.timeLimitSec.toString())
       }
       return args.toTypedArray()
     }

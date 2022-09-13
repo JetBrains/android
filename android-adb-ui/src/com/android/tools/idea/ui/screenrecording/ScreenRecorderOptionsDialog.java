@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.ui.components.JBLabel;
 import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -48,10 +49,12 @@ class ScreenRecorderOptionsDialog extends DialogWrapper {
   @VisibleForTesting JCheckBox myShowTouchCheckBox;
   private JCheckBox myEmulatorRecordingCheckBox;
   private JComboBox<Integer> myResolutionPercentComboBox;
+  private JBLabel myRecordingLengthLabel;
 
-  public ScreenRecorderOptionsDialog(@NotNull Project project, boolean isEmulator) {
+  public ScreenRecorderOptionsDialog(@NotNull Project project, boolean isEmulator, int maxRecordingDurationMin) {
     super(project, true);
 
+    myRecordingLengthLabel.setText(AndroidAdbUiBundle.message("screenrecord.options.info", maxRecordingDurationMin));
     myResolutionPercentComboBox.setModel(myComboBoxModel);
 
     ScreenRecorderPersistentOptions options = ScreenRecorderPersistentOptions.getInstance();

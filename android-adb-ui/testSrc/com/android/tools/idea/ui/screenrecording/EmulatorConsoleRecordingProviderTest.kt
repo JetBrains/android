@@ -19,12 +19,12 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 /**
- * Tests for [EmulatorConsoleRecordingProvider]
+ * Tests for [EmulatorConsoleRecordingProvider].
  */
 class EmulatorConsoleRecordingProviderTest {
   @Test
   fun getRecorderOptions() {
-    val options = ScreenRecorderOptions(width = 600, height = 400, bitrateMbps = 6, showTouches = true)
+    val options = ScreenRecorderOptions(width = 600, height = 400, bitrateMbps = 6, showTouches = true, timeLimitSec = 300)
 
     val args = EmulatorConsoleRecordingProvider.getRecorderOptions(options)
 
@@ -32,7 +32,23 @@ class EmulatorConsoleRecordingProviderTest {
       "--size",
       "600x400",
       "--bit-rate",
-      "6000000"
+      "6000000",
+      "--time-limit",
+      "300",
+    ).inOrder()
+  }
+
+  @Test
+  fun getRecorderOptionsDefaultTimeLimit() {
+    val options = ScreenRecorderOptions(width = 600, height = 400, bitrateMbps = 6, showTouches = true, timeLimitSec = 0)
+
+    val args = EmulatorConsoleRecordingProvider.getRecorderOptions(options)
+
+    assertThat(args).asList().containsExactly(
+      "--size",
+      "600x400",
+      "--bit-rate",
+      "6000000",
     ).inOrder()
   }
 }

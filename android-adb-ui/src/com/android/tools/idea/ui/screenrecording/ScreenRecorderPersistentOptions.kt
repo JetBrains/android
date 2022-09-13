@@ -28,8 +28,6 @@ private const val DEFAULT_RESOLUTION_PERCENT = 100
 
 /**
  * A [PersistentStateComponent] of [ScreenRecorderOptionsDialog]
- *
- * Copied from com.android.tools.idea.ddms.screenrecord.ScreenRecorderPersistentOptions
  */
 @State(name = "ScreenRecorderOptions", storages = [Storage("screenRecorderOptions.xml")])
 internal class ScreenRecorderPersistentOptions : PersistentStateComponent<ScreenRecorderPersistentOptions> {
@@ -51,7 +49,7 @@ internal class ScreenRecorderPersistentOptions : PersistentStateComponent<Screen
     XmlSerializerUtil.copyBean(state, this)
   }
 
-  fun toScreenRecorderOptions(size: Dimension?): ScreenRecorderOptions {
+  fun toScreenRecorderOptions(size: Dimension?, timeLimitSec: Int): ScreenRecorderOptions {
     val width: Int
     val height: Int
     if (size != null && resolutionPercent != 100) {
@@ -64,11 +62,7 @@ internal class ScreenRecorderPersistentOptions : PersistentStateComponent<Screen
       height = 0
     }
 
-    return ScreenRecorderOptions(
-      width,
-      height,
-      bitRateMbps,
-      showTaps)
+    return ScreenRecorderOptions(width, height, bitRateMbps, showTaps, timeLimitSec)
   }
 }
 

@@ -74,25 +74,27 @@ internal class ShellCommandRecordingProvider(
   }
 
   companion object {
-    // Note that this is very similar to EmulatorConsoleRecordingProvider getRecorderOptions() but there is guarantee that the args will be the
-    // same in the future so best to keep separate versions
+    // Note that this is very similar to EmulatorConsoleRecordingProvider.getRecorderOptions, but there
+    // is no guarantee that the args will be the same in the future so best to keep separate versions.
     @VisibleForTesting
     internal fun getScreenRecordCommand(options: ScreenRecorderOptions, path: String): String {
       val sb = StringBuilder()
       sb.append("screenrecord")
-      sb.append(' ')
       if (options.width > 0 && options.height > 0) {
-        sb.append("--size ")
+        sb.append(" --size ")
         sb.append(options.width)
         sb.append('x')
         sb.append(options.height)
-        sb.append(' ')
       }
       if (options.bitrateMbps > 0) {
-        sb.append("--bit-rate ")
+        sb.append(" --bit-rate ")
         sb.append(options.bitrateMbps * 1000000)
-        sb.append(' ')
       }
+      if (options.timeLimitSec != 0) {
+        sb.append(" --time-limit ")
+        sb.append(options.timeLimitSec)
+      }
+      sb.append(' ')
       sb.append(path)
       return sb.toString()
     }
