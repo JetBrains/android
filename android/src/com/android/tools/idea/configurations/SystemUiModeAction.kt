@@ -39,7 +39,6 @@ import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBValue
-import com.intellij.util.ui.LafIconLookup.getDisabledIcon
 import com.intellij.util.ui.LafIconLookup.getIcon
 import com.intellij.util.ui.LafIconLookup.getSelectedIcon
 import icons.StudioIcons
@@ -53,10 +52,10 @@ import javax.swing.AbstractAction
 import javax.swing.BorderFactory
 import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.JMenu
 import javax.swing.JMenuItem
 import javax.swing.JPopupMenu
 import javax.swing.SwingConstants
+import javax.swing.plaf.basic.BasicMenuItemUI
 
 private const val POPUP_VERTICAL_BORDER = 6
 private const val TITLE_VERTICAL_BORDER = 2
@@ -215,6 +214,10 @@ private class ActionItem(action: AnAction, dataContext: DataContext) : JBMenuIte
     return super.getIcon()
   }
 
+  override fun updateUI() {
+    setUI(ItemUI())
+  }
+
   private fun shouldConvertIconToDarkVariant(): Boolean {
     return JBColor.isBright() && ColorUtil.isDark(JBColor.namedColor("MenuItem.background", 0xffffff))
   }
@@ -225,6 +228,32 @@ private class TitleItem(title: String) : JBMenuItem(title) {
     isEnabled = false
     horizontalTextPosition = SwingConstants.LEFT
     border = BorderFactory.createEmptyBorder(TITLE_VERTICAL_BORDER, sideBorderWidth.get(), TITLE_VERTICAL_BORDER, sideBorderWidth.get())
+  }
+
+  override fun updateUI() {
+    setUI(ItemUI())
+  }
+}
+
+private class WallpaperItem(action: AbstractAction, isSelected: Boolean) : JMenuItem(action) {
+  init {
+    iconTextGap = 0
+    horizontalAlignment = SwingConstants.LEFT
+    preferredSize = Dimension(ICON_SIZE + 2, ICON_SIZE + 2)
+    if (isSelected) {
+      border = RoundedLineBorder(selectionBackground, 2, 2)
+    }
+  }
+
+  override fun updateUI() {
+    setUI(ItemUI())
+  }
+}
+
+private class ItemUI : BasicMenuItemUI() {
+  init {
+    // This needs to be a non-null icon of size 0 for UI on macOS to match the other platforms
+    checkIcon = EmptyIcon.ICON_0
   }
 }
 
@@ -243,15 +272,7 @@ private class SetWallpaperAction(renderContext: ConfigurationHolder, val wallpap
         this@SetWallpaperAction.actionPerformed(actionEvent)
       }
     }
-    val menuItem = JMenuItem(action).apply {
-      iconTextGap = 0
-      horizontalAlignment = SwingConstants.LEFT
-      preferredSize = Dimension(ICON_SIZE + 2, ICON_SIZE + 2)
-      if (isSelected) {
-        border = RoundedLineBorder(selectionBackground, 2, 2)
-      }
-    }
-    return menuItem
+    return WallpaperItem(action, isSelected)
   }
 }
 
