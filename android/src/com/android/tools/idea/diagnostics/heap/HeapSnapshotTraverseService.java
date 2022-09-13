@@ -51,12 +51,12 @@ public final class HeapSnapshotTraverseService {
   private static final Logger LOG = Logger.getInstance(HeapSnapshotTraverseService.class);
 
   @NotNull
-  private final Alarm myAlarm;
-  private boolean myTriedToLoadAgent = false;
-  private boolean myAgentSuccessfullyLoaded = false;
+  private final Alarm alarm;
+  private boolean triedToLoadAgent = false;
+  private boolean agentSuccessfullyLoaded = false;
 
   HeapSnapshotTraverseService() {
-    myAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication());
+    alarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication());
   }
 
   @NotNull
@@ -65,11 +65,11 @@ public final class HeapSnapshotTraverseService {
   }
 
   void loadObjectTaggingAgent() {
-    if (myTriedToLoadAgent) {
+    if (triedToLoadAgent) {
       return;
     }
 
-    myTriedToLoadAgent = true;
+    triedToLoadAgent = true;
 
     String vmName = ManagementFactory.getRuntimeMXBean().getName();
     String pid = vmName.substring(0, vmName.indexOf('@'));
@@ -82,9 +82,10 @@ public final class HeapSnapshotTraverseService {
         return;
       }
       vm.loadAgentPath(libLocationPath.toString());
-      myAgentSuccessfullyLoaded = true;
+      agentSuccessfullyLoaded = true;
     }
-    catch (AttachNotSupportedException | AgentInitializationException | AgentLoadException | IOException e) {
+    catch (AttachNotSupportedException | AgentInitializationException | AgentLoadException |
+           IOException e) {
       sendAgentLoadFailedReport();
     }
     finally {
@@ -101,7 +102,7 @@ public final class HeapSnapshotTraverseService {
 
   public void collectAndPrintMemoryReport() {
     loadObjectTaggingAgent();
-    if (!myAgentSuccessfullyLoaded) {
+    if (!agentSuccessfullyLoaded) {
       return;
     }
 
@@ -116,7 +117,7 @@ public final class HeapSnapshotTraverseService {
       currentThread.setPriority(Thread.MIN_PRIORITY);
       loadObjectTaggingAgent();
 
-      if (!myAgentSuccessfullyLoaded) {
+      if (!agentSuccessfullyLoaded) {
         return;
       }
 
@@ -131,7 +132,8 @@ public final class HeapSnapshotTraverseService {
   }
 
   public void addMemoryReportCollectionRequest() {
-    myAlarm.addRequest(this::lowerThreadPriorityAndCollectMemoryReport, REPORT_COLLECTION_DELAY_MILLISECONDS);
+    alarm.addRequest(this::lowerThreadPriorityAndCollectMemoryReport,
+                     REPORT_COLLECTION_DELAY_MILLISECONDS);
   }
 
   private static @NotNull String getLibName() {
@@ -163,7 +165,8 @@ public final class HeapSnapshotTraverseService {
 
     if (isRunningFromSources()) {
       // Dev environment.
-      libFile = StudioPathManager.resolvePathFromSourcesRoot(DIAGNOSTICS_HEAP_NATIVE_PATH).resolve(getPlatformName()).resolve(libName);
+      libFile = StudioPathManager.resolvePathFromSourcesRoot(DIAGNOSTICS_HEAP_NATIVE_PATH)
+        .resolve(getPlatformName()).resolve(libName);
       if (Files.exists(libFile)) {
         return libFile;
       }
@@ -175,6 +178,7 @@ public final class HeapSnapshotTraverseService {
     UsageTracker.log(AndroidStudioEvent.newBuilder()
                        .setKind(AndroidStudioEvent.EventKind.MEMORY_USAGE_REPORT_EVENT)
                        .setMemoryUsageReportEvent(MemoryUsageReportEvent.newBuilder().setMetadata(
-                         MemoryUsageReportEvent.MemoryUsageCollectionMetadata.newBuilder().setStatusCode(StatusCode.AGENT_LOAD_FAILED))));
+                         MemoryUsageReportEvent.MemoryUsageCollectionMetadata.newBuilder()
+                           .setStatusCode(StatusCode.AGENT_LOAD_FAILED))));
   }
 }

@@ -18,13 +18,13 @@ package com.android.tools.idea.diagnostics.heap;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
 class HeapSnapshotTraverseException extends Exception {
-  private final StatusCode myStatusCode;
+  private final StatusCode statusCode;
 
   HeapSnapshotTraverseException(StatusCode statusCode) {
-    myStatusCode = statusCode;
+    this.statusCode = statusCode;
   }
 
   StatusCode getStatusCode() {
-    return myStatusCode;
+    return statusCode;
   }
 }

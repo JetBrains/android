@@ -262,11 +262,11 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
     Assert.assertEquals(StatusCode.NO_ERROR,
                         traverse.walkObjects(MAX_DEPTH, List.of(new A())));
-    Assert.assertEquals(stats.myMaxFieldsCacheSize, 7);
-    Assert.assertEquals(stats.myMaxObjectsQueueSize, 2);
-    Assert.assertEquals(stats.myEnumeratedGarbageCollectedObjects, 0);
-    Assert.assertEquals(stats.myUnsuccessfulFieldAccessCounter, 0);
-    Assert.assertEquals(stats.myHeapObjectCount, 3);
+    Assert.assertEquals(stats.maxFieldsCacheSize, 7);
+    Assert.assertEquals(stats.maxObjectsQueueSize, 2);
+    Assert.assertEquals(stats.enumeratedGarbageCollectedObjects, 0);
+    Assert.assertEquals(stats.unsuccessfulFieldAccessCounter, 0);
+    Assert.assertEquals(stats.heapObjectCount, 3);
   }
 
   @Test

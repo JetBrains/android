@@ -29,7 +29,9 @@ public class HeapTraverseUtil {
   static {
     Method shouldBeInitialized;
     try {
-      shouldBeInitialized = ReflectionUtil.getDeclaredMethod(Class.forName("sun.misc.Unsafe"), "shouldBeInitialized", Class.class);
+      shouldBeInitialized =
+        ReflectionUtil.getDeclaredMethod(Class.forName("sun.misc.Unsafe"), "shouldBeInitialized",
+                                         Class.class);
     }
     catch (ClassNotFoundException ignored) {
       shouldBeInitialized = null;

@@ -20,28 +20,28 @@ import java.lang.ref.WeakReference;
 import org.jetbrains.annotations.NotNull;
 
 class HeapTraverseNode {
-  public RefWeight myOwnershipWeight = RefWeight.DEFAULT;
 
-  public long myOwnedByComponentMask = 0;
-  public long myRetainedMask = 0;
-
-  // Retained mask that works in a component categories plane (for comparison: myRetainedMask works in a sub-category plane)
-  public int myRetainedMaskForCategories = 0;
   @NotNull
-  private final WeakReference<?> myWeakReference;
+  private final WeakReference<?> weakReference;
+  public RefWeight ownershipWeight = RefWeight.DEFAULT;
+  public long ownedByComponentMask = 0;
+  public long retainedMask = 0;
+  // Retained mask that works in a component categories plane (for comparison: retainedMask works in
+  // a sub-category plane)
+  public int retainedMaskForCategories = 0;
 
   HeapTraverseNode(@NotNull final Object obj) {
-    myWeakReference = new WeakReference<>(obj);
+    weakReference = new WeakReference<>(obj);
   }
 
   @Nullable
   Object getObject() {
-    return myWeakReference.get();
+    return weakReference.get();
   }
 
   public enum RefWeight {
     DEFAULT,
-    // Weight that is assigned to reference from objects not owned by any components to child objects
+    // Weight that is assigned to reference from objects not owned by any components to child object
     NON_COMPONENT,
     // Weight that is assigned to reference from synthetic objects to child objects
     SYNTHETIC,
@@ -51,7 +51,8 @@ class HeapTraverseNode {
     INSTANCE_FIELD,
     // Weight that is assigned to reference from class object to static fields objects
     STATIC_FIELD,
-    // Weight that is assigned to reference from Disposable object to it's DisposerTree child Disposables
+    // Weight that is assigned to reference from Disposable object to it's DisposerTree child
+    // Disposables
     DISPOSER_TREE_REFERENCE
   }
 }

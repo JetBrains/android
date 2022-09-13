@@ -28,58 +28,60 @@ import org.jetbrains.annotations.Nullable;
 
 public final class ComponentsSet {
 
-  public static final String MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME = "diagnostics/memory_usage_reporting";
+  public static final String MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME =
+    "diagnostics/memory_usage_reporting";
 
   static final String UNCATEGORIZED_CATEGORY_LABEL = "android:uncategorized";
   static final String UNCATEGORIZED_COMPONENT_LABEL = "main";
 
   @NotNull
-  private final Component myUncategorizedComponent;
+  private final Component uncategorizedComponent;
   @NotNull
-  private final List<Component> myComponents;
+  private final List<Component> components;
   @NotNull
-  private final List<ComponentCategory> myComponentCategories;
+  private final List<ComponentCategory> componentCategories;
   @NotNull
-  private final Map<String, Component> myClassNameToComponent;
+  private final Map<String, Component> classNameToComponent;
   @NotNull
-  private final Map<String, Component> myPackageNameToComponentCache;
+  private final Map<String, Component> packageNameToComponentCache;
 
   ComponentsSet() {
-    myPackageNameToComponentCache = Maps.newHashMap();
-    myClassNameToComponent = Maps.newHashMap();
-    myComponents = Lists.newArrayList();
-    myComponentCategories = Lists.newArrayList();
-    myUncategorizedComponent =
+    packageNameToComponentCache = Maps.newHashMap();
+    classNameToComponent = Maps.newHashMap();
+    components = Lists.newArrayList();
+    componentCategories = Lists.newArrayList();
+    uncategorizedComponent =
       registerComponent(UNCATEGORIZED_COMPONENT_LABEL,
                         registerCategory(UNCATEGORIZED_CATEGORY_LABEL));
   }
 
   @NotNull
   public List<ComponentCategory> getComponentsCategories() {
-    return myComponentCategories;
+    return componentCategories;
   }
 
   @NotNull
   public Component getUncategorizedComponent() {
-    return myUncategorizedComponent;
+    return uncategorizedComponent;
   }
 
   @NotNull
   public List<Component> getComponents() {
-    return myComponents;
+    return components;
   }
 
   @NotNull
   Component registerComponent(@NotNull final String componentLabel,
                               @NotNull final ComponentCategory category) {
-    Component component = new Component(componentLabel, myComponents.size(), category);
-    myComponents.add(component);
+    Component component = new Component(componentLabel, components.size(), category);
+    components.add(component);
     return component;
   }
 
   ComponentCategory registerCategory(@NotNull final String componentCategoryLabel) {
-    ComponentCategory category = new ComponentCategory(componentCategoryLabel, myComponentCategories.size());
-    myComponentCategories.add(category);
+    ComponentCategory category =
+      new ComponentCategory(componentCategoryLabel, componentCategories.size());
+    componentCategories.add(category);
     return category;
   }
 
@@ -90,11 +92,11 @@ public final class ComponentsSet {
     Component newComponent = registerComponent(componentLabel, componentCategory);
 
     for (String name : classNames) {
-      myClassNameToComponent.put(name, newComponent);
+      classNameToComponent.put(name, newComponent);
     }
 
     for (String name : packageNames) {
-      myPackageNameToComponentCache.put(name, newComponent);
+      packageNameToComponentCache.put(name, newComponent);
     }
   }
 
@@ -112,8 +114,8 @@ public final class ComponentsSet {
   private Component getClassComponent(@NotNull final Class<?> aClass) {
     String objClassName = aClass.getName();
 
-    if (myClassNameToComponent.containsKey(objClassName)) {
-      return myClassNameToComponent.get(objClassName);
+    if (classNameToComponent.containsKey(objClassName)) {
+      return classNameToComponent.get(objClassName);
     }
     String packageName = aClass.getPackageName();
 
@@ -121,16 +123,16 @@ public final class ComponentsSet {
     String packageNamePrefix = packageName;
     do {
       packageNamePrefix = packageNamePrefix.substring(0, lastDot);
-      if (myPackageNameToComponentCache.containsKey(packageNamePrefix)) {
-        Component ans = myPackageNameToComponentCache.get(packageNamePrefix);
-        myPackageNameToComponentCache.put(packageName, ans);
+      if (packageNameToComponentCache.containsKey(packageNamePrefix)) {
+        Component ans = packageNameToComponentCache.get(packageNamePrefix);
+        packageNameToComponentCache.put(packageName, ans);
         return ans;
       }
       lastDot = packageNamePrefix.lastIndexOf('.');
     }
     while (lastDot > 0);
 
-    myPackageNameToComponentCache.put(packageName, null);
+    packageNameToComponentCache.put(packageName, null);
     return null;
   }
 
@@ -140,12 +142,14 @@ public final class ComponentsSet {
 
     MemoryUsageReportConfiguration
       memoryUsageReportConfiguration = ServerFlagService.Companion.getInstance()
-      .getProto(MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME, MemoryUsageReportConfiguration.getDefaultInstance());
+      .getProto(MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME,
+                MemoryUsageReportConfiguration.getDefaultInstance());
 
     for (MemoryUsageComponentCategory protoCategory : memoryUsageReportConfiguration.getCategoriesList()) {
       ComponentCategory category = components.registerCategory(protoCategory.getLabel());
       for (MemoryUsageComponent component : protoCategory.getComponentsList()) {
-        components.addComponentWithPackagesAndClassNames(component.getLabel(), category, component.getPackageNamesList(),
+        components.addComponentWithPackagesAndClassNames(component.getLabel(), category,
+                                                         component.getPackageNamesList(),
                                                          component.getClassNamesList());
       }
     }
@@ -154,53 +158,53 @@ public final class ComponentsSet {
   }
 
   public static final class Component {
-    private final int myId;
+    private final int id;
     @NotNull
-    private final String myComponentLabel;
+    private final String componentLabel;
 
     @NotNull
-    private final ComponentCategory myComponentCategory;
+    private final ComponentCategory componentCategory;
 
     private Component(@NotNull final String componentLabel,
                       int id, @NotNull final ComponentCategory category) {
-      myComponentLabel = componentLabel;
-      myId = id;
-      myComponentCategory = category;
+      this.componentLabel = componentLabel;
+      this.id = id;
+      componentCategory = category;
     }
 
     @NotNull
     public ComponentCategory getComponentCategory() {
-      return myComponentCategory;
+      return componentCategory;
     }
 
     @NotNull
     public String getComponentLabel() {
-      return myComponentLabel;
+      return componentLabel;
     }
 
     public int getId() {
-      return myId;
+      return id;
     }
   }
 
   public static final class ComponentCategory {
-    private final int myId;
+    private final int id;
     @NotNull
-    private final String myLabel;
+    private final String label;
 
     private ComponentCategory(@NotNull final String label,
                               int id) {
-      myLabel = label;
-      myId = id;
+      this.label = label;
+      this.id = id;
     }
 
     @NotNull
     public String getComponentCategoryLabel() {
-      return myLabel;
+      return label;
     }
 
     public int getId() {
-      return myId;
+      return id;
     }
   }
 }

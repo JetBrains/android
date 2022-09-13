@@ -55,15 +55,15 @@ public class HeapTraverseChildProcessor {
    */
   void processChildObjects(@Nullable final Object obj,
                            @NotNull final BiConsumer<Object, HeapTraverseNode.RefWeight> consumer,
-                           @NotNull final FieldCache fieldCache) throws HeapSnapshotTraverseException {
+                           @NotNull final FieldCache fieldCache)
+    throws HeapSnapshotTraverseException {
     if (obj == null) {
       return;
     }
     if (obj == myDisposerTree) {
-      /*
-        We don't traverse the subtree of disposer tree to prevent the situation when DisposerTree (or the component that owns it) will be
-        resolved as an owner of the registered Disposables. DisposerTree doesn't actually "own" them, just manages their lifecycles.
-       */
+      // We don't traverse the subtree of disposer tree to prevent the situation when DisposerTree
+      // (or the component that owns it) will be resolved as an owner of the registered Disposables.
+      // DisposerTree doesn't actually "own" them, just manages their lifecycles.
       return;
     }
     Class<?> nodeClass = obj.getClass();
@@ -89,9 +89,10 @@ public class HeapTraverseChildProcessor {
         consumer.accept(value, HeapTraverseNode.RefWeight.ARRAY_ELEMENT);
       }
     }
-    // We need to check that class is initialized and only in this case traverse child elements of the class. Class object may be reachable
-    // by traversal but not yet initialized if it's stored somewhere in form of class object instance but non of the following events
-    // occurred with the corresponding class:
+    // We need to check that class is initialized and only in this case traverse child elements of
+    // the class. Class object may be reachable by traversal but not yet initialized if it's stored
+    // somewhere in form of class object instance but non of the following events occurred with the
+    // corresponding class:
     // 1) an instance of the class is created,
     // 2) a static method of the class is invoked,
     // 3) a static field of the class is assigned,
@@ -109,8 +110,8 @@ public class HeapTraverseChildProcessor {
       }
     }
 
-    // Check is the object implements Disposable and is registered in a Disposer tree. In that case, we consider that the disposable
-    // object refers to the children from Disposer tree.
+    // Check is the object implements Disposable and is registered in a Disposer tree. In that case,
+    // we consider that the disposable object refers to the children from Disposer tree.
     if (myShouldUseDisposerTreeReferences && obj instanceof Disposable) {
       Object objToNodeMap = getFieldValue(myDisposerTree, "myObject2NodeMap");
       if (!(objToNodeMap instanceof Map)) {
