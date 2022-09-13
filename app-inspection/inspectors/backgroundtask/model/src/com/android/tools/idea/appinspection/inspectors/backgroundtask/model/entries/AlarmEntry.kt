@@ -52,7 +52,10 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
   override val retries = 0
 
   var alarmSet: BackgroundTaskInspectorProtocol.AlarmSet? = null
+    private set
+  val alarmFiredTimestamps = mutableListOf<Long>()
   var latestEvent: BackgroundTaskInspectorProtocol.Event? = null
+    private set
 
   override fun consume(eventWrapper: EventWrapper) {
     latestEvent = eventWrapper.backgroundTaskEvent
@@ -77,6 +80,7 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
       }
       BackgroundTaskEvent.MetadataCase.ALARM_FIRED -> {
         _status = State.FIRED
+        alarmFiredTimestamps.add(latestEvent!!.timestamp)
       }
       else -> throw RuntimeException()
     }

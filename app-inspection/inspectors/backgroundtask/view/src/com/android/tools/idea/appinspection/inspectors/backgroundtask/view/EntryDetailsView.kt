@@ -162,6 +162,11 @@ class EntryDetailsView(
     if (alarmSet.intervalMs > 0) {
       descriptions.add(buildKeyValuePair("Interval time", StringUtil.formatDuration(alarmSet.intervalMs)))
     }
+
+    if (alarmSet.triggerMs > 0) {
+      descriptions.add(buildKeyValuePair("Trigger time", alarmSet.triggerMs, TimeProvider))
+    }
+
     if (alarmSet.windowMs > 0) {
       descriptions.add(buildKeyValuePair("Window time", StringUtil.formatDuration(alarmSet.windowMs)))
     }
@@ -180,7 +185,15 @@ class EntryDetailsView(
     alarm.latestEvent?.let { latestEvent ->
       if (latestEvent.backgroundTaskEvent.hasAlarmFired() || latestEvent.backgroundTaskEvent.hasAlarmCancelled()) {
         val completeTimeMs = latestEvent.timestamp
-        results.add(buildKeyValuePair("Time completed", completeTimeMs, TimeProvider))
+        alarm.alarmFiredTimestamps.forEachIndexed { index, timestamp ->
+          results.add(if (alarmSet.intervalMs > 0)
+                        buildKeyValuePair("Time fired #${index + 1}", timestamp, TimeProvider)
+                      else
+                        buildKeyValuePair("Time fired", timestamp, TimeProvider))
+        }
+        if (alarm.status == AlarmEntry.State.CANCELLED.name) {
+          results.add(buildKeyValuePair("Time cancelled", completeTimeMs, TimeProvider))
+        }
         results.add(buildKeyValuePair("Elapsed time", StringUtil.formatDuration(completeTimeMs - alarm.startTimeMs)))
       }
     }

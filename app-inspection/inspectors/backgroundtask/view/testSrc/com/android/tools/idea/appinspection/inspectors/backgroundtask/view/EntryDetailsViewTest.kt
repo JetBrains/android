@@ -278,8 +278,8 @@ class EntryDetailsViewTest {
 
     withContext(uiDispatcher) {
       val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
-      val timeCompletedComponent = resultsPanel.getValueComponent("Time completed") as JLabel
-      assertThat(timeCompletedComponent.text).isEqualTo(10000L.toFormattedTimeString())
+      val timeCancelledComponent = resultsPanel.getValueComponent("Time fired #1") as JLabel
+      assertThat(timeCancelledComponent.text).isEqualTo(10000L.toFormattedTimeString())
       val elapsedTimeComponent = resultsPanel.getValueComponent("Elapsed time") as JLabel
       assertThat(elapsedTimeComponent.text).isEqualTo("10 s")
     }
@@ -291,7 +291,7 @@ class EntryDetailsViewTest {
       taskId = 1
       alarmSetBuilder.apply {
         type = BackgroundTaskInspectorProtocol.AlarmSet.Type.RTC
-        intervalMs = 5000
+        triggerMs = 10000
         listenerBuilder.apply {
           tag = "tag"
         }
@@ -306,8 +306,8 @@ class EntryDetailsViewTest {
       val descriptionPanel = detailsView.getCategoryPanel("Description") as JPanel
       val typeComponent = descriptionPanel.getValueComponent("Type") as JLabel
       assertThat(typeComponent.text).isEqualTo(alarmSet.type.name)
-      val intervalComponent = descriptionPanel.getValueComponent("Interval time") as JLabel
-      assertThat(intervalComponent.text).isEqualTo("5 s")
+      val triggerComponent = descriptionPanel.getValueComponent("Trigger time") as JLabel
+      assertThat(triggerComponent.text).isEqualTo(10000L.toFormattedTimeString())
       val creatorComponent = descriptionPanel.getValueComponent("Listener tag") as JLabel
       assertThat(creatorComponent.text).isEqualTo("tag")
 
@@ -331,8 +331,8 @@ class EntryDetailsViewTest {
 
     withContext(uiDispatcher) {
       val resultsPanel = detailsView.getCategoryPanel("Results") as JPanel
-      val timeCompletedComponent = resultsPanel.getValueComponent("Time completed") as JLabel
-      assertThat(timeCompletedComponent.text).isEqualTo(10000L.toFormattedTimeString())
+      val timeFiredComponent = resultsPanel.getValueComponent("Time fired") as JLabel
+      assertThat(timeFiredComponent.text).isEqualTo(10000L.toFormattedTimeString())
       val elapsedTimeComponent = resultsPanel.getValueComponent("Elapsed time") as JLabel
       assertThat(elapsedTimeComponent.text).isEqualTo("10 s")
     }
