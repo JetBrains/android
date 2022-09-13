@@ -178,7 +178,7 @@ internal class FakePopupChooserBuilder<T>(
     TODO("Not yet implemented")
   }
 
-  override fun setAdvertiser(advertiser: JComponent): IPopupChooserBuilder<T> {
+  override fun setAdvertiser(advertiser: JComponent?): IPopupChooserBuilder<T> {
     TODO("Not yet implemented")
   }
 
