@@ -22,14 +22,21 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.project.sync.internal.dumpAllVariantsSyncAndroidModuleModel
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.android.tools.idea.testing.SnapshotComparisonTest
-import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
-import org.junit.Before
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestName
 import java.io.File
 
 /**
@@ -40,25 +47,28 @@ import java.io.File
  *
  * For instructions on how to update the snapshot files see [SnapshotComparisonTest].
  */
-class AllVariantsSyncWithGradleSyncExecutorTest : GradleSyncIntegrationTestCase(), SnapshotComparisonTest {
-  private var mySyncExecutor: GradleSyncExecutor? = null
+@RunsInEdt
+class AllVariantsSyncWithGradleSyncExecutorTest : SnapshotComparisonTest {
+
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+
+  @get:Rule
+  val testName: TestName = TestName()
 
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/IdeModels_AllVariantsSync"
 
-  @kotlin.jvm.Throws(Exception::class)
-  @Before
-  override fun setUp() {
-    super.setUp()
-    mySyncExecutor = GradleSyncExecutor(project)
-  }
+  override fun getName(): String = testName.methodName
 
   @Test
   fun testAllVariantSyncWithV1() {
     StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
     try {
       // Load the project and run Sync (SVS in this case).
-      loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-      runSvsAndAvsSyncAndVerifyFetchedVariants()
+      val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+      preparedProject.open { project ->
+        runSvsAndAvsSyncAndVerifyFetchedVariants(project, 12)
+      }
     } finally {
       StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
     }
@@ -67,22 +77,34 @@ class AllVariantsSyncWithGradleSyncExecutorTest : GradleSyncIntegrationTestCase(
   @Test
   fun testAllVariantSyncWithV2() {
     // Load the project and run Sync (SVS in this case).
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    runSvsAndAvsSyncAndVerifyFetchedVariants()
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    preparedProject.open { project ->
+      runSvsAndAvsSyncAndVerifyFetchedVariants(project, 12)
+    }
   }
 
-  private fun runSvsAndAvsSyncAndVerifyFetchedVariants() {
+  @Test
+  fun testAllVariantWithBuildSrc() {
+    // Load the project and run Sync (SVS in this case).
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.APP_WITH_BUILDSRC)
+    preparedProject.open { project ->
+      runSvsAndAvsSyncAndVerifyFetchedVariants(project, 2)
+    }
+  }
+
+  private fun runSvsAndAvsSyncAndVerifyFetchedVariants(project: Project, variantsExpectedInModule0: Int) {
+    val syncExecutor = GradleSyncExecutor(project)
     val appModule = project.findAppModule()
     val svsAndroidModel = GradleAndroidModel.get(appModule)
     // Since we ran a SVS Sync, we should only have one fetched variant.
     Truth.assertThat(svsAndroidModel!!.variants.size).isEqualTo(1)
 
     // Run AllVariantsSync using the GradleSyncExecutor.
-    val gradleModules = mySyncExecutor!!.fetchGradleModels()
+    val gradleModules = syncExecutor.fetchGradleModels()
     val allVariantsSyncAndroidModel = gradleModules.modules[0].findModel(GradleAndroidModelData::class.java)
     Truth.assertThat(allVariantsSyncAndroidModel).isNotNull()
     // Assert that we fetched all the variants of the module in this case.
-    Truth.assertThat(allVariantsSyncAndroidModel!!.variants.size).isEqualTo(12)
+    Truth.assertThat(allVariantsSyncAndroidModel!!.variants.size).isEqualTo(variantsExpectedInModule0)
     // Dump the GradleAndroidModel.
     val dumper = ProjectDumper(
       additionalRoots = mapOf("ROOT" to File(project.basePath!!)),

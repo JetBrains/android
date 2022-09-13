@@ -8,7 +8,7 @@ CompileTarget                 : android-<SDK_VERSION>
 BuildFolder                   : <ROOT>/app/build [-]
 buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
 IsBaseSplit                   : true
-GroupId                       : testAllVariantSyncWithV1
+GroupId                       : project
 Namespace                     : com.example.projectwithappandlib.app
 TestNamespace                 : com.example.projectwithappandlib.app.test
 AaptOptions
