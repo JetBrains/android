@@ -18,12 +18,19 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.avdmanager.EmulatorAdvFeatures;
+import com.android.tools.idea.devicemanager.DeviceManagerFutures;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.jetbrains.annotations.NotNull;
 
 final class Emulator {
-  boolean supportsColdBooting() {
+  @NotNull ListenableFuture<@NotNull Boolean> supportsColdBootingAsync() {
+    return DeviceManagerFutures.appExecutorServiceSubmit(Emulator::supportsColdBooting);
+  }
+
+  private static boolean supportsColdBooting() {
     AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     ProgressIndicator indicator = new StudioLoggerProgressIndicator(Emulator.class);
 

@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.AvdOptionsModel;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.MenuItems;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
@@ -35,7 +36,7 @@ import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.Executor;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu.Separator;
@@ -70,7 +71,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
 
     items.add(newDuplicateItem());
     items.add(new WipeDataItem(this));
-    newColdBootNowItem().ifPresent(items::add);
+    items.add(newColdBootNowItem());
     items.add(newShowOnDiskItem());
     items.add(MenuItems.newViewDetailsItem(myPanel));
     items.add(new Separator());
@@ -102,13 +103,13 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
     return item;
   }
 
-  private @NotNull Optional<@NotNull JComponent> newColdBootNowItem() {
-    if (!myEmulator.supportsColdBooting()) {
-      return Optional.empty();
-    }
-
+  private @NotNull JComponent newColdBootNowItem() {
     AbstractButton item = new JBMenuItem("Cold Boot Now");
+
+    item.setEnabled(false);
     item.setToolTipText("Force one cold boot");
+
+    Executor executor = EdtExecutorService.getInstance();
 
     item.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
@@ -120,10 +121,14 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
 
       Futures.addCallback(AvdManagerConnection.getDefaultAvdManagerConnection().startAvdWithColdBoot(project, getDevice().getAvdInfo()),
                           new ShowErrorDialogFutureCallback(project),
-                          EdtExecutorService.getInstance());
+                          executor);
     });
 
-    return Optional.of(item);
+    Futures.addCallback(myEmulator.supportsColdBootingAsync(),
+                        new DeviceManagerFutureCallback<>(VirtualDevicePopUpMenuButtonTableCellEditor.class, item::setEnabled),
+                        executor);
+
+    return item;
   }
 
   private static final class ShowErrorDialogFutureCallback implements FutureCallback<Object> {
