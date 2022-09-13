@@ -17,11 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestCaseName
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestClassName
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.isRootAggregationResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.*
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
@@ -40,7 +36,7 @@ import com.intellij.ui.SideBorder
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.NonOpaquePanel
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.NamedColorUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -176,7 +172,7 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
         add(myChangeOrientationButton)
         add(closeButton)
       }, BorderLayout.EAST)
-      border = SideBorder(UIUtil.getBoundsColor(), SideBorder.BOTTOM)
+      border = SideBorder(NamedColorUtil.getBoundsColor(), SideBorder.BOTTOM)
     }, BorderLayout.NORTH)
     add(myComponentsSplitter, BorderLayout.CENTER)
     minimumSize = Dimension()

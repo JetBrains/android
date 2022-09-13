@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.orderTemplates;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
-
 import com.android.resources.Density;
 import com.android.tools.adtui.common.ProposedFileTreeCellRenderer;
 import com.android.tools.adtui.common.ProposedFileTreeModel;
@@ -39,26 +36,24 @@ import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.ui.UIUtil;
-import java.awt.Image;
+import com.intellij.util.ui.NamedColorUtil;
+import org.jetbrains.android.actions.widgets.SourceSetCellRenderer;
+import org.jetbrains.android.actions.widgets.SourceSetItem;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.tree.DefaultTreeModel;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.tree.DefaultTreeModel;
-import org.jetbrains.android.actions.widgets.SourceSetCellRenderer;
-import org.jetbrains.android.actions.widgets.SourceSetItem;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.orderTemplates;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
 
 /**
  * This step allows the user to select a build variant and provides a preview of the assets that
@@ -103,7 +98,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);
     myOutputPreviewTree.setModel(emptyModel);
     myOutputPreviewTree.setCellRenderer(new ProposedFileTreeCellRenderer());
-    myOutputPreviewTree.setBorder(BorderFactory.createLineBorder(UIUtil.getBoundsColor()));
+    myOutputPreviewTree.setBorder(BorderFactory.createLineBorder(NamedColorUtil.getBoundsColor()));
     // Tell the tree to ask the TreeCellRenderer for an individual height for each cell.
     myOutputPreviewTree.setRowHeight(-1);
     myOutputPreviewTree.getEmptyText().setText("No resource folder defined in project");

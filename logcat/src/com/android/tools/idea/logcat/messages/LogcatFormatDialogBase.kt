@@ -36,26 +36,16 @@ import com.intellij.openapi.util.NlsContexts
 import com.intellij.ui.JBIntSpinner
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.layout.Cell
-import com.intellij.ui.layout.CellBuilder
-import com.intellij.ui.layout.LayoutBuilder
-import com.intellij.ui.layout.applyToComponent
-import com.intellij.ui.layout.enableIf
-import com.intellij.ui.layout.panel
-import com.intellij.ui.layout.selected
+import com.intellij.ui.layout.*
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.NamedColorUtil
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.GridLayout
 import java.awt.event.ItemEvent
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import javax.swing.ComboBoxModel
-import javax.swing.DefaultComboBoxModel
-import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.ListCellRenderer
+import javax.swing.*
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
 import javax.swing.event.ChangeEvent
@@ -291,7 +281,7 @@ internal abstract class LogcatFormatDialogBase(
   private fun LayoutBuilder.footerGroup() {
     row {
       component(sampleEditor.component).applyToComponent {
-        border = JBUI.Borders.customLine(UIUtil.getBoundsColor())
+        border = JBUI.Borders.customLine(NamedColorUtil.getBoundsColor())
       }
     }
   }
