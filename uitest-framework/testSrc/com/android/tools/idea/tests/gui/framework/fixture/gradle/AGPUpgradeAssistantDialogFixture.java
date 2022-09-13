@@ -25,6 +25,7 @@ import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 public class AGPUpgradeAssistantDialogFixture implements ContainerFixture<JDialog> {
@@ -45,11 +46,13 @@ public class AGPUpgradeAssistantDialogFixture implements ContainerFixture<JDialo
     myDialog = dialog;
   }
 
+
   public void clickBeginUpgrade() {
     String buttonName = "Begin Upgrade";
     JButton beginUpgradeButton = robot().finder().find(target(), Matchers.byText(JButton.class, buttonName));
     beginUpgradeButton.isEnabled();
     robot().click(beginUpgradeButton);
+    waitForDialogToDisappear();
   }
 
   public boolean checkAllButtons() {
@@ -66,6 +69,11 @@ public class AGPUpgradeAssistantDialogFixture implements ContainerFixture<JDialo
       return true;
     }
     return false;
+  }
+
+  private void waitForDialogToDisappear() {
+    Wait.seconds(10).expecting(target().getTitle() + " dialog to disappear")
+      .until(() -> !target().isShowing());
   }
 
   @NotNull

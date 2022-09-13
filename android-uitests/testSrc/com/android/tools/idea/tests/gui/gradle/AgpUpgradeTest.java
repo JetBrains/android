@@ -25,18 +25,14 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.gradle.AGPProjectUpdateNotificationCenterPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.AGPUpgradeAssistantDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.AGPUpgradeAssistantToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.awt.Container;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import javax.swing.JEditorPane;
-import javax.swing.JLabel;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,7 +41,7 @@ import org.junit.runner.RunWith;
 public class AgpUpgradeTest {
 
   @Rule
-  public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
+  public final GuiTestRule guiTest = new GuiTestRule().withTimeout(8, TimeUnit.MINUTES);
   private File projectDir;
   private String studioVersion;
   private IdeFrameFixture ideFrame;
@@ -58,7 +54,6 @@ public class AgpUpgradeTest {
     projectDir = guiTest.setUpProject(projectName, null, oldAgpVersion, null, null);
     guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-
     ideFrame = guiTest.ideFrame();
     studioVersion = ideFrame.getAndroidStudioVersion();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
@@ -97,12 +92,14 @@ public class AgpUpgradeTest {
      * </pre>
      */
 
-    //Looking for the notification pannel showing "Project update recommended", and clicking the "upgraded" link.
-    JLabel upgradeNotification = ideFrame.isNotificationCenterPanelShowing("Project update recommended");
-    Container UpgradeNotifcationCenterPanel = upgradeNotification.getParent().getParent();
-    JEditorPane upgradedLink = ideFrame.robot().finder().find(UpgradeNotifcationCenterPanel, Matchers.byType(JEditorPane.class));
-    ideFrame.robot().click(upgradedLink);
+    //Looking for the notification panel showing "Project update recommended", and clicking the "upgraded" link.
+    ideFrame.find(guiTest.robot())
+      .requestFocusIfLost();
+    AGPProjectUpdateNotificationCenterPanelFixture upgradeNotification = AGPProjectUpdateNotificationCenterPanelFixture.find(ideFrame);
+    assertTrue(upgradeNotification.isShowing());
+    upgradeNotification.clickUpgraded();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     //Checking for the AGP upgrade assistant dialog box and validating the buttons.
     AGPUpgradeAssistantDialogFixture agpDialog = AGPUpgradeAssistantDialogFixture.find(ideFrame);
     assertTrue(agpDialog.checkAllButtons());
@@ -111,9 +108,11 @@ public class AgpUpgradeTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     ideFrame.find(guiTest.robot())
       .requestFocusIfLost();
-    //Clearing any additional notifications not related to the test, so it wouldnt interupt with the UI workflow.
+
+    //"Clearing any additional notifications not related to the test, so it wouldn't interrupt with the UI workflow."
     ideFrame.clearNotificationsPresentOnIdeFrame();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     //Checking the if the upgrade assistant tool window is active, finding all the AGP versions available,and also checking if the latest AGP version is present.
     AGPUpgradeAssistantToolWindowFixture upgradeAssistant = ideFrame.getUgradeAssistantToolWindow(false);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
@@ -122,6 +121,7 @@ public class AgpUpgradeTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     assertTrue(agpVersionsList.size() > 3);
     assertEquals(agpVersion, agpVersionsList.get(0));
+
     //Selecting the latest AGP version, running the selected steps option and verifying if the sync is successful.
     upgradeAssistant.selectAGPVersion(upgradeAssistant.generateAGPVersion(studioVersion));
     guiTest.waitForAllBackgroundTasksToBeCompleted();
@@ -132,8 +132,10 @@ public class AgpUpgradeTest {
     assertTrue(upgradeAssistant.isRefreshButtonEnabled());
     assertFalse(upgradeAssistant.isShowUsagesEnabled());
     assertFalse(upgradeAssistant.isRunSelectedStepsButtonEnabled());
+    upgradeAssistant.hide();
     assertThat(ideFrame.getEditor().open("build.gradle").getCurrentFileContents()).contains(agpVersion);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     //Reverting the changes made once the sync is successful.
     upgradeAssistant.activate();
     upgradeAssistant.clickRevertProjectFiles();
@@ -142,7 +144,8 @@ public class AgpUpgradeTest {
     assertTrue(upgradeAssistant.isRefreshButtonEnabled());
     assertTrue(upgradeAssistant.isShowUsagesEnabled());
     assertTrue(upgradeAssistant.isRunSelectedStepsButtonEnabled());
-    assertThat(ideFrame.isNotificationCenterPanelShowing("Project update recommended")).isInstanceOf(JLabel.class);
+    upgradeAssistant.hide();
+    assertTrue(AGPProjectUpdateNotificationCenterPanelFixture.find(ideFrame).isShowing());
     assertThat(ideFrame.getEditor().open("build.gradle").getCurrentFileContents()).contains(oldAgpVersion);
   }
 
@@ -177,7 +180,8 @@ public class AgpUpgradeTest {
     upgradeAssistant.hide();
     String agpVersion = upgradeAssistant.generateAGPVersion(studioVersion);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    //Updating the AGP version from build.gradle file.
+
+    //Updating the AGP version using build.gradle file.
     editor.open("build.gradle")
       .select("gradle\\:(\\d+\\.\\d+\\.\\d+)")
       .enterText(agpVersion);

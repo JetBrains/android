@@ -614,26 +614,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public JLabel isNotificationCenterPanelShowing(String text) {
-    //This method will look for the notification center panel with the "text".
-    List<JLabel> labels = Lists.newArrayList(robot().finder().findAll(Matchers.byType(JLabel.class)));
-    for (JLabel label : labels) {
-      String labelText = label.getText();
-      if (labelText.contains(text)) {
-        return label;
-      }
-    }
-    throw new AssertionError("Unable to find the Notification center panel with text " + text);
-  }
-
-  @NotNull
   public void clearNotificationsPresentOnIdeFrame() {
-    String textToCheck = "Close. Alt-click to close all notifications";
     List<BalloonImpl.ActionButton> allNotificationActions = Lists
       .newArrayList(robot().finder().findAll(target(), Matchers.byType(BalloonImpl.ActionButton.class)));
-    for (BalloonImpl.ActionButton action : allNotificationActions) {
-      if (action.getToolTipText().toLowerCase().contains("close")) {
-        robot().click(action);
+    if (allNotificationActions.size() > 0) {
+      for (BalloonImpl.ActionButton action : allNotificationActions) {
+        if (action.getToolTipText().toLowerCase().contains("close")) {
+          robot().click(action);
+        }
       }
     }
   }
