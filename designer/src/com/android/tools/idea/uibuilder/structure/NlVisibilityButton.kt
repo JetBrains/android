@@ -19,6 +19,8 @@ import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
+import com.intellij.ui.IconReplacer
+import com.intellij.ui.RetrievableIcon
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI
@@ -210,7 +212,7 @@ class ButtonPresentation {
  */
 class AlphaIcon(
   private val studioIcon: Icon,
-  var alpha: Float = 1.0f) : Icon {
+  var alpha: Float = 1.0f) : Icon, RetrievableIcon {
 
   override fun getIconHeight(): Int {
     return studioIcon.iconHeight
@@ -231,4 +233,7 @@ class AlphaIcon(
     }
   }
 
+  override fun retrieveIcon(): Icon = studioIcon
+
+  override fun replaceBy(replacer: IconReplacer): Icon = AlphaIcon(replacer.replaceIcon(studioIcon), alpha)
 }
