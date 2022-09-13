@@ -17,12 +17,9 @@ package com.android.build.attribution
 
 import com.android.build.attribution.analyzers.AlwaysRunTasksAnalyzer
 import com.android.build.attribution.analyzers.AnnotationProcessorsAnalyzer
-import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOff
 import com.android.build.attribution.analyzers.CriticalPathAnalyzer
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.GarbageCollectionAnalyzer
-import com.android.build.attribution.analyzers.JetifierNotUsed
-import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.NoncacheableTasksAnalyzer
 import com.android.build.attribution.analyzers.ProjectConfigurationAnalyzer
 import com.android.build.attribution.analyzers.TasksConfigurationIssuesAnalyzer
@@ -132,6 +129,14 @@ class BuildResultsProtoMessageConverterTest {
   }
 
   @Test
+  fun testGarbageCollectionAnalyzerResultNullValues() {
+    val result = GarbageCollectionAnalyzer.Result(listOf(GarbageCollectionData("name", 12345)), null, null)
+    val resultMessage = BuildResultsProtoMessageConverter(projectRule.project).transformGarbageCollectionAnalyzerResult(result)
+    val resultConverted = BuildResultsProtoMessageConverter(projectRule.project).constructGarbageCollectionAnalyzerResult(resultMessage)
+    Truth.assertThat(result).isEqualTo(resultConverted)
+  }
+
+  @Test
   fun testProjectConfigurationAnalyzerResult() {
     val pluginsConfigurationDataMap = mutableMapOf<PluginData, Long>()
     val projectConfigurationData = mutableListOf<ProjectConfigurationData>()
@@ -216,6 +221,18 @@ class BuildResultsProtoMessageConverterTest {
       listOf("c1", "c2"),
       mapOf(Pair("a", "b"), Pair("c","d")),
       false
+    )
+    val requestDataMessage = BuildResultsProtoMessageConverter(projectRule.project).transformRequestData(requestData)
+    val resultConverted = BuildResultsProtoMessageConverter(projectRule.project).constructRequestData(requestDataMessage)
+    Truth.assertThat(resultConverted).isEqualTo(requestData)
+  }
+
+  @Test
+  fun testRequestDataNullMode() {
+    val requestData = GradleBuildInvoker.Request.RequestData(
+      null,
+      File("root-project"),
+      emptyList()
     )
     val requestDataMessage = BuildResultsProtoMessageConverter(projectRule.project).transformRequestData(requestData)
     val resultConverted = BuildResultsProtoMessageConverter(projectRule.project).constructRequestData(requestDataMessage)

@@ -15,13 +15,13 @@
  */
 package com.android.build.attribution
 
-import com.android.build.attribution.BuildAnalysisResultsMessage.CriticalPathAnalyzerResult
-import com.android.build.attribution.BuildAnalysisResultsMessage.NoncacheableTasksAnalyzerResult
-import com.android.build.attribution.BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult
 import com.android.build.attribution.BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult
 import com.android.build.attribution.BuildAnalysisResultsMessage.AnnotationProcessorsAnalyzerResult
+import com.android.build.attribution.BuildAnalysisResultsMessage.CriticalPathAnalyzerResult
 import com.android.build.attribution.BuildAnalysisResultsMessage.DownloadsAnalyzerResult
 import com.android.build.attribution.BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult
+import com.android.build.attribution.BuildAnalysisResultsMessage.NoncacheableTasksAnalyzerResult
+import com.android.build.attribution.BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult
 import com.android.build.attribution.BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult.PluginDataLongMap
 import com.android.build.attribution.BuildAnalysisResultsMessage.TasksConfigurationIssuesAnalyzerResult
 import com.android.build.attribution.analyzers.AlwaysRunTasksAnalyzer
@@ -43,7 +43,6 @@ import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.analyzers.TasksConfigurationIssuesAnalyzer
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
-import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.GarbageCollectionData
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginConfigurationData
@@ -54,9 +53,6 @@ import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode
 import com.google.wireless.android.sdk.stats.BuildDownloadsAnalysisData
-import com.intellij.openapi.externalSystem.model.ProjectSystemId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
 import java.io.File
 import java.time.Duration
@@ -514,13 +510,13 @@ class BuildResultsProtoMessageConverter(val project: Project) {
     val isSettingSet = when(garbageCollectionAnalyzerResult.isSettingSet) {
       GarbageCollectionAnalyzerResult.TrueFalseUnknown.TRUE -> true
       GarbageCollectionAnalyzerResult.TrueFalseUnknown.FALSE -> false
-      GarbageCollectionAnalyzerResult.TrueFalseUnknown.UNKNOWN -> throw IllegalStateException("Unrecognized setting state")
+      GarbageCollectionAnalyzerResult.TrueFalseUnknown.UNKNOWN -> null
       GarbageCollectionAnalyzerResult.TrueFalseUnknown.UNRECOGNIZED -> throw IllegalStateException("Unrecognized setting state")
       null -> throw IllegalStateException("Unrecognized setting state")
 
     }
     val javaVersion = when(garbageCollectionAnalyzerResult.javaVersion) {
-      0 -> throw IllegalStateException("Unrecognized java version")
+      0 -> null
       else -> garbageCollectionAnalyzerResult.javaVersion
     }
     garbageCollectionAnalyzerResult.garbageCollectionDataList.forEach{ garbageCollectionData.add(GarbageCollectionData(it.name, it.collectionTimeMs)) }
@@ -653,7 +649,7 @@ class BuildResultsProtoMessageConverter(val project: Project) {
       BuildAnalysisResultsMessage.RequestData.BuildMode.SOURCE_GEN -> BuildMode.SOURCE_GEN
       BuildAnalysisResultsMessage.RequestData.BuildMode.BUNDLE -> BuildMode.BUNDLE
       BuildAnalysisResultsMessage.RequestData.BuildMode.APK_FROM_BUNDLE -> BuildMode.APK_FROM_BUNDLE
-      BuildAnalysisResultsMessage.RequestData.BuildMode.UNSPECIFIED -> throw IllegalStateException("Unrecognized build mode")
+      BuildAnalysisResultsMessage.RequestData.BuildMode.UNSPECIFIED -> null
       BuildAnalysisResultsMessage.RequestData.BuildMode.UNRECOGNIZED -> throw IllegalStateException("Unrecognized build mode")
       null -> throw IllegalStateException("Unrecognized build mode")
     }
