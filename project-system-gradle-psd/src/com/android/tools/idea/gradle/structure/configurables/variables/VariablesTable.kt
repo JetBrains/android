@@ -28,12 +28,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Shadowe
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.childNodes
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.initializeNode
 import com.android.tools.idea.gradle.structure.configurables.ui.uiProperty
-import com.android.tools.idea.gradle.structure.model.PsBuildScript
-import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.PsVariable
-import com.android.tools.idea.gradle.structure.model.PsVariables
-import com.android.tools.idea.gradle.structure.model.PsVariablesScope
+import com.android.tools.idea.gradle.structure.model.*
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
@@ -58,41 +53,22 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.ui.treeStructure.treetable.TreeTableModelAdapter
-import com.intellij.util.ui.AbstractTableCellEditor
-import com.intellij.util.ui.EmptyIcon
-import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.*
 import icons.StudioIcons
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.Component
 import java.awt.Point
-import java.awt.event.ActionEvent
-import java.awt.event.FocusAdapter
-import java.awt.event.FocusEvent
-import java.awt.event.KeyEvent
-import java.awt.event.MouseEvent
-import java.util.EventObject
-import javax.swing.Box
-import javax.swing.BoxLayout
-import javax.swing.Icon
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JTable
-import javax.swing.JTree
-import javax.swing.KeyStroke
+import java.awt.event.*
+import java.util.*
+import javax.swing.*
 import javax.swing.SwingUtilities.invokeLater
 import javax.swing.border.EmptyBorder
 import javax.swing.event.ChangeEvent
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.table.TableCellEditor
 import javax.swing.table.TableCellRenderer
-import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.DefaultTreeModel
-import javax.swing.tree.DefaultTreeSelectionModel
-import javax.swing.tree.TreeNode
-import javax.swing.tree.TreePath
+import javax.swing.tree.*
 
 private const val NAME = 0
 private const val UNRESOLVED_VALUE = 1
@@ -284,7 +260,7 @@ class VariablesTable private constructor(
             text = getNodeRendered().cast<EmptyValueNode>().emptyValue
             foreground =
               if (isSelected) SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES.fgColor
-              else UIUtil.getInactiveTextColor()
+              else NamedColorUtil.getInactiveTextColor()
           }
 
         column == NAME -> getDefaultComponent()

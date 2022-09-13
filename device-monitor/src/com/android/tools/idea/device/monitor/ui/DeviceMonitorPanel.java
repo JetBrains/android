@@ -23,17 +23,16 @@ import com.intellij.ui.LoadingNode;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.NamedColorUtil;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Color;
-import java.awt.event.ActionListener;
-import javax.swing.Icon;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+
+import javax.swing.*;
+import javax.swing.tree.DefaultTreeModel;
+import java.awt.*;
+import java.awt.event.ActionListener;
 
 public class DeviceMonitorPanel {
   static final int TEXT_RENDERER_HORIZ_PADDING = 6;
@@ -51,7 +50,7 @@ public class DeviceMonitorPanel {
     myErrorPanel.setBackground(UIUtil.getTreeBackground());
 
     myErrorText.setFont(AdtUiUtils.EMPTY_TOOL_WINDOW_FONT);
-    myErrorText.setForeground(UIUtil.getInactiveTextColor());
+    myErrorText.setForeground(NamedColorUtil.getInactiveTextColor());
   }
 
   @NotNull
@@ -79,12 +78,12 @@ public class DeviceMonitorPanel {
   public JBScrollPane getColumnTreePane() { return (JBScrollPane)myColumnTreePane.getComponent(0); }
 
   public void showMessageLayer(@NotNull String message, boolean showDeviceList) {
-    showMessageLayerWorker(message, UIUtil.getInactiveTextColor(), null, showDeviceList);
+    showMessageLayerWorker(message, NamedColorUtil.getInactiveTextColor(), null, showDeviceList);
   }
 
   @SuppressWarnings("SameParameterValue")
   public void showMessageLayer(@NotNull String message, @NotNull Icon messageIcon, boolean showDeviceList) {
-    showMessageLayerWorker(message, UIUtil.getInactiveTextColor(), messageIcon, showDeviceList);
+    showMessageLayerWorker(message, NamedColorUtil.getInactiveTextColor(), messageIcon, showDeviceList);
   }
 
   public void showErrorMessageLayer(@NotNull String errorMessage, boolean showDeviceList) {

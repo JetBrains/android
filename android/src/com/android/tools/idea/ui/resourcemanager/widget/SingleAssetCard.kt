@@ -21,25 +21,11 @@ import com.android.tools.adtui.common.secondaryPanelBackground
 import com.intellij.ui.JBColor
 import com.intellij.ui.RoundedLineBorder
 import com.intellij.ui.components.JBLabel
-import com.intellij.util.ui.EmptyIcon
-import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.StartupUiUtil
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.*
 import icons.StudioIcons
-import java.awt.BorderLayout
-import java.awt.Color
-import java.awt.Dimension
-import java.awt.FlowLayout
-import java.awt.Graphics
-import java.awt.Graphics2D
-import java.awt.RenderingHints
+import java.awt.*
 import java.awt.font.TextAttribute
-import javax.swing.BorderFactory
-import javax.swing.Box
-import javax.swing.Icon
-import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.SwingConstants
+import javax.swing.*
 import javax.swing.border.Border
 import kotlin.properties.Delegates
 
@@ -88,7 +74,7 @@ private val PRIMARY_FONT get() = StartupUiUtil.getLabelFont().deriveFont(mapOf(T
 
 private val SECONDARY_FONT_SIZE get() = JBUI.scaleFontSize(12f).toFloat()
 
-private val SECONDARY_FONT_COLOR get() = JBColor(UIUtil.getInactiveTextColor().darker(), UIUtil.getInactiveTextColor())
+private val SECONDARY_FONT_COLOR get() = JBColor(NamedColorUtil.getInactiveTextColor().darker(), NamedColorUtil.getInactiveTextColor())
 
 private const val DEFAULT_WIDTH = 120
 

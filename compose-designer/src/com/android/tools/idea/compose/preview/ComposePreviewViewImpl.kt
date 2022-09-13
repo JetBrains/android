@@ -57,18 +57,11 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBSplitter
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
-import java.awt.BorderLayout
-import java.awt.Component
-import java.awt.Dimension
-import java.awt.FlowLayout
-import java.awt.Point
+import java.awt.*
 import java.awt.event.AdjustmentEvent
-import javax.swing.JComponent
-import javax.swing.JLayeredPane
-import javax.swing.JPanel
-import javax.swing.LayoutFocusTraversalPolicy
-import javax.swing.OverlayLayout
+import javax.swing.*
 
 private const val SURFACE_SPLITTER_DIVIDER_WIDTH_PX = 5
 private const val ISSUE_SPLITTER_DIVIDER_WIDTH_PX = 3
@@ -184,7 +177,7 @@ private class PinnedLabelPanel(pinAction: AnAction) : JPanel() {
                                             PresentationFactory().getPresentation(pinAction ?: EmptyAction()),
                                             "PinnedToolbar",
                                             ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE).apply {
-    foreground = UIUtil.getInactiveTextColor()
+    foreground = NamedColorUtil.getInactiveTextColor()
     font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
   }
 

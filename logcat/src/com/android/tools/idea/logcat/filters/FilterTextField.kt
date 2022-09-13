@@ -18,11 +18,7 @@ package com.android.tools.idea.logcat.filters
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.logcat.LogcatBundle
-import com.android.tools.idea.logcat.LogcatPresenter
-import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
-import com.android.tools.idea.logcat.PROCESS_NAMES_PROVIDER_KEY
-import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
+import com.android.tools.idea.logcat.*
 import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Item
 import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Separator
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
@@ -43,25 +39,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.PopupChooserBuilder
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.CollectionListModel
-import com.intellij.ui.EditorTextField
-import com.intellij.ui.GotItTooltip
+import com.intellij.ui.*
 import com.intellij.ui.GotItTooltip.Companion.BOTTOM_LEFT
-import com.intellij.ui.SimpleColoredComponent
-import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBList
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
-import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED
-import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED_HOVER
-import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED_POPUP_HOVER
-import icons.StudioIcons.Logcat.Input.FAVORITE_OUTLINE
-import icons.StudioIcons.Logcat.Input.FAVORITE_OUTLINE_HOVER
-import icons.StudioIcons.Logcat.Input.FAVORITE_POPUP_HOVER
-import icons.StudioIcons.Logcat.Input.FILTER_HISTORY
-import icons.StudioIcons.Logcat.Input.FILTER_HISTORY_DELETE
+import icons.StudioIcons.Logcat.Input.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -70,29 +55,15 @@ import java.awt.Component
 import java.awt.Font
 import java.awt.Point
 import java.awt.Rectangle
-import java.awt.event.FocusAdapter
-import java.awt.event.FocusEvent
-import java.awt.event.KeyAdapter
-import java.awt.event.KeyEvent
+import java.awt.event.*
 import java.awt.event.KeyEvent.VK_BACK_SPACE
 import java.awt.event.KeyEvent.VK_DELETE
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.net.URL
-import javax.swing.BorderFactory
-import javax.swing.BoxLayout
+import javax.swing.*
 import javax.swing.BoxLayout.LINE_AXIS
 import javax.swing.BoxLayout.PAGE_AXIS
-import javax.swing.GroupLayout
 import javax.swing.GroupLayout.Alignment.CENTER
-import javax.swing.Icon
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JList
-import javax.swing.JPanel
-import javax.swing.JSeparator
-import javax.swing.ListCellRenderer
 import javax.swing.SwingConstants.HORIZONTAL
 import javax.swing.SwingConstants.VERTICAL
 import kotlin.coroutines.CoroutineContext
@@ -375,7 +346,7 @@ internal class FilterTextField(
     coroutineContext: CoroutineContext = EmptyCoroutineContext,
   ) : JBList<FilterHistoryItem>() {
     private val listModel = CollectionListModel<FilterHistoryItem>()
-    private val inactiveColor = String.format("%06x", UIUtil.getInactiveTextColor().rgb and 0xffffff)
+    private val inactiveColor = String.format("%06x", NamedColorUtil.getInactiveTextColor().rgb and 0xffffff)
 
     init {
       // The "count" field in FilterHistoryItem.Item takes time to calculate so initially, add all items with no count.

@@ -21,7 +21,7 @@ import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.idea.IdeInfo
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.NamedColorUtil
 import java.awt.Container
 import java.awt.Cursor
 import javax.swing.JPanel
@@ -69,7 +69,7 @@ fun JPanel.addMigrationPanel(
   instructionsPanelBuilder.addInstruction(NewRowInstruction(6))
     .addInstruction(HyperlinkInstruction(TEXT_FONT, "Dismiss", dismissAction))
     .setMode(InstructionsPanel.Mode.FILL_PANEL)
-    .setColors(UIUtil.getInactiveTextColor(), null)
+    .setColors(NamedColorUtil.getInactiveTextColor(), null)
 
   if (cursorContainer != null) {
     instructionsPanelBuilder.setCursorSetter(cursorContainer)

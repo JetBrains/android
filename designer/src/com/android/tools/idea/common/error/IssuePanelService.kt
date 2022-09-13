@@ -49,6 +49,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.ui.ColorUtil.toHtmlColor
 import com.intellij.ui.content.Content
 import com.intellij.ui.tree.TreeVisitor
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -512,7 +513,7 @@ private fun createTabName(title: String, issueCount: Int?): String {
   }
   return HtmlBuilder()
     .append(title)
-    .append(" ").append(HtmlChunk.tag("font").attr("color", toHtmlColor(UIUtil.getInactiveTextColor())).addText("$issueCount"))
+    .append(" ").append(HtmlChunk.tag("font").attr("color", toHtmlColor(NamedColorUtil.getInactiveTextColor())).addText("$issueCount"))
     .wrapWithHtmlBody()
     .toString()
 }

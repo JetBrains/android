@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
-import static com.intellij.util.ui.UIUtil.getInactiveTextColor;
-
 import com.intellij.ui.components.JBLabel;
-import java.awt.BorderLayout;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
+import com.intellij.util.ui.NamedColorUtil;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.awt.*;
 
 public class EmptyPanel extends JPanel {
   public EmptyPanel(@NotNull String text) {
     super(new BorderLayout());
     JBLabel emptyText = new JBLabel(text);
-    emptyText.setForeground(getInactiveTextColor());
+    emptyText.setForeground(NamedColorUtil.getInactiveTextColor());
     emptyText.setHorizontalAlignment(SwingConstants.CENTER);
     add(emptyText, BorderLayout.CENTER);
   }

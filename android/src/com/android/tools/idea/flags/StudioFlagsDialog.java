@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.flags;
 
-import static com.android.tools.idea.observable.expressions.bool.BooleanExpressions.not;
-
 import com.android.flags.Flag;
 import com.android.flags.FlagGroup;
 import com.android.flags.FlagOverrides;
@@ -28,11 +26,7 @@ import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.ui.SelectedItemProperty;
-import com.android.tools.idea.observable.ui.SelectedProperty;
-import com.android.tools.idea.observable.ui.SpinnerValueProperty;
-import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.idea.observable.ui.VisibleProperty;
+import com.android.tools.idea.observable.ui.*;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.ide.IdeCoreBundle;
@@ -45,45 +39,29 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.WindowManager;
-import com.intellij.ui.DocumentAdapter;
-import com.intellij.ui.HyperlinkAdapter;
-import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.JBIntSpinner;
-import com.intellij.ui.LightColors;
-import com.intellij.ui.SearchTextField;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
+import com.intellij.util.ui.NamedColorUtil;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Window;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.text.BadLocationException;
+import java.awt.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.swing.Action;
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JSeparator;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.border.TitledBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.text.BadLocationException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.observable.expressions.bool.BooleanExpressions.not;
 
 public final class StudioFlagsDialog extends DialogWrapper {
   /**
@@ -214,7 +192,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
           description.setWrapStyleWord(true);
           description.setEditable(false);
           description.setOpaque(false);
-          description.setForeground(UIUtil.getInactiveTextColor());
+          description.setForeground(NamedColorUtil.getInactiveTextColor());
 
           FlagEditor<?> flagEditor = createFlagEditor(flag);
 
