@@ -21,7 +21,7 @@ import com.intellij.openapi.ui.ErrorBorderCapable
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.TextComponentEmptyText
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.SwingUndoUtil
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.RenderingHints
@@ -153,7 +153,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
       if (!text.equals(super.getText())) {
         super.setText(text)
       }
-      UIUtil.resetUndoRedoActions(this)
+      SwingUndoUtil.resetUndoRedoActions(this)
     }
     finally {
       documentChangeFromSetText = false
