@@ -18,19 +18,21 @@ package com.android.tools.idea.devicemanager;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDevicePath;
 import com.android.tools.idea.wearpairing.PairingDevice;
+import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
+import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NotNull;
 
 final class Pairing {
   private final @NotNull PhoneWearPair myPair;
-  private final @NotNull Device myOtherDevice;
+  private final @NotNull DeviceManagerPairingDevice myOtherDevice;
 
   Pairing(@NotNull PhoneWearPair pair, @NotNull Key key) {
     myPair = pair;
-    myOtherDevice = toDevice(pair.getPeerDevice(key.toString()));
+    myOtherDevice = toDeviceManagerPairingDevice(pair.getPeerDevice(key.toString()));
   }
 
-  private static @NotNull Device toDevice(@NotNull PairingDevice device) {
+  private @NotNull DeviceManagerPairingDevice toDeviceManagerPairingDevice(@NotNull PairingDevice device) {
     boolean virtual = device.isEmulator();
     DeviceType type = device.isWearDevice() ? DeviceType.WEAR_OS : DeviceType.PHONE;
     AndroidVersion version = new AndroidVersion(device.getApiLevel());
@@ -42,16 +44,18 @@ final class Pairing {
       .setName(device.getDisplayName())
       .setOnline(device.isOnline())
       .setTarget(Targets.toString(version))
+      .setStatus(newStatus(device))
       .setAndroidVersion(version)
       .build();
   }
 
-  @NotNull PhoneWearPair getPair() {
-    return myPair;
-  }
+  private @NotNull Status newStatus(@NotNull PairingDevice device) {
+    if (!device.isEmulator() && myPair.getPairingStatus().equals(PairingState.OFFLINE)) {
+      return new Status(AllIcons.General.ShowInfos, "Unavailable", "<html>Connect device to begin<br>" +
+                                                                   "communication between devices</html>");
+    }
 
-  @NotNull Device getOtherDevice() {
-    return myOtherDevice;
+    return new Status(getStatus());
   }
 
   @NotNull String getStatus() {
@@ -69,5 +73,13 @@ final class Pairing {
       default:
         throw new AssertionError(myPair.getPairingStatus());
     }
+  }
+
+  @NotNull PhoneWearPair getPair() {
+    return myPair;
+  }
+
+  @NotNull DeviceManagerPairingDevice getOtherDevice() {
+    return myOtherDevice;
   }
 }

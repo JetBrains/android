@@ -24,10 +24,12 @@ import org.jetbrains.annotations.Nullable;
 final class DeviceManagerPairingDevice extends Device {
   private final @NotNull Icon myIcon;
   private final boolean myOnline;
+  private final @NotNull Status myStatus;
 
   static final class Builder extends Device.Builder {
     private @Nullable Icon myIcon;
     private boolean myOnline;
+    private @Nullable Status myStatus;
 
     @NotNull Builder setKey(@NotNull Key key) {
       myKey = key;
@@ -59,6 +61,11 @@ final class DeviceManagerPairingDevice extends Device {
       return this;
     }
 
+    @NotNull Builder setStatus(@NotNull Status status) {
+      myStatus = status;
+      return this;
+    }
+
     @NotNull Builder setAndroidVersion(@NotNull AndroidVersion androidVersion) {
       myAndroidVersion = androidVersion;
       return this;
@@ -77,6 +84,9 @@ final class DeviceManagerPairingDevice extends Device {
     myIcon = builder.myIcon;
 
     myOnline = builder.myOnline;
+
+    assert builder.myStatus != null;
+    myStatus = builder.myStatus;
   }
 
   @Override
@@ -89,6 +99,10 @@ final class DeviceManagerPairingDevice extends Device {
     return myOnline;
   }
 
+  @NotNull Status getStatus() {
+    return myStatus;
+  }
+
   @Override
   public int hashCode() {
     int hashCode = myKey.hashCode();
@@ -98,6 +112,7 @@ final class DeviceManagerPairingDevice extends Device {
     hashCode = 31 * hashCode + myName.hashCode();
     hashCode = 31 * hashCode + Boolean.hashCode(myOnline);
     hashCode = 31 * hashCode + myTarget.hashCode();
+    hashCode = 31 * hashCode + Objects.hashCode(myStatus);
     hashCode = 31 * hashCode + myAndroidVersion.hashCode();
     hashCode = 31 * hashCode + Objects.hashCode(myResolution);
     hashCode = 31 * hashCode + myDensity;
@@ -121,6 +136,7 @@ final class DeviceManagerPairingDevice extends Device {
            myName.equals(device.myName) &&
            myOnline == device.myOnline &&
            myTarget.equals(device.myTarget) &&
+           Objects.equals(myStatus, device.myStatus) &&
            myAndroidVersion.equals(device.myAndroidVersion) &&
            Objects.equals(myResolution, device.myResolution) &&
            myDensity == device.myDensity &&

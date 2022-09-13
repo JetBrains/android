@@ -88,6 +88,7 @@ public final class PairedDevicesPanelTest {
       .setIcon(DeviceType.WEAR_OS.getVirtualIcon())
       .setName("Wear OS Small Round API 28")
       .setTarget("Android 9.0")
+      .setStatus(new Status("Unknown"))
       .setAndroidVersion(new AndroidVersion(28))
       .build();
 
