@@ -77,8 +77,8 @@ import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory;
 import com.android.tools.idea.emulator.EmulatorSettings;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.ILogger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
@@ -671,7 +671,7 @@ public class AvdManagerConnection {
    */
   private static boolean shouldLaunchInToolWindow(@Nullable Project project) {
     return EmulatorSettings.getInstance().getLaunchInToolWindow() &&
-           project != null && ToolWindowManager.getInstance(project).getToolWindow("Android Emulator") != null;
+           project != null && ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null;
   }
 
   public static boolean isFoldable(@NotNull AvdInfo avd) {
