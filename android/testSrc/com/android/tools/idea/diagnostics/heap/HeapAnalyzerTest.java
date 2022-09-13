@@ -410,26 +410,36 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
     componentsSet.addComponentWithPackagesAndClassNames("diagnostics_main",
                                                         defaultCategory,
-                                                        List.of("com.android.tools.idea.diagnostics"),
+                                                        List.of(
+                                                          "com.android.tools.idea.diagnostics"),
                                                         Collections.emptyList());
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(new HeapSnapshotStatistics(componentsSet)).walkObjects(MAX_DEPTH, List.of(
+                        new HeapSnapshotTraverse(
+                          new HeapSnapshotStatistics(componentsSet)).walkObjects(MAX_DEPTH, List.of(
                           new E(new TruncatingStringBuilder(0, "")))));
 
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new E(new TruncatingStringBuilder(0, "")))));
-    MemoryUsageReportEvent event = stats.buildMemoryUsageReportEvent(StatusCode.NO_ERROR, 1500, 1000);
+                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(
+                          new E(new TruncatingStringBuilder(0, "")))));
+    MemoryUsageReportEvent event =
+      stats.buildMemoryUsageReportEvent(StatusCode.NO_ERROR, 1500, 1000, 200);
 
     // ANDROID_REST, diagnostics
     Assert.assertEquals(2, event.getComponentStatsCount());
 
     Assert.assertEquals(UNCATEGORIZED_COMPONENT_LABEL, event.getComponentStats(0).getLabel());
-    Assert.assertEquals(0, event.getComponentStats(0).getStats().getOwnedClusterStats().getTotalStats().getObjectsCount());
-    Assert.assertEquals(0, event.getComponentStats(0).getStats().getOwnedClusterStats().getTotalStats().getTotalSizeBytes());
+    Assert.assertEquals(0,
+                        event.getComponentStats(0).getStats().getOwnedClusterStats().getTotalStats()
+                          .getObjectsCount());
+    Assert.assertEquals(0,
+                        event.getComponentStats(0).getStats().getOwnedClusterStats().getTotalStats()
+                          .getTotalSizeBytes());
 
     Assert.assertEquals("diagnostics_main", event.getComponentStats(1).getLabel());
-    Assert.assertEquals(8, event.getComponentStats(1).getStats().getOwnedClusterStats().getTotalStats().getObjectsCount());
+    Assert.assertEquals(8,
+                        event.getComponentStats(1).getStats().getOwnedClusterStats().getTotalStats()
+                          .getObjectsCount());
     Assert.assertEquals(192, event.getComponentStats(1).getStats().getOwnedClusterStats().getTotalStats().getTotalSizeBytes());
 
     Assert.assertEquals(5, event.getComponentStats(1).getStats().getOwnedClusterStats().getNewGenerationStats().getObjectsCount());

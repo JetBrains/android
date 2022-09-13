@@ -471,7 +471,9 @@ public final class HeapSnapshotTraverse {
                                                            TimeUnit.NANOSECONDS.toMillis(
                                                              System.nanoTime() - startTime),
                                                            TimeUnit.NANOSECONDS.toMillis(
-                                                             startTime))));
+                                                             startTime),
+                                                           ComponentsSet.getMemoryUsageReportConfiguration()
+                                                             .getSharedComponentsLimit())));
     return statusCode;
   }
 

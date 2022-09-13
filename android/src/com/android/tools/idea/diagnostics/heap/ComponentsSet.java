@@ -56,6 +56,13 @@ public final class ComponentsSet {
   }
 
   @NotNull
+  public static MemoryUsageReportConfiguration getMemoryUsageReportConfiguration() {
+    return ServerFlagService.Companion.getInstance()
+      .getProto(MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME,
+                MemoryUsageReportConfiguration.getDefaultInstance());
+  }
+
+  @NotNull
   public List<ComponentCategory> getComponentsCategories() {
     return componentCategories;
   }
@@ -140,12 +147,7 @@ public final class ComponentsSet {
   public static ComponentsSet getComponentSet() {
     ComponentsSet components = new ComponentsSet();
 
-    MemoryUsageReportConfiguration
-      memoryUsageReportConfiguration = ServerFlagService.Companion.getInstance()
-      .getProto(MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME,
-                MemoryUsageReportConfiguration.getDefaultInstance());
-
-    for (MemoryUsageComponentCategory protoCategory : memoryUsageReportConfiguration.getCategoriesList()) {
+    for (MemoryUsageComponentCategory protoCategory : getMemoryUsageReportConfiguration().getCategoriesList()) {
       ComponentCategory category = components.registerCategory(protoCategory.getLabel());
       for (MemoryUsageComponent component : protoCategory.getComponentsList()) {
         components.addComponentWithPackagesAndClassNames(component.getLabel(), category,

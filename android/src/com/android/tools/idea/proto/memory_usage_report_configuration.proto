@@ -23,4 +23,5 @@ message MemoryUsageComponentCategory {
 // memory usage will be built.
 message MemoryUsageReportConfiguration {
   repeated MemoryUsageComponentCategory categories = 1;
+  optional int32 shared_components_limit = 2;
 }

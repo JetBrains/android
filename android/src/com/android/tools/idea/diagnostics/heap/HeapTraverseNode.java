@@ -24,8 +24,8 @@ class HeapTraverseNode {
   @NotNull
   private final WeakReference<?> weakReference;
   public RefWeight ownershipWeight = RefWeight.DEFAULT;
-  public long ownedByComponentMask = 0;
-  public long retainedMask = 0;
+  public long ownedByComponentMask = 0L;
+  public long retainedMask = 0L;
   // Retained mask that works in a component categories plane (for comparison: retainedMask works in
   // a sub-category plane)
   public int retainedMaskForCategories = 0;

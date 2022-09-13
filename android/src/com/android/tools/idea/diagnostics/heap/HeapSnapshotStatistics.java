@@ -27,6 +27,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.io.PrintWriter;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -209,7 +210,8 @@ final class HeapSnapshotStatistics {
   @NotNull
   public MemoryUsageReportEvent buildMemoryUsageReportEvent(StatusCode statusCode,
                                                             long executionTimeMs,
-                                                            long executionStartMs) {
+                                                            long executionStartMs,
+                                                            int sharedComponentsLimit) {
     MemoryUsageReportEvent.Builder builder = MemoryUsageReportEvent.newBuilder();
 
     for (ComponentClusterObjectsStatistics componentStat : componentStats) {
@@ -219,12 +221,13 @@ final class HeapSnapshotStatistics {
           .setStats(buildClusterObjectsStatistics(componentStat)));
     }
 
-    for (SharedClusterStatistics sharedStat : maskToSharedComponentStats.values()) {
-      builder.addSharedComponentStats(MemoryUsageReportEvent.SharedClusterMemoryUsage.newBuilder()
-                                        .addAllIds(sharedStat.getComponentKinds())
-                                        .setStats(buildMemoryTrafficStatistics(
-                                          sharedStat.getStatistics())));
-    }
+    maskToSharedComponentStats.values().stream()
+      .sorted(
+        Comparator.comparingLong(s -> -s.getStatistics().getObjectsStatistics().totalSizeInBytes))
+      .limit(sharedComponentsLimit).forEach(s -> builder.addSharedComponentStats(
+        MemoryUsageReportEvent.SharedClusterMemoryUsage.newBuilder().addAllIds(s.getComponentKinds())
+          .setStats(buildMemoryTrafficStatistics(s.getStatistics()))));
+
     for (CategoryClusterObjectsStatistics categoryStat : categoryComponentStats) {
       builder.addComponentCategoryStats(
         MemoryUsageReportEvent.ClusterMemoryUsage.newBuilder()
