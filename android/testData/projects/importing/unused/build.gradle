@@ -16,6 +16,7 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace "com.example.test"
     compileSdkVersion 25
     buildToolsVersion "25.0.1"
     defaultConfig {

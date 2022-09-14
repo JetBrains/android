@@ -22,7 +22,6 @@ import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -73,8 +72,7 @@ public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
 
     // The manifests have to be updated because the activity moved
     assertTrue(StringUtil.equalsIgnoreWhitespaces(
-      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-      "    package=\"google.mylibrary\">\n" +
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
       "\n" +
       "    <application\n" +
       "        android:allowBackup=\"true\"\n" +
@@ -94,8 +92,7 @@ public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
 
     assertTrue(StringUtil.equalsIgnoreWhitespaces(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-      "    package=\"app.google.myapplication\">\n" +
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
       "\n" +
       "    <application android:label=\"@string/app_name\"></application>\n" +
       "\n" +

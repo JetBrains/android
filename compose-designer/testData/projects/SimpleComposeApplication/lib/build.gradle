@@ -17,6 +17,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
+  namespace "google.simpleapplicationlib"
   compileSdkVersion 32
 
   defaultConfig {

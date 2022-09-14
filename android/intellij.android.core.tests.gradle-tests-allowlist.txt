@@ -10,7 +10,6 @@ com.android.tools.idea.completion.AndroidKotlinCompletionContributorTest
 com.android.tools.idea.editors.manifest.ManifestActionLocationTest
 com.android.tools.idea.editors.manifest.ManifestConflictTest
 com.android.tools.idea.gradle.LibraryFilePathsTest
-com.android.tools.idea.gradle.dependencies.GradleDependencyManagerTest
 com.android.tools.idea.gradle.filters.AndroidGradleExecutionConsoleManagerTest
 com.android.tools.idea.gradle.plugin.AndroidPluginInfoTest
 com.android.tools.idea.gradle.project.build.GradleBuildStateIntegrationTest

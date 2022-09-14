@@ -64,8 +64,8 @@
     `android:exported` when the corresponding component has an intent filter
     defined. See
     https://developer.android.com/guide/topics/manifest/activity-element#exported
-    for details. <a href='<PROJECT_DIR>/app/src/main/AndroidManifest.xml:9:8'>project.app
-    main</a> manifest (this file), line 9<br><br><u><b>Merge Warnings</b></u><br><font color="#ff0000"><b>Warning</b></font>:
+    for details. <a href='<PROJECT_DIR>/app/src/main/AndroidManifest.xml:3:8'>project.app
+    main</a> manifest (this file), line 3<br><br><u><b>Merge Warnings</b></u><br><font color="#ff0000"><b>Warning</b></font>:
     Namespace 'android.support.graphics.drawable' used in:
     AndroidManifest.xml, AndroidManifest.xml. <a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/AndroidManifest.xml'>support-vector-drawable:28.0.0</a>
     manifest<br>

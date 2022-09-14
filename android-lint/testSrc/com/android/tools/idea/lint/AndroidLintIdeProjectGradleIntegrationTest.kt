@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lint
 
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.LintIgnoredResult
 import com.android.tools.idea.lint.common.LintResult
@@ -33,7 +35,7 @@ import org.junit.Test
 import java.io.File
 
 @RunsInEdt
-class AndroidLintIdeProjectGradleIntegrationTest : GradleIntegrationTest {
+class AndroidLintIdeProjectGradleIntegrationTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
@@ -44,8 +46,9 @@ class AndroidLintIdeProjectGradleIntegrationTest : GradleIntegrationTest {
   @Test
   fun test() {
     val result: LintResult = LintIgnoredResult()
-    val root = prepareGradleProject(TestProjectPaths.TRANSITIVE_DEPENDENCIES, "p")
-    openPreparedProject("p") { ideProject ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.TRANSITIVE_DEPENDENCIES)
+    preparedProject.open { ideProject ->
+      val root = preparedProject.root
       val client: LintIdeClient = AndroidLintIdeClient(ideProject, result)
       val projects = AndroidLintIdeProject.create(client, null, *ModuleManager.getInstance(ideProject).modules)
       assertThat(
@@ -73,10 +76,6 @@ class AndroidLintIdeProjectGradleIntegrationTest : GradleIntegrationTest {
         )
     }
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
 }
 
 private fun <T : Any> flattenDag(root: T, getId: (T) -> Any = { it }, getChildren: (T) -> List<T>): List<T> = sequence {

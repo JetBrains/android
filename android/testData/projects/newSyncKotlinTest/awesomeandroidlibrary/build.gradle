@@ -3,6 +3,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 
 android {
+    namespace "com.example.smithbradley.awesomeandroidlibrary"
     compileSdkVersion 28
 
 

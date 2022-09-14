@@ -19,28 +19,44 @@ import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.intellij.testFramework.RunsInEdt
+import junit.framework.Assert.assertEquals
+import junit.framework.Assert.assertFalse
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
-class GradleSyncStateLoggingTest : AndroidGradleTestCase() {
+@RunsInEdt
+class GradleSyncStateLoggingTest {
+
+  @get:Rule
+  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
-  override fun setUp() {
-    super.setUp()
+  @Before
+  fun setUp() {
     UsageTracker.setWriterForTest(tracker)
   }
 
+  @Test
   fun testKotlinLogging() {
-    loadProject(TestProjectPaths.UNIT_TESTING) // Conveniently, this project already has Kotlin setup in place.
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.UNIT_TESTING)
+    preparedProject.open { project ->
 
-    val proto = tracker.usages
-      .map { it.studioEvent }
-      .last { it.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED }
-      .kotlinSupport
+      val proto = tracker.usages
+        .map { it.studioEvent }
+        .last { it.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED }
+        .kotlinSupport
 
-    assertEquals(TestUtils.KOTLIN_VERSION_FOR_TESTS, proto.kotlinSupportVersion)
-    assertFalse(proto.hasAndroidKtxVersion())
-    // TODO(b/71803185): test for KTX once we have in prebuilts and can sync a project that uses it.
+      assertEquals(TestUtils.KOTLIN_VERSION_FOR_TESTS, proto.kotlinSupportVersion)
+      assertFalse(proto.hasAndroidKtxVersion())
+      // TODO(b/71803185): test for KTX once we have in prebuilts and can sync a project that uses it.
+    }
   }
 }
