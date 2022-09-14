@@ -298,8 +298,8 @@ private fun DataNode<ModuleData>.sourceSetsByName(): Map<String, DataNode<Gradle
  * there might be `androidAndroidTest` and `androidAndroidTestDebug`.
  */
 private fun IdeModuleWellKnownSourceSet.getRootKotlinSourceSet(compilation: KotlinCompilation): KotlinSourceSet? {
-  val sourceSetName = compilation.disambiguationClassifier.orEmpty().appendCapitalized(kmpSourceSetSuffix())
-  return compilation.declaredSourceSets.singleOrNull { it.name == sourceSetName }
+  val sourceSetNames = kmpSourceSetSuffix().map { compilation.disambiguationClassifier.orEmpty().appendCapitalized(it) }
+  return compilation.declaredSourceSets.singleOrNull { it.name in sourceSetNames }
 }
 
 private fun IdeModuleWellKnownSourceSet.androidCompilationNameSuffix() = when (this) {
@@ -309,11 +309,12 @@ private fun IdeModuleWellKnownSourceSet.androidCompilationNameSuffix() = when (t
   IdeModuleWellKnownSourceSet.TEST_FIXTURES -> "TestFixtures"
 }
 
+// TODO(b/246924347): Add an integration test for KMP v2 source layout.
 private fun IdeModuleWellKnownSourceSet.kmpSourceSetSuffix() = when (this) {
-  IdeModuleWellKnownSourceSet.MAIN -> "main"
-  IdeModuleWellKnownSourceSet.ANDROID_TEST -> "androidTest"
-  IdeModuleWellKnownSourceSet.UNIT_TEST -> "test"
-  IdeModuleWellKnownSourceSet.TEST_FIXTURES -> "testFixtures"
+  IdeModuleWellKnownSourceSet.MAIN -> setOf("main")
+  IdeModuleWellKnownSourceSet.ANDROID_TEST -> setOf("androidTest", "instrumentedTest")
+  IdeModuleWellKnownSourceSet.UNIT_TEST -> setOf("test", "unitTest")
+  IdeModuleWellKnownSourceSet.TEST_FIXTURES -> setOf("testFixtures")
 }
 
 private fun KotlinMPPGradleModel.androidTargets() =
