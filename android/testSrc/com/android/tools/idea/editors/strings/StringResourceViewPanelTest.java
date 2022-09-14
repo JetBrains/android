@@ -145,10 +145,10 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
 
   public void testReloadData() {
     VirtualFile resourceDirectory = myRepository.getResourceDirs().iterator().next();
-    assertThat(StringResourceWriter.INSTANCE.add(
+    assertThat(StringResourceWriter.INSTANCE.addDefault(
       myFixture.getProject(),
       new StringResourceKey("test_reload", resourceDirectory),
-      "Reload!")).isTrue();
+      "Reload!", /* translatable = */ true)).isTrue();
 
     myPanel.reloadData();
 

@@ -40,9 +40,9 @@ import com.intellij.refactoring.safeDelete.SafeDeleteDialog
 import com.intellij.refactoring.safeDelete.SafeDeleteProcessor
 import com.intellij.refactoring.util.CommonRefactoringUtil
 import com.intellij.util.IncorrectOperationException
-import java.io.IOException
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
+import java.io.IOException
 
 /** An object that can carry out various write operations related to string resources. */
 interface StringResourceWriter {
@@ -56,87 +56,62 @@ interface StringResourceWriter {
   fun getStringResourceFile(
       project: Project,
       resourceDirectory: VirtualFile,
-  ): XmlFile? = getStringResourceFile(project, resourceDirectory, locale = null)
-
-  /**
-   * Returns the string resource file for the optionally given [locale]. If the values directory or
-   * the string resource file do not exist, this method will create those first.
-   *
-   * @return the string resource file for the given [locale], or `null` if the directory or file
-   * could not be created
-   */
-  fun getStringResourceFile(
-      project: Project,
-      resourceDirectory: VirtualFile,
-      locale: Locale? = null
   ): XmlFile?
 
   /**
-   * Adds a new resource string with the given [value].
+   * Adds a new resource string default with the given [value].
    *
    * @param key A [StringResourceKey] specifying the name of the resource and the directory in which
    * it will be created
+   * @param value the default value of the resource
+   * @param translatable whether the resource is translatable
    * @return true iff the resource was successfully created
    */
-  fun add(project: Project, key: StringResourceKey, value: String): Boolean =
-      add(project, key, value, translatable = true)
-  /**
-   * Adds a new resource string with the given localized [value] for the given [locale].
-   *
-   * @param key A [StringResourceKey] specifying the name of the resource and the directory in which
-   * it will be created
-   * @param locale the [Locale] for which the string resource's [value] has been localized
-   * @return `true` iff the resource was successfully created
-   */
-  fun add(project: Project, key: StringResourceKey, value: String, locale: Locale): Boolean
-  /**
-   * Adds a new resource string with the given [value].
-   *
-   * @param key A [StringResourceKey] specifying the name of the resource and the directory in which
-   * it will be created
-   * @return true iff the resource was successfully created
-   */
-  fun add(project: Project, key: StringResourceKey, value: String, translatable: Boolean): Boolean
-  /**
-   * Adds a new resource string with the given [value].
-   *
-   * @param key A [StringResourceKey] specifying the name of the resource and the directory in which
-   * it will be created
-   * @param file The [XmlFile] into which to write the resource string
-   * @return true iff the resource was successfully created
-   */
-  fun add(project: Project, key: StringResourceKey, value: String, file: XmlFile): Boolean
-  /**
-   * Adds a new resource string with the given [value].
-   *
-   * @param key A [StringResourceKey] specifying the name of the resource and the directory in which
-   * it will be created
-   * @param locale the [Locale] for which the string resource's [value] has been localized
-   * @param insertBefore A [StringResourceKey] before which the new resource should be added.
-   * @return true iff the resource was successfully created
-   */
-  fun add(
-      project: Project,
-      key: StringResourceKey,
-      value: String,
-      locale: Locale,
-      insertBefore: StringResourceKey
+  fun addDefault(
+    project: Project,
+    key: StringResourceKey,
+    value: String,
+    translatable: Boolean = true,
   ): Boolean
+
   /**
-   * Adds a new resource string with the given [value].
+   * Adds a new resource string translation with the given [value].
+   *
+   * The [insertBefore] key cannot be in a different directory than the [key] being inserted.
    *
    * @param key A [StringResourceKey] specifying the name of the resource and the directory in which
    * it will be created
-   * @param file The [XmlFile] into which to write the resource string
+   * @param locale The [Locale] for which the translation applies
+   * @param resourceFileName The preferred file name for the resource
    * @param insertBefore A [StringResourceKey] before which the new resource should be added.
    * @return true iff the resource was successfully created
    */
-  fun add(
-      project: Project,
-      key: StringResourceKey,
-      value: String,
-      file: XmlFile,
-      insertBefore: StringResourceKey
+  fun addTranslation(
+    project: Project,
+    key: StringResourceKey,
+    value: String,
+    locale: Locale,
+    resourceFileName: String = DEFAULT_STRING_RESOURCE_FILE_NAME,
+    insertBefore: StringResourceKey? = null,
+  ): Boolean
+
+  /**
+   * Adds a new resource string translation with the given [value] to a specific file.
+   *
+   * The [insertBefore] key cannot be in a different directory than the [key] being inserted.
+   *
+   * @param key A [StringResourceKey] specifying the name of the resource and the directory in which
+   * it will be created
+   * @param xmlFile An [XmlFile] to which the resource string translation should be added
+   * @param insertBefore A [StringResourceKey] before which the new resource should be added.
+   * @return true iff the resource was successfully created
+   */
+  fun addTranslationToFile(
+    project: Project,
+    xmlFile: XmlFile,
+    key: StringResourceKey,
+    value: String,
+    insertBefore: StringResourceKey? = null,
   ): Boolean
 
   /** Deletes the locale-specific string resource file. */
@@ -152,7 +127,7 @@ interface StringResourceWriter {
       project: Project,
       attribute: String,
       value: String?,
-      item: ResourceItem
+      item: ResourceItem,
   ): Boolean = setAttribute(project, attribute, value, listOf(item))
   /**
    * Sets the value of the given [attribute] on each of the given [items] to be [value]. If [value]
@@ -163,7 +138,7 @@ interface StringResourceWriter {
       project: Project,
       attribute: String,
       value: String?,
-      items: Collection<ResourceItem>
+      items: Collection<ResourceItem>,
   ): Boolean
 
   /**
@@ -203,14 +178,19 @@ interface StringResourceWriter {
 }
 
 private object StringResourceWriterImpl : StringResourceWriter {
-  override fun getStringResourceFile(
+
+  override fun getStringResourceFile(project: Project, resourceDirectory: VirtualFile): XmlFile? =
+    getStringResourceFile(project, resourceDirectory, locale = null, DEFAULT_STRING_RESOURCE_FILE_NAME)
+
+  private fun getStringResourceFile(
       project: Project,
       resourceDirectory: VirtualFile,
-      locale: Locale?
+      locale: Locale?,
+      resourceFileName: String,
   ): XmlFile? {
     val valuesDirectory =
         findOrCreateValuesDirectory(project, resourceDirectory, locale) ?: return null
-    return findOrCreateStringResourceFile(project, valuesDirectory)
+    return findOrCreateStringResourceFile(project, valuesDirectory, resourceFileName)
   }
 
   /**
@@ -248,8 +228,8 @@ private object StringResourceWriterImpl : StringResourceWriter {
   private fun findOrCreateStringResourceFile(
       project: Project,
       valuesDirectory: VirtualFile,
+      resourceFileName: String,
   ): XmlFile? {
-    val resourceFileName = getDefaultResourceFileName(ResourceType.STRING) ?: return null
     val psiManager = PsiManager.getInstance(project)
     valuesDirectory.findChild(resourceFileName)?.let {
       return psiManager.findFile(it) as? XmlFile
@@ -268,85 +248,81 @@ private object StringResourceWriterImpl : StringResourceWriter {
     }
   }
 
-  override fun add(
-      project: Project,
-      key: StringResourceKey,
-      value: String,
-      locale: Locale
-  ): Boolean = add(project, key, value, translatable = true, locale)
+  override fun addDefault(project: Project, key: StringResourceKey, value: String, translatable: Boolean): Boolean =
+    add(project, key, value, DEFAULT_STRING_RESOURCE_FILE_NAME, translatable = translatable)
 
-  override fun add(
-      project: Project,
-      key: StringResourceKey,
-      value: String,
-      translatable: Boolean
-  ): Boolean = add(project, key, value, translatable, locale = null)
-
-  override fun add(
-      project: Project,
-      key: StringResourceKey,
-      value: String,
-      file: XmlFile
-  ): Boolean = add(project, key, value, translatable = true, locale = null, file)
-
-  override fun add(
-      project: Project,
-      key: StringResourceKey,
-      value: String,
-      file: XmlFile,
-      insertBefore: StringResourceKey
-  ): Boolean = add(project, key, value, translatable = true, locale = null, file, insertBefore)
-
-  override fun add(
-      project: Project,
-      key: StringResourceKey,
-      value: String,
-      locale: Locale,
-      insertBefore: StringResourceKey
-  ): Boolean = add(project, key, value, translatable = true, locale, file = null, insertBefore)
-
-  private fun add(
-      project: Project,
-      key: StringResourceKey,
-      value: String,
-      translatable: Boolean = true,
-      locale: Locale? = null,
-      file: XmlFile? = null,
-      insertBefore: StringResourceKey? = null,
+  override fun addTranslation(
+    project: Project,
+    key: StringResourceKey,
+    value: String,
+    locale: Locale,
+    resourceFileName: String,
+    insertBefore: StringResourceKey?,
   ): Boolean {
-    require(translatable || locale == null) {
-      "Cannot specify a translation for non-translatable string resource!"
-    }
-    require(file == null || (translatable && locale == null)) {
-      "Cannot specify a file to write to for non-translatable string or explicit locale!"
-    }
     require(insertBefore == null || key.directory == insertBefore.directory) {
       "Can't insert before a key in a different directory."
     }
-    val resourceDirectory = key.directory ?: return false
-    val xmlFile = file ?: getStringResourceFile(project, resourceDirectory, locale) ?: return false
+    return add(project, key, value, resourceFileName, locale, translatable = true, insertBefore)
+  }
+
+  override fun addTranslationToFile(
+    project: Project,
+    xmlFile: XmlFile,
+    key: StringResourceKey,
+    value: String,
+    insertBefore: StringResourceKey?,
+  ): Boolean {
+    require(insertBefore == null || key.directory == insertBefore.directory) {
+      "Can't insert before a key in a different directory."
+    }
+    return addToFile(project, xmlFile, key, value, translatable = true, insertBefore = insertBefore)
+  }
+
+  fun addToFile(
+    project: Project,
+    xmlFile: XmlFile,
+    key: StringResourceKey,
+    value: String,
+    translatable: Boolean,
+    insertBefore: StringResourceKey? = null,
+  ): Boolean {
     val resources: XmlTag = xmlFile.rootTag ?: return false
     val resource: XmlTag =
-        resources
-            .createChildTag(
-                SdkConstants.TAG_STRING,
-                resources.namespace,
-                escapeIfValid(value),
-                /* enforceNamespacesDeep= */ false)
-            .apply {
-              setAttribute(SdkConstants.ATTR_NAME, key.name)
-              if (!translatable) setAttribute(SdkConstants.ATTR_TRANSLATABLE, false.toString())
-            }
+      resources
+        .createChildTag(
+          SdkConstants.TAG_STRING,
+          resources.namespace,
+          escapeIfValid(value),
+          /* enforceNamespacesDeep= */ false)
+        .apply {
+          setAttribute(SdkConstants.ATTR_NAME, key.name)
+          if (!translatable) setAttribute(SdkConstants.ATTR_TRANSLATABLE, false.toString())
+        }
     val beforeTag: XmlTag? = resources.findSubtagForKey(insertBefore)
-    WriteCommandAction.writeCommandAction(project).withName("Add string resource ${key.name}").run<
-        Nothing> {
+    WriteCommandAction.writeCommandAction(project).withName("Add string resource ${key.name}").run<Nothing> {
       if (beforeTag == null) {
         resources.addSubTag(resource, /* first= */ false)
-      } else {
+      }
+      else {
         resources.addBefore(resource, beforeTag)
       }
     }
     return true
+  }
+
+  private fun add(
+    project: Project,
+    key: StringResourceKey,
+    value: String,
+    resourceFileName: String,
+    locale: Locale? = null,
+    translatable: Boolean = true,
+    insertBefore: StringResourceKey? = null,
+  ): Boolean {
+    val dir = key.directory ?: return false
+    val xmlFile = getStringResourceFile(project, dir, locale, resourceFileName) ?: return false
+
+    return addToFile(project, xmlFile, key, value, translatable, insertBefore)
   }
 
   /**

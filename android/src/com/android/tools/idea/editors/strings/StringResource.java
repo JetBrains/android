@@ -22,6 +22,7 @@ import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.ide.common.resources.escape.xml.CharacterDataEscaper;
+import com.android.ide.common.util.PathString;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.android.tools.idea.res.DynamicValueResourceItem;
@@ -34,6 +35,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.SameThreadExecutor;
@@ -41,6 +43,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -171,7 +174,7 @@ public final class StringResource {
 
     Project project = myData.getProject();
 
-    StringResourceWriter.INSTANCE.add(project, myKey, value, myTranslatable);
+    StringResourceWriter.INSTANCE.addDefault(project, myKey, value, myTranslatable);
 
     SettableFuture<ResourceItem> futureItem = SettableFuture.create();
     StringResourceRepository stringRepository = myData.getRepository();
@@ -221,8 +224,13 @@ public final class StringResource {
         // This translation exists in default translation. Find the anchor
         while (++index < keys.size()) {
           StringResourceKey next = keys.get(index);
-          // Check if this resource exist in the given Locale file.
-          if (myData.getStringResource(next).getTranslationAsResourceItem(locale) != null) {
+          StringResource nextResource = myData.getStringResource(next);
+          // If we're into another file already, we're not going to find the anchor here.
+          if (!hasSameDefaultValueFile(nextResource)) {
+            break;
+          }
+          // Check if this resource exists in the given Locale file.
+          if (nextResource.getTranslationAsResourceItem(locale) != null) {
             anchor = next;
             break;
           }
@@ -272,27 +280,19 @@ public final class StringResource {
       return Futures.immediateFuture(null);
     }
 
+    VirtualFile resourceDirectory = myKey.getDirectory();
+    if (resourceDirectory == null) {
+      return Futures.immediateFuture(null);
+    }
+
     Project project = myData.getProject();
     // If there is only one file that all translations of string resources are in, get that file.
     @Nullable XmlFile file = myData.getDefaultLocaleXml(locale);
-
-    if (file == null) {
-      // Put in the standard place, i.e. values-XX/strings.xml, creating if necessary.
-      if (anchor == null) {
-        StringResourceWriter.INSTANCE.add(project, myKey, value, locale);
-      }
-      else {
-        StringResourceWriter.INSTANCE.add(project, myKey, value, locale, anchor);
-      }
+    if (file != null) {
+      StringResourceWriter.INSTANCE.addTranslationToFile(project, file, myKey, value, anchor);
     }
     else {
-      // Put in the one-file-to-rule-them-all found above.
-      if (anchor == null) {
-        StringResourceWriter.INSTANCE.add(project, myKey, value, file);
-      }
-      else {
-        StringResourceWriter.INSTANCE.add(project, myKey, value, file, anchor);
-      }
+      StringResourceWriter.INSTANCE.addTranslation(project, myKey, value, locale, getDefaultValueFileName(), anchor);
     }
 
     SettableFuture<ResourceItem> futureItem = SettableFuture.create();
@@ -337,6 +337,24 @@ public final class StringResource {
     }
 
     return isTranslationMissing(item);
+  }
+
+  private boolean hasSameDefaultValueFile(StringResource other) {
+    return Objects.equals(getDefaultValueFileName(), other.getDefaultValueFileName());
+  }
+
+  @NotNull
+  private String getDefaultValueFileName() {
+    ResourceItem resourceItem = getDefaultValueAsResourceItem();
+    if (resourceItem != null) {
+      PathString pathString = resourceItem.getOriginalSource();
+      if (pathString != null) {
+        String fileName = pathString.getFileName();
+        assert !fileName.isEmpty(); // Only empty if pathString is a file system root.
+        return fileName;
+      }
+    }
+    return IdeResourcesUtil.DEFAULT_STRING_RESOURCE_FILE_NAME;
   }
 
   private static boolean isTranslationMissing(@Nullable ResourceItemEntry item) {

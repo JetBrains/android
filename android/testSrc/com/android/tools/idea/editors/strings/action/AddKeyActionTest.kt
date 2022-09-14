@@ -132,7 +132,7 @@ class AddKeyActionTest {
   @Test
   fun actionPerformed_ok_addFails() {
     enableHeadlessDialogs(project)
-    whenever(stringResourceWriter.add(any(), any(), any())).thenReturn(false)
+    whenever(stringResourceWriter.addDefault(any(), any(), any(), any())).thenReturn(false)
 
     createModalDialogAndInteractWithIt({ addKeyAction.actionPerformed(event) }) {
       it.key = NEW_KEY
@@ -140,7 +140,7 @@ class AddKeyActionTest {
       it.clickOk()
     }
 
-    verify(stringResourceWriter).add(project, StringResourceKey(NEW_KEY), NEW_DEFAULT_VALUE)
+    verify(stringResourceWriter).addDefault(project, StringResourceKey(NEW_KEY), NEW_DEFAULT_VALUE)
     // Add failed, so we shouldn't reload the panel's data.
     verify(panel, never()).reloadData()
   }
@@ -148,7 +148,7 @@ class AddKeyActionTest {
   @Test
   fun actionPerformed_ok_addSucceeds() {
     enableHeadlessDialogs(project)
-    whenever(stringResourceWriter.add(any(), any(), any())).thenReturn(true)
+    whenever(stringResourceWriter.addDefault(any(), any(), any(), any())).thenReturn(true)
 
     createModalDialogAndInteractWithIt({ addKeyAction.actionPerformed(event) }) {
       it.key = NEW_KEY
@@ -156,7 +156,7 @@ class AddKeyActionTest {
       it.clickOk()
     }
 
-    verify(stringResourceWriter).add(project, StringResourceKey(NEW_KEY), NEW_DEFAULT_VALUE)
+    verify(stringResourceWriter).addDefault(project, StringResourceKey(NEW_KEY), NEW_DEFAULT_VALUE)
     verify(panel).reloadData()
   }
 

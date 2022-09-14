@@ -115,7 +115,9 @@ public class TranslationsEditorSavingTest {
     String translatedContents = "<resources>\n" +
                                 "    <string name=\"key_2\">key_2_translated</string>\n" +
                                 "</resources>\n";
-    TestFileUtils.writeFileAndRefreshVfs(myRes.resolve(Paths.get("values-zh-v12", "strings.xml")), translatedContents);
+    Path v12Path = myRes.resolve(Paths.get("values-zh-v12", "strings.xml"));
+    TestFileUtils.writeFileAndRefreshVfs(v12Path, translatedContents);
+    myFilesToRemove.add(v12Path);
 
     myApplication.invokeAndWait(() -> {
       Utils.loadResources(myPanel, Collections.singletonList(myRes));
@@ -129,5 +131,6 @@ public class TranslationsEditorSavingTest {
     VirtualFile vFile =
       LocalFileSystem.getInstance().refreshAndFindFileByIoFile(myRes.resolve(Paths.get("values-zh", "strings.xml")).toFile());
     assertTrue(vFile != null && vFile.exists());
+    myFilesToRemove.add(vFile.toNioPath());
   }
 }

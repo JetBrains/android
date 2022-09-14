@@ -36,7 +36,7 @@ internal constructor(private val stringResourceWriter: StringResourceWriter) :
         }
     val dialog = NewStringKeyDialog(event.panel.facet, data.keys.toSet())
     if (dialog.showAndGet() &&
-        stringResourceWriter.add(event.requiredProject, dialog.key, dialog.defaultValue)) {
+        stringResourceWriter.addDefault(event.requiredProject, dialog.key, dialog.defaultValue)) {
       event.panel.reloadData()
     }
   }

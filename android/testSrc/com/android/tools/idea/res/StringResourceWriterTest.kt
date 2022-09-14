@@ -41,12 +41,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import javax.swing.JCheckBox
-import kotlin.coroutines.resume
-import kotlin.test.assertFailsWith
-import kotlin.test.fail
-import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -61,6 +55,12 @@ import org.junit.runners.JUnit4
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
 import javax.swing.JButton
+import javax.swing.JCheckBox
+import kotlin.coroutines.resume
+import kotlin.test.assertFailsWith
+import kotlin.test.fail
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 
 /**
  * Tests the [StringResourceWriter].
@@ -112,35 +112,11 @@ class StringResourceWriterTest {
   }
 
   @Test
-  fun getStringResourceFile_withLocale() {
-    assertThat(resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)).isNotNull()
-
-    val xmlFile =
-        stringResourceWriter.getStringResourceFile(project, resourceDirectory, FRENCH_LOCALE)
-
-    assertThat(xmlFile).isNotNull()
-    assertThat(xmlFile?.virtualFile)
-        .isEqualTo(resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE))
-  }
-
-  @Test
-  fun getStringResourceFile_creation() {
-    assertThat(resourceDirectory.findFileByRelativePath(KOREAN_STRINGS_FILE)).isNull()
-
-    val xmlFile =
-        stringResourceWriter.getStringResourceFile(project, resourceDirectory, KOREAN_LOCALE)
-
-    assertThat(xmlFile).isNotNull()
-    assertThat(xmlFile?.virtualFile)
-        .isEqualTo(resourceDirectory.findFileByRelativePath(KOREAN_STRINGS_FILE))
-  }
-
-  @Test
   fun add_defaultLocale() {
     assertThat(textExists(DEFAULT_STRINGS_FILE, NEW_KEY)).isFalse()
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
-    assertThat(stringResourceWriter.add(project, resourceKey, NEW_VALUE)).isTrue()
+    assertThat(stringResourceWriter.addDefault(project, resourceKey, NEW_VALUE)).isTrue()
 
     assertThat(getText(DEFAULT_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
     assertThat(getAttribute(DEFAULT_STRINGS_FILE, NEW_KEY, SdkConstants.ATTR_TRANSLATABLE)).isNull()
@@ -151,7 +127,7 @@ class StringResourceWriterTest {
     assertThat(resourceDirectory.findFileByRelativePath(KOREAN_STRINGS_FILE)).isNull()
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
-    assertThat(stringResourceWriter.add(project, resourceKey, NEW_VALUE, KOREAN_LOCALE)).isTrue()
+    assertThat(stringResourceWriter.addTranslation(project, resourceKey, NEW_VALUE, KOREAN_LOCALE)).isTrue()
 
     assertThat(resourceDirectory.findFileByRelativePath(KOREAN_STRINGS_FILE)).isNotNull()
     assertThat(getText(KOREAN_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
@@ -163,7 +139,21 @@ class StringResourceWriterTest {
     assertThat(resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)).isNotNull()
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
-    assertThat(stringResourceWriter.add(project, resourceKey, NEW_VALUE, FRENCH_LOCALE)).isTrue()
+    assertThat(stringResourceWriter.addTranslation(project, resourceKey, NEW_VALUE, FRENCH_LOCALE)).isTrue()
+
+    assertThat(getText(FRENCH_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
+    assertThat(getAttribute(FRENCH_STRINGS_FILE, NEW_KEY, SdkConstants.ATTR_TRANSLATABLE)).isNull()
+  }
+
+  @Test
+  fun add_specificFile() {
+    val file = resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)
+    assertThat(file).isNotNull()
+    val xmlFile = PsiManager.getInstance(project).findFile(file!!) as XmlFile
+
+    val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
+
+    assertThat(stringResourceWriter.addTranslationToFile(project, xmlFile, resourceKey, NEW_VALUE)).isTrue()
 
     assertThat(getText(FRENCH_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
     assertThat(getAttribute(FRENCH_STRINGS_FILE, NEW_KEY, SdkConstants.ATTR_TRANSLATABLE)).isNull()
@@ -173,7 +163,7 @@ class StringResourceWriterTest {
   fun add_notTranslatable() {
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
-    assertThat(stringResourceWriter.add(project, resourceKey, NEW_VALUE, translatable = false))
+    assertThat(stringResourceWriter.addDefault(project, resourceKey, NEW_VALUE, translatable = false))
         .isTrue()
 
     assertThat(getText(DEFAULT_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
@@ -186,23 +176,9 @@ class StringResourceWriterTest {
     val invalidXml = "<foo"
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
-    assertThat(stringResourceWriter.add(project, resourceKey, invalidXml)).isTrue()
+    assertThat(stringResourceWriter.addDefault(project, resourceKey, invalidXml)).isTrue()
 
     assertThat(getText(DEFAULT_STRINGS_FILE, NEW_KEY)).isEqualTo(invalidXml)
-  }
-
-  @Test
-  fun add_specificFile() {
-    val file = resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)
-    assertThat(file).isNotNull()
-    val xmlFile = PsiManager.getInstance(project).findFile(file!!) as XmlFile
-
-    val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
-
-    assertThat(stringResourceWriter.add(project, resourceKey, NEW_VALUE, xmlFile)).isTrue()
-
-    assertThat(getText(FRENCH_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
-    assertThat(getAttribute(FRENCH_STRINGS_FILE, NEW_KEY, SdkConstants.ATTR_TRANSLATABLE)).isNull()
   }
 
   @Test
@@ -213,7 +189,7 @@ class StringResourceWriterTest {
 
     val insertBefore = StringResourceKey(KEY2, resourceDirectory)
     assertThat(
-            stringResourceWriter.add(project, resourceKey, NEW_VALUE, FRENCH_LOCALE, insertBefore))
+            stringResourceWriter.addTranslation(project, resourceKey, NEW_VALUE, FRENCH_LOCALE, insertBefore = insertBefore))
         .isTrue()
 
     assertThat(textExists(FRENCH_STRINGS_FILE, NEW_KEY)).isTrue()
@@ -222,21 +198,14 @@ class StringResourceWriterTest {
   }
 
   @Test
-  fun add_before_specificFile() {
-    val file = resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)
-    assertThat(file).isNotNull()
-    val xmlFile = PsiManager.getInstance(project).findFile(file!!) as XmlFile
-
-    assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
-    val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
-
-    val insertBefore = StringResourceKey(KEY2, resourceDirectory)
-    assertThat(stringResourceWriter.add(project, resourceKey, NEW_VALUE, xmlFile, insertBefore))
-        .isTrue()
-
-    assertThat(textExists(FRENCH_STRINGS_FILE, NEW_KEY)).isTrue()
-    assertThat(textPosition(FRENCH_STRINGS_FILE, KEY2) - textPosition(FRENCH_STRINGS_FILE, NEW_KEY))
-        .isEqualTo(1)
+  fun add_atypicalFileName() {
+    val key = "atypical_key1"
+    val resourceFileName = "atypical-strings.xml"
+    val resourceKey = StringResourceKey(key, resourceDirectory)
+    val value = "la touche atypique 1"
+    assertThat(StringResourceWriter.INSTANCE
+                 .addTranslation(project, resourceKey, value, locale = FRENCH_LOCALE, resourceFileName = resourceFileName)).isTrue()
+    assertThat(getText("values-fr/${resourceFileName}", key)).isEqualTo(value)
   }
 
   @Test

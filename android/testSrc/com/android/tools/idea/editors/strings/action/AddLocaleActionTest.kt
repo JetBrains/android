@@ -166,7 +166,7 @@ class AddLocaleActionTest {
     popup.selectItem(UNUSED_LOCALE_SAMPLE.first())
 
     verify(stringResourceWriter)
-        .add(project, firstAvailableKey, DEFAULT_VALUE_AS_STRING, UNUSED_LOCALE_SAMPLE.first())
+        .addTranslation(project, firstAvailableKey, DEFAULT_VALUE_AS_STRING, locale = UNUSED_LOCALE_SAMPLE.first())
     // Add did not succeed so should not reload.
     verify(panel, never()).reloadData()
   }
@@ -183,15 +183,15 @@ class AddLocaleActionTest {
     addLocaleAction.actionPerformed(event)
 
     whenever(
-            stringResourceWriter.add(
-                project, firstAvailableKey, DEFAULT_VALUE_AS_STRING, UNUSED_LOCALE_SAMPLE.first()))
+            stringResourceWriter.addTranslation(
+                project, firstAvailableKey, DEFAULT_VALUE_AS_STRING, locale = UNUSED_LOCALE_SAMPLE.first()))
         .thenReturn(true)
     val popup = popupRule.fakePopupFactory.getPopup<Locale>(0)
 
     popup.selectItem(UNUSED_LOCALE_SAMPLE.first())
 
     verify(stringResourceWriter)
-        .add(project, firstAvailableKey, DEFAULT_VALUE_AS_STRING, UNUSED_LOCALE_SAMPLE.first())
+        .addTranslation(project, firstAvailableKey, DEFAULT_VALUE_AS_STRING, locale = UNUSED_LOCALE_SAMPLE.first())
     verify(panel).reloadData()
   }
 
@@ -214,7 +214,7 @@ class AddLocaleActionTest {
     popup.selectItem(UNUSED_LOCALE_SAMPLE.first())
 
     verify(stringResourceWriter)
-        .add(project, appNameKey, DEFAULT_VALUE_AS_STRING, UNUSED_LOCALE_SAMPLE.first())
+        .addTranslation(project, appNameKey, DEFAULT_VALUE_AS_STRING, locale = UNUSED_LOCALE_SAMPLE.first())
     // Add did not succeed so should not reload.
     verify(panel, never()).reloadData()
   }
@@ -234,15 +234,15 @@ class AddLocaleActionTest {
     addLocaleAction.actionPerformed(event)
 
     whenever(
-            stringResourceWriter.add(
-                project, appNameKey, DEFAULT_VALUE_AS_STRING, UNUSED_LOCALE_SAMPLE.first()))
+            stringResourceWriter.addTranslation(
+                project, appNameKey, DEFAULT_VALUE_AS_STRING, locale = UNUSED_LOCALE_SAMPLE.first()))
         .thenReturn(true)
     val popup = popupRule.fakePopupFactory.getPopup<Locale>(0)
 
     popup.selectItem(UNUSED_LOCALE_SAMPLE.first())
 
     verify(stringResourceWriter)
-        .add(project, appNameKey, DEFAULT_VALUE_AS_STRING, UNUSED_LOCALE_SAMPLE.first())
+        .addTranslation(project, appNameKey, DEFAULT_VALUE_AS_STRING, locale = UNUSED_LOCALE_SAMPLE.first())
     verify(panel).reloadData()
   }
 

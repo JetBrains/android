@@ -170,6 +170,7 @@ private const val LAYOUT_HEIGHT_PROPERTY = "LAYOUT_HEIGHT"
 private val LOG: Logger = Logger.getInstance("IdeResourcesUtil.kt")
 const val RESOURCE_ICON_SIZE = 16
 const val ALPHA_FLOATING_ERROR_FORMAT = "The alpha attribute in %1\$s/%2\$s does not resolve to a floating point number"
+const val DEFAULT_STRING_RESOURCE_FILE_NAME = "strings.xml"
 
 @JvmField
 val VALUE_RESOURCE_TYPES: EnumSet<ResourceType> = EnumSet.of(
@@ -1488,22 +1489,16 @@ fun getResourceSubdirs(resourceType: ResourceFolderType, resourceDirs: Iterable<
 }
 
 fun getDefaultResourceFileName(type: ResourceType): String? {
-  if (ResourceType.PLURALS == type || ResourceType.STRING == type) {
-    return "strings.xml"
+  return when (type) {
+    ResourceType.STRING, ResourceType.PLURALS -> DEFAULT_STRING_RESOURCE_FILE_NAME
+    ResourceType.ATTR, ResourceType.STYLEABLE -> "attrs.xml"
+    // Lots of unit tests assume drawable aliases are written in "drawables.xml" but going
+    // forward let's combine both layouts and drawables in refs.xml as is done in the templates:
+    ResourceType.LAYOUT, ResourceType.DRAWABLE ->
+      if (ApplicationManager.getApplication().isUnitTestMode) (type.getName() + "s.xml") else "refs.xml"
+    in VALUE_RESOURCE_TYPES -> type.getName() + "s.xml"
+    else -> null
   }
-  if (VALUE_RESOURCE_TYPES.contains(type)) {
-    return if (type == ResourceType.LAYOUT // Lots of unit tests assume drawable aliases are written in "drawables.xml" but going
-               // forward lets combine both layouts and drawables in refs.xml as is done in the templates:
-               || type == ResourceType.DRAWABLE && !ApplicationManager.getApplication().isUnitTestMode) {
-      "refs.xml"
-    }
-    else type.getName() + "s.xml"
-  }
-  return if (ResourceType.ATTR == type ||
-             ResourceType.STYLEABLE == type) {
-    "attrs.xml"
-  }
-  else null
 }
 
 fun getValueResourcesFromElement(resourceType: ResourceType, resources: Resources): List<ResourceElement> {
