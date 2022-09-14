@@ -33,7 +33,6 @@ import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.GarbageCollectionData
 import com.android.build.attribution.data.PluginBuildData
-import com.google.common.truth.Truth
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
@@ -45,16 +44,26 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
-import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
 import java.time.Duration
 import java.util.UUID
+import kotlin.collections.HashMap
+import kotlin.collections.List
+import kotlin.collections.emptyList
+import kotlin.collections.listOf
+import kotlin.collections.minByOrNull
+import kotlin.collections.mutableListOf
+import kotlin.collections.mutableMapOf
+import kotlin.collections.set
+import kotlin.collections.setOf
 
 class BuildAnalyzerStorageManagerTest {
   @get:Rule
@@ -76,21 +85,13 @@ class BuildAnalyzerStorageManagerTest {
     val buildStartedTimestamp = 10L
     val buildDuration = 100L
     val buildFinishedTimestamp = buildStartedTimestamp + buildDuration
-    val taskContainer = TaskContainer()
-    val pluginContainer = PluginContainer()
-    val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
-    val setPrivateField: (Any, String, Any) -> Unit = { classInstance: Any, fieldName: String, newValue: Any ->
-      val field = classInstance.javaClass.getDeclaredField(fieldName)
-      field.isAccessible = true
-      field.set(classInstance, newValue)
-    }
-    val criticalPathAnalyzer = analyzersProxy.criticalPathAnalyzer
-    setPrivateField(criticalPathAnalyzer, "buildStartedTimestamp", buildStartedTimestamp)
-    setPrivateField(criticalPathAnalyzer, "buildFinishedTimestamp", buildFinishedTimestamp)
-    val request = GradleBuildInvoker.Request
-      .builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+    val buildAnalyzerResultData = constructBuildAnalyzerResultData(buildStartedTimestamp,
+                                                                   buildFinishedTimestamp,
+                                                                   "some buildID")
     BuildAnalyzerStorageManager.getInstance(projectRule.project)
-      .storeNewBuildResults(analyzersProxy, "some buildID", BuildRequestHolder(request))
+      .storeNewBuildResults(buildAnalyzerResultData.analyzersProxy,
+                            buildAnalyzerResultData.buildID,
+                            buildAnalyzerResultData.buildRequestHolder)
     Truth.assertThat(
       BuildAnalyzerStorageManager
         .getInstance(projectRule.project).getLatestBuildAnalysisResults().getBuildSessionID()
@@ -113,13 +114,11 @@ class BuildAnalyzerStorageManagerTest {
   @Test
   fun testGetHistoricBuildByIDTrueFlag() {
     StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
-    val taskContainer = TaskContainer()
-    val pluginContainer = PluginContainer()
-    val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
-    val request = GradleBuildInvoker.Request
-      .builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+    val buildAnalyzerResultData = constructBuildAnalyzerResultData(buildID = "some buildID")
     BuildAnalyzerStorageManager.getInstance(projectRule.project)
-      .storeNewBuildResults(analyzersProxy, "some buildID", BuildRequestHolder(request))
+      .storeNewBuildResults(buildAnalyzerResultData.analyzersProxy,
+                            buildAnalyzerResultData.buildID,
+                            buildAnalyzerResultData.buildRequestHolder)
     Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getHistoricBuildResultByID("some buildID")
                        .getBuildSessionID()).isEqualTo("some buildID")
   }
@@ -127,13 +126,11 @@ class BuildAnalyzerStorageManagerTest {
   @Test
   fun testDoesNotStoreResultsWithFalseFlag() {
     StudioFlags.BUILD_ANALYZER_HISTORY.override(false)
-    val taskContainer = TaskContainer()
-    val pluginContainer = PluginContainer()
-    val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
-    val request = GradleBuildInvoker.Request
-      .builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+    val buildAnalyzerResultData = constructBuildAnalyzerResultData(buildID = "some buildID")
     BuildAnalyzerStorageManager.getInstance(projectRule.project)
-      .storeNewBuildResults(analyzersProxy, "some buildID", BuildRequestHolder(request))
+      .storeNewBuildResults(buildAnalyzerResultData.analyzersProxy,
+                            buildAnalyzerResultData.buildID,
+                            buildAnalyzerResultData.buildRequestHolder)
     Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildDescriptors()).isEmpty()
   }
 
@@ -146,15 +143,104 @@ class BuildAnalyzerStorageManagerTest {
           listenerInvocationCounter += 1
         }
       })
+    Truth.assertThat(listenerInvocationCounter).isEqualTo(0)
+    val buildAnalyzerResultData = constructBuildAnalyzerResultData(buildID = "some buildID")
+    BuildAnalyzerStorageManager.getInstance(projectRule.project)
+      .storeNewBuildResults(buildAnalyzerResultData.analyzersProxy,
+                            buildAnalyzerResultData.buildID,
+                            buildAnalyzerResultData.buildRequestHolder)
+    Truth.assertThat(listenerInvocationCounter).isEqualTo(1)
+  }
+
+  @Test
+  fun testBuildResultsAreCleared() {
+    StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
+    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildFilesStored()).isEqualTo(0)
+    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
+      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
+      "someID",
+      BuildRequestHolder(
+        GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+      )
+    )
+    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
+      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
+      "someID2",
+      BuildRequestHolder(
+        GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+      )
+    )
+    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildFilesStored()).isEqualTo(2)
+    BuildAnalyzerStorageManager.getInstance(projectRule.project).clearBuildResultsStored()
+    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildFilesStored()).isEqualTo(0)
+  }
+
+  @Test
+  fun testBuildFileSizeIsCalculated() {
+    StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
+    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
+      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
+      "someID",
+      BuildRequestHolder(
+        GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+      )
+    )
+    val fileSizeFirstIteration = BuildAnalyzerStorageManager.getInstance(projectRule.project).getCurrentBuildHistoryDataSize()
+    Truth.assertThat(fileSizeFirstIteration).isGreaterThan(0)
+    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
+      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
+      "someID2",
+      BuildRequestHolder(
+        GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+      )
+    )
+    val fileSizeSecondIteration = BuildAnalyzerStorageManager.getInstance(projectRule.project).getCurrentBuildHistoryDataSize()
+    Truth.assertThat(fileSizeSecondIteration).isGreaterThan(fileSizeFirstIteration)
+  }
+
+  @Test
+  fun testNumberOfBuildResultsIsCalculated() {
+    StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
+    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
+      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
+      "someID",
+      BuildRequestHolder(
+        GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+      )
+    )
+    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
+      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
+      "someID2",
+      BuildRequestHolder(
+        GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+      )
+    )
+    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildFilesStored()).isEqualTo(2)
+  }
+
+  data class BuildAnalyzerResultData(
+    val analyzersProxy: BuildEventsAnalyzersProxy,
+    val buildID: String,
+    val buildRequestHolder: BuildRequestHolder
+  )
+
+  fun constructBuildAnalyzerResultData(buildStartedTimestamp: Long = 12345,
+                                       buildFinishedTimestamp: Long = 12345,
+                                       buildID: String = UUID.randomUUID().toString()): BuildAnalyzerResultData {
     val taskContainer = TaskContainer()
     val pluginContainer = PluginContainer()
     val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
+    val setPrivateField: (Any, String, Any) -> Unit = { classInstance: Any, fieldName: String, newValue: Any ->
+      val field = classInstance.javaClass.getDeclaredField(fieldName)
+      field.isAccessible = true
+      field.set(classInstance, newValue)
+    }
+    val criticalPathAnalyzer = analyzersProxy.criticalPathAnalyzer
+    setPrivateField(criticalPathAnalyzer, "buildStartedTimestamp", buildStartedTimestamp)
+    setPrivateField(criticalPathAnalyzer, "buildFinishedTimestamp", buildFinishedTimestamp)
     val request = GradleBuildInvoker.Request
       .builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
-    BuildAnalyzerStorageManager.getInstance(projectRule.project)
-      .storeNewBuildResults(analyzersProxy, "some buildID", BuildRequestHolder(request))
-    Truth.assertThat(listenerInvocationCounter).isEqualTo(1)
-    Truth.assertThat(listenerInvocationCounter).isEqualTo(1)
+    return BuildAnalyzerResultData(analyzersProxy, buildID, BuildRequestHolder(request))
   }
 
   private fun constructBuildResultsObject(): BuildAnalysisResults {
@@ -269,68 +355,14 @@ class BuildAnalyzerStorageManagerTest {
     )
   }
 
-  @Test
-  fun testBuildResultsAreCleared() {
-    StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
-    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
-      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
-      "someID",
-      BuildRequestHolder(
-        GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
-      )
-    )
-    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
-      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
-      "someID2",
-      BuildRequestHolder(
-        GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
-      )
-    )
-    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildFilesStored()).isEqualTo(2)
-    BuildAnalyzerStorageManager.getInstance(projectRule.project).clearBuildResultsStored()
-    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildFilesStored()).isEqualTo(0)
-  }
-
-  @Test
-  fun testBuildFileSizeIsCalculated() {
-    StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
-    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
-      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
-      "someID",
-      BuildRequestHolder(
-        GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
-      )
-    )
-    val fileSizeFirstIteration = BuildAnalyzerStorageManager.getInstance(projectRule.project).getCurrentBuildHistoryDataSize()
-    Truth.assertThat(fileSizeFirstIteration).isGreaterThan(0)
-    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
-      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
-      "someID2",
-      BuildRequestHolder(
-        GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
-      )
-    )
-    val fileSizeSecondIteration = BuildAnalyzerStorageManager.getInstance(projectRule.project).getCurrentBuildHistoryDataSize()
-    Truth.assertThat(fileSizeSecondIteration).isGreaterThan(fileSizeFirstIteration)
-  }
-
-  @Test
-  fun testNumberOfBuildResultsIsCalculated() {
-    StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
-    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
-      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
-      "someID",
-      BuildRequestHolder(
-        GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
-      )
-    )
-    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
-      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
-      "someID2",
-      BuildRequestHolder(
-        GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
-      )
-    )
-    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildFilesStored()).isEqualTo(2)
+  /**
+   * Call [BuildAnalyzerStorageManagerImpl.getFileFromBuildID] on passed [buildID]
+   */
+  private fun getFileFromBuildID(buildID: String) : File {
+    val getFileFromBuildIDMethod = BuildAnalyzerStorageManager.getInstance(projectRule.project)::class.java
+      .getDeclaredMethod("getFileFromBuildID", String::class.java)
+    getFileFromBuildIDMethod.isAccessible = true
+    return getFileFromBuildIDMethod.invoke(BuildAnalyzerStorageManager.getInstance(projectRule.project),
+                                           buildID) as File
   }
 }
