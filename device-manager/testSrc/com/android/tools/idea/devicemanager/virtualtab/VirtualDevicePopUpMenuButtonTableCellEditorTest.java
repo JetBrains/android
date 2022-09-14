@@ -25,13 +25,11 @@ import com.android.tools.idea.devicemanager.DeviceTables;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
-import com.google.common.util.concurrent.Futures;
 import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu.Separator;
 import javax.swing.JTable;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -39,14 +37,8 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
-  private final @NotNull PopUpMenuButtonTableCellEditor myEditor;
-
-  public VirtualDevicePopUpMenuButtonTableCellEditorTest() {
-    Emulator emulator = Mockito.mock(Emulator.class);
-    Mockito.when(emulator.supportsColdBootingAsync()).thenReturn(Futures.immediateFuture(true));
-
-    myEditor = new VirtualDevicePopUpMenuButtonTableCellEditor(Mockito.mock(VirtualDevicePanel.class), emulator);
-  }
+  private final PopUpMenuButtonTableCellEditor myEditor =
+    new VirtualDevicePopUpMenuButtonTableCellEditor(Mockito.mock(VirtualDevicePanel.class));
 
   @Test
   public void newColdBootNowItem() {

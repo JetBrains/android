@@ -18,12 +18,11 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.AvdOptionsModel;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
-import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
+import com.android.tools.idea.devicemanager.DevicePanel;
 import com.android.tools.idea.devicemanager.MenuItems;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
 import com.android.tools.idea.flags.StudioFlags;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
@@ -36,7 +35,6 @@ import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Executor;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu.Separator;
@@ -45,16 +43,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonTableCellEditor {
-  private final @NotNull Emulator myEmulator;
-
-  VirtualDevicePopUpMenuButtonTableCellEditor(@NotNull VirtualDevicePanel panel) {
-    this(panel, new Emulator());
-  }
-
-  @VisibleForTesting
-  VirtualDevicePopUpMenuButtonTableCellEditor(@NotNull VirtualDevicePanel panel, @NotNull Emulator emulator) {
+  VirtualDevicePopUpMenuButtonTableCellEditor(@NotNull DevicePanel panel) {
     super(panel);
-    myEmulator = emulator;
   }
 
   @NotNull VirtualDevicePanel getPanel() {
@@ -84,11 +74,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
 
   private @NotNull JComponent newColdBootNowItem() {
     AbstractButton item = new JBMenuItem("Cold Boot Now");
-
-    item.setEnabled(false);
     item.setToolTipText("Force one cold boot");
-
-    Executor executor = EdtExecutorService.getInstance();
 
     item.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
@@ -100,12 +86,8 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
 
       Futures.addCallback(AvdManagerConnection.getDefaultAvdManagerConnection().startAvdWithColdBoot(project, getDevice().getAvdInfo()),
                           new ShowErrorDialogFutureCallback(project),
-                          executor);
+                          EdtExecutorService.getInstance());
     });
-
-    Futures.addCallback(myEmulator.supportsColdBootingAsync(),
-                        new DeviceManagerFutureCallback<>(VirtualDevicePopUpMenuButtonTableCellEditor.class, item::setEnabled),
-                        executor);
 
     return item;
   }
