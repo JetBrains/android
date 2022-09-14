@@ -27,11 +27,13 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.ui.PopupMenuListenerAdapter;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
+import javax.swing.event.PopupMenuEvent;
 import kotlin.coroutines.CoroutineContext;
 import kotlinx.coroutines.BuildersKt;
 import kotlinx.coroutines.GlobalScope;
@@ -51,8 +53,15 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
 
     myButton.addActionListener(event -> {
       JPopupMenu menu = new JBPopupMenu();
-
       newItems().forEach(menu::add);
+
+      menu.addPopupMenuListener(new PopupMenuListenerAdapter() {
+        @Override
+        public void popupMenuWillBecomeInvisible(@NotNull PopupMenuEvent event) {
+          fireEditingCanceled();
+        }
+      });
+
       menu.show(myButton, 0, myButton.getHeight());
     });
   }
