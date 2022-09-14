@@ -77,7 +77,7 @@ class GoToAndroidResourceContributorTest {
   }
 
   private fun navigate(name: String, pattern: String, expectedNumberOfResults: Int = 1, selectResult: Int = 0): PsiElement {
-    val model = GotoSymbolModel2(projectRule.project)
+    val model = GotoSymbolModel2(projectRule.project, projectRule.testRootDisposable)
     val searchResults = model.getElementsByName(name, false, pattern)
     assertThat(searchResults).hasLength(expectedNumberOfResults)
     val result = searchResults[selectResult]
