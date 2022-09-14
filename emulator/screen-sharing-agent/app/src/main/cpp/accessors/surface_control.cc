@@ -18,31 +18,54 @@
 
 #include <android/native_window_jni.h>
 
+#include <mutex>
+
 #include "log.h"
 
 namespace screensharing {
 
+using namespace std;
+
+static mutex static_initialization_mutex; // Protects initialization of static fields.
+
 SurfaceControl::SurfaceControl(Jni jni)
-    : jni_(jni),
-      surface_control_class_(),
-      rect_class_() {
-  surface_control_class_ = jni.GetClass("android/view/SurfaceControl");
-  close_transaction_method_ = surface_control_class_.GetStaticMethodId("closeTransaction", "()V");
-  open_transaction_method_ = surface_control_class_.GetStaticMethodId("openTransaction", "()V");
-  create_display_method_ = surface_control_class_.GetStaticMethodId("createDisplay", "(Ljava/lang/String;Z)Landroid/os/IBinder;");
-  destroy_display_method_ = surface_control_class_.GetStaticMethodId("destroyDisplay", "(Landroid/os/IBinder;)V");
-  set_display_surface_method_ = surface_control_class_.GetStaticMethodId(
-      "setDisplaySurface", "(Landroid/os/IBinder;Landroid/view/Surface;)V");
-  set_display_layer_stack_method_ = surface_control_class_.GetStaticMethodId("setDisplayLayerStack", "(Landroid/os/IBinder;I)V");
-  set_display_projection_method_ = surface_control_class_.GetStaticMethodId(
-      "setDisplayProjection", "(Landroid/os/IBinder;ILandroid/graphics/Rect;Landroid/graphics/Rect;)V");
-  rect_class_ = jni.GetClass("android/graphics/Rect");
-  rect_constructor_ = rect_class_.GetConstructorId("(IIII)V");
-  surface_control_class_.MakeGlobal();
-  rect_class_.MakeGlobal();
+    : jni_(jni) {
+  InitializeStatics(jni);
 }
 
 SurfaceControl::~SurfaceControl() = default;
+
+void SurfaceControl::InitializeStatics(Jni jni) {
+  scoped_lock lock(static_initialization_mutex);
+
+  if (surface_control_class_.IsNull()) {
+    surface_control_class_ = jni.GetClass("android/view/SurfaceControl");
+    close_transaction_method_ = surface_control_class_.GetStaticMethodId("closeTransaction", "()V");
+    open_transaction_method_ = surface_control_class_.GetStaticMethodId("openTransaction", "()V");
+    create_display_method_ = surface_control_class_.GetStaticMethodId("createDisplay", "(Ljava/lang/String;Z)Landroid/os/IBinder;");
+    destroy_display_method_ = surface_control_class_.GetStaticMethodId("destroyDisplay", "(Landroid/os/IBinder;)V");
+    set_display_surface_method_ = surface_control_class_.GetStaticMethodId(
+        "setDisplaySurface", "(Landroid/os/IBinder;Landroid/view/Surface;)V");
+    set_display_layer_stack_method_ = surface_control_class_.GetStaticMethodId("setDisplayLayerStack", "(Landroid/os/IBinder;I)V");
+    set_display_projection_method_ = surface_control_class_.GetStaticMethodId(
+        "setDisplayProjection", "(Landroid/os/IBinder;ILandroid/graphics/Rect;Landroid/graphics/Rect;)V");
+    rect_class_ = jni.GetClass("android/graphics/Rect");
+    rect_constructor_ = rect_class_.GetConstructorId("(IIII)V");
+    surface_control_class_.MakeGlobal();
+    rect_class_.MakeGlobal();
+  }
+}
+
+JObject SurfaceControl::GetInternalDisplayToken() const {
+  {
+    scoped_lock lock(static_initialization_mutex);
+    if (get_physical_display_token_method_ == nullptr) {
+      get_physical_display_token_method_ =
+          surface_control_class_.GetStaticMethodId(jni_, "getInternalDisplayToken", "()Landroid/os/IBinder;");
+    }
+  }
+  return surface_control_class_.CallStaticObjectMethod(jni_, get_physical_display_token_method_);
+}
 
 void SurfaceControl::OpenTransaction() const {
   surface_control_class_.CallStaticVoidMethod(jni_, open_transaction_method_);
@@ -84,10 +107,33 @@ void SurfaceControl::SetDisplayProjection(
       java_layer_stack_rect.ref(), java_display_rect.ref());
 }
 
+void SurfaceControl::SetDisplayPowerMode(jobject display_token, DisplayPowerMode mode) {
+  {
+    scoped_lock lock(static_initialization_mutex);
+    if (set_display_power_mode_method_ == nullptr) {
+      set_display_power_mode_method_ = surface_control_class_.GetStaticMethodId(jni_, "setDisplayPowerMode", "(Landroid/os/IBinder;I)V");
+    }
+  }
+  surface_control_class_.CallStaticVoidMethod(jni_, set_display_power_mode_method_, display_token, mode);
+}
+
 JObject SurfaceControl::ToJava(const ARect& rect) const {
   return rect_class_.NewObject(
       jni_, rect_constructor_, static_cast<jint>(rect.left), static_cast<jint>(rect.top),
       static_cast<jint>(rect.right), static_cast<jint>(rect.bottom));
 }
+
+JClass SurfaceControl::surface_control_class_;
+jmethodID SurfaceControl::get_physical_display_token_method_ = nullptr;
+jmethodID SurfaceControl::close_transaction_method_ = nullptr;
+jmethodID SurfaceControl::open_transaction_method_ = nullptr;
+jmethodID SurfaceControl::create_display_method_ = nullptr;
+jmethodID SurfaceControl::destroy_display_method_ = nullptr;
+jmethodID SurfaceControl::set_display_surface_method_ = nullptr;
+jmethodID SurfaceControl::set_display_layer_stack_method_ = nullptr;
+jmethodID SurfaceControl::set_display_projection_method_ = nullptr;
+jmethodID SurfaceControl::set_display_power_mode_method_ = nullptr;
+JClass SurfaceControl::rect_class_;
+jmethodID SurfaceControl::rect_constructor_ = nullptr;
 
 } // namespace screensharing

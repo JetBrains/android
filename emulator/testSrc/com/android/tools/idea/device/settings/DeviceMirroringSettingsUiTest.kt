@@ -59,17 +59,21 @@ class DeviceMirroringSettingsUiTest {
     val deviceMirroringEnabledCheckBox = ui.getComponent<JCheckBox> { it.text == "Enable mirroring of physical Android devices" }
     val synchronizeClipboardCheckBox = ui.getComponent<JCheckBox> { it.text == "Enable clipboard sharing" }
     val maxSyncedClipboardLengthTextField = ui.getComponent<JTextField>()
+    val turnOffDisplayWhileMirroringCheckBox = ui.getComponent<JCheckBox> { it.text == "Turn off device display while mirroring" }
 
     assertThat(settingsUi.isModified).isFalse()
     assertThat(deviceMirroringEnabledCheckBox.isSelected).isFalse()
     assertThat(synchronizeClipboardCheckBox.isEnabled).isFalse()
     assertThat(maxSyncedClipboardLengthTextField.isEnabled).isFalse()
+    assertThat(turnOffDisplayWhileMirroringCheckBox.isEnabled).isFalse()
 
     deviceMirroringEnabledCheckBox.isSelected = true
     assertThat(synchronizeClipboardCheckBox.isEnabled).isTrue()
     assertThat(maxSyncedClipboardLengthTextField.isEnabled).isTrue()
+    assertThat(turnOffDisplayWhileMirroringCheckBox.isEnabled).isTrue()
     assertThat(synchronizeClipboardCheckBox.isSelected).isTrue()
     assertThat(maxSyncedClipboardLengthTextField.text).isEqualTo(DeviceMirroringSettings.MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT.toString())
+    assertThat(turnOffDisplayWhileMirroringCheckBox.isSelected).isFalse()
     assertThat(settingsUi.isModified).isTrue()
 
     settingsUi.apply()
@@ -97,6 +101,13 @@ class DeviceMirroringSettingsUiTest {
     synchronizeClipboardCheckBox.isSelected = true
     assertThat(settingsUi.isModified).isTrue()
 
+    turnOffDisplayWhileMirroringCheckBox.isSelected = false
+    assertThat(settingsUi.isModified).isTrue()
+
+    settingsUi.apply()
+    assertThat(settings.turnOffDisplayWhileMirroring).isFalse()
+    assertThat(settingsUi.isModified).isFalse()
+
     settings.loadState(DeviceMirroringSettings())
     settingsUi.reset()
     assertThat(settingsUi.isModified).isFalse()
@@ -104,5 +115,6 @@ class DeviceMirroringSettingsUiTest {
     assertThat(synchronizeClipboardCheckBox.isEnabled).isFalse()
     assertThat(maxSyncedClipboardLengthTextField.isEnabled).isFalse()
     assertThat(maxSyncedClipboardLengthTextField.text).isEqualTo(DeviceMirroringSettings.MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT.toString())
+    assertThat(turnOffDisplayWhileMirroringCheckBox.isEnabled).isFalse()
   }
 }

@@ -38,6 +38,7 @@ class DeviceMirroringSettingsUi : SearchableConfigurable, Configurable.NoScroll 
   private lateinit var deviceMirroringEnabledCheckBox: JBCheckBox
   private lateinit var synchronizeClipboardCheckBox: JBCheckBox
   private lateinit var maxSyncedClipboardLengthTextField: JBTextField
+  private lateinit var turnOffDisplayWhileMirroringCheckBox: JBCheckBox
 
   private val state = DeviceMirroringSettings.getInstance()
 
@@ -66,12 +67,19 @@ class DeviceMirroringSettingsUi : SearchableConfigurable, Configurable.NoScroll 
             .component
       }.enabledIf(deviceMirroringEnabledCheckBox.selected.and(synchronizeClipboardCheckBox.selected))
     }
+    row {
+      turnOffDisplayWhileMirroringCheckBox =
+        checkBox("Turn off device display while mirroring")
+          .bindCheckbox(state::turnOffDisplayWhileMirroring)
+          .component
+    }.topGap(TopGap.SMALL).enabledIf(deviceMirroringEnabledCheckBox.selected)
   }
 
   override fun isModified(): Boolean {
     return deviceMirroringEnabledCheckBox.isSelected != state.deviceMirroringEnabled ||
            synchronizeClipboardCheckBox.isSelected != state.synchronizeClipboard ||
-           maxSyncedClipboardLengthTextField.text.trim() != state.maxSyncedClipboardLength.toString()
+           maxSyncedClipboardLengthTextField.text.trim() != state.maxSyncedClipboardLength.toString() ||
+           turnOffDisplayWhileMirroringCheckBox.isSelected != state.turnOffDisplayWhileMirroring
   }
 
   @Throws(ConfigurationException::class)
@@ -80,12 +88,14 @@ class DeviceMirroringSettingsUi : SearchableConfigurable, Configurable.NoScroll 
     state.deviceMirroringEnabled = deviceMirroringEnabledCheckBox.isSelected
     state.synchronizeClipboard = synchronizeClipboardCheckBox.isSelected
     state.maxSyncedClipboardLength = maxSyncedClipboardLengthTextField.text.trim().toInt()
+    state.turnOffDisplayWhileMirroring = turnOffDisplayWhileMirroringCheckBox.isSelected
   }
 
   override fun reset() {
     deviceMirroringEnabledCheckBox.isSelected = state.deviceMirroringEnabled
     synchronizeClipboardCheckBox.isSelected = state.synchronizeClipboard
     maxSyncedClipboardLengthTextField.text = state.maxSyncedClipboardLength.toString()
+    turnOffDisplayWhileMirroringCheckBox.isSelected = state.turnOffDisplayWhileMirroring
   }
 
   @Nls

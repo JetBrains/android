@@ -820,6 +820,12 @@
     <option name="of" hit="Maximum length of synchronized clipboard text:" />
     <option name="synchronized" hit="Maximum length of synchronized clipboard text:" />
     <option name="text" hit="Maximum length of synchronized clipboard text:" />
+    <option name="device" hit="Turn off device display while mirroring" />
+    <option name="display" hit="Turn off device display while mirroring" />
+    <option name="mirroring" hit="Turn off device display while mirroring" />
+    <option name="off" hit="Turn off device display while mirroring" />
+    <option name="turn" hit="Turn off device display while mirroring" />
+    <option name="while" hit="Turn off device display while mirroring" />
   </configurable>
   <configurable id="database.inspector" configurable_name="Database Inspector">
     <option name="database" hit="Database Inspector" />

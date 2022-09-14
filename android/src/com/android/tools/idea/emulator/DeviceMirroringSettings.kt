@@ -55,6 +55,14 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
       }
     }
 
+  var turnOffDisplayWhileMirroring: Boolean = false
+    set(value) {
+      if (field != value) {
+        field = value
+        notifyListeners()
+      }
+    }
+
   override fun getState(): DeviceMirroringSettings = this
 
   override fun loadState(state: DeviceMirroringSettings) {

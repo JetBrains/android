@@ -24,8 +24,10 @@
 #include "accessors/key_event.h"
 #include "accessors/motion_event.h"
 #include "accessors/service_manager.h"
+#include "accessors/surface_control.h"
 #include "accessors/window_manager.h"
 #include "agent.h"
+#include "flags.h"
 #include "jvm.h"
 #include "log.h"
 #include "num_to_string.h"
@@ -101,6 +103,7 @@ Controller::Controller(int socket_fd)
       pointer_helper_(),
       motion_event_start_time_(0),
       key_character_map_(),
+      restore_normal_display_power_mode_(false),
       stay_on_(Settings::Table::GLOBAL, "stay_on_while_plugged_in"),
       accelerometer_rotation_(Settings::Table::SYSTEM, "accelerometer_rotation"),
       clipboard_listener_(this),
@@ -119,6 +122,11 @@ Controller::~Controller() {
   delete pointer_helper_;
   delete key_character_map_;
   close(socket_fd_);
+  if (restore_normal_display_power_mode_) {
+    SurfaceControl surface_control(Jvm::GetJni());
+    JObject display_token = surface_control.GetInternalDisplayToken();
+    surface_control.SetDisplayPowerMode(display_token, DisplayPowerMode::POWER_MODE_NORMAL);
+  }
 }
 
 void Controller::Start() {
@@ -160,6 +168,12 @@ void Controller::Initialize() {
   stay_on_.Set(num_to_string<BATTERY_PLUGGED_AC | BATTERY_PLUGGED_USB | BATTERY_PLUGGED_WIRELESS>::value);
   // Turn off "Auto-rotate screen".
   accelerometer_rotation_.Set("0");
+  if (Agent::flags() & TURN_OFF_DISPLAY_WHILE_MIRRORING) {
+    SurfaceControl surface_control(jni_);
+    JObject display_token = surface_control.GetInternalDisplayToken();
+    surface_control.SetDisplayPowerMode(display_token, DisplayPowerMode::POWER_MODE_OFF);
+    restore_normal_display_power_mode_ = true;
+  }
 
   RemoveAgentFiles();
 }

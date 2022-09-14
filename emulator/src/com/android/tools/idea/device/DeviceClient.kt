@@ -24,6 +24,7 @@ import com.android.adblib.shellAsLines
 import com.android.adblib.syncSend
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.emulator.DeviceMirroringSettings
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.Disposable
@@ -55,6 +56,7 @@ internal const val SCREEN_SHARING_AGENT_JAR_NAME = "screen-sharing-agent.jar"
 internal const val SCREEN_SHARING_AGENT_SO_NAME = "libscreen-sharing-agent.so"
 internal const val SCREEN_SHARING_AGENT_SOURCE_PATH = "tools/adt/idea/emulator/screen-sharing-agent"
 internal const val DEVICE_PATH_BASE = "/data/local/tmp/.studio"
+const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x01 // Keep in sync with flags.h
 
 internal class DeviceClient(
   disposableParent: Disposable,
@@ -202,10 +204,13 @@ internal class DeviceClient(
       agentTerminationListener: AgentTerminationListener) {
     startAgentTime = System.currentTimeMillis()
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
+    val flagsArg = if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) " --flags=$TURN_OFF_DISPLAY_WHILE_MIRRORING"
+                   else ""
     val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
                   " com.android.tools.screensharing.Main" +
                   " --max_size=${maxVideoSize.width},${maxVideoSize.height}" +
                   orientationArg +
+                  flagsArg +
                   " --log=${StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get()}" +
                   " --codec=${StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()}"
     // Use a coroutine scope that not linked to the lifecycle of the client to make sure that
