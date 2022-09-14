@@ -195,13 +195,13 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   "Settings Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
   "Responsive Activity" ->  TemplateRenderer.RESPONSIVE_ACTIVITY
   "Primary/Detail Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
-  "Watch Face" -> TemplateRenderer.WATCH_FACE
-  "Android Things Empty Activity" -> TemplateRenderer.THINGS_ACTIVITY
+  "Android Things E6mpty Activity" -> TemplateRenderer.THINGS_ACTIVITY
   "Messaging Service" -> TemplateRenderer.AUTOMOTIVE_MESSAGING_SERVICE
   "Media Service" -> TemplateRenderer.AUTOMOTIVE_MEDIA_SERVICE
   "Google Pay Activity" -> TemplateRenderer.GOOGLE_PAY_ACTIVITY
-  "Empty Wear OS Compose Activity" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
   "Google Wallet Activity" -> TemplateRenderer.GOOGLE_WALLET_ACTIVITY
+  "Basic Wear App",
+  "Basic Wear App Without Associated Tile And Complication" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
 
   "Fullscreen Fragment" -> TemplateRenderer.FRAGMENT_FULLSCREEN
   "Google AdMob Ads Fragment" -> TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS

@@ -424,24 +424,22 @@ class TemplateTest {
 
   @TemplateCheck
   @Test
-  fun testNewBlankWearActivity() {
-    checkCreateTemplate("Blank Activity")
-  }
-
-  @TemplateCheck
-  @Test
   fun testNewComposeWearActivity() {
     val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
       projectData.language = Language.Kotlin
       projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
     }
-    checkCreateTemplate("Empty Wear OS Compose Activity", withSpecificKotlin)
+    checkCreateTemplate("Basic Wear App", withSpecificKotlin)
   }
 
   @TemplateCheck
   @Test
-  fun testNewBlankWearActivityWithKotlin() {
-    checkCreateTemplate("Blank Activity", withKotlin, avoidModifiedModuleName = true)
+  fun testNewComposeWearActivityWithoutTileAndComplication() {
+    val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+      projectData.language = Language.Kotlin
+      projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
+    }
+    checkCreateTemplate("Basic Wear App Without Associated Tile And Complication", withSpecificKotlin)
   }
 
   @TemplateCheck
@@ -736,18 +734,6 @@ class TemplateTest {
     checkCreateTemplate("Layout XML File")
     checkCreateTemplate("Values XML File")
     checkCreateTemplate("Shortcuts XML File")
-  }
-
-  @TemplateCheck
-  @Test
-  fun testWatchFace() {
-    checkCreateTemplate("Watch Face")
-  }
-
-  @TemplateCheck
-  @Test
-  fun testWatchFaceWithKotlin() {
-    checkCreateTemplate("Watch Face", withKotlin)
   }
 
   @TemplateCheck

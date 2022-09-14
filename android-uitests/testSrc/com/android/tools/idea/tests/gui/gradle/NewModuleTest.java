@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.gradle;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.wizard.template.Language.Java;
 import static com.android.tools.idea.wizard.template.Language.Kotlin;
-import static com.android.tools.idea.wizard.template.impl.activities.blankWearActivity.BlankWearActivityTemplateKt.getBlankWearActivityTemplate;
+import static com.android.tools.idea.wizard.template.impl.activities.composeWearActivity.ComposeWearActivityTemplateKt.getComposeWearActivityTemplate;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -151,7 +151,7 @@ public class NewModuleTest {
         .enterModuleName(moduleName)
         .wizard()
         .clickNext()
-        .chooseActivity(getBlankWearActivityTemplate().getName())
+        .chooseActivity(getComposeWearActivityTemplate().getName())
         .clickNext()
         .clickFinishAndWaitForSyncToFinish();
 
