@@ -98,6 +98,15 @@ class BasicCompileTest {
                                                                 "return capture \n" +
                                                                 "}")
 
+    files["HasSAM.kt"] = projectRule.fixture.configureByText("HasSAM.kt",
+                                                                "fun interface A {\n" +
+                                                                "fun go(): Int\n" +
+                                                                "}\n" +
+                                                                "fun hasSAM() : Int { \n" +
+                                                                "var test = A { 100 } \n" +
+                                                                "return test.go() \n" +
+                                                                "}")
+
     files["HasInternalVar.kt"] = projectRule.fixture.configureByText("HasInternalVar.kt",
                                                                      "internal var x = 1\n fun getNum() = x")
 
@@ -152,6 +161,13 @@ class BasicCompileTest {
     Assert.assertEquals(1, output.supportClasses.size)
     var returnedValue = invokeStatic("hasLambda", loadClass(output))
     Assert.assertEquals("y", returnedValue)
+  }
+
+  @Test
+  fun samChange() {
+    val output = compile(files["HasSAM.kt"], "hasSAM").singleOutput()
+    Assert.assertEquals(1, output.supportClasses.size)
+    // Can't test invocation of the method since the functional interface "A" is not loaded.
   }
 
   @org.junit.Ignore("b/249073553")

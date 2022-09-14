@@ -45,6 +45,9 @@ import org.jetbrains.kotlin.psi.KtNamedDeclarationUtil
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 
 class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCache: SourceInlineCandidateCache? = null) {
   data class CodeGeneratorInput(val file: PsiFile, var element: KtElement, var parentGroups: List<KtFunction>? = null)
@@ -273,11 +276,6 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
   }
 
   private fun getCompiledClasses(internalClassName: String, input: KtFile, compilerOutput: List<OutputFile>) : Pair<ByteArray, Map<String, ByteArray>> {
-    fun isProxiable(clazzFile : ClassReader) : Boolean = clazzFile.superName == "kotlin/jvm/internal/Lambda" ||
-                                                         clazzFile.superName == "kotlin/coroutines/jvm/internal/SuspendLambda" ||
-                                                         clazzFile.superName == "kotlin/coroutines/jvm/internal/RestrictedSuspendLambda" ||
-                                                         clazzFile.className.contains("ComposableSingletons\$")
-
     var primaryClass = ByteArray(0)
     val supportClasses = mutableMapOf<String, ByteArray>()
     // TODO: Remove all these println once we are more stable.
@@ -324,6 +322,44 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
     }
     println("Lived edit classes summary end")
     return Pair(primaryClass, supportClasses)
+  }
+
+  private fun isProxiable(clazzFile: ClassReader): Boolean {
+    if (clazzFile.superName == "kotlin/jvm/internal/Lambda" ||
+        clazzFile.superName == "kotlin/coroutines/jvm/internal/SuspendLambda" ||
+        clazzFile.superName == "kotlin/coroutines/jvm/internal/RestrictedSuspendLambda" ||
+        clazzFile.className.contains("ComposableSingletons\$")) {
+      return true
+    }
+
+    // Checking for SAM (single abstract method) interfaces; these aren't specifically tagged in bytecode, so we need a heuristic.
+    // All the following should be true:
+    //   - inner classes (classes with '$' in the name)
+    //   - that implement a single interface
+    //   - that implement exactly one public method
+    if (!clazzFile.className.contains('$') || clazzFile.interfaces.size != 1) {
+      return false
+    }
+
+    var publicMethodCount = 0
+    clazzFile.accept(object : ClassVisitor(Opcodes.ASM5) {
+      override fun visitMethod(access: Int,
+                               name: String?,
+                               descriptor: String?,
+                               signature: String?,
+                               exceptions: Array<out String>?): MethodVisitor? {
+        if (access and Opcodes.ACC_PUBLIC != 0 &&
+            access and Opcodes.ACC_STATIC == 0 &&
+            !name.equals("<init>")) {
+          publicMethodCount++
+        }
+
+        // visitMethod return
+        return null
+      }
+    }, 0)
+
+    return publicMethodCount == 1
   }
 
   // The PSI returns the class name in the same format it would be used in an import statement: com.package.Class.InnerClass; however,
