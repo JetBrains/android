@@ -34,7 +34,6 @@ import com.android.tools.idea.diagnostics.report.HistogramReport;
 import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.serverflags.ServerFlagService;
 import com.android.tools.idea.serverflags.protos.MemoryUsageReportConfiguration;
 import com.google.common.base.Charsets;
@@ -420,7 +419,8 @@ public final class AndroidStudioSystemHealthMonitor {
 
     application.executeOnPooledThread(this::checkRuntime);
 
-    if (ServerFlagService.Companion.getInstance().getBoolean(MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME, false)) {
+    if (ServerFlagService.Companion.getInstance()
+          .getProtoOrNull(MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME, MemoryUsageReportConfiguration.getDefaultInstance()) != null) {
       HeapSnapshotTraverseService.getInstance().addMemoryReportCollectionRequest();
     }
 
