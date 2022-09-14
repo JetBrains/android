@@ -30,9 +30,10 @@ private fun java.lang.reflect.Method.toMethodType(): Method = Method(name, Type.
  * of the loops.
  * @param shouldInstrument callback that receives class and method name determines whether it should be transformed.
  */
-class CooperativeInterruptTransform(delegate: ClassVisitor,
-                                    private val checkPercentage: Int = 1,
-                                    private val shouldInstrument: (String, String) -> Boolean = { _, _ -> true }) :
+class CooperativeInterruptTransform @JvmOverloads constructor(
+  delegate: ClassVisitor,
+  private val checkPercentage: Int = 1,
+  private val shouldInstrument: (String, String) -> Boolean = { _, _ -> true }) :
   ClassVisitor(Opcodes.ASM7, delegate), ClassVisitorUniqueIdProvider {
   init {
     if (checkPercentage !in 1..100) throw IllegalArgumentException("checkPercentage must be in [1, 100]")

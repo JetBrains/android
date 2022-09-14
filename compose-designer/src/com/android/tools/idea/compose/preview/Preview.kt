@@ -68,8 +68,6 @@ import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.CodeOutOfDateTracker
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.RenderService
-import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransform
-import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -200,12 +198,6 @@ fun configureLayoutlibSceneManager(
     setShrinkRendering(!showDecorations)
     interactive = isInteractive
     isUsePrivateClassLoader = requestPrivateClassLoader
-    setProjectClassesTransform(
-      toClassTransform({
-        if (StudioFlags.COMPOSE_PREVIEW_INTERRUPTIBLE.get()) CooperativeInterruptTransform(it)
-        else it
-      },)
-    )
     setQuality(if (PreviewPowerSaveManager.isInPowerSaveMode) 0.5f else 0.7f)
     setShowDecorations(showDecorations)
     // The Compose Preview has its own way to track out of date files so we ask the Layoutlib Scene

@@ -11,6 +11,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
+import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransform;
 import com.android.tools.idea.rendering.classloading.FilteringClassLoader;
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader;
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform;
@@ -95,6 +96,7 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
     visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
     ThreadLocalTrackingTransform::new,
     ThreadControllingTransform::new,
+    CooperativeInterruptTransform::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
