@@ -51,14 +51,14 @@ final class Pairing {
 
   private @NotNull Status newStatus(@NotNull PairingDevice device) {
     if (!device.isEmulator() && myPair.getPairingStatus().equals(PairingState.OFFLINE)) {
-      return new Status(AllIcons.General.ShowInfos, "Unavailable", "<html>Connect device to begin<br>" +
+      return new Status("Unavailable", AllIcons.General.ShowInfos, "<html>Connect device to begin<br>" +
                                                                    "communication between devices</html>");
     }
 
-    return new Status(getStatus());
+    return new Status(getPairingStatus());
   }
 
-  @NotNull String getStatus() {
+  private @NotNull String getPairingStatus() {
     switch (myPair.getPairingStatus()) {
       case UNKNOWN:
         return "Unknown";

@@ -17,7 +17,6 @@ package com.android.tools.idea.devicemanager;
 
 import static com.android.tools.idea.wearpairing.AndroidWearPairingBundle.message;
 
-import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
@@ -115,7 +114,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     myNameLabel.setText(getName(device));
 
     myStateLabel.setForeground(foreground);
-    setIcon(myStateLabel, getStateIcon(device), selected);
+    TableCellRenderers.setIcon(myStateLabel, getStateIcon(device), selected);
 
     myLine2Label.setFont(UIUtil.getLabelFont(FontSize.SMALL));
     myLine2Label.setForeground(brighten(foreground));
@@ -126,7 +125,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get()) {
       Optional<Icon> icon = getPairedLabelIcon(device);
 
-      setIcon(myPairedLabel, icon.orElse(null), selected);
+      TableCellRenderers.setIcon(myPairedLabel, icon.orElse(null), selected);
       myPairedLabel.setVisible(icon.isPresent());
       myPanel.setToolTipText(getPairedTooltip(device));
     }
@@ -156,18 +155,6 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     }
 
     return result.append("</html>").toString();
-  }
-
-  private static void setIcon(@NotNull JLabel label, @Nullable Icon icon, boolean selected) {
-    if (icon == null) {
-      label.setIcon(null);
-    }
-    else if (selected) {
-      label.setIcon(ColoredIconGenerator.INSTANCE.generateColoredIcon(icon, label.getForeground()));
-    }
-    else {
-      label.setIcon(icon);
-    }
   }
 
   protected @NotNull String getName(@NotNull D device) {

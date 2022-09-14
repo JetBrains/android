@@ -26,10 +26,10 @@ final class Status {
   private final @Nullable String myTooltipText;
 
   Status(@NotNull String text) {
-    this(null, text, null);
+    this(text, null, null);
   }
 
-  Status(@Nullable Icon icon, @NotNull String text, @Nullable String tooltipText) {
+  Status(@NotNull String text, @Nullable Icon icon, @Nullable String tooltipText) {
     myIcon = icon;
     myText = text;
     myTooltipText = tooltipText;

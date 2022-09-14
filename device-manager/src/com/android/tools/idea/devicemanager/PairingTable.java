@@ -36,6 +36,8 @@ final class PairingTable extends JBTable {
     myProject = project;
 
     setDefaultRenderer(Device.class, new DeviceManagerPairingDeviceTableCellRenderer());
+    setDefaultRenderer(Status.class, new StatusTableCellRenderer());
+
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     setShowGrid(false);
 

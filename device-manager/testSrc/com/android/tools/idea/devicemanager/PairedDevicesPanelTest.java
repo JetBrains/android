@@ -24,8 +24,7 @@ import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import com.intellij.openapi.Disposable;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 import javax.swing.AbstractButton;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -61,7 +60,7 @@ public final class PairedDevicesPanelTest {
   public void removeButtonDoesntThrowExceptionWhenSelectionIsEmpty() {
     // Arrange
     Mockito.when(myManager.getPairsForDevice("Pixel_4_API_31"))
-      .thenReturn(Collections.singletonList(new PhoneWearPair(myPixel4Api31, myWearOsSmallRoundApi28)));
+      .thenReturn(List.of(new PhoneWearPair(myPixel4Api31, myWearOsSmallRoundApi28)));
 
     AbstractButton button = new PairedDevicesPanel(PIXEL_4_API_31_KEY, Mockito.mock(Disposable.class), null, myManager).getRemoveButton();
 
@@ -73,8 +72,8 @@ public final class PairedDevicesPanelTest {
   public void reloadPairingsAdd() {
     // Arrange
     Mockito.when(myManager.getPairsForDevice(PIXEL_4_API_31_KEY.toString()))
-      .thenReturn(Collections.emptyList())
-      .thenReturn(Collections.singletonList(new PhoneWearPair(myPixel4Api31, myWearOsSmallRoundApi28)));
+      .thenReturn(List.of())
+      .thenReturn(List.of((new PhoneWearPair(myPixel4Api31, myWearOsSmallRoundApi28))));
 
     PairedDevicesPanel panel = new PairedDevicesPanel(PIXEL_4_API_31_KEY, Mockito.mock(Disposable.class), null, myManager);
 
@@ -92,14 +91,14 @@ public final class PairedDevicesPanelTest {
       .setAndroidVersion(new AndroidVersion(28))
       .build();
 
-    assertEquals(Collections.singletonList(Arrays.asList(device, "Unknown")), TestTables.getData(panel.getTable()));
+    assertEquals(List.of((List.of(device, new Status("Unknown")))), TestTables.getData(panel.getTable()));
   }
 
   @Test
   public void reloadPairingsRemove() {
     Mockito.when(myManager.getPairsForDevice("Pixel_4_API_31"))
-      .thenReturn(Collections.singletonList(new PhoneWearPair(myPixel4Api31, myWearOsSmallRoundApi28)))
-      .thenReturn(Collections.emptyList());
+      .thenReturn(List.of(new PhoneWearPair(myPixel4Api31, myWearOsSmallRoundApi28)))
+      .thenReturn(List.of());
 
     PairedDevicesPanel panel = new PairedDevicesPanel(PIXEL_4_API_31_KEY, Mockito.mock(Disposable.class), null, myManager);
 
@@ -107,6 +106,6 @@ public final class PairedDevicesPanelTest {
     panel.reloadPairings();
 
     // Assert
-    assertEquals(Collections.emptyList(), TestTables.getData(panel.getTable()));
+    assertEquals(List.of(), TestTables.getData(panel.getTable()));
   }
 }

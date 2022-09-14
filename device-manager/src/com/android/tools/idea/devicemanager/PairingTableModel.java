@@ -63,7 +63,7 @@ final class PairingTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
         return Device.class;
       case STATUS_MODEL_COLUMN_INDEX:
-        return Object.class;
+        return Status.class;
       default:
         throw new AssertionError(modelColumnIndex);
     }
@@ -75,7 +75,7 @@ final class PairingTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
         return myPairings.get(modelRowIndex).getOtherDevice();
       case STATUS_MODEL_COLUMN_INDEX:
-        return myPairings.get(modelRowIndex).getStatus();
+        return myPairings.get(modelRowIndex).getOtherDevice().getStatus();
       default:
         throw new AssertionError(modelColumnIndex);
     }
