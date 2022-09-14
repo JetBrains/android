@@ -68,7 +68,7 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
    */
   val summaryScreenViewModel = SummaryScreenViewModel(designAssetImporter, rendererManager, facet, getSourceSetsResDirs(facet))
 
-  val fileCount: Int get() = assetSets.sumBy { it.assets.size }
+  val fileCount: Int get() = assetSets.sumOf { it.assets.size }
 
   var updateCallback: () -> Unit = {}
 

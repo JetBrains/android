@@ -80,13 +80,13 @@ class DumbModeTest {
     }
     // still 1 NavArgumentData due to dumb mode --previously cached results are returned
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(1)
-    
+
     DumbServiceImpl.getInstance(project).isDumb = false
     // fresh results are generated since smart mode
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(2)
   }
 
-  private fun getNumberOfArgs(args: List<LightArgsClass>) = args.sumBy { it.destination.arguments.size }
+  private fun getNumberOfArgs(args: List<LightArgsClass>) = args.sumOf { it.destination.arguments.size }
 
   @Test
   fun scopeDoesNotCacheStaleValuesInDumbMode() {

@@ -45,7 +45,7 @@ fun List<WorkManagerInspectorProtocol.WorkInfo>.toChainInfo(): WorkManagerInspec
   }
   val worksCountByDepth = this.groupBy { depthMap[it.id] }.map { it.value.size }
   return WorkManagerInspectorEvent.ChainInfo.newBuilder()
-    .setDependencyCount(sumBy { it.dependentsCount })
+    .setDependencyCount(sumOf { it.dependentsCount })
     .setMaxDepth(depthMap.values.maxOrNull() ?: 0)
     .setMaxWidth(worksCountByDepth.maxOrNull() ?: 0)
     .setWorkerCount(size)

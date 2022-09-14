@@ -106,8 +106,8 @@ class MockUiData(
     override val plugins: List<CriticalPathPluginUiData> = tasksList
       .groupBy { it.pluginName }
       .map { createPluginData(it.key, it.value) }
-    override val warningCount: Int = plugins.sumBy { it.warningCount }
-    override val infoCount: Int = plugins.sumBy { it.infoCount }
+    override val warningCount: Int = plugins.sumOf { it.warningCount }
+    override val infoCount: Int = plugins.sumOf { it.infoCount }
   }
 
   fun createPluginData(name: String, tasks: List<TaskUiData>) = object : CriticalPathPluginUiData {

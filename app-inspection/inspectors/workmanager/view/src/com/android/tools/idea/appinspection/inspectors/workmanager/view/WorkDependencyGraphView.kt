@@ -146,7 +146,7 @@ class WorkDependencyGraphView(private val tab: WorkManagerInspectorTab,
       val worksWithDepth = works.filter { depthMap[it.id] == depth }
 
       // Set a proper gap between labels so that works with different depths have the same total width.
-      val gap = (maxWidth - worksWithDepth.sumBy { labelMap[it.id]!!.preferredSize.width }) / ((worksWithDepth.size + 1))
+      val gap = (maxWidth - worksWithDepth.sumOf { labelMap[it.id]!!.preferredSize.width }) / ((worksWithDepth.size + 1))
       val panelWithDepth = JPanel(TabularLayout("${gap}px" + ",Fit,${gap}px".repeat(worksWithDepth.size)))
       for (index in worksWithDepth.indices) {
         panelWithDepth.add(labelMap[worksWithDepth[index].id]!!, TabularLayout.Constraint(0, 1 + index * 2))
@@ -161,7 +161,7 @@ class WorkDependencyGraphView(private val tab: WorkManagerInspectorTab,
   }
 
   private fun estimateWidth(works: List<WorkInfo>): Int {
-    return MIN_GAP_BETWEEN_LABELS * (works.size + 1) + works.sumBy { labelMap[it.id]!!.preferredSize.width }
+    return MIN_GAP_BETWEEN_LABELS * (works.size + 1) + works.sumOf { labelMap[it.id]!!.preferredSize.width }
   }
 
   private fun createLabel(work: WorkInfo): JLabel {

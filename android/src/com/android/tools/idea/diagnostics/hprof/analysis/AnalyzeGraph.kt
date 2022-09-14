@@ -906,7 +906,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       val signatureIndex = addStringToPool(signatureFor(poNumber))
       val children = idomTreeChildren[poNumber]
       if (depth < config.dominatorTreeOptions.maxDepth && children != null) {
-        val childrenSize = children.sumBy { p -> retainedSizes[p] }
+        val childrenSize = children.sumOf { p -> retainedSizes[p] }
         appendln("$signatureIndex ${retainedSizes[poNumber] - childrenSize} ${children.size}")
         renderedNodes++
         children.sortedByDescending { p -> retainedSizes[p] }.forEach { p ->

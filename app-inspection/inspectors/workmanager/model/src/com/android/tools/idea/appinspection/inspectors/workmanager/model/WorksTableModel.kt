@@ -61,7 +61,7 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
 
     companion object {
       init {
-        assert(values().sumByDouble { it.widthPercentage } == 1.0)
+        assert(values().sumOf { it.widthPercentage } == 1.0)
       }
     }
 

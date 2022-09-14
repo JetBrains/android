@@ -458,7 +458,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   private fun initState() = State.Coalesced.Delayed(::createSubClassifier, LinkedHashSet(0), LinkedHashSet(0))
 
   private fun countInstanceFilterMatch(filter: CaptureObjectInstanceFilter): Int = when (val s = state) {
-    is State.Partitioned -> s.classifier.allClassifierSets.sumBy { it.getInstanceFilterMatchCount(filter) }
+    is State.Partitioned -> s.classifier.allClassifierSets.sumOf { it.getInstanceFilterMatchCount(filter) }
     is State.Coalesced -> s.deltaInstances.count(filter.instanceTest) +
                           s.snapshotInstances.count { it !in s.deltaInstances && filter.instanceTest(it) }
   }

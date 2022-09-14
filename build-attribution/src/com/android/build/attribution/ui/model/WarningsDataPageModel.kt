@@ -143,7 +143,7 @@ class WarningsDataPageModelImpl(
     get() = treeStructure.pageIdToNode[selectedPageId]
 
   override val isEmpty: Boolean
-    get() = reportData.issues.sumBy { it.warningCount } +
+    get() = reportData.issues.sumOf { it.warningCount } +
       reportData.annotationProcessors.issueCount +
       reportData.confCachingData.warningsCount() == 0
 
@@ -376,7 +376,7 @@ class PluginGroupingWarningNodeDescriptor(
 
   override val analyticsPageType = PageType.PLUGIN_WARNINGS_ROOT
 
-  private val warningsCount = presentedTasksWithWarnings.values.sumBy { it.size }
+  private val warningsCount = presentedTasksWithWarnings.values.sumOf { it.size }
 
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(

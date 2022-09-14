@@ -42,7 +42,7 @@ fun List<WorkManagerInspectorProtocol.WorkInfo>.toChainInfo(): BackgroundTaskIns
   }
   val worksCountByDepth = this.groupBy { depthMap[it.id] }.map { it.value.size }
   return BackgroundTaskInspectorEvent.ChainInfo.newBuilder()
-    .setDependencyCount(sumBy { it.dependentsCount })
+    .setDependencyCount(sumOf { it.dependentsCount })
     .setMaxDepth(depthMap.values.maxOrNull() ?: 0)
     .setMaxWidth(worksCountByDepth.maxOrNull() ?: 0)
     .setWorkerCount(size)

@@ -111,8 +111,8 @@ class BuildAttributionReportBuilder(
     override val criticalPathDuration = TimeWithPercentage(pluginCriticalPathBuildData.buildDuration, totalCriticalPathDuration.timeMs)
     override val criticalPathTasks = createPluginTasksCriticalPath(criticalPathTasks, criticalPathDuration)
     override val issues = issueUiDataContainer.pluginIssueGroups(pluginCriticalPathBuildData.plugin)
-    override val warningCount = issues.sumBy { it.warningCount }
-    override val infoCount = issues.sumBy { it.infoCount }
+    override val warningCount = issues.sumOf { it.warningCount }
+    override val infoCount = issues.sumOf { it.infoCount }
   }
 
   private fun createPluginTasksCriticalPath(criticalPathTasks: List<TaskData>, criticalPathDuration: TimeWithPercentage) =
