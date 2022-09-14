@@ -5,7 +5,7 @@ import android.content.Context
 fun foo(context: Context) {
     with (context) {
         with (2) {
-            getString(R.string.resource_id)
+            getString(R.string.zxc)
         }
     }
 }

@@ -21,6 +21,7 @@ import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
@@ -189,6 +190,10 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
                                  ResourceType type) {
     String value = getStringLiteralValue(project, element, file, type);
     assert value != null;
+
+    if (resName == null) {
+      resName = IdeResourcesUtil.buildResourceNameFromStringValue(value);
+    }
 
     final AndroidFacet facet = AndroidFacet.getInstance(file);
     assert facet != null;

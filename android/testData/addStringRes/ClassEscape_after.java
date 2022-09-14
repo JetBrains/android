@@ -4,6 +4,6 @@ import android.content.Context;
 
 public class ClassEscape {
   public static void f(Context context) {
-    String s = context.getString(R.string.hello);
+    String s = context.getString(R.string.blah_with_a_mark);
   }
 }

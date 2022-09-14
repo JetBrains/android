@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">app_name</string>
     <string name="resource_id">resource_id</string>
-    <string name="resource_id">"some text with newline \n and trailing space "</string>
+    <string name="some_text_with_newline_and_trailing_space">"some text with newline \n and trailing space "</string>
 </resources>

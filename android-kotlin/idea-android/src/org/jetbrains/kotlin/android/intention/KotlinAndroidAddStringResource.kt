@@ -20,6 +20,7 @@ import com.android.resources.ResourceType
 import com.android.tools.compose.COMPOSE_STRING_RESOURCE_FQN
 import com.android.tools.compose.isInsideComposableCode
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.res.buildResourceNameFromStringValue
 import com.android.tools.idea.res.createValueResource
 import com.android.tools.idea.res.getRJavaFieldName
 import com.intellij.CommonBundle
@@ -137,7 +138,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
         val stringValue = buildLiteralString(element)
 
         val showDialog = !ApplicationManager.getApplication().isUnitTestMode
-        val resourceName = element.getUserData(CREATE_XML_RESOURCE_PARAMETERS_NAME_KEY)
+        val resourceName = buildResourceNameFromStringValue(stringValue)
 
         val dialog = CreateXmlResourceDialog(module, ResourceType.STRING, resourceName, stringValue, true, null, contextFile)
         dialog.title = EXTRACT_RESOURCE_DIALOG_TITLE

@@ -80,6 +80,7 @@ import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.android.utils.SdkUtils
+import com.google.common.base.CharMatcher
 import com.google.common.base.Joiner
 import com.google.common.base.Preconditions
 import com.google.common.collect.Lists
@@ -155,6 +156,7 @@ import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.Contract
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import org.jetbrains.kotlin.util.collectionUtils.filterIsInstanceAnd
 import java.awt.Color
 import java.io.File
@@ -171,6 +173,12 @@ private val LOG: Logger = Logger.getInstance("IdeResourcesUtil.kt")
 const val RESOURCE_ICON_SIZE = 16
 const val ALPHA_FLOATING_ERROR_FORMAT = "The alpha attribute in %1\$s/%2\$s does not resolve to a floating point number"
 const val DEFAULT_STRING_RESOURCE_FILE_NAME = "strings.xml"
+
+/** Matches characters that are not allowed in a resource name. */
+private val RESOURCE_NAME_DISALLOWED_CHARS = CharMatcher.inRange('a', 'z')
+  .or(CharMatcher.inRange('A', 'Z'))
+  .or(CharMatcher.inRange('0', '9'))
+  .negate()
 
 @JvmField
 val VALUE_RESOURCE_TYPES: EnumSet<ResourceType> = EnumSet.of(
@@ -2327,6 +2335,14 @@ fun findOrCreateStateListFiles(
   }
 
   return if (foundFiles) files else null
+}
+
+fun buildResourceNameFromStringValue(resourceValue: String): String? {
+  val result = RESOURCE_NAME_DISALLOWED_CHARS.trimAndCollapseFrom(resourceValue, '_').toLowerCaseAsciiOnly()
+
+  if (result.isEmpty()) return null
+  if (CharMatcher.inRange('0', '9').matches(result[0])) return "_$result"
+  return result
 }
 
 /**

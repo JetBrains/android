@@ -16,10 +16,9 @@
 package com.android.tools.idea.lint.intentions;
 
 import com.android.resources.ResourceType;
-import com.google.common.base.CharMatcher;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -30,10 +29,7 @@ import org.jetbrains.android.intentions.AndroidAddStringResourceAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.google.common.base.CharMatcher.inRange;
-
 public class AndroidAddStringResourceQuickFix extends AndroidAddStringResourceAction {
-  private static final CharMatcher DISALLOWED_CHARS = inRange('a', 'z').or(inRange('A', 'Z')).or(inRange('0', '9')).negate();
   private final PsiElement myStartElement;
 
   public AndroidAddStringResourceQuickFix(@NotNull PsiElement startElement) {
@@ -56,19 +52,10 @@ public class AndroidAddStringResourceQuickFix extends AndroidAddStringResourceAc
     if (parent instanceof XmlAttribute) {
       final String value = ((XmlAttribute)parent).getValue();
       if (value != null) {
-        defaultName = buildResourceName(value);
+        defaultName = IdeResourcesUtil.buildResourceNameFromStringValue(value);
       }
     }
     invokeIntention(project, editor, file, defaultName);
-  }
-
-  @NotNull
-  public static String buildResourceName(@NotNull String value) {
-    final String result = StringUtil.toLowerCase(DISALLOWED_CHARS.trimAndCollapseFrom(value, '_'));
-    if (!result.isEmpty() && CharMatcher.javaDigit().matches(result.charAt(0))) {
-      return "_" + result;
-    }
-    return result;
   }
 
   public void invokeIntention(Project project, Editor editor, PsiFile file, @Nullable String resName) {

@@ -233,8 +233,7 @@ public class AndroidAddStringResourceActionTest extends AndroidTestCase {
     CommandProcessor.getInstance().executeCommand(getProject(), new Runnable() {
       @Override
       public void run() {
-        AndroidAddStringResourceAction.doInvoke(myFixture.getProject(), myFixture.getEditor(), javaPsiFile, "hello",
-                                                ResourceType.STRING);
+        new AndroidAddStringResourceAction().invoke(myFixture.getProject(), myFixture.getEditor(), javaPsiFile);
         if (invokeAfterTemplate != null) {
           invokeAfterTemplate.run();
         }

@@ -29,11 +29,6 @@ import java.io.File
 
 
 abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
-
-    companion object {
-        val COM_MYAPP_PACKAGE_PATH = "com/myapp/"
-    }
-
     fun doTest(path: String) {
         val configFile = File(testDataPath, path)
         val testDataPath = configFile.parent
@@ -84,9 +79,6 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
         if (!isApplicableExpected) {
             return
         }
-
-        val element = getTargetElement()
-        element?.parent?.putUserData(CREATE_XML_RESOURCE_PARAMETERS_NAME_KEY, "resource_id")
 
         myFixture.launchAction(intentionAction)
 

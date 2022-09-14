@@ -7,7 +7,7 @@ class MyActivity: Activity() {
         fun a(): String = "q"
 
         inner class HelperOfHelper {
-            fun b(): String = getString(R.string.resource_id)
+            fun b(): String = getString(R.string.some_string)
         }
     }
 }

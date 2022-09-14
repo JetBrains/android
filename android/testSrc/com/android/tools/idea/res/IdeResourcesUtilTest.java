@@ -629,6 +629,39 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
                                          "</navigation>");
   }
 
+  public void testBuildResourceNameFromStringValue_simpleName() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("Just simple string")).isEqualTo("just_simple_string");
+  }
+
+  public void testBuildResourceNameFromStringValue_nameWithSurroundingSpaces() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue(" Just a simple string ")).isEqualTo("just_a_simple_string");
+  }
+
+  public void testBuildResourceNameFromStringValue_nameWithDigits() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("A string with 31337 number")).isEqualTo("a_string_with_31337_number");
+  }
+
+  public void testBuildResourceNameFromStringValue_nameShouldNotStartWithNumber() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("100 things")).isEqualTo("_100_things");
+  }
+
+  public void testBuildResourceNameFromStringValue_emptyString() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("")).isNull();
+  }
+
+  public void testBuildResourceNameFromStringValue_stringHasPunctuation() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("Hello!!#^ But why??")).isEqualTo("hello_but_why");
+  }
+
+  public void testBuildResourceNameFromStringValue_stringIsOnlyPunctuation() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("!!#^??")).isNull();
+  }
+
+  public void testBuildResourceNameFromStringValue_stringStartsAndEndsWithPunctuation() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("\"A quotation\"")).isEqualTo("a_quotation");
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("<tag>")).isEqualTo("tag");
+  }
+
   @NotNull
   private PsiDirectory getLayoutFolder() {
     PsiFile file = myFixture.configureByText("res/layout/main.xml", "<LinearLayout/>");
