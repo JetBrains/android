@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.bleak
 
-class IgnoreList<T>(val patterns: List<IgnoreListEntry<T>> = listOf()) {
+class IgnoreList<T>(private val patterns: List<IgnoreListEntry<T>> = listOf()) {
 
   fun matches(info: T) = patterns.any { it.test(info) }
 

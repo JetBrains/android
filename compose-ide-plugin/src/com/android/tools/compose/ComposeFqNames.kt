@@ -36,14 +36,14 @@ object ComposeFqNames {
 
   object old {
     private const val root = "androidx.compose"
-    fun fqNameFor(cname: String) = FqName("$root.$cname")
+    private fun fqNameFor(cname: String) = FqName("$root.$cname")
     val Composable = fqNameFor("Composable")
   }
 
   val Composable = fqNameFor("Composable")
   val DisallowComposableCalls = fqNameFor("DisallowComposableCalls")
   val ReadOnlyComposable = fqNameFor("ReadOnlyComposable")
-  fun fqNameFor(cname: String) = FqName("$root.$cname")
+  private fun fqNameFor(cname: String) = FqName("$root.$cname")
 
   fun makeComposableAnnotation(module: ModuleDescriptor): AnnotationDescriptor =
     object : AnnotationDescriptor {

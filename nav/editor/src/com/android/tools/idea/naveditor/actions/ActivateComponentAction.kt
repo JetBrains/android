@@ -33,7 +33,7 @@ class ActivateComponentAction(text: String?, private val mySurface: DesignSurfac
     setEnabled()
   }
 
-  fun setEnabled() {
+  private fun setEnabled() {
     if (!component.isNavigation && component.className == null && component.layout == null) {
       templatePresentation.isEnabled = false
     }

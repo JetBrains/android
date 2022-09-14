@@ -39,6 +39,7 @@ open class DesignerCommonIssueModel : BaseTreeModel<NodeDescriptor<*>>() {
     return children.toList()
   }
 
+  @Suppress("MemberVisibilityCanBePrivate")
   fun setRoot(root: DesignerCommonIssueNode?) {
     this.root.set(root)
     structureChanged(null)

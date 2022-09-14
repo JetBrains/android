@@ -652,10 +652,10 @@ internal class AndroidExtraModelProviderWorker(
           androidDsl = androidDsl,
           legacyApplicationIdModel = legacyApplicationIdModel
         )
-      val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
+      private val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
       private val agpParsedVersion = GradleVersion.tryParseAndroidGradlePluginVersion(agpVersion)
 
-      val v2Variants: List<IdeVariantCoreImpl> = let {
+      private val v2Variants: List<IdeVariantCoreImpl> = let {
         val v2Variants: List<V2Variant> = androidProject.variants.toList()
         val basicVariantMap = basicVariants.associateBy { it.name }
 

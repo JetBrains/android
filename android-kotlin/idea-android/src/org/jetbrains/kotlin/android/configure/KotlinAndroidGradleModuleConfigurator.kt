@@ -246,7 +246,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         collector.showNotification()
     }
 
-    fun doConfigure(project: Project, modules: List<Module>, version: String): NotificationMessageCollector {
+    private fun doConfigure(project: Project, modules: List<Module>, version: String): NotificationMessageCollector {
         return project.executeCommand(KotlinIdeaGradleBundle.message("command.name.configure.kotlin")) {
             val collector = NotificationMessageCollector.create(project)
             val changedFiles = configureWithVersion(project, modules, IdeKotlinVersion.get(version), collector)

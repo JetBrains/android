@@ -133,7 +133,7 @@ class StateListState(var value: String?, val attributes: Map<String, Boolean>, v
   /**
    * @return a list of all the attribute names. Names are capitalized is capitalize is true
    */
-  fun getAttributesNames(capitalize: Boolean): ImmutableList<String> {
+  private fun getAttributesNames(capitalize: Boolean): ImmutableList<String> {
     val attributes = attributes
 
     if (attributes.isEmpty()) {

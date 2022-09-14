@@ -72,7 +72,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
 
   @Volatile
   private var isLoadingError = false
-  var hasNativeAllocations = false
+  private var hasNativeAllocations = false
     private set
   private val activityFragmentLeakFilter = ActivityFragmentLeakInstanceFilter(classDb)
   private val supportedInstanceFilters: Set<CaptureObjectInstanceFilter> = setOf(activityFragmentLeakFilter,
@@ -166,7 +166,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
     else listOf(InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.SHALLOW_SIZE, InstanceAttribute.RETAINED_SIZE)
   open fun findInstanceObject(instance: Instance) = if (hasLoaded) instanceIndex[instance.id] else null
 
-  fun createClassObjectInstance(javaLangClass: InstanceObject?, classObj: ClassObj): InstanceObject {
+  private fun createClassObjectInstance(javaLangClass: InstanceObject?, classObj: ClassObj): InstanceObject {
     val classEntry = classObj.makeEntry(if (javaLangClass == null) ClassDb.JAVA_LANG_CLASS else classObj.className)
     // Handle java.lang.Class which is a special case. All its instances are other classes, so wee need to create an InstanceObject for it
     // first for all classes to reference.

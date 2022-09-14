@@ -116,7 +116,7 @@ class NetworkInspectorView(
   /**
    * View of the active tooltip for stages that contain more than one tooltips.
    */
-  var activeTooltipView: TooltipView? = null
+  private var activeTooltipView: TooltipView? = null
 
   /**
    * A common component for showing the current selection range.

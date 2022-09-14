@@ -37,7 +37,7 @@ import javax.swing.JComponent
  */
 abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
   val context: PsContext,
-  val perspectiveConfigurable: BasePerspectiveConfigurable,
+  private val perspectiveConfigurable: BasePerspectiveConfigurable,
   module: ModuleT
 ) : BaseNamedConfigurable<ModuleT>(module), ContainerConfigurable<PsModule>
   where PanelT : JComponent,

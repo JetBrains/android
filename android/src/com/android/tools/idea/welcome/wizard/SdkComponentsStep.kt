@@ -221,7 +221,7 @@ class SdkComponentsStep(
   override fun getPreferredFocusComponent(): JComponent = componentsTable
 
   // This belonged to InstallComponentPath before. TODO: maybe it should actually be in onWizardStarting to avoid/reduce freezes?
-  lateinit var componentInstaller: ComponentInstaller
+  private lateinit var componentInstaller: ComponentInstaller
 
   init {
     val localHandler = model.localHandler

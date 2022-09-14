@@ -81,7 +81,7 @@ class HighlightingStats : Disposable {
    * Logs an [AndroidStudioEvent] with editor highlighting stats.
    * Resets statistics so that counts are not double-counted in the next report.
    */
-  fun reportHighlightingStats() {
+  private fun reportHighlightingStats() {
     val allStats = EditorHighlightingStats.newBuilder()
     for ((fileType, recorder) in latencyRecorders) {
       val histogram = recorder.intervalHistogram // Automatically resets statistics for this recorder.

@@ -463,7 +463,7 @@ internal class FilterTextField(
      * the item. This works because the item corresponding to the mouse event must be the selected item since the mouse is hovering on it.
      */
     inner class MouseListener : MouseAdapter() {
-      var hoveredFavoriteIndex: Int? = null
+      private var hoveredFavoriteIndex: Int? = null
 
       override fun mouseReleased(event: MouseEvent) {
         if (event.button == BUTTON1 && event.modifiersEx == 0) {

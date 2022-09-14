@@ -30,7 +30,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
   // - If live tracking session hasn't finished yet, `maxTrackingTimeUs` is +∞
   var minTrackingTimeUs = initMinUs
     private set
-  var maxTrackingTimeUs = initMaxUs
+  private var maxTrackingTimeUs = initMaxUs
     private set
   private val hasStartedTracking get() = minTrackingTimeUs > NEGATIVE_INFINITY
   val hasEndedTracking get() = maxTrackingTimeUs < POSITIVE_INFINITY

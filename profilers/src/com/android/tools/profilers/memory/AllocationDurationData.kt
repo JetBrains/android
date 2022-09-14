@@ -60,7 +60,7 @@ class AllocationDurationData<T: CaptureObject>(duration: Long, captureEntry: Cap
     /**
      * Each group of consecutive sampling rates of `FULL` or `SAMPLED` makes an allocation session
      */
-    internal fun List<SeriesData<AllocationSamplingRateDurationData>>.consecutiveAllocRanges() = mutableListOf<Range>().also { ranges ->
+    private fun List<SeriesData<AllocationSamplingRateDurationData>>.consecutiveAllocRanges() = mutableListOf<Range>().also { ranges ->
       var lo = Double.NaN
       forEach {
         when (getModeFromFrequency(it.value.currentRate.samplingNumInterval)) {

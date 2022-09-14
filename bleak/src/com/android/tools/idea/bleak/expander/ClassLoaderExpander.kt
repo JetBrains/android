@@ -24,7 +24,7 @@ object BootstrapClassloaderPlaceholder
  * null in [Class.getClassLoader], but every Node must correspond to a non-null object.
  * [BootstrapClassloaderPlaceholder] serves as a placeholder for the bootstrap class loader for this purpose.
  */
-class ClassLoaderExpander(val bleakHelper: BleakHelper): Expander() {
+class ClassLoaderExpander(private val bleakHelper: BleakHelper): Expander() {
   private val labelToNodeMap: MutableMap<Node, MutableMap<Label, Node>> = mutableMapOf()
 
   override fun canExpand(obj: Any): Boolean = obj is ClassLoader || obj === BootstrapClassloaderPlaceholder

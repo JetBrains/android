@@ -35,6 +35,6 @@ class CachedFunction<K,V>(private val cache: MutableMap<K,V>, private val comput
   }
 }
 
-class CappedLRUMap<K, V>(val maxSize: Int): LinkedHashMap<K, V>(maxSize, .8f, true) {
+class CappedLRUMap<K, V>(private val maxSize: Int): LinkedHashMap<K, V>(maxSize, .8f, true) {
   override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, V>?) = size > maxSize
 }

@@ -81,7 +81,7 @@ private object CustomModelDataContext: DataContext {
  * This class provides the [NlModel]s with custom [Configuration] for [VisualizationForm].<br>
  * The custom [Configuration] is added by [AddCustomConfigurationAction].
  */
-class CustomModelsProvider(val customId: String,
+class CustomModelsProvider(private val customId: String,
                            val customConfigSet: CustomConfigurationSet,
                            private val configurationSetListener: ConfigurationSetListener) : VisualizationModelsProvider {
 

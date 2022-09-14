@@ -67,7 +67,7 @@ class WarningsPageView(
   // Flag to prevent triggering calls to action handler on pulled from the model updates.
   private var fireActionHandlerEvents = true
 
-  val groupingCheckBox = JCheckBox("Group by plugin", false).apply {
+  private val groupingCheckBox = JCheckBox("Group by plugin", false).apply {
     name = "warningsGroupingCheckBox"
     addActionListener { event ->
       if (fireActionHandlerEvents) {

@@ -86,7 +86,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
    * @param filter          the optional filter constraining acceptable versions
    * @param includePreviews whether to include preview versions of libraries
    */
-  fun findVersion(
+  private fun findVersion(
     groupId: String, artifactId: String, filter: Predicate<GradleVersion>?, includePreviews: Boolean, fileSystem: FileSystem
   ): GradleVersion? {
     val version: GradleVersion?

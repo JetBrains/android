@@ -1219,7 +1219,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       }
     }
 
-    val signatureSorter = Comparator<String> { o1, o2 ->
+    private val signatureSorter = Comparator<String> { o1, o2 ->
       // Sort outer classes higher than inner classes; this means that "}" beats other characters
       val l1 = o1.length
       val l2 = o2.length

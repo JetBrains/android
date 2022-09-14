@@ -220,7 +220,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   }
 
   /** Attempts to restore a lost device connection. */
-  protected inner class Reconnector(val reconnectLabel: String, val progressMessage: String, val reconnect: suspend () -> Unit) {
+  protected inner class Reconnector(val reconnectLabel: String, private val progressMessage: String, val reconnect: suspend () -> Unit) {
 
     /** Starts the reconnection attempt. */
     fun start() {

@@ -82,7 +82,7 @@ abstract class Expander: DoNotTrace {
  * that it can expand the object is selected. Thus more specific Expanders should be placed at the
  * head of the list.
  */
-class ExpanderChooser(val expanders: List<Expander>) {
+class ExpanderChooser(private val expanders: List<Expander>) {
   fun expanderFor(obj: Any): Expander {
     for (e in expanders) {
       if (e.canExpand(obj)) {

@@ -49,7 +49,7 @@ import java.util.function.Supplier
  * long running operations either raise events or return a Future.
  */
 @UiThread
-class AdbDeviceFileSystemService @NonInjectable constructor (val adbSupplier: Supplier<File?>)
+class AdbDeviceFileSystemService @NonInjectable constructor (private val adbSupplier: Supplier<File?>)
     : Disposable, DeviceFileSystemService<AdbDeviceFileSystem> {
 
   constructor(project: Project) : this({ AdbFileProvider.fromProject(project)?.adbFile })

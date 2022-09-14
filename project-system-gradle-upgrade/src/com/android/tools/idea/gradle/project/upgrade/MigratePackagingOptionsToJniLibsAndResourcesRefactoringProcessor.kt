@@ -94,9 +94,9 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
   }
 
   companion object {
-    val MOVE_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.move.usageType"))
+    private val MOVE_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.move.usageType"))
     val SPLIT_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.split.usageType"))
-    val REMOVE_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.remove.usageType"))
+    private val REMOVE_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.remove.usageType"))
 
     val MOVE_PACKAGING_OPTIONS_PROPERTIES_INFO = MovePropertiesInfo(
       listOf(
@@ -130,7 +130,7 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
 }
 
 class SplitPropertiesUsageInfo(
-  element: WrappedPsiElement, val value: Any, val destinations: List<GradlePropertyModel>
+  element: WrappedPsiElement, val value: Any, private val destinations: List<GradlePropertyModel>
 ): GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     destinations.forEach {

@@ -59,9 +59,9 @@ class MainBleakCheck(ignoreList: IgnoreList<LeakInfo>,
                      customExpanderSupplier: Supplier<List<Expander>>,
                      private val forbiddenObjects: List<Any> = listOf()):
   BleakCheck<() -> ExpanderChooser, LeakInfo>({ getExpanderChooser(customExpanderSupplier) }, ignoreList, knownIssues) {
-  lateinit var g1: HeapGraph
-  lateinit var g2: HeapGraph
-  var leaks: List<LeakInfo> = listOf()
+  private lateinit var g1: HeapGraph
+  private lateinit var g2: HeapGraph
+  private var leaks: List<LeakInfo> = listOf()
 
   private fun buildGraph(firstRun: Boolean = false) = HeapGraph(options(), forbiddenObjects).expandWholeGraph(firstRun)
 

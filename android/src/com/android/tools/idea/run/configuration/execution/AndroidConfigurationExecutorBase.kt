@@ -188,7 +188,7 @@ abstract class AndroidConfigurationExecutorBase(
     return devices.onEach { LaunchUtils.initiateDismissKeyguard(it) }
   }
 
-  internal fun terminatePreviousAppInstance(device: IDevice) {
+  private fun terminatePreviousAppInstance(device: IDevice) {
     val terminator = ApplicationTerminator(device, appId)
     if (!terminator.killApp()) {
       throw ExecutionException("Could not terminate running app $appId")

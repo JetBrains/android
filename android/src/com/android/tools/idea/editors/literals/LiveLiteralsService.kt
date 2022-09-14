@@ -132,7 +132,7 @@ interface LiveLiteralsMonitorHandler {
 @Service
 class LiveLiteralsService private constructor(private val project: Project,
                                               listenerExecutor: Executor,
-                                              val deploymentReportService: LiveLiteralsDeploymentReportService) : LiveLiteralsMonitorHandler, Disposable {
+                                              private val deploymentReportService: LiveLiteralsDeploymentReportService) : LiveLiteralsMonitorHandler, Disposable {
   init {
     deploymentReportService.subscribe(this@LiveLiteralsService, object : LiveLiteralsDeploymentReportService.Listener {
       override fun onMonitorStarted(deviceId: String) {

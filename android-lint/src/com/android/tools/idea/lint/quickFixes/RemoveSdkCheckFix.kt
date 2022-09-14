@@ -32,7 +32,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
  * Removes an obsolete if-SDK_INT check. This is only handling Kotlin code since for Java
  * we reuse the builtin SimplifyBooleanExpressionFix check.
  */
-class RemoveSdkCheckFix(var removeThen: Boolean) : DefaultLintQuickFix(
+class RemoveSdkCheckFix(private var removeThen: Boolean) : DefaultLintQuickFix(
   "Remove obsolete SDK version check",
   "Remove obsolete SDK version checks"
 ) {

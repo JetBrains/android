@@ -152,7 +152,7 @@ open class HasLiveLiteralsTransform @JvmOverloads constructor(
   override val uniqueId: String = "${HasLiveLiteralsTransform::class.qualifiedName!!},$fileInfoAnnotationName"
 
   private var className = ""
-  var hasLiveLiterals = false
+  private var hasLiveLiterals = false
     private set
 
   override fun visitAnnotation(descriptor: String?, visible: Boolean): AnnotationVisitor {

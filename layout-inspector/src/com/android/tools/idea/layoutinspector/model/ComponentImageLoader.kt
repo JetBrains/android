@@ -29,7 +29,7 @@ class ComponentImageLoader(
   private val nodeMap: Map<Long, ViewNode>, skiaRoot: SkiaViewNode
 ) {
   private val skiaNodes = LinkedList(skiaRoot.flatten().filter { it.image != null }.toList())
-  val checkedTreeIds = mutableSetOf<Long>()
+  private val checkedTreeIds = mutableSetOf<Long>()
 
   /**
    * Load images from skia parser

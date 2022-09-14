@@ -41,7 +41,7 @@ open class PropertyTextFieldWithLeftButton(
   protected open val buttonAction = editorModel.buttonAction
   protected val leftComponent = component ?: IconWithFocusBorder { buttonAction }
   protected val leftButton = leftComponent as? IconWithFocusBorder
-  protected val textField = PropertyTextField(editorModel)
+  private val textField = PropertyTextField(editorModel)
 
   init {
     background = UIUtil.TRANSPARENT_COLOR

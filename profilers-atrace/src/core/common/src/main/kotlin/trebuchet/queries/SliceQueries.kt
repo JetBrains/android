@@ -43,19 +43,19 @@ object SliceQueries {
         return ret
     }
 
-    fun iterSlices(model: Model, cb: (Slice) -> Unit) {
+    private fun iterSlices(model: Model, cb: (Slice) -> Unit) {
         model.processes.values.forEach { iterSlices(it, cb) }
     }
 
-    fun iterSlices(process: ProcessModel, cb: (Slice) -> Unit) {
+    private fun iterSlices(process: ProcessModel, cb: (Slice) -> Unit) {
         process.threads.forEach { iterSlices(it, cb) }
     }
 
-    fun iterSlices(thread: ThreadModel, cb: (Slice) -> Unit) {
+    private fun iterSlices(thread: ThreadModel, cb: (Slice) -> Unit) {
         iterSlices(thread.slices, cb)
     }
 
-    fun iterSlices(slices: List<SliceGroup>, cb: (Slice) -> Unit) {
+    private fun iterSlices(slices: List<SliceGroup>, cb: (Slice) -> Unit) {
         slices.forEach {
             cb(it)
             iterSlices(it.children, cb)

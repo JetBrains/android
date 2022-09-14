@@ -27,7 +27,7 @@ import javax.swing.JPanel
 class EmulatorSplitPanel(splitType: SplitType, proportion: Double) : JPanel(BorderLayout()) {
   private val splitter = OnePixelSplitter(splitType == SplitType.VERTICAL, proportion.toFloat())
 
-  var splitType: SplitType
+  private var splitType: SplitType
     get() = if (splitter.orientation) SplitType.VERTICAL else SplitType.HORIZONTAL
     set(value) { splitter.orientation = value == SplitType.VERTICAL }
   var proportion: Double

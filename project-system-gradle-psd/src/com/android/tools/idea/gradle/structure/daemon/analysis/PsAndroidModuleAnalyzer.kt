@@ -40,7 +40,7 @@ import java.util.regex.Pattern
 
 class PsAndroidModuleAnalyzer(
   val parentDisposable: Disposable,
-  val pathRenderer: PsPathRenderer
+  private val pathRenderer: PsPathRenderer
 ) : PsModelAnalyzer<PsAndroidModule>(parentDisposable) {
 
   override val supportedModelType: Class<PsAndroidModule> = PsAndroidModule::class.java

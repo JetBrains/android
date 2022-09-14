@@ -121,7 +121,7 @@ internal class DeviceClient(
     CoroutineScope(Dispatchers.Default).launch { disconnect() }
   }
 
-  suspend fun disconnect() {
+  private suspend fun disconnect() {
     coroutineScope {
       val videoChannelClosed = async {
         try {

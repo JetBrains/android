@@ -127,7 +127,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
       FormScalingUtil.scaleComponentTree(this@ConfigureModuleStep.javaClass, this)
     }
   }
-  protected val rootPanel: JScrollPane by lazy {
+  private val rootPanel: JScrollPane by lazy {
     wrapWithVScroll(validatorPanel, SMALL)
   }
 

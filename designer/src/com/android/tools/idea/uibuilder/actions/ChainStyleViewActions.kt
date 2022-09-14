@@ -78,7 +78,7 @@ class ChainStyleViewActions {
 class ChainStyleViewAction(
   icon: Icon?,
   val style: String,
-  val chainDirection: ChainDirection,
+  private val chainDirection: ChainDirection,
   label: String = style) : DirectViewAction(icon, label) {
 
   @VisibleForTesting

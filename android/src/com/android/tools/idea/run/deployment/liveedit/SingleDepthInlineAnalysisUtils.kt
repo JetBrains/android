@@ -62,7 +62,7 @@ data class SourceInlineCandidate (val sourceFile: KtFile, val className : String
    * Return true if we can populate the KtFile's inline cache entry of the code generation process.
    * IE: Can we have the bytecode available either in memory or on disk somehow.
    */
-  inline fun canFillInlineCache() = bytecode != null;
+  private inline fun canFillInlineCache() = bytecode != null;
 
   /**
    * Fill the bytecode cache with the .class content from the last build.

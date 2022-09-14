@@ -77,7 +77,7 @@ class DaggerAnnotatedElementsSearch(private val project: Project) {
     fun getInstance(project: Project) = project.getService(DaggerAnnotatedElementsSearch::class.java)!!
   }
 
-  fun getAnnotation(annotationFQN: String): PsiClass? {
+  private fun getAnnotation(annotationFQN: String): PsiClass? {
     return JavaPsiFacade.getInstance(project).findClass(annotationFQN, GlobalSearchScope.allScope(project))
   }
 

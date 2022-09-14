@@ -136,7 +136,7 @@ private fun isResourceClassName(className: String): Boolean = RESOURCE_CLASS_NAM
  * [ClassLoader] responsible for loading the `R` class from libraries and dependencies of the given module.
  */
 class LibraryResourceClassLoader(parent: ClassLoader?, module: Module) : ClassLoader(parent) {
-  val moduleRef = WeakReference(module)
+  private val moduleRef = WeakReference(module)
 
   init {
     registerResources(module)

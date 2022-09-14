@@ -56,7 +56,7 @@ class JdbcDatabaseConnection(
     Disposer.register(parentDisposable, this)
   }
 
-  val sequentialTaskExecutor = SequentialTaskExecutor.createSequentialApplicationPoolExecutor("Sqlite JDBC service", pooledExecutor)
+  private val sequentialTaskExecutor = SequentialTaskExecutor.createSequentialApplicationPoolExecutor("Sqlite JDBC service", pooledExecutor)
 
   override fun close(): ListenableFuture<Unit> = sequentialTaskExecutor.executeAsync {
     connection.close()

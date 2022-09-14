@@ -182,7 +182,7 @@ class PsVariable(
       variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
     )
 
-    fun variableKnownValues(variable: PsVariable): ListenableFuture<List<ValueDescriptor<Any>>> {
+    private fun variableKnownValues(variable: PsVariable): ListenableFuture<List<ValueDescriptor<Any>>> {
       val potentiallyReferringModels = variable.scopePsVariables.model.descriptor.enumerateContainedModels()
       val collector = variable.ReferenceContextCollector()
       potentiallyReferringModels.forEach { it.descriptor.enumerateProperties(collector) }

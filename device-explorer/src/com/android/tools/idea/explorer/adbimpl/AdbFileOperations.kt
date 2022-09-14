@@ -141,7 +141,7 @@ class AdbFileOperations(
     return createTempFileRunAs(tempPath, null)
   }
 
-  suspend fun createTempFileRunAs(tempDirectory: String, runAs: String?): String {
+  private suspend fun createTempFileRunAs(tempDirectory: String, runAs: String?): String {
     return withContext(dispatcher) {
 
       // Note: Instead of using "mktemp", we use our own unique filename generation + a call to "touch"

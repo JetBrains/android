@@ -330,7 +330,7 @@ class TaskDetailsNodeDescriptor(
     TasksDataPageModel.Grouping.UNGROUPED -> PageType.CRITICAL_PATH_TASK_PAGE
     TasksDataPageModel.Grouping.BY_PLUGIN -> PageType.PLUGIN_CRITICAL_PATH_TASK_PAGE
   }
-  val filteredTaskTime = timeDistributionBuilder.registerTimeEntry(taskData.executionTime.timeMs)
+  private val filteredTaskTime = timeDistributionBuilder.registerTimeEntry(taskData.executionTime.timeMs)
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = taskData.taskPath,

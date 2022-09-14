@@ -44,7 +44,7 @@ const val DEFAULT_KOTLIN_VERSION = "1.4.31"
 class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var androidXSupport: Boolean? = null
   var gradlePluginVersion: GradleVersion? = null
-  var sdkDir: File? = null
+  private var sdkDir: File? = null
   var language: Language? = null
   var kotlinVersion: String? = null
   var buildToolsVersion: Revision? = null

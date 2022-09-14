@@ -40,7 +40,7 @@ sealed class AndroidResourceDomFileDescription<T : DomElement>(
     resourceFolderType: ResourceFolderType
   ) : this(rootElementClass, rootTagName, EnumSet.of<ResourceFolderType>(resourceFolderType))
 
-  val resourceFolderTypes: EnumSet<ResourceFolderType> = EnumSet.copyOf(resourceFolderTypes)
+  private val resourceFolderTypes: EnumSet<ResourceFolderType> = EnumSet.copyOf(resourceFolderTypes)
 
   override fun isMyFile(file: XmlFile, module: Module?): Boolean {
     for (folderType in resourceFolderTypes) {

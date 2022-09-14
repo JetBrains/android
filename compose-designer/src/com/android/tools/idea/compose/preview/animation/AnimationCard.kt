@@ -78,7 +78,7 @@ class AnimationCard(previewState: AnimationPreviewState,
   override fun getCurrentHeight() =
     if (state.expanded) expandedSize else InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
-  var durationLabel: Component? = null
+  private var durationLabel: Component? = null
   override fun setDuration(durationMillis: Int?) {
     durationLabel?.let { firstRow.remove(it) }
     durationLabel = JBLabel("${durationMillis ?: "_"}ms").apply { foreground = UIUtil.getContextHelpForeground() }.also {

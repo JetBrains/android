@@ -125,7 +125,7 @@ class PsResolvedLibraryJavaDependency(
   override val declaredDependencies: List<PsDeclaredLibraryJavaDependency>
 ) : PsJavaDependency(parent),
     PsLibraryDependency, PsResolvedDependency, PsResolvedLibraryDependency {
-  internal val pomDependencies = mutableListOf<PsArtifactDependencySpec>()
+  private val pomDependencies = mutableListOf<PsArtifactDependencySpec>()
 
   override val isDeclared: Boolean get() = declaredDependencies.isNotEmpty()
 

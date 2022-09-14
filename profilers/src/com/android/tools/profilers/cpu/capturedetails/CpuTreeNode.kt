@@ -29,7 +29,7 @@ import javax.swing.tree.TreeNode
 class CpuTreeNode<T: Aggregate<T>>(val base: T,
                                    val total: Double,
                                    val childrenTotal: Double,
-                                   val childrenDelegate: Lazy<List<CpuTreeNode<T>>>): TreeNode {
+                                   private val childrenDelegate: Lazy<List<CpuTreeNode<T>>>): TreeNode {
   val self get() = total - childrenTotal
 
   /**

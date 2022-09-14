@@ -41,7 +41,7 @@ data class JankAnalysisModel(val event: AndroidFrameTimelineEvent, val capture: 
         : CpuAnalysisSummaryTabModel<JankAnalysisModel>(capture.range) {
     constructor(event: AndroidFrameTimelineEvent, capture: SystemTraceCpuCapture):
       this(event, capture, capture.frameRenderSequence(event))
-    val eventRange = Range(event.expectedStartUs.toDouble(), event.actualEndUs.toDouble())
+    private val eventRange = Range(event.expectedStartUs.toDouble(), event.actualEndUs.toDouble())
     override fun getLabel() = "Janky Frame"
     override fun getSelectionRange() = eventRange
     fun getThreadState(threadId: Int) = capture.getThreadStatesForThread(threadId)

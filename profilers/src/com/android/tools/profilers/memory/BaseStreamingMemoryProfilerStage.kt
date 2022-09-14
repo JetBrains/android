@@ -72,7 +72,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   val client = profilers.client.memoryClient
   val gcStatsModel = makeModel(makeGcSeries())
 
-  val allocationSamplingRateDataSeries = AllocationSamplingRateDataSeries(profilers.client, sessionData, true)
+  private val allocationSamplingRateDataSeries = AllocationSamplingRateDataSeries(profilers.client, sessionData, true)
   val allocationSamplingRateDurations = makeModel(allocationSamplingRateDataSeries)
 
   val detailedMemoryUsage = DetailedMemoryUsage(profilers, this)

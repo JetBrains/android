@@ -30,17 +30,17 @@ class ComposeParametersData(
   /**
    * The parameters associated with a composable as a list.
    */
-  val parameterList: List<ParameterItem>,
+  private val parameterList: List<ParameterItem>,
 
   /**
    * The merged semantic information associated with a composable as a list.
    */
-  val mergedSemantics: List<ParameterItem>,
+  private val mergedSemantics: List<ParameterItem>,
 
   /**
    * The unmerged semantic information associated with a composable as a list.
    */
-  val unmergedSemantics: List<ParameterItem>,
+  private val unmergedSemantics: List<ParameterItem>,
 
   /**
    * The parameters and semantic information associated with a composable as a properties table.

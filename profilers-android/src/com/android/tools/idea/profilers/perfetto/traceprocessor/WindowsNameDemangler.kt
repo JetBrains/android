@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit
  *
  * More info about c++filt: https://llvm.org/docs/CommandGuide/llvm-cxxfilt.html
  */
-class WindowsNameDemangler(val timeoutMsc: Long = 5000) : NameDemangler {
+class WindowsNameDemangler(private val timeoutMsc: Long = 5000) : NameDemangler {
   private fun getLlvmCppFiltPath(): String {
     val exe = "x86_64-linux-android-c++filt.exe"
     val result = if (StudioPathManager.isRunningFromSources()) {
@@ -105,7 +105,7 @@ class WindowsNameDemangler(val timeoutMsc: Long = 5000) : NameDemangler {
     return procHolder
   }
 
-  internal fun getLogger(): Logger {
+  private fun getLogger(): Logger {
     return Logger.getInstance("CppNameDemangler")
   }
 

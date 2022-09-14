@@ -36,7 +36,7 @@ private const val ICON_SIDES_MARGIN = 4
  *
  * Since the panel will have the TextField appearance, [textField] and [leftComponent] are stripped from their border and background.
  */
-class TextFieldWithLeftComponent(val leftComponent: JComponent, val textField: JTextField) : JPanel(BorderLayout()) {
+class TextFieldWithLeftComponent(private val leftComponent: JComponent, val textField: JTextField) : JPanel(BorderLayout()) {
   private val focusListener: FocusListener = object : FocusListener {
     override fun focusLost(e: FocusEvent?) {
       repaint()

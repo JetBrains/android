@@ -143,9 +143,9 @@ class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
   override fun createCenterPanel(): JComponent = content
 
   companion object {
-    const val ENABLE_DIALOG_PROPERTY = "enable.android.analytics.consent.dialog.for.test"
+    private const val ENABLE_DIALOG_PROPERTY = "enable.android.analytics.consent.dialog.for.test"
 
-    val isConsentDialogEnabledInTests
+    private val isConsentDialogEnabledInTests
       get() = Boolean.getBoolean(ENABLE_DIALOG_PROPERTY)
 
     // If the user hasn't opted in, we will ask IJ to check if the user has

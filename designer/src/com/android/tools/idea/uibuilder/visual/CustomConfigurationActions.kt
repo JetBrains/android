@@ -65,7 +65,7 @@ class AddCustomConfigurationSetAction(private val onAdd: (String) -> Unit) : AnA
   }
 }
 
-class RemoveCustomConfigurationSetAction(val configurationSet: ConfigurationSet, private val onRemove: () -> Unit)
+class RemoveCustomConfigurationSetAction(private val configurationSet: ConfigurationSet, private val onRemove: () -> Unit)
   : AnAction(AllIcons.Actions.GC) {
   init {
     templatePresentation.text = "Delete This Category"

@@ -125,7 +125,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
       }
     }
 
-  val settingsVisitorResults: SettingsVisitorResults
+  private val settingsVisitorResults: SettingsVisitorResults
     get() {
       _settingsVisitorResults?.let { return it }
       return runReadAction {
@@ -141,7 +141,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
       }
     }
 
-  val _isVersionCatalogProject: DetectorResult
+  private val _isVersionCatalogProject: DetectorResult
     get() {
       val gradleVersion = gradleVersion
       if (gradleVersion < PREVIEW_GRADLE_VERSION) return OLD_GRADLE
@@ -155,7 +155,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
       }
     }
 
-  var shouldSendTrackerEvent = true
+  private var shouldSendTrackerEvent = true
 
   val isVersionCatalogProject: Boolean
     get() = _isVersionCatalogProject.run {

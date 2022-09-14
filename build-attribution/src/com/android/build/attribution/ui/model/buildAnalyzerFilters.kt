@@ -100,7 +100,7 @@ data class WarningsFilter(
 
 abstract class WarningsFilterToggleAction(
   uiName: String,
-  val warningsModel: WarningsDataPageModel,
+  private val warningsModel: WarningsDataPageModel,
   val actionHandlers: ViewActionHandlers
 ) : AnAction(uiName), DumbAware, KeepingPopupOpenAction {
 
@@ -272,7 +272,7 @@ private fun PluginSourceType.toFilterUiShortName(): String = when (this) {
 
 abstract class TasksFilterToggleAction(
   uiName: String,
-  val tasksModel: TasksDataPageModel,
+  private val tasksModel: TasksDataPageModel,
   val actionHandlers: ViewActionHandlers
 ) : AnAction(uiName), DumbAware, KeepingPopupOpenAction {
 

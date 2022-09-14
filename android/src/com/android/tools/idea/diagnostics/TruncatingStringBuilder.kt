@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.diagnostics
 
-class TruncatingStringBuilder(val maxSize: Int, val truncationMessage: String) {
+class TruncatingStringBuilder(private val maxSize: Int, private val truncationMessage: String) {
   private val stringBuilder = StringBuilder()
   private var hasHitLimit = false
   private var size = 0

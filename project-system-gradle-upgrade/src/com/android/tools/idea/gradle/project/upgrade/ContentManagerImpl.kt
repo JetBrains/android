@@ -122,7 +122,7 @@ class ToolWindowModel(
   val selectedVersion: GradleVersion?
     get() = _selectedVersion
   var processor: AgpUpgradeRefactoringProcessor? = null
-  var beforeUpgradeFilesStateLabel: Label? = null
+  private var beforeUpgradeFilesStateLabel: Label? = null
 
   val uiState = ObjectValueProperty<UIState>(UIState.Loading)
 
@@ -721,7 +721,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
       }
     }
 
-    val upgradeLabel = JBLabel(model.current.upgradeLabelText()).also { it.border = JBUI.Borders.empty(0, 6) }
+    private val upgradeLabel = JBLabel(model.current.upgradeLabelText()).also { it.border = JBUI.Borders.empty(0, 6) }
 
     val versionTextField = CommonComboBox<GradleVersion, CommonComboBoxModel<GradleVersion>>(
       // TODO this model needs to be enhanced to know when to commit value, instead of doing it in document listener below.
@@ -823,7 +823,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
         isEnabled = uiState.showPreviewEnabled
       }
     }
-    val messageLabel = JBLabel().apply {
+    private val messageLabel = JBLabel().apply {
       fun update(uiState: ToolWindowModel.UIState) {
         icon = uiState.statusMessage?.severity?.icon
         text = uiState.statusMessage?.text
@@ -831,7 +831,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
       update(this@View.model.uiState.get())
       myListeners.listen(this@View.model.uiState, ::update)
     }
-    val hyperlinkLabel = object : ActionLink("Read more") {
+    private val hyperlinkLabel = object : ActionLink("Read more") {
       var url: String? = null
     }
       .apply {

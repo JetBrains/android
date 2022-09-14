@@ -31,8 +31,8 @@ class BufferQueueTrackModel(val systemTraceData: CpuSystemTraceData, val viewRan
   // 2: another buffer is produced before the previous one is consumed by SurfaceFlinger, a.k.a. triple buffered.
   //
   // In S+, a new system called BLAST Buffer Queue is implemented, so the Y-axis max can be bigger than 2.
-  val maxY = systemTraceData.bufferQueueCounterValues.maxByOrNull { it.value }?.value ?: 0
-  val yRange = Range(0.0, max(2.0, maxY.toDouble()))
+  private val maxY = systemTraceData.bufferQueueCounterValues.maxByOrNull { it.value }?.value ?: 0
+  private val yRange = Range(0.0, max(2.0, maxY.toDouble()))
   val bufferQueueSeries: RangedContinuousSeries = RangedContinuousSeries("BufferQueue", viewRange, yRange, LazyDataSeries {
     systemTraceData.bufferQueueCounterValues
   })

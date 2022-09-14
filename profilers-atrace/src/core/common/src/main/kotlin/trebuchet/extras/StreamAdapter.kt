@@ -21,13 +21,13 @@ import trebuchet.io.DataSlice
 import java.io.File
 import java.io.InputStream
 
-class InputStreamAdapter(val inputStream: InputStream,
-                         val totalSize: Long = 0,
-                         val progressCallback: ((Long, Long) -> Unit)? = null) : BufferProducer {
+class InputStreamAdapter(private val inputStream: InputStream,
+                         private val totalSize: Long = 0,
+                         private val progressCallback: ((Long, Long) -> Unit)? = null) : BufferProducer {
     constructor(file: File) : this(file.inputStream(), file.length())
 
-    var totalRead: Long = 0
-    var hitEof = false
+    private var totalRead: Long = 0
+    private var hitEof = false
 
     override fun next(): DataSlice? {
         if (hitEof) return null

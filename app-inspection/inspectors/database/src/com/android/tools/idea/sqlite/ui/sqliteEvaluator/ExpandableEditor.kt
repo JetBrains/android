@@ -19,10 +19,10 @@ import com.intellij.ui.EditorTextField
 import com.intellij.ui.Expandable
 import com.intellij.ui.ExpandableEditorSupport
 
-internal class ExpandableEditor(internal val collapsedEditor: EditorTextField) : Expandable {
+internal class ExpandableEditor(private val collapsedEditor: EditorTextField) : Expandable {
 
   private val support = MyEditorTextSupport(collapsedEditor)
-  internal val expandedEditor = support.expandedEditorTextField
+  private val expandedEditor = support.expandedEditorTextField
 
   internal val activeEditor get() = if (isExpanded) expandedEditor else collapsedEditor
 

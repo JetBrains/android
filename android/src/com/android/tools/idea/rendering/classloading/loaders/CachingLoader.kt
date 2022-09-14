@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit
  */
 class CachingLoader constructor(
   private val delegate: DelegatingClassLoader.Loader,
-  val cacheBuilder: CacheBuilder<String, ByteArray>) : DelegatingClassLoader.Loader {
+  private val cacheBuilder: CacheBuilder<String, ByteArray>) : DelegatingClassLoader.Loader {
 
   constructor(delegate: DelegatingClassLoader.Loader,
               expireAfterWriteMs: Long = DEFAULT_EXPIRE_AFTER_WRITE_MS,

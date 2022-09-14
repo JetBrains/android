@@ -75,9 +75,9 @@ class AgpVersionsMismatch(agpVersions: List<Pair<String, String>>) : AndroidSync
              " $MESSAGE_CORE.\n$MESSAGE_END ${agpVersions.map { it.second }.distinct()}.\n"
     }
 
-    const val MESSAGE_START = "Using multiple versions of the Android Gradle Plugin"
-    const val MESSAGE_CORE = "across Gradle builds is not allowed"
-    const val MESSAGE_END = "Affected builds:"
+    private const val MESSAGE_START = "Using multiple versions of the Android Gradle Plugin"
+    private const val MESSAGE_CORE = "across Gradle builds is not allowed"
+    private const val MESSAGE_END = "Affected builds:"
     val INCOMPATIBLE_AGP_VERSIONS = Pattern.compile("$MESSAGE_START (.*) $MESSAGE_CORE\\.\n$MESSAGE_END (.*)\\.\n")
   }
 }

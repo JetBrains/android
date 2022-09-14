@@ -51,7 +51,7 @@ class RedundantPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringPro
     return usages.toTypedArray()
   }
 
-  fun minimumBuildToolsVersion(agpVersion: GradleVersion): GradleVersion = when {
+  private fun minimumBuildToolsVersion(agpVersion: GradleVersion): GradleVersion = when {
     // When upgrading to versions earlier than 7.0.0-alpha01, don't remove buildToolsVersion.  (Make that happen by returning a
     // version that will be earlier than the user's specified buildToolsVersion.
     // TODO(xof): extend this table both to the future and the past, or replace it with a more automated mechanism.

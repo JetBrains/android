@@ -57,7 +57,7 @@ import java.nio.file.Paths
 import javax.swing.JList
 import javax.swing.JPanel
 
-class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradleProjectSettings) : JavaGradleProjectSettingsControlBuilder(myInitialSettings) {
+class AndroidGradleProjectSettingsControlBuilder(private val myInitialSettings: GradleProjectSettings) : JavaGradleProjectSettingsControlBuilder(myInitialSettings) {
   companion object {
     const val GRADLE_JDK_LABEL_TEXT = "Gradle JDK:"
     const val EMBEDDED_JDK_NAME = "Embedded JDK"

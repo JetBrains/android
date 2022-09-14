@@ -39,7 +39,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.objectweb.asm.ClassReader
 
-class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCache: SourceInlineCandidateCache? = null) {
+class AndroidLiveEditCodeGenerator(val project: Project, private val inlineCandidateCache: SourceInlineCandidateCache? = null) {
   data class CodeGeneratorInput(val file: PsiFile, var element: KtElement, var parentGroups: List<KtFunction>? = null)
 
   enum class FunctionType {

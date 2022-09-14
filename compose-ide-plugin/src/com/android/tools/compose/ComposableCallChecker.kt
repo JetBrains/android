@@ -78,7 +78,7 @@ open class ComposableCallChecker : CallChecker, AdditionalTypeChecker,
     container.useInstance(this)
   }
 
-  fun checkInlineLambdaCall(
+  private fun checkInlineLambdaCall(
     resolvedCall: ResolvedCall<*>,
     reportOn: PsiElement,
     context: CallCheckerContext

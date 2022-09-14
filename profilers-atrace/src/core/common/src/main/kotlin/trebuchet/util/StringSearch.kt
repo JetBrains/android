@@ -24,9 +24,9 @@ import trebuchet.io.StreamingReader
  * Requires that the bytearray to look for is <= 127 in length due to the use of
  * signed bytes for the jump table.
  */
-class StringSearch(val lookFor: String) {
-    val skipLut = ByteArray(256) { lookFor.length.toByte() }
-    val suffixSkip = ByteArray(lookFor.length)
+class StringSearch(private val lookFor: String) {
+    private val skipLut = ByteArray(256) { lookFor.length.toByte() }
+    private val suffixSkip = ByteArray(lookFor.length)
 
     private companion object {
         fun isPrefix(str: CharSequence, pos: Int): Boolean {

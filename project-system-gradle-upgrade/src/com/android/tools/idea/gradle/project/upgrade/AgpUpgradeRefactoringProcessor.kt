@@ -127,7 +127,7 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
   val project: Project
   val projectBuildModel: ProjectBuildModel
 
-  val otherAffectedFiles = mutableSetOf<PsiFile>()
+  private val otherAffectedFiles = mutableSetOf<PsiFile>()
   val psiSpoilingUsageInfos = mutableListOf<UsageInfo>()
 
   var foundUsages: Boolean = false
@@ -289,7 +289,7 @@ class AgpUpgradeRefactoringProcessor(
 
   val targets = mutableListOf<PsiElement>()
   var usages: Array<UsageInfo> = listOf<UsageInfo>().toTypedArray()
-  var executedUsages: Array<out UsageInfo> = listOf<UsageInfo>().toTypedArray()
+  private var executedUsages: Array<out UsageInfo> = listOf<UsageInfo>().toTypedArray()
 
   final fun blockProcessorExecution() =
     componentRefactoringProcessors.any { it.isEnabled && it.isBlocked }
@@ -599,7 +599,7 @@ class AgpUpgradeRefactoringProcessor(
     })
   }
 
-  var myCommandName: String = AndroidBundle.message("project.upgrade.agpUpgradeRefactoringProcessor.commandName", current, new)
+  private var myCommandName: String = AndroidBundle.message("project.upgrade.agpUpgradeRefactoringProcessor.commandName", current, new)
 
   override fun getCommandName() = myCommandName
 
@@ -754,7 +754,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   val current: GradleVersion
   val new: GradleVersion
   val uuid: String
-  val hasParentProcessor: Boolean
+  private val hasParentProcessor: Boolean
   private var _isEnabled: Boolean? = null
   var isEnabled: Boolean
     set(value) {
@@ -961,8 +961,8 @@ data class MovePropertiesInfo(
 
   inner class MovePropertyUsageInfo(
     element: WrappedPsiElement,
-    val sourcePropertyModel: ResolvedPropertyModel,
-    val destinationPropertyModel: ResolvedPropertyModel,
+    private val sourcePropertyModel: ResolvedPropertyModel,
+    private val destinationPropertyModel: ResolvedPropertyModel,
   ) : GradleBuildModelUsageInfo(element) {
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
       val valueModel = sourcePropertyModel.unresolvedModel

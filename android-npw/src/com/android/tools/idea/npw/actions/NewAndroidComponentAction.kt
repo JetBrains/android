@@ -71,7 +71,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     minSdkApi: Int
   ): this(Category.values().find { it.name == category }!!, templateName, minSdkApi)
 
-  var shouldOpenFiles = true
+  private var shouldOpenFiles = true
 
   private val isActivityTemplate: Boolean
     get() = NEW_WIZARD_CATEGORIES.contains(category)

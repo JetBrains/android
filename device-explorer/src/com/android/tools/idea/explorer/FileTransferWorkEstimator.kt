@@ -83,7 +83,7 @@ class FileTransferWorkEstimator {
     return workEstimate
   }
 
-  suspend fun estimateDownloadWorkWorker(
+  private suspend fun estimateDownloadWorkWorker(
     entry: DeviceFileEntry,
     isLinkToDirectory: Boolean,
     estimate: FileTransferWorkEstimate,

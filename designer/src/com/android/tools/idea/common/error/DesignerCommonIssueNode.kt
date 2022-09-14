@@ -111,7 +111,7 @@ abstract class DesignerCommonIssueNode(project: Project?, parentDescriptor: Node
 /**
  * The root of common issue panel. This is an invisible root node for simulating the multi-root tree.
  */
-class DesignerCommonIssueRoot(project: Project?, var issueProvider: DesignerCommonIssueProvider<out Any?>)
+class DesignerCommonIssueRoot(project: Project?, private var issueProvider: DesignerCommonIssueProvider<out Any?>)
   : DesignerCommonIssueNode(project, null) {
 
   private var _comparator: Comparator<DesignerCommonIssueNode> = compareBy { 0 }

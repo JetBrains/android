@@ -88,8 +88,8 @@ class GradleAndroidModel constructor(
   val variantNames: Collection<String> get() = androidProject.variantNames ?: myCachedVariantsByName.keys
   val variants: List<IdeVariant> get() = myCachedResolvedVariantsByName.values.toList()
 
-  fun findBuildType(name: String): IdeBuildTypeContainer? = myBuildTypesByName[name]
-  fun findProductFlavor(name: String): IdeProductFlavorContainer? = myProductFlavorsByName[name]
+  private fun findBuildType(name: String): IdeBuildTypeContainer? = myBuildTypesByName[name]
+  private fun findProductFlavor(name: String): IdeProductFlavorContainer? = myProductFlavorsByName[name]
   fun findVariantByName(variantName: String): IdeVariant? = myCachedResolvedVariantsByName[variantName]
 
   /**
@@ -121,7 +121,7 @@ class GradleAndroidModel constructor(
   val allAndroidTestSourceProviders: List<IdeSourceProvider> get() = data.allAndroidTestSourceProviders
   val allTestFixturesSourceProviders: List<IdeSourceProvider> get() = data.allTestFixturesSourceProviders
 
-  fun getJavaLanguageLevel(): LanguageLevel? = data.getJavaLanguageLevel()
+  private fun getJavaLanguageLevel(): LanguageLevel? = data.getJavaLanguageLevel()
 
   override fun getAgpVersion(): GradleVersion = agpVersion
 

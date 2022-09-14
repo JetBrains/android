@@ -17,14 +17,14 @@ package com.android.tools.idea.bleak
 
 import java.util.IdentityHashMap
 
-class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
-  val leaktrace: Leaktrace = leakRoot.getLeaktrace()
-  val childrenObjects = leakRoot.childObjects.uniqueByIdentity()
-  val prevChildrenObjects = prevLeakRoot.childObjects.uniqueByIdentity()
-  val addedChildrenObjects = childrenObjects.filter { c -> prevChildrenObjects.all { it !== c } }
-  val addedChildren = leakRoot.children.filter { c -> prevLeakRoot.children.all { it.obj !== c.obj }}
-  val retainedByNewChildren = g.dominatedNodes(addedChildren.toSet())
-  val retainedByAllChildren = g.dominatedNodes(leakRoot.children.toSet())
+class LeakInfo(private val g: HeapGraph, private val leakRoot: Node, private val prevLeakRoot: Node) {
+  private val leaktrace: Leaktrace = leakRoot.getLeaktrace()
+  private val childrenObjects = leakRoot.childObjects.uniqueByIdentity()
+  private val prevChildrenObjects = prevLeakRoot.childObjects.uniqueByIdentity()
+  private val addedChildrenObjects = childrenObjects.filter { c -> prevChildrenObjects.all { it !== c } }
+  private val addedChildren = leakRoot.children.filter { c -> prevLeakRoot.children.all { it.obj !== c.obj }}
+  private val retainedByNewChildren = g.dominatedNodes(addedChildren.toSet())
+  private val retainedByAllChildren = g.dominatedNodes(leakRoot.children.toSet())
 
   override fun toString() = buildString {
     appendln(leaktrace)

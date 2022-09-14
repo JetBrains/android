@@ -147,7 +147,7 @@ class TomlVersionCatalogCompletionContributor  : CompletionContributor() {
     extend(CompletionType.BASIC, TOML_TABLE_SYNTAX_PATTERN, createTableSuggestionCompletionProvider(TABLES))
   }
 
-  fun createTableSuggestionCompletionProvider(list:List<String>): CompletionProvider<CompletionParameters> {
+  private fun createTableSuggestionCompletionProvider(list:List<String>): CompletionProvider<CompletionParameters> {
     return object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val originalFile = parameters.originalFile as? TomlFile ?: return
@@ -170,7 +170,7 @@ class TomlVersionCatalogCompletionContributor  : CompletionContributor() {
     return result
   }
 
-  fun createKeySuggestionCompletionProvider(list:List<String>): CompletionProvider<CompletionParameters> {
+  private fun createKeySuggestionCompletionProvider(list:List<String>): CompletionProvider<CompletionParameters> {
     return object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         var parent: PsiElement? = parameters.position
@@ -202,7 +202,7 @@ class EnableAutoPopupInTomlVersionCatalogCompletion : CompletionConfidence() {
   }
 }
 
-class SearchForKeysVisitor(val start: TomlInlineTable, val checkDepth: Int) {
+class SearchForKeysVisitor(val start: TomlInlineTable, private val checkDepth: Int) {
   val set = mutableSetOf<String>()
   fun search(): Set<String> {
     set.clear()

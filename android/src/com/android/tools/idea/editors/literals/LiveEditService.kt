@@ -59,7 +59,7 @@ data class EditStatus(val editState: EditState, val message: String)
  * Allows any component to listen to all method body edits of a project.
  */
 @Service
-class LiveEditService private constructor(project: Project, var listenerExecutor: Executor) : Disposable {
+class LiveEditService private constructor(project: Project, private var listenerExecutor: Executor) : Disposable {
 
   val inlineCandidateCache = SourceInlineCandidateCache()
 

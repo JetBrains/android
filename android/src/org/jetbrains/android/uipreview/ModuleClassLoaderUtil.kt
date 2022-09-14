@@ -171,7 +171,7 @@ internal class ModuleClassLoaderImpl(module: Module,
   /**
    * Class loader for classes and resources contained in [externalLibraries].
    */
-  val externalLibrariesClassLoader = createUrlClassLoader(externalLibraries)
+  private val externalLibrariesClassLoader = createUrlClassLoader(externalLibraries)
 
   /**
    * List of the FQCN of the classes loaded from the project.
@@ -225,11 +225,11 @@ internal class ModuleClassLoaderImpl(module: Module,
     }
   }
 
-  fun createNonProjectLoader(nonProjectTransforms: ClassTransform,
-                             binaryCache: ClassBinaryCache,
-                             externalLibraries: List<Path>,
-                             onClassLoaded: (String) -> Unit,
-                             onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
+  private fun createNonProjectLoader(nonProjectTransforms: ClassTransform,
+                                     binaryCache: ClassBinaryCache,
+                                     externalLibraries: List<Path>,
+                                     onClassLoaded: (String) -> Unit,
+                                     onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
     val externalLibrariesClassLoader = createUrlClassLoader(externalLibraries)
     // Non project classes loading pipeline
     val nonProjectTransformationId = nonProjectTransforms.id

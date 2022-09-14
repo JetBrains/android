@@ -38,7 +38,7 @@ internal open class PsiCallParameterPropertyItem(
   protected val model: PsiCallPropertyModel,
   private val resolvedCall: ResolvedCall<*>,
   private val descriptor: ValueParameterDescriptor,
-  protected var argumentExpression: KtExpression?,
+  private var argumentExpression: KtExpression?,
   override val defaultValue: String?,
   validation: EditingValidation = { EDITOR_NO_ERROR }
 ) : PsiPropertyItem {

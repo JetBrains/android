@@ -57,7 +57,7 @@ open class BaseCpuCapture @JvmOverloads constructor(/**
   private val threadIdToNode: Map<Int, CaptureNode>
   private val mainThreadId: Int
   private var clockType: ClockType
-  var tagsCollapsed = setOf<String>()
+  private var tagsCollapsed = setOf<String>()
     private set
   private val unabbreviatedTrees: Map<CaptureNode, List<CaptureNode>>
 

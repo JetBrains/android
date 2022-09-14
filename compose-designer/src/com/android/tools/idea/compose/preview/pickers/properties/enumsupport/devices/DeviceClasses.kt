@@ -134,7 +134,7 @@ internal class DeviceEnumValueBuilder {
     deviceEnumValues[type]?.add(enumValue)
   }
 
-  fun addWearDevice(
+  private fun addWearDevice(
     isRound: Boolean,
     chinSizePx: Int,
     displayName: String
@@ -153,7 +153,7 @@ internal class DeviceEnumValueBuilder {
     deviceEnumValues[DeviceClass.Wear]?.add(enumValue)
   }
 
-  fun addTvDevice(
+  private fun addTvDevice(
     widthPx: Int,
     heightPx: Int,
     diagonalIn: Double
@@ -166,7 +166,7 @@ internal class DeviceEnumValueBuilder {
       orientation = Orientation.landscape
     )
 
-  fun addAutoDevice(
+  private fun addAutoDevice(
     widthPx: Int,
     heightPx: Int,
     diagonalIn: Double

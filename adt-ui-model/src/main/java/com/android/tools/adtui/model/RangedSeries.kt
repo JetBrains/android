@@ -33,7 +33,7 @@ open class RangedSeries<E>
                           /**
                            * The range of the data
                            */
-                          protected val intersectRange: Range = Range(-Double.MAX_VALUE, Double.MAX_VALUE)) {
+                          private val intersectRange: Range = Range(-Double.MAX_VALUE, Double.MAX_VALUE)) {
 
   private var lastQueriedRange = Range()
   private var lastQueriedSeries = emptyList<SeriesData<E>>()

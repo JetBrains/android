@@ -25,7 +25,7 @@ import java.util.IdentityHashMap
  * the objects they contain as their children, despite not necessarily having direct references
  * to them).
  */
-class ElidingExpander(val baseTypeName: String, val childFinder: Any.() -> List<Any>): Expander() {
+class ElidingExpander(private val baseTypeName: String, val childFinder: Any.() -> List<Any>): Expander() {
   override fun canExpand(obj: Any) = obj.javaClass.name == baseTypeName
 
   override fun expand(n: Node) {

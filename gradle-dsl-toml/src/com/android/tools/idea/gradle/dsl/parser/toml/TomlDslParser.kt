@@ -51,7 +51,7 @@ import java.math.BigDecimal
 class TomlDslParser(
   val psiFile: TomlFile,
   private val context: BuildModelContext,
-  val dslFile: GradleDslFile
+  private val dslFile: GradleDslFile
 ) : GradleDslParser, TomlDslNameConverter {
   override fun getContext(): BuildModelContext = context
 

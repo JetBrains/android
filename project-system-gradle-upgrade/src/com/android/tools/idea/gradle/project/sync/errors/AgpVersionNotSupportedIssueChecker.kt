@@ -119,7 +119,7 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
  * Hyperlink that triggers the showing of the [ForcedPluginPreviewVersionUpgradeDialog] letting the user
  * upgrade their Android Gradle plugin and Gradle versions.
  */
-class AgpUpgradeQuickFix(val currentAgpVersion: GradleVersion) : DescribedBuildIssueQuickFix {
+class AgpUpgradeQuickFix(private val currentAgpVersion: GradleVersion) : DescribedBuildIssueQuickFix {
   override val id: String = "android.gradle.plugin.forced.update"
   override val description: String = "Upgrade to the latest version"
 

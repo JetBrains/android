@@ -172,7 +172,7 @@ class VerticalOnlyLayoutManager(@SwingCoordinate horizontalPadding: Int,
                                 @SwingCoordinate verticalPadding: Int,
                                 @SwingCoordinate horizontalViewDelta: Int,
                                 @SwingCoordinate verticalViewDelta: Int,
-                                val startBorderAlignment: Alignment) : SingleDirectionLayoutManager(
+                                private val startBorderAlignment: Alignment) : SingleDirectionLayoutManager(
   horizontalPadding, verticalPadding, horizontalViewDelta, verticalViewDelta, startBorderAlignment) {
   override fun isVertical(content: Collection<PositionableContent>,
                           @SwingCoordinate availableWidth: Int,

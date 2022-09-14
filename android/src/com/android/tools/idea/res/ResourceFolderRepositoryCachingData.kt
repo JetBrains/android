@@ -30,6 +30,6 @@ import java.util.concurrent.Executor
  *     should not be created if it doesn't exist or is out of date.
  */
 class ResourceFolderRepositoryCachingData(val cacheFile: Path,
-                                          val cacheIsInvalidated: Boolean,
+                                          private val cacheIsInvalidated: Boolean,
                                           val codeVersion: String,
                                           val cacheCreationExecutor: Executor? = null)

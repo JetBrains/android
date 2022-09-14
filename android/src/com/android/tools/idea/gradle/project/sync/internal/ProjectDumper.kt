@@ -166,7 +166,7 @@ class ProjectDumper(
   else this
 
   fun String.replaceCurrentSdkVersion(): String = replace(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(), "<SDK_VERSION>")
-  fun String.replaceCurrentBuildToolsVersion(): String = replace(SdkConstants.CURRENT_BUILD_TOOLS_VERSION.toString(), "<BUILD_TOOLS_VERSION>")
+  private fun String.replaceCurrentBuildToolsVersion(): String = replace(SdkConstants.CURRENT_BUILD_TOOLS_VERSION.toString(), "<BUILD_TOOLS_VERSION>")
 
   fun String.replaceKnownPatterns(): String =
     this
@@ -271,7 +271,7 @@ class ProjectDumper(
     this.currentRootDirectoryName = savedRootName
   }
 
-  fun String.removeAndroidVersionsFromPath(): String =
+  private fun String.removeAndroidVersionsFromPath(): String =
     androidPathPattern.find(this)?.groups?.get(1)?.let {
       this.replace(it.value, "<VERSION>")
     } ?: this

@@ -60,7 +60,7 @@ fun combine(r: Double, g: Double, b: Double): Int {
 
 class LMS(val l: Double, val m: Double, val s: Double): Double3D(l, m, s)
 class LAB(val l: Double, val a: Double, val b: Double): Double3D(l, a, b)
-class XYZ(val x: Double, val y: Double, val z: Double): Double3D(x, y, z)
+class XYZ(val x: Double, val y: Double, private val z: Double): Double3D(x, y, z)
 class RGB(val r: Double, val g: Double, val b: Double): Double3D(r, g, b)
 
 open class Double3D(
@@ -98,9 +98,9 @@ open class Double3D(
  * [ba, bb, bc]
  * [ca, cb, cc]
  */
-class Mat3D(val aa: Double, val ab: Double, val ac: Double,
-            val ba: Double, val bb: Double, val bc: Double,
-            val ca: Double, val cb: Double, val cc: Double) {
+class Mat3D(private val aa: Double, private val ab: Double, private val ac: Double,
+            private val ba: Double, private val bb: Double, private val bc: Double,
+            private val ca: Double, private val cb: Double, private val cc: Double) {
 
   /**
    * in order:
@@ -120,12 +120,12 @@ class Mat3D(val aa: Double, val ab: Double, val ac: Double,
 
   // Not very optimal so don't use it too often.
   // More for the convenience.
-  val row1: Double3D get() = Double3D(aa, ab, ac)
-  val row2: Double3D get() = Double3D(ba, bb, bc)
-  val row3: Double3D get() = Double3D(ca, cb, cc)
-  val col1: Double3D get() = Double3D(aa, ba, ca)
-  val col2: Double3D get() = Double3D(ab, bb, cb)
-  val col3: Double3D get() = Double3D(ac, bc, cc)
+  private val row1: Double3D get() = Double3D(aa, ab, ac)
+  private val row2: Double3D get() = Double3D(ba, bb, bc)
+  private val row3: Double3D get() = Double3D(ca, cb, cc)
+  private val col1: Double3D get() = Double3D(aa, ba, ca)
+  private val col2: Double3D get() = Double3D(ab, bb, cb)
+  private val col3: Double3D get() = Double3D(ac, bc, cc)
 
   operator fun times(input: RGB): RGB {
     return RGB(

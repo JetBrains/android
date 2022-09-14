@@ -29,7 +29,7 @@ import kotlin.math.min
 class DeviceArtScreenshotOptions(
   override val serialNumber: String,
   override val apiLevel: Int,
-  val deviceModel: String?
+  private val deviceModel: String?
 ) : ScreenshotAction.ScreenshotOptions {
 
   override val screenshotViewerOptions: EnumSet<ScreenshotViewer.Option> = EnumSet.of(ALLOW_IMAGE_ROTATION)

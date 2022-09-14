@@ -389,7 +389,7 @@ class PluginGroupingWarningNodeDescriptor(
 /** Descriptor for the task warning page node. */
 class TaskUnderPluginDetailsNodeDescriptor(
   val taskData: TaskUiData,
-  val filteredWarnings: List<TaskIssueUiData>
+  private val filteredWarnings: List<TaskIssueUiData>
 ) : WarningsTreePresentableNodeDescriptor() {
   override val pageId: WarningsPageId = WarningsPageId.task(taskData)
   override val analyticsPageType = PageType.PLUGIN_TASK_WARNINGS

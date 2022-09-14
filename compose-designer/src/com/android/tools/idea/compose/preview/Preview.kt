@@ -989,7 +989,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
   }
 
-  fun requestRefresh(quickRefresh: Boolean = false) = launch(workerThread) {
+  private fun requestRefresh(quickRefresh: Boolean = false) = launch(workerThread) {
     refreshFlow.emit(RefreshRequest(quickRefresh))
   }
 

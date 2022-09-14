@@ -97,7 +97,7 @@ internal data class MotionEventMessage(
       return MotionEventMessage(pointers, action, displayId)
     }
 
-    fun deserializePointer(stream: Base128InputStream): Pointer {
+    private fun deserializePointer(stream: Base128InputStream): Pointer {
       val x = stream.readInt()
       val y = stream.readInt()
       val pointerId = stream.readInt()
