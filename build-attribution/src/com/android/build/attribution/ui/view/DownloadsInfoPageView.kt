@@ -33,7 +33,7 @@ class DownloadsInfoPageView(
   val actionHandlers: ViewActionHandlers
 ) : BuildAnalyzerDataPageView {
 
-  private val resultsTable = TableView(pageModel.repositoriesTableModel).apply {
+  val resultsTable = TableView(pageModel.repositoriesTableModel).apply {
     setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION)
     setShowGrid(false)
     tableHeader.reorderingAllowed = false
@@ -44,7 +44,7 @@ class DownloadsInfoPageView(
     }
   }
 
-  private val requestsList = TableView(pageModel.requestsListModel).apply {
+  val requestsList = TableView(pageModel.requestsListModel).apply {
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     setShowGrid(false)
     tableHeader.reorderingAllowed = false
