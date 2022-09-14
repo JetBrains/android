@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.actions;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.android.AndroidXConstants;
@@ -71,13 +71,13 @@ public class ComponentHelpActionTest extends AndroidTestCase {
   public void testNullTagName() {
     myTagName = null;
     myAction.actionPerformed(myEvent);
-    verifyZeroInteractions(myBrowserLauncher);
+    verifyNoMoreInteractions(myBrowserLauncher);
   }
 
   public void testUnknownTagName() {
     myTagName = "UnknownComponentTagName";
     myAction.actionPerformed(myEvent);
-    verifyZeroInteractions(myBrowserLauncher);
+    verifyNoMoreInteractions(myBrowserLauncher);
   }
 
   public void testButton() {

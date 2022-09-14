@@ -102,6 +102,6 @@ class UpgradeGradleVersionsQuickFixTest {
     val mockSyncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker::class.java)
     val result = quickFix.runQuickFix(project, TestDataProvider(project) as DataContext).get()
     assertThat(result).isEqualTo(success)
-    Mockito.verifyZeroInteractions(mockSyncInvoker)
+    Mockito.verifyNoMoreInteractions(mockSyncInvoker)
   }
 }

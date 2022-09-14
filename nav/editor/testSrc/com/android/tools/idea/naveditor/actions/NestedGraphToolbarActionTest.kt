@@ -25,7 +25,7 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyZeroInteractions
+import org.mockito.Mockito.verifyNoMoreInteractions
 
 class NestedGraphToolbarActionTest : NavTestCase() {
 
@@ -67,7 +67,7 @@ class NestedGraphToolbarActionTest : NavTestCase() {
       assertSameElements(navigation1.children.map { it.id }, "fragment4")
       assertSameElements(root.children.map { it.id }, "fragment1", "fragment2", "fragment3", "navigation1")
 
-      verifyZeroInteractions(tracker)
+      verifyNoMoreInteractions(tracker)
 
       val fragment1 = model.find("fragment1")!!
       val fragment2 = model.find("fragment2")!!

@@ -66,6 +66,7 @@ import javax.tools.ToolProvider;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.ArgumentMatchers;
 
 public class RenderTaskTest extends AndroidTestCase {
   // Using native rendering should have less variation between machines than Java rendering
@@ -126,7 +127,7 @@ public class RenderTaskTest extends AndroidTestCase {
         throw new RuntimeException(ex);
       }
 
-      verify(mockCrashReporter, times(1)).submit(isNotNull(CrashReport.class));
+      verify(mockCrashReporter, times(1)).submit(ArgumentMatchers.<CrashReport>isNotNull());
     });
   }
 

@@ -22,7 +22,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -316,8 +316,8 @@ public class WorkBenchTest extends WorkBenchTestCase {
   public void testModelLocalUpdate() {
     myModel.updateLocally();
 
-    verifyZeroInteractions(myWorkBenchManager);
-    verifyZeroInteractions(myFloatingToolWindowManager);
+    verifyNoMoreInteractions(myWorkBenchManager);
+    verifyNoMoreInteractions(myFloatingToolWindowManager);
   }
 
   public void testModelToolOrderChange() {

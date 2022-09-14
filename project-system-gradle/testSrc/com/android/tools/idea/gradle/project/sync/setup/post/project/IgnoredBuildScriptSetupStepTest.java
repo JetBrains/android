@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -49,7 +49,7 @@ public class IgnoredBuildScriptSetupStepTest extends PlatformTestCase {
   public void testCheckIsNotIgnored() throws IOException {
     when(myFileTypeManager.isFileIgnored((String)any())).thenReturn(false);
     IgnoredBuildScriptSetupStep.checkIsNotIgnored("prefix ", createTempFile("buildScript", null), myFileTypeManager, myMessages);
-    verifyZeroInteractions(myMessages);
+    verifyNoMoreInteractions(myMessages);
   }
 
   public void testInvokeOnFailedSync() {

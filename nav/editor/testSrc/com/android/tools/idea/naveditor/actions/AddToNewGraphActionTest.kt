@@ -28,7 +28,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.verifyZeroInteractions
+import org.mockito.Mockito.verifyNoMoreInteractions
 
 class AddToNewGraphActionTest : NavTestCase() {
   /**
@@ -65,7 +65,7 @@ class AddToNewGraphActionTest : NavTestCase() {
       val action = AddToNewGraphAction(surface)
       action.actionPerformed(mock(AnActionEvent::class.java))
 
-      verifyZeroInteractions(tracker)
+      verifyNoMoreInteractions(tracker)
       assertSameElements(navigation1.children.map { it.id }, "fragment4")
       assertSameElements(root.children.map { it.id }, "fragment1", "fragment2", "fragment3", "navigation1")
 

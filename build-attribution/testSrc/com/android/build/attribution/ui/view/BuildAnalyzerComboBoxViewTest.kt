@@ -73,7 +73,7 @@ class BuildAnalyzerComboBoxViewTest {
     )
     assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
     assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.OVERVIEW)
-    Mockito.verifyZeroInteractions(mockHandlers)
+    Mockito.verifyNoMoreInteractions(mockHandlers)
   }
 
   @Test
@@ -94,7 +94,7 @@ class BuildAnalyzerComboBoxViewTest {
       "downloads-info-view-additional-controls" to false,
     )
     assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
-    Mockito.verifyZeroInteractions(mockHandlers)
+    Mockito.verifyNoMoreInteractions(mockHandlers)
     assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.TASKS)
   }
 
@@ -116,7 +116,7 @@ class BuildAnalyzerComboBoxViewTest {
       "downloads-info-view-additional-controls" to false,
     )
     assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
-    Mockito.verifyZeroInteractions(mockHandlers)
+    Mockito.verifyNoMoreInteractions(mockHandlers)
     assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.WARNINGS)
   }
 
@@ -138,7 +138,7 @@ class BuildAnalyzerComboBoxViewTest {
       "downloads-info-view-additional-controls" to true,
     )
     assertThat(grabElementsVisibilityStatus(expectedElementsVisibility.keys)).isEqualTo(expectedElementsVisibility)
-    Mockito.verifyZeroInteractions(mockHandlers)
+    Mockito.verifyNoMoreInteractions(mockHandlers)
     assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.DOWNLOADS)
   }
 
@@ -160,7 +160,7 @@ class BuildAnalyzerComboBoxViewTest {
     assertThat(view.dataSetCombo.selectedItem).isEqualTo(BuildAnalyzerViewModel.DataSet.OVERVIEW)
 
     view.dataSetCombo.selectedItem = BuildAnalyzerViewModel.DataSet.OVERVIEW
-    Mockito.verifyZeroInteractions(mockHandlers)
+    Mockito.verifyNoMoreInteractions(mockHandlers)
   }
 
   @Test

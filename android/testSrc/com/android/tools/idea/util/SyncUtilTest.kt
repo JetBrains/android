@@ -82,13 +82,13 @@ class SyncUtilTest {
   @Test
   fun listenOneSync() {
     project.listenUntilNextSync(listener = listener)
-    Mockito.verifyZeroInteractions(listener)
+    Mockito.verifyNoMoreInteractions(listener)
 
     emulateSync(SyncResult.CANCELLED)
     Mockito.verify(listener).syncEnded(SyncResult.CANCELLED)
 
     emulateSync(SyncResult.FAILURE)
-    Mockito.verifyZeroInteractions(listener)
+    Mockito.verifyNoMoreInteractions(listener)
   }
 
   private fun startDumbMode() {

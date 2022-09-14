@@ -99,7 +99,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyZeroInteractions
+import org.mockito.Mockito.verifyNoMoreInteractions
 import java.util.concurrent.Executor
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -1698,7 +1698,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // Assert
-    verifyZeroInteractions(offlineModeManager)
+    verifyNoMoreInteractions(offlineModeManager)
   }
 
   private fun runWithState(offlineModeEnabled: Boolean, block: () -> Unit) {

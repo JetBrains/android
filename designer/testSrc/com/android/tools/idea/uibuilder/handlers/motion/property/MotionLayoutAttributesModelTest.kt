@@ -48,7 +48,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.reset
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyZeroInteractions
+import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.MockitoAnnotations
 
 private const val SCENE_FILE = "scene.xml"
@@ -83,7 +83,7 @@ class MotionLayoutAttributesModelTest {
 
     model.addListener(listener)
     model.surface = surface
-    verifyZeroInteractions(listener)
+    verifyNoMoreInteractions(listener)
 
     // Verify that we get a generated event:
     motionRule.selectConstraint("start", "widget")
@@ -112,7 +112,7 @@ class MotionLayoutAttributesModelTest {
 
     model.addListener(listener)
     model.surface = surface
-    verifyZeroInteractions(listener)
+    verifyNoMoreInteractions(listener)
 
     // Verify that we get a generated event:
     motionRule.selectConstraint("start", "buttonEmptyConstraint")

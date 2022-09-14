@@ -20,7 +20,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyZeroInteractions
+import org.mockito.Mockito.verifyNoMoreInteractions
 
 class GenericInspectorLineModelTest {
 
@@ -54,11 +54,11 @@ class GenericInspectorLineModelTest {
 
     model.visible = false
     assertThat(model.visible).isFalse()
-    verifyZeroInteractions(listener)
+    verifyNoMoreInteractions(listener)
 
     model.visible = true
     assertThat(model.visible).isFalse()
-    verifyZeroInteractions(listener)
+    verifyNoMoreInteractions(listener)
   }
 
   @Test

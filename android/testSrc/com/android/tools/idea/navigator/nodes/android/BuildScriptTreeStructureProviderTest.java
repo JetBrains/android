@@ -21,7 +21,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -45,7 +45,7 @@ public class BuildScriptTreeStructureProviderTest {
     List<AbstractTreeNode<?>> children = createChildren();
 
     Collection<AbstractTreeNode<?>> result = provider.modify(mockParent, children, null);
-    verifyZeroInteractions(mockProvider);
+    verifyNoMoreInteractions(mockProvider);
     assertSameElements(result, children);
   }
 

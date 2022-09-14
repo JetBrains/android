@@ -73,7 +73,7 @@ class TasksPageViewTest {
     assertThat(view.treeHeaderLabel.text).isEqualTo(model.treeHeaderText)
 
     assertThat(view.tree.selectionPath).isNull()
-    Mockito.verifyZeroInteractions(mockHandlers)
+    Mockito.verifyNoMoreInteractions(mockHandlers)
   }
 
   @Test
@@ -89,7 +89,7 @@ class TasksPageViewTest {
     val selectedNode = view.tree.selectionPath?.lastPathComponent as TasksTreeNode
     assertThat(selectedNode).isEqualTo(model.selectedNode)
     assertThat(findVisibleDetailsPageNames(view.detailsPanel)).isEqualTo("details-${selectedNode.descriptor.pageId}")
-    Mockito.verifyZeroInteractions(mockHandlers)
+    Mockito.verifyNoMoreInteractions(mockHandlers)
   }
 
   @Test

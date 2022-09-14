@@ -25,7 +25,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.notNull;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.common.SyncNlModel;
@@ -113,7 +113,7 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
     assertThat(mySurfaceActionHandler.isCopyVisible(context)).isTrue();
     assertThat(mySurfaceActionHandler.isCopyEnabled(context)).isFalse();
     mySurfaceActionHandler.performCopy(context);
-    verifyZeroInteractions(myCopyPasteManager);
+    verifyNoMoreInteractions(myCopyPasteManager);
   }
 
   public void testCopyIsWhenNothingIsSelected() {

@@ -118,9 +118,9 @@ public class ViewTagHandlerTest extends AndroidTestCase {
       try (MockedStatic<ViewEditor> editor = Mockito.mockStatic(ViewEditor.class)) {
         handler.onCreate(null, component, InsertType.CREATE);
         int time = component.getId().equals("view1") ? 1 : 0;
-        editor.verify(times(time), () ->
+        editor.verify(() ->
           ViewEditor.displayClassInput(eq(component.getModel()), eq("Views"), eq(classes), eq(SUITABLE_LAYOUT_CLASS), isNull())
-        );
+        , times(time));
       }
     }
   }

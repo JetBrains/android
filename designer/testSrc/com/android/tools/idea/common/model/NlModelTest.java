@@ -35,7 +35,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.android.SdkConstants;
@@ -857,7 +857,7 @@ public class NlModelTest extends LayoutTestCase {
     model.deactivate(sourceB);
     model.deactivate(sourceB);
     // Only one of the two sources was deactivated so do not expect any deactivate calls to the listeners
-    verifyZeroInteractions(listener1);
+    verifyNoMoreInteractions(listener1);
 
     model.deactivate(sourceA);
     verifyNoMoreInteractions(listener1);

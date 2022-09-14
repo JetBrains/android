@@ -62,7 +62,7 @@ import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyZeroInteractions
+import org.mockito.Mockito.verifyNoMoreInteractions
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
@@ -198,8 +198,8 @@ class NavDesignSurfaceTest : NavTestCase() {
     val root = model.find("root")!!
     surface.notifyComponentActivate(root)
     assertEquals(root, surface.currentNavigation)
-    verifyZeroInteractions(modelListener)
-    verifyZeroInteractions(surfaceListener)
+    verifyNoMoreInteractions(modelListener)
+    verifyNoMoreInteractions(surfaceListener)
   }
 
   fun testDoubleClickFragment() {

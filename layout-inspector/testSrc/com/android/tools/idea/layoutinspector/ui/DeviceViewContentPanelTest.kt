@@ -85,6 +85,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.MockedStatic
 import org.mockito.Mockito.any
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.atLeastOnce
@@ -636,7 +637,9 @@ class DeviceViewContentPanelTest {
           }
         }
       }
-      browserUtil.verify(atLeastOnce()) { BrowserUtil.browse("https://developer.android.com/studio/debug/layout-inspector") }
+      browserUtil.verify(MockedStatic.Verification {
+        BrowserUtil.browse("https://developer.android.com/studio/debug/layout-inspector")
+      }, atLeastOnce())
       verify(selectProcessAction, atLeastOnce()).actionPerformed(any())
     }
 

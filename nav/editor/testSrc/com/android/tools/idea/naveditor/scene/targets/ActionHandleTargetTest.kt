@@ -33,7 +33,7 @@ import com.android.tools.idea.naveditor.model.isAction
 import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import org.mockito.Mockito
-import org.mockito.Mockito.verifyZeroInteractions
+import org.mockito.Mockito.verifyNoMoreInteractions
 import java.awt.Point
 import java.awt.event.MouseEvent
 
@@ -177,7 +177,7 @@ class ActionHandleTargetTest : NavTestCase() {
       // drag release to a point over the root and verify no action is created
       dragAndRelease(p1.x, p1.y, p1.x + 50, p1.y)
       assertNull(model.find { it.isAction })
-      verifyZeroInteractions(tracker)
+      verifyNoMoreInteractions(tracker)
     }
   }
 
@@ -200,7 +200,7 @@ class ActionHandleTargetTest : NavTestCase() {
 
       dragAndRelease(p1.x, p1.y, p2.x, p2.y)
       assertNull(model.find { it.isAction })
-      verifyZeroInteractions(tracker)
+      verifyNoMoreInteractions(tracker)
     }
   }
 
