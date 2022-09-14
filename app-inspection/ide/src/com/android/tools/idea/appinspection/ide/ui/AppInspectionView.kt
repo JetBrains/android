@@ -233,6 +233,7 @@ class AppInspectionView @VisibleForTesting constructor(
     ActivityTracker.getInstance().inc()
 
     refreshCoroutineScope()
+    inspectorTabs.forEach { tab -> tab.getUserData(TAB_KEY)?.messengers?.forEach { it.scope.cancel() } }
     if (process != null && !process.isRunning) {
       // If a process was just killed, we'll get notified about that by being sent a dead
       // process. In that case, remove all inspectors except for those that opted-in to stay up
@@ -240,7 +241,6 @@ class AppInspectionView @VisibleForTesting constructor(
       inspectorTabs.removeAll { tab ->
         (!tab.provider.supportsOffline() || !tab.isComponentSet).also { notSupportOffline ->
           if (notSupportOffline) {
-            tab.getUserData(TAB_KEY)?.messengers?.forEach { it.scope.cancel() }
             Disposer.dispose(tab)
           }
         }
@@ -251,7 +251,6 @@ class AppInspectionView @VisibleForTesting constructor(
       // informed of a new, running process. In this case, clear all tabs to make way for all new
       // tabs for the new process.
       inspectorTabs.forEach { tab ->
-        tab.getUserData(TAB_KEY)?.messengers?.forEach { it.scope.cancel() }
         Disposer.dispose(tab)
       }
       inspectorTabs.clear()

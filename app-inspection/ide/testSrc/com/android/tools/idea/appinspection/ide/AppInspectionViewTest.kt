@@ -22,6 +22,7 @@ import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
+import com.android.tools.idea.appinspection.ide.ui.AppInspectorTabShell
 import com.android.tools.idea.appinspection.ide.ui.TAB_KEY
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
@@ -60,6 +61,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.first
@@ -311,7 +313,7 @@ class AppInspectionViewTest {
         it.name == FakeTransportService.FAKE_PROCESS_NAME
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
-
+      var previousTabs = mutableListOf<AppInspectorTabShell>()
       inspectionView.tabsChangedFlow
         .take(3)
         .collectIndexed { i, _ ->
@@ -322,10 +324,15 @@ class AppInspectionViewTest {
               inspectionView.inspectorTabs.forEach { it.waitForContent() }
               transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
               timer.currentTimeNs += 1
+              previousTabs.addAll(inspectionView.inspectorTabs)
             }
             1 -> {
               // Making the process go back online should cause the tool window to refresh and dispose of the offline tab.
               assertThat(inspectionView.inspectorTabs).hasSize(1)
+              // Verify regardless of tab's offline capability, all messengers are disposed.
+              previousTabs.forEach { tab ->
+                assertThat(tab.getUserData(TAB_KEY)!!.messengers.first().scope.coroutineContext[Job]!!.isCancelled).isTrue()
+              }
               transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
               timer.currentTimeNs += 1
             }
