@@ -245,7 +245,7 @@ class TimeDistributionTreeChartCalculationModel(
       .toList()
 
     // Calculate Stack items
-    val itemsSum = firstLevelNodes.sumByDouble { it.relativeWeight }
+    val itemsSum = firstLevelNodes.sumOf { it.relativeWeight }
 
     chartItems = firstLevelNodes.map { node ->
       val color = node.itemColor
@@ -432,7 +432,7 @@ class TimeDistributionTreeChartCalculationModel(
       posY = 0
       heightPx = 0
       if (mergedItems.isNotEmpty()) {
-        val accumulatedNormalizedPercentageHeight = mergedItems.sumByDouble { it.itemNormalizedHeightPercentage }
+        val accumulatedNormalizedPercentageHeight = mergedItems.sumOf { it.itemNormalizedHeightPercentage }
         val stackBarHeightPx = (stackHeightPxPerPercent * accumulatedNormalizedPercentageHeight).toInt() - stackBarsSpacingScaledPx
         posY = curY + stackBarsSpacingScaledPx
         heightPx = max(stackBarHeightPx, minStackBarSizeScaledPx)

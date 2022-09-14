@@ -231,7 +231,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   }
 
   private fun expandedRowCount(group: PTableGroupItem): Int {
-    return group.children.sumBy { if (it is PTableGroupItem && expandedItems.contains(it)) 1 + expandedRowCount(it) else 1 }
+    return group.children.sumOf { if (it is PTableGroupItem && expandedItems.contains(it)) 1 + expandedRowCount(it) else 1 }
   }
 
   private fun recomputeParents() {

@@ -302,7 +302,7 @@ private class HostPanelLayoutManager : LayoutManager {
       component.size = component.preferredSize
     }
 
-    val totalComponentHeight = components.sumBy { it.preferredSize.height } + SPACING_TOTAL
+    val totalComponentHeight = components.sumOf { it.preferredSize.height } + SPACING_TOTAL
     var y = (insets.top + 0.45 * (height - totalComponentHeight)).toInt()
 
     for ((i, component) in components.withIndex()) {
@@ -323,7 +323,7 @@ private class HostPanelLayoutManager : LayoutManager {
 
   override fun minimumLayoutSize(parent: Container): Dimension {
     val width = ((parent.components.map { it.preferredSize.width }.maxOrNull() ?: 0) / 0.7).toInt()
-    val height = parent.components.sumBy { it.preferredSize.height } + SPACING_TOTAL
+    val height = parent.components.sumOf { it.preferredSize.height } + SPACING_TOTAL
     return Dimension(width, height)
   }
 

@@ -270,8 +270,8 @@ class TabularLayout(colSizes: Array<out SizingRule>, initialRowSizes: Array<out 
     visibleComponents.forEach { comp ->
       val cons = constraints[comp]!!
 
-      val totalWidth = (cons.col until cons.col + cons.colSpan).sumBy { colBounds[it].size }
-      val totalHeight = (cons.row until cons.row + cons.rowSpan).sumBy { rowBounds[it].size }
+      val totalWidth = (cons.col until cons.col + cons.colSpan).sumOf { colBounds[it].size }
+      val totalHeight = (cons.row until cons.row + cons.rowSpan).sumOf { rowBounds[it].size }
 
       val c = colBounds[cons.col]
       val r = rowBounds[cons.row]
@@ -315,7 +315,7 @@ class TabularLayout(colSizes: Array<out SizingRule>, initialRowSizes: Array<out 
     constructor(sparseRules: Map<Int, SizingRule>, numRules: Int, gap: Int) : this(fromSparseRules(sparseRules, numRules), gap)
 
     init {
-      val totalProportionalSize = rules.filter { it.type == SizingRule.Type.PROPORTIONAL }.sumBy { it.value }.toFloat()
+      val totalProportionalSize = rules.filter { it.type == SizingRule.Type.PROPORTIONAL }.sumOf { it.value }.toFloat()
 
       for ((i, rule) in rules.withIndex()) {
         when (rule.type) {

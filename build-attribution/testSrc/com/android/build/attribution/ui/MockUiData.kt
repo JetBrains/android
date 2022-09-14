@@ -127,8 +127,8 @@ class MockUiData(
     override val entries: List<CriticalPathPluginUiData> = tasksList
       .groupBy { it.pluginName }
       .map { createPluginData(it.key, it.value) }
-    override val warningCount: Int = entries.sumBy { it.warningCount }
-    override val infoCount: Int = entries.sumBy { it.infoCount }
+    override val warningCount: Int = entries.sumOf { it.warningCount }
+    override val infoCount: Int = entries.sumOf { it.infoCount }
   }
 
   fun createTaskCategoryData(taskCategory: TaskCategory, tasks: List<TaskUiData>) = object : CriticalPathTaskCategoryUiData {

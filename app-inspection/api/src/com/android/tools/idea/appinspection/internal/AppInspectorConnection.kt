@@ -262,7 +262,7 @@ internal class AppInspectorConnection(
       .map { commonEvent -> commonEvent.appInspectionPayload.chunk.toByteArray() }
       .toList()
 
-    return ByteArray(chunks.sumBy { chunk -> chunk.size }).apply {
+    return ByteArray(chunks.sumOf { chunk -> chunk.size }).apply {
       var bufferPos = 0
       chunks.forEach { chunk ->
         chunk.copyInto(this, bufferPos)
