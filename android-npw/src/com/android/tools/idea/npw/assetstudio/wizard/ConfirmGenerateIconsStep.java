@@ -201,6 +201,12 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     });
   }
 
+  @Nullable
+  @Override
+  protected JComponent getPreferredFocusComponent() {
+    return myPathsComboBox;
+  }
+
   @Override
   public void dispose() {
     myListeners.releaseAll();

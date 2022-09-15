@@ -23,12 +23,14 @@ import com.android.tools.idea.observable.TestInvokeStrategy;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
+import java.awt.Component;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -525,6 +527,34 @@ public class ModelWizardTest {
   }
 
   @Test
+  public void focusSetCorrectly() {
+    SampleModel modelA = new SampleModel();
+    SampleModel modelB = new SampleModel();
+    SampleModel modelC = new SampleModel();
+
+    FocusSpecifiedStep step1 = new FocusSpecifiedStep(modelA);
+    FocusSpecifiedStep step2 = new FocusSpecifiedStep(modelB);
+    FocusSpecifiedStep step3 = new FocusSpecifiedStep(modelC);
+
+    assertThat(step1.hasRequestedFocus()).isFalse();
+
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(step1, step2, step3);
+    ModelWizard wizard = wizardBuilder.build();
+
+    assertThat(step1.hasRequestedFocus()).isTrue();
+    assertThat(step2.hasRequestedFocus()).isFalse();
+    assertThat(step3.hasRequestedFocus()).isFalse();
+    runInvokerAndGoForward(wizard);
+
+    assertThat(step2.hasRequestedFocus()).isTrue();
+    assertThat(step3.hasRequestedFocus()).isFalse();
+    runInvokerAndGoForward(wizard);
+    assertThat(step3.hasRequestedFocus()).isTrue();
+
+    Disposer.dispose(wizard);
+  }
+
+  @Test
   public void wizardStaysClosedEvenIfModelThrowsException() {
     SampleModel modelA = new SampleModel();
     SampleExceptionModel modelB = new SampleExceptionModel();
@@ -645,6 +675,44 @@ public class ModelWizardTest {
   private static class SampleStep extends NoUiStep<SampleModel> {
     SampleStep(@NotNull ModelWizardTest.SampleModel model) {
       super(model);
+    }
+  }
+
+  /**
+   * A wizard step that specifies a component to focus.
+   */
+  private static class FocusSpecifiedStep extends NoUiStep<SampleModel> {
+    /**
+     * A component that keeps track of whether {@link Component#requestFocus()} was called. We do
+     * this instead of just checking {@link Component#hasFocus()} because that property won't
+     * necessarily be true despite calling {@code requestFocus} (perhaps because there's no real UI
+     * for these tests?).
+     */
+    private static class FakeFocusComponent extends JComponent {
+      private boolean requestedFocus = false;
+      FakeFocusComponent() { }
+
+      @Override
+      public void requestFocus() {
+        super.requestFocus();
+
+        requestedFocus = true;
+      }
+    }
+    public FakeFocusComponent c = new FakeFocusComponent();
+
+    FocusSpecifiedStep(@NotNull ModelWizardTest.SampleModel model) {
+      super(model);
+    }
+
+    public boolean hasRequestedFocus() {
+      return c.requestedFocus;
+    }
+
+    @Nullable
+    @Override
+    protected JComponent getPreferredFocusComponent() {
+      return c;
     }
   }
 

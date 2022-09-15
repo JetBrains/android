@@ -454,6 +454,12 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     });
   }
 
+  @Nullable
+  @Override
+  protected JComponent getPreferredFocusComponent() {
+    return myPathsComboBox;
+  }
+
   @Override
   public void dispose() {
     if (myEditorFactory != null && myFilePreviewEditor != null) {
