@@ -11,12 +11,12 @@ String lib2 = Lib2Class.getClass().getName()
 
 android {
     namespace 'com.example.buildsrcwithcomposite'
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.example.buildsrcwithcomposite"
         minSdk 24
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 

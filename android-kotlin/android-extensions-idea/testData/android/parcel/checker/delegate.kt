@@ -5,7 +5,7 @@ import android.os.Parcelable
 import android.os.Parcel
 
 open class Delegate : Parcelable {
-    override fun writeToParcel(dest: Parcel?, flags: Int) {}
+    override fun writeToParcel(dest: Parcel, flags: Int) {}
     override fun describeContents() = 0
 }
 

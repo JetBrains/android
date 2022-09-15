@@ -453,7 +453,7 @@ MODULE                        : TestCompositeLib1.app
     ProjectPath                   : :app
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/TestCompositeLib1/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -498,7 +498,7 @@ MODULE                        : TestCompositeLib1.app
         testApplicationId             : com.test.composite1.test
     - basicVariant:               : release
         applicationId                 : com.test.composite1
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -1809,7 +1809,7 @@ MODULE                        : TestCompositeLib1.app
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
                     - classpath                   : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
@@ -1874,7 +1874,7 @@ MODULE                        : TestCompositeLib1.app
                     - classpath                   : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugAndroidTest
                     - friendPaths                 : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debug [-]
@@ -1942,7 +1942,7 @@ MODULE                        : TestCompositeLib1.app
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
                     - classpath                   : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugUnitTest
                     - friendPaths                 : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debug [-]
@@ -2031,7 +2031,7 @@ MODULE                        : TestCompositeLib1.lib
     ProjectPath                   : :lib
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2074,7 +2074,7 @@ MODULE                        : TestCompositeLib1.lib
     - basicVariant:               : debug
         testApplicationId             : com.test.composite1.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -2848,7 +2848,7 @@ MODULE                        : TestCompositeLib1.lib
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
@@ -2911,7 +2911,7 @@ MODULE                        : TestCompositeLib1.lib
                     - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugAndroidTest
                     - friendPaths                 : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debug [-]
@@ -2978,7 +2978,7 @@ MODULE                        : TestCompositeLib1.lib
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugUnitTest
                     - friendPaths                 : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debug [-]
@@ -3369,7 +3369,7 @@ MODULE                        : TestCompositeLib3.app
     ProjectPath                   : :app
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/TestCompositeLib3/app/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
@@ -3414,7 +3414,7 @@ MODULE                        : TestCompositeLib3.app
         testApplicationId             : com.test.composite3.test
     - basicVariant:               : release
         applicationId                 : com.test.composite3
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -4206,7 +4206,7 @@ MODULE                        : TestCompositeLib3.app
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
                     - classpath                   : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
@@ -4271,7 +4271,7 @@ MODULE                        : TestCompositeLib3.app
                     - classpath                   : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugAndroidTest
                     - friendPaths                 : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debug [-]
@@ -4339,7 +4339,7 @@ MODULE                        : TestCompositeLib3.app
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
                     - classpath                   : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugUnitTest
                     - friendPaths                 : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debug [-]
@@ -4427,7 +4427,7 @@ MODULE                        : TestCompositeLib3.lib
     ProjectPath                   : :lib
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/TestCompositeLib3/lib/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
@@ -4470,7 +4470,7 @@ MODULE                        : TestCompositeLib3.lib
     - basicVariant:               : debug
         testApplicationId             : com.test.composite3.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -5920,7 +5920,7 @@ MODULE                        : project.app
     ProjectPath                   : :app
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -5965,7 +5965,7 @@ MODULE                        : project.app
         testApplicationId             : com.test.compositeapp.test
     - basicVariant:               : release
         applicationId                 : com.test.compositeapp
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -6795,7 +6795,7 @@ MODULE                        : project.app
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
                     - classpath                   : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
@@ -6860,7 +6860,7 @@ MODULE                        : project.app
                     - classpath                   : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
                     - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
@@ -6928,7 +6928,7 @@ MODULE                        : project.app
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
                     - classpath                   : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
                     - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
@@ -7016,7 +7016,7 @@ MODULE                        : project.lib
     ProjectPath                   : :lib
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/lib/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -7059,7 +7059,7 @@ MODULE                        : project.lib
     - basicVariant:               : debug
         testApplicationId             : com.test.composite0.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -7797,7 +7797,7 @@ MODULE                        : project.lib
                     - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
@@ -7860,7 +7860,7 @@ MODULE                        : project.lib
                     - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
                     - friendPaths                 : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
@@ -7926,7 +7926,7 @@ MODULE                        : project.lib
                     - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
                     - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
                     - friendPaths                 : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]

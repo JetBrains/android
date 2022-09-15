@@ -39,7 +39,7 @@ public class InstantAppFontFamilyCreatorTest extends AndroidGradleTestCase {
   @OldAgpTest(agpVersions = "3.5.0", gradleVersions = "5.5")
   public void testCreateFontWithInstantApp() throws Exception {
     // Use a plugin with instant app support
-    loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0");
+    loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0", "32");
     AndroidFacet baseFacet = AndroidFacet.getInstance(findBaseFeature(myAndroidFacet));
     FontFamilyCreator creator = new FontFamilyCreator(myAndroidFacet);
     FontDetail font = FontTestUtils.createFontDetail("Roboto", 400, 100, false);

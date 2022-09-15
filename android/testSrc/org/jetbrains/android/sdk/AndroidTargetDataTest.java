@@ -52,7 +52,7 @@ public class AndroidTargetDataTest extends AndroidTestCase {
   public void testPlatformResourceIdMap() throws Exception {
     final AndroidTargetData.MyPublicResourceIdMapBuilder builder = new AndroidTargetData.MyPublicResourceIdMapBuilder();
 
-    parseAndClose(Files.newInputStream(TestUtils.resolvePlatformPath("data/res/values/public.xml")), builder);
+    parseAndClose(Files.newInputStream(TestUtils.resolvePlatformPath("data/res/values/public-final.xml")), builder);
 
     TIntObjectHashMap<String> map = builder.getIdMap();
     assertEquals("@android:transition/move", map.get(0x010f0001));

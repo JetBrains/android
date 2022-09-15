@@ -138,7 +138,7 @@ fun GradleIntegrationTest.runProviderTest(testDefinition: AggregateTestDefinitio
     )
     val gradlePropertiesPath = projectPath.resolve("gradle.properties")
     gradlePropertiesPath.writeText(
-      gradlePropertiesPath.readText() + "\n android.suppressUnsupportedCompileSdk=${BuildEnvironment.getInstance().compileSdkVersion}"
+      gradlePropertiesPath.readText() + "\n android.suppressUnsupportedCompileSdk=${testDefinition.agpVersion.compileSdk}"
     )
     openPreparedProject("project") { project ->
       try {

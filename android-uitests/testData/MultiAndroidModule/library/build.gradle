@@ -3,7 +3,7 @@ apply plugin: 'com.android.library'
 android {
     publishNonDefault true
 
-    compileSdkVersion 22
+    compileSdkVersion 33
     buildToolsVersion "22.0.1"
 
     defaultConfig {

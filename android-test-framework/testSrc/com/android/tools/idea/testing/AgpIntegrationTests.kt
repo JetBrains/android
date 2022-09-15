@@ -56,9 +56,9 @@ val compileSdk: String? = null
   AGP_42("4.2.0", gradleVersion = "6.7.1", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_70("7.0.0", gradleVersion = "7.0.2", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_71("7.1.0", gradleVersion = "7.2", modelVersion = ModelVersion.V1, compileSdk = "32"),
-  AGP_72_V1("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V1),
-  AGP_72("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V2),
-  AGP_73("7.3.0-beta05", gradleVersion = "7.4", modelVersion = ModelVersion.V2),
+  AGP_72_V1("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_72("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V2, compileSdk = "32"),
+  AGP_73("7.3.0-beta05", gradleVersion = "7.4", modelVersion = ModelVersion.V2, compileSdk = "32"),
   // Must be last to represent the newest version.
   AGP_CURRENT_V1(null, gradleVersion = null, modelVersion = ModelVersion.V1),
   AGP_CURRENT(null, gradleVersion = null, modelVersion = ModelVersion.V2);

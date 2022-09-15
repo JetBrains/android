@@ -38,7 +38,7 @@ public class MultiFeatureSupportTest extends AndroidGradleTestCase {
 
   public void testLoadMultiAtomProject() throws Exception {
     // Use a plugin with feature support
-    loadProject(MULTI_FEATURE, null, GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION);
+    loadProject(MULTI_FEATURE, null, GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION, null, null, "32");
 
     assertModuleIsValidAIAApp(getModule("apk"), ImmutableList.of(":feature1", ":feature2", ":base"));
     assertModuleIsValidAIAFeature(getModule("feature1"), ImmutableList.of(":base"));
@@ -56,7 +56,7 @@ public class MultiFeatureSupportTest extends AndroidGradleTestCase {
 
   public void testLoadNestedMultiAtomProject() throws Exception {
     // Use a plugin with instant app support
-    loadProject(NESTED_MULTI_FEATURE, null, GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION);
+    loadProject(NESTED_MULTI_FEATURE, null, GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION, null, null, "32");
 
     assertModuleIsValidAIAApp(getModule("apk"), ImmutableList.of(":feature:feature1", ":feature:feature2", ":feature:base"));
     assertModuleIsValidAIAFeature(getModule("feature1"), ImmutableList.of(":feature:base"));

@@ -1,5 +1,5 @@
 rootProject.buildscript {
-  rootProject.ext.latestCompileSdk = 32
+  rootProject.ext.latestCompileSdk = 33
   rootProject.ext.buildToolsVersion = "30.0.2"
 }
 

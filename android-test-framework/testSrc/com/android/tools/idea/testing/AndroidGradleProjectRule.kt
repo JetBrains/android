@@ -114,11 +114,12 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
    * @param agpVersion If specified, which AGP version will be used.
    * @param kotlinVersion If specified, which kotlin version will be used.
    * @param ndkVersion If specified, which NDK version will be used.
+   * @param compileSdk If specified which compileSdk will be used.
    */
   @JvmOverloads
   fun loadProject(projectPath: String, chosenModuleName: String? = null, gradleVersion: String? = null, agpVersion: String? = null,
-                  kotlinVersion: String? = null, ndkVersion: String? = null) {
-      delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion, kotlinVersion, ndkVersion)
+                  kotlinVersion: String? = null, ndkVersion: String? = null, compileSdk: String? = null) {
+      delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion, kotlinVersion, ndkVersion, compileSdk)
   }
 
   fun requestSyncAndWait() {
@@ -164,7 +165,7 @@ class EdtAndroidGradleProjectRule(val projectRule: AndroidGradleProjectRule) :
     agpVersion: String? = null,
     kotlinVersion: String? = null,
     ndkVersion: String? = null
-  ) = projectRule.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion, kotlinVersion, ndkVersion)
+  ) = projectRule.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion, kotlinVersion, ndkVersion, null)
 }
 
 fun AndroidGradleProjectRule.onEdt(): EdtAndroidGradleProjectRule = EdtAndroidGradleProjectRule(this)

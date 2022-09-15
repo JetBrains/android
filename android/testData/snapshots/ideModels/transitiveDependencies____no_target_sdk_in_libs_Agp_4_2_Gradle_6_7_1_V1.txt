@@ -628,7 +628,7 @@ MODULE                        : project.app
     ProjectPath                   : :app
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -671,7 +671,7 @@ MODULE                        : project.app
         testApplicationId             : com.example.alruiz.transitive_dependencies.test
     - basicVariant:               : release
         applicationId                 : com.example.alruiz.transitive_dependencies
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -1988,7 +1988,7 @@ MODULE                        : project.library1
     ProjectPath                   : :library1
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/library1/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2029,7 +2029,7 @@ MODULE                        : project.library1
     - basicVariant:               : debug
         testApplicationId             : com.example.library1.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -2827,7 +2827,7 @@ MODULE                        : project.library2
     ProjectPath                   : :library2
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/library2/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2868,7 +2868,7 @@ MODULE                        : project.library2
     - basicVariant:               : debug
         testApplicationId             : com.example.library2.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
