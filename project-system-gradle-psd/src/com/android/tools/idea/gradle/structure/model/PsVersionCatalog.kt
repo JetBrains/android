@@ -15,16 +15,28 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.dsl.api.BuildScriptModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 
-class PsVersionCatalog(override val parent: PsProject) : PsChildModel() {
+class PsVersionCatalog(override val name: String, override val parent: PsProject) : PsChildModel() {
   override val descriptor by Descriptors
-  override val name: String = "buildScript"
   override val isDeclared: Boolean = parent.isDeclared
-  val parsedModel: GradleVersionCatalogModel? get() = parent.parsedModel.versionCatalogModel
+  var parsedModel: GradleVersionCatalogModel? = null ; private set
+
+  private var myVariables: PsVariables? = null
+
+  val variables: PsVariablesScope
+    get() {
+      val prefix = if(parsedModel?.isDefaultToml == true) "Default version catalog:" else "Version catalog:"
+      val description = prefix + " $name (${parsedModel?.fileName()})"
+      return myVariables ?: PsVariables(this, description, "Version catalog: $name", null).also { myVariables = it }
+    }
+
+  fun init(parsedModel: GradleVersionCatalogModel){
+    this.parsedModel = parsedModel
+    myVariables?.refresh()
+  }
 
   object Descriptors : ModelDescriptor<PsVersionCatalog, Nothing, GradleVersionCatalogModel> {
     override fun getResolved(model: PsVersionCatalog): Nothing? = null

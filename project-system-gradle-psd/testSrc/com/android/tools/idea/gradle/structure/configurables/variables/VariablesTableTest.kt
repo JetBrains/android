@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.variables
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
@@ -39,6 +40,7 @@ import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
@@ -107,7 +109,7 @@ class VariablesTableTest {
       val tableModel = variablesTable.tableModel
 
       val rootNode = tableModel.root as DefaultMutableTreeNode
-      assertThat(rootNode.childCount, equalTo(12))
+      assertThat(rootNode.childCount, equalTo(11))
 
       val buildScriptNode = rootNode.getChildAt(0) as DefaultMutableTreeNode
       assertThat(tableModel.getValueAt(buildScriptNode, 0) as String, equalTo("project (build script)"))
@@ -175,17 +177,45 @@ class VariablesTableTest {
       assertThat(nested2Deep2Node.childCount, equalTo(1))
       assertThat(variablesTable.tree.isExpanded(TreePath(nested2Deep2Node.path)), equalTo(false))
 
-      val versionCatalogNode = rootNode.getChildAt(11) as DefaultMutableTreeNode
-      assertThat(tableModel.getValueAt(versionCatalogNode, 0) as String, equalTo("project (version catalog)"))
-      assertThat(versionCatalogNode.childCount, equalTo(1))
-      assertThat(variablesTable.tree.isExpanded(TreePath(versionCatalogNode.path)), equalTo(false))
-
       val row = variablesTable.tree.getRowForPath(TreePath(appNode.path))
       for (column in 0..1) {
         val component = variablesTable.getCellRenderer(row, column)
           .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
         assertThat(component.background, equalTo(variablesTable.background))
       }
+    }
+  }
+
+
+  @Test
+  fun testVersionCatalogNodeDisplay() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
+    preparedProject.open { project ->
+      val psProject = PsProjectImpl(project)
+      val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable)
+      val tableModel = variablesTable.tableModel
+
+      val rootNode = tableModel.root as DefaultMutableTreeNode
+      assertThat(rootNode.childCount, equalTo(4))
+
+      val buildScriptNode = rootNode.getChildAt(0) as DefaultMutableTreeNode
+      assertThat(tableModel.getValueAt(buildScriptNode, 0) as String, equalTo("project (build script)"))
+      assertThat(tableModel.getValueAt(buildScriptNode, 1), equalTo(ParsedValue.NotSet))
+      assertThat(buildScriptNode.childCount, not(0))
+      assertThat(variablesTable.tree.isExpanded(TreePath(buildScriptNode.path)), equalTo(true))
+
+      val versionCatalogNode = rootNode.getChildAt(1) as DefaultMutableTreeNode
+      assertThat(tableModel.getValueAt(versionCatalogNode, 0) as String,
+                 equalTo("Default version catalog: libs (libs.versions.toml)"))
+      assertThat(tableModel.getValueAt(versionCatalogNode, 1), equalTo(ParsedValue.NotSet))
+      assertThat(versionCatalogNode.childCount, not(0))
+      assertThat(variablesTable.tree.isExpanded(TreePath(versionCatalogNode.path)), equalTo(false))
+
+      val projectNode = rootNode.getChildAt(2) as DefaultMutableTreeNode
+      assertThat(tableModel.getValueAt(projectNode, 0) as String, equalTo("project (project)"))
+      assertThat(tableModel.getValueAt(projectNode, 1), equalTo(ParsedValue.NotSet))
+      assertThat(projectNode.childCount, not(0))
+      assertThat(variablesTable.tree.isExpanded(TreePath(projectNode.path)), equalTo(false))
     }
   }
 
@@ -348,6 +378,32 @@ class VariablesTableTest {
       assertThat(variableNode.childCount, equalTo(0))
       assertThat(tableModel.getValueAt(variableNode, 0) as String, equalTo("anotherVariable"))
       assertThat(tableModel.getValueAt(variableNode, 1), equalTo("3.0.1".asParsed()))
+
+      val row = variablesTable.tree.getRowForPath(TreePath(variableNode.path))
+      for (column in 0..1) {
+        val component = variablesTable.getCellRenderer(row, column)
+          .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
+        assertThat(component.background, equalTo(variablesTable.background))
+      }
+    }
+  }
+  @Test
+  fun testVersionCatalogVariableNodeDisplay() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
+    preparedProject.open { project ->
+      val psProject = PsProjectImpl(project)
+      val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable)
+      val tableModel = variablesTable.tableModel
+
+      val catalogNode = (tableModel.root as DefaultMutableTreeNode).defaultVersionCatalogChild as DefaultMutableTreeNode
+      val variableNode =
+        catalogNode.children().asSequence().find { "constraint-layout" == (it as VariableNode).toString() } as VariableNode
+      variablesTable.tree.expandPath(TreePath(catalogNode.path))
+
+      assertThat(variableNode.variable.value, equalTo("1.0.2".asParsed<Any>()))
+      assertThat(variableNode.childCount, equalTo(0))
+      assertThat(tableModel.getValueAt(variableNode, 0) as String, equalTo("constraint-layout"))
+      assertThat(tableModel.getValueAt(variableNode, 1), equalTo<Any>("1.0.2".asParsed()))
 
       val row = variablesTable.tree.getRowForPath(TreePath(variableNode.path))
       for (column in 0..1) {
@@ -700,7 +756,7 @@ class VariablesTableTest {
       assertThat(appNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newVariable")))
 
       variablesTable.selectNode(appNode)
-      variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
+      variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
       variablesTable.simulateTextInput("newVariable")
 
       val variableNode = appNode.children().asSequence().find { "newVariable" == (it as VariableNode).toString() } as VariableNode
@@ -727,7 +783,7 @@ class VariablesTableTest {
 
       //create variable
       variablesTable.selectNode(buildScriptNode)
-      variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
+      variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
       variablesTable.simulateTextInput("newVariable")
 
       setVariableValue(buildScriptNode, "newVariable", "new value 1")
@@ -762,7 +818,7 @@ class VariablesTableTest {
 
       //create variable
       variablesTable.selectNode(buildScriptNode)
-      variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
+      variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
       variablesTable.simulateTextInput("newVariable")
 
       setVariableValue(buildScriptNode, "newVariable", "new value 1")
@@ -783,16 +839,53 @@ class VariablesTableTest {
     }
   }
 
-  private fun setVariableValue(node: ModuleNode , name: String, value: String) {
+  private fun setVariableValue(node: VariablesBaseNode , name: String, value: String) {
     val variableNode = node.children().asSequence().find { name == (it as VariableNode).toString() } as VariableNode
     variableNode.setValue(value.asParsed())
   }
 
   private fun assertVariableValue(psProject: PsProject, name: String, value: String, moduleSelector: (Any) -> Boolean) {
     val newTableModel1 = VariablesTable(psProject.ideProject, contextFor(psProject), psProject, projectRule.testRootDisposable).tableModel
-    val newModuleNode1 = (newTableModel1.root as DefaultMutableTreeNode).children().asSequence().find(moduleSelector) as ModuleNode
+    val newModuleNode1 = (newTableModel1.root as DefaultMutableTreeNode).children().asSequence().find(moduleSelector) as AbstractContainerNode
     val newVariableNode1 = newModuleNode1.children().asSequence().find { name == (it as VariableNode).toString() } as VariableNode
     assertThat(newVariableNode1.getUnresolvedValue(false), equalTo(value.asParsed<Any>()))
+  }
+
+  @Test
+  fun testAddAndEditVersionCatalogVariable() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
+    preparedProject.open { project ->
+      val psProject = PsProjectImpl(project)
+      val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable)
+
+      val versionCatalogNode: VersionCatalogNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find {
+        it.toString().contains("libs")
+      } as VersionCatalogNode
+      assertThat(versionCatalogNode.children().asSequence().map { it.toString() }.toSet(),
+                 equalTo(setOf("constraint-layout", "guava", "junit", "")))
+      assertThat(versionCatalogNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newVersion")))
+
+      //create variable
+      variablesTable.selectNode(versionCatalogNode)
+      variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
+      variablesTable.simulateTextInput("newVersion")
+
+      setVariableValue(versionCatalogNode, "newVersion", "1.2.3")
+      psProject.applyAllChanges()
+
+      assertVariableValue(psProject, "newVersion", "1.2.3") { it.toString().contains("libs") }
+
+      // Second change
+      assertThat(versionCatalogNode.children().asSequence().map { it.toString() }.toSet(), hasItem("newVersion"))
+
+      setVariableValue(versionCatalogNode, "newVersion", "2.3.4")
+      psProject.applyAllChanges()
+      assertVariableValue(psProject, "newVersion", "2.3.4") { it.toString().contains("libs") }
+
+      // Emulate opening PSD again and check value was applied
+      val psProject2 = PsProjectImpl(project)
+      assertVariableValue(psProject2, "newVersion", "2.3.4") { it.toString().contains("libs") }
+    }
   }
 
   @Test
@@ -807,7 +900,7 @@ class VariablesTableTest {
       assertThat(appNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newList")))
 
       variablesTable.selectNode(appNode)
-      variablesTable.addVariable(GradlePropertyModel.ValueType.LIST)
+      variablesTable.createAddVariableStrategy().addVariable(ValueType.LIST)
       variablesTable.simulateTextInput("newList")
 
       val variableNode = appNode.children().asSequence().find { "newList" == (it as VariableNode).toString() } as VariableNode
@@ -844,7 +937,7 @@ class VariablesTableTest {
       assertThat(appNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newMap")))
 
       variablesTable.selectNode(appNode)
-      variablesTable.addVariable(GradlePropertyModel.ValueType.MAP)
+      variablesTable.createAddVariableStrategy().addVariable(ValueType.MAP)
       variablesTable.simulateTextInput("newMap")
 
       val variableNode = appNode.children().asSequence().find { "newMap" == (it as VariableNode).toString() } as VariableNode
@@ -882,13 +975,13 @@ class VariablesTableTest {
       assertThat(appNode.childCount, equalTo(14))
 
       variablesTable.selectNode(appNode)
-      variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
+      variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
       assertThat(appNode.childCount, equalTo(14))
       variablesTable.editingStopped(null)
       assertThat(appNode.childCount, equalTo(14))
 
       variablesTable.selectNode(appNode)
-      variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
+      variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
       assertThat(appNode.childCount, equalTo(14))
       variablesTable.editingCanceled(null)
       assertThat(appNode.childCount, equalTo(14))
@@ -919,6 +1012,34 @@ class VariablesTableTest {
       val newAppNode = (newTableModel.root as DefaultMutableTreeNode).appModuleChild as ModuleNode
       val newVariableNames = newAppNode.children().asSequence().map { it.toString() }.toList()
       assertThat(newVariableNames, not(hasItem("anotherVariable")))
+      assertThat(newAppNode.childCount, equalTo(childCount - 1))
+    }
+  }
+
+  @Test
+  fun testCatalogVersionDelete() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
+    preparedProject.open { project ->
+      val psProject = PsProjectImpl(project)
+      val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable)
+      val tableModel = variablesTable.tableModel
+
+      val appNode = (tableModel.root as DefaultMutableTreeNode).defaultVersionCatalogChild as VersionCatalogNode
+      variablesTable.tree.expandPath(TreePath(appNode.path))
+      val childCount = appNode.childCount
+      val variableNode = appNode.children().asSequence().find { "constraint-layout" == (it as VariableNode).toString() } as VariableNode
+      variablesTable.selectNode(variableNode)
+      variablesTable.deleteSelectedVariables()
+
+      val variableNames = appNode.children().asSequence().map { it.toString() }.toList()
+      assertThat(variableNames, not(hasItem("constraint-layout")))
+      assertThat(appNode.childCount, equalTo(childCount - 1))
+
+      psProject.applyAllChanges()
+      val newTableModel = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable).tableModel
+      val newAppNode = (newTableModel.root as DefaultMutableTreeNode).defaultVersionCatalogChild as VersionCatalogNode
+      val newVariableNames = newAppNode.children().asSequence().map { it.toString() }.toList()
+      assertThat(newVariableNames, not(hasItem("constraint-layout")))
       assertThat(newAppNode.childCount, equalTo(childCount - 1))
     }
   }
@@ -1005,6 +1126,9 @@ class VariablesTableTest {
 
 private val DefaultMutableTreeNode.appModuleChild: Any
   get() = children().asSequence().find { it.toString() == ":app" } as ModuleNode
+
+private val DefaultMutableTreeNode.defaultVersionCatalogChild: Any
+  get() = children().asSequence().find { it.toString().contains("libs") } as VersionCatalogNode
 
 private fun PsProject.applyAllChanges() {
   if (isModified) {

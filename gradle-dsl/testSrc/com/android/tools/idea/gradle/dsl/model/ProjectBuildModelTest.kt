@@ -779,7 +779,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
-  fun testVersionCatalogModelNullIfSettingIsOff() {
+  fun testVersionCatalogsModelIfSettingIsOff() {
     StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
     GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled = false
     try {
@@ -787,12 +787,30 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       writeToVersionCatalogFile("")
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel
-      assertNull(vcModel)
+      val vcModel = pbm.versionCatalogsModel
+      assertNotNull(vcModel)
+      assertEmpty(vcModel.catalogNames())
     }
     finally {
       StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
       GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled = true
+    }
+  }
+
+  @Test
+  fun testVersionCatalogDisabled() {
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      removeVersionCatalogFile()
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogsModel
+      assertNotNull(vcModel)
+      assertEmpty(vcModel.catalogNames())
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
     }
   }
 
@@ -804,13 +822,44 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       writeToVersionCatalogFile("")
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val versions = vcModel.versions("libs")!!
       versions.findProperty("foo").setValue("1.2.3")
       applyChanges(pbm)
 
       verifyFileContents(myBuildFile, "")
       verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_CREATE_VERSION_PROPERTY_EXPECTED)
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  @Test
+  fun testVersionPropertyWithGetVersionCatalogModel() {
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      writeToBuildFile("")
+      writeToVersionCatalogFile("""
+        [versions]
+        foo = "1.1.1"
+      """.trimIndent())
+
+      val pbm = projectBuildModel
+      val vcModel = pbm.versionCatalogsModel!!
+      val versions = vcModel.getVersionCatalogModel("libs").versions()!!
+      val foo = versions.findProperty("foo")
+      assertEquals("1.1.1", foo.toString())
+      foo.setValue("1.2.3")
+      versions.findProperty("bar").setValue("2.3.4")
+      applyChanges(pbm)
+
+      verifyFileContents(myBuildFile, "")
+      verifyFileContents(myVersionCatalogFile, """
+        [versions]
+        foo = "1.2.3"
+        bar = "2.3.4"
+      """.trimIndent())
     }
     finally {
       StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
@@ -828,7 +877,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val versions = vcModel.versions("libs")!!
       val foo = versions.findProperty("foo")
       assertEquals("1.2.3", foo.toString())
@@ -854,7 +903,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val lib1 = vcModel.libraries("libs")!!
       val lib2 = vcModel.libraries("libs")!!
       val foo1 = lib1.findProperty("foo")
@@ -885,7 +934,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
       assertEquals("abc", foo.getMapValue("arbitrary").toString())
@@ -912,7 +961,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
       assertEquals("1.2.3", foo.getMapValue("version").toString())
@@ -941,7 +990,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
       assertEquals("1.2.3", foo.getMapValue("version").toString())
@@ -970,7 +1019,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
       assertEquals("1.2.3", foo.getMapValue("version").toString())
@@ -999,7 +1048,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
       assertEquals("1.2.3", foo.getMapValue("version").toString())
@@ -1042,7 +1091,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       assertContainsElements(vcModel.catalogNames(), "libs", "testLibs")
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
@@ -1079,7 +1128,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
       assertEquals("\"fooVersion\"", foo.getMapValue("version").toString())
@@ -1114,7 +1163,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
       assertEquals("\"fooVersion\"", foo.getMapValue("version").toString())
@@ -1148,7 +1197,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
       assertEquals("1.2.3", foo.getMapValue("version").toString())
@@ -1181,7 +1230,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
       assertEquals("\"fooVersion\"", foo.getMapValue("version").toString())
@@ -1214,7 +1263,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
       assertEquals("\"fooVersion\"", foo.getMapValue("version").toString())
@@ -1247,7 +1296,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
       foo.getMapValue("version").setValue("2.3.4")
@@ -1279,7 +1328,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
       foo.getMapValue("version").setValue(ReferenceTo(vcModel.versions("libs")!!.findProperty("fooVersion")))
@@ -1310,7 +1359,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
       foo.getMapValue("version").setValue("2.3.4")
@@ -1342,7 +1391,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
       foo.getMapValue("version").setValue(ReferenceTo(vcModel.versions("libs")!!.findProperty("fooVersion")))
@@ -1375,7 +1424,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val plugins = vcModel.plugins("libs")!!
       val foo = plugins.findProperty("foo")
       foo.getMapValue("version").setValue("2.3.4")
@@ -1407,7 +1456,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val plugins = vcModel.plugins("libs")!!
       val foo = plugins.findProperty("foo")
       foo.getMapValue("version").setValue(ReferenceTo(vcModel.versions("libs")!!.findProperty("fooVersion")))
@@ -1438,7 +1487,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val plugins = vcModel.plugins("libs")!!
       val foo = plugins.findProperty("foo")
       foo.getMapValue("version").setValue("2.3.4")
@@ -1470,7 +1519,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val plugins = vcModel.plugins("libs")!!
       val foo = plugins.findProperty("foo")
       foo.getMapValue("version").setValue(ReferenceTo(vcModel.versions("libs")!!.findProperty("fooVersion")))
@@ -1502,7 +1551,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
         foo = { module = "com.example:foo", version = "1.2.3" }
       """.trimIndent())
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val libraries = vcModel.libraries("libs")!!
       val foo = libraries.findProperty("foo")
       val ref = ReferenceTo.createReferenceFromText("versions.fooVersion", foo)!!
@@ -1555,7 +1604,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
         core = [ "foo", "bar" ]
       """.trimIndent())
 
-      val vcModel = projectBuildModel.versionCatalogModel!!
+      val vcModel = projectBuildModel.versionCatalogsModel!!
       val bundles = vcModel.bundles("libs")!!
       val libraries = vcModel.libraries("libs")!!
       val refs = bundles.findProperty("core").toList()!!
@@ -1583,7 +1632,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val bundles = vcModel.bundles("libs")!!
       val core = bundles.findProperty("core")
 
@@ -1619,7 +1668,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val bundles = vcModel.bundles("libs")!!
       val core = bundles.findProperty("core")
 
@@ -1655,7 +1704,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
       """.trimIndent())
 
       val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogModel!!
+      val vcModel = pbm.versionCatalogsModel!!
       val core = vcModel.bundles("libs")!!.findProperty("core")
 
       core.toList()!![0].delete()

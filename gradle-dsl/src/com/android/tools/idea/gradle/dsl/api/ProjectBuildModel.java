@@ -125,7 +125,7 @@ public interface ProjectBuildModel {
   /**
    * This method should never be called on the UI thread.
    */
-  @Nullable GradleVersionCatalogModel getVersionCatalogModel();
+  @NotNull GradleVersionCatalogsModel getVersionCatalogsModel();
 
   /**
    * Applies changes to all {@link GradleBuildModel}s and the {@link GradleSettingsModel} that have been created by this model.

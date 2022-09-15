@@ -27,11 +27,11 @@ interface PsProject : PsModel {
   val ideProject: Project
   val parsedModel: ProjectBuildModel
   val buildScriptVariables: PsVariables
-  val versionCatalogVariables: PsVariables
   val variables: PsVariables
   val pomDependencyCache: PsPomDependencyCache
   val repositorySearchFactory: RepositorySearchFactory
   val modules: PsModelCollection<PsModule>
+  val versionCatalogs: PsModelCollection<PsVersionCatalog>
   val modelCount: Int
   var androidGradlePluginVersion: ParsedValue<String>
   var gradleVersion: ParsedValue<String>

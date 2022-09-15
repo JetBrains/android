@@ -47,7 +47,7 @@ class VariablesConfigurable(private val project: Project, private val context: P
     panel.add(
       ToolbarDecorator
         .createDecorator(table)
-        .setAddAction { createAddAction(it, table) }
+        .setAddAction { executeAfterAddAction(it, table) }
         .setAddActionUpdater { table.addVariableAvailable() }
         .setRemoveAction { table.deleteSelectedVariables() }
         .setRemoveActionUpdater { table.removeVariableAvailable() }
@@ -56,9 +56,9 @@ class VariablesConfigurable(private val project: Project, private val context: P
     return panel
   }
 
-  private fun createAddAction(button: AnActionButton, table: VariablesTable) {
-    val popup = table.createChooseVariableTypePopup()
-    popup.show(button.preferredPopupPoint!!)
+  private fun executeAfterAddAction(button: AnActionButton, table: VariablesTable) {
+    //next action could be creating a popup or start editing for version catalog
+    table.runToolbarAddAction(button.preferredPopupPoint!!)
   }
 
   override fun apply() = context.applyChanges()

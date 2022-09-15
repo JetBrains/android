@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
-import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
@@ -194,12 +194,9 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   }
 
   @Override
-  public @Nullable GradleVersionCatalogModel getVersionCatalogModel() {
-    if (!GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled()) return null;
+  public @NotNull GradleVersionCatalogsModel getVersionCatalogsModel() {
     Collection<GradleVersionCatalogFile> files = myProjectBuildFile.getVersionCatalogFiles();
-
-    if (files.isEmpty()) return null;
-    return new GradleVersionCatalogModelImpl(files);
+    return new GradleVersionCatalogsModelImpl(files);
   }
 
   private void runOverProjectTree(@NotNull Consumer<GradleDslFile> func) {

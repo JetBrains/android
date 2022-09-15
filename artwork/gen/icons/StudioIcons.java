@@ -825,6 +825,7 @@ public class StudioIcons {
       public static final Icon SCENEFORM_BINARY = load("/studio/icons/shell/filetree/sceneform-binary.svg"); // 16x16
       public static final Icon SQL_FILE = load("/studio/icons/shell/filetree/sql-file.svg"); // 16x16
       public static final Icon TFLITE_FILE = load("/studio/icons/shell/filetree/tflite-file.svg"); // 16x16
+
     }
 
     public static class Menu {
