@@ -140,6 +140,9 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
   val uuid = UUID.randomUUID().toString()
 
   companion object {
+    private val AGP_NON_TRANSITIVE_ENABLED_BY_DEFAULT = AgpVersion.parse("8.0.0-alpha08")
+    private val AGP_NON_TRANSITIVE_V2 = AgpVersion.parse("7.0.0-alpha01")
+    private val AGP_NON_TRANSITIVE_V1 = AgpVersion.parse("4.2.0-alpha01")
     private val LOG = Logger.getInstance(BaseRefactoringProcessor::class.java)
 
     fun forSingleModule(facet: AndroidFacet, agpVersion: AgpVersion): MigrateToNonTransitiveRClassesProcessor {
@@ -188,8 +191,7 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
   }
 
   override fun customizeUsagesView(viewDescriptor: UsageViewDescriptor, usageView: UsageView) {
-    val shouldRecommendPluginUpgrade = agpVersion.isAtLeast(4, 2, 0, "alpha", 0, true) &&
-                                       !agpVersion.isAtLeast(7, 0, 0, "alpha", 0, true)
+    val shouldRecommendPluginUpgrade = agpVersion >= AGP_NON_TRANSITIVE_V1 && agpVersion < AGP_NON_TRANSITIVE_V2
     val hasUncommittedChanges = doesProjectHaveUncommittedChanges()
     if (hasUncommittedChanges || shouldRecommendPluginUpgrade) {
       val panel = JBPanel<JBPanel<*>>(VerticalLayout(5))
@@ -241,14 +243,19 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     }
 
     if (updateTopLevelGradleProperties) {
-      val propertiesFile = myProject.getProjectProperties(createIfNotExists = true)
+      val onByDefault = agpVersion >= AGP_NON_TRANSITIVE_ENABLED_BY_DEFAULT
+      val propertiesFile = myProject.getProjectProperties(createIfNotExists = !onByDefault)
       if (propertiesFile != null) {
         when {
-          agpVersion.isAtLeast(7, 0, 0, "alpha", 0, true) -> {
+          onByDefault -> {
+            // Only set to true if the property exists, otherwise do nothing.
+            propertiesFile.findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true")
+          }
+          agpVersion >= AGP_NON_TRANSITIVE_V2 -> {
             propertiesFile.findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: propertiesFile.addProperty(
               NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
           }
-          agpVersion.isAtLeast(4, 2, 0, "alpha", 0, true) -> {
+          agpVersion >= AGP_NON_TRANSITIVE_V1 -> {
             propertiesFile.findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: propertiesFile.addProperty(
               NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
             propertiesFile.findPropertyByKey(NON_TRANSITIVE_APP_R_CLASSES_PROPERTY)?.setValue("true") ?: propertiesFile.addProperty(

@@ -668,6 +668,20 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     )
   }
 
+  fun testAgpNonTransitiveEnabledByDefault() {
+    MigrateToNonTransitiveRClassesProcessor.forEntireProject(project, AgpVersion.parse("8.0.0-alpha09")).run()
+    val properties = VfsUtil.findRelativeFile(project.guessProjectDir(), "gradle.properties")
+    assertThat(properties).isNull()
+  }
+
+  fun testAgpNonTransitiveEnabledByDefaultWithExistingOption() {
+    myFixture.addFileToProject("gradle.properties", "android.nonTransitiveRClass=false")
+
+    MigrateToNonTransitiveRClassesProcessor.forEntireProject(project, AgpVersion.parse("8.0.0-alpha09")).run()
+    val properties = VfsUtil.findRelativeFile(project.guessProjectDir(), "gradle.properties")!!
+    assertThat(FileDocumentManager.getInstance().getDocument(properties)!!.text).isEqualTo("android.nonTransitiveRClass=true")
+  }
+
   fun testWholeProjectUsageView() {
     val refactoringProcessor = MigrateToNonTransitiveRClassesProcessor.forEntireProject(project, AgpVersion.parse("7.0.0"))
 
