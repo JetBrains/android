@@ -28,6 +28,7 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.psi.util.PsiEditorUtil
+import com.intellij.ui.BrowserHyperlinkListener
 import java.awt.Desktop
 import java.util.Objects
 import java.util.stream.Stream
@@ -101,15 +102,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
     override val category: String = issue.issue.category.fullName
 
     override val hyperlinkListener: HyperlinkListener?
-      get() = if (issue.issue.moreInfo.isEmpty()) super.hyperlinkListener else WebLinkListener
-
-    private object WebLinkListener : HyperlinkListener {
-      override fun hyperlinkUpdate(e: HyperlinkEvent?) {
-        if (e != null && e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-          Desktop.getDesktop().browse(e.url.toURI())
-        }
-      }
-    }
+      get() = if (issue.issue.moreInfo.isEmpty()) super.hyperlinkListener else BrowserHyperlinkListener.INSTANCE
 
     override val fixes: Stream<Fix>
       get() {
