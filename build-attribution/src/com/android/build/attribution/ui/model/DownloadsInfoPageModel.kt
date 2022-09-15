@@ -26,6 +26,7 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
 import java.util.Comparator
 import javax.swing.JTable
+import javax.swing.JToolTip
 import javax.swing.SwingConstants
 import javax.swing.table.TableCellRenderer
 
@@ -135,7 +136,7 @@ private class MyWarningIconCellRenderer : ColoredTableCellRenderer() {
         DownloadsAnalyzer.DownloadStatus.FAILURE -> "Error"
       }
       append(text, SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES)
-      toolTipText = value.failureMessage?.replace("\n", "<br/>")
+      toolTipText = "row: $row<br/><br/>" + value.failureMessage?.replace("\n", "<br/>")
 
     }
     setTextAlign(SwingConstants.RIGHT)
