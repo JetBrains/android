@@ -55,6 +55,13 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
   )
 
   override fun blockProcessorReasons(): List<BlockReason> {
+    val explicitProperty =
+      projectBuildModel.projectBuildModel?.propertiesModel?.declaredProperties
+        ?.any { it.name == "android.defaults.buildfeatures.buildconfig" }
+      ?: false
+    // If the user has already explicitly turned BuildConfig on or off, we should not block the upgrade.
+    if (explicitProperty) return listOf()
+
     val moduleNames = mutableListOf<String>()
     val modules = ModuleManager.getInstance(project).modules.filter { it.isMainModule() }
 
@@ -64,6 +71,13 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
       if (!generatedSourceFolders.any { it.systemIndependentPath.contains("generated/source/buildConfig")}) {
         // If none of our generated source folders are for buildConfig, then the user must have turned it off.
         return@module
+      }
+
+      projectBuildModel.getModuleBuildModel(module)?.let { buildModel ->
+        val buildConfigModel = buildModel.android().buildFeatures().buildConfig()
+        val buildConfigEnabled = buildConfigModel.getValue(BOOLEAN_TYPE)
+        // If we can find an explicit buildConfig directive for this module, true or false, then we should not block this processor.
+        if (buildConfigEnabled != null) return@module
       }
 
       val namespace = GradleAndroidModel.get(facet)?.androidProject?.namespace ?: getPackageName(module)
