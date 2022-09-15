@@ -75,7 +75,8 @@ class AppInspectionTreeLoaderTest {
   private fun createFakeData(
     screenshotType: ViewProtocol.Screenshot.Type = ViewProtocol.Screenshot.Type.SKP,
     bitmapType: BitmapType = BitmapType.RGB_565,
-    pendingRecompositionCountReset: Boolean = true
+    pendingRecompositionCountReset: Boolean = true,
+    hasScreenshot: Boolean = true
   ): ViewLayoutInspectorClient.Data {
     val viewLayoutEvent = ViewProtocol.LayoutEvent.newBuilder().apply {
       ViewString(1, "en-us")
@@ -131,9 +132,11 @@ class AppInspectionTreeLoaderTest {
         }
       }
 
-      screenshotBuilder.apply {
-        type = screenshotType
-        bytes = ByteString.copyFrom(Screenshot("partiallyTransparentImage.png", bitmapType).bytes)
+      if (hasScreenshot) {
+        screenshotBuilder.apply {
+          type = screenshotType
+          bytes = ByteString.copyFrom(Screenshot("partiallyTransparentImage.png", bitmapType).bytes)
+        }
       }
     }.build()
 
@@ -419,5 +422,24 @@ class AppInspectionTreeLoaderTest {
 
     val resultImage2 = ViewNode.readAccess { (window2.root.drawChildren[0] as DrawViewImage).image }
     ImageDiffUtil.assertImageSimilar("image1.png", sample8888.image, resultImage2, 0.01)
+  }
+
+  @Test
+  fun testCanProcessWithoutScreenshot() {
+    val skiaParser: SkiaParser = mock()
+    whenever(skiaParser.getViewTree(any(), any(), any(), any())).thenThrow(AssertionError("SKIA not used in bitmap mode"))
+    val treeLoader = AppInspectionTreeLoader(
+      projectRule.project,
+      logEvent = { assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS) },
+      skiaParser
+    )
+
+    val data = createFakeData(hasScreenshot = false)
+    val (window, generation) = treeLoader.loadComponentTree(data, ResourceLookup(projectRule.project), MODERN_DEVICE.createProcess())!!
+    assertThat(data.generation).isEqualTo(generation)
+    window!!.refreshImages(1.0)
+
+    val hasDrawViewImage = ViewNode.readAccess { (window.root.drawChildren.filterIsInstance<DrawViewImage>().isNotEmpty()) }
+    assertThat(hasDrawViewImage).isFalse()
   }
 }
