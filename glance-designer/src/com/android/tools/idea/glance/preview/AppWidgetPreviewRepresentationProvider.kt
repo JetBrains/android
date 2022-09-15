@@ -59,7 +59,7 @@ class AppWidgetPreviewRepresentationProvider(
   private object GlanceAppWidgetEditorFileType :
     CommonRepresentationEditorFileType(
       GlanceAppWidgetAdapterLightVirtualFile::class.java,
-      LayoutEditorState.Type.UNKNOWN_TYPE,
+      LayoutEditorState.Type.GLANCE_APP_WIDGET,
       ::GlanceAppWidgetPreviewToolbar
     )
 

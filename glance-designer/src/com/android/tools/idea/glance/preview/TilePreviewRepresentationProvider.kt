@@ -57,7 +57,7 @@ class TilePreviewRepresentationProvider(
   private object GlanceTileEditorFileType :
     CommonRepresentationEditorFileType(
       GlanceTileAdapterLightVirtualFile::class.java,
-      LayoutEditorState.Type.UNKNOWN_TYPE,
+      LayoutEditorState.Type.GLANCE_WEAR_TILE,
       ::GlanceTilePreviewToolbar
     )
 
