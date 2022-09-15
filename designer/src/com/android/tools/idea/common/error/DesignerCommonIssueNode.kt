@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.visual.ConfigurationSet
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.isVisualLintErrorSuppressed
+import com.google.wireless.android.sdk.stats.UniversalProblemsPanelEvent
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
@@ -29,6 +30,7 @@ import com.intellij.ide.util.treeView.NodeDescriptor
 import com.intellij.ide.util.treeView.PresentableNodeDescriptor
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -337,7 +339,7 @@ open class IssueNode(val file: VirtualFile?, val issue: Issue, val parent: Desig
 
   override fun getNavigatable(): Navigatable? {
     val targetFile = getVirtualFile()
-    return if (project != null && targetFile != null) OpenFileDescriptor(project, targetFile, offset) else null
+    return if (project != null && targetFile != null) MyOpenFileDescriptor(project, targetFile, offset) else null
   }
 
   override fun updatePresentation(presentation: PresentationData) {
@@ -399,6 +401,37 @@ class VisualLintIssueNode(private val visualLintIssue: VisualLintRenderIssue, pa
   }
 }
 
+private class MyOpenFileDescriptor(project: Project, targetFile: VirtualFile, offset: Int): OpenFileDescriptor(project, targetFile, offset) {
+
+  /**
+   * [navigate], [navigateIn], and [navigateInEditor] may call each other depending on the implementation of
+   * [com.intellij.openapi.fileEditor.FileNavigator]. Mark as tracked to avoid the duplications.
+   */
+  private var hasTracked: Boolean = false
+  override fun navigate(requestFocus: Boolean) {
+    trackOpenFileEvent()
+    super.navigate(requestFocus)
+  }
+
+  override fun navigateIn(e: Editor) {
+    trackOpenFileEvent()
+    super.navigateIn(e)
+  }
+
+  override fun navigateInEditor(project: Project, requestFocus: Boolean): Boolean {
+    trackOpenFileEvent()
+    return super.navigateInEditor(project, requestFocus)
+  }
+
+  private fun trackOpenFileEvent() {
+    if (!hasTracked) {
+      DesignerCommonIssuePanelUsageTracker.getInstance().trackNavigationFromIssue(
+        UniversalProblemsPanelEvent.IssueNavigated.OPEN_FILE, project)
+      hasTracked = true
+    }
+  }
+}
+
 @VisibleForTesting
 class SelectWindowSizeDevicesNavigatable(project: Project): OpenLayoutValidationNavigatable(project, ConfigurationSet.WindowSizeDevices)
 
@@ -406,10 +439,12 @@ class SelectWindowSizeDevicesNavigatable(project: Project): OpenLayoutValidation
 class SelectWearDevicesNavigatable(project: Project): OpenLayoutValidationNavigatable(project, ConfigurationSet.WearDevices)
 
 @VisibleForTesting
-open class OpenLayoutValidationNavigatable(project: Project, configurationSetToSelect: ConfigurationSet) : Navigatable {
+open class OpenLayoutValidationNavigatable(private val project: Project, configurationSetToSelect: ConfigurationSet) : Navigatable {
   private val task = { VisualizationToolWindowFactory.openAndSetConfigurationSet(project, configurationSetToSelect) }
 
   override fun navigate(requestFocus: Boolean) {
+    DesignerCommonIssuePanelUsageTracker.getInstance().trackNavigationFromIssue(
+      UniversalProblemsPanelEvent.IssueNavigated.OPEN_VALIDATION_TOOL, project)
     task()
   }
 

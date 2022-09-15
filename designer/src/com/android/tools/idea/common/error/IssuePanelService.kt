@@ -30,6 +30,7 @@ import com.android.tools.idea.uibuilder.type.DrawableFileType
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.type.MenuFileType
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
+import com.google.wireless.android.sdk.stats.UniversalProblemsPanelEvent
 import com.intellij.analysis.problemsView.toolWindow.HighlightingPanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewProjectErrorsPanelProvider
@@ -52,6 +53,8 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.psi.PsiFile
 import com.intellij.ui.ColorUtil.toHtmlColor
 import com.intellij.ui.content.Content
+import com.intellij.ui.content.ContentManagerEvent
+import com.intellij.ui.content.ContentManagerListener
 import com.intellij.ui.tree.TreeVisitor
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
@@ -139,6 +142,21 @@ class IssuePanelService(private val project: Project) {
         contentManager.addContent(this@apply)
       }
     }
+
+    val contentManagerListener = object : ContentManagerListener {
+      override fun selectionChanged(event: ContentManagerEvent) {
+        val content = event.content
+        val selectedTab = when {
+          content.isTab(Tab.CURRENT_FILE) -> UniversalProblemsPanelEvent.ActivatedTab.CURRENT_FILE
+          content.isTab(Tab.PROJECT_ERRORS) -> UniversalProblemsPanelEvent.ActivatedTab.PROJECT_ERRORS
+          content.isTab(Tab.DESIGN_TOOLS) -> UniversalProblemsPanelEvent.ActivatedTab.DESIGN_TOOLS
+          else -> UniversalProblemsPanelEvent.ActivatedTab.UNKNOWN_TAB
+        }
+        DesignerCommonIssuePanelUsageTracker.getInstance()
+          .trackSelectingTab(selectedTab, project)
+      }
+    }
+    contentManager.addContentManagerListener(contentManagerListener)
 
     project.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
       override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
@@ -292,6 +310,7 @@ class IssuePanelService(private val project: Project) {
   fun setSharedIssuePanelVisibility(visible: Boolean, onAfterSettingVisibility: Runnable? = null) {
     val tab = sharedIssueTab ?: return
     val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
+    DesignerCommonIssuePanelUsageTracker.getInstance().trackChangingCommonIssuePanelVisibility(visible, project)
     if (visible) {
       if (!isSharedIssueTabShowing(tab)) {
         problemsViewPanel.show {
