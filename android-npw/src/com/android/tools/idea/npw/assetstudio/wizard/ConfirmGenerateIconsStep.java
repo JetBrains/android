@@ -189,7 +189,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
         pathToIcon.put(entry.getKey(), new ImageIcon(image));
       }
 
-      myProposedFileTreeModel = new ProposedFileTreeModel(resDirectory.getParentFile(), pathToIcon);
+      myProposedFileTreeModel = new ProposedFileTreeModel(resDirectory, pathToIcon);
 
       myFilesAlreadyExist.set(myProposedFileTreeModel.hasConflicts());
       myOutputPreviewTree.setModel(myProposedFileTreeModel);

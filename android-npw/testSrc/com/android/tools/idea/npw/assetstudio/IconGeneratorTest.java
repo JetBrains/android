@@ -20,18 +20,15 @@ import static com.intellij.testFramework.UsefulTestCase.assertThrows;
 import static java.lang.Thread.sleep;
 
 import com.android.ide.common.util.PathString;
-import com.android.tools.idea.npw.assetstudio.AnnotatedImage;
-import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
-import com.android.tools.idea.npw.assetstudio.GeneratedXmlResource;
-import com.android.tools.idea.npw.assetstudio.GraphicGeneratorContext;
-import com.android.tools.idea.npw.assetstudio.IconCategory;
-import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.IconGenerator.IconOptions;
+import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ThrowableRunnable;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
@@ -103,5 +100,14 @@ public final class IconGeneratorTest {
       CancellationException.class,
       (ThrowableRunnable<Throwable>)() -> iconGenerator.generateIcons(new IconOptions(true))
     );
+  }
+
+  @Test
+  public void generateIntoFileMap() {
+    VectorIconGenerator generator = new VectorIconGenerator(myProjectRule.getProject(), 24);
+    generator.sourceAsset().setValue(new VectorAsset());
+    generator.outputName().set("foo");
+    Set<File> files = generator.generateIntoFileMap(new File("/app/main/res")).keySet();
+    assertThat(files).containsExactly(new File("/app/main/res/drawable/foo.xml"));
   }
 }
