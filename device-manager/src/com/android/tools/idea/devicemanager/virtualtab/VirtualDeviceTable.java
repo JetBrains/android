@@ -70,6 +70,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   private final @NotNull VirtualDeviceAsyncSupplier myAsyncSupplier;
   private final @NotNull NewSetDevices myNewSetDevices;
   private @Nullable IDeviceChangeListener myListener;
+  private final @NotNull ActionListener myEmptyTextLinkListener;
 
   @VisibleForTesting
   interface NewSetDevices {
@@ -118,13 +119,9 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     setShowGrid(false);
 
-    ActionListener listener = new BuildVirtualDeviceConfigurationWizardActionListener(this, project, this);
+    myEmptyTextLinkListener = new BuildVirtualDeviceConfigurationWizardActionListener(this, project, this);
 
-    // noinspection DialogTitleCapitalization
-    getEmptyText()
-      .appendLine("No virtual devices added. Create a virtual device to test")
-      .appendLine("applications without owning a physical device.")
-      .appendLine("Create virtual device", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES, listener);
+    getEmptyText().setText("Loading...");
 
     refreshAvds();
   }
@@ -133,6 +130,12 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   static @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> newSetDevices(@NotNull VirtualDeviceTable table) {
     return new DeviceManagerFutureCallback<>(VirtualDeviceTable.class, devices -> {
       table.getModel().setDevices(devices);
+      // noinspection DialogTitleCapitalization
+      table.getEmptyText()
+        .clear()
+        .appendLine("No virtual devices added. Create a virtual device to test")
+        .appendLine("applications without owning a physical device.")
+        .appendLine("Create virtual device", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES, table.myEmptyTextLinkListener);
 
       DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
         .setKind(EventKind.VIRTUAL_DEVICE_COUNT)

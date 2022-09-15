@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -44,11 +45,23 @@ public final class VirtualDeviceTableTest {
 
   @Test
   public void emptyTable() throws InterruptedException {
-    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, null, mockSupplier(List.of()), this::newSetDevices);
+    VirtualDeviceTable.NewSetDevices callback = table -> new FutureCallback<>() {
+      @Override
+      public void onSuccess(@NotNull List<@NotNull VirtualDevice> result) {
+        myLatch.countDown();
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        myLatch.countDown();
+      }
+    };
+    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, null, mockSupplier(List.of()), callback);
 
     CountDownLatchAssert.await(myLatch);
 
     assertEquals(Optional.empty(), table.getSelectedDevice());
+    assertThat(table.getEmptyText().getText()).isEqualTo("Loading...");
   }
 
   @Test
