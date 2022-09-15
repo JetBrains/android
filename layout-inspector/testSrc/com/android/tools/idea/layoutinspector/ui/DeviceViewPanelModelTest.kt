@@ -316,21 +316,6 @@ class DeviceViewPanelModelTest {
     assertThat(model.testOverlap(r3, p1)).isFalse()
     assertThat(model.testOverlap(p1, p2)).isTrue()
     assertThat(model.testOverlap(p1, p3)).isFalse()
-    model.checkOverlapTiming(r1, r2) // 2 rectangles
-    model.checkOverlapTiming(r3, p1) // 1 rectangle and 1 polygon
-    model.checkOverlapTiming(p1, p3) // 2 polygons where the bounding boxes do not overlap
-  }
-
-  // Test that we are improving the default Area intersect with the DeviceViewPanelModel.overlap method:
-  private fun DeviceViewPanelModel.checkOverlapTiming(shape1: Shape, shape2: Shape) {
-    val t1 = System.currentTimeMillis()
-    for (i in 1..10000) { !Area(shape1).apply { intersect(Area(shape2)) }.isEmpty }
-    val t2 = System.currentTimeMillis()
-    for (i in 1..10000) { testOverlap(shape1, shape2) }
-    val t3 = System.currentTimeMillis()
-    val d1 = t2 - t1
-    val d2 = t3 - t2
-    assertThat(d2).isAtMost(d1 / 10)
   }
 
   private fun checkRects(expectedTransforms: Map<Long, AffineTransform>, xOff: Double, yOff: Double, hideSystemNodes: Boolean = false) {
