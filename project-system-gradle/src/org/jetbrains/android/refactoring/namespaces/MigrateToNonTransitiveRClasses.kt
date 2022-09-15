@@ -260,9 +260,6 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
         }
       }
 
-      myProject.getProjectProperties(createIfNotExists = true)?.apply {
-        findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: addProperty(NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
-      }
       val listener = object : GradleSyncListener {
         override fun syncSkipped(project: Project) = trackProcessorUsage(SYNC_SKIPPED)
         override fun syncFailed(project: Project, errorMessage: String) = trackProcessorUsage(SYNC_FAILED)
