@@ -20,7 +20,6 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt

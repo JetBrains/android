@@ -2193,8 +2193,12 @@ private fun Project.verifyModelsAttached() {
   }
 }
 
-fun Project.requestSyncAndWait() {
-  AndroidGradleTests.syncProject(this, GradleSyncInvoker.Request.testRequest())
+@JvmOverloads
+fun Project.requestSyncAndWait(ignoreSyncIssues: Set<Int> = emptySet()) {
+  AndroidGradleTests.syncProject(this, GradleSyncInvoker.Request.testRequest()) {
+    AndroidGradleTests.checkSyncStatus(this, it, ignoreSyncIssues)
+  }
+
   if (ApplicationManager.getApplication().isDispatchThread) {
     AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(this)
   } else {

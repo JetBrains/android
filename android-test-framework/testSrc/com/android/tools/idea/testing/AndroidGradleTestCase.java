@@ -33,7 +33,6 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
@@ -76,7 +75,6 @@ import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import junit.framework.AssertionFailedError;
@@ -452,31 +450,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     return TestModuleUtil.hasModule(getProject(), moduleName);
   }
 
-  protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
-    TestGradleSyncListener syncListener = requestSync(request);
-    AndroidGradleTests.checkSyncStatus(getProject(), syncListener);
-  }
-
   protected void requestSyncAndWait() throws SyncIssuesPresentError, Exception {
-    TestGradleSyncListener syncListener = requestSync(GradleSyncInvoker.Request.testRequest());
-    AndroidGradleTests.checkSyncStatus(getProject(), syncListener);
+    requestSyncAndWait(GradleSyncInvoker.Request.testRequest());
   }
 
   @NotNull
   protected String requestSyncAndGetExpectedFailure() throws Exception {
     return requestSyncAndGetExpectedFailure(request -> { });
-  }
-
-  @NotNull
-  protected List<IdeSyncIssue> requestSyncAndGetExpectedSyncIssueErrors() throws Exception {
-    try {
-      requestSyncAndWait(GradleSyncInvoker.Request.testRequest());
-    } catch (SyncIssuesPresentError e) {
-      return e.getIssues();
-    }
-
-    fail("Failure was expected, but no SyncIssue errors were present");
-    return null; // Unreachable
   }
 
   @NotNull
@@ -493,10 +473,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     return null; // Unreachable
   }
 
-  @NotNull
-  protected TestGradleSyncListener requestSync(@NotNull GradleSyncInvoker.Request request) throws Exception {
+  protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
     refreshProjectFiles();
-    return AndroidGradleTests.syncProject(getProject(), request);
+    AndroidGradleTests.syncProject(getProject(), request, it -> AndroidGradleTests.checkSyncStatus(getProject(), it));
   }
 
   @Override

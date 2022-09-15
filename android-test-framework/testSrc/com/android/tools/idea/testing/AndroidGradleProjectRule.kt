@@ -126,8 +126,7 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
   }
 
   fun requestSyncAndWait(request: GradleSyncInvoker.Request) {
-    val syncListener = delegateTestCase.requestSync(request)
-    AndroidGradleTests.checkSyncStatus(project, syncListener)
+    delegateTestCase.requestSyncAndWait(request)
   }
 
   fun generateSources() {

@@ -36,8 +36,6 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.junit.Assert.assertNotNull;
@@ -90,7 +88,10 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -597,14 +598,12 @@ public class AndroidGradleTests {
   public static void importProject(
     @NotNull Project project,
     @NotNull GradleSyncInvoker.Request syncRequest) throws Exception {
-    TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
+    EdtTestUtil.runInEdtAndWait(() -> {
       GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
       GradleProjectImporter.configureNewProject(project);
       GradleProjectImporter.getInstance().importProjectNoSync(request);
-      return syncProject(project, syncRequest);
+      syncProject(project, syncRequest, it -> AndroidGradleTests.checkSyncStatus(project, it));
     });
-
-    AndroidGradleTests.checkSyncStatus(project, syncListener);
     AndroidTestBase.refreshProjectFiles();
   }
 
@@ -635,8 +634,9 @@ public class AndroidGradleTests {
                         settings.exists() || build.exists() || ktsSettings.exists() || ktsBuild.exists());
   }
 
-  public static TestGradleSyncListener syncProject(@NotNull Project project,
-                                                   @NotNull GradleSyncInvoker.Request request) throws InterruptedException {
+  public static void syncProject(@NotNull Project project,
+                                 @NotNull GradleSyncInvoker.Request request,
+                                 @NotNull Consumer<TestGradleSyncListener> check) throws InterruptedException {
     if (getProjectSystem(project).getSyncManager().isSyncInProgress()) {
       throw new IllegalStateException("Requesting sync while sync in progress");
     }
@@ -647,19 +647,28 @@ public class AndroidGradleTests {
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
       return Unit.INSTANCE;
     });
-    return syncListener;
+    check.accept(syncListener);
   }
 
   public static void checkSyncStatus(@NotNull Project project,
                                      @NotNull TestGradleSyncListener syncListener) throws SyncIssuesPresentError {
+    checkSyncStatus(project, syncListener, Collections.emptySet());
+  }
+
+  public static void checkSyncStatus(@NotNull Project project,
+                                     @NotNull TestGradleSyncListener syncListener,
+                                     @NotNull Set<Integer> ignoreSyncIssues) throws SyncIssuesPresentError {
     if (!syncListener.isSyncFinished() || syncFailed(syncListener)) {
       String cause =
         !syncListener.isSyncFinished() ? "<Timed out>" : isEmpty(syncListener.failureMessage) ? "<Unknown>" : syncListener.failureMessage;
       TestCase.fail(cause);
     }
     // Also fail the test if SyncIssues with type errors are present.
-    List<IdeSyncIssue> errors = Arrays.stream(ModuleManager.getInstance(project).getModules()).flatMap(module -> SyncIssues.forModule(module).stream())
-      .filter(syncIssueData -> syncIssueData.getSeverity() == SyncIssue.SEVERITY_ERROR).collect(Collectors.toList());
+    List<IdeSyncIssue> errors =
+      Arrays.stream(ModuleManager.getInstance(project).getModules())
+        .flatMap(module -> SyncIssues.forModule(module).stream())
+        .filter(it -> !ignoreSyncIssues.contains(it.getType()))
+        .filter(syncIssueData -> syncIssueData.getSeverity() == SyncIssue.SEVERITY_ERROR).collect(Collectors.toList());
     String errorMessage = errors.stream().map(IdeSyncIssue::toString).collect(Collectors.joining("\n"));
     if (!errorMessage.isEmpty()) {
       throw new SyncIssuesPresentError(errorMessage, errors);

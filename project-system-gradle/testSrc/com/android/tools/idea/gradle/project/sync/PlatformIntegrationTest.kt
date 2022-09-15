@@ -23,10 +23,10 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.requestSyncAndWait
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -265,7 +265,9 @@ class PlatformIntegrationTest {
       (ApplicationManager.getApplication().extensionArea as ExtensionsAreaImpl)
         .getExtensionPoint(ProjectDataService.EP_NAME)
         .registerExtension(FailingService(), projectRule.testRootDisposable)
-      project.requestSyncAndWait()
+      AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
+        // Do not check status.
+      }
 
       expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isTrue()
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
@@ -330,7 +332,9 @@ class PlatformIntegrationTest {
     }) { project ->
 
       root.resolve("settings.gradle").writeText("Thread.sleep(200); println('waiting!'); Thread.sleep(30_000)")
-      project.requestSyncAndWait()
+      AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
+        // Do not check status.
+      }
 
       // Cancelling sync does not change the current state.
       expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
@@ -406,7 +410,9 @@ class PlatformIntegrationTest {
         .getExtensionPoint(ProjectDataService.EP_NAME)
         .registerExtension(CancellingService(), projectRule.testRootDisposable)
 
-      project.requestSyncAndWait()
+      AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
+        // Do not check status.
+      }
 
       // Cancelling sync does not change the current state.
       expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()

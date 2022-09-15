@@ -28,6 +28,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.fileUnderGradleRoot
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.saveAndDump
 import com.android.tools.idea.testing.verifySyncSkipped
 import com.google.common.truth.Expect
@@ -106,7 +107,9 @@ class OpenProjectIntegrationTest {
       runWriteAction {
         buildFile.setBinaryContent("*bad*".toByteArray())
       }
-      syncProject(project, GradleSyncInvoker.Request.testRequest())
+      syncProject(project, GradleSyncInvoker.Request.testRequest()) {
+        // Do not check status.
+      }
       assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
       (initial to project.saveAndDump()) to GradleSyncState.getInstance(project).lastSyncFinishedTimeStamp
     }
@@ -227,7 +230,7 @@ class OpenProjectIntegrationTest {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
     preparedProject.open { project: Project ->
       val firstSync = project.saveAndDump()
-      syncProject(project, GradleSyncInvoker.Request.testRequest())
+      project.requestSyncAndWait()
       val secondSync = project.saveAndDump()
       assertThat(firstSync).isEqualTo(secondSync)
     }

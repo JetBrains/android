@@ -21,7 +21,6 @@ import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDe
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.requestSyncAndWait;
 import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE;
@@ -41,7 +40,6 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.template.Template;
 import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
