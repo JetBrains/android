@@ -339,7 +339,7 @@ bool DisplayStreamer::ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketH
     }
     int64_t delta = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count() - Agent::GetLastTouchEventTime();
     if (delta < 1000) {
-      Log::D("Video packet of %d bytes at %lld ms since last touch event", codec_buffer.info.size, delta);
+      Log::D("Video packet of %d bytes at %" PRIi64 " ms since last touch event", codec_buffer.info.size, delta);
     }
     packet_header->origination_timestamp_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
     if (codec_buffer.IsConfig()) {
