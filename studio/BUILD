@@ -290,6 +290,7 @@ studio_plugin(
             "//prebuilts/tools/common/trace-processor-daemon:trace-processor-daemon-bundle",
         ],
     },
+    visibility = ["//visibility:public"],
     deps = [
         ":com.android.tools.idea.smali",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
@@ -309,6 +310,7 @@ studio_plugin(
     name = "com.android.tools.apk",
     directory = "android-apk",
     modules = {"android-apk.jar": ["//tools/vendor/google/android-apk:android-apk"]},
+    visibility = ["//visibility:public"],
     deps = [
         ":com.android.tools.idea.smali",
         ":com.android.tools.ndk",
@@ -326,6 +328,7 @@ studio_plugin(
             "//prebuilts/tools:lldb-bundle",
         ],
     },
+    visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
@@ -363,6 +366,7 @@ studio_plugin(
             "//prebuilts/studio/layoutlib:layoutlib",
         ],
     },
+    visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
@@ -375,6 +379,7 @@ studio_plugin(
     directory = "android-compose-ide-plugin",
     libs = ["//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.2.0-SNAPSHOT"],
     modules = {"android-compose-ide-plugin.jar": ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"]},
+    visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
@@ -389,6 +394,7 @@ studio_plugin(
         "//tools/vendor/google/firebase:licenses",
     ],
     modules = {"firebase.jar": ["//tools/vendor/google/firebase:firebase"]},
+    visibility = ["//visibility:public"],
     deps = [
         ":com.google.gct.login",
         ":com.google.gct.test.recorder",
@@ -411,6 +417,7 @@ studio_plugin(
     resources = {
         "resources": ["//tools/vendor/google/directaccess-client/reverse-daemon:daemon"],
     },
+    visibility = ["//visibility:public"],
     deps = [
         ":com.google.gct.login",
         ":com.google.gct.testing",
@@ -432,6 +439,7 @@ studio_plugin(
         "//tools/studio/google/cloud/testing/firebase-testing/lib:licenses",
     ],
     modules = {"firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"]},
+    visibility = ["//visibility:public"],
     deps = [
         ":com.google.gct.core",
         ":com.google.gct.login",
@@ -448,6 +456,7 @@ studio_plugin(
         "//tools/studio/google/appindexing/lib:licenses",
     ],
     modules = {"google-appindexing.jar": ["//tools/studio/google/appindexing:google-appindexing"]},
+    visibility = ["//visibility:public"],
     deps = [
         ":com.google.gct.login",
         ":com.google.urlassistant",
@@ -469,6 +478,7 @@ studio_plugin(
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
     ],
     modules = {"google-cloud-tools-as.jar": ["//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as"]},
+    visibility = ["//visibility:public"],
     deps = [
         ":com.google.gct.core",
         ":com.google.gct.login",
@@ -495,6 +505,7 @@ studio_plugin(
         "//tools/studio/google/cloud/tools/core-plugin/lib:licenses",
     ],
     modules = {"google-cloud-tools-core-as.jar": ["//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as"]},
+    visibility = ["//visibility:public"],
     deps = [
         ":com.google.gct.login",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-git4idea",
@@ -514,12 +525,14 @@ studio_plugin(
         "@maven//:com.google.auth.google-auth-library-oauth2-http",
     ],
     modules = {"google-login-as.jar": ["//tools/studio/google/cloud/tools/google-login-plugin:google-login-as"]},
+    visibility = ["//visibility:public"],
 )
 
 studio_plugin(
     name = "com.google.cluestick.studioclient",
     directory = "google-samples",
     modules = {"google-samples.jar": ["//tools/studio/google/samples:google-samples"]},
+    visibility = ["//visibility:public"],
     deps = [
         ":com.google.gct.login",
         ":org.jetbrains.android",
@@ -530,6 +543,7 @@ studio_plugin(
     name = "com.android.tools.idea.smali",
     directory = "smali",
     modules = {"smali.jar": ["//tools/adt/idea/smali:intellij.android.smali"]},
+    visibility = ["//visibility:public"],
 )
 
 studio_plugin(
@@ -543,6 +557,7 @@ studio_plugin(
         "//tools/studio/google/cloud/testing/test-recorder/lib:licenses",
     ],
     modules = {"test-recorder.jar": ["//tools/studio/google/cloud/testing/test-recorder:test-recorder"]},
+    visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
     ],
@@ -552,6 +567,7 @@ studio_plugin(
     name = "com.google.urlassistant",
     directory = "url-assistant",
     modules = {"url-assistant.jar": ["//tools/vendor/google/url-assistant:url-assistant"]},
+    visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
@@ -563,6 +579,7 @@ studio_plugin(
     name = "com.google.targetsdkversionassistant",
     directory = "targetsdkversion-upgrade-assistant",
     modules = {"targetsdkversion-upgrade-assistant.jar": ["//tools/vendor/google/targetsdkversion-upgrade-assistant:targetsdkversion-upgrade-assistant"]},
+    visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
