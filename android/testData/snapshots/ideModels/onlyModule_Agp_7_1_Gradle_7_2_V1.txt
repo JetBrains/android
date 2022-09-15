@@ -242,7 +242,7 @@ MODULE                        : project.app
     ProjectPath                   : :app
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -287,7 +287,7 @@ MODULE                        : project.app
         testApplicationId             : com.example.android.app.test
     - basicVariant:               : release
         applicationId                 : com.example.android.app
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -627,7 +627,7 @@ MODULE                        : project.test
     ProjectPath                   : :test
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_TEST
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/test/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -668,7 +668,7 @@ MODULE                        : project.test
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
         applicationId                 : com.example.android.app.testmodule
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -1519,7 +1519,7 @@ MODULE                        : project.test2
     ProjectPath                   : :test2
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_TEST
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/test2/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -1560,7 +1560,7 @@ MODULE                        : project.test2
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
         applicationId                 : com.example.android.test2
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig

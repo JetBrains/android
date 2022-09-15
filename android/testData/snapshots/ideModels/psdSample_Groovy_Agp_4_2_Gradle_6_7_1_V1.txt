@@ -2014,7 +2014,7 @@ MODULE                        : project.app
     ProjectPath                   : :app
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
@@ -2082,7 +2082,7 @@ MODULE                        : project.app
         applicationId                 : com.example.psd.sample.app.paid.defaultSuffix
     FlavorDimensions              : foo
     FlavorDimensions              : bar
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     DynamicFeatures               : :dyn_feature
     ViewBindingOptions
         Enabled                       : false
@@ -3864,7 +3864,7 @@ MODULE                        : project.dyn_feature
     ProjectPath                   : :dyn_feature
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/dyn_feature/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
@@ -3905,7 +3905,7 @@ MODULE                        : project.dyn_feature
     - basicVariant:               : debug
         testApplicationId             : com.example.dyn_feature.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     BaseFeature                   : :app
     ViewBindingOptions
         Enabled                       : false
@@ -4209,7 +4209,7 @@ MODULE                        : project.lib
     ProjectPath                   : :lib
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/lib/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
@@ -4250,7 +4250,7 @@ MODULE                        : project.lib
     - basicVariant:               : debug
         testApplicationId             : com.example.projectwithappandlib.lib.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -4915,7 +4915,7 @@ MODULE                        : project.nested1
     ProjectPath                   : :nested1
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/nested1/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
@@ -4956,7 +4956,7 @@ MODULE                        : project.nested1
     - basicVariant:               : debug
         testApplicationId             : com.example.nested1.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -5236,7 +5236,7 @@ MODULE                        : project.nested1.deep
     ProjectPath                   : :nested1:deep
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/nested1/deep/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
@@ -5277,7 +5277,7 @@ MODULE                        : project.nested1.deep
     - basicVariant:               : debug
         testApplicationId             : com.example.nested1.deep.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -5567,7 +5567,7 @@ MODULE                        : project.nested2
     ProjectPath                   : :nested2
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/nested2/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
@@ -5612,7 +5612,7 @@ MODULE                        : project.nested2
     - basicVariant:               : basicRelease
     - basicVariant:               : paidRelease
     FlavorDimensions              : foo
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -6020,7 +6020,7 @@ MODULE                        : project.nested2.deep
     ProjectPath                   : :nested2:deep
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/nested2/deep/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
@@ -6061,7 +6061,7 @@ MODULE                        : project.nested2.deep
     - basicVariant:               : debug
         testApplicationId             : com.example.nested2.deep.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -6355,7 +6355,7 @@ MODULE                        : project.nested2.trans.deep2
     ProjectPath                   : :nested2:trans:deep2
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/nested2/trans/deep2/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
@@ -6396,7 +6396,7 @@ MODULE                        : project.nested2.trans.deep2
     - basicVariant:               : debug
         testApplicationId             : com.example.nested2.trans.deep2.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig

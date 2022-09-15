@@ -63,7 +63,7 @@ class AnnotationProcessorsAnalyzerTest {
 
         android {
           namespace "google.simplelibrary"
-          compileSdkVersion 32
+          compileSdkVersion 33
         }
       """.trimIndent()
     )

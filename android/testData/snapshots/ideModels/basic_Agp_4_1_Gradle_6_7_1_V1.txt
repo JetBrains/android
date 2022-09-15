@@ -38,7 +38,7 @@ MODULE                        : project
     ProjectPath                   : :
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/build [-]
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : true
@@ -98,7 +98,7 @@ MODULE                        : project
         testApplicationId             : com.android.tests.basic.debug.test
     - basicVariant:               : release
         applicationId                 : com.android.tests.basic
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo

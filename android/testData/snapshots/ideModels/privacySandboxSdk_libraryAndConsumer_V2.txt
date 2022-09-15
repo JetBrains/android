@@ -826,11 +826,11 @@ MODULE                        : project.ads-sdk-implementation
         - gradlePlugins               : com.android.build.gradle.LibraryPlugin
     CurrentVariantReportedVersions
         minSdk
-            ApiLevel                      : 33
-            ApiString                     : 33
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         runtimeMinSdk
-            ApiLevel                      : 33
-            ApiString                     : 33
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         targetSdk
             ApiLevel                      : 1
             ApiString                     : 1
@@ -891,8 +891,8 @@ MODULE                        : project.ads-sdk-implementation
             Name                          : main
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MinSdkVersion
-                ApiLevel                      : 33
-                ApiString                     : 33
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1044,8 +1044,8 @@ MODULE                        : project.ads-sdk-implementation
             DisplayName                   : debug
             InstantAppCompatible          : false
             MinSdkVersion
-                ApiLevel                      : 33
-                ApiString                     : 33
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN

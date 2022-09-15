@@ -91,7 +91,7 @@ AGP_DATA = {
     ],
     AGP_7_2: [
         "//prebuilts/studio/sdk:build-tools/30.0.3",
-        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/android-32",
     ],
     AGP_7_3: [
         "//prebuilts/studio/sdk:build-tools/30.0.3",

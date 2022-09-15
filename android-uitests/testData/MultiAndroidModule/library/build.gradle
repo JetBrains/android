@@ -3,7 +3,7 @@ apply plugin: 'com.android.library'
 android {
     publishNonDefault true
 
-    compileSdkVersion 32
+    compileSdkVersion 33
 
     defaultConfig {
         minSdkVersion 19

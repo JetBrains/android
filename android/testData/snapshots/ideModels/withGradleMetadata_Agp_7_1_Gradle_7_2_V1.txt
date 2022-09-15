@@ -168,7 +168,7 @@ MODULE                        : withGradleMetadata.app
     ProjectPath                   : :app
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -213,7 +213,7 @@ MODULE                        : withGradleMetadata.app
         testApplicationId             : come.example.with.gradle.metadata.test
     - basicVariant:               : release
         applicationId                 : come.example.with.gradle.metadata
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo

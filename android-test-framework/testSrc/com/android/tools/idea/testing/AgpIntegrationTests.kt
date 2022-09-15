@@ -60,7 +60,7 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_70("7.0.0", gradleVersion = "7.0.2", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_71("7.1.0", gradleVersion = "7.2", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_72_V1("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V1, compileSdk = "32"),
-  AGP_72("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V2),
+  AGP_72("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V2, compileSdk = "32"),
   AGP_73("7.3.0-rc01", gradleVersion = "7.4", modelVersion = ModelVersion.V2),
   AGP_74("7.4.0-alpha09", gradleVersion = "7.5", modelVersion = ModelVersion.V2),
 

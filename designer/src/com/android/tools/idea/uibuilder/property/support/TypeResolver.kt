@@ -83,7 +83,9 @@ object TypeResolver {
       SdkConstants.ATTR_POPUP_THEME,
       SdkConstants.ATTR_SHAPE_APPEARANCE,
       SdkConstants.ATTR_SHAPE_APPEARANCE_OVERLAY,
-      SdkConstants.ATTR_STYLE -> NlPropertyType.STYLE
+      SdkConstants.ATTR_STYLE,
+      "lineBreakStyle",
+      "lineBreakWordStyle" -> NlPropertyType.STYLE
 
       SdkConstants.ATTR_CLASS -> NlPropertyType.FRAGMENT
 
@@ -246,6 +248,7 @@ object TypeResolver {
       "values",  // actually an array of float for com.google.android.material.slider.RangeSlider
       SdkConstants.ATTR_AUTO_SIZE_PRESET_SIZES -> NlPropertyType.ARRAY
 
+      "titlePositionInterpolator",
       SdkConstants.ATTR_INTERPOLATOR,
       SdkConstants.ATTR_LAYOUT_SCROLL_INTERPOLATOR -> NlPropertyType.INTERPOLATOR
 

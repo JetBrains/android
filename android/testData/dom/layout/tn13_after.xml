@@ -1,5 +1,5 @@
 <LinearLayout>
-  <android.media.tv.TvView
+  <android.gesture.GestureOverlayView
       layout_width=""
       layout_height=""
 </LinearLayout>

@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 
 android {
     namespace "google.testartifacts"
-    compileSdkVersion 32
+    compileSdkVersion 33
     defaultConfig {
         applicationId "com.example.android.kotlin"
         minSdkVersion 15

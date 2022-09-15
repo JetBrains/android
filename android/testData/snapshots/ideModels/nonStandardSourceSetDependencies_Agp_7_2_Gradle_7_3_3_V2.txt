@@ -1479,7 +1479,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
     ProjectPath                   : :app
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -1524,7 +1524,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
         testApplicationId             : me.monori.gradleprojectpathissue.test
     - basicVariant:               : release
         applicationId                 : me.monori.gradleprojectpathissue
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -2615,7 +2615,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <ROOT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib-api.jar
                     - classpath                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
@@ -2641,7 +2641,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <ROOT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib-api.jar
                     - classpath                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
                     - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
@@ -2670,7 +2670,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <ROOT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib-api.jar
                     - classpath                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
                     - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
@@ -3162,7 +3162,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
     ProjectPath                   : :feature-a
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/feature-a/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -3205,7 +3205,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
     - basicVariant:               : debug
         testApplicationId             : me.monori.feature.a.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -3900,7 +3900,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
                     - classpath                   : <M2>/androidx/annotation/annotation/1.2.0/annotation-1.2.0.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.0.0-api.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
@@ -3949,7 +3949,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
                     - classpath                   : <M2>/androidx/annotation/annotation/1.2.0/annotation-1.2.0.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.0.0-api.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debugAndroidTest
                     - friendPaths                 : <ROOT>/feature-a/build/tmp/kotlin-classes/debug [-]
@@ -4001,7 +4001,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
                     - classpath                   : <M2>/androidx/annotation/annotation/1.2.0/annotation-1.2.0.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.0.0-api.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debugUnitTest
                     - friendPaths                 : <ROOT>/feature-a/build/tmp/kotlin-classes/debug [-]
@@ -4078,7 +4078,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
     ProjectPath                   : :feature-b
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/feature-b/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -4121,7 +4121,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
     - basicVariant:               : debug
         testApplicationId             : me.monori.feature.b.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -4727,7 +4727,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                        - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                        - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                         - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                         destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debug
                         jvmDefault                    : disable
@@ -4856,7 +4856,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                        - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                        - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                         - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                         destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debugAndroidTest
                         - friendPaths                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debug [-]
@@ -4951,7 +4951,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                        - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                        - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                         - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                         destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debugUnitTest
                         - friendPaths                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debug [-]
@@ -5205,7 +5205,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
     ProjectPath                   : :lib
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/lib/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -5248,7 +5248,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -5801,7 +5801,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0-api.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
@@ -5841,7 +5841,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0-api.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
                     - friendPaths                 : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
@@ -5870,7 +5870,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/with-runtime-1.0-api.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
                     - friendPaths                 : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]

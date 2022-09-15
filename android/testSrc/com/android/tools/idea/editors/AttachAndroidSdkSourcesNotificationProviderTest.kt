@@ -173,7 +173,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
     // Check that the link requested the correct paths, and that then sources became available.
     assertThat(myProvider.requestedPaths).isNotNull()
-    assertThat(myProvider.requestedPaths).containsExactly("sources;android-32")
+    assertThat(myProvider.requestedPaths).containsExactly("sources;android-33")
     assertThat(rootProvider.getFiles(OrderRootType.SOURCES).size).isGreaterThan(0)
   }
 
@@ -189,7 +189,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
     // Check that the link requested the correct paths, and that then sources became available.
     assertThat(myProvider.requestedPaths).isNotNull()
-    assertThat(myProvider.requestedPaths).containsExactly("sources;android-32")
+    assertThat(myProvider.requestedPaths).containsExactly("sources;android-33")
     assertThat(rootProvider.getFiles(OrderRootType.SOURCES).size).isGreaterThan(0)
   }
 

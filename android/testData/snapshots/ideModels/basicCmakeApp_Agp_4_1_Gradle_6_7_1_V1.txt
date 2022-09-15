@@ -182,7 +182,7 @@ MODULE                        : project.app
     ProjectPath                   : :app
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : true
@@ -225,7 +225,7 @@ MODULE                        : project.app
         testApplicationId             : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long.test
     - basicVariant:               : release
         applicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo

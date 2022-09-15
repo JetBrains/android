@@ -97,6 +97,7 @@ object AndroidAttributeFact {
       "endIconTint" -> return NlPropertyType.COLOR_STATE_LIST
       "endIconTintMode" -> return NlPropertyType.ENUM
       "ensureMinTouchTargetSize" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "emojiCompatEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "errorContentDescription" -> return NlPropertyType.STRING
       "errorIconDrawable" -> return NlPropertyType.DRAWABLE
       "errorIconTint" -> return NlPropertyType.COLOR_STATE_LIST
@@ -156,6 +157,8 @@ object AndroidAttributeFact {
       "layout_scrollInterpolator" -> return NlPropertyType.INTERPOLATOR
       "liftOnScrollTargetViewId" -> return NlPropertyType.ID
       "lineSpacing" -> return NlPropertyType.DIMENSION
+      "lineBreakStyle" -> return NlPropertyType.STYLE
+      "lineBreakWordStyle" -> return NlPropertyType.STYLE
       "menuGravity" -> return NlPropertyType.ENUM
       "minHideDelay" -> return NlPropertyType.INTEGER
       "minSeparation" -> return NlPropertyType.DIMENSION
@@ -306,6 +309,7 @@ object AndroidAttributeFact {
       "scrimVisibleHeightTrigger" -> return NlPropertyType.DIMENSION
       "statusBarScrim" -> return NlPropertyType.DRAWABLE
       "titleEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "titlePositionInterpolator" -> return NlPropertyType.INTERPOLATOR
       "toolbarId" -> return NlPropertyType.ID
 
       // RecyclerView additions
@@ -582,6 +586,7 @@ object AndroidAttributeFact {
       "appCategory" -> return NlPropertyType.INTEGER
       "appComponentFactory" -> return NlPropertyType.STRING
       "author" -> return NlPropertyType.ID
+      "autoHandwritingEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "autoRemoveFromRecents" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "autoSizeMaxTextSize" -> return NlPropertyType.DIMENSION
       "autoSizeMinTextSize" -> return NlPropertyType.DIMENSION
@@ -1056,6 +1061,7 @@ object AndroidAttributeFact {
       "popupLayout" -> return NlPropertyType.ID
       "position" -> return NlPropertyType.INTEGER
       "positiveButtonText" -> return NlPropertyType.STRING
+      "preferKeepClear" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "priority" -> return NlPropertyType.INTEGER
       "privateImeOptions" -> return NlPropertyType.STRING
       "process" -> return NlPropertyType.STRING
