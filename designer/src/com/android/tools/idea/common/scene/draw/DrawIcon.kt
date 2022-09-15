@@ -15,17 +15,27 @@
  */
 package com.android.tools.idea.common.scene.draw
 
+import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.scene.SceneContext
+import com.intellij.openapi.util.IconLoader
+import com.intellij.ui.scale.ScaleContext
+import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
+import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.Image
+import javax.swing.Icon
 
-class DrawImage(private val rectangle: SwingRectangle,
-                private val image: Image) : DrawCommandBase() {
+class DrawIcon(private val icon: Icon,
+               private val rectangle: SwingRectangle,
+               private val color: Color? = null) : DrawCommandBase() {
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.setRenderingHints(HQ_RENDERING_HINTS)
+    val coloredIcon = color?.let { ColoredIconGenerator.generateColoredIcon(icon, it) } ?: icon
+    val image = IconLoader.toImage(coloredIcon, ScaleContext.create(g)).let {
+      ImageUtil.scaleImage(it, rectangle.width.toInt(), rectangle.height.toInt())
+    }
     UIUtil.drawImage(g, image, rectangle.x.toInt(), rectangle.y.toInt(), null)
   }
 }

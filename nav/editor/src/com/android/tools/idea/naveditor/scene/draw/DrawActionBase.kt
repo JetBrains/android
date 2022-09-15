@@ -23,10 +23,10 @@ import com.android.tools.adtui.common.scaledSwingLength
 import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.scene.draw.DrawIcon
 import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.naveditor.scene.ArrowDirection
-import com.android.tools.idea.naveditor.scene.makeDrawImageCommand
 import icons.StudioIcons.NavEditor.Surface.POP_ACTION
 import java.awt.BasicStroke
 import java.awt.Color
@@ -44,7 +44,7 @@ abstract class DrawActionBase(protected val scale: Scale,
     val list = mutableListOf(DrawShape(shape, color, ACTION_STROKE), makeDrawArrowCommand(arrowRectangle, direction))
 
     if (isPopAction) {
-      list.add(makeDrawImageCommand(POP_ACTION, getPopIconRectangle(), color))
+      list.add(DrawIcon(POP_ACTION, getPopIconRectangle(), color))
     }
 
     return list
