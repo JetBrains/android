@@ -33,13 +33,14 @@ import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
-import java.awt.Component;
+import com.intellij.util.ui.JBUI.Borders;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.AbstractButton;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
+import javax.swing.JComponent;
 import javax.swing.JTable;
 import kotlinx.coroutines.BuildersKt;
 import kotlinx.coroutines.GlobalScope;
@@ -54,7 +55,7 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
   private @Nullable AbstractButton myAddButton;
   private AbstractButton myRemoveButton;
   private PairingTable myTable;
-  private final @NotNull Component myScrollPane;
+  private @Nullable JComponent myScrollPane;
 
   @UiThread
   public PairedDevicesPanel(@NotNull Key key, @NotNull Disposable parent, @Nullable Project project) {
@@ -73,7 +74,8 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
     initAddButton();
     initRemoveButton();
     initTable();
-    myScrollPane = new JBScrollPane(myTable);
+    initScrollPane();
+
     layOut();
 
     myManager.addDevicePairingStatusChangedListener(this);
@@ -149,6 +151,12 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
     }
 
     myTable.setRowSelectionInterval(0, 0);
+  }
+
+  @UiThread
+  private void initScrollPane() {
+    myScrollPane = new JBScrollPane(myTable);
+    myScrollPane.setBorder(Borders.empty());
   }
 
   @UiThread
