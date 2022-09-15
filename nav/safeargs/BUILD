@@ -92,6 +92,7 @@ maven_repository(
         "@maven//:androidx.lifecycle.lifecycle-runtime_2.1.0",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.1.0",
         "@maven//:androidx.navigation.navigation-safe-args-gradle-plugin_2.3.1",
+        "@maven//:androidx.navigation.navigation-safe-args-gradle-plugin_2.5.2",
         "@maven//:androidx.savedstate.savedstate_1.0.0",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:commons-lang.commons-lang_2.4",

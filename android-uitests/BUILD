@@ -153,7 +153,7 @@ maven_repository(
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.4.1",
         "@maven//:androidx.media.media_1.5.0",
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.3.5",
-        "@maven//:androidx.navigation.navigation-safe-args-gradle-plugin_2.3.1",
+        "@maven//:androidx.navigation.navigation-safe-args-gradle-plugin_2.5.2",
         "@maven//:androidx.navigation.navigation-ui-ktx_2.3.5",
         "@maven//:androidx.palette.palette-ktx_1.0.0",
         "@maven//:androidx.recyclerview.recyclerview_1.2.1",
