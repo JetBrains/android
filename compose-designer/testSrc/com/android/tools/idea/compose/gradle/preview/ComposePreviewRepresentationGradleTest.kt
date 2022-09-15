@@ -244,9 +244,9 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   /** Builds the project and waits for the preview panel to refresh. It also does zoom to fit. */
-  private fun buildAndRefresh() {
+  private fun buildAndRefresh(timeout: Duration = Duration.ofSeconds(40)) {
     logger.info("buildAndRefresh")
-    runAndWaitForRefresh { projectRule.buildAndAssertIsSuccessful() }
+    runAndWaitForRefresh(timeout) { projectRule.buildAndAssertIsSuccessful() }
     validate()
   }
 
@@ -464,8 +464,37 @@ class ComposePreviewRepresentationGradleTest {
       FileDocumentManager.getInstance().saveAllDocuments()
     }
     assertTrue(composePreviewRepresentation.buildWillTriggerRefresh())
-    runBlocking { projectRule.buildAndAssertIsSuccessful() }
+    buildAndRefresh()
     assertFalse(composePreviewRepresentation.needsRefreshOnSuccessfulBuild())
+  }
+
+  // Regression test for b/246963901
+  @Test
+  fun `second build doesn't trigger refresh on first nor second activation`() {
+    // This test only makes sense when fast preview is disabled,
+    // as some build related logic is being tested.
+    StudioFlags.COMPOSE_FAST_PREVIEW.override(false)
+    repeat(2) {
+      runWriteActionAndWait {
+        projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
+        projectRule.fixture.moveCaret("Text(text = \"Hello \$name!\")|")
+        projectRule.fixture.type("\nText(\"added during test execution\")")
+        PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+        FileDocumentManager.getInstance().saveAllDocuments()
+      }
+
+      assertTrue(composePreviewRepresentation.buildWillTriggerRefresh())
+      // First build after modification should trigger refresh
+      buildAndRefresh()
+      assertFalse(composePreviewRepresentation.needsRefreshOnSuccessfulBuild())
+      // Second build shouldn't trigger refresh
+      assertFailsWith<TimeoutCancellationException> { buildAndRefresh(Duration.ofSeconds(15)) }
+
+      // Deactivating and activating the representation shouldn't affect its
+      // behaviour for the next repetition of the code above
+      composePreviewRepresentation.onDeactivate()
+      composePreviewRepresentation.onActivate()
+    }
   }
 
   @Test

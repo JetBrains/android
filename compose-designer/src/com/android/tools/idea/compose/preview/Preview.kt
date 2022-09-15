@@ -868,11 +868,11 @@ class ComposePreviewRepresentation(
 
     initializeFlows()
 
-    if (resume) {
-      surface.activate()
-    } else {
+    if (!resume) {
       onInit()
     }
+
+    surface.activate()
 
     if (interactiveMode.isStartingOrReady()) {
       resumeInteractivePreview()

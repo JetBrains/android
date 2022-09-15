@@ -84,9 +84,10 @@ private class CodeOutOfDateTrackerImpl constructor(module: Module,
   }
 
   private val resourceChangeListener: ((MutableSet<ResourceNotificationManager.Reason>) -> Unit) = { reasons ->
-    // If this listener was triggered by any reason but a project build,
-    // then we need to refresh the previews on the next successful build
+    // If this listener was triggered by any reason but a project build or a configuration change,
+    // then we need to refresh the previews on the next successful build.
     reasons.remove(ResourceNotificationManager.Reason.PROJECT_BUILD)
+    reasons.remove(ResourceNotificationManager.Reason.CONFIGURATION_CHANGED)
     if (reasons.isNotEmpty()) invalidateSavedBuildStatus()
   }
 
