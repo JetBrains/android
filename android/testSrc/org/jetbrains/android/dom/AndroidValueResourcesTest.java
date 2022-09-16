@@ -16,8 +16,6 @@
 
 package org.jetbrains.android.dom;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -28,7 +26,6 @@ import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
 import com.intellij.codeInsight.daemon.impl.IdentifierHighlighterPassFactory;
@@ -42,11 +39,7 @@ import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiReference;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -57,15 +50,19 @@ import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import com.intellij.util.containers.ContainerUtil;
+import javaslang.collection.Array;
+import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import javaslang.collection.Array;
-import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
-import org.jetbrains.annotations.NotNull;
+
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for code editor features when working with resources under res/values.
@@ -840,7 +837,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {
     myFixture.configureFromExistingVirtualFile(virtualFile);
     List<HighlightInfo> infos = myFixture.doHighlighting();
-    DaemonCodeAnalyzerImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
+    CodeInsightTestFixtureImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
     List<IntentionAction> actions = new ArrayList<>();
 
     for (HighlightInfo info : infos) {

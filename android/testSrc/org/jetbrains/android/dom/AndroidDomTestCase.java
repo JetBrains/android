@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.testing.AndroidDomRule;
 import com.google.common.base.CaseFormat;
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.codeInsight.intention.IntentionAction;
@@ -43,6 +42,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.inspections.AndroidDomInspection;
 import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
@@ -308,7 +308,7 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
 
   protected final List<IntentionAction> highlightAndFindQuickFixes(Class<?> aClass) {
     List<HighlightInfo> infos = myFixture.doHighlighting();
-    DaemonCodeAnalyzerImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
+    CodeInsightTestFixtureImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
     List<IntentionAction> actions = new ArrayList<>();
 
     for (HighlightInfo info : infos) {
