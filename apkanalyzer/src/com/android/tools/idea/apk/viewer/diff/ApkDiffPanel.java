@@ -38,6 +38,7 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.Function;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.Convertor;
+import com.intellij.util.ui.JBUI;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import javax.swing.JCheckBox;
@@ -65,6 +66,9 @@ public class ApkDiffPanel {
 
   private Tree myTree;
   private DefaultTreeModel myTreeModel;
+
+  private static final int TEXT_RENDERER_HORIZ_PADDING = 6;
+  private static final int TEXT_RENDERER_VERT_PADDING = 4;
 
   public ApkDiffPanel(VirtualFile oldApk, VirtualFile newApk) {
     myOldApk = oldApk;
@@ -150,21 +154,25 @@ public class ApkDiffPanel {
                    .setName("File")
                    .setPreferredWidth(600)
                    .setHeaderAlignment(SwingConstants.LEADING)
+                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new NameRenderer()))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Old Size")
                    .setPreferredWidth(150)
                    .setHeaderAlignment(SwingConstants.TRAILING)
+                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new SizeRenderer(ApkDiffEntry::getOldSize)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("New Size")
                    .setPreferredWidth(150)
                    .setHeaderAlignment(SwingConstants.TRAILING)
+                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new SizeRenderer(ApkDiffEntry::getNewSize)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Diff Size")
                    .setPreferredWidth(150)
                    .setHeaderAlignment(SwingConstants.TRAILING)
+                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new SizeRenderer(ApkEntry::getSize)));
     myColumnTreePane = builder.build();
   }
