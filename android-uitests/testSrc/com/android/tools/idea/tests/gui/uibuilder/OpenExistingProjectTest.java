@@ -32,7 +32,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class OpenExistingProjectTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   /**
    * Verifies that existing projects can be opened and build without errors.
@@ -71,5 +71,7 @@ public class OpenExistingProjectTest {
     assertThat(errors).hasSize(0);
 
     ideFrame.invokeAndWaitForBuildAction("Build", "Rebuild Project");
+
+    ideFrame.closeProject();
   }
 }

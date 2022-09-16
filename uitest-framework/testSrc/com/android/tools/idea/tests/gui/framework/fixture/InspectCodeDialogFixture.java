@@ -26,6 +26,7 @@ import javax.swing.*;
 public class InspectCodeDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
   public static InspectCodeDialogFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
+    GuiTests.waitForBackgroundTasks(ideFrameFixture.robot());
     return new InspectCodeDialogFixture(
       ideFrameFixture, find(ideFrameFixture.robot(), DialogWrapper.class, Matchers.byTitle(JDialog.class, "Specify Inspection Scope")));
   }
@@ -49,11 +50,10 @@ public class InspectCodeDialogFixture extends IdeaDialogFixture<DialogWrapper> {
 
   public InspectionsFixture clickButton(@NotNull String buttonText) {
     GuiTests.findAndClickButton(this, buttonText);
-    Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
+    Wait.seconds(30).expecting("dialog to disappear").until(() -> !target().isShowing());
 
     // Wait for processing project usages to finish as running in background.
-    GuiTests.waitForBackgroundTasks(robot());
-
+    GuiTests.waitForBackgroundTasks(robot(), Wait.seconds(180));
     return InspectionsFixture.find(myIdeFrameFixture);
   }
 }

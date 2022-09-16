@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
+import static org.fest.reflect.core.Reflection.field;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -32,14 +33,20 @@ import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import com.intellij.openapi.wm.impl.welcomeScreen.RecentProjectPanel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBOptionButton;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.LinkLabel;
+import com.intellij.ui.treeStructure.filtered.FilteringTreeStructure;
 import java.io.File;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeModel;
+import org.fest.swing.cell.JTreeCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
@@ -90,18 +97,37 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
     return BrowseSamplesWizardFixture.find(robot());
   }
 
+  private static final JTreeCellReader TREE_NODE_CELL_READER = (jTree, modelValue) -> {
+    Object userObject = ((DefaultMutableTreeNode)modelValue).getUserObject();
+    if (userObject instanceof String) { // It is a String ("loading...") if the cell is not loaded yet.
+      return (String)userObject;
+    } else {
+      return field("ProjectActionRenderer").ofType(String.class)
+        .in(((FilteringTreeStructure.FilteringNode)userObject).getDelegate()).get();
+    }
+  };
+
   @NotNull
   public IdeFrameFixture openTheMostRecentProject(@NotNull GuiTestRule guiTestRule) {
-    RecentProjectPanel recentProjectPanel = robot().finder().findByType(RecentProjectPanel.class);
-    JBList jbList = robot().finder().findByType(recentProjectPanel, JBList.class, true);
+    GuiTests.waitForBackgroundTasks(robot(), Wait.seconds(120));
+    JBScrollPane jbScrollPane = robot().finder().findByType(JBScrollPane.class);
+    JTree processTree = robot().finder().findByType(jbScrollPane, JTree.class, true);
 
-    if (!jbList.isEmpty()) {
-      JListFixture listFixture = new JListFixture(robot(), jbList);
-      listFixture.clickItem(0);
-    }
+    JTreeFixture jTreeFixture = new JTreeFixture(robot(), processTree);
+    jTreeFixture.replaceCellReader(TREE_NODE_CELL_READER);
+    // It takes a few seconds to load the whole tree.
+
+    Wait.seconds(20).expecting("The desired path is loaded").until(() -> {
+      try {
+        jTreeFixture.clickRow(0);
+        return true;
+      } catch (LocationUnavailableException e) {
+        return false;
+      }
+    });
 
     Wait
-      .seconds(5)
+      .seconds(60)
       .expecting("Project to be open")
       .until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
 
