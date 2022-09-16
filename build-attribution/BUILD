@@ -1,6 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
+load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_7_1", "AGP_DATA")
 
 # managed by go/iml_to_build
 iml_module(
@@ -108,15 +109,14 @@ iml_module(
 old_agp_test(
     name = "ConfigurationCachingCompatibilityAnalyzerTest",
     timeout = "long",
-    agp_version = "7.1.0",
+    agp_version = AGP_7_1,
     data = [
         "//prebuilts/studio/jdk",
-        "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/build-attribution/testData",
         "//tools/base/build-system:gradle-distrib",
-    ],
+    ] + AGP_DATA[AGP_7_1],
     gradle_version = "LATEST",
     ignore_other_tests = True,
     iml_module = ":intellij.android.build-attribution.tests",

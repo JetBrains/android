@@ -184,7 +184,7 @@ MODULE                        : project_sm_src.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>_sm_src/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 29.0.2
     IsBaseSplit                   : true
     GroupId                       : project_sm_src
     AaptOptions
