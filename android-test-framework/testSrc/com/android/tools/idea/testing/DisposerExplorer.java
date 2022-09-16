@@ -93,7 +93,7 @@ public class DisposerExplorer {
 
   @NotNull
   private static ImmutableList<Disposable> getObjectNodeDisposableChildren(@NotNull Object objectNode) {
-    List<?> childNodes = getObjectNodeChildren(objectNode);
+    Collection<?> childNodes = getObjectNodeChildren(objectNode);
     if (childNodes.isEmpty()) {
       return ImmutableList.of();
     }
@@ -229,8 +229,7 @@ public class DisposerExplorer {
 
   @NotNull
   private static VisitResult visitNodeDescendants(@NotNull Object objectNode, @NotNull Visitor visitor) {
-    List<?> childNodes = getObjectNodeChildren(objectNode);
-    for (Object child : childNodes) {
+    for (Object child : getObjectNodeChildren(objectNode)) {
       VisitResult result = visitSubtree(child, visitor);
       if (result == VisitResult.ABORT) {
         return result;
