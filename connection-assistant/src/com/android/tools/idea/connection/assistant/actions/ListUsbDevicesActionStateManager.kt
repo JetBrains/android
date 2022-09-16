@@ -27,6 +27,7 @@ import com.android.tools.idea.assistant.datamodel.DefaultActionState
 import com.android.tools.idea.assistant.view.StatefulButtonMessage
 import com.android.tools.idea.assistant.view.UIUtils
 import com.android.tools.idea.concurrency.toCompletionStage
+import com.android.tools.idea.rendering.HtmlBuilderHelper
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.usb.Platform
 import com.android.tools.usb.UsbDeviceCollector
@@ -174,7 +175,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
 
     if (workingDevices.isNotEmpty()) {
       bodyHtmlBuilder
-        .addHeading("Found ${workingDevices.size} Android device(s) ready for debugging:", "black")
+        .addHeading("Found ${workingDevices.size} Android device(s) ready for debugging:", HtmlBuilderHelper.getHeaderFontColor())
 
       workingDevices.forEach { device ->
         val name = device.label
@@ -188,7 +189,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
 
     if (problemDevices.isNotEmpty()) {
       bodyHtmlBuilder
-        .addHeading("Found ${problemDevices.size} Android device(s) with possible problems:", "black")
+        .addHeading("Found ${problemDevices.size} Android device(s) with possible problems:", HtmlBuilderHelper.getHeaderFontColor())
 
       problemDevices.forEach { device ->
         val name = device.label
@@ -206,7 +207,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
 
     if (usbDevices.isNotEmpty()) {
       bodyHtmlBuilder
-        .addHeading("Found ${usbDevices.size} USB device(s) not recognized as Android devices:", "black")
+        .addHeading("Found ${usbDevices.size} USB device(s) not recognized as Android devices:", HtmlBuilderHelper.getHeaderFontColor())
       // Instead of displaying multiple devices of the same name, merge them into one and display the count
       usbDevices.groupBy { usbDevice -> usbDevice }.forEach { _, deviceList ->
         val device = deviceList.first()
@@ -217,7 +218,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
           .add(name)
 
         if (deviceList.size > 1) {
-          bodyHtmlBuilder.addNbsp().add("(${deviceList.size}x)")
+          bodyHtmlBuilder.addNbsp().addItalic("(${deviceList.size} devices)")
         }
 
         bodyHtmlBuilder.newlineIfNecessary().endParagraph()
