@@ -18,13 +18,10 @@ package com.android.tools.profilers;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.android.tools.adtui.stdui.ContentType;
 import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel;
-import com.android.tools.inspectors.common.ui.dataviewer.DataViewer;
-import com.android.tools.inspectors.common.ui.dataviewer.ImageDataViewer;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup;
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView;
@@ -46,7 +43,6 @@ import java.util.function.IntPredicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -157,46 +153,6 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
   public void clearContextMenuItems() {
     myComponentContextMenus.clear();
-  }
-
-  @NotNull
-  @Override
-  public DataViewer createDataViewer(@NotNull byte[] content, @NotNull ContentType contentType, @NotNull DataViewer.Style styleHint) {
-    if (contentType.isSupportedImageType()) {
-      return new ImageDataViewer() {
-        private final BufferedImage SAMPLE_IMAGE = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-        private final JComponent SAMPLE_COMPONENT = new JLabel(new ImageIcon(SAMPLE_IMAGE));
-
-        @NotNull
-        @Override
-        public BufferedImage getImage() {
-          return SAMPLE_IMAGE;
-        }
-
-        @NotNull
-        @Override
-        public JComponent getComponent() {
-          return SAMPLE_COMPONENT;
-        }
-      };
-    }
-    else {
-      return new DataViewer() {
-        private final JComponent SAMPLE_COMPONENT = new JPanel();
-
-        @NotNull
-        @Override
-        public JComponent getComponent() {
-          return SAMPLE_COMPONENT;
-        }
-
-        @NotNull
-        @Override
-        public Style getStyle() {
-          return Style.RAW;
-        }
-      };
-    }
   }
 
   @NotNull

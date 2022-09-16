@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.adtui.stdui.ContentType;
 import com.android.tools.adtui.stdui.ResizableImage;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigurationsDialog;
 import com.android.tools.inspectors.common.api.ide.IntellijContextMenuInstaller;
 import com.android.tools.inspectors.common.api.ide.stacktrace.IntelliJStackTraceGroup;
-import com.android.tools.inspectors.common.ui.dataviewer.DataViewer;
-import com.android.tools.inspectors.common.ui.dataviewer.IntellijDataViewer;
-import com.android.tools.inspectors.common.ui.dataviewer.IntellijImageDataViewer;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup;
 import com.android.tools.profilers.ExportDialog;
@@ -113,30 +109,6 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
   @Override
   public ImportDialog createImportDialog() {
     return new IntellijImportDialog(myProject);
-  }
-
-  @NotNull
-  @Override
-  public DataViewer createDataViewer(@NotNull byte[] content, @NotNull ContentType contentType, @NotNull DataViewer.Style styleHint) {
-    // User isn't expected to specify INVALID; it's only meant as an internal fallback
-    assert(styleHint != DataViewer.Style.INVALID);
-
-    if (contentType.isSupportedImageType()) {
-      DataViewer viewer = IntellijImageDataViewer.createImageViewer(content);
-      if (viewer == null) {
-        viewer = IntellijDataViewer.createInvalidViewer();
-      }
-      return viewer;
-    }
-    if (styleHint == DataViewer.Style.RAW) {
-      return contentType.isSupportedTextType()
-             ? IntellijDataViewer.createRawTextViewer(content)
-             : IntellijDataViewer.createInvalidViewer();
-    }
-    else {
-      assert (styleHint == DataViewer.Style.PRETTY);
-      return IntellijDataViewer.createPrettyViewerIfPossible(myProject, content, contentType.getFileType());
-    }
   }
 
   @NotNull
