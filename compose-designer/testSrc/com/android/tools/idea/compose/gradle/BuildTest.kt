@@ -27,6 +27,7 @@ import com.android.tools.idea.projectsystem.requestBuild
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTests.defaultPatchPreparedProject
+import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.withKotlin
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -116,7 +117,7 @@ class BuildTest {
         FileUtil.copyDir(simpleComposableAppPath, destination)
         defaultPatchPreparedProject(
           File(projectRule.project.basePath!!),
-          AGP_CURRENT.withKotlin(DEFAULT_KOTLIN_VERSION),
+          AGP_CURRENT.withKotlin(DEFAULT_KOTLIN_VERSION).resolve(),
           null,
           *listOf<File>().toTypedArray()
         )

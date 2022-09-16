@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:JvmName("AgpVersionSoftwareEnvironmentUtil")
+
 package com.android.tools.idea.testing
+
+import com.android.SdkConstants
+import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 
 /**
  * An AGP Version definition to be used in AGP integration tests.
@@ -46,6 +51,31 @@ interface AgpVersionSoftwareEnvironment {
   val modelVersion: ModelVersion
 }
 
+/**
+ * [AgpVersionSoftwareEnvironment] with all versions resolved.
+ */
+interface ResolvedAgpVersionSoftwareEnvironment : AgpVersionSoftwareEnvironment {
+  /**
+   * The version of the AGP.
+   */
+  override val agpVersion: String
+
+  /**
+   * The version of Gradle to be used in integration tests for this AGP version.
+   */
+  override val gradleVersion: String
+
+  /**
+   * The version of the Gradle Kotlin plugin to be used in integration tests for this AGP version.
+   */
+  override val kotlinVersion: String
+
+  /**
+   * The compileSdk to use in this test. `null` means the project default.
+   */
+  override val compileSdk: String
+}
+
 data class CustomAgpVersionSoftwareEnvironment @JvmOverloads constructor(
   override val agpVersion: String?,
   override val gradleVersion: String?,
@@ -63,3 +93,21 @@ fun AgpVersionSoftwareEnvironment.withKotlin(kotlinVersion: String?): CustomAgpV
 fun AgpVersionSoftwareEnvironment.withCompileSdk(compileSdk: String?): CustomAgpVersionSoftwareEnvironment =
   CustomAgpVersionSoftwareEnvironment(agpVersion, gradleVersion, kotlinVersion, compileSdk, modelVersion)
 
+@JvmName("resolveAgpVersionSoftwareEnvironment")
+fun AgpVersionSoftwareEnvironment.resolve(): ResolvedAgpVersionSoftwareEnvironment {
+  val buildEnvironment = BuildEnvironment.getInstance()
+
+  val gradleVersion: String? = gradleVersion
+  val gradlePluginVersion: String? = agpVersion
+  val kotlinVersion: String? = kotlinVersion
+  val compileSdk: String? = compileSdk
+  val modelVersion: ModelVersion = modelVersion
+
+  return object : ResolvedAgpVersionSoftwareEnvironment {
+    override val agpVersion: String = gradlePluginVersion ?: buildEnvironment.gradlePluginVersion
+    override val gradleVersion: String = gradleVersion ?: SdkConstants.GRADLE_LATEST_VERSION
+    override val kotlinVersion: String = kotlinVersion ?: KOTLIN_VERSION_FOR_TESTS
+    override val compileSdk: String = compileSdk ?: buildEnvironment.compileSdkVersion
+    override val modelVersion: ModelVersion = modelVersion
+  }
+}

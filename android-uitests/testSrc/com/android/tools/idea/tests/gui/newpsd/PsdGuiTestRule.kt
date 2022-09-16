@@ -17,12 +17,13 @@ package com.android.tools.idea.tests.gui.newpsd
 
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import java.io.File
 
 class PsdGuiTestRule : GuiTestRule() {
   override fun updateGradleVersions(projectPath: File) {
     val testRepositoryPath = getMasterProjectDirPath("psdSampleRepo")
-    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, AGP_CURRENT, null, listOf(testRepositoryPath))
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, AGP_CURRENT.resolve(), null, listOf(testRepositoryPath))
   }
 }

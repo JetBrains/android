@@ -1920,15 +1920,15 @@ internal fun IntegrationTestEnvironment.prepareGradleProject(
 
   AndroidGradleTests.prepareProjectForImportCore(
     testProjectAbsolutePath,
-    projectPath,
-    ThrowableConsumer { projectRoot ->
-      AndroidGradleTests.defaultPatchPreparedProject(
-        projectRoot,
-        agpVersion,
-        ndkVersion,
-        *additionalRepositories.toTypedArray()
-      )
-    })
+    projectPath
+  ) { projectRoot ->
+    AndroidGradleTests.defaultPatchPreparedProject(
+      projectRoot,
+      agpVersion.resolve(),
+      ndkVersion,
+      *additionalRepositories.toTypedArray()
+    )
+  }
   if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.toLowerCase() == "y") {
     println("Test project ${testProjectAbsolutePath.name} prepared at '$projectPath'")
   }

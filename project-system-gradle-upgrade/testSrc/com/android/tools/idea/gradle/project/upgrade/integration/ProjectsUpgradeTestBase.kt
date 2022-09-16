@@ -47,6 +47,7 @@ import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.CustomAgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.withGradle
 import com.android.utils.FileUtils
 import com.google.common.truth.Expect
@@ -139,7 +140,12 @@ open class ProjectsUpgradeTestBase {
         val target = projectRoot.resolve(source.relativeTo(srcRoot))
         FileUtils.copyFile(source, target)
         // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-        AndroidGradleTests.updateToolingVersionsAndPaths(target, testProject.agpVersionDef(), testProject.ndkVersion(), emptyList())
+        AndroidGradleTests.updateToolingVersionsAndPaths(
+          target,
+          testProject.agpVersionDef().resolve(),
+          testProject.ndkVersion(),
+          emptyList()
+        )
       }
     }
   }
@@ -157,7 +163,7 @@ open class ProjectsUpgradeTestBase {
       val baseGradleVersion = OldAgpSuite.GRADLE_VERSION?.takeIf { it != "LATEST" }
       AndroidGradleTests.defaultPatchPreparedProject(
         projectRoot,
-        expectedProjectState.agpVersionDef().withGradle(baseGradleVersion),
+        expectedProjectState.agpVersionDef().withGradle(baseGradleVersion).resolve(),
         expectedProjectState.ndkVersion()
       )
       // Patch base project with files expected to change.

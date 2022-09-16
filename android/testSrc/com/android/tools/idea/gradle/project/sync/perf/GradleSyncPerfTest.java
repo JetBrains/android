@@ -32,6 +32,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
+import com.android.tools.idea.testing.ResolvedAgpVersionSoftwareEnvironment;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -114,7 +115,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
 
   @Override
   protected void patchPreparedProject(@NotNull File projectRoot,
-                                      @NotNull AgpVersionSoftwareEnvironment agpVersion,
+                                      @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
                                       @Nullable String ndkVersion,
                                       File... localRepos)
     throws IOException {
@@ -123,10 +124,10 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
     // Override settings just for tests (e.g. sdk.dir)
     AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
     // We need the wrapper for import to succeed
-    AndroidGradleTests.createGradleWrapper(projectRoot, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
+    AndroidGradleTests.createGradleWrapper(projectRoot, gradleVersion);
 
     //Update build.gradle in root directory
-    updateBuildFile(gradlePluginVersion != null ? gradlePluginVersion : BuildEnvironment.getInstance().getGradlePluginVersion());
+    updateBuildFile(gradlePluginVersion);
 
     //Update dependencies.gradle
     updateDependenciesFile();

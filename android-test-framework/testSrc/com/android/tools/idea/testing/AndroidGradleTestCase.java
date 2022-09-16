@@ -22,6 +22,7 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.LastBuildOrSyncServiceKt.emulateStartupActivityForTest;
+import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentUtil.resolveAgpVersionSoftwareEnvironment;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -284,7 +285,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   protected void patchPreparedProject(@NotNull File projectRoot,
-                                      @NotNull AgpVersionSoftwareEnvironment agpVersion,
+                                      @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
                                       @Nullable String ndkVersion,
                                       File... localRepos) throws IOException {
     AndroidGradleTests.defaultPatchPreparedProject(projectRoot, agpVersion, ndkVersion, localRepos);
@@ -313,7 +314,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     prepareGradleProject(
       projectSourceRoot,
       targetPath,
-      file -> patchPreparedProject(file, agpVersion, ndkVersion,
+      file -> patchPreparedProject(file, resolveAgpVersionSoftwareEnvironment(agpVersion), ndkVersion,
                                    getAdditionalRepos().toArray(new File[0])));
     return targetPath;
   }

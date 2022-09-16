@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
+import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentUtil.resolveAgpVersionSoftwareEnvironment;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
 import static com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture.actAndWaitForGradleProjectSyncToFinish;
@@ -38,7 +40,6 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment;
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.CustomAgpVersionSoftwareEnvironment;
-import com.android.tools.idea.testing.ModelVersion;
 import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogger;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
@@ -66,10 +67,8 @@ import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -512,14 +511,21 @@ public class GuiTestRule implements TestRule {
   }
 
   protected void updateGradleVersions(@NotNull File projectPath) throws IOException {
-    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, null, emptyList());
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath,
+                                                     resolveAgpVersionSoftwareEnvironment(
+                                                       AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT),
+                                                     null,
+                                                     emptyList());
   }
 
   protected void updateGradleVersions(@NotNull File projectPath,
                                       @NotNull AgpVersionSoftwareEnvironment agpVersion,
                                       @Nullable String ndkVersion
                                       ) throws IOException {
-    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, agpVersion, ndkVersion, emptyList());
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath,
+                                                     resolveAgpVersionSoftwareEnvironment(agpVersion),
+                                                     ndkVersion,
+                                                     emptyList());
   }
 
   @NotNull
