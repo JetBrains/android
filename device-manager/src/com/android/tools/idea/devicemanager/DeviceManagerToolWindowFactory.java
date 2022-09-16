@@ -28,14 +28,19 @@ import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.ui.JBUI;
+import java.awt.BorderLayout;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final String ID = "Device Manager";
 
-  @SuppressWarnings("unused")
-  private DeviceManagerToolWindowFactory() {
+  @VisibleForTesting
+  DeviceManagerToolWindowFactory() {
   }
 
   @Override
@@ -61,8 +66,16 @@ public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, 
     pane.addTab("Virtual", new VirtualDevicePanel(project, parent));
     pane.addTab("Physical", new PhysicalDevicePanel(project, parent));
     for (DeviceManagerTab tab : DeviceManagerTab.EP_NAME.getExtensions()) {
-      if (tab.isApplicable()) {
-        pane.addTab(tab.getName(), tab.getPanel(project, parent));
+      try {
+        if (tab.isApplicable()) {
+          pane.addTab(tab.getName(), tab.getPanel(project, parent));
+        }
+      } catch (Throwable throwable) {
+        JPanel errorPanel = new JPanel(new BorderLayout());
+        JLabel errorLabel = new JLabel(throwable.getMessage());
+        errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        errorPanel.add(errorLabel, BorderLayout.CENTER);
+        pane.addTab(tab.getName(), errorPanel);
       }
     }
 
