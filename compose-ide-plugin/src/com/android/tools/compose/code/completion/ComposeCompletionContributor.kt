@@ -36,7 +36,7 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
-import com.intellij.util.castSafelyTo
+import com.intellij.util.asSafely
 import icons.StudioIcons
 import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -61,9 +61,9 @@ private val COMPOSABLE_FUNCTION_ICON = StudioIcons.Compose.Editor.COMPOSABLE_FUN
 
 private fun LookupElement.getFunctionDescriptor(): FunctionDescriptor? {
   return this.`object`
-    .castSafelyTo<DescriptorBasedDeclarationLookupObject>()
+    .asSafely<DescriptorBasedDeclarationLookupObject>()
     ?.descriptor
-    ?.castSafelyTo<FunctionDescriptor>()
+    ?.asSafely<FunctionDescriptor>()
 }
 
 private fun ValueParameterDescriptor.isLambdaWithNoParameters() =
