@@ -33,6 +33,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.xml.XmlFile
+import com.intellij.ui.scale.ScaleContext
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.io.File
@@ -89,7 +90,8 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
 
     val psiFile = AndroidPsiUtils.getPsiFileSafely(surface.project, virtualFile) as? XmlFile ?: return empty
     val manager = ThumbnailManager.getInstance(facet)
-    return manager.getThumbnail(psiFile, configuration, Dimension(rectangle.width.toInt(), rectangle.height.toInt()))
+    return manager.getThumbnail(psiFile, configuration, Dimension(rectangle.width.toInt(), rectangle.height.toInt()),
+                                ScaleContext.create(surface))
   }
 
   private fun getFacet(component: SceneComponent, model: NlModel): AndroidFacet? {

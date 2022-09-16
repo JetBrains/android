@@ -33,6 +33,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualFileSystemEntry;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
@@ -66,24 +67,25 @@ public class ThumbnailManagerTest extends NavTestCase {
     ThumbnailManager manager = ThumbnailManager.getInstance(myFacet);
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
+    ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
     NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(virtualFile))
       .withParentDisposable(getMyRootDisposable())
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
-    RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
+    RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
     Image image = imageFuture.getTerminalImage();
-    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
+    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
     assertSame(image, imageFuture.getTerminalImage());
 
     // We should survive psi reparse
     psiFile.clearCaches();
-    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
+    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
     assertSame(image, imageFuture.getTerminalImage());
 
     image = imageFuture.getTerminalImage();
-    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
+    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
     assertSame(image, imageFuture.getTerminalImage());
 
     VirtualFile resDir = myFixture.findFileInTempDir("res");
@@ -91,11 +93,11 @@ public class ThumbnailManagerTest extends NavTestCase {
                                          Collections.singletonList(ResourceFolderType.VALUES.getName()), "bar");
     waitForResourceRepositoryUpdates();
 
-    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
+    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
     assertNotSame(image, imageFuture.getTerminalImage());
 
     image = imageFuture.getTerminalImage();
-    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
+    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
     assertSame(image, imageFuture.getTerminalImage());
   }
 
@@ -125,6 +127,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     Disposer.register(getProject(), manager);
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
+    ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
     NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(virtualFile))
@@ -132,7 +135,7 @@ public class ThumbnailManagerTest extends NavTestCase {
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
     Configuration configuration = model.getConfiguration();
-    RefinableImage thumbnail = manager.getThumbnail(psiFile, configuration, new Dimension(100, 200));
+    RefinableImage thumbnail = manager.getThumbnail(psiFile, configuration, new Dimension(100, 200), scaleContext);
     Image orig = thumbnail.getTerminalImage();
     assertNull(thumbnail.getImage());
 
@@ -142,7 +145,7 @@ public class ThumbnailManagerTest extends NavTestCase {
 
     ((VirtualFileSystemEntry)file).setTimeStamp(file.getTimeStamp() + 100);
 
-    RefinableImage image = manager.getThumbnail(psiFile, configuration, new Dimension(100, 200));
+    RefinableImage image = manager.getThumbnail(psiFile, configuration, new Dimension(100, 200), scaleContext);
     taskStarted.acquire();
     assertFalse(image.getRefined().isDone());
     assertEquals(image.getImage(), orig);
@@ -173,14 +176,15 @@ public class ThumbnailManagerTest extends NavTestCase {
     Disposer.register(getProject(), manager);
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
+    ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
     NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(virtualFile))
       .withParentDisposable(getMyRootDisposable())
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
-    RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
-    RefinableImage imageFuture2 = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
+    RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
+    RefinableImage imageFuture2 = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
 
     started.acquire();
     assertFalse(imageFuture.getRefined().isDone());
@@ -203,7 +207,8 @@ public class ThumbnailManagerTest extends NavTestCase {
       .withParentDisposable(getMyRootDisposable())
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
-    Image image = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(192, 320)).getTerminalImage();
+    Image image =
+      manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(192, 320), ScaleContext.createIdentity()).getTerminalImage();
 
     String fileName = "basic_activity_1.png";
 

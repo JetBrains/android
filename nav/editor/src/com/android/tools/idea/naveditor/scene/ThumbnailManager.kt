@@ -56,7 +56,7 @@ data class RefinableImage(val image: Image? = null, val refined: CompletableFutu
 open class ThumbnailManager protected constructor(facet: AndroidFacet) : AndroidFacetScopedService(facet) {
 
   private val myImages = HashBasedTable.create<VirtualFile, Configuration, SoftReference<BufferedImage>?>()
-  private val myScaledImages = HashBasedTable.create<VirtualFile, Configuration, MutableMap<Dimension, SoftReference<Image>?>?>()
+  private val myScaledImages = HashBasedTable.create<VirtualFile, Configuration, HashBasedTable<Dimension, ScaleContext, SoftReference<Image>?>?>()
   private val myRenderVersions = HashBasedTable.create<VirtualFile, Configuration, Long>()
   private val myRenderModStamps = HashBasedTable.create<VirtualFile, Configuration, Long>()
   private val myResourceRepository: LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet)
@@ -89,27 +89,30 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
   fun getThumbnail(
     xmlFile: XmlFile,
     configuration: Configuration,
-    dimensions: Dimension
+    dimensions: Dimension,
+    scaleContext: ScaleContext
   ): RefinableImage {
     val file = xmlFile.virtualFile
-    val cachedByDimension = myScaledImages[file, configuration] ?: mutableMapOf<Dimension, SoftReference<Image>?>().also {
-      myScaledImages.put(file, configuration, it)
-    }
-    val cached = cachedByDimension[dimensions]?.get()
+    val cachedByDimension = myScaledImages[file, configuration]
+                            ?: HashBasedTable.create<Dimension, ScaleContext, SoftReference<Image>?>().also {
+                              myScaledImages.put(file, configuration, it)
+                            }
+    val cached = cachedByDimension[dimensions, scaleContext]?.get()
     return if (cached != null &&
                myRenderVersions.get(file, configuration) == myResourceRepository.modificationCount &&
                myRenderModStamps.get(file, configuration) == file.timeStamp) {
       RefinableImage(cached)
     }
     else {
-      RefinableImage(cached, getScaledImage(xmlFile, configuration, dimensions))
+      RefinableImage(cached, getScaledImage(xmlFile, configuration, dimensions, scaleContext))
     }
   }
 
   private fun getScaledImage(
     xmlFile: XmlFile,
     configuration: Configuration,
-    dimensions: Dimension
+    dimensions: Dimension,
+    scaleContext: ScaleContext
   ): CompletableFuture<RefinableImage?> {
     val file = xmlFile.virtualFile
     val result = CompletableFuture<RefinableImage?>()
@@ -140,13 +143,13 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
             }
           }
           // This does the high-quality scaling asynchronously
-          val scaledFuture = scaleImage(full, dimensions).thenApply { scaled ->
-            val dimensionMap: MutableMap<Dimension, SoftReference<Image>?> =
+          val scaledFuture = scaleImage(full, dimensions, scaleContext).thenApply { scaled ->
+            val dimensionMap: HashBasedTable<Dimension, ScaleContext, SoftReference<Image>?> =
               myScaledImages[xmlFile.virtualFile, configuration]
-              ?: mutableMapOf<Dimension, SoftReference<Image>?>().also {
+              ?: HashBasedTable.create<Dimension, ScaleContext, SoftReference<Image>?>().also {
                 myScaledImages.put(xmlFile.virtualFile, configuration, it)
               }
-            dimensionMap[dimensions] = SoftReference(scaled)
+            dimensionMap.put(dimensions, scaleContext, SoftReference(scaled))
             scaled
           }.thenApply { RefinableImage(it) }
           // This stage of the top-level async pipeline returns a quickly-scaled version of the fullsize image, and the future for the high-
@@ -192,10 +195,10 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
     return scaled
   }
 
-  private fun scaleImage(image: BufferedImage, dimensions: Dimension): CompletableFuture<Image> {
+  private fun scaleImage(image: BufferedImage, dimensions: Dimension, scaleContext: ScaleContext): CompletableFuture<Image> {
     val result = CompletableFuture<Image>()
     ApplicationManager.getApplication().executeOnPooledThread {
-      var scaledImage = ImageUtil.ensureHiDPI(image, ScaleContext.create())
+      var scaledImage = ImageUtil.ensureHiDPI(image, scaleContext)
       scaledImage = ImageUtil.scaleImage(scaledImage, dimensions.width, dimensions.height)
 
       result.complete(scaledImage)
