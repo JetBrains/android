@@ -56,6 +56,7 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AnimatedIcon;
 import com.intellij.util.ui.AsyncProcessIcon;
+import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -90,6 +91,9 @@ public class ApkViewPanel implements TreeSelectionListener {
   private Listener myListener;
   @NotNull private final ApkParser myApkParser;
   private boolean myArchiveDisposed = false;
+
+  private static final int TEXT_RENDERER_HORIZ_PADDING = 6;
+  private static final int TEXT_RENDERER_VERT_PADDING = 4;
 
   public interface Listener {
     void selectionChanged(@Nullable ArchiveTreeNode[] entry);
@@ -245,21 +249,25 @@ public class ApkViewPanel implements TreeSelectionListener {
                    .setName("File")
                    .setPreferredWidth(600)
                    .setHeaderAlignment(SwingConstants.LEADING)
+                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new NameRenderer(treeSpeedSearch)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Raw File Size")
                    .setPreferredWidth(150)
                    .setHeaderAlignment(SwingConstants.TRAILING)
+                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new SizeRenderer(false)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Download Size")
                    .setPreferredWidth(150)
                    .setHeaderAlignment(SwingConstants.TRAILING)
+                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new SizeRenderer(true)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("% of Total Download Size")
                    .setPreferredWidth(150)
                    .setHeaderAlignment(SwingConstants.LEADING)
+                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new PercentRenderer(percentProvider))
       );
     myColumnTreePane = builder.build();
