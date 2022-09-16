@@ -54,7 +54,7 @@ open class IDEAndroidCommonLayoutXmlFileManager(val module: Module) : AndroidLay
     }
 
     private fun getPsiTreeChangePreprocessor(): PsiTreeChangePreprocessor {
-        return project.getExtensions(PsiTreeChangePreprocessor.EP_NAME).firstIsInstance<AndroidPsiTreeChangePreprocessor>()
+        return PsiTreeChangePreprocessor.EP.findExtension(AndroidPsiTreeChangePreprocessor::class.java, project)!!
     }
 
     protected open fun getLayouts(layoutGroup: AndroidLayoutGroupData): List<PsiFile> =
