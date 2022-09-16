@@ -26,7 +26,6 @@ iml_module(
         "//prebuilts/studio/sdk:ndk",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/android-28",
-        "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platforms/latest-preview",
         "//prebuilts/studio/sdk:sources",
         "//prebuilts/tools/common/m2:org.jetbrains.kotlin.kotlin-gradle-plugin.1.5.21",

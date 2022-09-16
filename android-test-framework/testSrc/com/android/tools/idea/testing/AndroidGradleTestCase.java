@@ -264,7 +264,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                    @Nullable String gradlePluginVersion,
                                    @Nullable String kotlinVersion,
                                    @Nullable String ndkVersion) throws Exception {
-    prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
+    prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, null);
     importProject();
 
     prepareProjectForTest(getProject(), chosenModuleName);
@@ -293,18 +293,19 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                       @Nullable String gradlePluginVersion,
                                       @Nullable String kotlinVersion,
                                       @Nullable String ndkVersion,
+                                      @Nullable String compileSdkVersion,
                                       File... localRepos) throws IOException {
-    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, localRepos);
+    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, compileSdkVersion, localRepos);
   }
 
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath) throws IOException {
-    return prepareProjectForImport(relativePath, null, null, null, null);
+    return prepareProjectForImport(relativePath, null, null, null, null, null);
   }
 
   @NotNull
   protected final File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @NotNull File targetPath) throws IOException {
-    return prepareProjectForImport(relativePath, targetPath, null, null, null, null);
+    return prepareProjectForImport(relativePath, targetPath, null, null, null, null, null);
   }
 
   /**
@@ -316,13 +317,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                          @Nullable String gradleVersion,
                                          @Nullable String gradlePluginVersion,
                                          @Nullable String kotlinVersion,
-                                         @Nullable String ndkVersion) throws IOException {
+                                         @Nullable String ndkVersion,
+                                         @Nullable String compileSdkVersion) throws IOException {
     File projectSourceRoot = resolveTestDataPath(relativePath);
 
     prepareGradleProject(
       projectSourceRoot,
       targetPath,
-      file -> patchPreparedProject(file, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion,
+      file -> patchPreparedProject(file, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, compileSdkVersion,
                                    getAdditionalRepos().toArray(new File[0])));
     return targetPath;
   }
@@ -332,9 +334,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                          @Nullable String gradleVersion,
                                          @Nullable String gradlePluginVersion,
                                          @Nullable String kotlinVersion,
-                                         @Nullable String ndkVersion) throws IOException {
+                                         @Nullable String ndkVersion,
+                                         @Nullable String compileSdk) throws IOException {
     File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
-    return prepareProjectForImport(relativePath, projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
+    return prepareProjectForImport(relativePath, projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, compileSdk);
   }
 
   @NotNull

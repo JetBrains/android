@@ -139,7 +139,7 @@ open class ProjectsUpgradeTestBase {
         FileUtils.copyFile(source, target)
         // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
         AndroidGradleTests.updateToolingVersionsAndPaths(target, testProject.gradleVersion(), testProject.agpVersion(),
-                                                         testProject.kotlinVersion(), testProject.ndkVersion())
+                                                         testProject.kotlinVersion(), testProject.ndkVersion(), null)
       }
     }
   }
@@ -157,7 +157,7 @@ open class ProjectsUpgradeTestBase {
       val baseGradleVersion = OldAgpSuite.GRADLE_VERSION?.takeIf { it != "LATEST" }
       AndroidGradleTests.defaultPatchPreparedProject(
         projectRoot, baseGradleVersion, expectedProjectState.agpVersion(), expectedProjectState.kotlinVersion(),
-        expectedProjectState.ndkVersion())
+        expectedProjectState.ndkVersion(), null)
       // Patch base project with files expected to change.
       // Note: one could think that we only need to check these files instead of comparing all files recursively
       // but checking all project files allows us to make sure no unexpected changes were made to any other not listed files.

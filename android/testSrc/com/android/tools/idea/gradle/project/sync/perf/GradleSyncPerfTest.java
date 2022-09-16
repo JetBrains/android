@@ -117,6 +117,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
                                       @Nullable String gradlePluginVersion,
                                       @Nullable String kotlinVersion,
                                       @Nullable String ndkVersion,
+                                      @Nullable String compileSdkVersion,
                                       File... localRepos)
     throws IOException {
     // Override settings just for tests (e.g. sdk.dir)
