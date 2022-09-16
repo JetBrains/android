@@ -63,6 +63,7 @@ import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.testframework.TestRunnerBundle;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.options.ConfigurationQuickFix;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -237,7 +238,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         final String fixMessage = "Code and resources under test source " + (count > 1 ? "roots" : "root") +
                                   " aren't included into debug APK.\nWould you like to include them and recompile " +
                                   module.getName() + " module?" + "\n(You may change this option in Android facet settings later)";
-        Runnable quickFix = () -> {
+        ConfigurationQuickFix quickFix = (dataContext) -> {
           final int result =
             Messages.showYesNoCancelDialog(getProject(), fixMessage, shortMessage, Messages.getQuestionIcon());
           if (result == Messages.YES) {

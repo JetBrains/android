@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import com.intellij.execution.configurations.RuntimeConfigurationError;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
+import com.intellij.openapi.options.ConfigurationQuickFix;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,9 +49,9 @@ public final class ValidationError implements Comparable<ValidationError> {
   @NotNull private final Severity mySeverity;
   @NotNull private final String myMessage;
   @Nullable private final Category myCategory;
-  @Nullable private final Runnable myQuickfix;
+  @Nullable private final ConfigurationQuickFix myQuickfix;
 
-  private ValidationError(@NotNull Severity severity, @NotNull String message, @Nullable Category category, @Nullable Runnable quickfix) {
+  private ValidationError(@NotNull Severity severity, @NotNull String message, @Nullable Category category, @Nullable ConfigurationQuickFix quickfix) {
     mySeverity = severity;
     myMessage = message;
     myCategory = category;
@@ -63,12 +64,12 @@ public final class ValidationError implements Comparable<ValidationError> {
   }
 
   @NotNull
-  public static ValidationError fatal(@NotNull String message, @Nullable Runnable quickfix) {
+  public static ValidationError fatal(@NotNull String message, @Nullable ConfigurationQuickFix quickfix) {
     return new ValidationError(Severity.FATAL, message, null, quickfix);
   }
 
   @NotNull
-  public static ValidationError fatal(@NotNull String message, @Nullable Category category, @Nullable Runnable quickfix) {
+  public static ValidationError fatal(@NotNull String message, @Nullable Category category, @Nullable ConfigurationQuickFix quickfix) {
     return new ValidationError(Severity.FATAL, message, category, quickfix);
   }
 
@@ -78,12 +79,12 @@ public final class ValidationError implements Comparable<ValidationError> {
   }
 
   @NotNull
-  public static ValidationError warning(@NotNull String message, @Nullable Runnable quickfix) {
+  public static ValidationError warning(@NotNull String message, @Nullable ConfigurationQuickFix quickfix) {
     return new ValidationError(Severity.WARNING, message, null, quickfix);
   }
 
   @NotNull
-  public static ValidationError warning(@NotNull String message, @Nullable Category category, @Nullable Runnable quickfix) {
+  public static ValidationError warning(@NotNull String message, @Nullable Category category, @Nullable ConfigurationQuickFix quickfix) {
     return new ValidationError(Severity.WARNING, message, category, quickfix);
   }
 
@@ -93,22 +94,22 @@ public final class ValidationError implements Comparable<ValidationError> {
   }
 
   @NotNull
-  public static ValidationError info(@NotNull String message, @Nullable Runnable quickfix) {
+  public static ValidationError info(@NotNull String message, @Nullable ConfigurationQuickFix quickfix) {
     return new ValidationError(Severity.INFO, message, null, quickfix);
   }
 
   @NotNull
-  public static ValidationError info(@NotNull String message, @Nullable Category category, @Nullable Runnable quickfix) {
+  public static ValidationError info(@NotNull String message, @Nullable Category category, @Nullable ConfigurationQuickFix quickfix) {
     return new ValidationError(Severity.INFO, message, category, quickfix);
   }
 
   @NotNull
   public static ValidationError fromException(@NotNull RuntimeConfigurationException e) {
     if (e instanceof RuntimeConfigurationError) {
-      return fatal(e.getMessage(), e.getQuickFix());
+      return fatal(e.getMessage(), e.getConfigurationQuickFix());
     }
     else {
-      return warning(e.getMessage(), e.getQuickFix());
+      return warning(e.getMessage(), e.getConfigurationQuickFix());
     }
   }
 
@@ -128,7 +129,7 @@ public final class ValidationError implements Comparable<ValidationError> {
   }
 
   @Nullable
-  public Runnable getQuickfix() {
+  public ConfigurationQuickFix getQuickfix() {
     return myQuickfix;
   }
 

@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.DataContext
 import org.junit.Rule
 import org.junit.Test
 
@@ -48,7 +49,7 @@ class UnsignedApkQuickFixTest {
     assertThat(releaseBuildSigningConfig?.valueAsString()).isNull()
 
     val unsignedApkQuickFix = UnsignedApkQuickFix(module, "release") { fakeSelector }
-    unsignedApkQuickFix.run()
+    unsignedApkQuickFix.applyFix(DataContext.EMPTY_CONTEXT)
     val updatedBuildModel = ProjectBuildModel.get(projectRule.project).getModuleBuildModel(module)!!
 
     // Release build is now assigned the debug signing config.

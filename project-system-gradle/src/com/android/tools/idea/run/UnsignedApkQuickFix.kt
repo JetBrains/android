@@ -21,8 +21,10 @@ import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.options.ConfigurationQuickFix
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.HyperlinkLabel
@@ -41,7 +43,7 @@ import javax.swing.JPanel
 class UnsignedApkQuickFix @VisibleForTesting constructor(
   private val module: Module,
   private val selectedBuildTypeName: String,
-  private val makeSigningConfigSelector: (GradleBuildModel) -> SigningConfigSelector) : Runnable {
+  private val makeSigningConfigSelector: (GradleBuildModel) -> SigningConfigSelector) : ConfigurationQuickFix {
   /**
    * Instantiates a dialog as the quick fix action for unsigned APK error. When user closed the dialog with the OK button, the selected
    * signing config is picked.
@@ -53,7 +55,7 @@ class UnsignedApkQuickFix @VisibleForTesting constructor(
     module, selectedBuildTypeName, { gradleBuildModel -> SigningConfigSelectorDialog(gradleBuildModel.android().signingConfigs()) }
   )
 
-  override fun run() {
+  override fun applyFix(dataContext: DataContext) {
     val gradleBuildModel = GradleModelProvider.getInstance().getProjectModel(module.project).getModuleBuildModel(module)
     if (gradleBuildModel != null) {
       val signingConfigSelector = makeSigningConfigSelector(gradleBuildModel)
