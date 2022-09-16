@@ -19,6 +19,8 @@ import com.android.build.attribution.BuildAnalysisResultsMessage
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.proto.PairEnumFinder
+import com.android.ide.common.attribution.TaskCategory
+import com.google.common.annotations.VisibleForTesting
 
 class TaskDataMessageConverter {
   companion object {
@@ -31,6 +33,10 @@ class TaskDataMessageConverter {
         .setExecutionEndTime(taskData.executionEndTime)
         .setExecutionMode(transformExecutionMode(taskData.executionMode))
         .addAllExecutionReasons(taskData.executionReasons)
+        .setIsOnTheCriticalPath(taskData.isOnTheCriticalPath)
+        .setTaskType(taskData.taskType)
+        .setPrimaryTaskCategory(transformTaskCategory(taskData.primaryTaskCategory))
+        .addAllSecondaryTaskCategories(taskData.secondaryTaskCategories.map(this::transformTaskCategory))
         .build()
 
     fun construct(taskData: List<BuildAnalysisResultsMessage.TaskData>, plugins: Map<String, PluginData>): List<TaskData> {
@@ -44,9 +50,18 @@ class TaskDataMessageConverter {
         val executionEndTime = task.executionEndTime
         val executionMode = constructExecutionMode(task.executionMode)
         val executionReasons = task.executionReasonsList
+        val isOnTheCriticalPath = task.isOnTheCriticalPath
+        val taskType = task.taskType
+        if (task.primaryTaskCategory == BuildAnalysisResultsMessage.TaskData.TaskCategory.UNRECOGNIZED)
+          throw IllegalStateException("Unrecognized task primary category")
+        val primaryTaskCategory = constructTaskCategory(task.primaryTaskCategory)
+        val secondaryTaskCategory = task.secondaryTaskCategoriesList.map(this::constructTaskCategory)
         originPlugin
           ?.let {
             val data = TaskData(taskName, projectPath, it, executionStartTime, executionEndTime, executionMode, executionReasons)
+            data.isOnTheCriticalPath = isOnTheCriticalPath
+            data.setTaskType(taskType)
+            data.setTaskCategories(primaryTaskCategory, secondaryTaskCategory)
             taskDataList.add(data)
           }
       }
@@ -56,7 +71,13 @@ class TaskDataMessageConverter {
     private fun transformExecutionMode(executionMode: TaskData.TaskExecutionMode): BuildAnalysisResultsMessage.TaskData.TaskExecutionMode =
       PairEnumFinder.aToB(executionMode)
 
+    private fun transformTaskCategory(taskCategory: TaskCategory): BuildAnalysisResultsMessage.TaskData.TaskCategory =
+      PairEnumFinder.aToB(taskCategory)
+
     private fun constructExecutionMode(executionMode: BuildAnalysisResultsMessage.TaskData.TaskExecutionMode): TaskData.TaskExecutionMode =
       PairEnumFinder.bToA(executionMode)
+
+    private fun constructTaskCategory(taskCategoryMessage: BuildAnalysisResultsMessage.TaskData.TaskCategory): TaskCategory =
+      PairEnumFinder.bToA(taskCategoryMessage)
   }
 }

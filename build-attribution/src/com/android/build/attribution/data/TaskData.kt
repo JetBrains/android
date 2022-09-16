@@ -18,27 +18,55 @@ package com.android.build.attribution.data
 import com.android.ide.common.attribution.TaskCategory
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSuccessResult
-import java.util.Objects
+
+/**
+ * Represents key information about TaskData. Used in comparisons and as a key in the hash table
+ *
+ * @param taskName the name of the executed task, ex: mergeDebugResources
+ * @param projectPath the path of the project that this task was executed in
+ * @param originPlugin the plugin that registered the task
+ */
+data class TaskDataId(val taskName: String,
+                      val projectPath: String,
+                      val originPlugin: PluginData)
 
 /**
  * Represents an executed task in a gradle build.
  * A task is uniquely identified by a combination of [taskName], [projectPath] and [originPlugin].
  *
- * @param taskName the name of the executed task, ex: mergeDebugResources
- * @param projectPath the path of the project that this task was executed in
- * @param originPlugin the plugin that registed the task
+ * @param taskId stores key information and is used in comparisons
  * @param executionStartTime the timestamp when the task started executing
  * @param executionEndTime the timestamp when the task finished executing
  * @param executionMode whether the task was fully executed, incrementally executed, fetch from cache, or was up to date
  * @param executionReasons the reasons why the task needed to run
  */
-class TaskData(val taskName: String,
-               val projectPath: String,
-               val originPlugin: PluginData,
+class TaskData(private val taskId: TaskDataId,
                val executionStartTime: Long,
                val executionEndTime: Long,
                val executionMode: TaskExecutionMode,
                val executionReasons: List<String>) {
+
+  constructor(taskName: String,
+              projectPath: String,
+              originPlugin: PluginData,
+              executionStartTime: Long,
+              executionEndTime: Long,
+              executionMode: TaskExecutionMode,
+              executionReasons: List<String>) : this(TaskDataId(taskName, projectPath, originPlugin),
+                                                     executionStartTime,
+                                                     executionEndTime,
+                                                     executionMode,
+                                                     executionReasons)
+
+  val taskName: String
+    get() = this.taskId.taskName
+
+  val projectPath: String
+    get() = this.taskId.projectPath
+
+  val originPlugin: PluginData
+    get() = this.taskId.originPlugin
+
   /**
    * The execution duration of the task in milliseconds.
    */
@@ -117,13 +145,11 @@ class TaskData(val taskName: String,
 
   override fun equals(other: Any?): Boolean {
     return other is TaskData &&
-           taskName == other.taskName &&
-           projectPath == other.projectPath &&
-           originPlugin == other.originPlugin
+           taskId == other.taskId
   }
 
   override fun hashCode(): Int {
-    return Objects.hash(taskName, projectPath, originPlugin)
+    return taskId.hashCode()
   }
 
   override fun toString(): String {

@@ -21,6 +21,7 @@ import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
+import com.android.ide.common.attribution.TaskCategory
 import com.android.tools.idea.gradle.util.BuildMode
 import kotlin.reflect.KClass
 
@@ -35,7 +36,8 @@ class PairEnumFinder {
       getDefault<DownloadsAnalyzer.DownloadStatus, BuildAnalysisResultsMessage.DownloadsAnalyzerResult.DownloadResult.DownloadStatus>(),
       getDefault<BuildMode, BuildAnalysisResultsMessage.RequestData.BuildMode>(),
       getDefault<ProjectConfigurationData.ConfigurationStep.Type, BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type>(),
-      getDefault<TaskData.TaskExecutionMode, BuildAnalysisResultsMessage.TaskData.TaskExecutionMode>()
+      getDefault<TaskData.TaskExecutionMode, BuildAnalysisResultsMessage.TaskData.TaskExecutionMode>(),
+      getDefault<TaskCategory, BuildAnalysisResultsMessage.TaskData.TaskCategory>()
     )
 
     inline fun <reified A : Enum<A>, reified B : Enum<B>> getConverter(keyClass: KClass<out A>): EnumConverter<A, B> {

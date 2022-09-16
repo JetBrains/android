@@ -89,13 +89,55 @@ message BuildAnalysisResultsMessage {
     optional int64 executionEndTime = 5;
     optional TaskExecutionMode executionMode = 6;
     repeated string executionReasons = 7;
+    optional bool isOnTheCriticalPath = 8;
+    optional string taskType = 9;
+    optional TaskCategory primaryTaskCategory = 10;
+    repeated TaskCategory secondaryTaskCategories = 11;
 
     enum TaskExecutionMode {
-      UNKNOWN = 0;
+      UNSPECIFIED = 0;
       FROM_CACHE = 1;
       UP_TO_DATE = 2;
       INCREMENTAL = 3;
       FULL = 4;
+    }
+
+    enum TaskCategory {
+      UNKNOWN = 0;
+      COMPILATION = 1;
+      TEST = 2;
+      MANIFEST = 3;
+      ANDROID_RESOURCES = 4;
+      NATIVE = 5;
+      JAVA = 6;
+      JAVA_RESOURCES = 7;
+      JAVA_DOC = 8;
+      KOTLIN = 9;
+      AIDL = 10;
+      RENDERSCRIPT = 11;
+      SHADER = 12;
+      DEXING = 13;
+      ART_PROFILE = 14;
+      LINT = 15;
+      DATA_BINDING = 16;
+      METADATA = 17;
+      VERIFICATION = 18;
+      SYNC = 19;
+      DEPLOYMENT = 20;
+      HELP = 21;
+      APK_PACKAGING = 22;
+      AAR_PACKAGING = 23;
+      BUNDLE_PACKAGING = 24;
+      OPTIMIZATION = 25;
+      SOURCE_GENERATION = 26;
+      SOURCE_PROCESSING = 27;
+      ZIPPING = 28;
+      LINKING = 29;
+      MERGING = 30;
+      FUSING = 31;
+      COMPILED_CLASSES = 32;
+      GRADLE = 33;
+      MISC = 34;
     }
   }
 
