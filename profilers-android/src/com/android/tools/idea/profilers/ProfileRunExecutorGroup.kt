@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.ToolWindowId
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidUtils
 import javax.swing.Icon
@@ -110,7 +111,15 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
 
   override fun getToolWindowIcon(): Icon = StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
 
-  override fun getToolWindowId(): String = AndroidProfilerToolWindowFactory.ID
+  /**
+   * WARNING: do not call this to get the Profiler tool window ID, instead use [AndroidProfilerToolWindowFactory.ID] directly.
+   *
+   * Because "Profile" is a Run task, the Run tool window is also updated. This tool window ID is used by the IDEA platform
+   * (RunContentManager) to look up the Run tool window, so it should be "Run" instead of "Android Profiler".
+   * On the other hand, Profiler instantiates its tool window using [AndroidProfilerToolWindowFactory.ID] directly and never calls this
+   * method.
+   */
+  override fun getToolWindowId(): String = ToolWindowId.RUN
 
   override fun createExecutorGroupWrapper(actionGroup: ActionGroup): ExecutorGroupWrapper = GroupWrapper(actionGroup)
 
