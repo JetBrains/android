@@ -17,6 +17,8 @@ package com.android.tools.idea.apk.viewer;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.BinaryLightVirtualFile;
+import com.intellij.testFramework.LightVirtualFile;
+import java.nio.charset.StandardCharsets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,25 +27,35 @@ import java.nio.file.Path;
 /**
  * Implementation of an in-memory {@link VirtualFile} that correctly implements the {#getParent()} method.
  */
-class ApkVirtualFile extends BinaryLightVirtualFile {
-  @Nullable private final Path parentPath;
-
-  public ApkVirtualFile(@NotNull String filename, @Nullable Path parentPath, @NotNull byte[] content) {
-    super(filename, content);
-    this.parentPath = parentPath;
+class ApkVirtualFile {
+  private ApkVirtualFile() {
   }
 
-  @Override
-  public VirtualFile getParent() {
-    return ApkVirtualFolder.getDirectory(parentPath);
-  }
-
-  @Nullable public static ApkVirtualFile create(@NotNull Path path, @NotNull byte[] content) {
+  @Nullable public static VirtualFile create(@NotNull Path path, @NotNull byte[] content) {
     Path fileName = path.getFileName();
     if (fileName == null) {
       return null;
     }
-    return new ApkVirtualFile(fileName.toString(), path.getParent(), content);
-  }
+    Path parent = path.getParent();
+    boolean isBinary = true; // Default to binary for files inside an APK
+    if (path.toString().matches("/META-INF/.*\\.version")) {
+      isBinary = false;
+    }
 
+    if (isBinary) {
+      return new BinaryLightVirtualFile(fileName.toString(), content) {
+        @Override
+        public VirtualFile getParent() {
+          return ApkVirtualFolder.getDirectory(parent);
+        }
+      };
+    } else {
+      return new LightVirtualFile(fileName.toString(), new String(content, StandardCharsets.UTF_8)) {
+        @Override
+        public VirtualFile getParent() {
+          return ApkVirtualFolder.getDirectory(parent);
+        }
+      };
+    }
+  }
 }
