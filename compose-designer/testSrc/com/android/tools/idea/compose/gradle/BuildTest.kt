@@ -118,6 +118,7 @@ class BuildTest {
           null,
           DEFAULT_KOTLIN_VERSION,
           null,
+          null,
           *listOf<File>().toTypedArray()
         )
       }

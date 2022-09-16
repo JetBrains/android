@@ -14,7 +14,6 @@ COMMON_DATA = [
     "//prebuilts/studio/sdk:licenses",
     "//prebuilts/studio/sdk:ndk",
     "//prebuilts/studio/sdk:platform-tools",
-    "//prebuilts/studio/sdk:platforms/latest",
     "//prebuilts/studio/sdk:sources",
     "//tools/adt/idea/android/annotations",
     "//tools/adt/idea/android/lib:sampleData",
@@ -57,20 +56,51 @@ AGP_MAVEN_REPOS = {
 }
 
 AGP_DATA = {
-    AGP_3_1_4: ["//prebuilts/studio/sdk:build-tools/27.0.3"],
-    AGP_3_3_2: ["//prebuilts/studio/sdk:build-tools/28.0.3"],
+    AGP_3_1_4: [
+        "//prebuilts/studio/sdk:build-tools/27.0.3",
+        "//prebuilts/studio/sdk:platforms/android-32",
+    ],
+    AGP_3_3_2: [
+        "//prebuilts/studio/sdk:build-tools/28.0.3",
+        "//prebuilts/studio/sdk:platforms/android-32",
+    ],
     AGP_3_5: [
         "//prebuilts/studio/sdk:build-tools/28.0.3",
         "//prebuilts/studio/sdk:platforms/android-28",
+        "//prebuilts/studio/sdk:platforms/android-32",
     ],
-    AGP_4_0: ["//prebuilts/studio/sdk:build-tools/29.0.2"],
-    AGP_4_1: ["//prebuilts/studio/sdk:build-tools/29.0.2"],
-    AGP_4_2: ["//prebuilts/studio/sdk:build-tools/30.0.2"],
-    AGP_7_0: ["//prebuilts/studio/sdk:build-tools/30.0.2"],
-    AGP_7_1: ["//prebuilts/studio/sdk:build-tools/30.0.3"],
-    AGP_7_2: ["//prebuilts/studio/sdk:build-tools/30.0.3"],
-    AGP_7_3: ["//prebuilts/studio/sdk:build-tools/30.0.3"],
-    AGP_7_4: ["//prebuilts/studio/sdk:build-tools/30.0.3"],
+    AGP_4_0: [
+        "//prebuilts/studio/sdk:build-tools/29.0.2",
+        "//prebuilts/studio/sdk:platforms/android-32",
+    ],
+    AGP_4_1: [
+        "//prebuilts/studio/sdk:build-tools/29.0.2",
+        "//prebuilts/studio/sdk:platforms/android-32",
+    ],
+    AGP_4_2: [
+        "//prebuilts/studio/sdk:build-tools/30.0.2",
+        "//prebuilts/studio/sdk:platforms/android-32",
+    ],
+    AGP_7_0: [
+        "//prebuilts/studio/sdk:build-tools/30.0.2",
+        "//prebuilts/studio/sdk:platforms/android-32",
+    ],
+    AGP_7_1: [
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:platforms/android-32",
+    ],
+    AGP_7_2: [
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:platforms/latest",
+    ],
+    AGP_7_3: [
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:platforms/latest",
+    ],
+    AGP_7_4: [
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:platforms/latest",
+    ],
 }
 
 GRADLE_LATEST = "LATEST"

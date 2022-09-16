@@ -526,7 +526,9 @@ data class AndroidProjectBuilder(
           androidLibraryDependencyList(variant)
 
         override fun mainArtifact(variant: String): IdeAndroidArtifactCoreImpl = mainArtifactStub(variant)
-        override fun androidTestArtifact(variant: String, applicationId: String?): IdeAndroidArtifactCoreImpl? = androidTestArtifactStub(variant, applicationId)
+        override fun androidTestArtifact(variant: String, applicationId: String?): IdeAndroidArtifactCoreImpl? = androidTestArtifactStub(
+          variant, applicationId)
+
         override fun unitTestArtifact(variant: String): IdeJavaArtifactCoreImpl? = unitTestArtifactStub(variant)
         override fun testFixturesArtifact(variant: String): IdeAndroidArtifactCoreImpl? = testFixturesArtifactStub(variant)
         override val variants: List<IdeVariantCoreImpl> = variants()
@@ -688,8 +690,8 @@ fun AndroidProjectStubBuilder.buildDebugBuildTypeStub(): IdeBuildTypeContainerIm
       ),
       debugSourceProvider,
       listOfNotNull(
-        androidTestDebugSourceProvider?.let {IdeSourceProviderContainerImpl(ARTIFACT_NAME_ANDROID_TEST, it)},
-        testDebugSourceProvider?.let {IdeSourceProviderContainerImpl(ARTIFACT_NAME_UNIT_TEST, it)}
+        androidTestDebugSourceProvider?.let { IdeSourceProviderContainerImpl(ARTIFACT_NAME_ANDROID_TEST, it) },
+        testDebugSourceProvider?.let { IdeSourceProviderContainerImpl(ARTIFACT_NAME_UNIT_TEST, it) }
       )
     )
   }
@@ -792,19 +794,19 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
 ): IdeAndroidArtifactCoreImpl {
   val dependenciesStub = buildDependenciesStub(
     dependencies = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty()) +
-      listOf(
-        IdeDependencyCoreImpl(
-          internedModels.getOrCreate(
-            IdeModuleLibraryImpl(
-              buildId = buildId,
-              projectPath = gradleProjectPath,
-              variant = variant,
-              lintJar = null,
-              sourceSet = IdeModuleWellKnownSourceSet.MAIN
-            )
-          )
-        )
-      )
+                   listOf(
+                     IdeDependencyCoreImpl(
+                       internedModels.getOrCreate(
+                         IdeModuleLibraryImpl(
+                           buildId = buildId,
+                           projectPath = gradleProjectPath,
+                           variant = variant,
+                           lintJar = null,
+                           sourceSet = IdeModuleWellKnownSourceSet.MAIN
+                         )
+                       )
+                     )
+                   )
   )
   val assembleTaskName = "assemble".appendCapitalized(variant).appendCapitalized("androidTest")
   return IdeAndroidArtifactCoreImpl(
@@ -854,19 +856,19 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
   variant: String,
   dependencies: IdeDependenciesCoreImpl = buildDependenciesStub(
     dependencies = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty()) +
-      listOf(
-        IdeDependencyCoreImpl(
-          internedModels.getOrCreate(
-            IdeModuleLibraryImpl(
-              buildId = buildId,
-              projectPath = gradleProjectPath,
-              variant = variant,
-              lintJar = null,
-              sourceSet = IdeModuleWellKnownSourceSet.MAIN
-            )
-          )
-        )
-      )
+                   listOf(
+                     IdeDependencyCoreImpl(
+                       internedModels.getOrCreate(
+                         IdeModuleLibraryImpl(
+                           buildId = buildId,
+                           projectPath = gradleProjectPath,
+                           variant = variant,
+                           lintJar = null,
+                           sourceSet = IdeModuleWellKnownSourceSet.MAIN
+                         )
+                       )
+                     )
+                   )
   ),
   mockablePlatformJar: File? = null
 ): IdeJavaArtifactCoreImpl {
@@ -1150,7 +1152,7 @@ fun setupTestProjectFromAndroidModel(
   if (moduleBuilders.none { it.gradlePath == ":" }) {
     error(
       "Each project needs to have ':' module. " +
-        "Add `JavaModuleModelBuilder.rootModuleBuilder` to add a default one."
+      "Add `JavaModuleModelBuilder.rootModuleBuilder` to add a default one."
     )
   }
   if (IdeSdks.getInstance().androidSdkPath === null) {
@@ -1339,7 +1341,7 @@ private fun setupTestProjectFromAndroidModelCore(
           moduleBuilder.agpVersion ?: LatestKnownPluginVersionProvider.INSTANCE.get(),
           internedModels
         )
-        featureToBase.putAll(androidProject.dynamicFeatures.map {it to gradlePath})
+        featureToBase.putAll(androidProject.dynamicFeatures.map { it to gradlePath })
 
         fun IdeAndroidProjectImpl.populateBaseFeature(): IdeAndroidProjectImpl {
           return if (projectType != IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) this
@@ -1369,6 +1371,7 @@ private fun setupTestProjectFromAndroidModelCore(
           }
         }
       }
+
       is JavaModuleModelBuilder ->
         createJavaModuleDataNode(
           parentModuleOrProjectName = projectName,
@@ -1397,7 +1400,8 @@ private fun setupTestProjectFromAndroidModelCore(
     )
   )
 
-  setupDataNodesForSelectedVariant(project, toSystemIndependentName(rootProjectBasePath.path), androidModels, projectDataNode, libraryResolver)
+  setupDataNodesForSelectedVariant(project, toSystemIndependentName(rootProjectBasePath.path), androidModels, projectDataNode,
+                                   libraryResolver)
   mergeContentRoots(projectDataNode)
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
@@ -1483,13 +1487,13 @@ private fun createAndroidModuleDataNode(
     )
   )
 
-  when(ndkModel) {
+  when (ndkModel) {
     is V2NdkModel -> {
       val selectedAbiName = selectedAbiName
-        ?: ndkModel.abiByVariantAbi.keys.firstOrNull { it.variant == selectedVariantName }?.abi
-        ?: error(
-          "Cannot determine the selected ABI for module '$qualifiedModuleName' with the selected variant '$selectedVariantName'"
-        )
+                            ?: ndkModel.abiByVariantAbi.keys.firstOrNull { it.variant == selectedVariantName }?.abi
+                            ?: error(
+                              "Cannot determine the selected ABI for module '$qualifiedModuleName' with the selected variant '$selectedVariantName'"
+                            )
       moduleDataNode.addChild(
         DataNode<NdkModuleModel>(
           AndroidProjectKeys.NDK_MODEL,
@@ -1504,12 +1508,13 @@ private fun createAndroidModuleDataNode(
         )
       )
     }
+
     is V1NdkModel -> {
       val selectedAbiName = selectedAbiName
-        ?: ndkModel.nativeVariantAbis.firstOrNull { it.variantName == selectedVariantName }?.abi
-        ?: error(
-          "Cannot determine the selected ABI for module '$qualifiedModuleName' with the selected variant '$selectedVariantName'"
-        )
+                            ?: ndkModel.nativeVariantAbis.firstOrNull { it.variantName == selectedVariantName }?.abi
+                            ?: error(
+                              "Cannot determine the selected ABI for module '$qualifiedModuleName' with the selected variant '$selectedVariantName'"
+                            )
       moduleDataNode.addChild(
         DataNode<NdkModuleModel>(
           AndroidProjectKeys.NDK_MODEL,
@@ -1747,7 +1752,7 @@ private fun mergeContentRoots(projectDataNode: DataNode<ProjectData>) {
 
   moduleNodes.forEach { moduleNode ->
     mergeModuleContentRoots(weightMap, moduleNode.node)
-    moduleNode.node.findAll(GradleSourceSetData.KEY).forEach {  sourceSetNode ->
+    moduleNode.node.findAll(GradleSourceSetData.KEY).forEach { sourceSetNode ->
       mergeModuleContentRoots(weightMap, sourceSetNode.node)
     }
   }
@@ -1850,10 +1855,11 @@ interface IntegrationTestEnvironment {
    */
   fun getBaseTestPath(): @SystemDependent String
 }
+
 /**
  * See implementing classes for usage examples.
  */
-interface GradleIntegrationTest: IntegrationTestEnvironment {
+interface GradleIntegrationTest : IntegrationTestEnvironment {
 
   /**
    * The path to a test data directory relative to the workspace or `null` to use the legacy resolution.
@@ -1895,7 +1901,8 @@ fun GradleIntegrationTest.prepareGradleProject(
     gradleVersion = agpVersion.gradleVersion,
     gradlePluginVersion = agpVersion.agpVersion,
     kotlinVersion = agpVersion.kotlinVersion,
-    ndkVersion = ndkVersion
+    ndkVersion = ndkVersion,
+    compileSdkVersion = agpVersion.compileSdk,
   )
 }
 
@@ -1913,7 +1920,8 @@ fun IntegrationTestEnvironment.prepareGradleProject(
     gradleVersion = agpVersion.gradleVersion,
     gradlePluginVersion = agpVersion.agpVersion,
     kotlinVersion = agpVersion.kotlinVersion,
-    ndkVersion = ndkVersion
+    ndkVersion = ndkVersion,
+    compileSdkVersion = agpVersion.compileSdk,
   )
 }
 
@@ -1927,7 +1935,8 @@ fun GradleIntegrationTest.prepareGradleProject(
   gradleVersion: String?,
   gradlePluginVersion: String?,
   kotlinVersion: String?,
-  ndkVersion: String? = null
+  ndkVersion: String? = null,
+  compileSdkVersion: String? = null,
 ): File {
   val testProjectAbsolutePath: File = resolveTestDataPath(testProjectPath)
   val additionalRepositories: Collection<File> = getAdditionalRepos()
@@ -1939,7 +1948,8 @@ fun GradleIntegrationTest.prepareGradleProject(
     gradleVersion,
     gradlePluginVersion,
     kotlinVersion,
-    ndkVersion
+    ndkVersion,
+    compileSdkVersion
   )
 }
 
@@ -1950,7 +1960,8 @@ private fun IntegrationTestEnvironment.prepareGradleProject(
   gradleVersion: String?,
   gradlePluginVersion: String?,
   kotlinVersion: String?,
-  ndkVersion: String?
+  ndkVersion: String?,
+  compileSdkVersion: String?
 ): File {
   val projectPath = nameToPath(name)
   if (projectPath.exists()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
@@ -1963,6 +1974,7 @@ private fun IntegrationTestEnvironment.prepareGradleProject(
         projectRoot, gradleVersion, gradlePluginVersion,
         kotlinVersion,
         ndkVersion,
+        compileSdkVersion,
         *additionalRepositories.toTypedArray()
       )
     })
@@ -2057,8 +2069,8 @@ private fun <T> openPreparedProject(
 
           @Suppress("UnstableApiUsage")
           if (options.disableKtsRelatedIndexing) {
-            ScriptingSupport.EPN.getPoint(project).unregisterExtensions({_, _ -> false}, false)
-            ScriptChangeListener.LISTENER.getPoint(project).unregisterExtensions({ _, _ -> false}, false)
+            ScriptingSupport.EPN.getPoint(project).unregisterExtensions({ _, _ -> false }, false)
+            ScriptChangeListener.LISTENER.getPoint(project).unregisterExtensions({ _, _ -> false }, false)
           }
           project.messageBus.connect(disposable).let { options.subscribe(it) }
           val outputHandler = options.outputHandler
@@ -2093,7 +2105,8 @@ private fun <T> openPreparedProject(
         verifyNoSyncIssues(project, options.expectedSyncIssues)
         options.verifyOpened(project)
         return action(project)
-      } finally {
+      }
+      finally {
         runInEdtAndWait {
           PlatformTestUtil.saveProject(project, true)
           ProjectUtil.closeAndDispose(project)
@@ -2201,7 +2214,8 @@ fun Project.requestSyncAndWait(ignoreSyncIssues: Set<Int> = emptySet()) {
 
   if (ApplicationManager.getApplication().isDispatchThread) {
     AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(this)
-  } else {
+  }
+  else {
     runInEdtAndWait {
       AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(this)
     }
