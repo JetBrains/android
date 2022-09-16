@@ -16,6 +16,8 @@
 package com.android.tools.idea.run;
 
 import com.intellij.execution.ExecutionException;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.options.ConfigurationQuickFix;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import java.util.Collection;
@@ -23,15 +25,16 @@ import org.jetbrains.annotations.NotNull;
 
 public class ValidationUtil {
 
-  public static void promptAndQuickFixErrors(@NotNull Project project, @NotNull Collection<ValidationError> errors) throws ExecutionException {
+  public static void promptAndQuickFixErrors(@NotNull Project project, @NotNull DataContext dataContext, @NotNull Collection<ValidationError> errors) throws ExecutionException {
     if (errors.isEmpty()) {
       return;
     }
 
     for (ValidationError error: errors) {
-      if (error.getQuickfix() != null) {
+      ConfigurationQuickFix quickfix = error.getQuickfix();
+      if (quickfix != null) {
         if (Messages.showYesNoDialog(project, error.getMessage() + " - do you want to fix it?", "Quick fix", null) == Messages.YES) {
-          error.getQuickfix().run();
+          quickfix.applyFix(dataContext);
           continue;
         }
       }

@@ -45,6 +45,7 @@ import com.intellij.execution.configurations.RuntimeConfigurationWarning;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -257,9 +258,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   public abstract @NotNull List<DeployTargetProvider> getApplicableDeployTargetProviders();
 
-  protected void validateBeforeRun(@NotNull Executor executor) throws ExecutionException {
+  protected void validateBeforeRun(@NotNull Executor executor, @NotNull DataContext dataContext) throws ExecutionException {
     List<ValidationError> errors = validate(executor);
-    ValidationUtil.promptAndQuickFixErrors(getProject(), errors);
+    ValidationUtil.promptAndQuickFixErrors(getProject(), dataContext, errors);
   }
 
   @Override
@@ -281,7 +282,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public RunProfileState doGetState(@NotNull Executor executor,
                                     @NotNull ExecutionEnvironment env,
                                     @NotNull RunStats stats) throws ExecutionException {
-    validateBeforeRun(executor);
+    validateBeforeRun(executor, Objects.requireNonNullElse(env.getDataContext(), DataContext.EMPTY_CONTEXT));
 
     Module module = getConfigurationModule().getModule();
     assert module != null : "Enforced by fatal validation check in checkConfiguration.";
