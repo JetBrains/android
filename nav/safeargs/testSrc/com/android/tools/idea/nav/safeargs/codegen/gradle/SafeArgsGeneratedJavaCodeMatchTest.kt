@@ -42,6 +42,7 @@ import org.jetbrains.uast.UClass
 import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.visitor.AbstractUastVisitor
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -118,6 +119,7 @@ class SafeArgsGeneratedJavaCodeMatchTest {
     return allGeneratedCode
   }
 
+  @Ignore("b/246884723")
   @Test
   @RunsInEdt
   fun compiledJavaCodeMatchesInMemoryPsi() {
