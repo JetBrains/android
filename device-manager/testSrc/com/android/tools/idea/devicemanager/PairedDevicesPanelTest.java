@@ -91,7 +91,7 @@ public final class PairedDevicesPanelTest {
       .setAndroidVersion(new AndroidVersion(28))
       .build();
 
-    assertEquals(List.of((List.of(device, new Status("Unknown")))), TestTables.getData(panel.getTable()));
+    assertEquals(List.of((List.of(DeviceType.WEAR_OS, device, new Status("Unknown")))), TestTables.getData(panel.getTable()));
   }
 
   @Test

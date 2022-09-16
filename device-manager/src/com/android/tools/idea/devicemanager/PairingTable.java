@@ -19,22 +19,22 @@ import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.scale.JBUIScale;
-import com.intellij.ui.table.JBTable;
 import java.util.Optional;
 import javax.swing.ListSelectionModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class PairingTable extends JBTable {
+final class PairingTable extends DeviceTable<Device> {
   private final @NotNull Object myKey;
   private final @Nullable Project myProject;
 
   PairingTable(@NotNull Key key, @Nullable Project project) {
-    super(new PairingTableModel());
+    super(new PairingTableModel(), Device.class);
 
     myKey = key;
     myProject = project;
 
+    setDefaultRenderer(DeviceType.class, new DeviceIconButtonTableCellRenderer<>(this));
     setDefaultRenderer(Device.class, new DeviceManagerPairingDeviceTableCellRenderer());
     setDefaultRenderer(Status.class, new StatusTableCellRenderer());
 
@@ -53,7 +53,12 @@ final class PairingTable extends JBTable {
     new WearDevicePairingWizard().show(myProject, myKey.toString());
   }
 
-  private int deviceViewColumnIndex() {
+  private int deviceIconViewColumnIndex() {
+    return convertColumnIndexToView(PairingTableModel.DEVICE_ICON_MODEL_COLUMN_INDEX);
+  }
+
+  @Override
+  protected int deviceViewColumnIndex() {
     return convertColumnIndexToView(PairingTableModel.DEVICE_MODEL_COLUMN_INDEX);
   }
 
@@ -73,6 +78,9 @@ final class PairingTable extends JBTable {
 
   @Override
   public void doLayout() {
+    Tables.setWidths(columnModel.getColumn(deviceIconViewColumnIndex()),
+                     DeviceIconButtonTableCellRenderer.getPreferredWidth(this, DeviceType.class));
+
     columnModel.getColumn(deviceViewColumnIndex()).setMinWidth(JBUIScale.scale(65));
 
     Tables.setWidths(columnModel.getColumn(statusViewColumnIndex()),
