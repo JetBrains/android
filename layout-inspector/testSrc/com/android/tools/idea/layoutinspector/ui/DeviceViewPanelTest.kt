@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
+import com.android.testutils.AssumeUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.PropertySetterRule
@@ -168,6 +169,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testShowAndClearPerformanceWarnings() {
+    AssumeUtil.assumeNotWindows() // b/246371105
     InspectorClientSettings.isCapturingModeOn = true
 
     installCommandHandlers()
