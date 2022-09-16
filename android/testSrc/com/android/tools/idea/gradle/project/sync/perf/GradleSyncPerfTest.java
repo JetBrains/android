@@ -28,6 +28,7 @@ import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
@@ -113,13 +114,12 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
 
   @Override
   protected void patchPreparedProject(@NotNull File projectRoot,
-                                      @Nullable String gradleVersion,
-                                      @Nullable String gradlePluginVersion,
-                                      @Nullable String kotlinVersion,
+                                      @NotNull AgpVersionSoftwareEnvironment agpVersion,
                                       @Nullable String ndkVersion,
-                                      @Nullable String compileSdkVersion,
                                       File... localRepos)
     throws IOException {
+    final var gradleVersion = agpVersion.getGradleVersion();
+    final var gradlePluginVersion = agpVersion.getAgpVersion();
     // Override settings just for tests (e.g. sdk.dir)
     AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
     // We need the wrapper for import to succeed
@@ -311,7 +311,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
   private void updateBuildFile(@NotNull String gradlePluginVersion) throws IOException {
     File buildFile = getAbsolutionFilePath("build.gradle");
     String contents = Files.toString(buildFile, Charsets.UTF_8);
-    contents = contents.replaceAll("jcenter\\(\\)", AndroidGradleTests.getLocalRepositoriesForGroovy());
+    contents = contents.replaceAll("jcenter\\(\\)", AndroidGradleTests.getLocalRepositoriesForGroovy(Collections.emptyList()));
     contents = contents.replaceAll("classpath 'com\\.android\\.tools\\.build:gradle:\\d+.\\d+.\\d+'",
                                    "classpath 'com.android.tools.build:gradle:" +
                                    gradlePluginVersion +

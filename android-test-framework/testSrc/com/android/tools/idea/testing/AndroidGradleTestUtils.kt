@@ -1892,51 +1892,8 @@ interface GradleIntegrationTest : IntegrationTestEnvironment {
 fun GradleIntegrationTest.prepareGradleProject(
   testProjectPath: String,
   name: String,
-  agpVersion: AgpVersionSoftwareEnvironmentDescriptor = getAgpVersionSoftwareEnvironmentDescriptor(),
+  agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
   ndkVersion: String? = null
-): File {
-  return prepareGradleProject(
-    testProjectPath = testProjectPath,
-    name = name,
-    gradleVersion = agpVersion.gradleVersion,
-    gradlePluginVersion = agpVersion.agpVersion,
-    kotlinVersion = agpVersion.kotlinVersion,
-    ndkVersion = ndkVersion,
-    compileSdkVersion = agpVersion.compileSdk,
-  )
-}
-
-fun IntegrationTestEnvironment.prepareGradleProject(
-  testProjectAbsolutePath: File,
-  additionalRepositories: Collection<File>,
-  name: String,
-  agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
-  ndkVersion: String?
-): File {
-  return prepareGradleProject(
-    testProjectAbsolutePath = testProjectAbsolutePath,
-    additionalRepositories = additionalRepositories,
-    name = name,
-    gradleVersion = agpVersion.gradleVersion,
-    gradlePluginVersion = agpVersion.agpVersion,
-    kotlinVersion = agpVersion.kotlinVersion,
-    ndkVersion = ndkVersion,
-    compileSdkVersion = agpVersion.compileSdk,
-  )
-}
-
-/**
- * Prepares a test project created from a [testProjectPath] under the given [name] so that it can be opened with [openPreparedProject].
- */
-@JvmOverloads
-fun GradleIntegrationTest.prepareGradleProject(
-  testProjectPath: String,
-  name: String,
-  gradleVersion: String?,
-  gradlePluginVersion: String?,
-  kotlinVersion: String?,
-  ndkVersion: String? = null,
-  compileSdkVersion: String? = null,
 ): File {
   val testProjectAbsolutePath: File = resolveTestDataPath(testProjectPath)
   val additionalRepositories: Collection<File> = getAdditionalRepos()
@@ -1945,23 +1902,18 @@ fun GradleIntegrationTest.prepareGradleProject(
     testProjectAbsolutePath,
     additionalRepositories,
     name,
-    gradleVersion,
-    gradlePluginVersion,
-    kotlinVersion,
-    ndkVersion,
-    compileSdkVersion
+    agpVersion,
+    ndkVersion
   )
 }
 
-private fun IntegrationTestEnvironment.prepareGradleProject(
+@JvmOverloads
+internal fun IntegrationTestEnvironment.prepareGradleProject(
   testProjectAbsolutePath: File,
   additionalRepositories: Collection<File>,
   name: String,
-  gradleVersion: String?,
-  gradlePluginVersion: String?,
-  kotlinVersion: String?,
-  ndkVersion: String?,
-  compileSdkVersion: String?
+  agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+  ndkVersion: String?
 ): File {
   val projectPath = nameToPath(name)
   if (projectPath.exists()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
@@ -1971,10 +1923,9 @@ private fun IntegrationTestEnvironment.prepareGradleProject(
     projectPath,
     ThrowableConsumer { projectRoot ->
       AndroidGradleTests.defaultPatchPreparedProject(
-        projectRoot, gradleVersion, gradlePluginVersion,
-        kotlinVersion,
+        projectRoot,
+        agpVersion,
         ndkVersion,
-        compileSdkVersion,
         *additionalRepositories.toTypedArray()
       )
     })

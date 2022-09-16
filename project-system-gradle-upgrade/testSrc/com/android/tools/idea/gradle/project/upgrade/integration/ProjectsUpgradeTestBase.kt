@@ -40,11 +40,14 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessor
 import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion
 import com.android.tools.idea.gradle.util.GradleWrapper
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.BuildEnvironment
+import com.android.tools.idea.testing.CustomAgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.withGradle
 import com.android.utils.FileUtils
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth
@@ -120,9 +123,7 @@ open class ProjectsUpgradeTestBase {
 
   fun loadAUATestProject(testProject: AUATestProjectState) = projectRule.load(
     projectPath = testProject.projectBasePath(),
-    gradleVersion = testProject.gradleVersion(),
-    kotlinVersion = testProject.kotlinVersion(),
-    agpVersion = testProject.agpVersion(),
+    agpVersion = testProject.agpVersionDef(),
     ndkVersion = testProject.ndkVersion()
   ) { projectRoot ->
     applyProjectPatch(testProject, projectRoot)
@@ -138,8 +139,7 @@ open class ProjectsUpgradeTestBase {
         val target = projectRoot.resolve(source.relativeTo(srcRoot))
         FileUtils.copyFile(source, target)
         // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-        AndroidGradleTests.updateToolingVersionsAndPaths(target, testProject.gradleVersion(), testProject.agpVersion(),
-                                                         testProject.kotlinVersion(), testProject.ndkVersion(), null)
+        AndroidGradleTests.updateToolingVersionsAndPaths(target, testProject.agpVersionDef(), testProject.ndkVersion(), emptyList())
       }
     }
   }
@@ -156,8 +156,10 @@ open class ProjectsUpgradeTestBase {
       // So set existing gradle version here and change it to expected one after project is prepared.
       val baseGradleVersion = OldAgpSuite.GRADLE_VERSION?.takeIf { it != "LATEST" }
       AndroidGradleTests.defaultPatchPreparedProject(
-        projectRoot, baseGradleVersion, expectedProjectState.agpVersion(), expectedProjectState.kotlinVersion(),
-        expectedProjectState.ndkVersion(), null)
+        projectRoot,
+        expectedProjectState.agpVersionDef().withGradle(baseGradleVersion),
+        expectedProjectState.ndkVersion()
+      )
       // Patch base project with files expected to change.
       // Note: one could think that we only need to check these files instead of comparing all files recursively
       // but checking all project files allows us to make sure no unexpected changes were made to any other not listed files.
@@ -209,8 +211,13 @@ open class ProjectsUpgradeTestBase {
   private fun AUATestProjectState.agpVersion() = version.agpVersion ?: BuildEnvironment.getInstance().gradlePluginVersion
   private fun AUATestProjectState.agpGradleVersion() = GradleVersion.parse(agpVersion())
   private fun AUATestProjectState.gradleVersion() = CompatibleGradleVersion.getCompatibleGradleVersion(
-    agpGradleVersion()).version.toString()
+    agpGradleVersion()
+  ).version.toString()
 
   private fun AUATestProjectState.kotlinVersion() = version.kotlinVersion
-  private fun AUATestProjectState.ndkVersion() : String? = null
+
+  private fun AUATestProjectState.agpVersionDef(): AgpVersionSoftwareEnvironment =
+    CustomAgpVersionSoftwareEnvironment(agpVersion = agpVersion(), gradleVersion = gradleVersion(), kotlinVersion = kotlinVersion())
+
+  private fun AUATestProjectState.ndkVersion(): String? = null
 }

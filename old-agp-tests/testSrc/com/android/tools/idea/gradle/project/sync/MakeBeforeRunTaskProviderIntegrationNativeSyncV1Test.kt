@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.SdkConstants.GRADLE_LATEST_VERSION
-import com.android.SdkConstants.NDK_DEFAULT_VERSION
 import com.android.sdklib.devices.Abi
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
@@ -34,11 +33,13 @@ import com.android.tools.idea.testing.withSimulatedSyncError
 import com.google.common.truth.Truth
 import com.intellij.execution.RunManager
 import org.junit.Assert.fail
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
 
-@OldAgpTest(agpVersions = ["4.1.0"], gradleVersions = ["LATEST"])
+@OldAgpTest(agpVersions = ["4.1.0"], gradleVersions = ["6.7.1"])
+@Ignore("b/247097801")
 class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test : GradleIntegrationTest {
 
   @get:Rule
@@ -49,10 +50,7 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test : GradleIntegrationTe
     prepareGradleProject(
       testProjectPath = TestProjectPaths.DEPENDENT_NATIVE_MODULES,
       name = "project",
-      gradleVersion = GRADLE_VERSION,
-      gradlePluginVersion = ANDROID_GRADLE_PLUGIN_VERSION,
-      kotlinVersion = null,
-      ndkVersion = NDK_VERSION,
+      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_41,
     )
     openPreparedProject("project") { project ->
       val selectedVariant = NdkFacet.getInstance(project.gradleModule(":app") ?: error(":app module not found"))?.selectedVariantAbi
@@ -84,10 +82,7 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test : GradleIntegrationTe
     prepareGradleProject(
       testProjectPath = TestProjectPaths.DEPENDENT_NATIVE_MODULES,
       name = "project",
-      gradleVersion = GRADLE_VERSION,
-      gradlePluginVersion = ANDROID_GRADLE_PLUGIN_VERSION,
-      kotlinVersion = null,
-      ndkVersion = NDK_VERSION,
+      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_41,
     )
     openPreparedProject("project") { project ->
       val ndkFacet = NdkFacet.getInstance(project.gradleModule(":app") ?: error(":app module not found"))
@@ -126,9 +121,5 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test : GradleIntegrationTe
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()
 }
-
-private const val ANDROID_GRADLE_PLUGIN_VERSION = "4.1.0"
-private const val GRADLE_VERSION = GRADLE_LATEST_VERSION
-private const val NDK_VERSION = NDK_DEFAULT_VERSION
 
 private const val errorMessage: String = "Unexpected attempt to resolve a project."

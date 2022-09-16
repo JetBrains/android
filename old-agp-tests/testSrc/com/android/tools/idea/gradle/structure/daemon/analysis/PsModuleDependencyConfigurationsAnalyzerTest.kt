@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.testResolve
 import com.android.tools.idea.gradle.structure.quickfix.PsDependencyConfigurationQuickFixPath
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.util.Disposer
@@ -35,11 +36,9 @@ import java.io.File
 @OldAgpTest(agpVersions = ["3.5.0"], gradleVersions = ["5.5"])
 class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
 
-  private val gradleVersion = "5.5"
-
   fun testObsoleteTestCompileConfigurationInLibrary() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
@@ -62,7 +61,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
 
   fun testObsoleteCompileConfigurationInLibrary() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
@@ -85,7 +84,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
 
   fun testObsoleteTestCompileConfigurationInApp() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
@@ -108,7 +107,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
 
   fun testObsoleteCompileConfigurationInApp() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
@@ -140,7 +139,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
   // no testObsoleteCompileTestConfigurationInTest() because com.android.test does not support compileTest dependencies
   fun testObsoleteCompileConfigurationInTest() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
@@ -164,7 +163,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
   // testCompile not supported by com.android.instantapp plugin
   fun testObsoleteCompileConfigurationInInstantApp() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
@@ -233,7 +232,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
 
   fun testObsoleteTestCompileScopeInJava() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
@@ -256,7 +255,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
 
   fun testObsoleteCompileConfigurationInJava() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
+    loadProject(TestProjectPaths.PSD_UPGRADE, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()

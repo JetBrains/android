@@ -27,7 +27,9 @@ import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementIn
 import com.android.tools.idea.preview.StaticPreviewProvider
 import com.android.tools.idea.rendering.NoSecurityManagerRenderService
 import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.withKotlin
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.EdtRule
@@ -56,7 +58,7 @@ class ParametrizedPreviewTest {
     )
     projectRule.fixture.testDataPath =
       resolveWorkspacePath("tools/adt/idea/compose-designer/testData").toString()
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin(DEFAULT_KOTLIN_VERSION))
     val gradleInvocationResult = projectRule.invokeTasks("compileDebugSources")
     if (!gradleInvocationResult.isBuildSuccessful) {
       Assert.fail(

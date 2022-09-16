@@ -24,8 +24,10 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.projectsystem.hasBeenBuiltSuccessfully
 import com.android.tools.idea.projectsystem.hasExistingClassFile
 import com.android.tools.idea.projectsystem.requestBuild
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTests.defaultPatchPreparedProject
+import com.android.tools.idea.testing.withKotlin
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
@@ -82,7 +84,7 @@ class BuildTest {
 
   @Test
   fun testHasBeenBuiltSuccessfully() {
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin(DEFAULT_KOTLIN_VERSION))
     doTestHasBeenBuiltSuccessfully(
       projectRule.project,
       listOf(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)
@@ -104,7 +106,7 @@ class BuildTest {
   fun testCompositeBuildsCorrectly() {
     projectRule.load(
       COMPOSITE_COMPOSE_PROJECT_PATH,
-      kotlinVersion = DEFAULT_KOTLIN_VERSION,
+      AGP_CURRENT.withKotlin(DEFAULT_KOTLIN_VERSION),
       preLoad = { projectRoot ->
         // Copy SimpleComposableApplication to this project to be able to make a composite. The
         // composite project settings.gradle
@@ -114,10 +116,7 @@ class BuildTest {
         FileUtil.copyDir(simpleComposableAppPath, destination)
         defaultPatchPreparedProject(
           File(projectRule.project.basePath!!),
-          null,
-          null,
-          DEFAULT_KOTLIN_VERSION,
-          null,
+          AGP_CURRENT.withKotlin(DEFAULT_KOTLIN_VERSION),
           null,
           *listOf<File>().toTypedArray()
         )

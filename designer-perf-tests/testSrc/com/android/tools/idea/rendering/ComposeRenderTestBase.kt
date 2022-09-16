@@ -16,7 +16,9 @@
 package com.android.tools.idea.rendering
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.withKotlin
 import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.junit.After
@@ -35,7 +37,7 @@ open class ComposeRenderTestBase {
     RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
     val baseTestPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
     projectRule.fixture.testDataPath = baseTestPath
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = "1.7.0")
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin("1.7.0"))
     projectRule.requestSyncAndWait()
 
     projectRule.invokeTasks("compileDebugSources").apply {

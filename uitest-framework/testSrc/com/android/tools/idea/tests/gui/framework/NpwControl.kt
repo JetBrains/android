@@ -40,7 +40,10 @@ class NpwControl(private val project: Project) : TemplateRendererListener {
     // We need to update repositories and pluginManagement block in settings.gradle
     File(project.basePath!!, SdkConstants.FN_SETTINGS_GRADLE).let { file ->
       val settingsOld = getContent(file) ?: return@let
-      val settingsWithRepos = AndroidGradleTests.updateLocalRepositories(settingsOld, AndroidGradleTests.getLocalRepositoriesForGroovy())
+      val settingsWithRepos = AndroidGradleTests.updateLocalRepositories(
+        settingsOld,
+        AndroidGradleTests.getLocalRepositoriesForGroovy(emptyList())
+      )
       val settingsNew = pluginDefinitions?.let { updatePluginsResolutionManagement(settingsWithRepos, it) } ?: settingsWithRepos
       writeContent(settingsOld, settingsNew, file)
     }

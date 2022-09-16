@@ -24,7 +24,9 @@ import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRun
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.run.ValidationError
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.withKotlin
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
@@ -49,7 +51,7 @@ class ComposePreviewRunConfigurationGradleTest {
 
   @Before
   fun setUp() {
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin(DEFAULT_KOTLIN_VERSION))
   }
 
   @Test

@@ -31,6 +31,7 @@ import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunManager;
@@ -55,14 +56,11 @@ public class InstantAppSupportTest {
   @Rule
   public final RuleChain ruleChain = RuleChain.outerRule(projectRule).around(new EdtRule());
 
-  @NotNull private static final String ANDROID_GRADLE_PLUGIN_VERSION = "3.5.0";
-  @NotNull private static final String GRADLE_VERSION = "5.5";
-
   @Test
   @RunsInEdt
   public void testLoadInstantAppProject() throws Exception {
     // Use a plugin with instant app support
-    projectRule.loadProject(INSTANT_APP, null, GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION);
+    projectRule.loadProject(INSTANT_APP, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
     projectRule.generateSources();
 
     assertModuleIsValidAIAInstantApp(projectRule.getModule("instant-app"), ImmutableList.of(":feature"));
@@ -79,7 +77,7 @@ public class InstantAppSupportTest {
   @Ignore("b/203803107")
   public void testCorrectRunConfigurationsCreated() throws Exception {
     // Use a plugin with instant app support
-    projectRule.loadProject(INSTANT_APP, "instant-app", GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION);
+    projectRule.loadProject(INSTANT_APP, "instant-app", AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
 
     // Create one run configuration
     List<RunConfiguration> configurations =
@@ -101,7 +99,7 @@ public class InstantAppSupportTest {
   @RunsInEdt
   public void testAndroidRunConfigurationWithoutError() throws Exception {
     // Use a plugin with instant app support
-    projectRule.loadProject(INSTANT_APP, "feature", GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION);
+    projectRule.loadProject(INSTANT_APP, "feature", AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
     AndroidTestRunConfiguration
       runConfiguration = createAndroidTestConfigurationFromClass(projectRule.getProject(), "com.example.instantapp.ExampleInstrumentedTest");
     runConfiguration.checkConfiguration();
@@ -112,7 +110,7 @@ public class InstantAppSupportTest {
   @Ignore("b/203803107")
   public void testRunConfigurationFailsIfWrongURL() throws Throwable {
     // Use a plugin with instant app support
-    projectRule.loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0");
+    projectRule.loadProject(INSTANT_APP, "instant-app", AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
 
     // Create one run configuration
     List<RunConfiguration> configurations =
@@ -137,7 +135,7 @@ public class InstantAppSupportTest {
     // No exception
   }
 
-  private void assertExceptionInCheckingConfig(@NotNull AndroidRunConfiguration runConfig, @NotNull String url) throws Throwable {
+  private void assertExceptionInCheckingConfig(@NotNull AndroidRunConfiguration runConfig, @NotNull String url) {
     assertThrows(RuntimeConfigurationWarning.class, "URL \"" + url + "\" not defined in the manifest.", runConfig::checkConfiguration);
   }
 }

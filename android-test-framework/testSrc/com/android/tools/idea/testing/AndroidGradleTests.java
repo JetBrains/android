@@ -26,6 +26,7 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
+import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -38,6 +39,7 @@ import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -152,22 +154,25 @@ public class AndroidGradleTests {
    */
   @Deprecated
   public static void updateGradleVersions(@NotNull File folderRootPath) throws IOException {
-    updateToolingVersionsAndPaths(folderRootPath, null, null, null, null, null);
+    updateToolingVersionsAndPaths(folderRootPath, AGP_CURRENT, null, emptyList());
   }
 
   public static void updateToolingVersionsAndPaths(@NotNull File folderRootPath) throws IOException {
-    updateToolingVersionsAndPaths(folderRootPath, null, null, null, null, null);
+    updateToolingVersionsAndPaths(folderRootPath, AGP_CURRENT, null, emptyList());
   }
 
   public static void updateToolingVersionsAndPaths(@NotNull File path,
-                                                   @Nullable String gradleVersion,
-                                                   @Nullable String gradlePluginVersion,
-                                                   @Nullable String kotlinVersion,
+                                                   @NotNull AgpVersionSoftwareEnvironment agpVersion,
                                                    @Nullable String ndkVersion,
-                                                   @Nullable String compileSdkVersion,
-                                                   File... localRepos)
+                                                   @NotNull List<File> localRepos)
     throws IOException {
-    internalUpdateToolingVersionsAndPaths(path, true, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, compileSdkVersion,
+    internalUpdateToolingVersionsAndPaths(path,
+                                          true,
+                                          agpVersion.getGradleVersion(),
+                                          agpVersion.getAgpVersion(),
+                                          agpVersion.getKotlinVersion(),
+                                          agpVersion.getCompileSdk(),
+                                          ndkVersion,
                                           localRepos);
   }
 
@@ -176,9 +181,9 @@ public class AndroidGradleTests {
                                                             @Nullable String gradleVersion,
                                                             @Nullable String gradlePluginVersion,
                                                             @Nullable String kotlinVersion,
-                                                            @Nullable String ndkVersion,
                                                             @Nullable String compileSdkVersion,
-                                                            File... localRepos) throws IOException {
+                                                            @Nullable String ndkVersion,
+                                                            @NotNull List<File> localRepos) throws IOException {
     String toolsBaseVersion;
     if (gradlePluginVersion != null) {
       // Tools/base versions are the same but with then major incremented by 23
@@ -213,8 +218,8 @@ public class AndroidGradleTests {
         createGradleWrapper(path, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
       }
       for (File child : notNullize(path.listFiles())) {
-        internalUpdateToolingVersionsAndPaths(child, false, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion,
-                                              compileSdkVersion, localRepos);
+        internalUpdateToolingVersionsAndPaths(child, false, gradleVersion, gradlePluginVersion, kotlinVersion,
+                                              compileSdkVersion, ndkVersion, localRepos);
       }
     }
     else if (fileAttributes.isRegularFile()) {
@@ -402,11 +407,11 @@ public class AndroidGradleTests {
   }
 
   @NotNull
-  public static String getLocalRepositoriesForGroovy(File... localRepos) {
+  public static String getLocalRepositoriesForGroovy(@NotNull List<File> localRepos) {
     // Add metadataSources to work around http://b/144088459. Wrap it in try-catch because
     // we are also using older Gradle versions that do not have this method.
     return StringUtil.join(
-      Iterables.concat(getLocalRepositoryDirectories(), Lists.newArrayList(localRepos)),
+      Iterables.concat(getLocalRepositoryDirectories(), localRepos),
       file -> "maven {\n" +
               "  url \"" + file.toURI() + "\"\n" +
               "  try {\n" +
@@ -419,10 +424,10 @@ public class AndroidGradleTests {
   }
 
   @NotNull
-  public static String getLocalRepositoriesForKotlin(File... localRepos) {
+  public static String getLocalRepositoriesForKotlin(@NotNull List<File> localRepos) {
     // Add metadataSources to work around http://b/144088459.
     return StringUtil.join(
-      Iterables.concat(getLocalRepositoryDirectories(), Lists.newArrayList(localRepos)),
+      Iterables.concat(getLocalRepositoryDirectories(), localRepos),
       file -> "maven {\n" +
               "  setUrl(\"" + file.toURI() + "\")\n" +
               "  metadataSources() {\n" +
@@ -695,15 +700,12 @@ public class AndroidGradleTests {
   }
 
   public static void defaultPatchPreparedProject(@NotNull File projectRoot,
-                                                 @Nullable String gradleVersion,
-                                                 @Nullable String gradlePluginVersion,
-                                                 @Nullable String kotlinVersion,
+                                                 @NotNull AgpVersionSoftwareEnvironment agpVersion,
                                                  @Nullable String ndkVersion,
-                                                 @Nullable String compileSdkVersion,
                                                  File... localRepos) throws IOException {
     preCreateDotGradle(projectRoot);
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-    updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, compileSdkVersion, localRepos);
+    updateToolingVersionsAndPaths(projectRoot, agpVersion, ndkVersion, Lists.newArrayList(localRepos));
   }
 
   /**

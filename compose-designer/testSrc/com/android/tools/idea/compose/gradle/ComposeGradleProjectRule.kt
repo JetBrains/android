@@ -21,8 +21,10 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.rendering.NoSecurityManagerRenderService
 import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
+import com.android.tools.idea.testing.withKotlin
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -52,7 +54,7 @@ private class ComposeGradleProjectRuleImpl(
       NoSecurityManagerRenderService(projectRule.project)
     )
     projectRule.fixture.testDataPath = resolveWorkspacePath(TEST_DATA_PATH).toString()
-    projectRule.load(projectPath, kotlinVersion)
+    projectRule.load(projectPath, AGP_CURRENT.withKotlin(kotlinVersion))
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()

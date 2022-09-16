@@ -21,6 +21,7 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker.cleanAfterTesting
 import com.android.tools.analytics.UsageTracker.setWriterForTest
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
@@ -219,7 +220,7 @@ abstract class AbstractGradleSyncPerfTestCase {
     if (useModelV2) {
       projectRule.loadProject(projectPath)
     } else {
-      projectRule.loadProject(projectPath, gradleVersion = "7.2", agpVersion = "7.1.0")
+      projectRule.loadProject(projectPath, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_71)
     }
   }
 

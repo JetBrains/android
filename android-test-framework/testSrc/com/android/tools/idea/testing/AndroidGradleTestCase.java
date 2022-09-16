@@ -241,28 +241,25 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   protected final void loadProject(@NotNull String relativePath) throws Exception {
-    loadProject(relativePath, null, null, null);
+    loadProject(relativePath, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, null);
   }
 
   protected final void loadProject(@NotNull String relativePath,
                                    @Nullable String chosenModuleName) throws Exception {
-    loadProject(relativePath, chosenModuleName, null, null);
+    loadProject(relativePath, chosenModuleName, AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, null);
   }
 
   protected final void loadProject(@NotNull String relativePath,
                                    @Nullable String chosenModuleName,
-                                   @Nullable String gradleVersion,
-                                   @Nullable String gradlePluginVersion) throws Exception {
-    loadProject(relativePath, chosenModuleName, gradleVersion, gradlePluginVersion, null, null);
+                                   @NotNull AgpVersionSoftwareEnvironmentDescriptor agpVersion) throws Exception {
+    loadProject(relativePath, chosenModuleName, agpVersion, null);
   }
 
   protected final void loadProject(@NotNull String relativePath,
                                    @Nullable String chosenModuleName,
-                                   @Nullable String gradleVersion,
-                                   @Nullable String gradlePluginVersion,
-                                   @Nullable String kotlinVersion,
+                                   @NotNull AgpVersionSoftwareEnvironment agpVersion,
                                    @Nullable String ndkVersion) throws Exception {
-    prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, null);
+    prepareProjectForImport(relativePath, agpVersion, ndkVersion);
     importProject();
 
     prepareProjectForTest(getProject(), chosenModuleName);
@@ -287,23 +284,20 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   protected void patchPreparedProject(@NotNull File projectRoot,
-                                      @Nullable String gradleVersion,
-                                      @Nullable String gradlePluginVersion,
-                                      @Nullable String kotlinVersion,
+                                      @NotNull AgpVersionSoftwareEnvironment agpVersion,
                                       @Nullable String ndkVersion,
-                                      @Nullable String compileSdkVersion,
                                       File... localRepos) throws IOException {
-    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, compileSdkVersion, localRepos);
+    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, agpVersion, ndkVersion, localRepos);
   }
 
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath) throws IOException {
-    return prepareProjectForImport(relativePath, null, null, null, null, null);
+    return prepareProjectForImport(relativePath, AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, null);
   }
 
   @NotNull
   protected final File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @NotNull File targetPath) throws IOException {
-    return prepareProjectForImport(relativePath, targetPath, null, null, null, null, null);
+    return prepareProjectForImport(relativePath, targetPath, AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, null);
   }
 
   /**
@@ -311,31 +305,25 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
    */
   @NotNull
   protected final File prepareProjectForImport(@NotNull @SystemIndependent String relativePath,
-                                         @NotNull File targetPath,
-                                         @Nullable String gradleVersion,
-                                         @Nullable String gradlePluginVersion,
-                                         @Nullable String kotlinVersion,
-                                         @Nullable String ndkVersion,
-                                         @Nullable String compileSdkVersion) throws IOException {
+                                               @NotNull File targetPath,
+                                               @NotNull AgpVersionSoftwareEnvironment agpVersion,
+                                               @Nullable String ndkVersion) throws IOException {
     File projectSourceRoot = resolveTestDataPath(relativePath);
 
     prepareGradleProject(
       projectSourceRoot,
       targetPath,
-      file -> patchPreparedProject(file, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, compileSdkVersion,
+      file -> patchPreparedProject(file, agpVersion, ndkVersion,
                                    getAdditionalRepos().toArray(new File[0])));
     return targetPath;
   }
 
   @NotNull
   protected final File prepareProjectForImport(@NotNull @SystemIndependent String relativePath,
-                                         @Nullable String gradleVersion,
-                                         @Nullable String gradlePluginVersion,
-                                         @Nullable String kotlinVersion,
-                                         @Nullable String ndkVersion,
-                                         @Nullable String compileSdk) throws IOException {
+                                               @NotNull AgpVersionSoftwareEnvironment agpVersion,
+                                               @Nullable String ndkVersion) throws IOException {
     File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
-    return prepareProjectForImport(relativePath, projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, compileSdk);
+    return prepareProjectForImport(relativePath, projectRoot, agpVersion, ndkVersion);
   }
 
   @NotNull

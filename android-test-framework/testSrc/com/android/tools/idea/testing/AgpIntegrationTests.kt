@@ -27,29 +27,29 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   /**
    * The version of the AG. `null` means the current `-dev` version.
    */
-  val agpVersion: String?,
+  override val agpVersion: String?,
 
   /**
    * The version of Gradle to be used in integration tests for this AGP version. `null` means the latest/default version.
    */
-  val gradleVersion: String?,
+  override val gradleVersion: String?,
 
   /**
    * The version of the Gradle Kotlin plugin to be used in integration tests for this AGP version. `null` means the default version used by
    * Android Studio.
    */
-  val kotlinVersion: String? = null,
-
-  /**
-   * Builder model version to query.
-   */
-  val modelVersion: ModelVersion = ModelVersion.V2,
+  override val kotlinVersion: String? = null,
 
   /**
    * The compileSdk to use in this test. `null` means the project default.
    */
-val compileSdk: String? = null
-) {
+  override val compileSdk: String? = null,
+
+  /**
+   * Builder model version to query.
+   */
+  override val modelVersion: ModelVersion = ModelVersion.V2
+) : AgpVersionSoftwareEnvironment {
   AGP_31("3.1.4", gradleVersion = "5.3.1", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_33_WITH_5_3_1("3.3.2", gradleVersion = "5.3.1", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_33("3.3.2", gradleVersion = "5.5", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
@@ -71,6 +71,7 @@ val compileSdk: String? = null
     return "Agp($agpVersion, g=$gradleVersion, k=$kotlinVersion, m=$modelVersion)"
   }
   companion object {
+    @JvmField
     val AGP_CURRENT = AGP_80
     val selected: AgpVersionSoftwareEnvironmentDescriptor
       get() {

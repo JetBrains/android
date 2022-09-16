@@ -27,6 +27,7 @@ import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES_GROOVY;
 import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES_KTS;
 import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES_MULTI_MODULE;
+import static java.util.Collections.emptyList;
 
 /**
  * This tests unused resource removal for a Gradle project. The JPS scenario is
@@ -58,7 +59,7 @@ public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
                  "  }\n" +
                  "}\n" +
                  "\n" +
-                 "repositories {\n" + AndroidGradleTests.getLocalRepositoriesForGroovy() +
+                 "repositories {\n" + AndroidGradleTests.getLocalRepositoriesForGroovy(emptyList()) +
                  "}\n",
                  getTextForFile("app/build.gradle"));
   }
@@ -93,7 +94,7 @@ public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
                  "    testImplementation 'junit:junit:4.12'\n" +
                  "}\n" +
                  "\n" +
-                 "repositories {\n" + AndroidGradleTests.getLocalRepositoriesForGroovy() +
+                 "repositories {\n" + AndroidGradleTests.getLocalRepositoriesForGroovy(emptyList()) +
                  "}\n",
                  getTextForFile("app/build.gradle"));
   }
@@ -187,7 +188,7 @@ public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
                  "  }\n" +
                  "}\n" +
                  "\n" +
-                 "repositories {\n" + AndroidGradleTests.getLocalRepositoriesForKotlin() +
+                 "repositories {\n" + AndroidGradleTests.getLocalRepositoriesForKotlin(emptyList()) +
                  "}\n",
                  getTextForFile("app/build.gradle.kts"));
   }
