@@ -34,40 +34,40 @@ class ServerFlagServiceImpl : ServerFlagService {
 
   override fun getString(name: String): String? {
     val flag = flags[name] ?: return null
-    if (!flag.hasStringValue()) {
-      throw IllegalArgumentException(name)
+    return when {
+      (flag.hasStringValue()) -> flag.stringValue
+      else -> null
     }
-    return flag.stringValue
   }
 
   override fun getInt(name: String): Int? {
     val flag = flags[name] ?: return null
-    if (!flag.hasIntValue()) {
-      throw IllegalArgumentException(name)
+    return when {
+      (flag.hasIntValue()) -> flag.intValue
+      else -> null
     }
-    return flag.intValue
   }
 
   override fun getFloat(name: String): Float? {
     val flag = flags[name] ?: return null
-    if (!flag.hasFloatValue()) {
-      throw IllegalArgumentException(name)
+    return when {
+      (flag.hasFloatValue()) -> flag.floatValue
+      else -> null
     }
-    return flag.floatValue
   }
 
   override fun getBoolean(name: String): Boolean? {
     val flag = flags[name] ?: return null
-    if (!flag.hasBooleanValue()) {
-      throw IllegalArgumentException(name)
+    return when {
+      (flag.hasBooleanValue()) -> flag.booleanValue
+      else -> null
     }
-    return flag.booleanValue
   }
 
   override fun <T : Message> getProtoOrNull(name: String, instance: T): T? {
     val flag = flags[name] ?: return null
     if (!flag.hasProtoValue()) {
-      throw IllegalArgumentException(name)
+      return null
     }
 
     val any = flag.protoValue ?: return null
