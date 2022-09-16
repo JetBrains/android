@@ -44,11 +44,14 @@ class FontIconProvider(
 
   override val supportsTransparency: Boolean = false
 
-  override fun getIcon(assetToRender: Asset,
-                       width: Int,
-                       height: Int,
-                       refreshCallback: () -> Unit,
-                       shouldBeRendered: () -> Boolean): Icon {
+  override fun getIcon(
+    assetToRender: Asset,
+    width: Int,
+    height: Int,
+    component: Component,
+    refreshCallback: () -> Unit,
+    shouldBeRendered: () -> Boolean
+  ): Icon {
     val resource = assetToRender.resourceItem
     val fontFamily = projectFonts.getFont(resource.referenceToSelf.resourceUrl.toString())
 

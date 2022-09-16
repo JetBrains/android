@@ -57,6 +57,7 @@ class CompactResourceListCellRenderer(private val assetPreviewManager: AssetPrev
       iconProvider.getIcon(assetToRender,
                            thumbnailSize.width,
                            thumbnailSize.height,
+                           list,
                            { list.getCellBounds(index, index)?.let(list::repaint) },
                            { index in list.firstVisibleIndex..list.lastVisibleIndex })
     }

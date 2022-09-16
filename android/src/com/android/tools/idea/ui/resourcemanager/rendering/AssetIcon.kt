@@ -40,7 +40,7 @@ class AssetIcon(
   override fun paintIcon(c: Component, g: Graphics, x: Int, y: Int) {
     val icon = assetPreviewManager
       .getPreviewProvider(asset.type)
-      .getIcon(asset, width, height, { c.repaint() }) { c.isShowing }
+      .getIcon(asset, width, height, c, { c.repaint() }) { c.isShowing }
     val cWidth = c.width
     val cHeight = c.height
     icon.paintIcon(c, g, (cWidth - icon.iconWidth) / 2, (cHeight - icon.iconHeight) / 2)

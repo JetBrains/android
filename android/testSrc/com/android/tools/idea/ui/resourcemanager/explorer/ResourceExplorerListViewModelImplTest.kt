@@ -57,6 +57,7 @@ import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.ImageIcon
+import javax.swing.JLabel
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
@@ -100,7 +101,7 @@ class ResourceExplorerListViewModelImplTest {
     viewModel.updateUiCallback = { if (it == ResourceExplorerListViewModel.UpdateUiReason.IMAGE_CACHE_CHANGED) uiCallbackLatch.countDown() }
 
     // Trigger a render for a drawable asset, will load generated image into cache.
-    viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, { renderLatch.countDown() })
+    viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { renderLatch.countDown() })
     assertTrue(renderLatch.await(1, TimeUnit.SECONDS))
     Truth.assertThat(uiCallbackLatch.count).isEqualTo(1)
 
@@ -110,7 +111,7 @@ class ResourceExplorerListViewModelImplTest {
 
     // Another render request for the drawable asset, should load the image into cache again, since it was recently cleared.
     renderLatch = CountDownLatch(1)
-    viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, { renderLatch.countDown() })
+    viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { renderLatch.countDown() })
     assertTrue(renderLatch.await(1, TimeUnit.SECONDS))
   }
 
@@ -123,21 +124,21 @@ class ResourceExplorerListViewModelImplTest {
     val asset = Asset.fromResourceItem(pngDrawable) as DesignAsset
     val iconSize = 32 // To compensate the 10% margin around the icon
     whenever(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
-    val emptyIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, { latch.countDown() })
+    val emptyIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { latch.countDown() })
     assertTrue(latch.await(1, TimeUnit.SECONDS))
 
-    val icon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, { /* Do nothing */ }) as ImageIcon
+    val icon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { /* Do nothing */ }) as ImageIcon
     val image = icon.image as BufferedImage
     ImageDiffUtil.assertImageSimilar(getPNGFile().toPath(), image, 0.05)
 
     // Clear the image cache for the resource
     latch = CountDownLatch(1)
     viewModel.clearImageCache(asset)
-    val clearedCacheIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, { latch.countDown() }) as ImageIcon
+    val clearedCacheIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { latch.countDown() }) as ImageIcon
     assertSame(emptyIcon, clearedCacheIcon) // When cleared, it should return the same instance of an empty icon
     assertTrue(latch.await(1, TimeUnit.SECONDS))
 
-    val refreshedIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, { /* Do nothing */ }) as ImageIcon
+    val refreshedIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { /* Do nothing */ }) as ImageIcon
     val refreshedImage = refreshedIcon.image as BufferedImage
     ImageDiffUtil.assertImageSimilar(getPNGFile().name, image, refreshedImage, 0.05)
   }
@@ -155,14 +156,14 @@ class ResourceExplorerListViewModelImplTest {
     val iconSize = 32 // To compensate the 10% margin around the icon
     val emptyIcon = viewModel.assetPreviewManager
       .getPreviewProvider(ResourceType.DRAWABLE)
-      .getIcon(asset, iconSize, iconSize, { latch.countDown() }) as ImageIcon
+      .getIcon(asset, iconSize, iconSize, JLabel(), { latch.countDown() }) as ImageIcon
     Truth.assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue()
     val emptyImage = emptyIcon.image as BufferedImage
     Truth.assertThat(emptyImage.getRGB(0, 0)).isEqualTo(0) // No value in empty icon
 
     val icon = viewModel.assetPreviewManager
       .getPreviewProvider(ResourceType.DRAWABLE)
-      .getIcon(asset, iconSize, iconSize, { /* Do nothing */ }) as ImageIcon
+      .getIcon(asset, iconSize, iconSize, JLabel(), { /* Do nothing */ }) as ImageIcon
     val image = icon.image as BufferedImage
     Truth.assertThat(image.getRGB(0, 0)).isNotEqualTo(0)
   }

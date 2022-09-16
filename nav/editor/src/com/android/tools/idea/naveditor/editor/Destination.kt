@@ -38,10 +38,14 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.xml.XmlFile
+import com.intellij.ui.scale.ScaleContext
+import com.intellij.util.IconUtil
 import com.intellij.util.ui.StartupUiUtil
+import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.BasicStroke
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.Graphics2D
@@ -75,7 +79,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
   abstract fun addToGraph()
 
   abstract val label: String
-  abstract fun thumbnail(iconCallback: (VirtualFile, Dimension) -> ImageIcon): Image
+  abstract fun thumbnail(iconCallback: (VirtualFile, Dimension) -> ImageIcon, component: Component): Image
   abstract val typeLabel: String
   abstract val destinationOrder: DestinationOrder
   abstract val inProject: Boolean
@@ -112,11 +116,11 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
                          (screenSize.height * ratio - 2 * THUMBNAIL_BORDER_THICKNESS).toInt())
       }
 
-    override fun thumbnail(iconCallback: (VirtualFile, Dimension) -> ImageIcon): Image {
+    override fun thumbnail(iconCallback: (VirtualFile, Dimension) -> ImageIcon, component: Component): Image {
       val model = parent.model
 
-      val result = BufferedImage(thumbnailDimension.width + 2 * THUMBNAIL_BORDER_THICKNESS.toInt(),
-                                 thumbnailDimension.height + 2 * THUMBNAIL_BORDER_THICKNESS.toInt(), BufferedImage.TYPE_INT_ARGB)
+      val result = UIUtil.createImage(component, thumbnailDimension.width + 2 * THUMBNAIL_BORDER_THICKNESS.toInt(),
+                                      thumbnailDimension.height + 2 * THUMBNAIL_BORDER_THICKNESS.toInt(), BufferedImage.TYPE_INT_ARGB)
 
       val graphics = result.createGraphics()
       val roundRect = RoundRectangle2D.Float(THUMBNAIL_BORDER_THICKNESS, THUMBNAIL_BORDER_THICKNESS, thumbnailDimension.width.toFloat(),
@@ -161,9 +165,9 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
                                        iconCallback: (VirtualFile, Dimension) -> ImageIcon) {
       if (layoutFile != null) {
         val icon = iconCallback(layoutFile.virtualFile, thumbnailDimension)
-        StartupUiUtil.drawImage(graphics, iconToImage(icon),
-                         Rectangle(THUMBNAIL_BORDER_THICKNESS.toInt(), THUMBNAIL_BORDER_THICKNESS.toInt(), thumbnailDimension.width,
-                                   thumbnailDimension.height), null)
+        StartupUiUtil.drawImage(graphics, IconUtil.toImage(icon, ScaleContext.create(graphics)),
+                                Rectangle(THUMBNAIL_BORDER_THICKNESS.toInt(), THUMBNAIL_BORDER_THICKNESS.toInt(), thumbnailDimension.width,
+                                          thumbnailDimension.height), null)
       }
       else {
         drawBackground(thumbnailDimension, graphics)
@@ -222,7 +226,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
     override val label = graph
 
     // TODO: update
-    override fun thumbnail(iconCallback: (VirtualFile, Dimension) -> ImageIcon): Image {
+    override fun thumbnail(iconCallback: (VirtualFile, Dimension) -> ImageIcon, component: Component): Image {
       return iconToImage(StudioIcons.NavEditor.ExistingDestinations.NESTED).getScaledInstance(
         INCLUDE_ICON_WIDTH, INCLUDE_ICON_HEIGHT, Image.SCALE_SMOOTH)
     }

@@ -71,6 +71,7 @@ import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.speedSearch.FilteringListModel
+import com.intellij.util.IconUtil
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI
@@ -95,7 +96,6 @@ import java.io.File
 import java.util.TreeSet
 import java.util.stream.Collectors
 import javax.swing.BorderFactory
-import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
@@ -264,11 +264,12 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         iconProvider.getIcon(DesignAsset(file, listOf(), ResourceType.LAYOUT),
                              dimension.width,
                              dimension.height,
+                             list,
                              { list.getCellBounds(index, index)?.let(list::repaint) },
                              { index in list.firstVisibleIndex..list.lastVisibleIndex })
       }
 
-      thumbnailRenderer.icon = ImageIcon(value.thumbnail(iconCallback))
+      thumbnailRenderer.icon = IconUtil.createImageIcon(value.thumbnail(iconCallback, list))
       thumbnailRenderer.iconTextGap = (maxIconWidth - thumbnailRenderer.icon.iconWidth).coerceAtLeast(0)
       primaryTextRenderer.text = value.label
       secondaryTextRenderer.text = value.typeLabel

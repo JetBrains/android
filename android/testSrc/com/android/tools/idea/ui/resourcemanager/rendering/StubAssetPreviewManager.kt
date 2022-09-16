@@ -20,6 +20,7 @@ import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.intellij.util.ui.EmptyIcon
+import java.awt.Component
 import javax.swing.Icon
 
 class StubAssetPreviewManager(
@@ -37,11 +38,14 @@ class StubAssetPreviewManager(
 class StubAssetIconProvider(var icon: Icon = EmptyIcon.ICON_18) : AssetIconProvider {
   override val supportsTransparency = false
 
-  override fun getIcon(assetToRender: Asset,
-                       width: Int,
-                       height: Int,
-                       refreshCallback: () -> Unit,
-                       shouldBeRendered: () -> Boolean): Icon = icon
+  override fun getIcon(
+    assetToRender: Asset,
+    width: Int,
+    height: Int,
+    component: Component,
+    refreshCallback: () -> Unit,
+    shouldBeRendered: () -> Boolean
+  ): Icon = icon
 }
 
 class StubAssetDataProvider: AssetDataProvider {

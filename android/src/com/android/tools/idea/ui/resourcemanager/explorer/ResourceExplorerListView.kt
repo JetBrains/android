@@ -369,6 +369,7 @@ class ResourceExplorerListView(
         assetForPreview,
         JBUI.scale(DetailedPreview.PREVIEW_ICON_SIZE),
         JBUI.scale(DetailedPreview.PREVIEW_ICON_SIZE),
+        this,
         refreshCallback = {
           updateSummaryPreviewIcon()
         }

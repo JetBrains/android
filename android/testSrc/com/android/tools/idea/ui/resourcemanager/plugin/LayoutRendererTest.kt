@@ -45,6 +45,7 @@ import java.awt.Image
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.ImageIcon
+import javax.swing.JLabel
 import kotlin.test.assertTrue
 
 
@@ -98,11 +99,11 @@ class LayoutRendererTest {
       val previewProvider = resourceExplorerListViewModel.assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
       val width = 150
       val height = 200
-      previewProvider.getIcon(designAsset, width, height, { latch.countDown() })
+      previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() })
         .cast<ImageIcon>().image.toBufferedImage()
 
       assertTrue(latch.await(10, TimeUnit.SECONDS))
-      val image = previewProvider.getIcon(designAsset, width, height, { latch.countDown() })
+      val image = previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() })
         .cast<ImageIcon>().image.toBufferedImage()
 
       // Check that we get the correct background color.

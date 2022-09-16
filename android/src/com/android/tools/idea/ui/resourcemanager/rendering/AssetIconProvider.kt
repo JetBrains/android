@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.rendering
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.intellij.openapi.diagnostic.Logger
+import java.awt.Component
 import javax.swing.Icon
 import javax.swing.ImageIcon
 
@@ -79,8 +80,8 @@ interface AssetIconProvider {
    *   isSelected: Boolean,
    *   cellHasFocus: Boolean
    *   ): Component {
-   *       label.icon = iconProvider.getIcon(value),
-   *       width, height,
+   *       label.icon = iconProvider.getIcon(value,
+   *       width, height, list,
    *       { list.repaint(list.getCellBounds(index, index)) },
    *       { ScrollingUtil.isIndexFullyVisible(list, index) })
    *   }
@@ -93,6 +94,7 @@ interface AssetIconProvider {
     assetToRender: Asset,
     width: Int,
     height: Int,
+    component: Component,
     refreshCallback: () -> Unit = {},
     shouldBeRendered: () -> Boolean = { true }): Icon
 }
@@ -113,6 +115,7 @@ class DefaultIconProvider private constructor() : AssetIconProvider {
     assetToRender: Asset,
     width: Int,
     height: Int,
+    component: Component,
     refreshCallback: () -> Unit,
     shouldBeRendered: () -> Boolean) = icon
 }

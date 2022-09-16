@@ -40,11 +40,14 @@ class ColorIconProvider(
   private val icon = MultipleColorIcon()
   val colors get() = icon.colors
 
-  override fun getIcon(assetToRender: Asset,
-                       width: Int,
-                       height: Int,
-                       refreshCallback: () -> Unit,
-                       shouldBeRendered: () -> Boolean): Icon {
+  override fun getIcon(
+    assetToRender: Asset,
+    width: Int,
+    height: Int,
+    component: Component,
+    refreshCallback: () -> Unit,
+    shouldBeRendered: () -> Boolean
+  ): Icon {
     icon.colors = resourceResolver.resolveMultipleColors(resourceResolver.resolveValue(assetToRender), project)
     icon.width = width
     icon.height = height

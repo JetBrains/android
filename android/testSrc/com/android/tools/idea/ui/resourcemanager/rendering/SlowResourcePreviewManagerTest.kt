@@ -30,6 +30,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import javax.swing.JLabel
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -49,7 +50,7 @@ class SlowResourcePreviewManagerTest {
     val provider = SlowResourcePreviewManager(imageCacheRule.imageCache, TestSlowPreviewProvider)
     val designAsset = DesignAsset(MockVirtualFile("file.png"), emptyList(), ResourceType.DRAWABLE)
 
-    val placeHolder = provider.getIcon(designAsset, 20, 20, { latch.countDown() }).image.let { ImageUtil.toBufferedImage(it) }
+    val placeHolder = provider.getIcon(designAsset, 20, 20, JLabel(), { latch.countDown() }).image.let { ImageUtil.toBufferedImage(it) }
     // Placeholder is a red icon
     assertThat(placeHolder.getRGB(0, 0)).isEqualTo(0xffff0000.toInt())
 
@@ -57,7 +58,7 @@ class SlowResourcePreviewManagerTest {
     assertTrue(latch.await(1, TimeUnit.SECONDS))
 
     // Get 'real' preview
-    val preview = provider.getIcon(designAsset, 20, 20, {}).image.let { ImageUtil.toBufferedImage(it) }
+    val preview = provider.getIcon(designAsset, 20, 20, JLabel(), {}).image.let { ImageUtil.toBufferedImage(it) }
     assertThat(preview.getRGB(0, 0)).isEqualTo(0xff012345.toInt())
   }
 
@@ -67,10 +68,10 @@ class SlowResourcePreviewManagerTest {
     val provider = SlowResourcePreviewManager(imageCacheRule.imageCache, TestSlowPreviewProvider)
     val designAsset = DesignAsset(MockVirtualFile("file.png"), emptyList(), ResourceType.DRAWABLE)
 
-    provider.getIcon(designAsset, 0, 0, { latch.countDown() })
+    provider.getIcon(designAsset, 0, 0, JLabel(), { latch.countDown() })
     assertFalse("The size is 0, the refresh callback should not be called") { latch.await(1, TimeUnit.SECONDS) }
 
-    val imageIcon = provider.getIcon(designAsset, 0, 0, {})
+    val imageIcon = provider.getIcon(designAsset, 0, 0, JLabel(), {})
     val result = ImageUtil.toBufferedImage(imageIcon.image)
     // Check that when the thumbnail width is 0, nothing break and we don't display the image
     assertThat(result.getRGB(0, 0)).isNotEqualTo(0xff012345.toInt())
@@ -82,10 +83,10 @@ class SlowResourcePreviewManagerTest {
     val provider = SlowResourcePreviewManager(imageCacheRule.imageCache, TestSlowPreviewProvider)
     val designAsset = DesignAsset(MockVirtualFile("file.png"), emptyList(), ResourceType.DRAWABLE)
 
-    provider.getIcon(designAsset, 0, 0, { latch.countDown() })
+    provider.getIcon(designAsset, 0, 0, JLabel(), { latch.countDown() })
     assertFalse("The size is 0, the refresh callback should not be called") { latch.await(1, TimeUnit.SECONDS) }
 
-    val imageIcon = provider.getIcon(designAsset, 0, 0, {})
+    val imageIcon = provider.getIcon(designAsset, 0, 0, JLabel(), {})
     val result = ImageUtil.toBufferedImage(imageIcon.image)
     assertNotNull(result)
   }

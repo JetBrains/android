@@ -39,6 +39,7 @@ import org.mockito.Mockito
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.swing.Icon
+import javax.swing.JLabel
 import kotlin.test.assertEquals
 
 @Language("XML")
@@ -74,7 +75,7 @@ class MultipleColorIconProviderTest {
     val statelistAsset = Asset.fromResourceItem(statelistResource, ResourceType.COLOR)
 
     val colorIconProvider = createColorIconProvider()
-    val colorIcon = colorIconProvider.getIcon(statelistAsset, 20, 20, {})
+    val colorIcon = colorIconProvider.getIcon(statelistAsset, 20, 20, JLabel(), {})
     val colorImage = colorIcon.createBufferedImage()
 
     assertEquals(0xffff0000.toInt(), colorImage.getRGB(0, 0))
@@ -90,7 +91,7 @@ class MultipleColorIconProviderTest {
     val colorAsset = Asset.fromResourceItem(colorResource, ResourceType.COLOR)
 
     val colorIconProvider = createColorIconProvider()
-    val colorIcon = colorIconProvider.getIcon(colorAsset, 20, 20, {})
+    val colorIcon = colorIconProvider.getIcon(colorAsset, 20, 20, JLabel(), {})
     val colorImage = colorIcon.createBufferedImage()
 
     assertEquals(0xffff0000.toInt(), colorImage.getRGB(10, 10))
@@ -109,7 +110,7 @@ class MultipleColorIconProviderTest {
 
     val colorIconProvider = createColorIconProvider(resourceResolver)
 
-    val colorIcon = colorIconProvider.getIcon(asset, 20, 20, {})
+    val colorIcon = colorIconProvider.getIcon(asset, 20, 20, JLabel(), {})
     val colorImage = colorIcon.createBufferedImage()
 
     assertEquals(0xff0000ff.toInt(), colorImage.getRGB(10, 10))
