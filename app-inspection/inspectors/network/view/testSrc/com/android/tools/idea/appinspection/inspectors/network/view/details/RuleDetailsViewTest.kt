@@ -638,10 +638,12 @@ class RuleDetailsViewTest {
       val dialog = it as BodyRuleDialog
       // Switches between add and replace mode
 
+      assertThat(dialog.isOKActionEnabled).isFalse()
       dialog.replaceEntireBodyCheckBox.isSelected = true
       assertThat(dialog.findTextArea.isEnabled).isFalse()
       assertThat(dialog.regexCheckBox.isEnabled).isFalse()
       dialog.replaceTextArea.text = "Test"
+      assertThat(dialog.isOKActionEnabled).isTrue()
       dialog.clickDefaultButton()
     }
 
@@ -685,9 +687,12 @@ class RuleDetailsViewTest {
       dialog.replaceEntireBodyCheckBox.isSelected = false
       assertThat(dialog.findTextArea.isEnabled).isTrue()
       assertThat(dialog.regexCheckBox.isEnabled).isTrue()
+      dialog.findTextArea.text = "  "
+      assertThat(dialog.isOKActionEnabled).isFalse()
       dialog.findTextArea.text = "Find"
       dialog.regexCheckBox.isSelected = true
       dialog.replaceTextArea.text = "Test"
+      assertThat(dialog.isOKActionEnabled).isTrue()
       dialog.clickDefaultButton()
     }
 

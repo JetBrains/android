@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBScrollPane
@@ -29,6 +30,7 @@ import java.awt.event.ItemEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
+import javax.swing.event.DocumentEvent
 
 const val REPLACE_ENTIRE_BODY_TEXT = "Replace entire body"
 
@@ -59,6 +61,7 @@ class BodyRuleDialog(
         findTextArea.text = ""
       }
       regexCheckBox.isEnabled = !isSelected
+      updateIsOKActionEnabled(this)
     }
     addItemListener(changeAction)
     changeAction(ItemEvent(this, 0, null, ItemEvent.ITEM_STATE_CHANGED))
@@ -67,6 +70,7 @@ class BodyRuleDialog(
   init {
     title = "Body Rule"
     transformation?.let { applySavedBody(it) }
+    updateIsOKActionEnabled(replaceEntireBodyCheckBox)
     init()
   }
 
@@ -88,6 +92,12 @@ class BodyRuleDialog(
   }
 
   override fun createCenterPanel() = JPanel(TabularLayout("*,5px,Fit,5px,*", "20px,*,Fit")).apply {
+    findTextArea.document.addDocumentListener(object : DocumentAdapter() {
+      override fun textChanged(e: DocumentEvent) {
+        updateIsOKActionEnabled(replaceEntireBodyCheckBox)
+      }
+    })
+
     add(createTitledPanel("Find by", findTextArea), TabularLayout.Constraint(1, 0))
     add(JSeparator(), TabularLayout.Constraint(1, 2))
     add(createTitledPanel("Replace with", replaceTextArea), TabularLayout.Constraint(1, 4))
@@ -120,5 +130,9 @@ class BodyRuleDialog(
     }
     panel.add(scroll, TabularLayout.Constraint(2, 0))
     return panel
+  }
+
+  private fun updateIsOKActionEnabled(replaceEntireBodyCheckBox: JBCheckBox) {
+    isOKActionEnabled = replaceEntireBodyCheckBox.isSelected || findTextArea.text.isNotBlank()
   }
 }
