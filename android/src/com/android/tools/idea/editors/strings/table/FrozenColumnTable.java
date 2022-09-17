@@ -434,19 +434,21 @@ public class FrozenColumnTable<M extends TableModel> {
     int selectedColumn = getSelectedColumn();
     int columnCount = getColumnCount();
 
-    for (String values : getTransferDataAsString(transferable).split("\n")) {
+    List<List<String>> grid = GridPasteUtils.splitIntoGrid(getTransferDataAsString(transferable));
+
+    for (List<String> gridRow : grid) {
       if (row >= rowCount) {
         break;
       }
 
       int column = selectedColumn;
 
-      for (Object value : values.split("\t")) {
+      for (String gridCell : gridRow) {
         if (column >= columnCount) {
           break;
         }
 
-        setValueAt(value, row, column++);
+        setValueAt(gridCell, row, column++);
       }
 
       row++;
