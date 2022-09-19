@@ -42,7 +42,7 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
    */
   class ProfilerSetting(profilingMode: ProfilingMode) : AbstractProfilerSetting(profilingMode) {
     override val actionName: String
-      get() = "Profile ${profilingMode.value}"
+      get() = "Profile"
 
     override val icon: Icon
       get() = when (profilingMode) {
