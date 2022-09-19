@@ -22,7 +22,6 @@ import com.android.tools.adtui.stdui.ContentType
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpHeader
 import com.android.tools.idea.appinspection.inspectors.network.view.UiComponentsProvider
-import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
 import com.google.common.annotations.VisibleForTesting
@@ -101,7 +100,6 @@ class HttpDataComponentFactory(private val httpData: HttpData) {
       val toggleHoverColor = AdtUiUtils.overlayColor(toggleLabel.background.rgb, toggleLabel.foreground.rgb, 0.9f)
       val toggleDefaultColor: Color = AdtUiUtils.overlayColor(toggleLabel.background.rgb, toggleHoverColor.rgb, 0.6f)
       toggleLabel.foreground = toggleDefaultColor
-      toggleLabel.font = STANDARD_FONT
       toggleLabel.border = JBUI.Borders.empty(0, 10, 0, 5)
       toggleLabel.addMouseListener(object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {

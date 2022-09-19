@@ -59,7 +59,6 @@ import studio.network.inspection.NetworkInspectorProtocol
 import java.awt.Component
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
-import javax.swing.JTextPane
 
 private const val FAKE_TRACE = "com.google.downloadUrlToStream(ImageFetcher.java:274)"
 private const val FAKE_RESPONSE_HEADERS = "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n"
@@ -81,6 +80,10 @@ private fun <C : Component> firstDescendantWithType(root: Component, type: Class
 
 private fun <T : TabContent?> ConnectionDetailsView.findTab(tabClass: Class<T>): T? {
   return tabs.filterIsInstance(tabClass).firstOrNull()
+}
+
+private fun <C: Component> allDescendantsWithType(root: Component, type: Class<C>): List<C> {
+  return TreeWalker(root).descendants().filterIsInstance(type)
 }
 
 @RunsInEdt
@@ -241,19 +244,23 @@ class ConnectionDetailsViewTest {
     val data: HttpData = DEFAULT_DATA.copy(requestFields = TEST_HEADERS)
     detailsView.setHttpData(data)
     val tabContent = detailsView.findTab(RequestTabContent::class.java)!!
-    val text = firstDescendantWithType(tabContent.component, JTextPane::class.java).text
-    assertUiContainsLabelAndValue(text, "123", "numeric-value")
-    assertUiContainsLabelAndValue(text, "apple", "apple-value")
-    assertUiContainsLabelAndValue(text, "border", "border-value")
-    assertUiContainsLabelAndValue(text, "car", "car-value")
-    assertThat(text.indexOf("123")).isGreaterThan(-1)
-    assertThat(text.indexOf("123")).isLessThan(text.indexOf("apple"))
-    assertThat(text.indexOf("apple")).isLessThan(text.indexOf("border"))
-    assertThat(text.indexOf("border")).isLessThan(text.indexOf("car"))
+    val labels = allDescendantsWithType(tabContent.component, NoWrapBoldLabel::class.java).map { it.text }
+    val values = allDescendantsWithType(tabContent.component, WrappedTextArea::class.java).map { it.text }
+    val labelsWithValues = labels.zip(values) {label, value -> "$label $value"}
+
+    // Add a colon (":") to all labels since it is added to the label in the UI.
+    assertUiContainsLabelAndValue(labelsWithValues[0], "123:", "numeric-value")
+    assertUiContainsLabelAndValue(labelsWithValues[1], "apple:", "apple-value")
+    assertUiContainsLabelAndValue(labelsWithValues[2], "border:", "border-value")
+    assertUiContainsLabelAndValue(labelsWithValues[3], "car:", "car-value")
+    assertThat(labels.indexOf("123:")).isGreaterThan(-1)
+    assertThat(labels.indexOf("123:")).isLessThan(labels.indexOf("apple:"))
+    assertThat(labels.indexOf("apple:")).isLessThan(labels.indexOf("border:"))
+    assertThat(labels.indexOf("border:")).isLessThan(labels.indexOf("car:"))
   }
 
   private fun assertUiContainsLabelAndValue(uiText: String, label: String, value: String) {
-    assertThat(uiText).containsMatch(String.format("\\b%s\\b.+\\b%s\\b", label, value))
+    assert(uiText == "$label $value")
   }
 
   @Test

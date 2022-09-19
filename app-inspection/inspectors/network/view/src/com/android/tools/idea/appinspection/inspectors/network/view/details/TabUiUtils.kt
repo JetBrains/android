@@ -18,18 +18,18 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.common.borderLight
-import com.android.tools.adtui.ui.BreakWordWrapHtmlTextPane
 import com.android.tools.adtui.ui.HideablePanel
-import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
+import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.scale
 import java.awt.BorderLayout
@@ -40,11 +40,11 @@ import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.lang.Integer.max
 import javax.swing.BorderFactory
+import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
-import javax.swing.SwingConstants
 
 val SCROLL_UNIT = scale(10)
 
@@ -95,11 +95,11 @@ fun createHideablePanel(
   title: String, content: JComponent,
   northEastComponent: JComponent?
 ): HideablePanel {
-  val htmlTitle = String.format("<html><b>%s</b></html>", title)
-  return HideablePanel.Builder(htmlTitle, content)
+  return HideablePanel.Builder(title, content)
     .setNorthEastComponent(northEastComponent)
     .setPanelBorder(JBUI.Borders.empty(10, 0, 0, 0))
     .setContentBorder(JBUI.Borders.empty(10, 12, 0, 0))
+    .setIsTitleBold(true)
     .build()
 }
 
@@ -111,27 +111,31 @@ fun createStyledMapComponent(map: Map<String, String>): JComponent {
   if (map.isEmpty()) {
     return JLabel("Not available")
   }
-  val textPane = BreakWordWrapHtmlTextPane()
-  textPane.text = buildString {
-    append("<html>")
-    map.toSortedMap(String.CASE_INSENSITIVE_ORDER)
-      .forEach { (key, value) ->
-        append(String.format("<p><b>%s</b>:&nbsp;<span>%s</span></p>", key, value))
+  val scaled5 = scale(5)
+  val emptyBorder = JBUI.Borders.empty(scaled5, 0, scaled5, scaled5)
+  val mainJPanel = JPanel()
+  mainJPanel.layout = BoxLayout(mainJPanel, BoxLayout.Y_AXIS)
+  map.toSortedMap(String.CASE_INSENSITIVE_ORDER)
+    .forEach { (key, value) ->
+      val currJPanel = JPanel().apply {
+        layout = BorderLayout(scaled5, scaled5)
+        add(NoWrapBoldLabel("$key:").apply {
+          border = emptyBorder
+          verticalAlignment = JLabel.TOP
+        }, BorderLayout.LINE_START)
+        add(WrappedTextArea(value).apply {
+          border = emptyBorder
+          background = null
+          isOpaque = false
+          isEditable = false
+        }, BorderLayout.CENTER)
+        alignmentX = JPanel.LEFT_ALIGNMENT
+        alignmentY = JPanel.TOP_ALIGNMENT
       }
-    append("</html>")
-  }
-  return textPane
-}
-
-/**
- * Adjusts the font of the target component to a consistent default size.
- */
-fun adjustFont(c: Component) {
-  if (c.font == null) {
-    // Some Swing components simply have no font set - skip over them
-    return
-  }
-  c.font = c.font.deriveFont(Font.PLAIN, STANDARD_FONT.size2D)
+      mainJPanel.add(currJPanel)
+    }
+  mainJPanel.alignmentX = JPanel.LEFT_ALIGNMENT
+  return mainJPanel
 }
 
 /**
@@ -218,5 +222,34 @@ fun JBCheckBox.withRegexLabel(): JPanel {
   return JPanel(HorizontalLayout(0)).apply {
     add(this@withRegexLabel)
     add(label)
+  }
+}
+
+/**
+ * This is a label with bold font and does not wrap.
+ */
+class NoWrapBoldLabel(text: String) : JBLabel(text) {
+  init {
+    withFont(JBFont.label().asBold())
+  }
+  override fun setFont(ignored: Font?) {
+    // ignore the input font and explicitly set the label font provided by JBFont
+    super.setFont(JBFont.label().asBold())
+  }
+}
+
+/**
+ * This is a text area with line and word wrap and plain text.
+ */
+class WrappedTextArea(text: String) : JBTextArea(text) {
+  init {
+    font = JBFont.label().asPlain()
+    lineWrap = true
+    wrapStyleWord = true
+  }
+
+  override fun setFont(ignored: Font?) {
+    // ignore the input font and explicitly set the label font provided by JBFont
+    super.setFont(JBFont.label().asPlain())
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.inspectors.common.ui.dataviewer;
 
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.codeInsight.folding.CodeFoldingManager;
 import com.intellij.lang.Language;
@@ -32,6 +31,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
+import com.intellij.util.ui.JBFont;
 import java.util.Collections;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -56,9 +56,9 @@ public class IntellijDataViewer implements DataViewer {
   public static IntellijDataViewer createRawTextViewer(@NotNull byte[] content, Boolean isEditable) {
     JTextArea textArea = new JTextArea(new String(content, 0, Math.min(content.length, RAW_VIEWER_MAX_STRING_LENGTH)));
     textArea.setLineWrap(true);
-    textArea.setFont(AdtUiUtils.DEFAULT_FONT.biggerOn(3f));
     textArea.setEditable(isEditable);
     textArea.setBackground(null);
+    textArea.setOpaque(false);
     return new IntellijDataViewer(textArea, Style.RAW);
   }
 
@@ -149,7 +149,7 @@ public class IntellijDataViewer implements DataViewer {
   @NotNull
   public static IntellijDataViewer createInvalidViewer() {
     JComponent component = new JLabel("No preview available", SwingConstants.CENTER);
-    component.setFont(component.getFont().deriveFont(14.f));
+    component.setFont(JBFont.label().asPlain());
     return new IntellijDataViewer(component, Style.INVALID);
   }
 
