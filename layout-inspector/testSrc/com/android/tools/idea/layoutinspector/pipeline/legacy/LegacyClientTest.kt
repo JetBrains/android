@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_SECONDS
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
@@ -58,9 +59,10 @@ class LegacyClientTest {
     client
   }
 
-  private val inspectorRule = LayoutInspectorRule(listOf(legacyClientProvider))
+  private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
+  private val inspectorRule = LayoutInspectorRule(listOf(legacyClientProvider), projectRule)
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule).around(disposableRule)!!
 
   @Before
   fun setUp() {

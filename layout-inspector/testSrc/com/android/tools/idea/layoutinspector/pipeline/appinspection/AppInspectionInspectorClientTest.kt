@@ -39,7 +39,6 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.someRoot
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.componenttree.treetable.TreeTableHeader
@@ -82,6 +81,7 @@ import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.project.AndroidRunConfigurations
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
@@ -105,10 +105,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.`when`
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ArrayBlockingQueue
@@ -131,16 +131,23 @@ class AppInspectionInspectorClientTest {
 
   private val disposableRule = DisposableRule()
   private val treeRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
+  private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(monitor))) { it == preferredProcess}
+  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(monitor)), projectRule) {
+    it == preferredProcess
+  }
   private val usageRule = MetricsTrackerRule()
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(treeRule).around(usageRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule)
+    .around(inspectionRule)
+    .around(inspectorRule)
+    .around(treeRule)
+    .around(usageRule)
+    .around(disposableRule)!!
 
   @Before
   fun before() {
-    inspectorRule.projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     inspectorRule.attachDevice(MODERN_DEVICE)
   }
 
@@ -932,8 +939,8 @@ class AppInspectionInspectorClientTest {
   }
 
   private fun setUpRunConfiguration(enableInspectionWithoutRestart: Boolean = false) {
-    addManifest(inspectorRule.projectRule.fixture)
-    AndroidRunConfigurations.getInstance().createRunConfiguration(AndroidFacet.getInstance(inspectorRule.projectRule.module)!!)
+    addManifest(projectRule.fixture)
+    AndroidRunConfigurations.getInstance().createRunConfiguration(AndroidFacet.getInstance(projectRule.module)!!)
     if (enableInspectionWithoutRestart) {
       val runManager = RunManager.getInstance(inspectorRule.project)
       val config = runManager.allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().firstOrNull { it.name == "app" }
@@ -967,11 +974,12 @@ class AppInspectionInspectorClientTest {
 
 class AppInspectionInspectorClientWithUnsupportedApi29 {
   private val disposableRule = DisposableRule()
+  private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(listOf(mock())) { false }
+  private val inspectorRule = LayoutInspectorRule(listOf(mock()), projectRule) { false }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule).around(disposableRule)!!
 
   @Test
   fun testApi29VersionBanner() = runBlocking {
@@ -1132,6 +1140,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
 class AppInspectionInspectorClientWithFailingClientTest {
   private val usageTrackerRule = MetricsTrackerRule()
   private val disposableRule = DisposableRule()
+  private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
   private var throwOnState: AttachErrorState = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
   private var exceptionToThrow: Exception = RuntimeException("expected")
@@ -1145,12 +1154,12 @@ class AppInspectionInspectorClientWithFailingClientTest {
     }.whenever(it).updateProgress(any(AttachErrorState::class.java))
   }
 
-  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(monitor))) {
+  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(monitor)), projectRule) {
     it.name == MODERN_PROCESS.name
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(usageTrackerRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule).around(usageTrackerRule).around(disposableRule)!!
 
   @Test
   fun errorShownOnNoAgentWithApi29() {

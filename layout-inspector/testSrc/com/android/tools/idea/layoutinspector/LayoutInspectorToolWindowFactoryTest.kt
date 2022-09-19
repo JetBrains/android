@@ -20,9 +20,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.datastore.service.TransportService
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.ui.RecentProcess
@@ -38,7 +36,7 @@ import com.android.tools.idea.layoutinspector.ui.InspectorDeviceViewSettings
 import com.android.tools.idea.layoutinspector.util.ComponentUtil
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.TransportService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
@@ -125,14 +123,14 @@ class LayoutInspectorToolWindowFactoryTest {
 
   private val disposableRule = DisposableRule()
 
+  private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(listOf(LegacyClientProvider(disposableRule.disposable)),
-                                                  projectRule = AndroidProjectRule.inMemory().initAndroid(false)) {
+  private val inspectorRule = LayoutInspectorRule(listOf(LegacyClientProvider(disposableRule.disposable)), projectRule) {
     it.name == LEGACY_PROCESS.name
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule).around(disposableRule)!!
 
   @Test
   fun foregroundProcessDetectionOnlyStartsIfWindowIsNotMinimized() {
@@ -240,8 +238,8 @@ class LayoutInspectorToolWindowFactoryTest {
 
   @Test
   fun toolWindowFactoryCreatesCorrectSettings() {
-    ApplicationManager.getApplication().replaceService(com.android.tools.idea.transport.TransportService::class.java, mock(), inspectorRule.projectRule.testRootDisposable)
-    inspectorRule.projectRule.replaceService(AppInspectionDiscoveryService::class.java, mock())
+    ApplicationManager.getApplication().replaceService(TransportService::class.java, mock(), projectRule.testRootDisposable)
+    projectRule.replaceService(AppInspectionDiscoveryService::class.java, mock())
     whenever(AppInspectionDiscoveryService.instance.apiServices).thenReturn(inspectionRule.inspectionService.apiServices)
     val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(inspectorRule.project)
     LayoutInspectorToolWindowFactory().createToolWindowContent(inspectorRule.project, toolWindow)

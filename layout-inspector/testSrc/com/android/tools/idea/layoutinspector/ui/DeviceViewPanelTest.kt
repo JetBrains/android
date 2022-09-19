@@ -82,6 +82,7 @@ import com.android.tools.idea.layoutinspector.util.TestStringTable
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command.SpecializedCase.UPDATE_SCREENSHOT_TYPE_COMMAND
 import com.android.tools.idea.layoutinspector.window
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
@@ -133,16 +134,19 @@ class DeviceViewPanelWithFullInspectorTest {
   private val scheduler = VirtualTimeScheduler()
   private val executorRule = PropertySetterRule({ scheduler }, Toggle3dAction::executorFactory)
   private val disposableRule = DisposableRule()
+  private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, withDefaultResponse = false)
   private val inspectorRule = LayoutInspectorRule(
     clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
+    projectRule = projectRule,
     isPreferredProcess =  { it.name == MODERN_PROCESS.name }
   )
-  private val fileOpenCaptureRule = FileOpenCaptureRule(inspectorRule.projectRule)
+  private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
   @get:Rule
   val ruleChain = RuleChain
-    .outerRule(appInspectorRule)
+    .outerRule(projectRule)
+    .around(appInspectorRule)
     .around(inspectorRule)
     .around(fileOpenCaptureRule)
     .around(IconLoaderRule())
@@ -163,7 +167,7 @@ class DeviceViewPanelWithFullInspectorTest {
   @Before
   fun before() {
     inspectorRule.attachDevice(MODERN_DEVICE)
-    inspectorRule.projectRule.fixture.testDataPath =
+    projectRule.fixture.testDataPath =
       TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
   }
 
@@ -186,7 +190,7 @@ class DeviceViewPanelWithFullInspectorTest {
         {},
         inspectorRule.inspector,
         settings,
-        inspectorRule.projectRule.fixture.testRootDisposable
+        projectRule.fixture.testRootDisposable
     )
     val deviceModel = panel.getData(DEVICE_VIEW_MODEL_KEY.name) as DeviceViewPanelModel
     delegateDataProvider(panel)
@@ -243,7 +247,7 @@ class DeviceViewPanelWithFullInspectorTest {
         {},
         inspectorRule.inspector,
         settings,
-        inspectorRule.projectRule.fixture.testRootDisposable))
+        projectRule.fixture.testRootDisposable))
 
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     assertThat(toggle.isEnabled).isTrue()
@@ -267,7 +271,7 @@ class DeviceViewPanelWithFullInspectorTest {
         {},
         inspectorRule.inspector,
         settings,
-        inspectorRule.projectRule.fixture.testRootDisposable))
+        projectRule.fixture.testRootDisposable))
 
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     assertThat(toggle.isEnabled).isTrue()
@@ -294,7 +298,7 @@ class DeviceViewPanelWithFullInspectorTest {
         {},
         inspectorRule.inspector,
         settings,
-        inspectorRule.projectRule.fixture.testRootDisposable
+        projectRule.fixture.testRootDisposable
       )
     )
 
@@ -325,7 +329,7 @@ class DeviceViewPanelWithFullInspectorTest {
         {},
         inspectorRule.inspector,
         settings,
-        inspectorRule.projectRule.fixture.testRootDisposable
+        projectRule.fixture.testRootDisposable
       )
     )
 
@@ -355,7 +359,7 @@ class DeviceViewPanelWithFullInspectorTest {
         {},
         inspectorRule.inspector,
         settings,
-        inspectorRule.projectRule.fixture.testRootDisposable
+        projectRule.fixture.testRootDisposable
       )
     )
 
@@ -390,7 +394,7 @@ class DeviceViewPanelWithFullInspectorTest {
         {},
         inspectorRule.inspector,
         settings,
-        inspectorRule.projectRule.fixture.testRootDisposable
+        projectRule.fixture.testRootDisposable
       )
     )
 
@@ -429,7 +433,7 @@ class DeviceViewPanelWithFullInspectorTest {
         {},
         inspectorRule.inspector,
         settings,
-        inspectorRule.projectRule.fixture.testRootDisposable
+        projectRule.fixture.testRootDisposable
       )
     )
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
@@ -473,7 +477,7 @@ class DeviceViewPanelWithFullInspectorTest {
         {},
         inspectorRule.inspector,
         settings,
-        inspectorRule.projectRule.fixture.testRootDisposable
+        projectRule.fixture.testRootDisposable
       )
     )
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
@@ -513,7 +517,7 @@ class DeviceViewPanelWithFullInspectorTest {
       {},
       inspectorRule.inspector,
       settings,
-      inspectorRule.projectRule.fixture.testRootDisposable
+      projectRule.fixture.testRootDisposable
     )
     val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
     val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
@@ -551,7 +555,7 @@ class DeviceViewPanelWithFullInspectorTest {
       {},
       inspectorRule.inspector,
       settings,
-      inspectorRule.projectRule.fixture.testRootDisposable,
+      projectRule.fixture.testRootDisposable,
     )
 
     val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
@@ -598,7 +602,7 @@ class DeviceViewPanelWithFullInspectorTest {
       {},
       inspectorRule.inspector,
       settings,
-      inspectorRule.projectRule.fixture.testRootDisposable
+      projectRule.fixture.testRootDisposable
     )
 
     val selectTargetAction = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first().selectTargetAction!!
@@ -652,8 +656,8 @@ class DeviceViewPanelWithFullInspectorTest {
     latch = CountDownLatch(1)
     connect(MODERN_PROCESS)
     assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
-    inspectorRule.projectRule.fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
-    inspectorRule.projectRule.fixture.addFileToProject("res/layout/demo.xml", """
+    projectRule.fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
+    projectRule.fixture.addFileToProject("res/layout/demo.xml", """
       <?xml version="1.0" encoding="utf-8"?>
       <v1 xmlns:android="http://schemas.android.com/apk/res/android"
           android:id="@+id/v1">
@@ -676,7 +680,7 @@ class DeviceViewPanelWithFullInspectorTest {
       {},
       inspectorRule.inspector,
       FakeDeviceViewSettings(),
-      inspectorRule.projectRule.fixture.testRootDisposable
+      projectRule.fixture.testRootDisposable
     )
     delegateDataProvider(panel)
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
@@ -1121,10 +1125,11 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
   val edtRule = EdtRule()
 
   private val disposableRule = DisposableRule()
-  private val inspectorRule = LayoutInspectorRule(listOf(LegacyClientProvider(disposableRule.disposable)))
+  private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
+  private val inspectorRule = LayoutInspectorRule(listOf(LegacyClientProvider(disposableRule.disposable)), projectRule)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule).around(disposableRule)!!
 
   @Test
   fun testLiveControlDisabledWithProcessFromLegacyDevice() {
@@ -1142,7 +1147,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
         {},
         inspectorRule.inspector,
         settings,
-        inspectorRule.projectRule.fixture.testRootDisposable,
+        projectRule.fixture.testRootDisposable,
       )
     )
 
@@ -1167,7 +1172,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
         {},
         inspectorRule.inspector,
         settings,
-        inspectorRule.projectRule.fixture.testRootDisposable,
+        projectRule.fixture.testRootDisposable,
       )
     )
 
@@ -1340,6 +1345,7 @@ class MyViewportLayoutManagerTest {
 @RunsInEdt
 class DeviceViewPanelWithNoClientsTest {
   private val disposableRule = DisposableRule()
+  private val projectRule = AndroidProjectRule.onDisk()
   private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, withDefaultResponse = false)
   private val postCreateLatch = CountDownLatch(1)
   private val inspectorRule = LayoutInspectorRule(
@@ -1347,12 +1353,18 @@ class DeviceViewPanelWithNoClientsTest {
         postCreateLatch.await()
         null
       }),
+    projectRule = projectRule,
     isPreferredProcess = { it.name == MODERN_PROCESS.name }
   )
 
   @get:Rule
   val ruleChain =
-    RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(IconLoaderRule()).around(EdtRule()).around(disposableRule)!!
+    RuleChain.outerRule(projectRule)
+      .around(appInspectorRule)
+      .around(inspectorRule)
+      .around(IconLoaderRule())
+      .around(EdtRule())
+      .around(disposableRule)!!
 
   @Test
   fun testLoadingPane() {
@@ -1367,7 +1379,7 @@ class DeviceViewPanelWithNoClientsTest {
       {},
       inspectorRule.inspector,
       settings,
-      inspectorRule.projectRule.fixture.testRootDisposable,
+      projectRule.fixture.testRootDisposable,
     )
     val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
     val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
@@ -1398,7 +1410,7 @@ class DeviceViewPanelWithNoClientsTest {
       {},
       inspectorRule.inspector,
       EditorDeviceViewSettings(),
-      inspectorRule.projectRule.fixture.testRootDisposable,
+      projectRule.fixture.testRootDisposable,
     )
 
     val deviceViewContentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
