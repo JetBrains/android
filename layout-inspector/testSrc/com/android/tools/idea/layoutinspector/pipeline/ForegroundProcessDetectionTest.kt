@@ -778,7 +778,7 @@ class ForegroundProcessDetectionTest {
     }
 
     fun sendForegroundProcessEvents(stream: Stream, foregroundProcesses: List<ForegroundProcess>) {
-      foregroundProcesses.forEachIndexed { index, foregroundProcess ->
+      foregroundProcesses.forEachIndexed { _, foregroundProcess ->
         sendForegroundProcessEvent(stream, createForegroundProcessEvent(foregroundProcess, stream))
       }
     }

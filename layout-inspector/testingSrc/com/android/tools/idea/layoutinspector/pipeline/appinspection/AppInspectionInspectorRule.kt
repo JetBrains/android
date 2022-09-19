@@ -38,7 +38,6 @@ import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement

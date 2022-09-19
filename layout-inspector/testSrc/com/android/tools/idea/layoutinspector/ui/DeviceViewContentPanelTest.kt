@@ -63,7 +63,6 @@ import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.layoutinspector.BitmapType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.BrowserUtil
@@ -631,7 +630,7 @@ class DeviceViewContentPanelTest {
           }
         }
       }
-      browserUtil.verify(atLeastOnce()) { BrowserUtil.browse("https://developer.android.com/studio/debug/layout-inspector") }
+      browserUtil.verify({ BrowserUtil.browse("https://developer.android.com/studio/debug/layout-inspector") }, atLeastOnce())
       verify(selectProcessAction, atLeastOnce()).actionPerformed(any())
     }
 

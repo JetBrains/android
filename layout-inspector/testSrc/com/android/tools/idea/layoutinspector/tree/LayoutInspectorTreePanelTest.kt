@@ -577,7 +577,7 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     panel.registerCallbacks(callbacks)
     val ui = FakeUi(panel.focusComponent)
     ui.keyboard.setFocus(panel.focusComponent)
-    ui.keyboard.type('T'.toInt())
+    ui.keyboard.type('T'.code)
     verify(callbacks).startFiltering("T")
   }
 
