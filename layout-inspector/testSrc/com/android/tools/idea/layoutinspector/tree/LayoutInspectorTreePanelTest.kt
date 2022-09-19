@@ -113,7 +113,7 @@ class LayoutInspectorTreePanelTreeTableTest : LayoutInspectorTreePanelTest(useTr
 abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
   private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.withSdk()
-  private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable)
+  private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
   private val inspectorRule = LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) {
     it.name == PROCESS.name
   }

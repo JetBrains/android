@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.flags.junit.SetFlagRule
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
@@ -31,6 +32,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.VIEW_LAYOUT_INSPECTOR_ID
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -56,7 +58,7 @@ fun AppInspectionClientProvider(
 ) = InspectorClientProvider { params, inspector ->
   val apiServices = getApiServices()
 
-  AppInspectionInspectorClient(inspector.layoutInspectorModel.project, params.process, params.isInstantlyAutoConnected,
+  AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected,
                                inspector.layoutInspectorModel, LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process),
                                inspector.treeSettings, parentDisposable, apiServices).apply {
     launchMonitor = getMonitor()
@@ -66,7 +68,11 @@ fun AppInspectionClientProvider(
 /**
  * App inspection-pipeline specific setup and teardown for tests.
  */
-class AppInspectionInspectorRule(private val parentDisposable: Disposable, withDefaultResponse: Boolean = true) : TestRule {
+class AppInspectionInspectorRule(
+  private val parentDisposable: Disposable,
+  private val projectRule: AndroidProjectRule,
+  withDefaultResponse: Boolean = true
+) : TestRule {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
@@ -127,8 +133,12 @@ class AppInspectionInspectorRule(private val parentDisposable: Disposable, withD
   /**
    * Convenience method so users don't have to manually create an [AppInspectionClientProvider].
    */
-  fun createInspectorClientProvider(monitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor(ListenerCollection.createWithDirectExecutor())): InspectorClientProvider {
-    return AppInspectionClientProvider({ inspectionService.apiServices }, { monitor }, parentDisposable)
+  fun createInspectorClientProvider(getMonitor: () -> InspectorClientLaunchMonitor = { defaultMonitor() }): InspectorClientProvider {
+    return AppInspectionClientProvider({ inspectionService.apiServices }, getMonitor, parentDisposable)
+  }
+
+  private fun defaultMonitor(): InspectorClientLaunchMonitor {
+    return InspectorClientLaunchMonitor(projectRule.project, ListenerCollection.createWithDirectExecutor(), mock())
   }
 
   override fun apply(base: Statement, description: Description): Statement {

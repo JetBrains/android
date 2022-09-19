@@ -29,7 +29,6 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -93,7 +92,6 @@ const val MIN_API_29_AOSP_SYSIMG_REV = 8
  *     inspection-based inspectors.
  */
 class AppInspectionInspectorClient(
-  private val project: Project,
   process: ProcessDescriptor,
   isInstantlyAutoConnected: Boolean,
   private val model: InspectorModel,
@@ -102,7 +100,8 @@ class AppInspectionInspectorClient(
   parentDisposable: Disposable,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-) : AbstractInspectorClient(process, isInstantlyAutoConnected, SessionStatisticsImpl(APP_INSPECTION_CLIENT, model), parentDisposable) {
+) : AbstractInspectorClient(APP_INSPECTION_CLIENT, model.project, process, isInstantlyAutoConnected,
+                            SessionStatisticsImpl(APP_INSPECTION_CLIENT, model), parentDisposable) {
 
   private var viewInspector: ViewLayoutInspectorClient? = null
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider

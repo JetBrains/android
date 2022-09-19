@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.util.ListenerCollection
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
@@ -30,8 +36,10 @@ import java.util.concurrent.TimeUnit
 
 @VisibleForTesting val CONNECTED_STATE = AttachErrorState.MODEL_UPDATED
 @VisibleForTesting const val CONNECT_TIMEOUT_SECONDS: Long = 30L
+@VisibleForTesting const val CONNECT_TIMEOUT_MESSAGE_KEY = "connect.timeout"
 
 class InspectorClientLaunchMonitor(
+  private val project: Project,
   private val attachErrorStateListeners: ListenerCollection<(AttachErrorState) -> Unit>,
   @TestOnly private val executorService: ScheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService()
 ) {
@@ -56,23 +64,37 @@ class InspectorClientLaunchMonitor(
     currentProgress = progress
     if (currentProgress < CONNECTED_STATE) {
       lastUpdate = System.currentTimeMillis()
-      currentFuture = executorService.schedule(
-        {
-          client?.let { client ->
-            Logger.getInstance(InspectorClientLaunchMonitor::class.java).warn(
-              "Client $client timed out during attach at step $currentProgress")
-            logAttachError(AttachErrorCode.CONNECT_TIMEOUT)
-            client.disconnect()
-          }
-        },
-        CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS
-      )
+      currentFuture = executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
     }
+    InspectorBannerService.getInstance(project).removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
   }
 
   fun onFailure(t: Throwable) {
     logAttachError(t.errorCode)
     stop()
+  }
+
+  private fun handleTimeout() {
+    val banner = InspectorBannerService.getInstance(project)
+    // Allow the user to wait as long as they want in case it takes a long time to connect.
+    // This action simply removes the banner and schedules another check after CONNECT_TIMEOUT_SECONDS.
+    val continueWaiting = object : AnAction("Continue Waiting") {
+      override fun actionPerformed(event: AnActionEvent) {
+        banner.removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+        currentFuture = executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+      }
+    }
+    val disconnectText = if (client?.clientType == ClientType.APP_INSPECTION_CLIENT) "Dump Views" else "Disconnect"
+    val disconnect = object : AnAction(disconnectText) {
+      override fun actionPerformed(event: AnActionEvent) {
+        banner.removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+        Logger.getInstance(InspectorClientLaunchMonitor::class.java).warn(
+          "Client $client timed out during attach at step $currentProgress on the users request")
+        logAttachError(AttachErrorCode.CONNECT_TIMEOUT)
+        client?.disconnect()
+      }
+    }
+    banner.setNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY), listOf(continueWaiting, disconnect))
   }
 
   private fun logAttachError(errorCode: AttachErrorCode) {

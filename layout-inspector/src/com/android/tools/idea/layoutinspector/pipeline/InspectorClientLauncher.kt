@@ -22,7 +22,6 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
@@ -63,7 +62,6 @@ class InspectorClientLauncher(
      * Convenience method for creating a launcher with useful client creation rules used in production
      */
     fun createDefaultLauncher(
-      project: Project,
       processes: ProcessesModel,
       model: InspectorModel,
       metrics: LayoutInspectorMetrics,
@@ -75,8 +73,8 @@ class InspectorClientLauncher(
         listOf(
           { params ->
             if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
+              // Only Q devices or newer support image updates which is used by the app inspection agent
               AppInspectionInspectorClient(
-                project,
                 params.process,
                 params.isInstantlyAutoConnected,
                 model,
@@ -196,21 +194,21 @@ class InspectorClientLauncher(
 
             activeClient = client
 
-            // InspectorClientLaunchMonitor should kill it before this, but just in case, don't wait forever.
-            latch.await(1, TimeUnit.MINUTES)
+            // Wait until client is connected or the user stops the connection attempt.
+            latch.await()
+
             // The current selected process changed out from under us, abort the whole thing.
             if (processes.selectedProcess?.isRunning != true || processes.selectedProcess?.pid != process.pid) {
               metrics?.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED, client.stats)
               return
             }
-            // This client didn't work, try the next
             if (validClientConnected) {
+              // Successful connected exit creator loop
               break
             }
-            else {
-              // Disconnect to clean up any partial connection or leftover process
-              client.disconnect()
-            }
+            // This client didn't work, try the next
+            // Disconnect to clean up any partial connection or leftover process
+            client.disconnect()
           }
           catch (cancellationException: CancellationException) {
             // Disconnect to clean up any partial connection or leftover process

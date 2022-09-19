@@ -34,7 +34,6 @@ import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectio
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectionInitializer
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessListener
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.layoutinspector.pipeline.stopInspector
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
@@ -119,7 +118,6 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         val treeSettings = InspectorTreeSettings { launcher.activeClient }
         val metrics = LayoutInspectorMetrics(project, null)
         launcher = InspectorClientLauncher.createDefaultLauncher(
-          project,
           processesModel,
           model,
           metrics,

@@ -66,8 +66,8 @@ class ForegroundProcessDetectionTest {
 
   private val disposableRule = DisposableRule()
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(monitor)), projectRule)
+  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
+  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider { monitor }), projectRule)
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule)
