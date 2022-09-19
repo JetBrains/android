@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_RED
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
@@ -176,6 +177,11 @@ interface InspectorClient: Disposable {
   fun saveSnapshot(path: Path)
 
   /**
+   * The type of client (app inspection or legacy client)
+   */
+  val clientType: ClientType
+
+  /**
    * Report this client's capabilities so that external systems can check what functionality is
    * available before interacting with some of this client's methods.
    */
@@ -237,6 +243,8 @@ object DisconnectedClient : InspectorClient {
   override fun stopFetching(): CompletableFuture<Unit> = CompletableFuture.completedFuture(Unit)
   override fun refresh() {}
   override fun saveSnapshot(path: Path) {}
+
+  override val clientType: ClientType = ClientType.UNKNOWN_CLIENT_TYPE
 
   override val state = InspectorClient.State.DISCONNECTED
   override val process = object : ProcessDescriptor {

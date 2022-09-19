@@ -34,8 +34,10 @@ import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
@@ -93,7 +95,7 @@ class InspectorClientLauncherTest {
       processes,
       listOf { params ->
         if (params.process.device.apiLevel == MODERN_DEVICE.apiLevel) FakeInspectorClient(
-          "Modern client", params.process, disposableRule.disposable)
+          "Modern client", projectRule.project, params.process, disposableRule.disposable)
         else null
       },
       projectRule.project,
@@ -120,7 +122,7 @@ class InspectorClientLauncherTest {
     val launcher = InspectorClientLauncher(
       processes,
       listOf { params ->
-        val client = FakeInspectorClient("Client", params.process, disposableRule.disposable)
+        val client = FakeInspectorClient("Client", projectRule.project, params.process, disposableRule.disposable)
         client.registerStateCallback { state -> if (state == InspectorClient.State.DISCONNECTED) clientWasDisconnected = true }
         client
       },
@@ -151,18 +153,18 @@ class InspectorClientLauncherTest {
         { params ->
           creatorCount1++
           if (params.process.device.apiLevel == MODERN_DEVICE.apiLevel)
-            FakeInspectorClient("Modern client", params.process, disposableRule.disposable)
+            FakeInspectorClient("Modern client", projectRule.project, params.process, disposableRule.disposable)
           else null
         },
         { params ->
           creatorCount2++
           if (params.process.device.apiLevel == LEGACY_DEVICE.apiLevel)
-            FakeInspectorClient("Legacy client", params.process, disposableRule.disposable)
+            FakeInspectorClient("Legacy client", projectRule.project, params.process, disposableRule.disposable)
           else null
         },
         { params ->
           creatorCount3++
-          FakeInspectorClient("Fallback client", params.process, disposableRule.disposable)
+          FakeInspectorClient("Fallback client", projectRule.project, params.process, disposableRule.disposable)
         }
       ),
       projectRule.project,
@@ -202,17 +204,17 @@ class InspectorClientLauncherTest {
       processes,
       listOf(
         { params ->
-          object : FakeInspectorClient("Exploding client #1", params.process, disposableRule.disposable) {
+          object : FakeInspectorClient("Exploding client #1", projectRule.project, params.process, disposableRule.disposable) {
             override fun doConnect() = throw IllegalStateException()
           }
         },
         { params ->
-          object : FakeInspectorClient("Exploding client #2", params.process, disposableRule.disposable) {
+          object : FakeInspectorClient("Exploding client #2", projectRule.project, params.process, disposableRule.disposable) {
             override fun doConnect() = throw IllegalStateException()
           }
         },
         { params ->
-          FakeInspectorClient("Fallback client", params.process, disposableRule.disposable)
+          FakeInspectorClient("Fallback client", projectRule.project, params.process, disposableRule.disposable)
         }
       ),
       projectRule.project,
@@ -234,18 +236,18 @@ class InspectorClientLauncherTest {
       processes,
       listOf(
         { params ->
-          object : FakeInspectorClient("Exploding client #1", params.process, disposableRule.disposable) {
+          object : FakeInspectorClient("Exploding client #1", projectRule.project, params.process, disposableRule.disposable) {
             override fun doConnect() = throw IllegalStateException()
           }
         },
         { params ->
-          object : FakeInspectorClient("Exploding client #2", params.process, disposableRule.disposable) {
+          object : FakeInspectorClient("Exploding client #2", projectRule.project, params.process, disposableRule.disposable) {
             override fun doConnect() = throw IllegalStateException()
           }
         },
         { params ->
           if (params.process.device.apiLevel >= MODERN_DEVICE.apiLevel) {
-            FakeInspectorClient("Modern client", params.process, disposableRule.disposable)
+            FakeInspectorClient("Modern client", projectRule.project, params.process, disposableRule.disposable)
           }
           else {
             null
@@ -278,7 +280,7 @@ class InspectorClientLauncherTest {
     val processes = ProcessesModel(notifier) { it.name == process1.name } // Note: This covers all processes as they have the same name
     val launcher = InspectorClientLauncher(
       processes,
-      listOf { params -> FakeInspectorClient("Unused", params.process, disposableRule.disposable) },
+      listOf { params -> FakeInspectorClient("Unused", projectRule.project, params.process, disposableRule.disposable) },
       projectRule.project,
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor())
@@ -338,7 +340,7 @@ class InspectorClientLauncherTest {
       processes,
       listOf(
         { params ->
-          object : FakeInspectorClient("Initial failing client", params.process, disposableRule.disposable) {
+          object : FakeInspectorClient("Initial failing client", projectRule.project, params.process, disposableRule.disposable) {
             override fun doConnect(): ListenableFuture<Nothing> {
               if (process == process1) {
                 firstClientStarted.countDown()
@@ -354,7 +356,7 @@ class InspectorClientLauncherTest {
           }
         },
         { params ->
-          object : FakeInspectorClient("Only connect to process 2", params.process, disposableRule.disposable) {
+          object : FakeInspectorClient("Only connect to process 2", projectRule.project, params.process, disposableRule.disposable) {
             override fun doConnect(): ListenableFuture<Nothing> {
               if (process == process1) {
                 failureMessage = "First connection shouldn't get to second creator"
@@ -414,7 +416,7 @@ class InspectorClientLauncherMetricsTest {
       processes,
       listOf(
         { params ->
-          object : FakeInspectorClient("Exploding client #1", params.process, disposableRule.disposable) {
+          object : FakeInspectorClient("Exploding client #1", projectRule.project, params.process, disposableRule.disposable) {
             override fun doConnect(): ListenableFuture<Nothing> {
               metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST, stats)
               throw IllegalStateException()
@@ -422,7 +424,7 @@ class InspectorClientLauncherMetricsTest {
           }
         },
         { params ->
-          object : FakeInspectorClient("Exploding client #2", params.process, disposableRule.disposable) {
+          object : FakeInspectorClient("Exploding client #2", projectRule.project, params.process, disposableRule.disposable) {
             override fun doConnect(): ListenableFuture<Nothing> {
               metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST, stats)
               throw IllegalStateException()
@@ -430,7 +432,7 @@ class InspectorClientLauncherMetricsTest {
           }
         },
         { params ->
-          object : FakeInspectorClient("Fallback client", params.process, disposableRule.disposable) {
+          object : FakeInspectorClient("Fallback client", projectRule.project, params.process, disposableRule.disposable) {
             override fun doConnect(): ListenableFuture<Nothing> {
               metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST, stats)
               metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS, stats)
@@ -467,7 +469,7 @@ class InspectorClientLauncherMetricsTest {
     InspectorClientLauncher(
       processes,
       listOf { params ->
-        object : FakeInspectorClient("Hangs on initial connect", params.process, disposableRule.disposable) {
+        object : FakeInspectorClient("Hangs on initial connect", projectRule.project, params.process, disposableRule.disposable) {
           override fun doConnect(): ListenableFuture<Nothing> {
             metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST, stats)
             if (params.process == process1) {
@@ -503,8 +505,9 @@ class InspectorClientLauncherMetricsTest {
 }
 
 private open class FakeInspectorClient(
-  val name: String, process: ProcessDescriptor, parentDisposable: Disposable
-) : AbstractInspectorClient(process, isInstantlyAutoConnected = false, DisconnectedClient.stats, parentDisposable) {
+  val name: String, project: Project, process: ProcessDescriptor, parentDisposable: Disposable
+) : AbstractInspectorClient(ClientType.UNKNOWN_CLIENT_TYPE, project, process, isInstantlyAutoConnected = false, DisconnectedClient.stats,
+                            parentDisposable) {
 
   override fun startFetching() = throw NotImplementedError()
   override fun stopFetching() = throw NotImplementedError()

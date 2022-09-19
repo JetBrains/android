@@ -123,7 +123,7 @@ class LayoutInspectorToolWindowFactoryTest {
   private val disposableRule = DisposableRule()
 
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
-  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
+  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
   private val inspectorRule = LayoutInspectorRule(listOf(LegacyClientProvider(disposableRule.disposable)), projectRule) {
     it.name == LEGACY_PROCESS.name
   }

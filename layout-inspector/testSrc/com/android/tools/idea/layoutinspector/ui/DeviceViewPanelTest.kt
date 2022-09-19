@@ -109,7 +109,7 @@ private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST
 class DeviceViewPanelWithFullInspectorTest {
   private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.onDisk()
-  private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, withDefaultResponse = false)
+  private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule, withDefaultResponse = false)
   private val inspectorRule = LayoutInspectorRule(
     clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
     projectRule = projectRule,
@@ -1142,7 +1142,7 @@ class MyViewportLayoutManagerTest {
 class DeviceViewPanelWithNoClientsTest {
   private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.onDisk()
-  private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, withDefaultResponse = false)
+  private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule, withDefaultResponse = false)
   private val postCreateLatch = CountDownLatch(1)
   private val inspectorRule = LayoutInspectorRule(
     clientProviders = listOf(InspectorClientProvider { _, _ ->
