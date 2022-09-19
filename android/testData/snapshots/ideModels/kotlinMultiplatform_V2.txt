@@ -644,7 +644,6 @@ MODULE                        : kotlinMultiPlatform.app
             KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
             KotlinDirectories             : <ROOT>/app/src/main/java
             ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
-            AidlDirectories               : <ROOT>/app/src/main/aidl [-]
             ResDirectories                : <ROOT>/app/src/main/res [-]
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
@@ -659,7 +658,6 @@ MODULE                        : kotlinMultiPlatform.app
                     KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTest/java
                     ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTest/aidl [-]
                     ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
@@ -673,7 +671,6 @@ MODULE                        : kotlinMultiPlatform.app
                     KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/test/java
                     ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/test/aidl [-]
                     ResDirectories                : <ROOT>/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
@@ -694,7 +691,6 @@ MODULE                        : kotlinMultiPlatform.app
             KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
             KotlinDirectories             : <ROOT>/app/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
-            AidlDirectories               : <ROOT>/app/src/debug/aidl [-]
             ResDirectories                : <ROOT>/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
@@ -709,7 +705,6 @@ MODULE                        : kotlinMultiPlatform.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTestDebug/aidl [-]
                     ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
@@ -724,7 +719,6 @@ MODULE                        : kotlinMultiPlatform.app
                     KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testDebug/aidl [-]
                     ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
@@ -744,7 +738,6 @@ MODULE                        : kotlinMultiPlatform.app
             KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
             KotlinDirectories             : <ROOT>/app/src/release/java [-]
             ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
-            AidlDirectories               : <ROOT>/app/src/release/aidl [-]
             ResDirectories                : <ROOT>/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
@@ -759,7 +752,6 @@ MODULE                        : kotlinMultiPlatform.app
                     KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testRelease/aidl [-]
                     ResDirectories                : <ROOT>/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
@@ -810,7 +802,6 @@ MODULE                        : kotlinMultiPlatform.app
                 AssembleTaskName              : assembleDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
@@ -1435,7 +1426,6 @@ MODULE                        : kotlinMultiPlatform.app
                 AssembleTaskName              : assembleDebugAndroidTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
@@ -2112,8 +2102,6 @@ MODULE                        : kotlinMultiPlatform.module2
             KotlinDirectories             : <ROOT>/module2/src/main/java [-]
             ResourcesDirectories          : <ROOT>/module2/src/main/resources [-]
             ResourcesDirectories          : <ROOT>/module2/src/androidMain/resources [-]
-            AidlDirectories               : <ROOT>/module2/src/main/aidl [-]
-            AidlDirectories               : <ROOT>/module2/src/androidMain/aidl [-]
             ResDirectories                : <ROOT>/module2/src/main/res [-]
             ResDirectories                : <ROOT>/module2/src/androidMain/res [-]
             AssetsDirectories             : <ROOT>/module2/src/main/assets [-]
@@ -2133,8 +2121,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     KotlinDirectories             : <ROOT>/module2/src/androidTest/java [-]
                     ResourcesDirectories          : <ROOT>/module2/src/androidTest/resources [-]
                     ResourcesDirectories          : <ROOT>/module2/src/androidAndroidTest/resources [-]
-                    AidlDirectories               : <ROOT>/module2/src/androidTest/aidl [-]
-                    AidlDirectories               : <ROOT>/module2/src/androidAndroidTest/aidl [-]
                     ResDirectories                : <ROOT>/module2/src/androidTest/res [-]
                     ResDirectories                : <ROOT>/module2/src/androidAndroidTest/res [-]
                     AssetsDirectories             : <ROOT>/module2/src/androidTest/assets [-]
@@ -2154,8 +2140,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     KotlinDirectories             : <ROOT>/module2/src/test/java [-]
                     ResourcesDirectories          : <ROOT>/module2/src/test/resources [-]
                     ResourcesDirectories          : <ROOT>/module2/src/androidTest/resources [-]
-                    AidlDirectories               : <ROOT>/module2/src/test/aidl [-]
-                    AidlDirectories               : <ROOT>/module2/src/androidTest/aidl [-]
                     ResDirectories                : <ROOT>/module2/src/test/res [-]
                     ResDirectories                : <ROOT>/module2/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/module2/src/test/assets [-]
@@ -2182,8 +2166,6 @@ MODULE                        : kotlinMultiPlatform.module2
             KotlinDirectories             : <ROOT>/module2/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/module2/src/debug/resources [-]
             ResourcesDirectories          : <ROOT>/module2/src/androidDebug/resources [-]
-            AidlDirectories               : <ROOT>/module2/src/debug/aidl [-]
-            AidlDirectories               : <ROOT>/module2/src/androidDebug/aidl [-]
             ResDirectories                : <ROOT>/module2/src/debug/res [-]
             ResDirectories                : <ROOT>/module2/src/androidDebug/res [-]
             AssetsDirectories             : <ROOT>/module2/src/debug/assets [-]
@@ -2203,8 +2185,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     KotlinDirectories             : <ROOT>/module2/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/module2/src/androidTestDebug/resources [-]
                     ResourcesDirectories          : <ROOT>/module2/src/androidAndroidTestDebug/resources [-]
-                    AidlDirectories               : <ROOT>/module2/src/androidTestDebug/aidl [-]
-                    AidlDirectories               : <ROOT>/module2/src/androidAndroidTestDebug/aidl [-]
                     ResDirectories                : <ROOT>/module2/src/androidTestDebug/res [-]
                     ResDirectories                : <ROOT>/module2/src/androidAndroidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/module2/src/androidTestDebug/assets [-]
@@ -2225,8 +2205,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     KotlinDirectories             : <ROOT>/module2/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/module2/src/testDebug/resources [-]
                     ResourcesDirectories          : <ROOT>/module2/src/androidTestDebug/resources [-]
-                    AidlDirectories               : <ROOT>/module2/src/testDebug/aidl [-]
-                    AidlDirectories               : <ROOT>/module2/src/androidTestDebug/aidl [-]
                     ResDirectories                : <ROOT>/module2/src/testDebug/res [-]
                     ResDirectories                : <ROOT>/module2/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/module2/src/testDebug/assets [-]
@@ -2252,8 +2230,6 @@ MODULE                        : kotlinMultiPlatform.module2
             KotlinDirectories             : <ROOT>/module2/src/release/java [-]
             ResourcesDirectories          : <ROOT>/module2/src/release/resources [-]
             ResourcesDirectories          : <ROOT>/module2/src/androidRelease/resources [-]
-            AidlDirectories               : <ROOT>/module2/src/release/aidl [-]
-            AidlDirectories               : <ROOT>/module2/src/androidRelease/aidl [-]
             ResDirectories                : <ROOT>/module2/src/release/res [-]
             ResDirectories                : <ROOT>/module2/src/androidRelease/res [-]
             AssetsDirectories             : <ROOT>/module2/src/release/assets [-]
@@ -2274,8 +2250,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     KotlinDirectories             : <ROOT>/module2/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/module2/src/testRelease/resources [-]
                     ResourcesDirectories          : <ROOT>/module2/src/androidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/module2/src/testRelease/aidl [-]
-                    AidlDirectories               : <ROOT>/module2/src/androidTestRelease/aidl [-]
                     ResDirectories                : <ROOT>/module2/src/testRelease/res [-]
                     ResDirectories                : <ROOT>/module2/src/androidTestRelease/res [-]
                     AssetsDirectories             : <ROOT>/module2/src/testRelease/assets [-]
@@ -2317,7 +2291,6 @@ MODULE                        : kotlinMultiPlatform.module2
                 AssembleTaskName              : assembleDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/module2/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/module2/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/module2/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/module2/build/intermediates/compile_r_class_jar/debug/R.jar [-]
@@ -2358,7 +2331,6 @@ MODULE                        : kotlinMultiPlatform.module2
                 AssembleTaskName              : assembleDebugAndroidTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/module2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/module2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/module2/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/module2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]

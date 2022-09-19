@@ -236,7 +236,6 @@ MODULE                        : project_sm_src.app
             KotlinDirectories             : <ROOT>_sm_src/app/src/main/java
             KotlinDirectories             : <ROOT>_sm_src/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>_sm_src/app/src/main/resources [-]
-            AidlDirectories               : <ROOT>_sm_src/app/src/main/aidl [-]
             ResDirectories                : <ROOT>_sm_src/app/src/main/res
             AssetsDirectories             : <ROOT>_sm_src/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>_sm_src/app/src/main/jniLibs [-]
@@ -251,7 +250,6 @@ MODULE                        : project_sm_src.app
                     KotlinDirectories             : <ROOT>_sm_src/app/src/androidTest/java
                     KotlinDirectories             : <ROOT>_sm_src/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>_sm_src/app/src/androidTest/resources [-]
-                    AidlDirectories               : <ROOT>_sm_src/app/src/androidTest/aidl [-]
                     ResDirectories                : <ROOT>_sm_src/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>_sm_src/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>_sm_src/app/src/androidTest/jniLibs [-]
@@ -265,7 +263,6 @@ MODULE                        : project_sm_src.app
                     KotlinDirectories             : <ROOT>_sm_src/app/src/test/java
                     KotlinDirectories             : <ROOT>_sm_src/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>_sm_src/app/src/test/resources [-]
-                    AidlDirectories               : <ROOT>_sm_src/app/src/test/aidl [-]
                     ResDirectories                : <ROOT>_sm_src/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>_sm_src/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>_sm_src/app/src/test/jniLibs [-]
@@ -286,7 +283,6 @@ MODULE                        : project_sm_src.app
             KotlinDirectories             : <ROOT>_sm_src/app/src/debug/java [-]
             KotlinDirectories             : <ROOT>_sm_src/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>_sm_src/app/src/debug/resources [-]
-            AidlDirectories               : <ROOT>_sm_src/app/src/debug/aidl [-]
             ResDirectories                : <ROOT>_sm_src/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>_sm_src/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>_sm_src/app/src/debug/jniLibs [-]
@@ -301,7 +297,6 @@ MODULE                        : project_sm_src.app
                     KotlinDirectories             : <ROOT>_sm_src/app/src/androidTestDebug/java [-]
                     KotlinDirectories             : <ROOT>_sm_src/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>_sm_src/app/src/androidTestDebug/resources [-]
-                    AidlDirectories               : <ROOT>_sm_src/app/src/androidTestDebug/aidl [-]
                     ResDirectories                : <ROOT>_sm_src/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>_sm_src/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>_sm_src/app/src/androidTestDebug/jniLibs [-]
@@ -316,7 +311,6 @@ MODULE                        : project_sm_src.app
                     KotlinDirectories             : <ROOT>_sm_src/app/src/testDebug/java [-]
                     KotlinDirectories             : <ROOT>_sm_src/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>_sm_src/app/src/testDebug/resources [-]
-                    AidlDirectories               : <ROOT>_sm_src/app/src/testDebug/aidl [-]
                     ResDirectories                : <ROOT>_sm_src/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>_sm_src/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>_sm_src/app/src/testDebug/jniLibs [-]
@@ -338,7 +332,6 @@ MODULE                        : project_sm_src.app
             KotlinDirectories             : <ROOT>_sm_src/app/src/release/java [-]
             KotlinDirectories             : <ROOT>_sm_src/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>_sm_src/app/src/release/resources [-]
-            AidlDirectories               : <ROOT>_sm_src/app/src/release/aidl [-]
             ResDirectories                : <ROOT>_sm_src/app/src/release/res [-]
             AssetsDirectories             : <ROOT>_sm_src/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>_sm_src/app/src/release/jniLibs [-]
@@ -353,7 +346,6 @@ MODULE                        : project_sm_src.app
                     KotlinDirectories             : <ROOT>_sm_src/app/src/testRelease/java [-]
                     KotlinDirectories             : <ROOT>_sm_src/app/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>_sm_src/app/src/testRelease/resources [-]
-                    AidlDirectories               : <ROOT>_sm_src/app/src/testRelease/aidl [-]
                     ResDirectories                : <ROOT>_sm_src/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>_sm_src/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>_sm_src/app/src/testRelease/jniLibs [-]
@@ -403,7 +395,6 @@ MODULE                        : project_sm_src.app
                 AssembleTaskName              : assembleDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
@@ -1010,7 +1001,6 @@ MODULE                        : project_sm_src.app
                 AssembleTaskName              : assembleDebugAndroidTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]

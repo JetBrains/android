@@ -10,8 +10,6 @@ MODULE: kotlinMultiPlatform.app
                 file://./app/src/main
             ManifestDirectories:
                 file://./app/src/main
-            AidlDirectoryUrls:
-                file://./app/src/main/aidl
             AssetsDirectoryUrls:
                 file://./app/src/main/assets
             JavaDirectoryUrls:
@@ -35,8 +33,6 @@ MODULE: kotlinMultiPlatform.app
         main
             Manifest:
                 ./app/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./app/src/main/aidl
             AssetsDirectories:
                 ./app/src/main/assets
             JavaDirectories:
@@ -56,8 +52,6 @@ MODULE: kotlinMultiPlatform.app
             main
                 Manifest:
                     ./app/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
                 JavaDirectories:
@@ -76,8 +70,6 @@ MODULE: kotlinMultiPlatform.app
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
                 JavaDirectories:
@@ -97,8 +89,6 @@ MODULE: kotlinMultiPlatform.app
             main
                 Manifest:
                     ./app/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
                 JavaDirectories:
@@ -117,8 +107,6 @@ MODULE: kotlinMultiPlatform.app
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
                 JavaDirectories:
@@ -137,8 +125,6 @@ MODULE: kotlinMultiPlatform.app
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/release/aidl
                 AssetsDirectories:
                     ./app/src/release/assets
                 JavaDirectories:
@@ -158,8 +144,6 @@ MODULE: kotlinMultiPlatform.app
             test
                 Manifest:
                     ./app/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/test/aidl
                 AssetsDirectories:
                     ./app/src/test/assets
                 JavaDirectories:
@@ -178,8 +162,6 @@ MODULE: kotlinMultiPlatform.app
             testDebug
                 Manifest:
                     ./app/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/testDebug/aidl
                 AssetsDirectories:
                     ./app/src/testDebug/assets
                 JavaDirectories:
@@ -199,8 +181,6 @@ MODULE: kotlinMultiPlatform.app
             androidTest
                 Manifest:
                     ./app/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTest/aidl
                 AssetsDirectories:
                     ./app/src/androidTest/assets
                 JavaDirectories:
@@ -219,8 +199,6 @@ MODULE: kotlinMultiPlatform.app
             androidTestDebug
                 Manifest:
                     ./app/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestDebug/assets
                 JavaDirectories:
@@ -253,9 +231,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/debug
                 ManifestDirectories:
                     file://./app/src/main
-                AidlDirectoryUrls:
-                    file://./app/src/main/aidl
-                    file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                     file://./app/src/debug/assets
@@ -294,9 +269,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/testDebug
                 ManifestDirectories:
                     file://./app/src/test
-                AidlDirectoryUrls:
-                    file://./app/src/test/aidl
-                    file://./app/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/test/assets
                     file://./app/src/testDebug/assets
@@ -335,9 +307,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/androidTestDebug
                 ManifestDirectories:
                     file://./app/src/androidTest
-                AidlDirectoryUrls:
-                    file://./app/src/androidTest/aidl
-                    file://./app/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTest/assets
                     file://./app/src/androidTestDebug/assets
@@ -373,7 +342,6 @@ MODULE: kotlinMultiPlatform.app
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/debug/out
-                    file://./app/build/generated/aidl_source_output_dir/debug/out
                     file://./app/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/debug
@@ -387,7 +355,6 @@ MODULE: kotlinMultiPlatform.app
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./app/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./app/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/androidTest/debug
@@ -405,8 +372,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/main
                 ManifestDirectories:
                     file://./app/src/main
-                AidlDirectoryUrls:
-                    file://./app/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                 JavaDirectoryUrls:
@@ -432,8 +397,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/debug
-                AidlDirectoryUrls:
-                    file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
@@ -455,8 +418,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/release
-                AidlDirectoryUrls:
-                    file://./app/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/release/assets
                 JavaDirectoryUrls:
@@ -483,8 +444,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/main
                 ManifestDirectories:
                     file://./app/src/main
-                AidlDirectoryUrls:
-                    file://./app/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                 JavaDirectoryUrls:
@@ -510,8 +469,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/debug
-                AidlDirectoryUrls:
-                    file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
@@ -536,8 +493,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/test
                 ManifestDirectories:
                     file://./app/src/test
-                AidlDirectoryUrls:
-                    file://./app/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/test/assets
                 JavaDirectoryUrls:
@@ -563,8 +518,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/testDebug
-                AidlDirectoryUrls:
-                    file://./app/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -589,8 +542,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/androidTest
                 ManifestDirectories:
                     file://./app/src/androidTest
-                AidlDirectoryUrls:
-                    file://./app/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -616,8 +567,6 @@ MODULE: kotlinMultiPlatform.app
                     file://./app/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTestDebug/assets
                 JavaDirectoryUrls:
@@ -646,9 +595,6 @@ MODULE: kotlinMultiPlatform.module2
                 file://./module2/src/main
             ManifestDirectories:
                 file://./module2/src/main
-            AidlDirectoryUrls:
-                file://./module2/src/main/aidl
-                file://./module2/src/androidMain/aidl
             AssetsDirectoryUrls:
                 file://./module2/src/main/assets
                 file://./module2/src/androidMain/assets
@@ -676,9 +622,6 @@ MODULE: kotlinMultiPlatform.module2
         main
             Manifest:
                 ./module2/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./module2/src/main/aidl
-                ./module2/src/androidMain/aidl
             AssetsDirectories:
                 ./module2/src/main/assets
                 ./module2/src/androidMain/assets
@@ -704,9 +647,6 @@ MODULE: kotlinMultiPlatform.module2
             main
                 Manifest:
                     ./module2/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./module2/src/main/aidl
-                    ./module2/src/androidMain/aidl
                 AssetsDirectories:
                     ./module2/src/main/assets
                     ./module2/src/androidMain/assets
@@ -731,9 +671,6 @@ MODULE: kotlinMultiPlatform.module2
             debug
                 Manifest:
                     ./module2/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./module2/src/debug/aidl
-                    ./module2/src/androidDebug/aidl
                 AssetsDirectories:
                     ./module2/src/debug/assets
                     ./module2/src/androidDebug/assets
@@ -759,9 +696,6 @@ MODULE: kotlinMultiPlatform.module2
             main
                 Manifest:
                     ./module2/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./module2/src/main/aidl
-                    ./module2/src/androidMain/aidl
                 AssetsDirectories:
                     ./module2/src/main/assets
                     ./module2/src/androidMain/assets
@@ -786,9 +720,6 @@ MODULE: kotlinMultiPlatform.module2
             debug
                 Manifest:
                     ./module2/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./module2/src/debug/aidl
-                    ./module2/src/androidDebug/aidl
                 AssetsDirectories:
                     ./module2/src/debug/assets
                     ./module2/src/androidDebug/assets
@@ -813,9 +744,6 @@ MODULE: kotlinMultiPlatform.module2
             release
                 Manifest:
                     ./module2/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./module2/src/release/aidl
-                    ./module2/src/androidRelease/aidl
                 AssetsDirectories:
                     ./module2/src/release/assets
                     ./module2/src/androidRelease/assets
@@ -841,9 +769,6 @@ MODULE: kotlinMultiPlatform.module2
             test
                 Manifest:
                     ./module2/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./module2/src/test/aidl
-                    ./module2/src/androidTest/aidl
                 AssetsDirectories:
                     ./module2/src/test/assets
                     ./module2/src/androidTest/assets
@@ -868,9 +793,6 @@ MODULE: kotlinMultiPlatform.module2
             testDebug
                 Manifest:
                     ./module2/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./module2/src/testDebug/aidl
-                    ./module2/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./module2/src/testDebug/assets
                     ./module2/src/androidTestDebug/assets
@@ -903,9 +825,6 @@ MODULE: kotlinMultiPlatform.module2
             androidTest
                 Manifest:
                     ./module2/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./module2/src/androidTest/aidl
-                    ./module2/src/androidAndroidTest/aidl
                 AssetsDirectories:
                     ./module2/src/androidTest/assets
                     ./module2/src/androidAndroidTest/assets
@@ -929,9 +848,6 @@ MODULE: kotlinMultiPlatform.module2
             androidTestDebug
                 Manifest:
                     ./module2/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./module2/src/androidTestDebug/aidl
-                    ./module2/src/androidAndroidTestDebug/aidl
                 AssetsDirectories:
                     ./module2/src/androidTestDebug/assets
                     ./module2/src/androidAndroidTestDebug/assets
@@ -976,11 +892,6 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/debug
                 ManifestDirectories:
                     file://./module2/src/main
-                AidlDirectoryUrls:
-                    file://./module2/src/main/aidl
-                    file://./module2/src/androidMain/aidl
-                    file://./module2/src/debug/aidl
-                    file://./module2/src/androidDebug/aidl
                 AssetsDirectoryUrls:
                     file://./module2/src/main/assets
                     file://./module2/src/androidMain/assets
@@ -1029,11 +940,6 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/test
                     file://./module2/src/testDebug
                     file://./module2/src/test/__KotlinMPP__
-                AidlDirectoryUrls:
-                    file://./module2/src/test/aidl
-                    file://./module2/src/androidTest/aidl
-                    file://./module2/src/testDebug/aidl
-                    file://./module2/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./module2/src/test/assets
                     file://./module2/src/androidTest/assets
@@ -1086,11 +992,6 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/androidTest/__KotlinMPP__
                 ManifestDirectories:
                     file://./module2/src/androidTest
-                AidlDirectoryUrls:
-                    file://./module2/src/androidTest/aidl
-                    file://./module2/src/androidAndroidTest/aidl
-                    file://./module2/src/androidTestDebug/aidl
-                    file://./module2/src/androidAndroidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./module2/src/androidTest/assets
                     file://./module2/src/androidAndroidTest/assets
@@ -1136,7 +1037,6 @@ MODULE: kotlinMultiPlatform.module2
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./module2/build/generated/ap_generated_sources/debug/out
-                    file://./module2/build/generated/aidl_source_output_dir/debug/out
                     file://./module2/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./module2/build/generated/res/resValues/debug
@@ -1150,7 +1050,6 @@ MODULE: kotlinMultiPlatform.module2
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./module2/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./module2/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./module2/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./module2/build/generated/res/resValues/androidTest/debug
@@ -1168,9 +1067,6 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/main
                 ManifestDirectories:
                     file://./module2/src/main
-                AidlDirectoryUrls:
-                    file://./module2/src/main/aidl
-                    file://./module2/src/androidMain/aidl
                 AssetsDirectoryUrls:
                     file://./module2/src/main/assets
                     file://./module2/src/androidMain/assets
@@ -1200,9 +1096,6 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./module2/src/debug
-                AidlDirectoryUrls:
-                    file://./module2/src/debug/aidl
-                    file://./module2/src/androidDebug/aidl
                 AssetsDirectoryUrls:
                     file://./module2/src/debug/assets
                     file://./module2/src/androidDebug/assets
@@ -1230,9 +1123,6 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./module2/src/release
-                AidlDirectoryUrls:
-                    file://./module2/src/release/aidl
-                    file://./module2/src/androidRelease/aidl
                 AssetsDirectoryUrls:
                     file://./module2/src/release/assets
                     file://./module2/src/androidRelease/assets
@@ -1265,9 +1155,6 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/main
                 ManifestDirectories:
                     file://./module2/src/main
-                AidlDirectoryUrls:
-                    file://./module2/src/main/aidl
-                    file://./module2/src/androidMain/aidl
                 AssetsDirectoryUrls:
                     file://./module2/src/main/assets
                     file://./module2/src/androidMain/assets
@@ -1297,9 +1184,6 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./module2/src/debug
-                AidlDirectoryUrls:
-                    file://./module2/src/debug/aidl
-                    file://./module2/src/androidDebug/aidl
                 AssetsDirectoryUrls:
                     file://./module2/src/debug/assets
                     file://./module2/src/androidDebug/assets
@@ -1328,9 +1212,6 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./module2/src/test
-                AidlDirectoryUrls:
-                    file://./module2/src/test/aidl
-                    file://./module2/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./module2/src/test/assets
                     file://./module2/src/androidTest/assets
@@ -1360,9 +1241,6 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./module2/src/testDebug
-                AidlDirectoryUrls:
-                    file://./module2/src/testDebug/aidl
-                    file://./module2/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./module2/src/testDebug/assets
                     file://./module2/src/androidTestDebug/assets
@@ -1403,9 +1281,6 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/androidTest
                 ManifestDirectories:
                     file://./module2/src/androidTest
-                AidlDirectoryUrls:
-                    file://./module2/src/androidTest/aidl
-                    file://./module2/src/androidAndroidTest/aidl
                 AssetsDirectoryUrls:
                     file://./module2/src/androidTest/assets
                     file://./module2/src/androidAndroidTest/assets
@@ -1434,9 +1309,6 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./module2/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./module2/src/androidTestDebug/aidl
-                    file://./module2/src/androidAndroidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./module2/src/androidTestDebug/assets
                     file://./module2/src/androidAndroidTestDebug/assets

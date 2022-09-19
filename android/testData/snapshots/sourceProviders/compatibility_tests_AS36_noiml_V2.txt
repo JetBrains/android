@@ -10,8 +10,6 @@ MODULE: AS36_noiml.app
                 file://./app/src/main
             ManifestDirectories:
                 file://./app/src/main
-            AidlDirectoryUrls:
-                file://./app/src/main/aidl
             AssetsDirectoryUrls:
                 file://./app/src/main/assets
             JavaDirectoryUrls:
@@ -37,8 +35,6 @@ MODULE: AS36_noiml.app
         main
             Manifest:
                 ./app/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./app/src/main/aidl
             AssetsDirectories:
                 ./app/src/main/assets
             JavaDirectories:
@@ -58,8 +54,6 @@ MODULE: AS36_noiml.app
             main
                 Manifest:
                     ./app/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
                 JavaDirectories:
@@ -78,8 +72,6 @@ MODULE: AS36_noiml.app
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
                 JavaDirectories:
@@ -99,8 +91,6 @@ MODULE: AS36_noiml.app
             main
                 Manifest:
                     ./app/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
                 JavaDirectories:
@@ -119,8 +109,6 @@ MODULE: AS36_noiml.app
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
                 JavaDirectories:
@@ -139,8 +127,6 @@ MODULE: AS36_noiml.app
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/release/aidl
                 AssetsDirectories:
                     ./app/src/release/assets
                 JavaDirectories:
@@ -160,8 +146,6 @@ MODULE: AS36_noiml.app
             test
                 Manifest:
                     ./app/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/test/aidl
                 AssetsDirectories:
                     ./app/src/test/assets
                 JavaDirectories:
@@ -180,8 +164,6 @@ MODULE: AS36_noiml.app
             testDebug
                 Manifest:
                     ./app/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/testDebug/aidl
                 AssetsDirectories:
                     ./app/src/testDebug/assets
                 JavaDirectories:
@@ -201,8 +183,6 @@ MODULE: AS36_noiml.app
             androidTest
                 Manifest:
                     ./app/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTest/aidl
                 AssetsDirectories:
                     ./app/src/androidTest/assets
                 JavaDirectories:
@@ -221,8 +201,6 @@ MODULE: AS36_noiml.app
             androidTestDebug
                 Manifest:
                     ./app/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestDebug/assets
                 JavaDirectories:
@@ -255,9 +233,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/debug
                 ManifestDirectories:
                     file://./app/src/main
-                AidlDirectoryUrls:
-                    file://./app/src/main/aidl
-                    file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                     file://./app/src/debug/assets
@@ -298,9 +273,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/testDebug
                 ManifestDirectories:
                     file://./app/src/test
-                AidlDirectoryUrls:
-                    file://./app/src/test/aidl
-                    file://./app/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/test/assets
                     file://./app/src/testDebug/assets
@@ -339,9 +311,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/androidTestDebug
                 ManifestDirectories:
                     file://./app/src/androidTest
-                AidlDirectoryUrls:
-                    file://./app/src/androidTest/aidl
-                    file://./app/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTest/assets
                     file://./app/src/androidTestDebug/assets
@@ -377,7 +346,6 @@ MODULE: AS36_noiml.app
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/debug/out
-                    file://./app/build/generated/aidl_source_output_dir/debug/out
                     file://./app/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/debug
@@ -391,7 +359,6 @@ MODULE: AS36_noiml.app
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./app/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./app/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/androidTest/debug
@@ -409,8 +376,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/main
                 ManifestDirectories:
                     file://./app/src/main
-                AidlDirectoryUrls:
-                    file://./app/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                 JavaDirectoryUrls:
@@ -438,8 +403,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/debug
-                AidlDirectoryUrls:
-                    file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
@@ -461,8 +424,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/release
-                AidlDirectoryUrls:
-                    file://./app/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/release/assets
                 JavaDirectoryUrls:
@@ -489,8 +450,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/main
                 ManifestDirectories:
                     file://./app/src/main
-                AidlDirectoryUrls:
-                    file://./app/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                 JavaDirectoryUrls:
@@ -518,8 +477,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/debug
-                AidlDirectoryUrls:
-                    file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
@@ -544,8 +501,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/test
                 ManifestDirectories:
                     file://./app/src/test
-                AidlDirectoryUrls:
-                    file://./app/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/test/assets
                 JavaDirectoryUrls:
@@ -571,8 +526,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/testDebug
-                AidlDirectoryUrls:
-                    file://./app/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -597,8 +550,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/androidTest
                 ManifestDirectories:
                     file://./app/src/androidTest
-                AidlDirectoryUrls:
-                    file://./app/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -624,8 +575,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTestDebug/assets
                 JavaDirectoryUrls:
@@ -654,8 +603,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                 file://./features/dynamicfeature/src/main
             ManifestDirectories:
                 file://./features/dynamicfeature/src/main
-            AidlDirectoryUrls:
-                file://./features/dynamicfeature/src/main/aidl
             AssetsDirectoryUrls:
                 file://./features/dynamicfeature/src/main/assets
             JavaDirectoryUrls:
@@ -675,8 +622,6 @@ MODULE: AS36_noiml.features.dynamicfeature
         main
             Manifest:
                 ./features/dynamicfeature/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./features/dynamicfeature/src/main/aidl
             AssetsDirectories:
                 ./features/dynamicfeature/src/main/assets
             JavaDirectories:
@@ -696,8 +641,6 @@ MODULE: AS36_noiml.features.dynamicfeature
             main
                 Manifest:
                     ./features/dynamicfeature/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature/src/main/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/main/assets
                 JavaDirectories:
@@ -716,8 +659,6 @@ MODULE: AS36_noiml.features.dynamicfeature
             debug
                 Manifest:
                     ./features/dynamicfeature/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature/src/debug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/debug/assets
                 JavaDirectories:
@@ -737,8 +678,6 @@ MODULE: AS36_noiml.features.dynamicfeature
             main
                 Manifest:
                     ./features/dynamicfeature/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature/src/main/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/main/assets
                 JavaDirectories:
@@ -757,8 +696,6 @@ MODULE: AS36_noiml.features.dynamicfeature
             debug
                 Manifest:
                     ./features/dynamicfeature/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature/src/debug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/debug/assets
                 JavaDirectories:
@@ -777,8 +714,6 @@ MODULE: AS36_noiml.features.dynamicfeature
             release
                 Manifest:
                     ./features/dynamicfeature/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature/src/release/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/release/assets
                 JavaDirectories:
@@ -798,8 +733,6 @@ MODULE: AS36_noiml.features.dynamicfeature
             test
                 Manifest:
                     ./features/dynamicfeature/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature/src/test/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/test/assets
                 JavaDirectories:
@@ -818,8 +751,6 @@ MODULE: AS36_noiml.features.dynamicfeature
             testDebug
                 Manifest:
                     ./features/dynamicfeature/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature/src/testDebug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/testDebug/assets
                 JavaDirectories:
@@ -839,8 +770,6 @@ MODULE: AS36_noiml.features.dynamicfeature
             androidTest
                 Manifest:
                     ./features/dynamicfeature/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature/src/androidTest/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/androidTest/assets
                 JavaDirectories:
@@ -859,8 +788,6 @@ MODULE: AS36_noiml.features.dynamicfeature
             androidTestDebug
                 Manifest:
                     ./features/dynamicfeature/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature/src/androidTestDebug/assets
                 JavaDirectories:
@@ -893,9 +820,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/debug
                 ManifestDirectories:
                     file://./features/dynamicfeature/src/main
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature/src/main/aidl
-                    file://./features/dynamicfeature/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature/src/main/assets
                     file://./features/dynamicfeature/src/debug/assets
@@ -928,9 +852,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/test
                     file://./features/dynamicfeature/src/testDebug
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature/src/test/aidl
-                    file://./features/dynamicfeature/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature/src/test/assets
                     file://./features/dynamicfeature/src/testDebug/assets
@@ -963,9 +884,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest
                     file://./features/dynamicfeature/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature/src/androidTest/aidl
-                    file://./features/dynamicfeature/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest/assets
                     file://./features/dynamicfeature/src/androidTestDebug/assets
@@ -997,7 +915,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/build/generated/ap_generated_sources/debug/out
-                    file://./features/dynamicfeature/build/generated/aidl_source_output_dir/debug/out
                     file://./features/dynamicfeature/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./features/dynamicfeature/build/generated/res/resValues/debug
@@ -1011,7 +928,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./features/dynamicfeature/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./features/dynamicfeature/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./features/dynamicfeature/build/generated/res/resValues/androidTest/debug
@@ -1029,8 +945,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/main
                 ManifestDirectories:
                     file://./features/dynamicfeature/src/main
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature/src/main/assets
                 JavaDirectoryUrls:
@@ -1052,8 +966,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/debug
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature/src/debug/assets
                 JavaDirectoryUrls:
@@ -1075,8 +987,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/release
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature/src/release/assets
                 JavaDirectoryUrls:
@@ -1103,8 +1013,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/main
                 ManifestDirectories:
                     file://./features/dynamicfeature/src/main
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature/src/main/assets
                 JavaDirectoryUrls:
@@ -1126,8 +1034,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/debug
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature/src/debug/assets
                 JavaDirectoryUrls:
@@ -1150,8 +1056,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/test
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature/src/test/assets
                 JavaDirectoryUrls:
@@ -1173,8 +1077,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/testDebug
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -1197,8 +1099,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -1220,8 +1120,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTestDebug/assets
                 JavaDirectoryUrls:
@@ -1250,8 +1148,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 file://./features/dynamicfeature2/src/main
             ManifestDirectories:
                 file://./features/dynamicfeature2/src/main
-            AidlDirectoryUrls:
-                file://./features/dynamicfeature2/src/main/aidl
             AssetsDirectoryUrls:
                 file://./features/dynamicfeature2/src/main/assets
             JavaDirectoryUrls:
@@ -1271,8 +1167,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
         main
             Manifest:
                 ./features/dynamicfeature2/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./features/dynamicfeature2/src/main/aidl
             AssetsDirectories:
                 ./features/dynamicfeature2/src/main/assets
             JavaDirectories:
@@ -1292,8 +1186,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
             main
                 Manifest:
                     ./features/dynamicfeature2/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature2/src/main/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/main/assets
                 JavaDirectories:
@@ -1312,8 +1204,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
             debug
                 Manifest:
                     ./features/dynamicfeature2/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature2/src/debug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/debug/assets
                 JavaDirectories:
@@ -1333,8 +1223,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
             main
                 Manifest:
                     ./features/dynamicfeature2/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature2/src/main/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/main/assets
                 JavaDirectories:
@@ -1353,8 +1241,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
             debug
                 Manifest:
                     ./features/dynamicfeature2/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature2/src/debug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/debug/assets
                 JavaDirectories:
@@ -1373,8 +1259,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
             release
                 Manifest:
                     ./features/dynamicfeature2/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature2/src/release/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/release/assets
                 JavaDirectories:
@@ -1394,8 +1278,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
             test
                 Manifest:
                     ./features/dynamicfeature2/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature2/src/test/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/test/assets
                 JavaDirectories:
@@ -1414,8 +1296,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
             testDebug
                 Manifest:
                     ./features/dynamicfeature2/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature2/src/testDebug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/testDebug/assets
                 JavaDirectories:
@@ -1435,8 +1315,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
             androidTest
                 Manifest:
                     ./features/dynamicfeature2/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature2/src/androidTest/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/androidTest/assets
                 JavaDirectories:
@@ -1455,8 +1333,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
             androidTestDebug
                 Manifest:
                     ./features/dynamicfeature2/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./features/dynamicfeature2/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./features/dynamicfeature2/src/androidTestDebug/assets
                 JavaDirectories:
@@ -1489,9 +1365,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/debug
                 ManifestDirectories:
                     file://./features/dynamicfeature2/src/main
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature2/src/main/aidl
-                    file://./features/dynamicfeature2/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/assets
                     file://./features/dynamicfeature2/src/debug/assets
@@ -1524,9 +1397,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/test
                     file://./features/dynamicfeature2/src/testDebug
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature2/src/test/aidl
-                    file://./features/dynamicfeature2/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature2/src/test/assets
                     file://./features/dynamicfeature2/src/testDebug/assets
@@ -1559,9 +1429,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest
                     file://./features/dynamicfeature2/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature2/src/androidTest/aidl
-                    file://./features/dynamicfeature2/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest/assets
                     file://./features/dynamicfeature2/src/androidTestDebug/assets
@@ -1593,7 +1460,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/build/generated/ap_generated_sources/debug/out
-                    file://./features/dynamicfeature2/build/generated/aidl_source_output_dir/debug/out
                     file://./features/dynamicfeature2/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./features/dynamicfeature2/build/generated/res/resValues/debug
@@ -1607,7 +1473,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./features/dynamicfeature2/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./features/dynamicfeature2/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./features/dynamicfeature2/build/generated/res/resValues/androidTest/debug
@@ -1625,8 +1490,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/main
                 ManifestDirectories:
                     file://./features/dynamicfeature2/src/main
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature2/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/assets
                 JavaDirectoryUrls:
@@ -1648,8 +1511,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature2/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug/assets
                 JavaDirectoryUrls:
@@ -1671,8 +1532,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/release
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature2/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature2/src/release/assets
                 JavaDirectoryUrls:
@@ -1699,8 +1558,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/main
                 ManifestDirectories:
                     file://./features/dynamicfeature2/src/main
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature2/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/assets
                 JavaDirectoryUrls:
@@ -1722,8 +1579,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature2/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug/assets
                 JavaDirectoryUrls:
@@ -1746,8 +1601,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/test
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature2/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature2/src/test/assets
                 JavaDirectoryUrls:
@@ -1769,8 +1622,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/testDebug
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature2/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature2/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -1793,8 +1644,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature2/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -1816,8 +1665,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./features/dynamicfeature2/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTestDebug/assets
                 JavaDirectoryUrls:
@@ -1846,8 +1693,6 @@ MODULE: AS36_noiml.libs.android_library
                 file://./libs/android_library/src/main
             ManifestDirectories:
                 file://./libs/android_library/src/main
-            AidlDirectoryUrls:
-                file://./libs/android_library/src/main/aidl
             AssetsDirectoryUrls:
                 file://./libs/android_library/src/main/assets
             JavaDirectoryUrls:
@@ -1873,8 +1718,6 @@ MODULE: AS36_noiml.libs.android_library
         main
             Manifest:
                 ./libs/android_library/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./libs/android_library/src/main/aidl
             AssetsDirectories:
                 ./libs/android_library/src/main/assets
             JavaDirectories:
@@ -1894,8 +1737,6 @@ MODULE: AS36_noiml.libs.android_library
             main
                 Manifest:
                     ./libs/android_library/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./libs/android_library/src/main/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/main/assets
                 JavaDirectories:
@@ -1914,8 +1755,6 @@ MODULE: AS36_noiml.libs.android_library
             debug
                 Manifest:
                     ./libs/android_library/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./libs/android_library/src/debug/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/debug/assets
                 JavaDirectories:
@@ -1935,8 +1774,6 @@ MODULE: AS36_noiml.libs.android_library
             main
                 Manifest:
                     ./libs/android_library/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./libs/android_library/src/main/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/main/assets
                 JavaDirectories:
@@ -1955,8 +1792,6 @@ MODULE: AS36_noiml.libs.android_library
             debug
                 Manifest:
                     ./libs/android_library/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./libs/android_library/src/debug/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/debug/assets
                 JavaDirectories:
@@ -1975,8 +1810,6 @@ MODULE: AS36_noiml.libs.android_library
             release
                 Manifest:
                     ./libs/android_library/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./libs/android_library/src/release/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/release/assets
                 JavaDirectories:
@@ -1996,8 +1829,6 @@ MODULE: AS36_noiml.libs.android_library
             test
                 Manifest:
                     ./libs/android_library/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./libs/android_library/src/test/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/test/assets
                 JavaDirectories:
@@ -2016,8 +1847,6 @@ MODULE: AS36_noiml.libs.android_library
             testDebug
                 Manifest:
                     ./libs/android_library/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./libs/android_library/src/testDebug/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/testDebug/assets
                 JavaDirectories:
@@ -2037,8 +1866,6 @@ MODULE: AS36_noiml.libs.android_library
             androidTest
                 Manifest:
                     ./libs/android_library/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./libs/android_library/src/androidTest/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/androidTest/assets
                 JavaDirectories:
@@ -2057,8 +1884,6 @@ MODULE: AS36_noiml.libs.android_library
             androidTestDebug
                 Manifest:
                     ./libs/android_library/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./libs/android_library/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./libs/android_library/src/androidTestDebug/assets
                 JavaDirectories:
@@ -2091,9 +1916,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/debug
                 ManifestDirectories:
                     file://./libs/android_library/src/main
-                AidlDirectoryUrls:
-                    file://./libs/android_library/src/main/aidl
-                    file://./libs/android_library/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./libs/android_library/src/main/assets
                     file://./libs/android_library/src/debug/assets
@@ -2134,9 +1956,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/testDebug
                 ManifestDirectories:
                     file://./libs/android_library/src/test
-                AidlDirectoryUrls:
-                    file://./libs/android_library/src/test/aidl
-                    file://./libs/android_library/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./libs/android_library/src/test/assets
                     file://./libs/android_library/src/testDebug/assets
@@ -2175,9 +1994,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/androidTestDebug
                 ManifestDirectories:
                     file://./libs/android_library/src/androidTest
-                AidlDirectoryUrls:
-                    file://./libs/android_library/src/androidTest/aidl
-                    file://./libs/android_library/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./libs/android_library/src/androidTest/assets
                     file://./libs/android_library/src/androidTestDebug/assets
@@ -2213,7 +2029,6 @@ MODULE: AS36_noiml.libs.android_library
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./libs/android_library/build/generated/ap_generated_sources/debug/out
-                    file://./libs/android_library/build/generated/aidl_source_output_dir/debug/out
                     file://./libs/android_library/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./libs/android_library/build/generated/res/resValues/debug
@@ -2227,7 +2042,6 @@ MODULE: AS36_noiml.libs.android_library
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./libs/android_library/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./libs/android_library/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./libs/android_library/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./libs/android_library/build/generated/res/resValues/androidTest/debug
@@ -2245,8 +2059,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/main
                 ManifestDirectories:
                     file://./libs/android_library/src/main
-                AidlDirectoryUrls:
-                    file://./libs/android_library/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./libs/android_library/src/main/assets
                 JavaDirectoryUrls:
@@ -2274,8 +2086,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./libs/android_library/src/debug
-                AidlDirectoryUrls:
-                    file://./libs/android_library/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./libs/android_library/src/debug/assets
                 JavaDirectoryUrls:
@@ -2297,8 +2107,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./libs/android_library/src/release
-                AidlDirectoryUrls:
-                    file://./libs/android_library/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./libs/android_library/src/release/assets
                 JavaDirectoryUrls:
@@ -2325,8 +2133,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/main
                 ManifestDirectories:
                     file://./libs/android_library/src/main
-                AidlDirectoryUrls:
-                    file://./libs/android_library/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./libs/android_library/src/main/assets
                 JavaDirectoryUrls:
@@ -2354,8 +2160,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./libs/android_library/src/debug
-                AidlDirectoryUrls:
-                    file://./libs/android_library/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./libs/android_library/src/debug/assets
                 JavaDirectoryUrls:
@@ -2380,8 +2184,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/test
                 ManifestDirectories:
                     file://./libs/android_library/src/test
-                AidlDirectoryUrls:
-                    file://./libs/android_library/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./libs/android_library/src/test/assets
                 JavaDirectoryUrls:
@@ -2407,8 +2209,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./libs/android_library/src/testDebug
-                AidlDirectoryUrls:
-                    file://./libs/android_library/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./libs/android_library/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -2433,8 +2233,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/androidTest
                 ManifestDirectories:
                     file://./libs/android_library/src/androidTest
-                AidlDirectoryUrls:
-                    file://./libs/android_library/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./libs/android_library/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -2460,8 +2258,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./libs/android_library/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./libs/android_library/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./libs/android_library/src/androidTestDebug/assets
                 JavaDirectoryUrls:

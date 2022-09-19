@@ -374,7 +374,6 @@ MODULE                        : MultiFlavor.app
             KotlinDirectories             : <ROOT>/app/src/main/java
             KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
-            AidlDirectories               : <ROOT>/app/src/main/aidl [-]
             ResDirectories                : <ROOT>/app/src/main/res
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
@@ -389,7 +388,6 @@ MODULE                        : MultiFlavor.app
                     KotlinDirectories             : <ROOT>/app/src/androidTest/java
                     KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTest/aidl [-]
                     ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
@@ -403,7 +401,6 @@ MODULE                        : MultiFlavor.app
                     KotlinDirectories             : <ROOT>/app/src/test/java
                     KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/test/aidl [-]
                     ResDirectories                : <ROOT>/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
@@ -431,7 +428,6 @@ MODULE                        : MultiFlavor.app
             KotlinDirectories             : <ROOT>/app/src/debug/java [-]
             KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
-            AidlDirectories               : <ROOT>/app/src/debug/aidl [-]
             ResDirectories                : <ROOT>/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
@@ -446,7 +442,6 @@ MODULE                        : MultiFlavor.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTestDebug/aidl [-]
                     ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
@@ -461,7 +456,6 @@ MODULE                        : MultiFlavor.app
                     KotlinDirectories             : <ROOT>/app/src/testDebug/java [-]
                     KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testDebug/aidl [-]
                     ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
@@ -489,7 +483,6 @@ MODULE                        : MultiFlavor.app
             KotlinDirectories             : <ROOT>/app/src/release/java [-]
             KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
-            AidlDirectories               : <ROOT>/app/src/release/aidl [-]
             ResDirectories                : <ROOT>/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
@@ -504,7 +497,6 @@ MODULE                        : MultiFlavor.app
                     KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
                     KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testRelease/aidl [-]
                     ResDirectories                : <ROOT>/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
@@ -529,7 +521,6 @@ MODULE                        : MultiFlavor.app
             KotlinDirectories             : <ROOT>/app/src/firstAbc/java [-]
             KotlinDirectories             : <ROOT>/app/src/firstAbc/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/firstAbc/resources [-]
-            AidlDirectories               : <ROOT>/app/src/firstAbc/aidl [-]
             ResDirectories                : <ROOT>/app/src/firstAbc/res [-]
             AssetsDirectories             : <ROOT>/app/src/firstAbc/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/firstAbc/jniLibs [-]
@@ -544,7 +535,6 @@ MODULE                        : MultiFlavor.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestFirstAbc/java [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestFirstAbc/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestFirstAbc/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTestFirstAbc/aidl [-]
                     ResDirectories                : <ROOT>/app/src/androidTestFirstAbc/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestFirstAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestFirstAbc/jniLibs [-]
@@ -558,7 +548,6 @@ MODULE                        : MultiFlavor.app
                     KotlinDirectories             : <ROOT>/app/src/testFirstAbc/java [-]
                     KotlinDirectories             : <ROOT>/app/src/testFirstAbc/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testFirstAbc/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testFirstAbc/aidl [-]
                     ResDirectories                : <ROOT>/app/src/testFirstAbc/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testFirstAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testFirstAbc/jniLibs [-]
@@ -593,7 +582,6 @@ MODULE                        : MultiFlavor.app
             KotlinDirectories             : <ROOT>/app/src/secondAbc/java
             KotlinDirectories             : <ROOT>/app/src/secondAbc/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/secondAbc/resources [-]
-            AidlDirectories               : <ROOT>/app/src/secondAbc/aidl [-]
             ResDirectories                : <ROOT>/app/src/secondAbc/res [-]
             AssetsDirectories             : <ROOT>/app/src/secondAbc/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/secondAbc/jniLibs [-]
@@ -608,7 +596,6 @@ MODULE                        : MultiFlavor.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestSecondAbc/java [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestSecondAbc/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestSecondAbc/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTestSecondAbc/aidl [-]
                     ResDirectories                : <ROOT>/app/src/androidTestSecondAbc/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestSecondAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestSecondAbc/jniLibs [-]
@@ -622,7 +609,6 @@ MODULE                        : MultiFlavor.app
                     KotlinDirectories             : <ROOT>/app/src/testSecondAbc/java
                     KotlinDirectories             : <ROOT>/app/src/testSecondAbc/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testSecondAbc/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testSecondAbc/aidl [-]
                     ResDirectories                : <ROOT>/app/src/testSecondAbc/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testSecondAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testSecondAbc/jniLibs [-]
@@ -700,7 +686,6 @@ MODULE                        : MultiFlavor.app
                 AssembleTaskName              : assembleFirstAbcSecondAbcDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateFirstAbcSecondAbcDebugSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/firstAbcSecondAbc/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/R.jar [-]
@@ -712,7 +697,6 @@ MODULE                        : MultiFlavor.app
                     KotlinDirectories             : <ROOT>/app/src/firstAbcSecondAbcDebug/java [-]
                     KotlinDirectories             : <ROOT>/app/src/firstAbcSecondAbcDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/firstAbcSecondAbcDebug/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/firstAbcSecondAbcDebug/aidl [-]
                     ResDirectories                : <ROOT>/app/src/firstAbcSecondAbcDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/firstAbcSecondAbcDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/firstAbcSecondAbcDebug/jniLibs [-]
@@ -725,7 +709,6 @@ MODULE                        : MultiFlavor.app
                     KotlinDirectories             : <ROOT>/app/src/firstAbcSecondAbc/java
                     KotlinDirectories             : <ROOT>/app/src/firstAbcSecondAbc/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/firstAbcSecondAbc/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/firstAbcSecondAbc/aidl [-]
                     ResDirectories                : <ROOT>/app/src/firstAbcSecondAbc/res [-]
                     AssetsDirectories             : <ROOT>/app/src/firstAbcSecondAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/firstAbcSecondAbc/jniLibs [-]
@@ -756,7 +739,6 @@ MODULE                        : MultiFlavor.app
                 AssembleTaskName              : assembleFirstAbcSecondAbcDebugAndroidTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateFirstAbcSecondAbcDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/firstAbcSecondAbc/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebugAndroidTest/R.jar [-]
@@ -768,7 +750,6 @@ MODULE                        : MultiFlavor.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/java [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/aidl [-]
                     ResDirectories                : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/jniLibs [-]
@@ -780,7 +761,6 @@ MODULE                        : MultiFlavor.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestFirstAbcSecondAbc/java [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestFirstAbcSecondAbc/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestFirstAbcSecondAbc/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTestFirstAbcSecondAbc/aidl [-]
                     ResDirectories                : <ROOT>/app/src/androidTestFirstAbcSecondAbc/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestFirstAbcSecondAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestFirstAbcSecondAbc/jniLibs [-]
@@ -822,7 +802,6 @@ MODULE                        : MultiFlavor.app
                     KotlinDirectories             : <ROOT>/app/src/testFirstAbcSecondAbcDebug/java
                     KotlinDirectories             : <ROOT>/app/src/testFirstAbcSecondAbcDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testFirstAbcSecondAbcDebug/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testFirstAbcSecondAbcDebug/aidl [-]
                     AssetsDirectories             : <ROOT>/app/src/testFirstAbcSecondAbcDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testFirstAbcSecondAbcDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testFirstAbcSecondAbcDebug/shaders [-]
@@ -833,7 +812,6 @@ MODULE                        : MultiFlavor.app
                     KotlinDirectories             : <ROOT>/app/src/testFirstAbcSecondAbc/java
                     KotlinDirectories             : <ROOT>/app/src/testFirstAbcSecondAbc/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testFirstAbcSecondAbc/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testFirstAbcSecondAbc/aidl [-]
                     ResDirectories                : <ROOT>/app/src/testFirstAbcSecondAbc/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testFirstAbcSecondAbc/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testFirstAbcSecondAbc/jniLibs [-]

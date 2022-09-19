@@ -10,8 +10,6 @@ MODULE: project.app
                 file://./app/src/main
             ManifestDirectories:
                 file://./app/src/main
-            AidlDirectoryUrls:
-                file://./app/src/main/aidl
             AssetsDirectoryUrls:
                 file://./app/src/main/assets
             JavaDirectoryUrls:
@@ -37,8 +35,6 @@ MODULE: project.app
         main
             Manifest:
                 ./app/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./app/src/main/aidl
             AssetsDirectories:
                 ./app/src/main/assets
             JavaDirectories:
@@ -58,8 +54,6 @@ MODULE: project.app
             main
                 Manifest:
                     ./app/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
                 JavaDirectories:
@@ -78,8 +72,6 @@ MODULE: project.app
             basic
                 Manifest:
                     ./app/src/basic/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/basic/aidl
                 AssetsDirectories:
                     ./app/src/basic/assets
                 JavaDirectories:
@@ -98,8 +90,6 @@ MODULE: project.app
             bar
                 Manifest:
                     ./app/src/bar/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/bar/aidl
                 AssetsDirectories:
                     ./app/src/bar/assets
                 JavaDirectories:
@@ -118,8 +108,6 @@ MODULE: project.app
             basicBar
                 Manifest:
                     ./app/src/basicBar/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/basicBar/aidl
                 AssetsDirectories:
                     ./app/src/basicBar/assets
                 JavaDirectories:
@@ -138,8 +126,6 @@ MODULE: project.app
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
                 JavaDirectories:
@@ -158,8 +144,6 @@ MODULE: project.app
             basicBarDebug
                 Manifest:
                     ./app/src/basicBarDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/basicBarDebug/aidl
                 AssetsDirectories:
                     ./app/src/basicBarDebug/assets
                 JavaDirectories:
@@ -179,8 +163,6 @@ MODULE: project.app
             main
                 Manifest:
                     ./app/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
                 JavaDirectories:
@@ -199,8 +181,6 @@ MODULE: project.app
             bar
                 Manifest:
                     ./app/src/bar/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/bar/aidl
                 AssetsDirectories:
                     ./app/src/bar/assets
                 JavaDirectories:
@@ -219,8 +199,6 @@ MODULE: project.app
             basic
                 Manifest:
                     ./app/src/basic/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/basic/aidl
                 AssetsDirectories:
                     ./app/src/basic/assets
                 JavaDirectories:
@@ -239,8 +217,6 @@ MODULE: project.app
             basicBar
                 Manifest:
                     ./app/src/basicBar/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/basicBar/aidl
                 AssetsDirectories:
                     ./app/src/basicBar/assets
                 JavaDirectories:
@@ -259,8 +235,6 @@ MODULE: project.app
             basicBarDebug
                 Manifest:
                     ./app/src/basicBarDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/basicBarDebug/aidl
                 AssetsDirectories:
                     ./app/src/basicBarDebug/assets
                 JavaDirectories:
@@ -279,8 +253,6 @@ MODULE: project.app
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
                 JavaDirectories:
@@ -299,8 +271,6 @@ MODULE: project.app
             otherBar
                 Manifest:
                     ./app/src/otherBar/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/otherBar/aidl
                 AssetsDirectories:
                     ./app/src/otherBar/assets
                 JavaDirectories:
@@ -319,8 +289,6 @@ MODULE: project.app
             paid
                 Manifest:
                     ./app/src/paid/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/paid/aidl
                 AssetsDirectories:
                     ./app/src/paid/assets
                 JavaDirectories:
@@ -339,8 +307,6 @@ MODULE: project.app
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/release/aidl
                 AssetsDirectories:
                     ./app/src/release/assets
                 JavaDirectories:
@@ -359,8 +325,6 @@ MODULE: project.app
             specialRelease
                 Manifest:
                     ./app/src/specialRelease/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/specialRelease/aidl
                 AssetsDirectories:
                     ./app/src/specialRelease/assets
                 JavaDirectories:
@@ -380,8 +344,6 @@ MODULE: project.app
             test
                 Manifest:
                     ./app/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/test/aidl
                 AssetsDirectories:
                     ./app/src/test/assets
                 JavaDirectories:
@@ -400,8 +362,6 @@ MODULE: project.app
             testBasic
                 Manifest:
                     ./app/src/testBasic/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/testBasic/aidl
                 AssetsDirectories:
                     ./app/src/testBasic/assets
                 JavaDirectories:
@@ -420,8 +380,6 @@ MODULE: project.app
             testBar
                 Manifest:
                     ./app/src/testBar/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/testBar/aidl
                 AssetsDirectories:
                     ./app/src/testBar/assets
                 JavaDirectories:
@@ -440,8 +398,6 @@ MODULE: project.app
             testBasicBar
                 Manifest:
                     ./app/src/testBasicBar/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/testBasicBar/aidl
                 AssetsDirectories:
                     ./app/src/testBasicBar/assets
                 JavaDirectories:
@@ -460,8 +416,6 @@ MODULE: project.app
             testDebug
                 Manifest:
                     ./app/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/testDebug/aidl
                 AssetsDirectories:
                     ./app/src/testDebug/assets
                 JavaDirectories:
@@ -480,8 +434,6 @@ MODULE: project.app
             testBasicBarDebug
                 Manifest:
                     ./app/src/testBasicBarDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/testBasicBarDebug/aidl
                 AssetsDirectories:
                     ./app/src/testBasicBarDebug/assets
                 JavaDirectories:
@@ -499,8 +451,6 @@ MODULE: project.app
             androidTest
                 Manifest:
                     ./app/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTest/aidl
                 AssetsDirectories:
                     ./app/src/androidTest/assets
                 JavaDirectories:
@@ -519,8 +469,6 @@ MODULE: project.app
             androidTestBasic
                 Manifest:
                     ./app/src/androidTestBasic/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestBasic/aidl
                 AssetsDirectories:
                     ./app/src/androidTestBasic/assets
                 JavaDirectories:
@@ -539,8 +487,6 @@ MODULE: project.app
             androidTestBar
                 Manifest:
                     ./app/src/androidTestBar/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestBar/aidl
                 AssetsDirectories:
                     ./app/src/androidTestBar/assets
                 JavaDirectories:
@@ -559,8 +505,6 @@ MODULE: project.app
             androidTestBasicBar
                 Manifest:
                     ./app/src/androidTestBasicBar/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestBasicBar/aidl
                 AssetsDirectories:
                     ./app/src/androidTestBasicBar/assets
                 JavaDirectories:
@@ -579,8 +523,6 @@ MODULE: project.app
             androidTestDebug
                 Manifest:
                     ./app/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestDebug/assets
                 JavaDirectories:
@@ -599,8 +541,6 @@ MODULE: project.app
             androidTestBasicBarDebug
                 Manifest:
                     ./app/src/androidTestBasicBarDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestBasicBarDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestBasicBarDebug/assets
                 JavaDirectories:
@@ -641,13 +581,6 @@ MODULE: project.app
                     file://./app/src/basicBarDebug
                 ManifestDirectories:
                     file://./app/src/main
-                AidlDirectoryUrls:
-                    file://./app/src/main/aidl
-                    file://./app/src/basic/aidl
-                    file://./app/src/bar/aidl
-                    file://./app/src/basicBar/aidl
-                    file://./app/src/debug/aidl
-                    file://./app/src/basicBarDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                     file://./app/src/basic/assets
@@ -726,13 +659,6 @@ MODULE: project.app
                     file://./app/src/testBasicBar
                     file://./app/src/testDebug
                     file://./app/src/testBasicBarDebug
-                AidlDirectoryUrls:
-                    file://./app/src/test/aidl
-                    file://./app/src/testBasic/aidl
-                    file://./app/src/testBar/aidl
-                    file://./app/src/testBasicBar/aidl
-                    file://./app/src/testDebug/aidl
-                    file://./app/src/testBasicBarDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/test/assets
                     file://./app/src/testBasic/assets
@@ -804,13 +730,6 @@ MODULE: project.app
                     file://./app/src/androidTestBasicBar
                     file://./app/src/androidTestDebug
                     file://./app/src/androidTestBasicBarDebug
-                AidlDirectoryUrls:
-                    file://./app/src/androidTest/aidl
-                    file://./app/src/androidTestBasic/aidl
-                    file://./app/src/androidTestBar/aidl
-                    file://./app/src/androidTestBasicBar/aidl
-                    file://./app/src/androidTestDebug/aidl
-                    file://./app/src/androidTestBasicBarDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTest/assets
                     file://./app/src/androidTestBasic/assets
@@ -874,7 +793,6 @@ MODULE: project.app
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/basicBarDebug/out
-                    file://./app/build/generated/aidl_source_output_dir/basicBarDebug/out
                     file://./app/build/generated/source/buildConfig/basicBar/debug
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/basicBar/debug
@@ -888,7 +806,6 @@ MODULE: project.app
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out
-                    file://./app/build/generated/aidl_source_output_dir/basicBarDebugAndroidTest/out
                     file://./app/build/generated/source/buildConfig/androidTest/basicBar/debug
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/androidTest/basicBar/debug
@@ -906,8 +823,6 @@ MODULE: project.app
                     file://./app/src/main
                 ManifestDirectories:
                     file://./app/src/main
-                AidlDirectoryUrls:
-                    file://./app/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                 JavaDirectoryUrls:
@@ -935,8 +850,6 @@ MODULE: project.app
                     file://./app/src/bar/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/bar
-                AidlDirectoryUrls:
-                    file://./app/src/bar/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/bar/assets
                 JavaDirectoryUrls:
@@ -958,8 +871,6 @@ MODULE: project.app
                     file://./app/src/basic/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/basic
-                AidlDirectoryUrls:
-                    file://./app/src/basic/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/basic/assets
                 JavaDirectoryUrls:
@@ -981,8 +892,6 @@ MODULE: project.app
                     file://./app/src/basicBar/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/basicBar
-                AidlDirectoryUrls:
-                    file://./app/src/basicBar/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/basicBar/assets
                 JavaDirectoryUrls:
@@ -1004,8 +913,6 @@ MODULE: project.app
                     file://./app/src/basicBarDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/basicBarDebug
-                AidlDirectoryUrls:
-                    file://./app/src/basicBarDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/basicBarDebug/assets
                 JavaDirectoryUrls:
@@ -1027,8 +934,6 @@ MODULE: project.app
                     file://./app/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/debug
-                AidlDirectoryUrls:
-                    file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
@@ -1050,8 +955,6 @@ MODULE: project.app
                     file://./app/src/otherBar/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/otherBar
-                AidlDirectoryUrls:
-                    file://./app/src/otherBar/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/otherBar/assets
                 JavaDirectoryUrls:
@@ -1077,8 +980,6 @@ MODULE: project.app
                     file://./app/src/paid
                 ManifestDirectories:
                     file://./app/src/paid
-                AidlDirectoryUrls:
-                    file://./app/src/paid/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/paid/assets
                 JavaDirectoryUrls:
@@ -1106,8 +1007,6 @@ MODULE: project.app
                     file://./app/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/release
-                AidlDirectoryUrls:
-                    file://./app/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/release/assets
                 JavaDirectoryUrls:
@@ -1129,8 +1028,6 @@ MODULE: project.app
                     file://./app/src/specialRelease/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/specialRelease
-                AidlDirectoryUrls:
-                    file://./app/src/specialRelease/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/specialRelease/assets
                 JavaDirectoryUrls:
@@ -1157,8 +1054,6 @@ MODULE: project.app
                     file://./app/src/main
                 ManifestDirectories:
                     file://./app/src/main
-                AidlDirectoryUrls:
-                    file://./app/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                 JavaDirectoryUrls:
@@ -1186,8 +1081,6 @@ MODULE: project.app
                     file://./app/src/basic/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/basic
-                AidlDirectoryUrls:
-                    file://./app/src/basic/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/basic/assets
                 JavaDirectoryUrls:
@@ -1209,8 +1102,6 @@ MODULE: project.app
                     file://./app/src/bar/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/bar
-                AidlDirectoryUrls:
-                    file://./app/src/bar/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/bar/assets
                 JavaDirectoryUrls:
@@ -1232,8 +1123,6 @@ MODULE: project.app
                     file://./app/src/basicBar/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/basicBar
-                AidlDirectoryUrls:
-                    file://./app/src/basicBar/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/basicBar/assets
                 JavaDirectoryUrls:
@@ -1255,8 +1144,6 @@ MODULE: project.app
                     file://./app/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/debug
-                AidlDirectoryUrls:
-                    file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
@@ -1278,8 +1165,6 @@ MODULE: project.app
                     file://./app/src/basicBarDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/basicBarDebug
-                AidlDirectoryUrls:
-                    file://./app/src/basicBarDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/basicBarDebug/assets
                 JavaDirectoryUrls:
@@ -1302,8 +1187,6 @@ MODULE: project.app
                     file://./app/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/test
-                AidlDirectoryUrls:
-                    file://./app/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/test/assets
                 JavaDirectoryUrls:
@@ -1325,8 +1208,6 @@ MODULE: project.app
                     file://./app/src/testBasic/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/testBasic
-                AidlDirectoryUrls:
-                    file://./app/src/testBasic/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/testBasic/assets
                 JavaDirectoryUrls:
@@ -1348,8 +1229,6 @@ MODULE: project.app
                     file://./app/src/testBar/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/testBar
-                AidlDirectoryUrls:
-                    file://./app/src/testBar/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/testBar/assets
                 JavaDirectoryUrls:
@@ -1371,8 +1250,6 @@ MODULE: project.app
                     file://./app/src/testBasicBar/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/testBasicBar
-                AidlDirectoryUrls:
-                    file://./app/src/testBasicBar/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/testBasicBar/assets
                 JavaDirectoryUrls:
@@ -1394,8 +1271,6 @@ MODULE: project.app
                     file://./app/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/testDebug
-                AidlDirectoryUrls:
-                    file://./app/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -1417,8 +1292,6 @@ MODULE: project.app
                     file://./app/src/testBasicBarDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/testBasicBarDebug
-                AidlDirectoryUrls:
-                    file://./app/src/testBasicBarDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/testBasicBarDebug/assets
                 JavaDirectoryUrls:
@@ -1439,8 +1312,6 @@ MODULE: project.app
                     file://./app/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/androidTest
-                AidlDirectoryUrls:
-                    file://./app/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -1462,8 +1333,6 @@ MODULE: project.app
                     file://./app/src/androidTestBasic/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/androidTestBasic
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestBasic/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTestBasic/assets
                 JavaDirectoryUrls:
@@ -1485,8 +1354,6 @@ MODULE: project.app
                     file://./app/src/androidTestBar/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/androidTestBar
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestBar/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTestBar/assets
                 JavaDirectoryUrls:
@@ -1508,8 +1375,6 @@ MODULE: project.app
                     file://./app/src/androidTestBasicBar/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/androidTestBasicBar
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestBasicBar/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTestBasicBar/assets
                 JavaDirectoryUrls:
@@ -1531,8 +1396,6 @@ MODULE: project.app
                     file://./app/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTestDebug/assets
                 JavaDirectoryUrls:
@@ -1554,8 +1417,6 @@ MODULE: project.app
                     file://./app/src/androidTestBasicBarDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/androidTestBasicBarDebug
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestBasicBarDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTestBasicBarDebug/assets
                 JavaDirectoryUrls:
@@ -1584,8 +1445,6 @@ MODULE: project.dyn_feature
                 file://./dyn_feature/src/main
             ManifestDirectories:
                 file://./dyn_feature/src/main
-            AidlDirectoryUrls:
-                file://./dyn_feature/src/main/aidl
             AssetsDirectoryUrls:
                 file://./dyn_feature/src/main/assets
             JavaDirectoryUrls:
@@ -1605,8 +1464,6 @@ MODULE: project.dyn_feature
         main
             Manifest:
                 ./dyn_feature/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./dyn_feature/src/main/aidl
             AssetsDirectories:
                 ./dyn_feature/src/main/assets
             JavaDirectories:
@@ -1626,8 +1483,6 @@ MODULE: project.dyn_feature
             main
                 Manifest:
                     ./dyn_feature/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./dyn_feature/src/main/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/main/assets
                 JavaDirectories:
@@ -1646,8 +1501,6 @@ MODULE: project.dyn_feature
             debug
                 Manifest:
                     ./dyn_feature/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./dyn_feature/src/debug/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/debug/assets
                 JavaDirectories:
@@ -1667,8 +1520,6 @@ MODULE: project.dyn_feature
             main
                 Manifest:
                     ./dyn_feature/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./dyn_feature/src/main/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/main/assets
                 JavaDirectories:
@@ -1687,8 +1538,6 @@ MODULE: project.dyn_feature
             debug
                 Manifest:
                     ./dyn_feature/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./dyn_feature/src/debug/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/debug/assets
                 JavaDirectories:
@@ -1707,8 +1556,6 @@ MODULE: project.dyn_feature
             release
                 Manifest:
                     ./dyn_feature/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./dyn_feature/src/release/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/release/assets
                 JavaDirectories:
@@ -1728,8 +1575,6 @@ MODULE: project.dyn_feature
             test
                 Manifest:
                     ./dyn_feature/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./dyn_feature/src/test/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/test/assets
                 JavaDirectories:
@@ -1748,8 +1593,6 @@ MODULE: project.dyn_feature
             testDebug
                 Manifest:
                     ./dyn_feature/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./dyn_feature/src/testDebug/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/testDebug/assets
                 JavaDirectories:
@@ -1769,8 +1612,6 @@ MODULE: project.dyn_feature
             androidTest
                 Manifest:
                     ./dyn_feature/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./dyn_feature/src/androidTest/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/androidTest/assets
                 JavaDirectories:
@@ -1789,8 +1630,6 @@ MODULE: project.dyn_feature
             androidTestDebug
                 Manifest:
                     ./dyn_feature/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./dyn_feature/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./dyn_feature/src/androidTestDebug/assets
                 JavaDirectories:
@@ -1823,9 +1662,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/debug
                 ManifestDirectories:
                     file://./dyn_feature/src/main
-                AidlDirectoryUrls:
-                    file://./dyn_feature/src/main/aidl
-                    file://./dyn_feature/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./dyn_feature/src/main/assets
                     file://./dyn_feature/src/debug/assets
@@ -1858,9 +1694,6 @@ MODULE: project.dyn_feature
                 ManifestDirectoryUrls:
                     file://./dyn_feature/src/test
                     file://./dyn_feature/src/testDebug
-                AidlDirectoryUrls:
-                    file://./dyn_feature/src/test/aidl
-                    file://./dyn_feature/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./dyn_feature/src/test/assets
                     file://./dyn_feature/src/testDebug/assets
@@ -1893,9 +1726,6 @@ MODULE: project.dyn_feature
                 ManifestDirectoryUrls:
                     file://./dyn_feature/src/androidTest
                     file://./dyn_feature/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/aidl
-                    file://./dyn_feature/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./dyn_feature/src/androidTest/assets
                     file://./dyn_feature/src/androidTestDebug/assets
@@ -1927,7 +1757,6 @@ MODULE: project.dyn_feature
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./dyn_feature/build/generated/ap_generated_sources/debug/out
-                    file://./dyn_feature/build/generated/aidl_source_output_dir/debug/out
                     file://./dyn_feature/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./dyn_feature/build/generated/res/resValues/debug
@@ -1941,7 +1770,6 @@ MODULE: project.dyn_feature
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./dyn_feature/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./dyn_feature/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./dyn_feature/build/generated/res/resValues/androidTest/debug
@@ -1959,8 +1787,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/main
                 ManifestDirectories:
                     file://./dyn_feature/src/main
-                AidlDirectoryUrls:
-                    file://./dyn_feature/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./dyn_feature/src/main/assets
                 JavaDirectoryUrls:
@@ -1982,8 +1808,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./dyn_feature/src/debug
-                AidlDirectoryUrls:
-                    file://./dyn_feature/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./dyn_feature/src/debug/assets
                 JavaDirectoryUrls:
@@ -2005,8 +1829,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./dyn_feature/src/release
-                AidlDirectoryUrls:
-                    file://./dyn_feature/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./dyn_feature/src/release/assets
                 JavaDirectoryUrls:
@@ -2033,8 +1855,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/main
                 ManifestDirectories:
                     file://./dyn_feature/src/main
-                AidlDirectoryUrls:
-                    file://./dyn_feature/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./dyn_feature/src/main/assets
                 JavaDirectoryUrls:
@@ -2056,8 +1876,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./dyn_feature/src/debug
-                AidlDirectoryUrls:
-                    file://./dyn_feature/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./dyn_feature/src/debug/assets
                 JavaDirectoryUrls:
@@ -2080,8 +1898,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./dyn_feature/src/test
-                AidlDirectoryUrls:
-                    file://./dyn_feature/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./dyn_feature/src/test/assets
                 JavaDirectoryUrls:
@@ -2103,8 +1919,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./dyn_feature/src/testDebug
-                AidlDirectoryUrls:
-                    file://./dyn_feature/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./dyn_feature/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -2127,8 +1941,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./dyn_feature/src/androidTest
-                AidlDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./dyn_feature/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -2150,8 +1962,6 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./dyn_feature/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/assets
                 JavaDirectoryUrls:
@@ -2180,8 +1990,6 @@ MODULE: project.lib
                 file://./lib/src/main
             ManifestDirectories:
                 file://./lib/src/main
-            AidlDirectoryUrls:
-                file://./lib/src/main/aidl
             AssetsDirectoryUrls:
                 file://./lib/src/main/assets
             JavaDirectoryUrls:
@@ -2207,8 +2015,6 @@ MODULE: project.lib
         main
             Manifest:
                 ./lib/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./lib/src/main/aidl
             AssetsDirectories:
                 ./lib/src/main/assets
             JavaDirectories:
@@ -2228,8 +2034,6 @@ MODULE: project.lib
             main
                 Manifest:
                     ./lib/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/main/aidl
                 AssetsDirectories:
                     ./lib/src/main/assets
                 JavaDirectories:
@@ -2248,8 +2052,6 @@ MODULE: project.lib
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/debug/aidl
                 AssetsDirectories:
                     ./lib/src/debug/assets
                 JavaDirectories:
@@ -2269,8 +2071,6 @@ MODULE: project.lib
             main
                 Manifest:
                     ./lib/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/main/aidl
                 AssetsDirectories:
                     ./lib/src/main/assets
                 JavaDirectories:
@@ -2289,8 +2089,6 @@ MODULE: project.lib
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/debug/aidl
                 AssetsDirectories:
                     ./lib/src/debug/assets
                 JavaDirectories:
@@ -2309,8 +2107,6 @@ MODULE: project.lib
             release
                 Manifest:
                     ./lib/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/release/aidl
                 AssetsDirectories:
                     ./lib/src/release/assets
                 JavaDirectories:
@@ -2330,8 +2126,6 @@ MODULE: project.lib
             test
                 Manifest:
                     ./lib/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/test/aidl
                 AssetsDirectories:
                     ./lib/src/test/assets
                 JavaDirectories:
@@ -2350,8 +2144,6 @@ MODULE: project.lib
             testDebug
                 Manifest:
                     ./lib/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/testDebug/aidl
                 AssetsDirectories:
                     ./lib/src/testDebug/assets
                 JavaDirectories:
@@ -2371,8 +2163,6 @@ MODULE: project.lib
             androidTest
                 Manifest:
                     ./lib/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/androidTest/aidl
                 AssetsDirectories:
                     ./lib/src/androidTest/assets
                 JavaDirectories:
@@ -2391,8 +2181,6 @@ MODULE: project.lib
             androidTestDebug
                 Manifest:
                     ./lib/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./lib/src/androidTestDebug/assets
                 JavaDirectories:
@@ -2425,9 +2213,6 @@ MODULE: project.lib
                     file://./lib/src/debug
                 ManifestDirectories:
                     file://./lib/src/main
-                AidlDirectoryUrls:
-                    file://./lib/src/main/aidl
-                    file://./lib/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/main/assets
                     file://./lib/src/debug/assets
@@ -2466,9 +2251,6 @@ MODULE: project.lib
                 ManifestDirectoryUrls:
                     file://./lib/src/test
                     file://./lib/src/testDebug
-                AidlDirectoryUrls:
-                    file://./lib/src/test/aidl
-                    file://./lib/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/test/assets
                     file://./lib/src/testDebug/assets
@@ -2501,9 +2283,6 @@ MODULE: project.lib
                 ManifestDirectoryUrls:
                     file://./lib/src/androidTest
                     file://./lib/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./lib/src/androidTest/aidl
-                    file://./lib/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/androidTest/assets
                     file://./lib/src/androidTestDebug/assets
@@ -2535,7 +2314,6 @@ MODULE: project.lib
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./lib/build/generated/ap_generated_sources/debug/out
-                    file://./lib/build/generated/aidl_source_output_dir/debug/out
                     file://./lib/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./lib/build/generated/res/resValues/debug
@@ -2549,7 +2327,6 @@ MODULE: project.lib
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./lib/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./lib/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./lib/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./lib/build/generated/res/resValues/androidTest/debug
@@ -2567,8 +2344,6 @@ MODULE: project.lib
                     file://./lib/src/main
                 ManifestDirectories:
                     file://./lib/src/main
-                AidlDirectoryUrls:
-                    file://./lib/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/main/assets
                 JavaDirectoryUrls:
@@ -2596,8 +2371,6 @@ MODULE: project.lib
                     file://./lib/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./lib/src/debug
-                AidlDirectoryUrls:
-                    file://./lib/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/debug/assets
                 JavaDirectoryUrls:
@@ -2619,8 +2392,6 @@ MODULE: project.lib
                     file://./lib/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./lib/src/release
-                AidlDirectoryUrls:
-                    file://./lib/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/release/assets
                 JavaDirectoryUrls:
@@ -2647,8 +2418,6 @@ MODULE: project.lib
                     file://./lib/src/main
                 ManifestDirectories:
                     file://./lib/src/main
-                AidlDirectoryUrls:
-                    file://./lib/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/main/assets
                 JavaDirectoryUrls:
@@ -2676,8 +2445,6 @@ MODULE: project.lib
                     file://./lib/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./lib/src/debug
-                AidlDirectoryUrls:
-                    file://./lib/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/debug/assets
                 JavaDirectoryUrls:
@@ -2700,8 +2467,6 @@ MODULE: project.lib
                     file://./lib/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./lib/src/test
-                AidlDirectoryUrls:
-                    file://./lib/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/test/assets
                 JavaDirectoryUrls:
@@ -2723,8 +2488,6 @@ MODULE: project.lib
                     file://./lib/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./lib/src/testDebug
-                AidlDirectoryUrls:
-                    file://./lib/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -2747,8 +2510,6 @@ MODULE: project.lib
                     file://./lib/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./lib/src/androidTest
-                AidlDirectoryUrls:
-                    file://./lib/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -2770,8 +2531,6 @@ MODULE: project.lib
                     file://./lib/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./lib/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./lib/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/androidTestDebug/assets
                 JavaDirectoryUrls:
@@ -2800,8 +2559,6 @@ MODULE: project.nested1
                 file://./nested1/src/main
             ManifestDirectories:
                 file://./nested1/src/main
-            AidlDirectoryUrls:
-                file://./nested1/src/main/aidl
             AssetsDirectoryUrls:
                 file://./nested1/src/main/assets
             JavaDirectoryUrls:
@@ -2821,8 +2578,6 @@ MODULE: project.nested1
         main
             Manifest:
                 ./nested1/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./nested1/src/main/aidl
             AssetsDirectories:
                 ./nested1/src/main/assets
             JavaDirectories:
@@ -2842,8 +2597,6 @@ MODULE: project.nested1
             main
                 Manifest:
                     ./nested1/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/src/main/aidl
                 AssetsDirectories:
                     ./nested1/src/main/assets
                 JavaDirectories:
@@ -2862,8 +2615,6 @@ MODULE: project.nested1
             debug
                 Manifest:
                     ./nested1/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/src/debug/aidl
                 AssetsDirectories:
                     ./nested1/src/debug/assets
                 JavaDirectories:
@@ -2883,8 +2634,6 @@ MODULE: project.nested1
             main
                 Manifest:
                     ./nested1/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/src/main/aidl
                 AssetsDirectories:
                     ./nested1/src/main/assets
                 JavaDirectories:
@@ -2903,8 +2652,6 @@ MODULE: project.nested1
             debug
                 Manifest:
                     ./nested1/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/src/debug/aidl
                 AssetsDirectories:
                     ./nested1/src/debug/assets
                 JavaDirectories:
@@ -2923,8 +2670,6 @@ MODULE: project.nested1
             release
                 Manifest:
                     ./nested1/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/src/release/aidl
                 AssetsDirectories:
                     ./nested1/src/release/assets
                 JavaDirectories:
@@ -2944,8 +2689,6 @@ MODULE: project.nested1
             test
                 Manifest:
                     ./nested1/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/src/test/aidl
                 AssetsDirectories:
                     ./nested1/src/test/assets
                 JavaDirectories:
@@ -2964,8 +2707,6 @@ MODULE: project.nested1
             testDebug
                 Manifest:
                     ./nested1/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/src/testDebug/aidl
                 AssetsDirectories:
                     ./nested1/src/testDebug/assets
                 JavaDirectories:
@@ -2985,8 +2726,6 @@ MODULE: project.nested1
             androidTest
                 Manifest:
                     ./nested1/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/src/androidTest/aidl
                 AssetsDirectories:
                     ./nested1/src/androidTest/assets
                 JavaDirectories:
@@ -3005,8 +2744,6 @@ MODULE: project.nested1
             androidTestDebug
                 Manifest:
                     ./nested1/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./nested1/src/androidTestDebug/assets
                 JavaDirectories:
@@ -3039,9 +2776,6 @@ MODULE: project.nested1
                     file://./nested1/src/debug
                 ManifestDirectories:
                     file://./nested1/src/main
-                AidlDirectoryUrls:
-                    file://./nested1/src/main/aidl
-                    file://./nested1/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/src/main/assets
                     file://./nested1/src/debug/assets
@@ -3074,9 +2808,6 @@ MODULE: project.nested1
                 ManifestDirectoryUrls:
                     file://./nested1/src/test
                     file://./nested1/src/testDebug
-                AidlDirectoryUrls:
-                    file://./nested1/src/test/aidl
-                    file://./nested1/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/src/test/assets
                     file://./nested1/src/testDebug/assets
@@ -3109,9 +2840,6 @@ MODULE: project.nested1
                 ManifestDirectoryUrls:
                     file://./nested1/src/androidTest
                     file://./nested1/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./nested1/src/androidTest/aidl
-                    file://./nested1/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/src/androidTest/assets
                     file://./nested1/src/androidTestDebug/assets
@@ -3143,7 +2871,6 @@ MODULE: project.nested1
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./nested1/build/generated/ap_generated_sources/debug/out
-                    file://./nested1/build/generated/aidl_source_output_dir/debug/out
                     file://./nested1/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./nested1/build/generated/res/resValues/debug
@@ -3157,7 +2884,6 @@ MODULE: project.nested1
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./nested1/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./nested1/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./nested1/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./nested1/build/generated/res/resValues/androidTest/debug
@@ -3175,8 +2901,6 @@ MODULE: project.nested1
                     file://./nested1/src/main
                 ManifestDirectories:
                     file://./nested1/src/main
-                AidlDirectoryUrls:
-                    file://./nested1/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/src/main/assets
                 JavaDirectoryUrls:
@@ -3198,8 +2922,6 @@ MODULE: project.nested1
                     file://./nested1/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested1/src/debug
-                AidlDirectoryUrls:
-                    file://./nested1/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/src/debug/assets
                 JavaDirectoryUrls:
@@ -3221,8 +2943,6 @@ MODULE: project.nested1
                     file://./nested1/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested1/src/release
-                AidlDirectoryUrls:
-                    file://./nested1/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/src/release/assets
                 JavaDirectoryUrls:
@@ -3249,8 +2969,6 @@ MODULE: project.nested1
                     file://./nested1/src/main
                 ManifestDirectories:
                     file://./nested1/src/main
-                AidlDirectoryUrls:
-                    file://./nested1/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/src/main/assets
                 JavaDirectoryUrls:
@@ -3272,8 +2990,6 @@ MODULE: project.nested1
                     file://./nested1/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested1/src/debug
-                AidlDirectoryUrls:
-                    file://./nested1/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/src/debug/assets
                 JavaDirectoryUrls:
@@ -3296,8 +3012,6 @@ MODULE: project.nested1
                     file://./nested1/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested1/src/test
-                AidlDirectoryUrls:
-                    file://./nested1/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/src/test/assets
                 JavaDirectoryUrls:
@@ -3319,8 +3033,6 @@ MODULE: project.nested1
                     file://./nested1/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested1/src/testDebug
-                AidlDirectoryUrls:
-                    file://./nested1/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -3343,8 +3055,6 @@ MODULE: project.nested1
                     file://./nested1/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested1/src/androidTest
-                AidlDirectoryUrls:
-                    file://./nested1/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -3366,8 +3076,6 @@ MODULE: project.nested1
                     file://./nested1/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested1/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./nested1/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/src/androidTestDebug/assets
                 JavaDirectoryUrls:
@@ -3396,8 +3104,6 @@ MODULE: project.nested1.deep
                 file://./nested1/deep/src/main
             ManifestDirectories:
                 file://./nested1/deep/src/main
-            AidlDirectoryUrls:
-                file://./nested1/deep/src/main/aidl
             AssetsDirectoryUrls:
                 file://./nested1/deep/src/main/assets
             JavaDirectoryUrls:
@@ -3417,8 +3123,6 @@ MODULE: project.nested1.deep
         main
             Manifest:
                 ./nested1/deep/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./nested1/deep/src/main/aidl
             AssetsDirectories:
                 ./nested1/deep/src/main/assets
             JavaDirectories:
@@ -3438,8 +3142,6 @@ MODULE: project.nested1.deep
             main
                 Manifest:
                     ./nested1/deep/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/deep/src/main/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/main/assets
                 JavaDirectories:
@@ -3458,8 +3160,6 @@ MODULE: project.nested1.deep
             debug
                 Manifest:
                     ./nested1/deep/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/deep/src/debug/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/debug/assets
                 JavaDirectories:
@@ -3479,8 +3179,6 @@ MODULE: project.nested1.deep
             main
                 Manifest:
                     ./nested1/deep/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/deep/src/main/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/main/assets
                 JavaDirectories:
@@ -3499,8 +3197,6 @@ MODULE: project.nested1.deep
             debug
                 Manifest:
                     ./nested1/deep/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/deep/src/debug/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/debug/assets
                 JavaDirectories:
@@ -3519,8 +3215,6 @@ MODULE: project.nested1.deep
             release
                 Manifest:
                     ./nested1/deep/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/deep/src/release/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/release/assets
                 JavaDirectories:
@@ -3540,8 +3234,6 @@ MODULE: project.nested1.deep
             test
                 Manifest:
                     ./nested1/deep/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/deep/src/test/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/test/assets
                 JavaDirectories:
@@ -3560,8 +3252,6 @@ MODULE: project.nested1.deep
             testDebug
                 Manifest:
                     ./nested1/deep/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/deep/src/testDebug/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/testDebug/assets
                 JavaDirectories:
@@ -3581,8 +3271,6 @@ MODULE: project.nested1.deep
             androidTest
                 Manifest:
                     ./nested1/deep/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/deep/src/androidTest/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/androidTest/assets
                 JavaDirectories:
@@ -3601,8 +3289,6 @@ MODULE: project.nested1.deep
             androidTestDebug
                 Manifest:
                     ./nested1/deep/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/deep/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./nested1/deep/src/androidTestDebug/assets
                 JavaDirectories:
@@ -3635,9 +3321,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/debug
                 ManifestDirectories:
                     file://./nested1/deep/src/main
-                AidlDirectoryUrls:
-                    file://./nested1/deep/src/main/aidl
-                    file://./nested1/deep/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/deep/src/main/assets
                     file://./nested1/deep/src/debug/assets
@@ -3670,9 +3353,6 @@ MODULE: project.nested1.deep
                 ManifestDirectoryUrls:
                     file://./nested1/deep/src/test
                     file://./nested1/deep/src/testDebug
-                AidlDirectoryUrls:
-                    file://./nested1/deep/src/test/aidl
-                    file://./nested1/deep/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/deep/src/test/assets
                     file://./nested1/deep/src/testDebug/assets
@@ -3705,9 +3385,6 @@ MODULE: project.nested1.deep
                 ManifestDirectoryUrls:
                     file://./nested1/deep/src/androidTest
                     file://./nested1/deep/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/aidl
-                    file://./nested1/deep/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/deep/src/androidTest/assets
                     file://./nested1/deep/src/androidTestDebug/assets
@@ -3739,7 +3416,6 @@ MODULE: project.nested1.deep
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./nested1/deep/build/generated/ap_generated_sources/debug/out
-                    file://./nested1/deep/build/generated/aidl_source_output_dir/debug/out
                     file://./nested1/deep/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./nested1/deep/build/generated/res/resValues/debug
@@ -3753,7 +3429,6 @@ MODULE: project.nested1.deep
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./nested1/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./nested1/deep/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./nested1/deep/build/generated/res/resValues/androidTest/debug
@@ -3771,8 +3446,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/main
                 ManifestDirectories:
                     file://./nested1/deep/src/main
-                AidlDirectoryUrls:
-                    file://./nested1/deep/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/deep/src/main/assets
                 JavaDirectoryUrls:
@@ -3794,8 +3467,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested1/deep/src/debug
-                AidlDirectoryUrls:
-                    file://./nested1/deep/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/deep/src/debug/assets
                 JavaDirectoryUrls:
@@ -3817,8 +3488,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested1/deep/src/release
-                AidlDirectoryUrls:
-                    file://./nested1/deep/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/deep/src/release/assets
                 JavaDirectoryUrls:
@@ -3845,8 +3514,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/main
                 ManifestDirectories:
                     file://./nested1/deep/src/main
-                AidlDirectoryUrls:
-                    file://./nested1/deep/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/deep/src/main/assets
                 JavaDirectoryUrls:
@@ -3868,8 +3535,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested1/deep/src/debug
-                AidlDirectoryUrls:
-                    file://./nested1/deep/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/deep/src/debug/assets
                 JavaDirectoryUrls:
@@ -3892,8 +3557,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested1/deep/src/test
-                AidlDirectoryUrls:
-                    file://./nested1/deep/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/deep/src/test/assets
                 JavaDirectoryUrls:
@@ -3915,8 +3578,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested1/deep/src/testDebug
-                AidlDirectoryUrls:
-                    file://./nested1/deep/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/deep/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -3939,8 +3600,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested1/deep/src/androidTest
-                AidlDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/deep/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -3962,8 +3621,6 @@ MODULE: project.nested1.deep
                     file://./nested1/deep/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested1/deep/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./nested1/deep/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested1/deep/src/androidTestDebug/assets
                 JavaDirectoryUrls:
@@ -3992,8 +3649,6 @@ MODULE: project.nested2
                 file://./nested2/src/main
             ManifestDirectories:
                 file://./nested2/src/main
-            AidlDirectoryUrls:
-                file://./nested2/src/main/aidl
             AssetsDirectoryUrls:
                 file://./nested2/src/main/assets
             JavaDirectoryUrls:
@@ -4013,8 +3668,6 @@ MODULE: project.nested2
         main
             Manifest:
                 ./nested2/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./nested2/src/main/aidl
             AssetsDirectories:
                 ./nested2/src/main/assets
             JavaDirectories:
@@ -4034,8 +3687,6 @@ MODULE: project.nested2
             main
                 Manifest:
                     ./nested2/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/main/aidl
                 AssetsDirectories:
                     ./nested2/src/main/assets
                 JavaDirectories:
@@ -4054,8 +3705,6 @@ MODULE: project.nested2
             basic
                 Manifest:
                     ./nested2/src/basic/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/basic/aidl
                 AssetsDirectories:
                     ./nested2/src/basic/assets
                 JavaDirectories:
@@ -4074,8 +3723,6 @@ MODULE: project.nested2
             debug
                 Manifest:
                     ./nested2/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/debug/aidl
                 AssetsDirectories:
                     ./nested2/src/debug/assets
                 JavaDirectories:
@@ -4094,8 +3741,6 @@ MODULE: project.nested2
             basicDebug
                 Manifest:
                     ./nested2/src/basicDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/basicDebug/aidl
                 AssetsDirectories:
                     ./nested2/src/basicDebug/assets
                 JavaDirectories:
@@ -4115,8 +3760,6 @@ MODULE: project.nested2
             main
                 Manifest:
                     ./nested2/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/main/aidl
                 AssetsDirectories:
                     ./nested2/src/main/assets
                 JavaDirectories:
@@ -4135,8 +3778,6 @@ MODULE: project.nested2
             basic
                 Manifest:
                     ./nested2/src/basic/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/basic/aidl
                 AssetsDirectories:
                     ./nested2/src/basic/assets
                 JavaDirectories:
@@ -4155,8 +3796,6 @@ MODULE: project.nested2
             basicDebug
                 Manifest:
                     ./nested2/src/basicDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/basicDebug/aidl
                 AssetsDirectories:
                     ./nested2/src/basicDebug/assets
                 JavaDirectories:
@@ -4175,8 +3814,6 @@ MODULE: project.nested2
             debug
                 Manifest:
                     ./nested2/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/debug/aidl
                 AssetsDirectories:
                     ./nested2/src/debug/assets
                 JavaDirectories:
@@ -4195,8 +3832,6 @@ MODULE: project.nested2
             paid
                 Manifest:
                     ./nested2/src/paid/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/paid/aidl
                 AssetsDirectories:
                     ./nested2/src/paid/assets
                 JavaDirectories:
@@ -4215,8 +3850,6 @@ MODULE: project.nested2
             release
                 Manifest:
                     ./nested2/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/release/aidl
                 AssetsDirectories:
                     ./nested2/src/release/assets
                 JavaDirectories:
@@ -4236,8 +3869,6 @@ MODULE: project.nested2
             test
                 Manifest:
                     ./nested2/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/test/aidl
                 AssetsDirectories:
                     ./nested2/src/test/assets
                 JavaDirectories:
@@ -4256,8 +3887,6 @@ MODULE: project.nested2
             testBasic
                 Manifest:
                     ./nested2/src/testBasic/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/testBasic/aidl
                 AssetsDirectories:
                     ./nested2/src/testBasic/assets
                 JavaDirectories:
@@ -4276,8 +3905,6 @@ MODULE: project.nested2
             testDebug
                 Manifest:
                     ./nested2/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/testDebug/aidl
                 AssetsDirectories:
                     ./nested2/src/testDebug/assets
                 JavaDirectories:
@@ -4296,8 +3923,6 @@ MODULE: project.nested2
             testBasicDebug
                 Manifest:
                     ./nested2/src/testBasicDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/testBasicDebug/aidl
                 AssetsDirectories:
                     ./nested2/src/testBasicDebug/assets
                 JavaDirectories:
@@ -4315,8 +3940,6 @@ MODULE: project.nested2
             androidTest
                 Manifest:
                     ./nested2/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/androidTest/aidl
                 AssetsDirectories:
                     ./nested2/src/androidTest/assets
                 JavaDirectories:
@@ -4335,8 +3958,6 @@ MODULE: project.nested2
             androidTestBasic
                 Manifest:
                     ./nested2/src/androidTestBasic/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/androidTestBasic/aidl
                 AssetsDirectories:
                     ./nested2/src/androidTestBasic/assets
                 JavaDirectories:
@@ -4355,8 +3976,6 @@ MODULE: project.nested2
             androidTestDebug
                 Manifest:
                     ./nested2/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./nested2/src/androidTestDebug/assets
                 JavaDirectories:
@@ -4375,8 +3994,6 @@ MODULE: project.nested2
             androidTestBasicDebug
                 Manifest:
                     ./nested2/src/androidTestBasicDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/androidTestBasicDebug/aidl
                 AssetsDirectories:
                     ./nested2/src/androidTestBasicDebug/assets
                 JavaDirectories:
@@ -4413,11 +4030,6 @@ MODULE: project.nested2
                     file://./nested2/src/basicDebug
                 ManifestDirectories:
                     file://./nested2/src/main
-                AidlDirectoryUrls:
-                    file://./nested2/src/main/aidl
-                    file://./nested2/src/basic/aidl
-                    file://./nested2/src/debug/aidl
-                    file://./nested2/src/basicDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/main/assets
                     file://./nested2/src/basic/assets
@@ -4470,11 +4082,6 @@ MODULE: project.nested2
                     file://./nested2/src/testBasic
                     file://./nested2/src/testDebug
                     file://./nested2/src/testBasicDebug
-                AidlDirectoryUrls:
-                    file://./nested2/src/test/aidl
-                    file://./nested2/src/testBasic/aidl
-                    file://./nested2/src/testDebug/aidl
-                    file://./nested2/src/testBasicDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/test/assets
                     file://./nested2/src/testBasic/assets
@@ -4526,11 +4133,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestBasic
                     file://./nested2/src/androidTestDebug
                     file://./nested2/src/androidTestBasicDebug
-                AidlDirectoryUrls:
-                    file://./nested2/src/androidTest/aidl
-                    file://./nested2/src/androidTestBasic/aidl
-                    file://./nested2/src/androidTestDebug/aidl
-                    file://./nested2/src/androidTestBasicDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/androidTest/assets
                     file://./nested2/src/androidTestBasic/assets
@@ -4578,7 +4180,6 @@ MODULE: project.nested2
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./nested2/build/generated/ap_generated_sources/basicDebug/out
-                    file://./nested2/build/generated/aidl_source_output_dir/basicDebug/out
                     file://./nested2/build/generated/source/buildConfig/basic/debug
                 ResDirectoryUrls:
                     file://./nested2/build/generated/res/resValues/basic/debug
@@ -4592,7 +4193,6 @@ MODULE: project.nested2
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out
-                    file://./nested2/build/generated/aidl_source_output_dir/basicDebugAndroidTest/out
                     file://./nested2/build/generated/source/buildConfig/androidTest/basic/debug
                 ResDirectoryUrls:
                     file://./nested2/build/generated/res/resValues/androidTest/basic/debug
@@ -4610,8 +4210,6 @@ MODULE: project.nested2
                     file://./nested2/src/main
                 ManifestDirectories:
                     file://./nested2/src/main
-                AidlDirectoryUrls:
-                    file://./nested2/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/main/assets
                 JavaDirectoryUrls:
@@ -4633,8 +4231,6 @@ MODULE: project.nested2
                     file://./nested2/src/basic/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/basic
-                AidlDirectoryUrls:
-                    file://./nested2/src/basic/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/basic/assets
                 JavaDirectoryUrls:
@@ -4656,8 +4252,6 @@ MODULE: project.nested2
                     file://./nested2/src/basicDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/basicDebug
-                AidlDirectoryUrls:
-                    file://./nested2/src/basicDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/basicDebug/assets
                 JavaDirectoryUrls:
@@ -4679,8 +4273,6 @@ MODULE: project.nested2
                     file://./nested2/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/debug
-                AidlDirectoryUrls:
-                    file://./nested2/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/debug/assets
                 JavaDirectoryUrls:
@@ -4702,8 +4294,6 @@ MODULE: project.nested2
                     file://./nested2/src/paid/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/paid
-                AidlDirectoryUrls:
-                    file://./nested2/src/paid/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/paid/assets
                 JavaDirectoryUrls:
@@ -4725,8 +4315,6 @@ MODULE: project.nested2
                     file://./nested2/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/release
-                AidlDirectoryUrls:
-                    file://./nested2/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/release/assets
                 JavaDirectoryUrls:
@@ -4753,8 +4341,6 @@ MODULE: project.nested2
                     file://./nested2/src/main
                 ManifestDirectories:
                     file://./nested2/src/main
-                AidlDirectoryUrls:
-                    file://./nested2/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/main/assets
                 JavaDirectoryUrls:
@@ -4776,8 +4362,6 @@ MODULE: project.nested2
                     file://./nested2/src/basic/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/basic
-                AidlDirectoryUrls:
-                    file://./nested2/src/basic/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/basic/assets
                 JavaDirectoryUrls:
@@ -4799,8 +4383,6 @@ MODULE: project.nested2
                     file://./nested2/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/debug
-                AidlDirectoryUrls:
-                    file://./nested2/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/debug/assets
                 JavaDirectoryUrls:
@@ -4822,8 +4404,6 @@ MODULE: project.nested2
                     file://./nested2/src/basicDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/basicDebug
-                AidlDirectoryUrls:
-                    file://./nested2/src/basicDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/basicDebug/assets
                 JavaDirectoryUrls:
@@ -4846,8 +4426,6 @@ MODULE: project.nested2
                     file://./nested2/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/test
-                AidlDirectoryUrls:
-                    file://./nested2/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/test/assets
                 JavaDirectoryUrls:
@@ -4869,8 +4447,6 @@ MODULE: project.nested2
                     file://./nested2/src/testBasic/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/testBasic
-                AidlDirectoryUrls:
-                    file://./nested2/src/testBasic/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/testBasic/assets
                 JavaDirectoryUrls:
@@ -4892,8 +4468,6 @@ MODULE: project.nested2
                     file://./nested2/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/testDebug
-                AidlDirectoryUrls:
-                    file://./nested2/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -4915,8 +4489,6 @@ MODULE: project.nested2
                     file://./nested2/src/testBasicDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/testBasicDebug
-                AidlDirectoryUrls:
-                    file://./nested2/src/testBasicDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/testBasicDebug/assets
                 JavaDirectoryUrls:
@@ -4937,8 +4509,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/androidTest
-                AidlDirectoryUrls:
-                    file://./nested2/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -4960,8 +4530,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestBasic/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/androidTestBasic
-                AidlDirectoryUrls:
-                    file://./nested2/src/androidTestBasic/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/androidTestBasic/assets
                 JavaDirectoryUrls:
@@ -4983,8 +4551,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./nested2/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/androidTestDebug/assets
                 JavaDirectoryUrls:
@@ -5006,8 +4572,6 @@ MODULE: project.nested2
                     file://./nested2/src/androidTestBasicDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/src/androidTestBasicDebug
-                AidlDirectoryUrls:
-                    file://./nested2/src/androidTestBasicDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/src/androidTestBasicDebug/assets
                 JavaDirectoryUrls:
@@ -5036,8 +4600,6 @@ MODULE: project.nested2.deep
                 file://./nested2/deep/src/main
             ManifestDirectories:
                 file://./nested2/deep/src/main
-            AidlDirectoryUrls:
-                file://./nested2/deep/src/main/aidl
             AssetsDirectoryUrls:
                 file://./nested2/deep/src/main/assets
             JavaDirectoryUrls:
@@ -5057,8 +4619,6 @@ MODULE: project.nested2.deep
         main
             Manifest:
                 ./nested2/deep/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./nested2/deep/src/main/aidl
             AssetsDirectories:
                 ./nested2/deep/src/main/assets
             JavaDirectories:
@@ -5078,8 +4638,6 @@ MODULE: project.nested2.deep
             main
                 Manifest:
                     ./nested2/deep/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/deep/src/main/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/main/assets
                 JavaDirectories:
@@ -5098,8 +4656,6 @@ MODULE: project.nested2.deep
             debug
                 Manifest:
                     ./nested2/deep/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/deep/src/debug/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/debug/assets
                 JavaDirectories:
@@ -5119,8 +4675,6 @@ MODULE: project.nested2.deep
             main
                 Manifest:
                     ./nested2/deep/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/deep/src/main/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/main/assets
                 JavaDirectories:
@@ -5139,8 +4693,6 @@ MODULE: project.nested2.deep
             debug
                 Manifest:
                     ./nested2/deep/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/deep/src/debug/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/debug/assets
                 JavaDirectories:
@@ -5159,8 +4711,6 @@ MODULE: project.nested2.deep
             release
                 Manifest:
                     ./nested2/deep/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/deep/src/release/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/release/assets
                 JavaDirectories:
@@ -5180,8 +4730,6 @@ MODULE: project.nested2.deep
             test
                 Manifest:
                     ./nested2/deep/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/deep/src/test/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/test/assets
                 JavaDirectories:
@@ -5200,8 +4748,6 @@ MODULE: project.nested2.deep
             testDebug
                 Manifest:
                     ./nested2/deep/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/deep/src/testDebug/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/testDebug/assets
                 JavaDirectories:
@@ -5221,8 +4767,6 @@ MODULE: project.nested2.deep
             androidTest
                 Manifest:
                     ./nested2/deep/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/deep/src/androidTest/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/androidTest/assets
                 JavaDirectories:
@@ -5241,8 +4785,6 @@ MODULE: project.nested2.deep
             androidTestDebug
                 Manifest:
                     ./nested2/deep/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/deep/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./nested2/deep/src/androidTestDebug/assets
                 JavaDirectories:
@@ -5275,9 +4817,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/debug
                 ManifestDirectories:
                     file://./nested2/deep/src/main
-                AidlDirectoryUrls:
-                    file://./nested2/deep/src/main/aidl
-                    file://./nested2/deep/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/deep/src/main/assets
                     file://./nested2/deep/src/debug/assets
@@ -5310,9 +4849,6 @@ MODULE: project.nested2.deep
                 ManifestDirectoryUrls:
                     file://./nested2/deep/src/test
                     file://./nested2/deep/src/testDebug
-                AidlDirectoryUrls:
-                    file://./nested2/deep/src/test/aidl
-                    file://./nested2/deep/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/deep/src/test/assets
                     file://./nested2/deep/src/testDebug/assets
@@ -5345,9 +4881,6 @@ MODULE: project.nested2.deep
                 ManifestDirectoryUrls:
                     file://./nested2/deep/src/androidTest
                     file://./nested2/deep/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/aidl
-                    file://./nested2/deep/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/deep/src/androidTest/assets
                     file://./nested2/deep/src/androidTestDebug/assets
@@ -5379,7 +4912,6 @@ MODULE: project.nested2.deep
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./nested2/deep/build/generated/ap_generated_sources/debug/out
-                    file://./nested2/deep/build/generated/aidl_source_output_dir/debug/out
                     file://./nested2/deep/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./nested2/deep/build/generated/res/resValues/debug
@@ -5393,7 +4925,6 @@ MODULE: project.nested2.deep
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./nested2/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./nested2/deep/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./nested2/deep/build/generated/res/resValues/androidTest/debug
@@ -5411,8 +4942,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/main
                 ManifestDirectories:
                     file://./nested2/deep/src/main
-                AidlDirectoryUrls:
-                    file://./nested2/deep/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/deep/src/main/assets
                 JavaDirectoryUrls:
@@ -5434,8 +4963,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/deep/src/debug
-                AidlDirectoryUrls:
-                    file://./nested2/deep/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/deep/src/debug/assets
                 JavaDirectoryUrls:
@@ -5457,8 +4984,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/deep/src/release
-                AidlDirectoryUrls:
-                    file://./nested2/deep/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/deep/src/release/assets
                 JavaDirectoryUrls:
@@ -5485,8 +5010,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/main
                 ManifestDirectories:
                     file://./nested2/deep/src/main
-                AidlDirectoryUrls:
-                    file://./nested2/deep/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/deep/src/main/assets
                 JavaDirectoryUrls:
@@ -5508,8 +5031,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/deep/src/debug
-                AidlDirectoryUrls:
-                    file://./nested2/deep/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/deep/src/debug/assets
                 JavaDirectoryUrls:
@@ -5532,8 +5053,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/deep/src/test
-                AidlDirectoryUrls:
-                    file://./nested2/deep/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/deep/src/test/assets
                 JavaDirectoryUrls:
@@ -5555,8 +5074,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/deep/src/testDebug
-                AidlDirectoryUrls:
-                    file://./nested2/deep/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/deep/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -5579,8 +5096,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/deep/src/androidTest
-                AidlDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/deep/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -5602,8 +5117,6 @@ MODULE: project.nested2.deep
                     file://./nested2/deep/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./nested2/deep/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug/assets
                 JavaDirectoryUrls:
@@ -5632,8 +5145,6 @@ MODULE: project.nested2.trans.deep2
                 file://./nested2/trans/deep2/src/main
             ManifestDirectories:
                 file://./nested2/trans/deep2/src/main
-            AidlDirectoryUrls:
-                file://./nested2/trans/deep2/src/main/aidl
             AssetsDirectoryUrls:
                 file://./nested2/trans/deep2/src/main/assets
             JavaDirectoryUrls:
@@ -5653,8 +5164,6 @@ MODULE: project.nested2.trans.deep2
         main
             Manifest:
                 ./nested2/trans/deep2/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./nested2/trans/deep2/src/main/aidl
             AssetsDirectories:
                 ./nested2/trans/deep2/src/main/assets
             JavaDirectories:
@@ -5674,8 +5183,6 @@ MODULE: project.nested2.trans.deep2
             main
                 Manifest:
                     ./nested2/trans/deep2/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/trans/deep2/src/main/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/main/assets
                 JavaDirectories:
@@ -5694,8 +5201,6 @@ MODULE: project.nested2.trans.deep2
             debug
                 Manifest:
                     ./nested2/trans/deep2/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/trans/deep2/src/debug/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/debug/assets
                 JavaDirectories:
@@ -5715,8 +5220,6 @@ MODULE: project.nested2.trans.deep2
             main
                 Manifest:
                     ./nested2/trans/deep2/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/trans/deep2/src/main/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/main/assets
                 JavaDirectories:
@@ -5735,8 +5238,6 @@ MODULE: project.nested2.trans.deep2
             debug
                 Manifest:
                     ./nested2/trans/deep2/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/trans/deep2/src/debug/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/debug/assets
                 JavaDirectories:
@@ -5755,8 +5256,6 @@ MODULE: project.nested2.trans.deep2
             release
                 Manifest:
                     ./nested2/trans/deep2/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/trans/deep2/src/release/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/release/assets
                 JavaDirectories:
@@ -5776,8 +5275,6 @@ MODULE: project.nested2.trans.deep2
             test
                 Manifest:
                     ./nested2/trans/deep2/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/trans/deep2/src/test/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/test/assets
                 JavaDirectories:
@@ -5796,8 +5293,6 @@ MODULE: project.nested2.trans.deep2
             testDebug
                 Manifest:
                     ./nested2/trans/deep2/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/trans/deep2/src/testDebug/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/testDebug/assets
                 JavaDirectories:
@@ -5817,8 +5312,6 @@ MODULE: project.nested2.trans.deep2
             androidTest
                 Manifest:
                     ./nested2/trans/deep2/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/trans/deep2/src/androidTest/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/androidTest/assets
                 JavaDirectories:
@@ -5837,8 +5330,6 @@ MODULE: project.nested2.trans.deep2
             androidTestDebug
                 Manifest:
                     ./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./nested2/trans/deep2/src/androidTestDebug/assets
                 JavaDirectories:
@@ -5871,9 +5362,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/debug
                 ManifestDirectories:
                     file://./nested2/trans/deep2/src/main
-                AidlDirectoryUrls:
-                    file://./nested2/trans/deep2/src/main/aidl
-                    file://./nested2/trans/deep2/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/assets
                     file://./nested2/trans/deep2/src/debug/assets
@@ -5906,9 +5394,6 @@ MODULE: project.nested2.trans.deep2
                 ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/test
                     file://./nested2/trans/deep2/src/testDebug
-                AidlDirectoryUrls:
-                    file://./nested2/trans/deep2/src/test/aidl
-                    file://./nested2/trans/deep2/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/assets
                     file://./nested2/trans/deep2/src/testDebug/assets
@@ -5941,9 +5426,6 @@ MODULE: project.nested2.trans.deep2
                 ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest
                     file://./nested2/trans/deep2/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/aidl
-                    file://./nested2/trans/deep2/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/assets
                     file://./nested2/trans/deep2/src/androidTestDebug/assets
@@ -5975,7 +5457,6 @@ MODULE: project.nested2.trans.deep2
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/build/generated/ap_generated_sources/debug/out
-                    file://./nested2/trans/deep2/build/generated/aidl_source_output_dir/debug/out
                     file://./nested2/trans/deep2/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/build/generated/res/resValues/debug
@@ -5989,7 +5470,6 @@ MODULE: project.nested2.trans.deep2
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./nested2/trans/deep2/build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./nested2/trans/deep2/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/build/generated/res/resValues/androidTest/debug
@@ -6007,8 +5487,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/main
                 ManifestDirectories:
                     file://./nested2/trans/deep2/src/main
-                AidlDirectoryUrls:
-                    file://./nested2/trans/deep2/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/assets
                 JavaDirectoryUrls:
@@ -6030,8 +5508,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug
-                AidlDirectoryUrls:
-                    file://./nested2/trans/deep2/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/assets
                 JavaDirectoryUrls:
@@ -6053,8 +5529,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/release
-                AidlDirectoryUrls:
-                    file://./nested2/trans/deep2/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/trans/deep2/src/release/assets
                 JavaDirectoryUrls:
@@ -6081,8 +5555,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/main
                 ManifestDirectories:
                     file://./nested2/trans/deep2/src/main
-                AidlDirectoryUrls:
-                    file://./nested2/trans/deep2/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/assets
                 JavaDirectoryUrls:
@@ -6104,8 +5576,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug
-                AidlDirectoryUrls:
-                    file://./nested2/trans/deep2/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/assets
                 JavaDirectoryUrls:
@@ -6128,8 +5598,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/test
-                AidlDirectoryUrls:
-                    file://./nested2/trans/deep2/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/assets
                 JavaDirectoryUrls:
@@ -6151,8 +5619,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug
-                AidlDirectoryUrls:
-                    file://./nested2/trans/deep2/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -6175,8 +5641,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest
-                AidlDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -6198,8 +5662,6 @@ MODULE: project.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTestDebug/assets
                 JavaDirectoryUrls:

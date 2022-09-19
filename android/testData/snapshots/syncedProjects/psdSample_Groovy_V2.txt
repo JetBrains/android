@@ -152,7 +152,6 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
@@ -162,50 +161,42 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestBasicBar [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestBasicBarDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBar/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestBar/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBar/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBar/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestBar/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestBar/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBar/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBasic/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestBasic/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBasic/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBasic/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestBasic/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestBasic/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBasic/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBasicBar/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestBasicBar/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBasicBar/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBasicBar/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestBasicBar/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestBasicBar/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBasicBar/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBasicBarDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestBasicBarDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBasicBarDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBasicBarDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestBasicBarDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestBasicBarDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestBasicBarDebug/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/kotlin [-]
@@ -387,7 +378,6 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/basicBar/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/basicBar/debug [-]
@@ -399,50 +389,42 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
             JavaResource                  : file://<PROJECT>/app/src/main/res
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebug/out [-]
-            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/basicBar/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/basicBar/debug [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/bar/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/bar/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/bar/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/bar/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/bar/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/bar/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/bar/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/basic/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/basic/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/basic/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/basic/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/basic/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/basic/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/basic/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/basicBar/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/basicBar/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/basicBar/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/basicBar/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/basicBar/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/basicBar/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/basicBar/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/basicBarDebug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/basicBarDebug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/basicBarDebug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/basicBarDebug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/basicBarDebug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/basicBarDebug/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/basicBarDebug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
@@ -572,41 +554,35 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBar/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testBar/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBar/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBar/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testBar/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testBar/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBar/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBasic/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testBasic/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBasic/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBasic/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testBasic/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testBasic/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBasic/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBasicBar/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testBasicBar/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBasicBar/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBasicBar/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testBasicBar/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testBasicBar/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBasicBar/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBasicBarDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testBasicBarDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBasicBarDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBasicBarDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testBasicBarDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testBasicBarDebug/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
@@ -841,28 +817,23 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/androidTestDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTest/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTest/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestDebug/kotlin [-]
@@ -944,28 +915,23 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/main
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/build/generated/source/buildConfig/debug [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/debug/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/debug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/main/kotlin [-]
@@ -1050,14 +1016,12 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/test/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/testDebug/kotlin [-]
@@ -1331,28 +1295,23 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTestDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/kotlin [-]
@@ -1492,7 +1451,6 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/source/buildConfig/debug [-]
@@ -1500,22 +1458,18 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/main
             JavaSource                    : file://<PROJECT>/lib/src/main/java
             JavaResource                  : file://<PROJECT>/lib/src/main/res
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/source/buildConfig/debug [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/resources [-]
@@ -1627,14 +1581,12 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/kotlin [-]
@@ -1851,28 +1803,23 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/src/androidTestDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/androidTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/androidTest/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/androidTest/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/androidTestDebug/kotlin [-]
@@ -2027,28 +1974,23 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/androidTestDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/androidTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/src/androidTest/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/androidTest/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/androidTestDebug/kotlin [-]
@@ -2126,28 +2068,23 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/main
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/deep/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/build/generated/source/buildConfig/debug [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/deep/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/deep/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/deep/src/debug/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/src/debug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/deep/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/src/main/kotlin [-]
@@ -2228,14 +2165,12 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/src/test/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/testDebug/kotlin [-]
@@ -2313,28 +2248,23 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/src/main
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/build/generated/source/buildConfig/debug [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/debug/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/debug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/main/kotlin [-]
@@ -2415,14 +2345,12 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/nested1/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/test/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/testDebug/kotlin [-]
@@ -2579,7 +2507,6 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/res/resValues/androidTest/basic/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/source/buildConfig/androidTest/basic/debug [-]
@@ -2587,36 +2514,30 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/androidTestBasic [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/androidTestBasicDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/androidTestDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/build/generated/res/resValues/androidTest/basic/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/build/generated/source/buildConfig/androidTest/basic/debug [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/androidTest/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTest/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTestBasic/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/androidTestBasic/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTestBasic/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTestBasic/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/androidTestBasic/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/androidTestBasic/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTestBasic/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTestBasicDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/androidTestBasicDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTestBasicDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTestBasicDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/androidTestBasicDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/androidTestBasicDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTestBasicDebug/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTestDebug/kotlin [-]
@@ -2771,28 +2692,23 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/androidTestDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/androidTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/src/androidTest/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/androidTest/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/androidTestDebug/kotlin [-]
@@ -2870,28 +2786,23 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/main
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/deep/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/build/generated/source/buildConfig/debug [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/deep/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/deep/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/deep/src/debug/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/src/debug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/deep/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/src/main/kotlin [-]
@@ -2972,14 +2883,12 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/src/test/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/testDebug/kotlin [-]
@@ -3059,7 +2968,6 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/res/resValues/basic/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/source/buildConfig/basic/debug [-]
@@ -3067,36 +2975,30 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/basicDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/main
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebug/out [-]
-            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/build/generated/res/resValues/basic/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/build/generated/source/buildConfig/basic/debug [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basic/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basic/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basic/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basic/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basic/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basic/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basic/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basicDebug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basicDebug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basicDebug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basicDebug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basicDebug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basicDebug/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basicDebug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/debug/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/debug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/main/kotlin [-]
@@ -3277,28 +3179,23 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/androidTest/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/src/androidTest/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/androidTest/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/kotlin [-]
@@ -3376,28 +3273,23 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/main
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/build/generated/source/buildConfig/debug [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/trans/deep2/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/trans/deep2/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/trans/deep2/src/debug/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/src/debug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/trans/deep2/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/src/main/kotlin [-]
@@ -3478,14 +3370,12 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/src/test/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/testDebug/kotlin [-]
@@ -3570,27 +3460,23 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugUnitTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/test/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasic/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasic/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasic/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasic/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasic/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasic/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasic/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasicDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasicDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasicDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasicDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasicDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasicDebug/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testDebug/kotlin [-]

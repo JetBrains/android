@@ -27,7 +27,7 @@ import org.junit.Test
 @RunsInEdt
 class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   override val projectRule = AndroidProjectRule.withAndroidModel(
-    AndroidProjectBuilder().withMainSourceProvider { buildMainSourceProviderStub() }
+    AndroidProjectBuilder(includeAidlSources = { true }).withMainSourceProvider { buildMainSourceProviderStub() }
   )
 
   @Test

@@ -226,7 +226,6 @@ MODULE                        : withGradleMetadata.app
             KotlinDirectories             : <ROOT>/app/src/main/java [-]
             KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
-            AidlDirectories               : <ROOT>/app/src/main/aidl [-]
             ResDirectories                : <ROOT>/app/src/main/res [-]
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
@@ -241,7 +240,6 @@ MODULE                        : withGradleMetadata.app
                     KotlinDirectories             : <ROOT>/app/src/androidTest/java [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTest/aidl [-]
                     ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
@@ -255,7 +253,6 @@ MODULE                        : withGradleMetadata.app
                     KotlinDirectories             : <ROOT>/app/src/test/java [-]
                     KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/test/aidl [-]
                     ResDirectories                : <ROOT>/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
@@ -276,7 +273,6 @@ MODULE                        : withGradleMetadata.app
             KotlinDirectories             : <ROOT>/app/src/debug/java [-]
             KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
-            AidlDirectories               : <ROOT>/app/src/debug/aidl [-]
             ResDirectories                : <ROOT>/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
@@ -291,7 +287,6 @@ MODULE                        : withGradleMetadata.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTestDebug/aidl [-]
                     ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
@@ -306,7 +301,6 @@ MODULE                        : withGradleMetadata.app
                     KotlinDirectories             : <ROOT>/app/src/testDebug/java [-]
                     KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testDebug/aidl [-]
                     ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
@@ -326,7 +320,6 @@ MODULE                        : withGradleMetadata.app
             KotlinDirectories             : <ROOT>/app/src/release/java [-]
             KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
-            AidlDirectories               : <ROOT>/app/src/release/aidl [-]
             ResDirectories                : <ROOT>/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
@@ -341,7 +334,6 @@ MODULE                        : withGradleMetadata.app
                     KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
                     KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testRelease/aidl [-]
                     ResDirectories                : <ROOT>/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
@@ -386,7 +378,6 @@ MODULE                        : withGradleMetadata.app
                 AssembleTaskName              : assembleDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
@@ -459,7 +450,6 @@ MODULE                        : withGradleMetadata.app
                 AssembleTaskName              : assembleDebugAndroidTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]

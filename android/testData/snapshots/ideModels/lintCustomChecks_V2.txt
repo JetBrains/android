@@ -819,7 +819,6 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/main/java
             KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
-            AidlDirectories               : <ROOT>/app/src/main/aidl [-]
             ResDirectories                : <ROOT>/app/src/main/res [-]
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
@@ -834,7 +833,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/androidTest/java [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTest/aidl [-]
                     ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
@@ -848,7 +846,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/test/java [-]
                     KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/test/aidl [-]
                     ResDirectories                : <ROOT>/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
@@ -869,7 +866,6 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/debug/java [-]
             KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
-            AidlDirectories               : <ROOT>/app/src/debug/aidl [-]
             ResDirectories                : <ROOT>/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
@@ -884,7 +880,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTestDebug/aidl [-]
                     ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
@@ -899,7 +894,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testDebug/java [-]
                     KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testDebug/aidl [-]
                     ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
@@ -919,7 +913,6 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/release/java [-]
             KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
-            AidlDirectories               : <ROOT>/app/src/release/aidl [-]
             ResDirectories                : <ROOT>/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
@@ -934,7 +927,6 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
                     KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testRelease/aidl [-]
                     ResDirectories                : <ROOT>/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
@@ -982,7 +974,6 @@ MODULE                        : project.app
                 AssembleTaskName              : assembleDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
@@ -1022,7 +1013,6 @@ MODULE                        : project.app
                 AssembleTaskName              : assembleDebugAndroidTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
@@ -1176,7 +1166,6 @@ MODULE                        : project.library
             KotlinDirectories             : <ROOT>/library/src/main/java [-]
             KotlinDirectories             : <ROOT>/library/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/library/src/main/resources [-]
-            AidlDirectories               : <ROOT>/library/src/main/aidl [-]
             ResDirectories                : <ROOT>/library/src/main/res [-]
             AssetsDirectories             : <ROOT>/library/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/library/src/main/jniLibs [-]
@@ -1191,7 +1180,6 @@ MODULE                        : project.library
                     KotlinDirectories             : <ROOT>/library/src/androidTest/java [-]
                     KotlinDirectories             : <ROOT>/library/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/library/src/androidTest/resources [-]
-                    AidlDirectories               : <ROOT>/library/src/androidTest/aidl [-]
                     ResDirectories                : <ROOT>/library/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/library/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/library/src/androidTest/jniLibs [-]
@@ -1205,7 +1193,6 @@ MODULE                        : project.library
                     KotlinDirectories             : <ROOT>/library/src/test/java [-]
                     KotlinDirectories             : <ROOT>/library/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/library/src/test/resources [-]
-                    AidlDirectories               : <ROOT>/library/src/test/aidl [-]
                     ResDirectories                : <ROOT>/library/src/test/res [-]
                     AssetsDirectories             : <ROOT>/library/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/library/src/test/jniLibs [-]
@@ -1226,7 +1213,6 @@ MODULE                        : project.library
             KotlinDirectories             : <ROOT>/library/src/debug/java [-]
             KotlinDirectories             : <ROOT>/library/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/library/src/debug/resources [-]
-            AidlDirectories               : <ROOT>/library/src/debug/aidl [-]
             ResDirectories                : <ROOT>/library/src/debug/res [-]
             AssetsDirectories             : <ROOT>/library/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/library/src/debug/jniLibs [-]
@@ -1241,7 +1227,6 @@ MODULE                        : project.library
                     KotlinDirectories             : <ROOT>/library/src/androidTestDebug/java [-]
                     KotlinDirectories             : <ROOT>/library/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/library/src/androidTestDebug/resources [-]
-                    AidlDirectories               : <ROOT>/library/src/androidTestDebug/aidl [-]
                     ResDirectories                : <ROOT>/library/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/library/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/library/src/androidTestDebug/jniLibs [-]
@@ -1256,7 +1241,6 @@ MODULE                        : project.library
                     KotlinDirectories             : <ROOT>/library/src/testDebug/java [-]
                     KotlinDirectories             : <ROOT>/library/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/library/src/testDebug/resources [-]
-                    AidlDirectories               : <ROOT>/library/src/testDebug/aidl [-]
                     ResDirectories                : <ROOT>/library/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/library/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/library/src/testDebug/jniLibs [-]
@@ -1276,7 +1260,6 @@ MODULE                        : project.library
             KotlinDirectories             : <ROOT>/library/src/release/java [-]
             KotlinDirectories             : <ROOT>/library/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/library/src/release/resources [-]
-            AidlDirectories               : <ROOT>/library/src/release/aidl [-]
             ResDirectories                : <ROOT>/library/src/release/res [-]
             AssetsDirectories             : <ROOT>/library/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/library/src/release/jniLibs [-]
@@ -1291,7 +1274,6 @@ MODULE                        : project.library
                     KotlinDirectories             : <ROOT>/library/src/testRelease/java [-]
                     KotlinDirectories             : <ROOT>/library/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/library/src/testRelease/resources [-]
-                    AidlDirectories               : <ROOT>/library/src/testRelease/aidl [-]
                     ResDirectories                : <ROOT>/library/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/library/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/library/src/testRelease/jniLibs [-]
@@ -1329,7 +1311,6 @@ MODULE                        : project.library
                 AssembleTaskName              : assembleDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/library/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/library/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/library/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/compile_r_class_jar/debug/R.jar [-]
@@ -1353,7 +1334,6 @@ MODULE                        : project.library
                 AssembleTaskName              : assembleDebugAndroidTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/library/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/library/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/library/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
@@ -1498,7 +1478,6 @@ MODULE                        : project.library-remote
             KotlinDirectories             : <ROOT>/library-remote/src/main/java [-]
             KotlinDirectories             : <ROOT>/library-remote/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/library-remote/src/main/resources [-]
-            AidlDirectories               : <ROOT>/library-remote/src/main/aidl [-]
             ResDirectories                : <ROOT>/library-remote/src/main/res [-]
             AssetsDirectories             : <ROOT>/library-remote/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/library-remote/src/main/jniLibs [-]
@@ -1513,7 +1492,6 @@ MODULE                        : project.library-remote
                     KotlinDirectories             : <ROOT>/library-remote/src/androidTest/java [-]
                     KotlinDirectories             : <ROOT>/library-remote/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/library-remote/src/androidTest/resources [-]
-                    AidlDirectories               : <ROOT>/library-remote/src/androidTest/aidl [-]
                     ResDirectories                : <ROOT>/library-remote/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/library-remote/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/library-remote/src/androidTest/jniLibs [-]
@@ -1527,7 +1505,6 @@ MODULE                        : project.library-remote
                     KotlinDirectories             : <ROOT>/library-remote/src/test/java [-]
                     KotlinDirectories             : <ROOT>/library-remote/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/library-remote/src/test/resources [-]
-                    AidlDirectories               : <ROOT>/library-remote/src/test/aidl [-]
                     ResDirectories                : <ROOT>/library-remote/src/test/res [-]
                     AssetsDirectories             : <ROOT>/library-remote/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/library-remote/src/test/jniLibs [-]
@@ -1548,7 +1525,6 @@ MODULE                        : project.library-remote
             KotlinDirectories             : <ROOT>/library-remote/src/debug/java [-]
             KotlinDirectories             : <ROOT>/library-remote/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/library-remote/src/debug/resources [-]
-            AidlDirectories               : <ROOT>/library-remote/src/debug/aidl [-]
             ResDirectories                : <ROOT>/library-remote/src/debug/res [-]
             AssetsDirectories             : <ROOT>/library-remote/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/library-remote/src/debug/jniLibs [-]
@@ -1563,7 +1539,6 @@ MODULE                        : project.library-remote
                     KotlinDirectories             : <ROOT>/library-remote/src/androidTestDebug/java [-]
                     KotlinDirectories             : <ROOT>/library-remote/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/library-remote/src/androidTestDebug/resources [-]
-                    AidlDirectories               : <ROOT>/library-remote/src/androidTestDebug/aidl [-]
                     ResDirectories                : <ROOT>/library-remote/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/library-remote/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/library-remote/src/androidTestDebug/jniLibs [-]
@@ -1578,7 +1553,6 @@ MODULE                        : project.library-remote
                     KotlinDirectories             : <ROOT>/library-remote/src/testDebug/java [-]
                     KotlinDirectories             : <ROOT>/library-remote/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/library-remote/src/testDebug/resources [-]
-                    AidlDirectories               : <ROOT>/library-remote/src/testDebug/aidl [-]
                     ResDirectories                : <ROOT>/library-remote/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/library-remote/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/library-remote/src/testDebug/jniLibs [-]
@@ -1598,7 +1572,6 @@ MODULE                        : project.library-remote
             KotlinDirectories             : <ROOT>/library-remote/src/release/java [-]
             KotlinDirectories             : <ROOT>/library-remote/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/library-remote/src/release/resources [-]
-            AidlDirectories               : <ROOT>/library-remote/src/release/aidl [-]
             ResDirectories                : <ROOT>/library-remote/src/release/res [-]
             AssetsDirectories             : <ROOT>/library-remote/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/library-remote/src/release/jniLibs [-]
@@ -1613,7 +1586,6 @@ MODULE                        : project.library-remote
                     KotlinDirectories             : <ROOT>/library-remote/src/testRelease/java [-]
                     KotlinDirectories             : <ROOT>/library-remote/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/library-remote/src/testRelease/resources [-]
-                    AidlDirectories               : <ROOT>/library-remote/src/testRelease/aidl [-]
                     ResDirectories                : <ROOT>/library-remote/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/library-remote/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/library-remote/src/testRelease/jniLibs [-]
@@ -1651,7 +1623,6 @@ MODULE                        : project.library-remote
                 AssembleTaskName              : assembleDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/library-remote/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/library-remote/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/library-remote/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/compile_r_class_jar/debug/R.jar [-]
@@ -1675,7 +1646,6 @@ MODULE                        : project.library-remote
                 AssembleTaskName              : assembleDebugAndroidTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/library-remote/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/library-remote/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/library-remote/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]

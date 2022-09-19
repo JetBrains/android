@@ -232,7 +232,6 @@ MODULE                        : gradle_project_1.app
             KotlinDirectories             : <ROOT>/gradle_project_1/app/src/main/java
             KotlinDirectories             : <ROOT>/gradle_project_1/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/gradle_project_1/app/src/main/resources [-]
-            AidlDirectories               : <ROOT>/gradle_project_1/app/src/main/aidl [-]
             ResDirectories                : <ROOT>/gradle_project_1/app/src/main/res
             AssetsDirectories             : <ROOT>/gradle_project_1/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project_1/app/src/main/jniLibs [-]
@@ -247,7 +246,6 @@ MODULE                        : gradle_project_1.app
                     KotlinDirectories             : <ROOT>/gradle_project_1/app/src/androidTest/java
                     KotlinDirectories             : <ROOT>/gradle_project_1/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_1/app/src/androidTest/resources [-]
-                    AidlDirectories               : <ROOT>/gradle_project_1/app/src/androidTest/aidl [-]
                     ResDirectories                : <ROOT>/gradle_project_1/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_1/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_1/app/src/androidTest/jniLibs [-]
@@ -261,7 +259,6 @@ MODULE                        : gradle_project_1.app
                     KotlinDirectories             : <ROOT>/gradle_project_1/app/src/test/java
                     KotlinDirectories             : <ROOT>/gradle_project_1/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_1/app/src/test/resources [-]
-                    AidlDirectories               : <ROOT>/gradle_project_1/app/src/test/aidl [-]
                     ResDirectories                : <ROOT>/gradle_project_1/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_1/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_1/app/src/test/jniLibs [-]
@@ -282,7 +279,6 @@ MODULE                        : gradle_project_1.app
             KotlinDirectories             : <ROOT>/gradle_project_1/app/src/debug/java [-]
             KotlinDirectories             : <ROOT>/gradle_project_1/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/gradle_project_1/app/src/debug/resources [-]
-            AidlDirectories               : <ROOT>/gradle_project_1/app/src/debug/aidl [-]
             ResDirectories                : <ROOT>/gradle_project_1/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/gradle_project_1/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project_1/app/src/debug/jniLibs [-]
@@ -297,7 +293,6 @@ MODULE                        : gradle_project_1.app
                     KotlinDirectories             : <ROOT>/gradle_project_1/app/src/androidTestDebug/java [-]
                     KotlinDirectories             : <ROOT>/gradle_project_1/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_1/app/src/androidTestDebug/resources [-]
-                    AidlDirectories               : <ROOT>/gradle_project_1/app/src/androidTestDebug/aidl [-]
                     ResDirectories                : <ROOT>/gradle_project_1/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_1/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_1/app/src/androidTestDebug/jniLibs [-]
@@ -312,7 +307,6 @@ MODULE                        : gradle_project_1.app
                     KotlinDirectories             : <ROOT>/gradle_project_1/app/src/testDebug/java [-]
                     KotlinDirectories             : <ROOT>/gradle_project_1/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_1/app/src/testDebug/resources [-]
-                    AidlDirectories               : <ROOT>/gradle_project_1/app/src/testDebug/aidl [-]
                     ResDirectories                : <ROOT>/gradle_project_1/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_1/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_1/app/src/testDebug/jniLibs [-]
@@ -334,7 +328,6 @@ MODULE                        : gradle_project_1.app
             KotlinDirectories             : <ROOT>/gradle_project_1/app/src/release/java [-]
             KotlinDirectories             : <ROOT>/gradle_project_1/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/gradle_project_1/app/src/release/resources [-]
-            AidlDirectories               : <ROOT>/gradle_project_1/app/src/release/aidl [-]
             ResDirectories                : <ROOT>/gradle_project_1/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/gradle_project_1/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project_1/app/src/release/jniLibs [-]
@@ -349,7 +342,6 @@ MODULE                        : gradle_project_1.app
                     KotlinDirectories             : <ROOT>/gradle_project_1/app/src/testRelease/java [-]
                     KotlinDirectories             : <ROOT>/gradle_project_1/app/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_1/app/src/testRelease/resources [-]
-                    AidlDirectories               : <ROOT>/gradle_project_1/app/src/testRelease/aidl [-]
                     ResDirectories                : <ROOT>/gradle_project_1/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_1/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_1/app/src/testRelease/jniLibs [-]
@@ -399,7 +391,6 @@ MODULE                        : gradle_project_1.app
                 AssembleTaskName              : assembleDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/gradle_project_1/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/gradle_project_1/app/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/gradle_project_1/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/gradle_project_1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
@@ -1006,7 +997,6 @@ MODULE                        : gradle_project_1.app
                 AssembleTaskName              : assembleDebugAndroidTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/gradle_project_1/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/gradle_project_1/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/gradle_project_1/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/gradle_project_1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
@@ -1656,7 +1646,6 @@ MODULE                        : gradle_project_name.app
             KotlinDirectories             : <ROOT>/gradle_project_2/app/src/main/java
             KotlinDirectories             : <ROOT>/gradle_project_2/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/gradle_project_2/app/src/main/resources [-]
-            AidlDirectories               : <ROOT>/gradle_project_2/app/src/main/aidl [-]
             ResDirectories                : <ROOT>/gradle_project_2/app/src/main/res
             AssetsDirectories             : <ROOT>/gradle_project_2/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project_2/app/src/main/jniLibs [-]
@@ -1671,7 +1660,6 @@ MODULE                        : gradle_project_name.app
                     KotlinDirectories             : <ROOT>/gradle_project_2/app/src/androidTest/java
                     KotlinDirectories             : <ROOT>/gradle_project_2/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_2/app/src/androidTest/resources [-]
-                    AidlDirectories               : <ROOT>/gradle_project_2/app/src/androidTest/aidl [-]
                     ResDirectories                : <ROOT>/gradle_project_2/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_2/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_2/app/src/androidTest/jniLibs [-]
@@ -1685,7 +1673,6 @@ MODULE                        : gradle_project_name.app
                     KotlinDirectories             : <ROOT>/gradle_project_2/app/src/test/java
                     KotlinDirectories             : <ROOT>/gradle_project_2/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_2/app/src/test/resources [-]
-                    AidlDirectories               : <ROOT>/gradle_project_2/app/src/test/aidl [-]
                     ResDirectories                : <ROOT>/gradle_project_2/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_2/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_2/app/src/test/jniLibs [-]
@@ -1706,7 +1693,6 @@ MODULE                        : gradle_project_name.app
             KotlinDirectories             : <ROOT>/gradle_project_2/app/src/debug/java [-]
             KotlinDirectories             : <ROOT>/gradle_project_2/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/gradle_project_2/app/src/debug/resources [-]
-            AidlDirectories               : <ROOT>/gradle_project_2/app/src/debug/aidl [-]
             ResDirectories                : <ROOT>/gradle_project_2/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/gradle_project_2/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project_2/app/src/debug/jniLibs [-]
@@ -1721,7 +1707,6 @@ MODULE                        : gradle_project_name.app
                     KotlinDirectories             : <ROOT>/gradle_project_2/app/src/androidTestDebug/java [-]
                     KotlinDirectories             : <ROOT>/gradle_project_2/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_2/app/src/androidTestDebug/resources [-]
-                    AidlDirectories               : <ROOT>/gradle_project_2/app/src/androidTestDebug/aidl [-]
                     ResDirectories                : <ROOT>/gradle_project_2/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_2/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_2/app/src/androidTestDebug/jniLibs [-]
@@ -1736,7 +1721,6 @@ MODULE                        : gradle_project_name.app
                     KotlinDirectories             : <ROOT>/gradle_project_2/app/src/testDebug/java [-]
                     KotlinDirectories             : <ROOT>/gradle_project_2/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_2/app/src/testDebug/resources [-]
-                    AidlDirectories               : <ROOT>/gradle_project_2/app/src/testDebug/aidl [-]
                     ResDirectories                : <ROOT>/gradle_project_2/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_2/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_2/app/src/testDebug/jniLibs [-]
@@ -1758,7 +1742,6 @@ MODULE                        : gradle_project_name.app
             KotlinDirectories             : <ROOT>/gradle_project_2/app/src/release/java [-]
             KotlinDirectories             : <ROOT>/gradle_project_2/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/gradle_project_2/app/src/release/resources [-]
-            AidlDirectories               : <ROOT>/gradle_project_2/app/src/release/aidl [-]
             ResDirectories                : <ROOT>/gradle_project_2/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/gradle_project_2/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/gradle_project_2/app/src/release/jniLibs [-]
@@ -1773,7 +1756,6 @@ MODULE                        : gradle_project_name.app
                     KotlinDirectories             : <ROOT>/gradle_project_2/app/src/testRelease/java [-]
                     KotlinDirectories             : <ROOT>/gradle_project_2/app/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/gradle_project_2/app/src/testRelease/resources [-]
-                    AidlDirectories               : <ROOT>/gradle_project_2/app/src/testRelease/aidl [-]
                     ResDirectories                : <ROOT>/gradle_project_2/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/gradle_project_2/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/gradle_project_2/app/src/testRelease/jniLibs [-]
@@ -1823,7 +1805,6 @@ MODULE                        : gradle_project_name.app
                 AssembleTaskName              : assembleDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/gradle_project_2/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/gradle_project_2/app/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/gradle_project_2/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/gradle_project_2/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
@@ -2430,7 +2411,6 @@ MODULE                        : gradle_project_name.app
                 AssembleTaskName              : assembleDebugAndroidTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/gradle_project_2/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/gradle_project_2/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/gradle_project_2/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/gradle_project_2/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]

@@ -10,10 +10,6 @@ MODULE: project
                 file://.
             ManifestDirectories:
                 file://.
-            AidlDirectoryUrls:
-                file://./src
-            AidlDirectories:
-                file://./src
             AssetsDirectoryUrls:
                 file://./src/main/assets
             JavaDirectoryUrls:
@@ -41,8 +37,6 @@ MODULE: project
         main
             Manifest:
                 ./AndroidManifest.xml
-            AidlDirectories:
-                ./src
             AssetsDirectories:
                 ./src/main/assets
             JavaDirectories:
@@ -63,8 +57,6 @@ MODULE: project
             main
                 Manifest:
                     ./AndroidManifest.xml
-                AidlDirectories:
-                    ./src
                 AssetsDirectories:
                     ./src/main/assets
                 JavaDirectories:
@@ -84,8 +76,6 @@ MODULE: project
             debug
                 Manifest:
                     ./src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./src/debug/aidl
                 AssetsDirectories:
                     ./src/debug/assets
                 JavaDirectories:
@@ -105,8 +95,6 @@ MODULE: project
             main
                 Manifest:
                     ./AndroidManifest.xml
-                AidlDirectories:
-                    ./src
                 AssetsDirectories:
                     ./src/main/assets
                 JavaDirectories:
@@ -126,8 +114,6 @@ MODULE: project
             debug
                 Manifest:
                     ./src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./src/debug/aidl
                 AssetsDirectories:
                     ./src/debug/assets
                 JavaDirectories:
@@ -146,8 +132,6 @@ MODULE: project
             release
                 Manifest:
                     ./src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./src/release/aidl
                 AssetsDirectories:
                     ./src/release/assets
                 JavaDirectories:
@@ -167,8 +151,6 @@ MODULE: project
             test
                 Manifest:
                     ./src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./src/test/aidl
                 AssetsDirectories:
                     ./src/test/assets
                 JavaDirectories:
@@ -187,8 +169,6 @@ MODULE: project
             testDebug
                 Manifest:
                     ./src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./src/testDebug/aidl
                 AssetsDirectories:
                     ./src/testDebug/assets
                 JavaDirectories:
@@ -208,8 +188,6 @@ MODULE: project
             androidTest
                 Manifest:
                     ./src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./src/androidTest/aidl
                 AssetsDirectories:
                     ./src/androidTest/assets
                 JavaDirectories:
@@ -228,8 +206,6 @@ MODULE: project
             androidTestDebug
                 Manifest:
                     ./src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./src/androidTestDebug/assets
                 JavaDirectories:
@@ -262,11 +238,6 @@ MODULE: project
                     file://./src/debug
                 ManifestDirectories:
                     file://.
-                AidlDirectoryUrls:
-                    file://./src
-                    file://./src/debug/aidl
-                AidlDirectories:
-                    file://./src
                 AssetsDirectoryUrls:
                     file://./src/main/assets
                     file://./src/debug/assets
@@ -307,9 +278,6 @@ MODULE: project
                 ManifestDirectoryUrls:
                     file://./src/test
                     file://./src/testDebug
-                AidlDirectoryUrls:
-                    file://./src/test/aidl
-                    file://./src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./src/test/assets
                     file://./src/testDebug/assets
@@ -342,9 +310,6 @@ MODULE: project
                 ManifestDirectoryUrls:
                     file://./src/androidTest
                     file://./src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./src/androidTest/aidl
-                    file://./src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./src/androidTest/assets
                     file://./src/androidTestDebug/assets
@@ -376,7 +341,6 @@ MODULE: project
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./build/generated/ap_generated_sources/debug/out
-                    file://./build/generated/aidl_source_output_dir/debug/out
                     file://./build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./build/generated/res/resValues/debug
@@ -390,7 +354,6 @@ MODULE: project
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./build/generated/aidl_source_output_dir/debugAndroidTest/out
                     file://./build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./build/generated/res/resValues/androidTest/debug
@@ -408,10 +371,6 @@ MODULE: project
                     file://.
                 ManifestDirectories:
                     file://.
-                AidlDirectoryUrls:
-                    file://./src
-                AidlDirectories:
-                    file://./src
                 AssetsDirectoryUrls:
                     file://./src/main/assets
                 JavaDirectoryUrls:
@@ -441,8 +400,6 @@ MODULE: project
                     file://./src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./src/debug
-                AidlDirectoryUrls:
-                    file://./src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./src/debug/assets
                 JavaDirectoryUrls:
@@ -464,8 +421,6 @@ MODULE: project
                     file://./src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./src/release
-                AidlDirectoryUrls:
-                    file://./src/release/aidl
                 AssetsDirectoryUrls:
                     file://./src/release/assets
                 JavaDirectoryUrls:
@@ -492,10 +447,6 @@ MODULE: project
                     file://.
                 ManifestDirectories:
                     file://.
-                AidlDirectoryUrls:
-                    file://./src
-                AidlDirectories:
-                    file://./src
                 AssetsDirectoryUrls:
                     file://./src/main/assets
                 JavaDirectoryUrls:
@@ -525,8 +476,6 @@ MODULE: project
                     file://./src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./src/debug
-                AidlDirectoryUrls:
-                    file://./src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./src/debug/assets
                 JavaDirectoryUrls:
@@ -549,8 +498,6 @@ MODULE: project
                     file://./src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./src/test
-                AidlDirectoryUrls:
-                    file://./src/test/aidl
                 AssetsDirectoryUrls:
                     file://./src/test/assets
                 JavaDirectoryUrls:
@@ -572,8 +519,6 @@ MODULE: project
                     file://./src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./src/testDebug
-                AidlDirectoryUrls:
-                    file://./src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./src/testDebug/assets
                 JavaDirectoryUrls:
@@ -596,8 +541,6 @@ MODULE: project
                     file://./src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./src/androidTest
-                AidlDirectoryUrls:
-                    file://./src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./src/androidTest/assets
                 JavaDirectoryUrls:
@@ -619,8 +562,6 @@ MODULE: project
                     file://./src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./src/androidTestDebug/assets
                 JavaDirectoryUrls:

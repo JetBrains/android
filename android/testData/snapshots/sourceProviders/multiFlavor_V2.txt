@@ -10,8 +10,6 @@ MODULE: MultiFlavor.app
                 file://./app/src/main
             ManifestDirectories:
                 file://./app/src/main
-            AidlDirectoryUrls:
-                file://./app/src/main/aidl
             AssetsDirectoryUrls:
                 file://./app/src/main/assets
             JavaDirectoryUrls:
@@ -37,8 +35,6 @@ MODULE: MultiFlavor.app
         main
             Manifest:
                 ./app/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./app/src/main/aidl
             AssetsDirectories:
                 ./app/src/main/assets
             JavaDirectories:
@@ -58,8 +54,6 @@ MODULE: MultiFlavor.app
             main
                 Manifest:
                     ./app/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
                 JavaDirectories:
@@ -78,8 +72,6 @@ MODULE: MultiFlavor.app
             firstAbc
                 Manifest:
                     ./app/src/firstAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/firstAbc/aidl
                 AssetsDirectories:
                     ./app/src/firstAbc/assets
                 JavaDirectories:
@@ -98,8 +90,6 @@ MODULE: MultiFlavor.app
             secondAbc
                 Manifest:
                     ./app/src/secondAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/secondAbc/aidl
                 AssetsDirectories:
                     ./app/src/secondAbc/assets
                 JavaDirectories:
@@ -119,8 +109,6 @@ MODULE: MultiFlavor.app
             firstAbcSecondAbc
                 Manifest:
                     ./app/src/firstAbcSecondAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/firstAbcSecondAbc/aidl
                 AssetsDirectories:
                     ./app/src/firstAbcSecondAbc/assets
                 JavaDirectories:
@@ -140,8 +128,6 @@ MODULE: MultiFlavor.app
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
                 JavaDirectories:
@@ -160,8 +146,6 @@ MODULE: MultiFlavor.app
             firstAbcSecondAbcDebug
                 Manifest:
                     ./app/src/firstAbcSecondAbcDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/firstAbcSecondAbcDebug/aidl
                 AssetsDirectories:
                     ./app/src/firstAbcSecondAbcDebug/assets
                 JavaDirectories:
@@ -181,8 +165,6 @@ MODULE: MultiFlavor.app
             main
                 Manifest:
                     ./app/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
                 JavaDirectories:
@@ -201,8 +183,6 @@ MODULE: MultiFlavor.app
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
                 JavaDirectories:
@@ -221,8 +201,6 @@ MODULE: MultiFlavor.app
             firstAbc
                 Manifest:
                     ./app/src/firstAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/firstAbc/aidl
                 AssetsDirectories:
                     ./app/src/firstAbc/assets
                 JavaDirectories:
@@ -241,8 +219,6 @@ MODULE: MultiFlavor.app
             firstAbcSecondAbc
                 Manifest:
                     ./app/src/firstAbcSecondAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/firstAbcSecondAbc/aidl
                 AssetsDirectories:
                     ./app/src/firstAbcSecondAbc/assets
                 JavaDirectories:
@@ -262,8 +238,6 @@ MODULE: MultiFlavor.app
             firstAbcSecondAbcDebug
                 Manifest:
                     ./app/src/firstAbcSecondAbcDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/firstAbcSecondAbcDebug/aidl
                 AssetsDirectories:
                     ./app/src/firstAbcSecondAbcDebug/assets
                 JavaDirectories:
@@ -282,8 +256,6 @@ MODULE: MultiFlavor.app
             firstXyz
                 Manifest:
                     ./app/src/firstXyz/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/firstXyz/aidl
                 AssetsDirectories:
                     ./app/src/firstXyz/assets
                 JavaDirectories:
@@ -302,8 +274,6 @@ MODULE: MultiFlavor.app
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/release/aidl
                 AssetsDirectories:
                     ./app/src/release/assets
                 JavaDirectories:
@@ -322,8 +292,6 @@ MODULE: MultiFlavor.app
             secondAbc
                 Manifest:
                     ./app/src/secondAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/secondAbc/aidl
                 AssetsDirectories:
                     ./app/src/secondAbc/assets
                 JavaDirectories:
@@ -343,8 +311,6 @@ MODULE: MultiFlavor.app
             secondXyz
                 Manifest:
                     ./app/src/secondXyz/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/secondXyz/aidl
                 AssetsDirectories:
                     ./app/src/secondXyz/assets
                 JavaDirectories:
@@ -364,8 +330,6 @@ MODULE: MultiFlavor.app
             test
                 Manifest:
                     ./app/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/test/aidl
                 AssetsDirectories:
                     ./app/src/test/assets
                 JavaDirectories:
@@ -384,8 +348,6 @@ MODULE: MultiFlavor.app
             testFirstAbc
                 Manifest:
                     ./app/src/testFirstAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/testFirstAbc/aidl
                 AssetsDirectories:
                     ./app/src/testFirstAbc/assets
                 JavaDirectories:
@@ -404,8 +366,6 @@ MODULE: MultiFlavor.app
             testSecondAbc
                 Manifest:
                     ./app/src/testSecondAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/testSecondAbc/aidl
                 AssetsDirectories:
                     ./app/src/testSecondAbc/assets
                 JavaDirectories:
@@ -424,8 +384,6 @@ MODULE: MultiFlavor.app
             testFirstAbcSecondAbc
                 Manifest:
                     ./app/src/testFirstAbcSecondAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/testFirstAbcSecondAbc/aidl
                 AssetsDirectories:
                     ./app/src/testFirstAbcSecondAbc/assets
                 JavaDirectories:
@@ -444,8 +402,6 @@ MODULE: MultiFlavor.app
             testDebug
                 Manifest:
                     ./app/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/testDebug/aidl
                 AssetsDirectories:
                     ./app/src/testDebug/assets
                 JavaDirectories:
@@ -464,8 +420,6 @@ MODULE: MultiFlavor.app
             testFirstAbcSecondAbcDebug
                 Manifest:
                     ./app/src/testFirstAbcSecondAbcDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/testFirstAbcSecondAbcDebug/aidl
                 AssetsDirectories:
                     ./app/src/testFirstAbcSecondAbcDebug/assets
                 JavaDirectories:
@@ -483,8 +437,6 @@ MODULE: MultiFlavor.app
             androidTest
                 Manifest:
                     ./app/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTest/aidl
                 AssetsDirectories:
                     ./app/src/androidTest/assets
                 JavaDirectories:
@@ -503,8 +455,6 @@ MODULE: MultiFlavor.app
             androidTestFirstAbc
                 Manifest:
                     ./app/src/androidTestFirstAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestFirstAbc/aidl
                 AssetsDirectories:
                     ./app/src/androidTestFirstAbc/assets
                 JavaDirectories:
@@ -523,8 +473,6 @@ MODULE: MultiFlavor.app
             androidTestSecondAbc
                 Manifest:
                     ./app/src/androidTestSecondAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestSecondAbc/aidl
                 AssetsDirectories:
                     ./app/src/androidTestSecondAbc/assets
                 JavaDirectories:
@@ -543,8 +491,6 @@ MODULE: MultiFlavor.app
             androidTestFirstAbcSecondAbc
                 Manifest:
                     ./app/src/androidTestFirstAbcSecondAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestFirstAbcSecondAbc/aidl
                 AssetsDirectories:
                     ./app/src/androidTestFirstAbcSecondAbc/assets
                 JavaDirectories:
@@ -563,8 +509,6 @@ MODULE: MultiFlavor.app
             androidTestDebug
                 Manifest:
                     ./app/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestDebug/assets
                 JavaDirectories:
@@ -583,8 +527,6 @@ MODULE: MultiFlavor.app
             androidTestFirstAbcSecondAbcDebug
                 Manifest:
                     ./app/src/androidTestFirstAbcSecondAbcDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestFirstAbcSecondAbcDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestFirstAbcSecondAbcDebug/assets
                 JavaDirectories:
@@ -627,13 +569,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/main
                     file://./app/src/secondAbc
                     file://./app/src/firstAbcSecondAbc
-                AidlDirectoryUrls:
-                    file://./app/src/main/aidl
-                    file://./app/src/firstAbc/aidl
-                    file://./app/src/secondAbc/aidl
-                    file://./app/src/firstAbcSecondAbc/aidl
-                    file://./app/src/debug/aidl
-                    file://./app/src/firstAbcSecondAbcDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                     file://./app/src/firstAbc/assets
@@ -724,13 +659,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testSecondAbc
                     file://./app/src/testFirstAbcSecondAbc
                     file://./app/src/testFirstAbcSecondAbcDebug
-                AidlDirectoryUrls:
-                    file://./app/src/test/aidl
-                    file://./app/src/testFirstAbc/aidl
-                    file://./app/src/testSecondAbc/aidl
-                    file://./app/src/testFirstAbcSecondAbc/aidl
-                    file://./app/src/testDebug/aidl
-                    file://./app/src/testFirstAbcSecondAbcDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/test/assets
                     file://./app/src/testFirstAbc/assets
@@ -814,13 +742,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbcSecondAbcDebug
                 ManifestDirectories:
                     file://./app/src/androidTest
-                AidlDirectoryUrls:
-                    file://./app/src/androidTest/aidl
-                    file://./app/src/androidTestFirstAbc/aidl
-                    file://./app/src/androidTestSecondAbc/aidl
-                    file://./app/src/androidTestFirstAbcSecondAbc/aidl
-                    file://./app/src/androidTestDebug/aidl
-                    file://./app/src/androidTestFirstAbcSecondAbcDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTest/assets
                     file://./app/src/androidTestFirstAbc/assets
@@ -888,7 +809,6 @@ MODULE: MultiFlavor.app
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out
-                    file://./app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebug/out
                     file://./app/build/generated/source/buildConfig/firstAbcSecondAbc/debug
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/firstAbcSecondAbc/debug
@@ -902,7 +822,6 @@ MODULE: MultiFlavor.app
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out
-                    file://./app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out
                     file://./app/build/generated/source/buildConfig/androidTest/firstAbcSecondAbc/debug
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug
@@ -920,8 +839,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/main
                 ManifestDirectories:
                     file://./app/src/main
-                AidlDirectoryUrls:
-                    file://./app/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                 JavaDirectoryUrls:
@@ -949,8 +866,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/debug
-                AidlDirectoryUrls:
-                    file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
@@ -972,8 +887,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbc/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/firstAbc
-                AidlDirectoryUrls:
-                    file://./app/src/firstAbc/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/firstAbc/assets
                 JavaDirectoryUrls:
@@ -997,8 +910,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbcSecondAbc
                 ManifestDirectories:
                     file://./app/src/firstAbcSecondAbc
-                AidlDirectoryUrls:
-                    file://./app/src/firstAbcSecondAbc/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/firstAbcSecondAbc/assets
                 JavaDirectoryUrls:
@@ -1026,8 +937,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbcSecondAbcDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/firstAbcSecondAbcDebug
-                AidlDirectoryUrls:
-                    file://./app/src/firstAbcSecondAbcDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/firstAbcSecondAbcDebug/assets
                 JavaDirectoryUrls:
@@ -1049,8 +958,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstXyz/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/firstXyz
-                AidlDirectoryUrls:
-                    file://./app/src/firstXyz/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/firstXyz/assets
                 JavaDirectoryUrls:
@@ -1072,8 +979,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/release
-                AidlDirectoryUrls:
-                    file://./app/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/release/assets
                 JavaDirectoryUrls:
@@ -1097,8 +1002,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/secondAbc
                 ManifestDirectories:
                     file://./app/src/secondAbc
-                AidlDirectoryUrls:
-                    file://./app/src/secondAbc/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/secondAbc/assets
                 JavaDirectoryUrls:
@@ -1125,8 +1028,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/secondXyz/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/secondXyz
-                AidlDirectoryUrls:
-                    file://./app/src/secondXyz/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/secondXyz/assets
                 JavaDirectoryUrls:
@@ -1153,8 +1054,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/main
                 ManifestDirectories:
                     file://./app/src/main
-                AidlDirectoryUrls:
-                    file://./app/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                 JavaDirectoryUrls:
@@ -1182,8 +1081,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbc/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/firstAbc
-                AidlDirectoryUrls:
-                    file://./app/src/firstAbc/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/firstAbc/assets
                 JavaDirectoryUrls:
@@ -1207,8 +1104,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/secondAbc
                 ManifestDirectories:
                     file://./app/src/secondAbc
-                AidlDirectoryUrls:
-                    file://./app/src/secondAbc/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/secondAbc/assets
                 JavaDirectoryUrls:
@@ -1237,8 +1132,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbcSecondAbc
                 ManifestDirectories:
                     file://./app/src/firstAbcSecondAbc
-                AidlDirectoryUrls:
-                    file://./app/src/firstAbcSecondAbc/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/firstAbcSecondAbc/assets
                 JavaDirectoryUrls:
@@ -1266,8 +1159,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/debug
-                AidlDirectoryUrls:
-                    file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
@@ -1289,8 +1180,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbcSecondAbcDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/firstAbcSecondAbcDebug
-                AidlDirectoryUrls:
-                    file://./app/src/firstAbcSecondAbcDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/firstAbcSecondAbcDebug/assets
                 JavaDirectoryUrls:
@@ -1315,8 +1204,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/test
                 ManifestDirectories:
                     file://./app/src/test
-                AidlDirectoryUrls:
-                    file://./app/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/test/assets
                 JavaDirectoryUrls:
@@ -1342,8 +1229,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testFirstAbc/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/testFirstAbc
-                AidlDirectoryUrls:
-                    file://./app/src/testFirstAbc/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/testFirstAbc/assets
                 JavaDirectoryUrls:
@@ -1367,8 +1252,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testSecondAbc
                 ManifestDirectories:
                     file://./app/src/testSecondAbc
-                AidlDirectoryUrls:
-                    file://./app/src/testSecondAbc/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/testSecondAbc/assets
                 JavaDirectoryUrls:
@@ -1396,8 +1279,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testFirstAbcSecondAbc
                 ManifestDirectories:
                     file://./app/src/testFirstAbcSecondAbc
-                AidlDirectoryUrls:
-                    file://./app/src/testFirstAbcSecondAbc/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/testFirstAbcSecondAbc/assets
                 JavaDirectoryUrls:
@@ -1423,8 +1304,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/testDebug
-                AidlDirectoryUrls:
-                    file://./app/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -1448,8 +1327,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/testFirstAbcSecondAbcDebug
                 ManifestDirectories:
                     file://./app/src/testFirstAbcSecondAbcDebug
-                AidlDirectoryUrls:
-                    file://./app/src/testFirstAbcSecondAbcDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/testFirstAbcSecondAbcDebug/assets
                 JavaDirectoryUrls:
@@ -1476,8 +1353,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTest
                 ManifestDirectories:
                     file://./app/src/androidTest
-                AidlDirectoryUrls:
-                    file://./app/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -1503,8 +1378,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbc/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/androidTestFirstAbc
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestFirstAbc/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTestFirstAbc/assets
                 JavaDirectoryUrls:
@@ -1526,8 +1399,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestSecondAbc/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/androidTestSecondAbc
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestSecondAbc/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTestSecondAbc/assets
                 JavaDirectoryUrls:
@@ -1549,8 +1420,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbcSecondAbc/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/androidTestFirstAbcSecondAbc
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestFirstAbcSecondAbc/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTestFirstAbcSecondAbc/assets
                 JavaDirectoryUrls:
@@ -1572,8 +1441,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTestDebug/assets
                 JavaDirectoryUrls:
@@ -1595,8 +1462,6 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/androidTestFirstAbcSecondAbcDebug
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestFirstAbcSecondAbcDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/assets
                 JavaDirectoryUrls:

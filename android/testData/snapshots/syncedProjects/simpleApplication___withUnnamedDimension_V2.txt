@@ -150,7 +150,6 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/exampleDebugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/exampleDebugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/example/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/example/debug [-]
@@ -159,35 +158,29 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestExample [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestExampleDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/aidl_source_output_dir/exampleDebugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/exampleDebugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/example/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/example/debug [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestExample/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestExample/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestExample/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestExample/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestExample/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestExample/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestExample/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestExampleDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestExampleDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestExampleDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestExampleDebug/kotlin [-]
@@ -367,7 +360,6 @@ PROJECT                       : project
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/exampleDebug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/exampleDebug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/example/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/example/debug [-]
@@ -377,36 +369,30 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
             JavaResource                  : file://<PROJECT>/app/src/main/res
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/exampleDebug/out [-]
-            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/exampleDebug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/example/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/example/debug [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/example/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/example/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/example/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/example/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/example/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/example/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/example/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/exampleDebug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/exampleDebug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/exampleDebug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/exampleDebug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/exampleDebug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/exampleDebug/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/exampleDebug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
@@ -531,27 +517,23 @@ PROJECT                       : project
         CONENT_ENTRY                  : file://<PROJECT>/app/src/testExampleDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/exampleDebugUnitTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testExample/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testExample/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testExample/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testExample/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testExample/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testExample/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testExample/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testExampleDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testExampleDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testExampleDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testExampleDebug/kotlin [-]

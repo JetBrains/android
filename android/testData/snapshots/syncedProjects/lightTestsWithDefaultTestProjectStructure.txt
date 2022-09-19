@@ -113,20 +113,16 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/src/androidTestDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTestDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTestDebug/kotlin [-]
@@ -210,15 +206,12 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/AndroidManifest.xml [-]
-        CONENT_ENTRY                  : file://<PROJECT>/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/res [-]
         CONENT_ENTRY                  : file://<PROJECT>/src [-]
         CONENT_ENTRY                  : file://<PROJECT>/srcKotlin [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/build/generated/res/resValues/debug [-]
@@ -227,7 +220,6 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/res [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/kotlin [-]
@@ -311,7 +303,6 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         CONENT_ENTRY                  : file://<PROJECT>/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/testDebug/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/testDebug/kotlin [-]

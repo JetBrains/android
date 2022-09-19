@@ -24,7 +24,6 @@ MODULE                        : MainActivity.app
         MainArtifact
             ApplicationId                 : com.example.mainactivity
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/local/debug [-]
-            - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/localDebug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/localDebug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/local/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kapt/localDebug [-]
@@ -121,7 +120,6 @@ MODULE                        : MainActivity.app
             - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/localDebugUnitTest [-]
         ApplicationId                 : com.example.mainactivity.test
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/androidTest/local/debug [-]
-        - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/localDebugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/localDebugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/androidTest/local/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
@@ -473,7 +471,6 @@ MODULE                        : MainActivity.lib
         MainArtifact
             ApplicationId                 :
             - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/resValues/debug [-]
-            - GeneratedSourceFolders      : <ROOT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
             - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
@@ -638,7 +635,6 @@ MODULE                        : MainActivity.lib
             - ClassOutputs                : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.example.lib.test
         - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/resValues/androidTest/debug [-]
-        - GeneratedSourceFolders      : <ROOT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
         - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
