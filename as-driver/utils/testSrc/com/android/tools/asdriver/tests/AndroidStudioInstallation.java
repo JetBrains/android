@@ -109,6 +109,9 @@ public class AndroidStudioInstallation {
                        String.format("-Didea.system.path=%s/system%n", workDir) +
                        // Prevent our crash metrics from going to the production URL
                        String.format("-Duse.staging.crash.url=true%n") +
+                       // Work around b/247532990, which is that libnotify.so.4 is missing on our
+                       // test machines.
+                       String.format("-Dide.libnotify.enabled=false%n") +
                        String.format("-Didea.log.path=%s%n", logsDir) +
                        String.format("-Duser.home=%s%n", fileSystem.getHome());
     Files.write(vmOptionsPath, vmOptions.getBytes(StandardCharsets.UTF_8));
