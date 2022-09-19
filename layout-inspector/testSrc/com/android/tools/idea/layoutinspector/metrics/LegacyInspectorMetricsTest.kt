@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMoni
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.stats.AnonymizerUtil
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -66,10 +67,11 @@ class LegacyInspectorMetricsTest {
     client
   }
 
-  private val inspectorRule = LayoutInspectorRule(listOf(legacyClientProvider))
+  private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
+  private val inspectorRule = LayoutInspectorRule(listOf(legacyClientProvider), projectRule)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule).around(disposableRule)!!
 
   @get:Rule
   val usageTrackerRule = MetricsTrackerRule()

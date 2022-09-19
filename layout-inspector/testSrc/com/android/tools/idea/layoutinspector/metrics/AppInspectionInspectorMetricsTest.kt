@@ -37,6 +37,7 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.stats.AnonymizerUtil
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.SkiaViewNode
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -57,11 +58,14 @@ private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST
 class AppInspectionInspectorMetricsTest {
   val disposableRule = DisposableRule()
 
+  private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider())) { it.name == MODERN_PROCESS.name }
+  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) {
+    it.name == MODERN_PROCESS.name
+  }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule).around(disposableRule)!!
 
   @get:Rule
   val usageTrackerRule = MetricsTrackerRule()
