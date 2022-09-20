@@ -614,16 +614,16 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public void clearNotificationsPresentOnIdeFrame() {
-    List<BalloonImpl.ActionButton> allNotificationActions = Lists
-      .newArrayList(robot().finder().findAll(target(), Matchers.byType(BalloonImpl.ActionButton.class)));
+  public IdeFrameFixture clearNotificationsPresentOnIdeFrame() {
+    List<BalloonImpl.ActionButton> allNotificationActions = Lists.newArrayList(robot().finder().findAll(target(), Matchers.byType(BalloonImpl.ActionButton.class)));
     if (allNotificationActions.size() > 0) {
       for (BalloonImpl.ActionButton action : allNotificationActions) {
-        if (action.getToolTipText().toLowerCase().contains("close")) {
+        if (action.isShowing() && action.getToolTipText().toLowerCase().contains("close")) {
           robot().click(action);
         }
       }
     }
+    return this;
   }
 
   @NotNull

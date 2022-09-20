@@ -21,6 +21,9 @@ android {
     lintOptions {
         abortOnError false
     }
+    buildFeatures {
+        buildConfig true
+    }
 }
 
 dependencies {
