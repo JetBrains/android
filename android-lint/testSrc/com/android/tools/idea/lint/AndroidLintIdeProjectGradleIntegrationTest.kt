@@ -21,18 +21,13 @@ import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.LintIgnoredResult
 import com.android.tools.idea.lint.common.LintResult
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 @RunsInEdt
 class AndroidLintIdeProjectGradleIntegrationTest {

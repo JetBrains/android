@@ -44,7 +44,7 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
     assertTrue(ProjectNamespacingStatusService.getInstance(project).namespacesUsed)
 
     WriteCommandAction.runWriteCommandAction(project) {
-      myFixture.openFileInEditor(VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "src", "main", "AndroidManifest.xml")!!)
+      myFixture.openFileInEditor(VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "build.gradle")!!)
       val manifest = myFixture.editor.document
       manifest.setText(manifest.text.replace(appPackageName, "com.example.change"))
       PsiDocumentManager.getInstance(project).commitDocument(manifest)

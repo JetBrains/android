@@ -15,20 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Expect
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
-class GradleSyncSpecialCasesIntegrationTest : GradleIntegrationTest {
+class GradleSyncSpecialCasesIntegrationTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels()
@@ -38,8 +35,8 @@ class GradleSyncSpecialCasesIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun `manifest in build folder`() {
-    val projectDir = prepareGradleProject(TestProjectPaths.PROJECT_WITH_APPAND_LIB, "project")
-    val libProjectDir = projectDir.resolve("lib")
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PROJECT_WITH_APPAND_LIB)
+    val libProjectDir = preparedProject.root.resolve("lib")
     val oldManifestFile = libProjectDir.resolve("src/main/AndroidManifest.xml")
     val newManifestFile = libProjectDir.resolve("build/generated/manifests/AndroidManifest.xml")
     FileUtil.createParentDirs(newManifestFile)
@@ -47,14 +44,10 @@ class GradleSyncSpecialCasesIntegrationTest : GradleIntegrationTest {
     libProjectDir.resolve("build.gradle").appendText("""
      android.sourceSets.main.manifest.srcFile '${newManifestFile.absolutePath}'
     """)
-    openPreparedProject("project") { project ->
+    preparedProject.open { project ->
       val manifestVirtualFile = VfsUtil.findFile(newManifestFile.toPath(), false)
       expect.that(manifestVirtualFile).isNotNull()
       expect.that(manifestVirtualFile?.let { AndroidFacet.getInstance(it, project) }).isNotNull()
     }
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData"
-  override fun getAdditionalRepos(): Collection<File> = emptyList()
 }

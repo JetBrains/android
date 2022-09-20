@@ -168,6 +168,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.pom.java.LanguageLevel
+import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -201,6 +202,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.setBuildSrcModule
 import java.io.File
 import java.io.IOException
+import java.nio.file.Paths
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
@@ -1841,6 +1843,21 @@ fun Project.gradleModule(gradlePath: String): Module? =
     .firstOrNull {
       it.getBuildAndRelativeGradleProjectPath()?.buildNamePrefixedGradleProjectPath() == gradlePath
     }?.getHolderModule()
+
+/**
+ * Gets the text content of a PSI file specificed by [relativeFile].
+ */
+fun Project.getTextForFile(relativePath: String): String {
+  val file = VfsUtil.findFile(Paths.get(basePath, relativePath), false)
+  if (file != null) {
+    val psiFile = PsiManager.getInstance(this).findFile(file)
+    if (psiFile != null) {
+      return psiFile.text
+    }
+  }
+  return ""
+}
+
 
 /**
  * Finds a file by the [path] relative to the corresponding Gradle project root.

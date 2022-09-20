@@ -20,6 +20,8 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.intellij.openapi.project.Project
+import com.intellij.util.ThrowableConsumer
+import com.intellij.util.ThrowableConvertor
 import java.io.File
 
 /**
@@ -57,4 +59,17 @@ interface TestProjectDefinition {
 interface PreparedTestProject {
   fun <T> open(updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions = { it }, body: (Project) -> T): T
   val root: File
+
+  companion object {
+    @JvmStatic
+    fun openPreparedTestProject(preparedProject: PreparedTestProject, body: ThrowableConsumer<Project, Exception>) {
+      preparedProject.open { body.consume(it) }
+    }
+
+    @JvmStatic
+    fun <T> openPreparedTestProject(preparedProject: PreparedTestProject, body: ThrowableConvertor<Project, T, Exception>) {
+      preparedProject.open { body.convert(it) }
+    }
+  }
 }
+

@@ -21,25 +21,38 @@ import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.gradle.dsl.utils.FN_SETTINGS_GRADLE
-import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Request.Companion.builder
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.buildAndWait
+import com.android.tools.idea.testing.onEdt
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
 
+@RunsInEdt
 class AnnotationProcessorsAnalyzerTest {
 
   @get:Rule
-  val myProjectRule = AndroidGradleProjectRule()
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
-  private fun setUpProject() {
-    myProjectRule.load(SIMPLE_APPLICATION)
+  interface TestContext {
+    val project: Project
+    val projectDir: File
+    fun executeTasks(vararg task: String)
+  }
 
-    val projectPath = File(myProjectRule.project.basePath!!)
+  private fun runTest(body: TestContext.() -> Unit) {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    val projectPath = preparedProject.root
 
     FileUtil.writeToFile(
       FileUtils.join(projectPath, "lib", FN_BUILD_GRADLE).also {
@@ -49,6 +62,7 @@ class AnnotationProcessorsAnalyzerTest {
         apply plugin: 'com.android.library'
 
         android {
+          namespace "google.simplelibrary"
           compileSdkVersion 32
         }
       """.trimIndent()
@@ -71,136 +85,150 @@ class AnnotationProcessorsAnalyzerTest {
       },
       """
         <?xml version="1.0" encoding="utf-8"?>
-        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="google.simplelibrary" >
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
         </manifest>
       """.trimIndent()
     )
 
-    FileUtil.appendToFile(FileUtils.join(projectPath, "app", FN_BUILD_GRADLE), """
+    FileUtil.appendToFile(
+      FileUtils.join(projectPath, "app", FN_BUILD_GRADLE), """
       dependencies {
         implementation project(":lib")
         implementation 'com.google.auto.value:auto-value-annotations:1.6.2'
         annotationProcessor 'com.google.auto.value:auto-value:1.6.2'
       }
-    """.trimIndent())
+    """.trimIndent()
+    )
 
-    FileUtil.appendToFile(FileUtils.join(projectPath, FN_SETTINGS_GRADLE), """
+    FileUtil.appendToFile(
+      FileUtils.join(projectPath, FN_SETTINGS_GRADLE), """
       include ':lib'
-    """.trimIndent())
+    """.trimIndent()
+    )
+    preparedProject.open { project ->
+      body(
+        object : TestContext {
+          override val project: Project = project
+          override val projectDir: File = preparedProject.root
+          override fun executeTasks(vararg task: String) {
+            val invocationResult = project.buildAndWait { it.executeTasks(builder(project, projectDir, *task).build()) }
+            invocationResult.buildError?.let { throw it }
+          }
+        }
+      )
+    }
   }
 
   @Test
   fun testNonIncrementalAnnotationProcessorsAnalyzer() {
-    setUpProject()
+    runTest {
+      executeTasks(":app:compileDebugJavaWithJavac")
+      val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
+      val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
 
-    myProjectRule.invokeTasksRethrowingErrors(":app:compileDebugJavaWithJavac")
-
-    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
-
-    assertThat(
-      results.getAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
-      setOf(
-        "com.google.auto.value.processor.AutoAnnotationProcessor",
-        "com.google.auto.value.processor.AutoValueBuilderProcessor",
-        "com.google.auto.value.processor.AutoOneOfProcessor",
-        "com.google.auto.value.processor.AutoValueProcessor",
-        "com.google.auto.value.extension.memoized.processor.MemoizedValidator"
+      assertThat(
+        results.getAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
+        setOf(
+          "com.google.auto.value.processor.AutoAnnotationProcessor",
+          "com.google.auto.value.processor.AutoValueBuilderProcessor",
+          "com.google.auto.value.processor.AutoOneOfProcessor",
+          "com.google.auto.value.processor.AutoValueProcessor",
+          "com.google.auto.value.extension.memoized.processor.MemoizedValidator"
+        )
       )
-    )
+    }
   }
 
   @Test
   @Ignore("b/179137380")
   fun testNonIncrementalAnnotationProcessorsAnalyzerWithSuppressedWarnings() {
-    setUpProject()
-
-    BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressNonIncrementalAnnotationProcessorWarning(
-      "com.google.auto.value.processor.AutoAnnotationProcessor")
-    BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressNonIncrementalAnnotationProcessorWarning(
-      "com.google.auto.value.processor.AutoValueProcessor")
-
-    myProjectRule.invokeTasksRethrowingErrors(":app:compileDebugJavaWithJavac")
-
-    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
-
-    assertThat(
-      results.getAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
-      setOf(
-        "com.google.auto.value.processor.AutoValueBuilderProcessor",
-        "com.google.auto.value.processor.AutoOneOfProcessor",
-        "com.google.auto.value.extension.memoized.processor.MemoizedValidator"
+    runTest {
+      BuildAttributionWarningsFilter.getInstance(project).suppressNonIncrementalAnnotationProcessorWarning(
+        "com.google.auto.value.processor.AutoAnnotationProcessor"
       )
-    )
+      BuildAttributionWarningsFilter.getInstance(project).suppressNonIncrementalAnnotationProcessorWarning(
+        "com.google.auto.value.processor.AutoValueProcessor"
+      )
+
+      executeTasks(":app:compileDebugJavaWithJavac")
+
+      val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
+      val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+
+      assertThat(
+        results.getAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
+        setOf(
+          "com.google.auto.value.processor.AutoValueBuilderProcessor",
+          "com.google.auto.value.processor.AutoOneOfProcessor",
+          "com.google.auto.value.extension.memoized.processor.MemoizedValidator"
+        )
+      )
+    }
   }
 
   @Test
   fun noWarningsWhenApplyingKapt() {
-    setUpProject()
+    runTest {
+      val rootBuildFile = FileUtils.join(projectDir, FN_BUILD_GRADLE)
+      FileUtil.writeToFile(rootBuildFile,
+                           rootBuildFile
+                             .readText()
+                             .replace("dependencies {",
+                                      "dependencies { classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION_FOR_TESTS\""))
+      FileUtil.appendToFile(FileUtils.join(projectDir, "lib", FN_BUILD_GRADLE), """
+  
+        apply plugin: 'kotlin-android'
+        apply plugin: 'kotlin-kapt'
+      """.trimIndent())
 
-    val projectPath = File(myProjectRule.project.basePath!!)
-    val rootBuildFile = FileUtils.join(projectPath, FN_BUILD_GRADLE)
-    FileUtil.writeToFile(rootBuildFile,
-                         rootBuildFile
-                           .readText()
-                           .replace("dependencies {",
-                                    "dependencies { classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION_FOR_TESTS\""))
-    FileUtil.appendToFile(FileUtils.join(projectPath, "lib", FN_BUILD_GRADLE), """
+      executeTasks(":app:compileDebugJavaWithJavac")
 
-      apply plugin: 'kotlin-android'
-      apply plugin: 'kotlin-kapt'
-    """.trimIndent())
+      val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
+      val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
 
-    myProjectRule.invokeTasksRethrowingErrors(":app:compileDebugJavaWithJavac")
-
-    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
-
-    assertThat(results.getAnnotationProcessorsData().isEmpty())
+      assertThat(results.getAnnotationProcessorsData().isEmpty())
+    }
   }
 
   @Test
   fun warnWhenApplyingKaptInAppButLibHasNonIncrementalAnnotationProcessors() {
-    setUpProject()
+    runTest {
+      val rootBuildFile = FileUtils.join(projectDir, FN_BUILD_GRADLE)
+      FileUtil.writeToFile(rootBuildFile,
+                           rootBuildFile
+                             .readText()
+                             .replace("dependencies {",
+                                      "dependencies { classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION_FOR_TESTS\""))
+      FileUtil.appendToFile(FileUtils.join(projectDir, "lib", FN_BUILD_GRADLE), """
+  
+        apply plugin: 'kotlin-android'
+        apply plugin: 'kotlin-kapt'
+      """.trimIndent())
 
-    val projectPath = File(myProjectRule.project.basePath!!)
-    val rootBuildFile = FileUtils.join(projectPath, FN_BUILD_GRADLE)
-    FileUtil.writeToFile(rootBuildFile,
-                         rootBuildFile
-                           .readText()
-                           .replace("dependencies {",
-                                    "dependencies { classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION_FOR_TESTS\""))
-    FileUtil.appendToFile(FileUtils.join(projectPath, "lib", FN_BUILD_GRADLE), """
+      FileUtil.appendToFile(FileUtils.join(projectDir, "lib", FN_BUILD_GRADLE), """
+  
+        dependencies {
+          implementation 'com.google.auto.value:auto-value-annotations:1.6.2'
+          annotationProcessor 'com.google.auto.value:auto-value:1.6.2'
+        }
+      """.trimIndent())
 
-      apply plugin: 'kotlin-android'
-      apply plugin: 'kotlin-kapt'
-    """.trimIndent())
+      executeTasks(":app:compileDebugJavaWithJavac")
 
-    FileUtil.appendToFile(FileUtils.join(projectPath, "lib", FN_BUILD_GRADLE), """
+      val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
+      val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
 
-      dependencies {
-        implementation 'com.google.auto.value:auto-value-annotations:1.6.2'
-        annotationProcessor 'com.google.auto.value:auto-value:1.6.2'
-      }
-    """.trimIndent())
-
-    myProjectRule.invokeTasksRethrowingErrors(":app:compileDebugJavaWithJavac")
-
-    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
-
-    assertThat(
-      results.getAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
-      setOf(
-        "com.google.auto.value.processor.AutoAnnotationProcessor",
-        "com.google.auto.value.processor.AutoValueBuilderProcessor",
-        "com.google.auto.value.processor.AutoOneOfProcessor",
-        "com.google.auto.value.processor.AutoValueProcessor",
-        "com.google.auto.value.extension.memoized.processor.MemoizedValidator"
+      assertThat(
+        results.getAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
+        setOf(
+          "com.google.auto.value.processor.AutoAnnotationProcessor",
+          "com.google.auto.value.processor.AutoValueBuilderProcessor",
+          "com.google.auto.value.processor.AutoOneOfProcessor",
+          "com.google.auto.value.processor.AutoValueProcessor",
+          "com.google.auto.value.extension.memoized.processor.MemoizedValidator"
+        )
       )
-    )
+    }
   }
 }

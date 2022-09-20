@@ -15,181 +15,151 @@
  */
 package org.jetbrains.android.refactoring;
 
-import com.android.sdklib.SdkVersionInfo;
-import com.android.tools.idea.gradle.adtimport.GradleImport;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.AndroidGradleTests;
+import static com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject.openPreparedTestProject;
+import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.getTextForFile;
+import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
+
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.idea.testing.EdtAndroidProjectRule;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
-
-import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
-import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES_GROOVY;
-import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES_KTS;
-import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES_MULTI_MODULE;
-import static java.util.Collections.emptyList;
+import com.intellij.testFramework.RunsInEdt;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * This tests unused resource removal for a Gradle project. The JPS scenario is
  * tested in {@link UnusedResourcesTest}.
  */
-public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
+@RunsInEdt
+public class UnusedResourcesGradleTest {
 
-  public void testGroovy() throws Exception {
-    loadProject(UNUSED_RESOURCES_GROOVY);
+  @Rule
+  public EdtAndroidProjectRule projectRule = onEdt(AndroidProjectRule.withAndroidModels());
 
-    UnusedResourcesHandler.invoke(getProject(), null, null, true, true);
+  @Test
+  public void testGroovy() {
+    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_GROOVY);
+    openPreparedTestProject(preparedProject, project -> {
+      assertTrue(getTextForFile(project, "app/build.gradle").contains("resValue"));
+      UnusedResourcesHandler.invoke(project, null, null, true, true);
 
-    assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "<resources>\n" +
-                 "    <string name=\"app_name\">Hello World</string>\n" +
-                 "</resources>\n",
-                 getTextForFile("app/src/main/res/values/strings.xml"));
+      assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                   "<resources>\n" +
+                   "    <string name=\"app_name\">Hello World</string>\n" +
+                   "</resources>\n",
+                   getTextForFile(project, "app/src/main/res/values/strings.xml"));
 
-    assertEquals("apply plugin: 'com.android.application'\n" +
-                 "\n" +
-                 "android {\n" +
-                 "  compileSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
-                 "  buildToolsVersion '" + CURRENT_BUILD_TOOLS_VERSION + "'\n" +
-                 "\n" +
-                 "  defaultConfig {\n" +
-                 "    minSdkVersion " + SdkVersionInfo.LOWEST_ACTIVE_API + "\n" +
-                 "    targetSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
-                 "    applicationId 'com.example.android.app'\n" +
-                 "  }\n" +
-                 "}\n" +
-                 "\n" +
-                 "repositories {\n" + AndroidGradleTests.getLocalRepositoriesForGroovy(emptyList()) +
-                 "}\n",
-                 getTextForFile("app/build.gradle"));
+      assertFalse(getTextForFile(project, "app/build.gradle").contains("resValue"));
+    });
   }
 
-  public void testGroovyMultiModule() throws Exception {
-    loadProject(UNUSED_RESOURCES_MULTI_MODULE);
+  @Test
+  public void testGroovyMultiModule() {
+    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_MULTI_MODULE);
+    openPreparedTestProject(preparedProject, project -> {
+      assertTrue(getTextForFile(project, "app/build.gradle").contains("resValue"));
 
-    UnusedResourcesHandler.invoke(getProject(), null, null, true, true);
+      UnusedResourcesHandler.invoke(project, null, null, true, true);
 
-    assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "<resources>\n" +
-                 "    <string name=\"app_name\">Hello World</string>\n" +
-                 "    <string name=\"used_from_test\">Referenced from test</string>\n" +
-                 "</resources>\n",
-                 getTextForFile("app/src/main/res/values/strings.xml"));
+      assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                   "<resources>\n" +
+                   "    <string name=\"app_name\">Hello World</string>\n" +
+                   "    <string name=\"used_from_test\">Referenced from test</string>\n" +
+                   "</resources>\n",
+                   getTextForFile(project, "app/src/main/res/values/strings.xml"));
 
-    assertEquals("apply plugin: 'com.android.application'\n" +
-                 "\n" +
-                 "android {\n" +
-                 "  compileSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
-                 "  buildToolsVersion '" + CURRENT_BUILD_TOOLS_VERSION + "'\n" +
-                 "\n" +
-                 "  defaultConfig {\n" +
-                 "    minSdkVersion " + SdkVersionInfo.LOWEST_ACTIVE_API + "\n" +
-                 "    targetSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
-                 "    applicationId 'com.example.android.app'\n" +
-                 "  }\n" +
-                 "}\n" +
-                 "\n" +
-                 "dependencies {\n" +
-                 "    implementation project(path: ':app:mylibrary')\n" +
-                 "    testImplementation 'junit:junit:4.12'\n" +
-                 "}\n" +
-                 "\n" +
-                 "repositories {\n" + AndroidGradleTests.getLocalRepositoriesForGroovy(emptyList()) +
-                 "}\n",
-                 getTextForFile("app/build.gradle"));
+      assertFalse(getTextForFile(project, "app/build.gradle").contains("resValue"));
+    });
   }
 
-  public void testSpecificModule() throws Exception {
+  @Test
+  public void testSpecificModule() {
     // Run find usages on the app module, and make sure that we limit the removal just to the
     // app module; we leave unused resources in other modules alone (such as the unused resource
     // in the library)
-    loadProject(UNUSED_RESOURCES_MULTI_MODULE);
+    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_MULTI_MODULE);
+    openPreparedTestProject(preparedProject, project -> {
 
-    Project project = getProject();
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    Module app = moduleManager.findModuleByName("testSpecificModule.app.main"); // module name derived from test name + gradle name
-    assertNotNull(app);
+      ModuleManager moduleManager = ModuleManager.getInstance(project);
+      Module app = moduleManager.findModuleByName("project.app.main"); // module name derived from test name + gradle name
+      assertNotNull(app);
 
-    UnusedResourcesHandler.invoke(getProject(), new Module[] { app }, null, true, true);
+      UnusedResourcesHandler.invoke(project, new Module[]{app}, null, true, true);
 
-    assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "<resources>\n" +
-                 "    <string name=\"app_name\">Hello World</string>\n" +
-                 "    <string name=\"used_from_test\">Referenced from test</string>\n" +
-                 "</resources>\n",
-                 getTextForFile("app/src/main/res/values/strings.xml"));
+      assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                   "<resources>\n" +
+                   "    <string name=\"app_name\">Hello World</string>\n" +
+                   "    <string name=\"used_from_test\">Referenced from test</string>\n" +
+                   "</resources>\n",
+                   getTextForFile(project, "app/src/main/res/values/strings.xml"));
 
-    // Make sure it *didn't* delete resources from the library since it's not included in the module list!
-    assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "<resources>\n" +
-                 "    <string name=\"unusedlib\">Unused string in library</string>\n" +
-                 "    <string name=\"usedlib\">String used from app</string>\n" +
-                 "</resources>\n",
-                 getTextForFile("app/mylibrary/src/main/res/values/values.xml"));
+      // Make sure it *didn't* delete resources from the library since it's not included in the module list!
+      assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                   "<resources>\n" +
+                   "    <string name=\"unusedlib\">Unused string in library</string>\n" +
+                   "    <string name=\"usedlib\">String used from app</string>\n" +
+                   "</resources>\n",
+                   getTextForFile(project, "app/mylibrary/src/main/res/values/values.xml"));
+    });
   }
 
-  public void testUsedDownstream() throws Exception {
+  @Test
+  public void testUsedDownstream() {
     // Run find usages on a library, and make sure that (a) only unused resources in the library are removed, and
     // (b) that we take into account downstream usages (e.g. in app) and don't consider those unused in the analysis
-    loadProject(UNUSED_RESOURCES_MULTI_MODULE);
+    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_MULTI_MODULE);
+    openPreparedTestProject(preparedProject, project -> {
 
-    Project project = getProject();
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    Module app = moduleManager.findModuleByName("testUsedDownstream.app.mylibrary.main"); // module name derived from test name + gradle name
-    assertNotNull(app);
+      ModuleManager moduleManager = ModuleManager.getInstance(project);
+      Module app =
+        moduleManager.findModuleByName("project.app.mylibrary.main"); // module name derived from test name + gradle name
+      assertNotNull(app);
 
-    UnusedResourcesHandler.invoke(getProject(), new Module[] { app }, null, true, true);
+      UnusedResourcesHandler.invoke(project, new Module[]{app}, null, true, true);
 
-    // Make sure we have NOT deleted the unused resources in app
-    assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "<resources>\n" +
-                 "    <string name=\"app_name\">Hello World</string>\n" +
-                 "    <string name=\"newstring\">@string/usedlib</string>\n" +
-                 "    <string name=\"used_from_test\">Referenced from test</string>\n" +
-                 "</resources>\n",
-                 getTextForFile("app/src/main/res/values/strings.xml"));
+      // Make sure we have NOT deleted the unused resources in app
+      assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                   "<resources>\n" +
+                   "    <string name=\"app_name\">Hello World</string>\n" +
+                   "    <string name=\"newstring\">@string/usedlib</string>\n" +
+                   "    <string name=\"used_from_test\">Referenced from test</string>\n" +
+                   "</resources>\n",
+                   getTextForFile(project, "app/src/main/res/values/strings.xml"));
 
-    // Make sure we have removed the unused resource in the library (@string/unusedlib), but we
-    // have *not* removed the resource which is unused in the library but still referenced outside of
-    // it (in app)
-    assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "<resources>\n" +
-                 "    <string name=\"usedlib\">String used from app</string>\n" +
-                 "</resources>\n",
-                 getTextForFile("app/mylibrary/src/main/res/values/values.xml"));
+      // Make sure we have removed the unused resource in the library (@string/unusedlib), but we
+      // have *not* removed the resource which is unused in the library but still referenced outside of
+      // it (in app)
+      assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                   "<resources>\n" +
+                   "    <string name=\"usedlib\">String used from app</string>\n" +
+                   "</resources>\n",
+                   getTextForFile(project, "app/mylibrary/src/main/res/values/values.xml"));
+    });
   }
 
-  public void testKotlin() throws Exception {
+  @Test
+  public void testKotlin() {
     // Like testGroovy, but this one verifies analysis and updating of build.gradle.kts files instead.
-    loadProject(UNUSED_RESOURCES_KTS);
+    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_KTS);
+    openPreparedTestProject(preparedProject, project -> {
+      assertTrue(getTextForFile(project, "app/build.gradle.kts").contains("resValue"));
 
-    UnusedResourcesHandler.invoke(getProject(), null, null, true, true);
+      UnusedResourcesHandler.invoke(project, null, null, true, true);
 
-    assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "<resources>\n" +
-                 "    <string name=\"app_name\">Hello World</string>\n" +
-                 "</resources>\n",
-                 getTextForFile("app/src/main/res/values/strings.xml"));
+      assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                   "<resources>\n" +
+                   "    <string name=\"app_name\">Hello World</string>\n" +
+                   "</resources>\n",
+                   getTextForFile(project, "app/src/main/res/values/strings.xml"));
 
-    assertEquals("plugins {\n" +
-                 "  id(\"com.android.application\")\n" +
-                 "  kotlin(\"android\")\n" +
-                 "  kotlin(\"android.extensions\")\n" +
-                 "}\n" +
-                 "apply(plugin = \"com.android.application\")\n" +
-                 "\n" +
-                 "android {\n" +
-                 "  compileSdkVersion(" + GradleImport.CURRENT_COMPILE_VERSION + ")\n" +
-                 "  buildToolsVersion(\"" + CURRENT_BUILD_TOOLS_VERSION + "\")\n" +
-                 "\n" +
-                 "  defaultConfig {\n" +
-                 "    targetSdkVersion(" + GradleImport.CURRENT_COMPILE_VERSION + ")\n" +
-                 "    applicationId = \"com.example.android.app\"\n" +
-                 "  }\n" +
-                 "}\n" +
-                 "\n" +
-                 "repositories {\n" + AndroidGradleTests.getLocalRepositoriesForKotlin(emptyList()) +
-                 "}\n",
-                 getTextForFile("app/build.gradle.kts"));
+      assertFalse(getTextForFile(project, "app/build.gradle.kts").contains("resValue"));
+    });
   }
 }
