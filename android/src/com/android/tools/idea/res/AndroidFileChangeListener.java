@@ -64,6 +64,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiTreeChangeEvent;
 import com.intellij.psi.PsiTreeChangeListener;
+import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.Consumer;
 import com.intellij.util.messages.MessageBusConnection;
@@ -429,9 +430,8 @@ public class AndroidFileChangeListener implements Disposable {
       PsiFile psiFile = myPsiDocumentManager.getCachedPsiFile(document);
       if (psiFile == null) {
         VirtualFile virtualFile = myFileDocumentManager.getFile(document);
-        if (virtualFile != null && !IntentionPreviewUtils.isIntentionPreviewActive()) {
-          runInWriteAction(() -> myRegistry.dispatchToRepositories(virtualFile, ResourceFolderRepository::scheduleScan));
-        }
+        if (virtualFile == null || virtualFile instanceof LightVirtualFile || IntentionPreviewUtils.isIntentionPreviewActive()) return;
+        runInWriteAction(() -> myRegistry.dispatchToRepositories(virtualFile, ResourceFolderRepository::scheduleScan));
       }
     }
 
