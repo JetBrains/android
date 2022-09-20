@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
-import com.android.utils.FileUtils;
 import com.android.io.CancellableFileIo;
 import com.android.repository.api.Dependency;
 import com.android.repository.api.LocalPackage;
@@ -25,8 +24,9 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.manager.LocalRepoLoaderImpl;
-import com.android.repository.io.FileOpUtils;
 import com.android.repository.util.InstallerUtil;
+import com.android.utils.FileUtils;
+import com.android.utils.PathUtils;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ModalityState;
@@ -143,7 +143,10 @@ public class PatchInstallerUtil {
     }
 
     // The patcher won't expect this to be in the target directory, so delete it beforehand.
-    FileOpUtils.deleteFileOrFolder(op.getLocation(progress).resolve(InstallerUtil.INSTALLER_DIR_FN));
+    try {
+      PathUtils.deleteRecursivelyIfExists(op.getLocation(progress).resolve(InstallerUtil.INSTALLER_DIR_FN));
+    }
+    catch (IOException ignore) {}
 
     // Move the package.xml away, since the installer won't expect that either. But we want to be able to move it back if need be.
     Path tempPath = patch.getParent();

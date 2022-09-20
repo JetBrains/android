@@ -33,12 +33,12 @@ import com.android.repository.impl.installer.AbstractInstaller;
 import com.android.repository.impl.installer.AbstractInstallerFactory;
 import com.android.repository.impl.installer.AbstractUninstaller;
 import com.android.repository.impl.manager.LocalRepoLoaderImpl;
-import com.android.repository.io.FileOpUtils;
 import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.install.StudioSdkInstallListenerFactory;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.utils.PathUtils;
 import com.intellij.openapi.ui.Messages;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -161,9 +161,9 @@ public class PatchInstallingRestarter {
 
     // If we get here we either got an error or the patch was already installed. Delete the patch dir.
     try {
-      FileOpUtils.deleteFileOrFolder(patchDir);
+      PathUtils.deleteRecursivelyIfExists(patchDir);
     }
-    catch (Exception e) {
+    catch (IOException e) {
       progress.logWarning("Problem during patch cleanup", e);
     }
   }

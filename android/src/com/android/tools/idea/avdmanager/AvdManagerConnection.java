@@ -80,6 +80,7 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.ILogger;
+import com.android.utils.PathUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -1135,13 +1136,19 @@ public class AvdManagerConnection {
     // Delete the current user data file
     Path path = avdInfo.getDataFolderPath().resolve(AvdManager.USERDATA_QEMU_IMG);
     if (Files.exists(path)) {
-      if (!FileOpUtils.deleteFileOrFolder(path)) {
+      try {
+        PathUtils.deleteRecursivelyIfExists(path);
+      }
+      catch (IOException e) {
         return false;
       }
     }
     // Delete the snapshots directory
     Path snapshotDirectory = avdInfo.getDataFolderPath().resolve(AvdManager.SNAPSHOTS_DIRECTORY);
-    FileOpUtils.deleteFileOrFolder(snapshotDirectory);
+    try {
+      PathUtils.deleteRecursivelyIfExists(snapshotDirectory);
+    }
+    catch (IOException ignore) {}
 
     return true;
   }

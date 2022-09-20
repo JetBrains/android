@@ -21,23 +21,23 @@ import com.android.ide.common.repository.StubGoogleMavenRepository;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
-import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.utils.PathUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.mockito.Mockito;
-
-import java.io.File;
 import java.util.Map;
 import java.util.function.Predicate;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.mockito.Mockito;
 
 /**
  * Tests for the local repository utility class
@@ -134,13 +134,13 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     assertNull(getLibraryRevision(GoogleMavenArtifactId.SUPPORT_V4, true, v -> v.getMajor() == 24));
   }
 
-  public void testgetLibraryRevision_missingSdk() {
-    FileOpUtils.deleteFileOrFolder(myRoot.resolve(SDK_DIR));
+  public void testgetLibraryRevision_missingSdk() throws IOException {
+    PathUtils.deleteRecursivelyIfExists(myRoot.resolve(SDK_DIR));
     assertNull(getLibraryRevision(GoogleMavenArtifactId.SUPPORT_V4, true, v -> v.getMajor() == 24));
   }
 
-  public void testgetLibraryRevision_offlineIndex() {
-    FileOpUtils.deleteFileOrFolder(myRoot.resolve(SDK_DIR));
+  public void testgetLibraryRevision_offlineIndex() throws Exception {
+    PathUtils.deleteRecursivelyIfExists(myRoot.resolve(SDK_DIR));
     assertEquals("26.0.2", getLibraryRevision(GoogleMavenArtifactId.SUPPORT_V4, true));
   }
 
@@ -163,8 +163,8 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     assertEquals(expectedFile, myRepositoryUrlManager.getArchiveForCoordinate(supportCoordinate, new File(SDK_DIR), myRoot.getFileSystem()));
   }
 
-  public void testGetArchiveForCoordinate_missingSdk() {
-    FileOpUtils.deleteFileOrFolder(myRoot.resolve(SDK_DIR));
+  public void testGetArchiveForCoordinate_missingSdk() throws Exception {
+    PathUtils.deleteRecursivelyIfExists(myRoot.resolve(SDK_DIR));
     checkGetArchiveForCoordinate("com.android.support:support-v4:20.0.0", null);
   }
 
