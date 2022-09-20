@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeS
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.NO_UPGRADE;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.computeGradlePluginUpgradeState;
+import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.STRONGLY_RECOMMEND;
 import static org.junit.Assert.assertEquals;
 
 import com.android.ide.common.repository.GradleVersion;
@@ -139,35 +140,41 @@ public class ComputeGradlePluginUpgradeStateTest {
       {"3.1.0", "7.0.0", Arrays.asList("3.2.0-alpha01", "3.2.0-beta02", "3.2.0", "3.2.1", "3.2.2", "3.3.0", "3.3.1"), FORCE, "3.2.2"},
       {"3.1.0", "3.2.1", Arrays.asList("3.2.0-alpha01", "3.2.0-beta02", "3.2.0", "3.2.1", "3.2.2", "3.3.0", "3.3.1"), FORCE, "3.2.1"},
 
-      // If we have no available published stable, we will always recommend the latest known version
+      // If we have no available published stable, we will always recommend the latest known version, strongly if the current version
+      // is deprecated and the latest known is not.
       {"3.5.0", "3.6.1", Collections.emptyList(), RECOMMEND, "3.6.1"},
-      {"3.5.0", "4.0.0", Collections.emptyList(), RECOMMEND, "4.0.0"},
-      {"3.5.0", "4.1.1", Collections.emptyList(), RECOMMEND, "4.1.1"},
-      {"3.5.0", "4.2.2", Collections.emptyList(), RECOMMEND, "4.2.2"},
-      {"3.5.0", "7.0.3", Collections.emptyList(), RECOMMEND, "7.0.3"},
-      {"3.5.0", "7.1.2", Collections.emptyList(), RECOMMEND, "7.1.2"},
-      {"3.5.0", "7.2.1", Collections.emptyList(), RECOMMEND, "7.2.1"},
-      {"3.5.0", "7.3.0", Collections.emptyList(), RECOMMEND, "7.3.0"},
-      {"3.5.0", "8.0.0", Collections.emptyList(), RECOMMEND, "8.0.0"},
+      {"3.5.0", "4.0.0", Collections.emptyList(), STRONGLY_RECOMMEND, "4.0.0"},
+      {"3.5.0", "4.1.1", Collections.emptyList(), STRONGLY_RECOMMEND, "4.1.1"},
+      {"3.5.0", "4.2.2", Collections.emptyList(), STRONGLY_RECOMMEND, "4.2.2"},
+      {"3.5.0", "7.0.3", Collections.emptyList(), STRONGLY_RECOMMEND, "7.0.3"},
+      {"3.5.0", "7.1.2", Collections.emptyList(), STRONGLY_RECOMMEND, "7.1.2"},
+      {"3.5.0", "7.2.1", Collections.emptyList(), STRONGLY_RECOMMEND, "7.2.1"},
+      {"3.5.0", "7.3.0", Collections.emptyList(), STRONGLY_RECOMMEND, "7.3.0"},
+      {"3.5.0", "8.0.0", Collections.emptyList(), STRONGLY_RECOMMEND, "8.0.0"},
+      {"4.0.0", "4.1.1", Collections.emptyList(), RECOMMEND, "4.1.1"},
+      {"4.0.0", "7.0.3", Collections.emptyList(), RECOMMEND, "7.0.3"},
+      {"4.0.0", "8.0.0", Collections.emptyList(), RECOMMEND, "8.0.0"},
 
       // If we have published stable versions between the current and the latest known, recommend going over at most one major version
-      // boundary (and that only if we are at the last known major.minor series before the boundary)
-      {"3.5.0", "4.0.0", publishedVersions, RECOMMEND, "3.6.1"},
-      {"3.6.0", "4.0.0", publishedVersions, RECOMMEND, "4.0.0"},
-      {"3.6.1", "4.0.0", publishedVersions, RECOMMEND, "4.0.0"},
-      {"3.5.0", "4.1.0", publishedVersions, RECOMMEND, "3.6.1"},
-      {"3.6.0", "4.1.0", publishedVersions, RECOMMEND, "4.1.0"},
-      {"3.6.1", "4.1.0", publishedVersions, RECOMMEND, "4.1.0"},
-      {"3.5.0", "4.2.0", publishedVersions, RECOMMEND, "3.6.1"},
-      {"3.6.0", "4.2.0", publishedVersions, RECOMMEND, "4.2.0"},
-      {"3.6.1", "4.2.0", publishedVersions, RECOMMEND, "4.2.0"},
-      {"3.5.0", "7.0.0", publishedVersions, RECOMMEND, "3.6.1"},
-      {"3.6.0", "7.0.0", publishedVersions, RECOMMEND, "4.2.2"},
-      {"3.6.1", "7.0.0", publishedVersions, RECOMMEND, "4.2.2"},
-      {"3.5.0", "7.3.0", publishedVersions, RECOMMEND, "3.6.1"},
-      {"3.6.1", "7.3.0", publishedVersions, RECOMMEND, "4.2.2"},
-      {"3.5.0", "8.0.0", publishedVersions, RECOMMEND, "3.6.1"},
-      {"3.6.0", "8.0.1", publishedVersions, RECOMMEND, "4.2.2"},
+      // boundary (and that only if we are at the last known major.minor series before the boundary).  If we start at a deprecated
+      // version, strongly recommend rather than recommend, but otherwise follow the same version suggestion (even if that version is
+      // also a deprecated one.)
+      {"3.5.0", "4.0.0", publishedVersions, STRONGLY_RECOMMEND, "3.6.1"},
+      {"3.6.0", "4.0.0", publishedVersions, STRONGLY_RECOMMEND, "4.0.0"},
+      {"3.6.1", "4.0.0", publishedVersions, STRONGLY_RECOMMEND, "4.0.0"},
+      {"3.5.0", "4.1.0", publishedVersions, STRONGLY_RECOMMEND, "3.6.1"},
+      {"3.6.0", "4.1.0", publishedVersions, STRONGLY_RECOMMEND, "4.1.0"},
+      {"3.6.1", "4.1.0", publishedVersions, STRONGLY_RECOMMEND, "4.1.0"},
+      {"3.5.0", "4.2.0", publishedVersions, STRONGLY_RECOMMEND, "3.6.1"},
+      {"3.6.0", "4.2.0", publishedVersions, STRONGLY_RECOMMEND, "4.2.0"},
+      {"3.6.1", "4.2.0", publishedVersions, STRONGLY_RECOMMEND, "4.2.0"},
+      {"3.5.0", "7.0.0", publishedVersions, STRONGLY_RECOMMEND, "3.6.1"},
+      {"3.6.0", "7.0.0", publishedVersions, STRONGLY_RECOMMEND, "4.2.2"},
+      {"3.6.1", "7.0.0", publishedVersions, STRONGLY_RECOMMEND, "4.2.2"},
+      {"3.5.0", "7.3.0", publishedVersions, STRONGLY_RECOMMEND, "3.6.1"},
+      {"3.6.1", "7.3.0", publishedVersions, STRONGLY_RECOMMEND, "4.2.2"},
+      {"3.5.0", "8.0.0", publishedVersions, STRONGLY_RECOMMEND, "3.6.1"},
+      {"3.6.0", "8.0.1", publishedVersions, STRONGLY_RECOMMEND, "4.2.2"},
       {"4.0.0", "7.0.0", publishedVersions, RECOMMEND, "4.2.2"},
       {"4.2.0", "7.0.0", publishedVersions, RECOMMEND, "7.0.0"},
       {"4.2.1", "7.0.0", publishedVersions, RECOMMEND, "7.0.0"},

@@ -25,10 +25,15 @@ import com.intellij.openapi.project.Project
 
 val AGP_UPGRADE_NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade Notification", NotificationDisplayType.STICKY_BALLOON, true)
 
-class ProjectUpgradeNotification(title: String, content: String, listener: NotificationListener)
-  : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId, title, content, NotificationType.INFORMATION) {
-  init {
-    setListener(listener)
+abstract class ProjectUpgradeNotification(title: String, content: String, type: NotificationType, listener: NotificationListener)
+  : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId, title, content, type) {
+    init {
+      setListener(listener)
+    }
   }
-}
 
+class UpgradeSuggestion(title: String, content: String, listener: NotificationListener)
+  : ProjectUpgradeNotification(title, content, NotificationType.INFORMATION, listener)
+
+class DeprecatedAgpUpgradeWarning(title: String, content: String, listener: NotificationListener)
+  : ProjectUpgradeNotification(title, content, NotificationType.WARNING, listener)

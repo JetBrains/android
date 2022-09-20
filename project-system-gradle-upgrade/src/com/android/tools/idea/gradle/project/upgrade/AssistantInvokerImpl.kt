@@ -75,7 +75,8 @@ class AssistantInvokerImpl : AssistantInvoker {
       val latestKnown = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
       executeOnPooledThread {
         val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
-        if (shouldRecommendPluginUpgrade(project, currentAgpVersion, latestKnown, published)) recommendPluginUpgrade(project)
+        val recommendation = shouldRecommendPluginUpgrade(project, currentAgpVersion, latestKnown, published)
+        if (recommendation.upgrade) recommendPluginUpgrade(project, currentAgpVersion, recommendation.strongly)
       }
     }
   }

@@ -647,7 +647,7 @@ internal fun notifyCancelledUpgrade(project: Project, processor: AgpUpgradeRefac
       showAndInvokeAgpUpgradeRefactoringProcessor(project, current, new)
     }
   }
-  val notification = ProjectUpgradeNotification(
+  val notification = UpgradeSuggestion(
     AndroidBundle.message("project.upgrade.notifyCancelledUpgrade.title"),
     AndroidBundle.message("project.upgrade.notifyCancelledUpgrade.body"),
     listener)

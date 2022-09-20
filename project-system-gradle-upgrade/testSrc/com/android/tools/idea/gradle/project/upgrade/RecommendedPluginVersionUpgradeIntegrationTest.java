@@ -72,14 +72,14 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     when(myUpgradeReminder.shouldAsk()).thenReturn(false);
 
     // TODO(xof): this fails with a leaked SDK for me.  Why?  And does it matter?
-    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(project));
+    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(project).getUpgrade());
   }
 
   public void testCheckUpgradeWhenCurrentVersionIsEqualToRecommended() {
     simulateUpgradeReminderIsDue();
 
     GradleVersion pluginVersion = GradleVersion.parse("2.2.0");
-    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), pluginVersion, pluginVersion));
+    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), pluginVersion, pluginVersion).getUpgrade());
   }
 
   public void testCheckUpgradeWhenCurrentVersionIsGreaterRecommended() {
@@ -87,7 +87,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
 
     GradleVersion current = GradleVersion.parse("2.3.0");
     GradleVersion recommended = GradleVersion.parse("2.2.0");
-    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), current, recommended));
+    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), current, recommended).getUpgrade());
   }
 
   public void testPerformUpgradeWhenCurrentIsPreviewRecommendedIsSnapshot() {
@@ -98,7 +98,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     // Recommended version is same major version, but "snapshot"
     GradleVersion recommended = GradleVersion.parse("2.3.0-dev");
     // For this combination of plugin versions, the IDE should not ask for upgrade.
-    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), current, recommended));
+    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), current, recommended).getUpgrade());
   }
 
   public void testDoNotInvokeUpgradeAssistantWhenUserDeclinesUpgrade() {

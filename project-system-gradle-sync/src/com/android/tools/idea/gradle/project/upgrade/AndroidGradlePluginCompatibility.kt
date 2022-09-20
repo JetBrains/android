@@ -20,11 +20,13 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.AFTER_MAXIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DEPRECATED
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DIFFERENT_PREVIEW
 
 enum class AndroidGradlePluginCompatibility {
   COMPATIBLE,
   BEFORE_MINIMUM,
+  DEPRECATED,
   DIFFERENT_PREVIEW,
   AFTER_MAXIMUM,
 }
@@ -57,58 +59,71 @@ enum class AndroidGradlePluginCompatibility {
  * 3 cases with latestKnown: 7.2.0-alpha01, 3 with latestKnown: 7.2.0-rc01, 3 with latestKnown: 7.2.0-dev,
  * 3 cases with latestKnown: 7.1.0-alpha01, 3 with latestKnown: 7.1.0-rc01, 2 with latestKnown: 7.1.0-dev,
  * 1 with latestKnown: 7.1.0-alpha02, 1 with latestKnown: 7.1.0
+ *
+ * (Note that the above consistency check was written before the addition of the notion of the DEPRECATED class, which divides the
+ * previous COMPATIBLE class in two: something is DEPRECATED if current is earlier than GRADLE_PLUGIN_NEXT_MINIMUM_VERSION and
+ * latestKnown is after, the second of which conditions will always hold in production).
  */
 fun computeAndroidGradlePluginCompatibility(current: GradleVersion, latestKnown: GradleVersion): AndroidGradlePluginCompatibility =
-  when {
-    // If the current and latestKnown are equal, compatible.
-    // e.g. current = 7.1.0-alpha09, latestKnown = 7.1.0-alpha09
-    current == latestKnown -> COMPATIBLE
-    // If the current is lower than our minimum supported version, incompatible.
-    // e.g. current = 3.1.0, latestKnown = 7.1.0-alpha09
-    current < GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION) -> BEFORE_MINIMUM
-    // If the current/latestKnown are RC or releases, and of the same major/minor series, compatible. (2)
-    // e.g. current = 7.1.0-rc01, latestKnown = 7.1.0
-    //      current = 7.1.0, latestKnown = 7.1.0-rc01
-    (!latestKnown.isPreview || latestKnown.previewType == "rc") && (!current.isPreview || current.previewType == "rc") &&
-      GradleVersion(latestKnown.major, latestKnown.minor) == GradleVersion(current.major, current.minor) -> COMPATIBLE
-    // If the current is a snapshot and latestKnown is RC or release of the same major/minor series, incompatible. (1)
-    // e.g. current = 7.1.0-dev, latestKnown = 7.1.0-rc01
-    current.isSnapshot && (!latestKnown.isPreview || latestKnown.previewType == "rc") &&
+  run {
+    val compatibleOrDeprecated = when {
+      latestKnown < GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION) -> COMPATIBLE
+      current < GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION) -> DEPRECATED
+      else -> COMPATIBLE
+    }
+    when {
+      // If the current and latestKnown are equal, compatible.
+      // e.g. current = 7.1.0-alpha09, latestKnown = 7.1.0-alpha09
+      current == latestKnown -> compatibleOrDeprecated // actually always compatible
+      // If the current is lower than our minimum supported version, incompatible.
+      // e.g. current = 3.1.0, latestKnown = 7.1.0-alpha09
+      current < GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION) -> BEFORE_MINIMUM
+      // If the current/latestKnown are RC or releases, and of the same major/minor series, compatible. (2)
+      // e.g. current = 7.1.0-rc01, latestKnown = 7.1.0
+      //      current = 7.1.0, latestKnown = 7.1.0-rc01
+      (!latestKnown.isPreview || latestKnown.previewType == "rc") && (!current.isPreview || current.previewType == "rc") &&
+      GradleVersion(latestKnown.major, latestKnown.minor) == GradleVersion(current.major, current.minor) ->
+        compatibleOrDeprecated// in practice presumably always compatible
+      // If the current is a snapshot and latestKnown is RC or release of the same major/minor series, incompatible. (1)
+      // e.g. current = 7.1.0-dev, latestKnown = 7.1.0-rc01
+      current.isSnapshot && (!latestKnown.isPreview || latestKnown.previewType == "rc") &&
       GradleVersion(latestKnown.major, latestKnown.minor) == GradleVersion(current.major, current.minor) -> DIFFERENT_PREVIEW
-    // If the current is a snapshot and latestKnown is alpha/beta of the same major/minor series, compatible. (1)
-    // e.g. current = 7.1.0-dev, latestKnown = 7.1.0-alpha01
-    current.isSnapshot && (latestKnown.previewType == "alpha" || latestKnown.previewType == "beta") &&
-      GradleVersion(latestKnown.major, latestKnown.minor) == GradleVersion(current.major, current.minor) -> COMPATIBLE
-    // If the current is later than latestKnown, incompatible. (11)
-    // e.g. current = 7.1.0-dev, latestKnown = 7.0.0-rc01
-    //      current = 7.1.0-dev, latestKnown = 7.0.0-dev
-    //      current = 7.1.0-dev, latestKnown = 7.0.0-alpha01
-    //      current = 7.1.0-alpha01, latestKnown = 7.0.0-rc01
-    //      current = 7.1.0-alpha01, latestKnown = 7.0.0-dev
-    //      current = 7.1.0-alpha01, latestKnown = 7.0.0-alpha01
-    //      current = 7.1.0-rc01, latestKnown = 7.0.0-rc01
-    //      current = 7.1.0-rc01, latestKnown = 7.0.0-dev
-    //      current = 7.1.0-rc01, latestKnown = 7.0.0-alpha01
-    //      current = 7.1.0-rc01, latestKnown = 7.1.0-alpha01
-    //      current = 7.1.0-alpha02, latestKnown = 7.1.0-alpha01
-    current > latestKnown -> AFTER_MAXIMUM
-    // If the current is a preview and the latest known is not a -dev version, incompatible. (4)
-    // e.g. current = 7.1.0-alpha01, latestKnown = 7.1.0-rc01
-    //      current = 7.1.0-alpha01, latestKnown = 7.1.0-alpha02
-    //      current = 7.1.0-alpha01, latestKnown = 7.2.0-rc01
-    //      current = 7.1.0-alpha01, latestKnown = 7.2.0-alpha01
-    (current.previewType == "alpha" || current.previewType == "beta") && !latestKnown.isSnapshot -> DIFFERENT_PREVIEW
-    // If the current is a snapshot (and therefore of an earlier series than latestKnown), incompatible. (3)
-    // e.g. current = 7.1.0-dev, latestKnown = 7.2.0-rc01
-    //      current = 7.1.0-dev, latestKnown = 7.2.0-alpha01
-    //      current = 7.1.0-dev, latestKnown = 7.2.0-dev
-    current.isSnapshot -> DIFFERENT_PREVIEW
-    // Otherwise, compatible. (6)
-    // e.g. current = 7.1.0-rc01, latestKnown = 7.2.0-alpha01
-    //      current = 7.1.0-rc01, latestKnown = 7.2.0-rc01
-    //      current = 7.1.0-rc01, latestKnown = 7.2.0-dev
-    //      current = 7.1.0-rc01, latestKnown = 7.1.0-dev
-    //      current = 7.1.0-alpha01, latestKnown = 7.1.0-dev
-    //      current = 7.1.0-alpha01, latestKnown = 7.2.0-dev
-    else -> COMPATIBLE
+      // If the current is a snapshot and latestKnown is alpha/beta of the same major/minor series, compatible. (1)
+      // e.g. current = 7.1.0-dev, latestKnown = 7.1.0-alpha01
+      current.isSnapshot && (latestKnown.previewType == "alpha" || latestKnown.previewType == "beta") &&
+      GradleVersion(latestKnown.major, latestKnown.minor) == GradleVersion(current.major, current.minor) ->
+        compatibleOrDeprecated// in practice presumably always compatible
+      // If the current is later than latestKnown, incompatible. (11)
+      // e.g. current = 7.1.0-dev, latestKnown = 7.0.0-rc01
+      //      current = 7.1.0-dev, latestKnown = 7.0.0-dev
+      //      current = 7.1.0-dev, latestKnown = 7.0.0-alpha01
+      //      current = 7.1.0-alpha01, latestKnown = 7.0.0-rc01
+      //      current = 7.1.0-alpha01, latestKnown = 7.0.0-dev
+      //      current = 7.1.0-alpha01, latestKnown = 7.0.0-alpha01
+      //      current = 7.1.0-rc01, latestKnown = 7.0.0-rc01
+      //      current = 7.1.0-rc01, latestKnown = 7.0.0-dev
+      //      current = 7.1.0-rc01, latestKnown = 7.0.0-alpha01
+      //      current = 7.1.0-rc01, latestKnown = 7.1.0-alpha01
+      //      current = 7.1.0-alpha02, latestKnown = 7.1.0-alpha01
+      current > latestKnown -> AFTER_MAXIMUM
+      // If the current is a preview and the latest known is not a -dev version, incompatible. (4)
+      // e.g. current = 7.1.0-alpha01, latestKnown = 7.1.0-rc01
+      //      current = 7.1.0-alpha01, latestKnown = 7.1.0-alpha02
+      //      current = 7.1.0-alpha01, latestKnown = 7.2.0-rc01
+      //      current = 7.1.0-alpha01, latestKnown = 7.2.0-alpha01
+      (current.previewType == "alpha" || current.previewType == "beta") && !latestKnown.isSnapshot -> DIFFERENT_PREVIEW
+      // If the current is a snapshot (and therefore of an earlier series than latestKnown), incompatible. (3)
+      // e.g. current = 7.1.0-dev, latestKnown = 7.2.0-rc01
+      //      current = 7.1.0-dev, latestKnown = 7.2.0-alpha01
+      //      current = 7.1.0-dev, latestKnown = 7.2.0-dev
+      current.isSnapshot -> DIFFERENT_PREVIEW
+      // Otherwise, compatible or deprecated. (6)
+      // e.g. current = 7.1.0-rc01, latestKnown = 7.2.0-alpha01
+      //      current = 7.1.0-rc01, latestKnown = 7.2.0-rc01
+      //      current = 7.1.0-rc01, latestKnown = 7.2.0-dev
+      //      current = 7.1.0-rc01, latestKnown = 7.1.0-dev
+      //      current = 7.1.0-alpha01, latestKnown = 7.1.0-dev
+      //      current = 7.1.0-alpha01, latestKnown = 7.2.0-dev
+      else -> compatibleOrDeprecated
+    }
   }

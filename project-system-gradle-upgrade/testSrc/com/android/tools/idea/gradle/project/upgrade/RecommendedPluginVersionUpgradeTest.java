@@ -44,57 +44,64 @@ public class RecommendedPluginVersionUpgradeTest {
       {"2.3.0-alpha1", "2.3.0-dev", false},
       {"1.5.0-beta1", "3.4.0", false},
       {"2.3.0-alpha1", "3.4.0", false},
+      // Test for deprecated AGP versions, which should force (if a prerelease) or recommend (if not).  (Move these to the set
+      // above and change the expectations to false when the minimum version changes, and possibly implement a new set of
+      // deprecated expectations.)
+      {"3.6.0-alpha01", "4.0.0", false},
+      {"3.6.0-beta01", "4.0.0", false},
+      {"3.6.0-rc01", "4.0.0", true},
+      {"3.6.0", "4.0.0", true},
       // We never suggest to upgrade from alpha/beta version to another alpha/beta version.
       // It is handled by force upgrade.
-      {"3.3.0-alpha02", "3.3.0-alpha01", false},
-      {"3.3.0-alpha01", "3.3.0-alpha02", false},
-      {"3.3.0-beta01", "3.3.0-alpha01", false},
-      {"3.3.0-alpha01", "3.3.0-beta01", false},
-      {"3.3.0-beta01", "3.3.0-beta02", false},
-      {"3.4.0-alpha01", "3.3.0-alpha01", false},
-      {"3.4.0-alpha01", "3.3.0-beta01", false},
-      {"3.4.0-beta01", "3.3.0-alpha01", false},
-      {"3.4.0-beta01", "3.3.0-beta01", false},
+      {"4.3.0-alpha02", "4.3.0-alpha01", false},
+      {"4.3.0-alpha01", "4.3.0-alpha02", false},
+      {"4.3.0-beta01", "4.3.0-alpha01", false},
+      {"4.3.0-alpha01", "4.3.0-beta01", false},
+      {"4.3.0-beta01", "4.3.0-beta02", false},
+      {"4.4.0-alpha01", "4.3.0-alpha01", false},
+      {"4.4.0-alpha01", "4.3.0-beta01", false},
+      {"4.4.0-beta01", "4.3.0-alpha01", false},
+      {"4.4.0-beta01", "4.3.0-beta01", false},
       // Don't recommend to upgrade from stable version to newer alpha/beta version.
-      {"3.3.0", "3.3.0-alpha1", false},
-      {"3.3.0", "3.3.0-beta01", false},
-      {"3.3.0", "3.4.0-alpha01", false},
-      {"3.3.0", "3.4.0-beta01", false},
+      {"4.3.0", "4.3.0-alpha1", false},
+      {"4.3.0", "4.3.0-beta01", false},
+      {"4.3.0", "4.4.0-alpha01", false},
+      {"4.3.0", "4.4.0-beta01", false},
       // Never ask for upgrading from dev version to alpha/beta version. Dev version is for internal development only.
-      {"3.3.0-dev", "3.3.0-alpha1", false},
-      {"3.3.0-dev", "3.3.0-beta01", false},
-      {"3.3.0-dev", "3.4.0-alpha01", false},
-      {"3.3.0-dev", "3.4.0-beta01", false},
+      {"4.3.0-dev", "4.3.0-alpha1", false},
+      {"4.3.0-dev", "4.3.0-beta01", false},
+      {"4.3.0-dev", "4.4.0-alpha01", false},
+      {"4.3.0-dev", "4.4.0-beta01", false},
       // Upgrade to dev version. We only ask for upgrading to dev version when major versions are different.
       // (Note: Force upgrade doesn't upgrade to dev version either.)
-      {"3.3.0", "3.3.0-dev", false},
-      {"3.3.0-alpha01", "3.3.0-dev", false},
-      {"3.3.0-beta01", "3.3.0-dev", false},
-      {"3.3.0", "3.4.0-dev", false},
-      {"3.3.0-alpha01", "3.4.0-dev", true},
-      {"3.3.0-beta01", "3.4.0-dev", true},
+      {"4.3.0", "4.3.0-dev", false},
+      {"4.3.0-alpha01", "4.3.0-dev", false},
+      {"4.3.0-beta01", "4.3.0-dev", false},
+      {"4.3.0", "4.4.0-dev", false},
+      {"4.3.0-alpha01", "4.4.0-dev", true},
+      {"4.3.0-beta01", "4.4.0-dev", true},
       // upgrade to stable version.  Upgrades from alpha/beta are forced; upgrades from rc are recommended
-      {"3.4.0-alpha01", "3.3.0", false},
-      {"3.4.0-beta01", "3.3.0", false},
-      {"3.4.0-rc01", "3.3.0", false},
-      {"3.4.0-dev", "3.3.0", false},
-      {"3.4.0", "3.3.0", false},
-      {"3.4.0-alpha01", "3.4.0", false},
-      {"3.4.0-beta01", "3.4.0", false},
-      {"3.4.0-rc01", "3.4.0", true},
-      {"3.4.0-dev", "3.4.0", false},
-      {"3.3.0-rc01", "3.4.0", true},
-      {"3.3.0", "3.4.0", true},
-      {"3.3.0-rc01", "3.3.1", true},
-      {"3.3.0", "3.3.1", true},
-      {"3.3.0", "3.4.0-rc01", true},
-      {"3.3.1", "3.3.0-rc01", false},
-      {"3.3.1", "3.3.0", false},
+      {"4.4.0-alpha01", "4.3.0", false},
+      {"4.4.0-beta01", "4.3.0", false},
+      {"4.4.0-rc01", "4.3.0", false},
+      {"4.4.0-dev", "4.3.0", false},
+      {"4.4.0", "4.3.0", false},
+      {"4.4.0-alpha01", "4.4.0", false},
+      {"4.4.0-beta01", "4.4.0", false},
+      {"4.4.0-rc01", "4.4.0", true},
+      {"4.4.0-dev", "4.4.0", false},
+      {"4.3.0-rc01", "4.4.0", true},
+      {"4.3.0", "4.4.0", true},
+      {"4.3.0-rc01", "4.3.1", true},
+      {"4.3.0", "4.3.1", true},
+      {"4.3.0", "4.4.0-rc01", true},
+      {"4.3.1", "4.3.0-rc01", false},
+      {"4.3.1", "4.3.0", false},
       // Upgrades from unsupported stable version to new stable versions are forced.
-      {"1.5.0", "3.4.0", false},
-      {"2.2.0", "3.4.0", false},
+      {"1.5.0", "4.4.0", false},
+      {"2.2.0", "4.4.0", false},
       // Upgrades from long-ago stable version to new stable versions are recommended.
-      {"3.3.0", "7.0.0", true},
+      {"4.3.0", "8.0.0", true},
     });
   }
 
@@ -111,7 +118,7 @@ public class RecommendedPluginVersionUpgradeTest {
 
   @Test
   public void shouldRecommendUpgrade() {
-    boolean recommended = GradlePluginUpgrade.shouldRecommendUpgrade(myCurrent, myRecommended);
+    boolean recommended = GradlePluginUpgrade.shouldRecommendUpgrade(myCurrent, myRecommended).getUpgrade();
     assertEquals("should recommend upgrade from " + myCurrent + " to " + myRecommended + "?", myRecommendUpgrade, recommended);
   }
 }

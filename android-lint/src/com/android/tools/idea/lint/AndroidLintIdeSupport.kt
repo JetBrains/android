@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
+import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.STRONGLY_RECOMMEND
 import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
 import com.android.tools.idea.gradle.project.upgrade.findPluginInfo
 import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
@@ -222,12 +223,12 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
     val state = computeGradlePluginUpgradeState(current, latestKnown, published)
     return when (state.importance) {
-      RECOMMEND -> state.target
+      RECOMMEND, STRONGLY_RECOMMEND -> state.target
       else -> null
     }
   }
   override fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean {
-    return shouldRecommendPluginUpgrade(project)
+    return shouldRecommendPluginUpgrade(project).upgrade
   }
   override fun updateAgpToLatest(project: Project) {
     ApplicationManager.getApplication().executeOnPooledThread { performRecommendedPluginUpgrade(project) }
