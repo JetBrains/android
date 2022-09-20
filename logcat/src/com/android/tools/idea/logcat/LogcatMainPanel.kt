@@ -492,6 +492,7 @@ internal class LogcatMainPanel(
 
   private fun isLogsMissing(): Boolean {
     return document.immutableCharSequence.isEmpty()
+           && messageBacklog.get().messages.isNotEmpty()
            && !isMissingApplicationIds()
            && headerPanel.filter.isNotEmpty()
   }
@@ -500,9 +501,9 @@ internal class LogcatMainPanel(
   override fun reloadMessages() {
     document.setText("")
     coroutineScope.launch(workerThread) {
-      val filteredMessages = messageProcessor.appendMessages(messageBacklog.get().messages)
+      messageProcessor.appendMessages(messageBacklog.get().messages)
       withContext(uiThread) {
-        noLogsBanner.isVisible = filteredMessages.isEmpty()
+        noLogsBanner.isVisible = isLogsMissing()
       }
     }
   }

@@ -1073,6 +1073,28 @@ class LogcatMainPanelTest {
   }
 
   @Test
+  fun noLogsBanner_doesNotShowIfNoMessagesExist(): Unit = runBlocking {
+    val logcatMainPanel = runInEdtAndGet(::logcatMainPanel)
+    val noLogsBanner = logcatMainPanel.findBanner("All logs entries are hidden by the filter")
+    logcatMainPanel.processMessages(listOf(
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+    ))
+    waitForCondition {
+      logcatMainPanel.editor.document.text.trim() == """
+        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
+      """.trimIndent()
+    }
+    runInEdtAndWait {
+      logcatMainPanel.setFilter("no-match")
+    }
+    waitForCondition { noLogsBanner.isVisible }
+    runInEdtAndWait {
+      logcatMainPanel.clearMessageView()
+    }
+    waitForCondition { !noLogsBanner.isVisible }
+  }
+
+  @Test
   fun projectAppMonitorInstalled() {
     val testDevice = TestDevice("device1", DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
     fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
