@@ -16,8 +16,11 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.intellij.execution.ExecutionTarget;
+import com.intellij.execution.application.ApplicationConfiguration;
+import com.intellij.execution.configurations.LocatableConfigurationBase;
 import com.intellij.execution.configurations.RunConfiguration;
 import icons.StudioIcons;
 import java.util.Collection;
@@ -109,6 +112,8 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
 
   @Override
   public boolean canRun(@NotNull RunConfiguration configuration) {
-    return configuration instanceof AndroidRunConfigurationBase;
+    // LocatableConfigurationBase is parent of both BlazeCommandRunConfiguration (for ASwB) and ComposePreviewRunConfiguration (AS Gradle)
+    // Skip ApplicationConfiguration as its non-Android
+    return configuration instanceof LocatableConfigurationBase && !(configuration instanceof ApplicationConfiguration);
   }
 }

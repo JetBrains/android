@@ -61,7 +61,7 @@ import org.jetbrains.annotations.NotNull;
  * functionality just enough for compose user group to dogfood for now.
  *
  */
-class AndroidLiveLiteralDeployMonitor {
+public class AndroidLiveLiteralDeployMonitor {
 
   // TODO: The logging is overly excessive for now given we have no UI to provide feedback to the user
   // when things go wrong. This will be changed in the final product.
@@ -105,7 +105,7 @@ class AndroidLiveLiteralDeployMonitor {
    *
    * This method mostly create a call back and it is locked to be thread-safe.
    */
-  static Callable<?> getCallback(Project project, String packageName, IDevice device) {
+  public static Callable<?> getCallback(Project project, String packageName, IDevice device) {
     String deviceId = device.getSerialNumber();
     LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(deviceId + "#" + packageName);
 
