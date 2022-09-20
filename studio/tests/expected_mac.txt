@@ -9,6 +9,7 @@ Android Studio Preview.app/Contents/bin/appletviewer.policy
 Android Studio Preview.app/Contents/bin/brokenPlugins.db
 Android Studio Preview.app/Contents/bin/format.sh
 Android Studio Preview.app/Contents/bin/fsnotifier
+Android Studio Preview.app/Contents/bin/game-tools.sh
 Android Studio Preview.app/Contents/bin/helpers/jb_declarative_formatters/__init__.py
 Android Studio Preview.app/Contents/bin/helpers/jb_declarative_formatters/parsers/__init__.py
 Android Studio Preview.app/Contents/bin/helpers/jb_declarative_formatters/parsers/natvis/__init__.py
@@ -53,6 +54,7 @@ Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_string_ut
 Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_utils.py
 Android Studio Preview.app/Contents/bin/ltedit.sh
 Android Studio Preview.app/Contents/bin/printenv
+Android Studio Preview.app/Contents/bin/profiler.sh
 Android Studio Preview.app/Contents/bin/remote-dev-server.sh
 Android Studio Preview.app/Contents/bin/restarter
 Android Studio Preview.app/Contents/bin/studio.svg

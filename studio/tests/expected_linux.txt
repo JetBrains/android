@@ -5,6 +5,7 @@ android-studio/bin/appletviewer.policy
 android-studio/bin/brokenPlugins.db
 android-studio/bin/format.sh
 android-studio/bin/fsnotifier
+android-studio/bin/game-tools.sh
 android-studio/bin/helpers/jb_declarative_formatters/__init__.py
 android-studio/bin/helpers/jb_declarative_formatters/parsers/__init__.py
 android-studio/bin/helpers/jb_declarative_formatters/parsers/natvis/__init__.py
@@ -47,6 +48,7 @@ android-studio/bin/lldb/helpers/renderers/jb_lldb_natvis_loader.py
 android-studio/bin/lldb/helpers/renderers/jb_lldb_string_utils.py
 android-studio/bin/lldb/helpers/renderers/jb_lldb_utils.py
 android-studio/bin/ltedit.sh
+android-studio/bin/profiler.sh
 android-studio/bin/restart.py
 android-studio/bin/studio.png
 android-studio/bin/studio.sh
