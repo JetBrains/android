@@ -560,7 +560,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     })
     WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
     val dumbService = DumbService.getInstance(project)
-    UnindexedFilesUpdater(project).queue(project)
+    UnindexedFilesUpdater(project).queue()
     dumbService.completeJustSubmittedTasks()
     return result
   }
@@ -577,7 +577,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
     WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
     val dumbService = DumbService.getInstance(project)
-    UnindexedFilesUpdater(project).queue(project)
+    UnindexedFilesUpdater(project).queue()
     dumbService.completeJustSubmittedTasks()
   }
 
