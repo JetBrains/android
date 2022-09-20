@@ -16,13 +16,14 @@
 package com.android.tools.idea.nav.safeargs.psi.xml
 
 import com.intellij.navigation.NavigationItem
+import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlTag
 import javax.swing.Icon
 
 sealed class SafeArgsNavItem(private val xmlTag: XmlTagImpl) : NavigationItem by xmlTag
 
-class SafeArgsXmlTag(
+data class SafeArgsXmlTag(
   private val xmlTag: XmlTagImpl,
   private val icon: Icon,
   private val name: String,
@@ -46,5 +47,12 @@ class SafeArgsXmlTag(
 
   override fun isPhysical(): Boolean {
     return false
+  }
+
+  override fun isEquivalentTo(another: PsiElement?): Boolean {
+    val anotherSafeArgsXmlTag = another as? SafeArgsXmlTag ?: return false
+    return xmlTag.isEquivalentTo(xmlTag)
+           && name == anotherSafeArgsXmlTag.name
+           && containerIdentifier == anotherSafeArgsXmlTag.containerIdentifier
   }
 }
