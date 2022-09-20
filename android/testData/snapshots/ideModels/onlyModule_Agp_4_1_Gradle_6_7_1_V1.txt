@@ -272,7 +272,7 @@ MODULE                        : project.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 29.0.2
     IsBaseSplit                   : true
     GroupId                       : project
     AaptOptions
@@ -637,7 +637,7 @@ MODULE                        : project.test
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/test/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project
     AaptOptions
@@ -1521,7 +1521,7 @@ MODULE                        : project.test2
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/test2/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project
     AaptOptions

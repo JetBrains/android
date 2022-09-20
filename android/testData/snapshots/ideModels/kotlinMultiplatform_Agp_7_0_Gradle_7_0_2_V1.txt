@@ -2031,7 +2031,7 @@ MODULE                        : kotlinMultiPlatform.module2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/module2/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : kotlinMultiPlatform
     Namespace                     : com.example.test.multiproject.module2
@@ -2676,7 +2676,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                        - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                        - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                         destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debug
                         jvmDefault                    : disable
                         moduleName                    : module2_debug
@@ -2803,7 +2803,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                        - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                        - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                         destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugAndroidTest
                         - friendPaths                 : <ROOT>/module2/build/tmp/kotlin-classes/debug [-]
                         - friendPaths                 : <ROOT>/module2/build/intermediates/javac/debug/classes [-]
@@ -2921,7 +2921,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                        - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                        - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                         destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugUnitTest
                         - friendPaths                 : <ROOT>/module2/build/tmp/kotlin-classes/debug [-]
                         - friendPaths                 : <ROOT>/module2/build/intermediates/javac/debug/classes [-]

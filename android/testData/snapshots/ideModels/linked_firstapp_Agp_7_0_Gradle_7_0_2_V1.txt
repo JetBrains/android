@@ -442,7 +442,7 @@ MODULE                        : My_First_App.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/firstapp/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : My First App
     Namespace                     : com.example.firstapp
@@ -1748,7 +1748,7 @@ MODULE                        : My_First_App.app
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3-api.jar
                     - classpath                   : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
                     moduleName                    : app_debug
@@ -1813,7 +1813,7 @@ MODULE                        : My_First_App.app
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugAndroidTest
                     - friendPaths                 : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug [-]
                     - friendPaths                 : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
@@ -1883,7 +1883,7 @@ MODULE                        : My_First_App.app
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3-api.jar
                     - classpath                   : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugUnitTest
                     - friendPaths                 : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug [-]
                     - friendPaths                 : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
@@ -1970,7 +1970,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/shared/mysharedlibrary/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : My First App.app
     Namespace                     : com.example.mysharedlibrary
@@ -2759,7 +2759,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
                     - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
                     moduleName                    : mysharedlibrary_debug
@@ -2822,7 +2822,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
                     - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugAndroidTest
                     - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug [-]
                     - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/classes [-]
@@ -2890,7 +2890,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
                     - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugUnitTest
                     - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug [-]
                     - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/classes [-]

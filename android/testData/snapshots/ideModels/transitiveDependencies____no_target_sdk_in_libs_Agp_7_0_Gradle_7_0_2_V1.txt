@@ -530,7 +530,7 @@ MODULE                        : project.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : project
     Namespace                     : com.example.alruiz.transitive_dependencies
@@ -1900,7 +1900,7 @@ MODULE                        : project.library1
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/library1/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project
     Namespace                     : com.example.library1
@@ -2758,7 +2758,7 @@ MODULE                        : project.library2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/library2/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project
     Namespace                     : com.example.library2

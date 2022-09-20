@@ -875,7 +875,7 @@ MODULE                        : MainActivity.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : MainActivity
     Namespace                     : com.example.mainactivity
@@ -1882,7 +1882,7 @@ MODULE                        : MainActivity.app
                     - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/javax.inject-1.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebug
                     jvmDefault                    : disable
                     moduleName                    : app_localDebug
@@ -1940,7 +1940,7 @@ MODULE                        : MainActivity.app
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebugAndroidTest
                     - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/localDebug [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/javac/localDebug/classes [-]
@@ -1991,7 +1991,7 @@ MODULE                        : MainActivity.app
                     - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/javax.inject-1.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/localDebugUnitTest
                     - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/localDebug [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/javac/localDebug/classes [-]
@@ -2243,7 +2243,7 @@ MODULE                        : MainActivity.lib
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : MainActivity
     Namespace                     : com.example.lib
@@ -3448,7 +3448,7 @@ MODULE                        : MainActivity.lib
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
                     - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
                     moduleName                    : lib_debug
@@ -3512,7 +3512,7 @@ MODULE                        : MainActivity.lib
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
                     - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
                     - friendPaths                 : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
@@ -3579,7 +3579,7 @@ MODULE                        : MainActivity.lib
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
                     - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
+                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
                     - friendPaths                 : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]

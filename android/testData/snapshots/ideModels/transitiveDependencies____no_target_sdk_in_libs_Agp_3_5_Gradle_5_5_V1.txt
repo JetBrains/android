@@ -256,7 +256,7 @@ MODULE                        : project.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 28.0.3
     IsBaseSplit                   : true
     AaptOptions
         NameSpacing                   : DISABLED
@@ -1770,7 +1770,7 @@ MODULE                        : project.library1
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/library1/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 28.0.3
     IsBaseSplit                   : false
     AaptOptions
         NameSpacing                   : DISABLED
@@ -2759,7 +2759,7 @@ MODULE                        : project.library2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/library2/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 28.0.3
     IsBaseSplit                   : false
     AaptOptions
         NameSpacing                   : DISABLED

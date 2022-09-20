@@ -633,7 +633,7 @@ MODULE                        : project.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 29.0.2
     IsBaseSplit                   : true
     GroupId                       : project
     AaptOptions
@@ -1993,7 +1993,7 @@ MODULE                        : project.library1
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/library1/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project
     AaptOptions
@@ -2832,7 +2832,7 @@ MODULE                        : project.library2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/library2/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project
     AaptOptions

@@ -16,7 +16,6 @@ extra["versionVal"] = "28.0.0"
 
 android {
     compileSdkVersion(19)
-    buildToolsVersion("19.1.0")
 
     dynamicFeatures = mutableSetOf(":dyn_feature")
 

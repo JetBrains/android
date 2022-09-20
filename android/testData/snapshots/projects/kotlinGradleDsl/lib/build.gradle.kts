@@ -4,7 +4,6 @@ plugins {
 }
 
 android {
-
     compileSdkVersion(27)
 
     defaultConfig {
