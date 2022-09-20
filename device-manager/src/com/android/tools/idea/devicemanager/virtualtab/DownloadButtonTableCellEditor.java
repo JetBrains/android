@@ -15,12 +15,42 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.IconButtonTableCellEditor;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import java.awt.Component;
+import java.util.List;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-final class DeviceIconButtonTableCellEditor extends IconButtonTableCellEditor {
+final class DownloadButtonTableCellEditor extends IconButtonTableCellEditor {
+  private VirtualDevice myDevice;
+  private VirtualDeviceTable myTable;
+
+  DownloadButtonTableCellEditor(@Nullable Project project) {
+    super(DownloadValue.INSTANCE, AllIcons.Actions.Download, "Download system image");
+
+    myButton.addActionListener(event -> {
+      String path = AvdManagerConnection.getRequiredSystemImagePath(myDevice.getAvdInfo());
+      assert path != null;
+
+      DialogWrapper dialog = SdkQuickfixUtils.createDialogForPaths(project, List.of(path));
+
+      if (dialog == null) {
+        return;
+      }
+
+      dialog.show();
+
+      // Multiple AVDs can have the same missing system image, so refresh all
+      myTable.refreshAvds();
+    });
+  }
+
   @Override
   public @NotNull Component getTableCellEditorComponent(@NotNull JTable table,
                                                         @NotNull Object value,
@@ -28,7 +58,9 @@ final class DeviceIconButtonTableCellEditor extends IconButtonTableCellEditor {
                                                         int viewRowIndex,
                                                         int viewColumnIndex) {
     super.getTableCellEditorComponent(table, value, selected, viewRowIndex, viewColumnIndex);
-    myButton.setDefaultIcon(((VirtualDeviceTable)table).getDeviceAt(viewRowIndex).getIcon());
+
+    myTable = (VirtualDeviceTable)table;
+    myDevice = myTable.getDeviceAt(viewRowIndex);
 
     return myButton;
   }
