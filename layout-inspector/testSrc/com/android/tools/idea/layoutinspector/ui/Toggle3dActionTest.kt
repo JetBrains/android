@@ -66,6 +66,9 @@ class Toggle3dActionTest {
   @get:Rule
   val setExecutorRule = PropertySetterRule({ scheduler }, Toggle3dAction::executorFactory)
 
+  @get:Rule
+  val timeRule = PropertySetterRule({ scheduler.currentTimeNanos / 1000000 }, Toggle3dAction::getCurrentTimeMillis)
+
   private val inspectorModel = model {
     view(1) {
       view(2) {

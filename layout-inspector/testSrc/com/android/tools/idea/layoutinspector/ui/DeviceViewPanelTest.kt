@@ -21,7 +21,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
-import com.android.testutils.AssumeUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.PropertySetterRule
@@ -133,6 +132,7 @@ private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST
 class DeviceViewPanelWithFullInspectorTest {
   private val scheduler = VirtualTimeScheduler()
   private val executorRule = PropertySetterRule({ scheduler }, Toggle3dAction::executorFactory)
+  private val timeRule = PropertySetterRule({ scheduler.currentTimeMillis }, Toggle3dAction::getCurrentTimeMillis)
   private val disposableRule = DisposableRule()
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, withDefaultResponse = false)
@@ -152,6 +152,7 @@ class DeviceViewPanelWithFullInspectorTest {
     .around(IconLoaderRule())
     .around(EdtRule())
     .around(executorRule)
+    .around(timeRule)
     .around(disposableRule)!!
 
   // Used by all tests that install command handlers
@@ -173,7 +174,6 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testShowAndClearPerformanceWarnings() {
-    AssumeUtil.assumeNotWindows() // b/246371105
     InspectorClientSettings.isCapturingModeOn = true
 
     installCommandHandlers()
@@ -199,9 +199,20 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isFalse()
 
+    // Toggling to 3D mode will cause an UpdateScreenShotTypeCommand to execute on the device. Be ready to wait for the response.
+    latch = CountDownLatch(1)
+
     // Turn on 3D mode:
     toggle.click()
-    scheduler.advanceBy(5, TimeUnit.SECONDS)
+
+    // Wait for the UpdateScreenShotTypeCommand to finish
+    assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
+    assertThat(lastImageType).isEqualTo(AndroidWindow.ImageType.SKP)
+
+    // Advance past the timeout of the animation
+    scheduler.advanceBy(15, TimeUnit.SECONDS)
+
+    // Verify we are rotated
     assertThat(scheduler.isShutdown).isTrue()
     assertThat(deviceModel.isRotated).isTrue()
     UIUtil.dispatchAllInvocationEvents()

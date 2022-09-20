@@ -67,6 +67,8 @@ class DeviceViewPanelActionsToolbarProvider(
 object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescriptionProvider {
   @VisibleForTesting
   var executorFactory = { Executors.newSingleThreadScheduledExecutor() }
+  @VisibleForTesting
+  var getCurrentTimeMillis = { System.currentTimeMillis() }
 
   override fun actionPerformed(event: AnActionEvent) {
     val model = event.getData(DEVICE_VIEW_MODEL_KEY) ?: return
@@ -78,12 +80,12 @@ object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescripti
     }
     else {
       client?.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
-      val timerStart = System.currentTimeMillis()
+      val timerStart = getCurrentTimeMillis()
       val executor = executorFactory()
       var iteration = 0
       executor.scheduleAtFixedRate(
         {
-          val currentTime = System.currentTimeMillis()
+          val currentTime = getCurrentTimeMillis()
           if (currentTime - timerStart > ROTATION_TIMEOUT) {
             // We weren't able to get the SKP in a reasonable amount of time, so stop waiting.
             executor.shutdown()
