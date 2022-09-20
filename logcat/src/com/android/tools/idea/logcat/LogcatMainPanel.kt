@@ -135,6 +135,7 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
 import java.time.ZoneId
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.BorderFactory
 import javax.swing.GroupLayout
@@ -567,8 +568,9 @@ internal class LogcatMainPanel(
   override fun clearMessageView() {
     coroutineScope.launch(workerThread) {
       val device = connectedDevice.get()
+      val systemMessages = mutableListOf<LogcatMessage>()
       if (device != null) {
-        if (device.sdk != 26) {
+        if (device.sdk == 26) {
           // See http://b/issues/37109298#comment9.
           // TL/DR:
           // On API 26, "logcat -c" will hand for a couple of seconds and then crash any running logcat processes.
@@ -576,19 +578,23 @@ internal class LogcatMainPanel(
           // Theoretically, we could stop the running logcat here before sending "logcat -c" to the device but this is not trivial. And we
           // have to do this for all active Logcat panels listening on this device, not only in the current project but across all projects.
           // A much easier and safer workaround is to not send a "logcat -c" command on this particular API level.
-          logcatService.clearLogcat(device)
-
+          systemMessages.add(LogcatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.clear.skipped")))
+        }
+        else {
+          try {
+            logcatService.clearLogcat(device)
+          }
+          catch (e: TimeoutException) {
+            LOGGER.warn("Timed out executing logcat -c")
+            systemMessages.add(LogcatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.clear.timeout")))
+          }
         }
       }
       messageBacklog.set(MessageBacklog(logcatSettings.bufferSize))
       withContext(uiThread) {
         document.setText("")
         noLogsBanner.isVisible = isLogsMissing()
-        if (connectedDevice.get()?.sdk == 26) {
-          processMessages(listOf(LogcatMessage(
-            SYSTEM_HEADER,
-            "WARNING: Logcat was not cleared on the device itself because of a bug in Android 8.0 (Oreo).")))
-        }
+        processMessages(systemMessages)
       }
     }
   }
