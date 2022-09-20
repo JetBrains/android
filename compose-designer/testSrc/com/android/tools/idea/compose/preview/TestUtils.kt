@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
@@ -142,7 +141,6 @@ internal fun getRepresentationForFile(
       file,
       fixture.editor,
       listOf(previewProvider),
-      AndroidCoroutineScope(fixture.testRootDisposable)
     )
   Disposer.register(fixture.testRootDisposable, multiRepresentationPreview)
 

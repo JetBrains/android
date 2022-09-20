@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.insertText
@@ -32,7 +31,6 @@ import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.UsefulTestCase.assertNotEmpty
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -41,7 +39,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -73,18 +70,20 @@ class MultiRepresentationPreviewTest {
 
   private class UpdatableMultiRepresentationPreview(psiFile: PsiFile,
                                                     editor: Editor,
-                                                    providers: List<PreviewRepresentationProvider>,
-                                                    scope: CoroutineScope) :
-    MultiRepresentationPreview(psiFile, editor, providers, scope) {
+                                                    providers: List<PreviewRepresentationProvider>) :
+    MultiRepresentationPreview(psiFile, editor, providers) {
 
     val currentState: MultiRepresentationPreviewFileEditorState get() = getState(FileEditorStateLevel.FULL)
+
+    fun updateRepresentationsInTestAsync() = updateRepresentationsAsync()
   }
 
   private suspend fun createMultiRepresentation(psiFile: PsiFile,
                                                 editor: Editor,
                                                 providers: List<PreviewRepresentationProvider>,
                                                 initialState: MultiRepresentationPreviewFileEditorState? = MultiRepresentationPreviewFileEditorState()) =
-    UpdatableMultiRepresentationPreview(psiFile, editor, providers, AndroidCoroutineScope(projectRule.testRootDisposable)).apply {
+    UpdatableMultiRepresentationPreview(psiFile, editor, providers).apply {
+      Disposer.register(projectRule.testRootDisposable, this)
       onInit()
       // Simulate initial initialization by IntelliJ of the state loaded from disk
       initialState?.let { setStateAndUpdateRepresentations(it) }
@@ -103,7 +102,7 @@ class MultiRepresentationPreviewTest {
     assertEmpty(multiPreview.representationNames)
     assertEmpty(multiPreview.currentRepresentationName)
 
-    multiPreview.updateRepresentations().join()
+    multiPreview.updateRepresentationsInTestAsync().await()
 
     assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
@@ -120,7 +119,7 @@ class MultiRepresentationPreviewTest {
                                              listOf(),
                                              MultiRepresentationPreviewFileEditorState("for"))
 
-    multiPreview.updateRepresentations().join()
+    multiPreview.updateRepresentationsInTestAsync().await()
 
     assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
@@ -208,7 +207,7 @@ class MultiRepresentationPreviewTest {
     assertEmpty(multiPreview.representationNames)
     assertEmpty(multiPreview.currentRepresentationName)
 
-    multiPreview.updateRepresentations().join()
+    multiPreview.updateRepresentationsInTestAsync().await()
 
     assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
@@ -291,7 +290,7 @@ class MultiRepresentationPreviewTest {
     assertEquals("Accepting", multiPreview.currentState.selectedRepresentationName)
 
     conditionallyAccepting.isAccept = true
-    multiPreview.updateRepresentations().join()
+    multiPreview.updateRepresentationsInTestAsync().await()
 
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting", "ConditionallyAccepting")
 
@@ -301,7 +300,7 @@ class MultiRepresentationPreviewTest {
     assertEquals("ConditionallyAccepting", multiPreview.currentState.selectedRepresentationName)
 
     conditionallyAccepting.isAccept = false
-    multiPreview.updateRepresentations().join()
+    multiPreview.updateRepresentationsInTestAsync().await()
 
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
     UsefulTestCase.assertDoesntContain(multiPreview.representationNames, "ConditionallyAccepting")
@@ -332,7 +331,7 @@ class MultiRepresentationPreviewTest {
         initiallyAcceptingProvider,
         laterAcceptingProvider),
       MultiRepresentationPreviewFileEditorState("initialRepresentation"))
-    multiPreview.updateRepresentations().join()
+    multiPreview.updateRepresentationsInTestAsync().await()
 
     Mockito.verify(initiallyAcceptedRepresentation, never()).registerShortcuts(any())
     Mockito.verify(laterAcceptedRepresentation, never()).registerShortcuts(any())
@@ -343,7 +342,7 @@ class MultiRepresentationPreviewTest {
     Mockito.verify(laterAcceptedRepresentation, never()).registerShortcuts(any())
 
     laterAcceptingProvider.isAccept = true
-    multiPreview.updateRepresentations().join()
+    multiPreview.updateRepresentationsInTestAsync().await()
 
     Mockito.verify(initiallyAcceptedRepresentation).registerShortcuts(shortcutsApplicableComponent)
     Mockito.verify(laterAcceptedRepresentation).registerShortcuts(shortcutsApplicableComponent)
@@ -397,13 +396,13 @@ class MultiRepresentationPreviewTest {
         Representation("Accepting1", state1),
         Representation("Accepting3", state3)
       )))
-    multiPreview.updateRepresentations().join()
+    multiPreview.updateRepresentationsInTestAsync().await()
     assertNull((multiPreview.currentRepresentation as TestPreviewRepresentation).state)
     multiPreview.currentRepresentationName = "Accepting1"
-    multiPreview.updateRepresentations().join()
+    multiPreview.updateRepresentationsInTestAsync().await()
     assertEquals(state1, (multiPreview.currentRepresentation as TestPreviewRepresentation).state)
     multiPreview.currentRepresentationName = "Accepting3"
-    multiPreview.updateRepresentations().join()
+    multiPreview.updateRepresentationsInTestAsync().await()
     assertEquals(state3, (multiPreview.currentRepresentation as TestPreviewRepresentation).state)
   }
 
@@ -432,7 +431,7 @@ class MultiRepresentationPreviewTest {
     assertEquals(1, representation1.nActivations)
     assertEquals(0, representation2.nActivations)
     multiPreview.currentRepresentationName = "Representation2"
-    multiPreview.updateRepresentations().join()
+    multiPreview.updateRepresentationsInTestAsync().await()
     // Previous representation should be de-activated, new one activated
     assertEquals(0, representation1.nActivations)
     assertEquals(1, representation2.nActivations)
@@ -483,7 +482,7 @@ class MultiRepresentationPreviewTest {
         TestPreviewRepresentationProvider("Representation1", true, representation1)
       ),
       MultiRepresentationPreviewFileEditorState("Representation1"))
-    multiPreview.updateRepresentations().join()
+    multiPreview.updateRepresentationsInTestAsync().await()
 
     withContext(uiThread) {
       assertEquals(0, representation1.nCaretNotifications)
@@ -530,7 +529,7 @@ class MultiRepresentationPreviewTest {
 
     // Emulate code change that removed representations and deactivates the preview
     conditionalProvider.isAccept = false
-    multiPreview.updateRepresentations().join()
+    multiPreview.updateRepresentationsInTestAsync().await()
     multiPreview.onDeactivate()
 
     assertNull(multiPreview.currentRepresentation)
@@ -538,7 +537,7 @@ class MultiRepresentationPreviewTest {
 
     // Emulate the code change that re-enables the preview
     conditionalProvider.isAccept = true
-    multiPreview.updateRepresentations().join() // This could reactivate the preview
+    multiPreview.updateRepresentationsInTestAsync().await() // This could reactivate the preview
 
     assertNotNull(multiPreview.currentRepresentation)
     assertNotEmpty(multiPreview.representationNames)
@@ -573,7 +572,6 @@ class MultiRepresentationPreviewTest {
     assertEquals("Accepting", multiPreview.currentState.selectedRepresentationName)
   }
 
-  @Ignore("http://b/240355870")
   @Test
   fun testRepresentationsAreDisposedInTime() = runBlocking {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
@@ -598,18 +596,18 @@ class MultiRepresentationPreviewTest {
     // The first time the coroutine code in updateRepresentations and setStateAndUpdateRepresentations is executed sequentially or with
     // a significant delay between each other. Therefore, we warm them up.
     createMultiRepresentation(sampleFile, myFixture.editor, listOf(), null).also {
-      val job = it.updateRepresentations()
+      val promise = it.updateRepresentationsInTestAsync()
       it.setStateAndUpdateRepresentations(MultiRepresentationPreviewFileEditorState())
-      job.join()
+      promise.await()
       Disposer.dispose(it)
     }
 
     multiPreview = createMultiRepresentation(sampleFile, myFixture.editor, listOf(provider), null)
 
     enabled.set(true)
-    val job = multiPreview.updateRepresentations()
+    val promise = multiPreview.updateRepresentationsInTestAsync()
     multiPreview.setStateAndUpdateRepresentations(MultiRepresentationPreviewFileEditorState())
-    job.join()
+    promise.await()
 
     assertEquals(1, representations.count { !Disposer.isDisposed(it) })
     assertNotNull(multiPreview.currentRepresentation)
