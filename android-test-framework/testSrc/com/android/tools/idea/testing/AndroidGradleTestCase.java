@@ -297,7 +297,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
         // TODO: [VD] a dirty hack to reindex created android project
         IndexingFlag.cleanupProcessedFlag();
         DumbService dumbService = DumbService.getInstance(project);
-        new UnindexedFilesUpdater(project).queue(project);
+        new UnindexedFilesUpdater(project).queue();
         dumbService.completeJustSubmittedTasks();
       }
     });
