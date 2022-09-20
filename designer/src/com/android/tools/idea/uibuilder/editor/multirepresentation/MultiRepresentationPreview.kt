@@ -20,8 +20,9 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.common.editor.DesignFileEditor
+import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.runInSmartReadAction
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.runReadAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -31,7 +32,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.editor.Editor
@@ -47,16 +47,21 @@ import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.MapAnnotation
 import com.intellij.util.xmlb.annotations.Tag
 import icons.StudioIcons
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.locks.ReentrantLock
 import javax.swing.BorderFactory
 import javax.swing.JComponent
+import kotlin.concurrent.withLock
 
 /**
  * Tag name used to persist the multi preview state.
@@ -105,9 +110,9 @@ data class MultiRepresentationPreviewFileEditorState(
  */
 open class MultiRepresentationPreview(psiFile: PsiFile,
                                       private val editor: Editor,
-                                      private val providers: Collection<PreviewRepresentationProvider>,
-                                      private val scope: CoroutineScope) :
-  PreviewRepresentationManager, DesignFileEditor(psiFile.virtualFile!!) {
+                                      private val providers: Collection<PreviewRepresentationProvider>) :
+  PreviewRepresentationManager, DesignFileEditor(psiFile.virtualFile!!), AndroidCoroutinesAware {
+
   private val LOG = Logger.getInstance(MultiRepresentationPreview::class.java)
   /** Id identifying this MultiRepresentationPreview to be used in logging */
   private val instanceId = psiFile.virtualFile.presentableName
@@ -159,15 +164,6 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       }
     }
 
-  private val currentUpdateRepresentationJobLock = Any()
-
-  /**
-   * [Job] of the current [updateRepresentations] operation that is running or null if no [updateRepresentations] is happening.
-   * This ensures that multiple [updateRepresentations] do not run concurrently.
-   */
-  @GuardedBy("currentUpdateRepresentationJobLock")
-  private var currentUpdateRepresentationJob: Job? = null
-
   /**
    * [AtomicBoolean] to track activations.
    * Indicates whether the current preview is active. If false, the preview might be hidden or in the background.
@@ -191,6 +187,47 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       else false
 
       currentRepresentation?.onCaretPositionChanged(event, isModificationTriggered)
+    }
+  }
+
+  private val representationSelectionToolbar: JComponent by lazy {
+    AdtPrimaryPanel(BorderLayout()).apply {
+      border = BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)
+
+      isVisible = false
+      add(createActionToolbar(createActionGroup()))
+    }
+  }
+
+  private class UpdateRepresentationsRequest
+
+  private val updateRepresentationsFlow: MutableStateFlow<UpdateRepresentationsRequest?> =
+    MutableStateFlow(null)
+
+  private val updateCallbacksLock = ReentrantLock()
+  @GuardedBy("updateCallbacksLock")
+  private var allowNewUpdateCallbacks = true
+  @GuardedBy("updateCallbacksLock")
+  private val updateCallbacks: MutableSet<CompletableDeferred<Unit>> = mutableSetOf()
+
+  init {
+    launch(workerThread) {
+      updateRepresentationsFlow.collect { request ->
+        if (request == null) return@collect
+        val callbacks = updateCallbacksLock.withLock { updateCallbacks.toSet() }
+        try {
+          updateRepresentationsImpl()
+        } catch (t: Throwable) {
+          LOG.error("Unexpected error while updating representations", t)
+        } finally {
+          updateCallbacksLock.withLock {
+            updateCallbacks.removeAll(callbacks)
+          }
+          callbacks.forEach {
+            it.complete(Unit)
+          }
+        }
+      }
     }
   }
 
@@ -236,9 +273,9 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     // Calculated new representations
     for (provider in providers.filter { it.displayName !in currentRepresentationsNames }) {
       val representation = provider.createRepresentation (file)
-      Disposer.register(this@MultiRepresentationPreview, representation)
+      if (!Disposer.tryRegister(this@MultiRepresentationPreview, representation)) return
       shortcutsApplicableComponent?.let {
-        invokeLater {
+        launch(uiThread) {
           if (!Disposer.isDisposed(representation)) representation.registerShortcuts(it)
         }
       }
@@ -287,19 +324,21 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   }
 
   /**
-   * Updates the representations and returns a [Job] that will be completed when the operation has executed.
+   * Updates the representations and returns a [Deferred] that will be completed when the update is done. To be used in the derived classes.
    */
-  fun updateRepresentations(): Job = synchronized(currentUpdateRepresentationJobLock) {
-    if (currentUpdateRepresentationJob == null) {
-      currentUpdateRepresentationJob = scope.launch {
-        updateRepresentationsImpl()
-        synchronized(currentUpdateRepresentationJobLock) {
-          currentUpdateRepresentationJob = null
-        }
+  protected fun updateRepresentationsAsync(): Deferred<Unit> {
+    val promise = CompletableDeferred<Unit>()
+    updateCallbacksLock.withLock {
+      if (allowNewUpdateCallbacks) {
+        updateCallbacks.add(promise)
+      } else {
+        return CompletableDeferred(Unit)
       }
     }
-
-    return@synchronized currentUpdateRepresentationJob!!
+    runBlocking {
+      updateRepresentationsFlow.emit(UpdateRepresentationsRequest())
+    }
+    return promise
   }
 
   /**
@@ -307,7 +346,9 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
    */
   @TestOnly
   suspend fun awaitForRepresentationsUpdated() {
-    synchronized(currentUpdateRepresentationJobLock) { currentUpdateRepresentationJob }?.join()
+    updateCallbacksLock.withLock { updateCallbacks.toList() }.forEach {
+      it.await()
+    }
   }
 
   var onRepresentationsUpdated: (() -> Unit)? = null
@@ -337,8 +378,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       }
     }
 
-    // TODO(b/238060362): It should not be allowed to execute it in parallel to other invocations from [updateRepresentations]
-    updateRepresentationsImpl()
+    updateRepresentationsAsync().await()
 
     // If the representation is available, restore
     if (representations.containsKey(state.selectedRepresentationName)) {
@@ -348,7 +388,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
 
   override fun setState(state: FileEditorState) {
     (state as? MultiRepresentationPreviewFileEditorState?)?.let {
-      scope.launch {
+      launch {
         setStateAndUpdateRepresentations(it)
       }
     }
@@ -399,7 +439,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       removeAll()
 
       // We need just a single previewEditor here (any) to retrieve (read) the states and currently selected state
-      parent.representations.keys.forEach {
+      synchronized(parent.representations) { parent.representations.keys }.forEach {
         add(RepresentationOption(it, parent))
       }
       e.presentation.setText(parent.currentRepresentationName, false)
@@ -415,21 +455,12 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     return actionGroup
   }
 
-  private val representationSelectionToolbar: JComponent by lazy {
-    AdtPrimaryPanel(BorderLayout()).apply {
-      border = BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)
-
-      isVisible = false
-      add(createActionToolbar(createActionGroup()))
-    }
-  }
-
   /**
    * Method called before [onActivate] to initialize the representations. This method will only be called once while [onActivate] and
    * [onDeactivate] might be called multiple times.
    */
   suspend fun onInit() {
-    updateRepresentations().join()
+    updateRepresentationsAsync().await()
   }
 
   /**
@@ -459,7 +490,13 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   }
 
   override fun dispose() {
+    updateCallbacksLock.withLock {
+      allowNewUpdateCallbacks = false
+      updateCallbacks.forEach { it.complete(Unit) }
+    }
     onDeactivate()
-    representations.clear()
+    synchronized(representations) {
+      representations.clear()
+    }
   }
 }
