@@ -111,6 +111,17 @@ class DeviceViewContentPanel(
                    (modelLocation.y * viewSettings.scaleFraction).toInt() + (size.height / 2))
     }
 
+  /**
+   * Transform to the center of the panel and apply scale
+   */
+  private val deviceViewContentPanelTransform: AffineTransform
+    get() {
+      return AffineTransform().apply {
+        translate(size.width / 2.0, size.height / 2.0)
+        scale(viewSettings.scaleFraction, viewSettings.scaleFraction)
+      }
+    }
+
   private val emptyText: StatusText = object : StatusText(this) {
     override fun isStatusVisible() = !model.isActive && showEmptyText && deviceModel?.selectedDevice == null
   }
@@ -214,7 +225,8 @@ class DeviceViewContentPanel(
 
       override fun mouseMoved(e: MouseEvent) {
         if (e.isConsumed) return
-        model.hoveredDrawInfo = findTopDrawInfoAt(e.x, e.y).firstOrNull()
+        val modelCoordinates = toModelCoordinates(e.x, e.y)
+        model.hoveredDrawInfo = model.findDrawInfoAt(modelCoordinates.x, modelCoordinates.y).firstOrNull()
         inspectorModel.hoveredNode = model.hoveredDrawInfo?.node?.findFilteredOwner(treeSettings)
       }
     }
@@ -224,7 +236,8 @@ class DeviceViewContentPanel(
     addMouseListener(object : PopupHandler() {
       override fun invokePopup(comp: Component, x: Int, y: Int) {
         if (!pannable.isPanning) {
-          val views = findComponentsAt(x, y)
+          val modelCoordinates = toModelCoordinates(x, y)
+          val views = model.findViewsAt(modelCoordinates.x, modelCoordinates.y)
           showViewContextMenu(views.toList(), inspectorModel, this@DeviceViewContentPanel, x, y)
         }
       }
@@ -261,11 +274,15 @@ class DeviceViewContentPanel(
       ?.let { GotoDeclarationAction.registerCustomShortcutSet(it, this, disposableParent) }
   }
 
-  private fun findComponentsAt(x: Int, y: Int) = model.findViewsAt((x - size.width / 2.0) / viewSettings.scaleFraction,
-                                                                      (y - size.height / 2.0) / viewSettings.scaleFraction)
-
-  private fun findTopDrawInfoAt(x: Int, y: Int) = model.findDrawInfoAt((x - size.width / 2.0) / viewSettings.scaleFraction,
-                                                                       (y - size.height / 2.0) / viewSettings.scaleFraction)
+  /**
+   * Transform panel coordinates to model coordinates.
+   */
+  private fun toModelCoordinates(x: Int, y: Int): Point2D {
+    val originalPoint2D = Point2D.Double(x.toDouble(), y.toDouble())
+    val transformedPoint2D = Point2D.Double()
+    deviceViewContentPanelTransform.inverseTransform(originalPoint2D, transformedPoint2D)
+    return transformedPoint2D
+  }
 
   override fun paint(g: Graphics?) {
     val g2d = g as? Graphics2D ?: return
@@ -274,8 +291,8 @@ class DeviceViewContentPanel(
     g2d.fillRect(0, 0, width, height)
     emptyText.paint(this, g)
     processNotDebuggableText.paint(this, g)
-    g2d.translate(size.width / 2.0, size.height / 2.0)
-    g2d.scale(viewSettings.scaleFraction, viewSettings.scaleFraction)
+
+    g2d.transform = g2d.transform.apply { concatenate(deviceViewContentPanelTransform) }
 
     model.hitRects.forEach { drawImages(g2d, it) }
     model.hitRects.forEach { drawBorders(g2d, it) }
