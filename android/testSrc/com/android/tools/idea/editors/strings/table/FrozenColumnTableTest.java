@@ -15,19 +15,17 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import java.awt.Component;
-import java.awt.Dimension;
+import javax.swing.DefaultRowSorter;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
 
 public final class FrozenColumnTableTest {
   @Rule
@@ -45,11 +43,11 @@ public final class FrozenColumnTableTest {
     scrollableTable.setRowHeight(29);
     scrollableTable.getRowHeight();
 
-    assertEquals(29, frozenColumnTable.getRowHeight());
+    assertThat(frozenColumnTable.getRowHeight()).isEqualTo(29);
   }
 
   @Test
-  public void leIsScrollableEvenWithoutLocales() {
+  public void tableIsScrollableEvenWithoutLocales() {
     Object[][] data = new Object[][] {
       new Object[]{"east", "app/src/main/res", false, "east"},
       new Object[]{"west", "app/src/main/res", false, "west"},
@@ -65,5 +63,24 @@ public final class FrozenColumnTableTest {
     new FakeUi(pane, 1.0, true);
     pane.doLayout();
     assertThat(pane.getVerticalScrollBar().isVisible()).isTrue();
+  }
+
+  @Test
+  public void rowSorting() {
+    FrozenColumnTable<DefaultTableModel> frozenColumnTable = new FrozenColumnTable<>(new DefaultTableModel(1, 4), 2);
+    FrozenColumnTableRowSorter<DefaultTableModel> rowSorter =
+      new FrozenColumnTableRowSorter<>(new DefaultRowSorter<>() {}, frozenColumnTable);
+
+    frozenColumnTable.setRowSorter(rowSorter);
+
+    assertThat(frozenColumnTable.getRowSorter()).isEqualTo(rowSorter);
+    assertThat(frozenColumnTable.getFrozenTable().getRowSorter()).isEqualTo(rowSorter.getFrozenTableRowSorter());
+    assertThat(frozenColumnTable.getScrollableTable().getRowSorter()).isEqualTo(rowSorter.getScrollableTableRowSorter());
+
+    frozenColumnTable.setRowSorter(null);
+
+    assertThat(frozenColumnTable.getRowSorter()).isNull();
+    assertThat(frozenColumnTable.getFrozenTable().getRowSorter()).isNull();
+    assertThat(frozenColumnTable.getScrollableTable().getRowSorter()).isNull();
   }
 }

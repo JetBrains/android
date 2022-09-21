@@ -85,48 +85,6 @@ public final class TranslationsEditorTest {
     editor.getTranslationsEditor().finishLoading();
   }
 
-  // TODO(b/232444069): Test that filters work at the table level and remove these tests.
-  @Test
-  public void filterKeys() throws IOException {
-    importSimpleApplication();
-
-    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
-    FrozenColumnTableFixture table = translationsEditor.getTable();
-
-    translationsEditor.clickFilterKeysComboBoxItem("Show Translatable Keys");
-    assertEquals(Arrays.asList("app_name", "app_name", "hello_world", "action_settings", "cancel"), table.columnAt(KEY_COLUMN));
-
-    translationsEditor.clickFilterKeysComboBoxItem("Show Keys Needing Translations");
-    assertEquals(Arrays.asList("app_name", "app_name", "hello_world", "action_settings", "cancel"), table.columnAt(KEY_COLUMN));
-
-    translationsEditor.clickFilterKeysComboBoxItem("Show Keys Needing a Translation for English (en)");
-    assertEquals(Collections.singletonList("cancel"), table.columnAt(KEY_COLUMN));
-  }
-
-  @Test
-  public void showOnlyHebrew() throws IOException {
-    importSimpleApplication();
-    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
-
-    translationsEditor.clickFilterLocalesComboBoxItem("Show Hebrew (iw)");
-    assertEquals(Collections.singletonList("Hebrew (iw)"), translationsEditor.locales());
-  }
-
-  @Test
-  public void filterByText() throws IOException {
-    importSimpleApplication();
-    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
-
-    translationsEditor.clickFilterKeysComboBoxItem("Filter by Text");
-
-    DialogBuilderFixture dialog = DialogBuilderFixture.find(myGuiTest.robot());
-    new JTextComponentFixture(myGuiTest.robot(), myGuiTest.robot().finder().findByType(dialog.target(), JTextField.class))
-      .enterText("world");
-    dialog.clickOk();
-
-    assertEquals(Collections.singletonList("hello_world"), translationsEditor.getTable().columnAt(KEY_COLUMN));
-  }
-
   @Test
   public void goToDeclaration() throws IOException {
     importSimpleApplication();
