@@ -21,8 +21,8 @@ import com.android.utils.time.TestTimeSource
 import com.android.utils.time.TimeSource
 import com.android.utils.time.TimeSource.TimeMark
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.diagnostic.DefaultLogger
 import com.intellij.openapi.diagnostic.Logger
-import org.apache.log4j.Level
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -508,7 +508,7 @@ class StateMachineTest {
       .inOrder()
   }
 
-  private class FakeLogger : Logger() {
+  private class FakeLogger : DefaultLogger("") {
     val debugLogs: MutableCollection<String> = mutableListOf()
     val warnLogs: MutableCollection<String> = mutableListOf()
 
@@ -531,10 +531,6 @@ class StateMachineTest {
     }
 
     override fun error(message: String, t: Throwable?, vararg details: String?) {
-      throw NotImplementedError()
-    }
-
-    override fun setLevel(level: Level) {
       throw NotImplementedError()
     }
   }

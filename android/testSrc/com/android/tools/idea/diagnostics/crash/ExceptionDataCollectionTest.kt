@@ -30,7 +30,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.replaceService
-import org.apache.log4j.LogManager
 import java.util.Calendar
 import java.util.GregorianCalendar
 
