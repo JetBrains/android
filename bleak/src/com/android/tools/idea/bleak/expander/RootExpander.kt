@@ -28,8 +28,7 @@ class RootExpander: Expander() {
   override fun canPotentiallyGrowIndefinitely(n: Node) = true
 
   override fun expand(n: Node) {
-    val classes = (n.obj as BleakHelper).allLoadedClasses() as List<Class<*>>
-    val classLoaders = classes.map{ it.classLoader }.filterNotNull().toSet() // the bootstrap class loader is represented by null
+    val classLoaders = (n.obj as BleakHelper).allClassLoaders().filterNotNull()
     classLoaders.filterNot { it.javaClass.name == "jdk.internal.reflect.DelegatingClassLoader" }.forEach {
       n.addEdgeTo(it, ObjectLabel(it))
     }

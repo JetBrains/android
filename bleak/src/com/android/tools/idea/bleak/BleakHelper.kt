@@ -17,19 +17,34 @@ package com.android.tools.idea.bleak
 
 import java.util.Vector
 
-interface BleakHelper {
-  fun allLoadedClasses(): Collection<Any>
-  fun pauseThreads()
-  fun resumeThreads()
+abstract class BleakHelper {
+  private val loaderToClasses = mutableMapOf<ClassLoader?, MutableList<Class<*>>>()
+
+  fun allClassLoaders(): Collection<ClassLoader?> {
+    computeLoadedClasses().forEach {
+      val klass = it as Class<*>
+      val loader = klass.classLoader
+      loaderToClasses.computeIfAbsent(loader) { mutableListOf() }.add(klass)
+    }
+    return loaderToClasses.keys
+  }
+
+  fun classesFor(cl: ClassLoader?) = loaderToClasses[cl]
+
+  abstract fun computeLoadedClasses(): Collection<Any>
+  abstract fun pauseThreads()
+  abstract fun resumeThreads()
 }
 
 // non-JNI-based implementation so that at least something can be done without an agent or native code
-class JavaBleakHelper: BleakHelper {
+class JavaBleakHelper: BleakHelper() {
   override fun pauseThreads() {}
   override fun resumeThreads() {}
 
-  // this isn't all the classes, just the ones from this class loader and the system class loader
-  override fun allLoadedClasses(): Collection<Any> {
+  // this isn't all the classes, just the ones from this class loader and the system class loader.
+  // this only works up to JDK 11. In JDK 17, the classes field is obscured from reflective access,
+  // so JniBleakHelper is required.
+  override fun computeLoadedClasses(): Collection<Any> {
     val loaders = listOf(JavaBleakHelper::class.java.classLoader, ClassLoader.getSystemClassLoader()).distinct()
     val classesField = ClassLoader::class.java.getDeclaredField("classes")
     classesField.isAccessible = true
