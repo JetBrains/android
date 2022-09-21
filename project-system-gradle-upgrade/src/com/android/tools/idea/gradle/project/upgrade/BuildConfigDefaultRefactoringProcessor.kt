@@ -48,7 +48,7 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
       The project is configured to generate BuildConfig sources, but those
       generated sources are missing from the project, in the following modules:
       ${moduleNames.descriptionText}.
-      To proceed, execute the "Run gradle sources Gradle tasks" action and refresh
+      To proceed, execute the "Run Generate Sources Gradle Tasks" action and refresh
       the AGP Upgrade Assistant.
     """.trimIndent(),
     helpLinkUrl = "https://developer.android.com/studio/build/gradle-tips#share-custom-fields-and-resource-values-with-your-app-code",
