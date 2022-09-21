@@ -66,10 +66,12 @@ class GridPasteUtilsTest {
       "A1"${tab}"B1 first
       B1 second"
       "A${tab}2"${tab}" ""B2"" "
+      A3${tab}"B""3
     """.trimIndent()
     assertThat(str.splitIntoGrid()).containsExactly(
       listOf("A1", "B1 first\nB1 second"),
-      listOf("A${tab}2", " \"B2\" "))
+      listOf("A${tab}2", " \"B2\" "),
+      listOf("A3", "\"B\"\"3"))
   }
 
   @Test

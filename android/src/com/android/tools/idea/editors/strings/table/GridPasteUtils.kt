@@ -47,7 +47,8 @@ private class Parser(val str: String) {
   private var segmentStart = 0
   private var offset = 0
   private var fillerSellCount = 0
-  private var quotedDelimiterCount = Int.MAX_VALUE
+  private var quotedDelimiterCount = 0
+  private var quotedDelimiterCountAtSegmentStart = 0
   private var maxQuotedDelimiterCount = 0
   /**
    * Determines the set of newline and/or tab characters located inside quoted segments that are
@@ -94,6 +95,7 @@ private class Parser(val str: String) {
     offset = 0
     fillerSellCount = 0
     quotedDelimiterCount = 0
+    quotedDelimiterCountAtSegmentStart = 0
 
     while (offset < str.length) {
       when (val c = str[offset]) {
@@ -120,12 +122,13 @@ private class Parser(val str: String) {
   private fun processDelimiter(delimiter: Char) {
     val wasInsideQuotedSegment = insideQuotedSegment
     if (!insideQuotedSegment || quotedDelimiterCount in alternativeInterpretations) {
-      insideQuotedSegment = false
-      if (offset - segmentStart >= 2 && str[segmentStart] == '"' && str[offset - 1] != '"' && str.containsDelimiter(segmentStart, offset)) {
-        // The segment starts with quote but doesn't end with quote. The delimiters contained in it
-        // should be starting new segments. Reparse the segment ignoring the opening quote.
+      if (insideQuotedSegment && (offset - segmentStart < 2 || str[offset - 1] != '"')) {
+        // The segment was interpreted as quoted, but it doesn't have a closing quote.
+        // The delimiters contained in it should be starting new segments and repeated double
+        // quotes should not be collapsed. Reparse the segment ignoring the opening quote.
         offset = segmentStart - 1
         openingQuoteAccepted = false
+        quotedDelimiterCount = quotedDelimiterCountAtSegmentStart
       }
       else {
         when (delimiter) {
@@ -140,7 +143,9 @@ private class Parser(val str: String) {
         }
         segmentStart = offset + 1
         openingQuoteAccepted = true
+        quotedDelimiterCountAtSegmentStart = quotedDelimiterCount
       }
+      insideQuotedSegment = false
     }
 
     if (wasInsideQuotedSegment) {
@@ -220,15 +225,6 @@ private fun String.isQuoted() =
 
 private fun String.unquote(): String =
   if (isQuoted()) substring(1, length - 1).replace("\"\"", "\"") else this
-
-private fun String.containsDelimiter(start: Int, end: Int): Boolean {
-  for (i in start until end) {
-    when (get(i)) {
-      '\t', '\n' -> return true
-    }
-  }
-  return false
-}
 
 private fun <T> MutableList<T>.expandToSize(desiredSize: Int, value: T) {
   while (size < desiredSize) {
