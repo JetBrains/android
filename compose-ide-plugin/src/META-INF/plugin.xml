@@ -100,7 +100,6 @@
              order="first"/>
 
     <lang.inspectionSuppressor language="kotlin" implementationClass="com.android.tools.compose.ComposeSuppressor"/>
-    <lang.inspectionSuppressor language="Groovy" implementationClass="com.android.tools.compose.ComposeGradleInspectionSuppressor"/>
 
     <postFormatProcessor implementation="com.android.tools.compose.formatting.ComposePostFormatProcessor"/>
 
