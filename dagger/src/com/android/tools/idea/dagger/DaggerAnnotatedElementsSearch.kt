@@ -265,7 +265,7 @@ private fun KtTypeReference.equalsToPsiType(unboxedPsiType: PsiType): Boolean {
   allowAnalysisOnEdt {
     analyze(this) {
       val ktType = this@equalsToPsiType.getKtType()
-      val psiType = ktType.asPsiType(this@equalsToPsiType)
+      val psiType = ktType.asPsiType(this@equalsToPsiType, allowErrorTypes = false)
       return psiType == unboxedPsiType
     }
   }
