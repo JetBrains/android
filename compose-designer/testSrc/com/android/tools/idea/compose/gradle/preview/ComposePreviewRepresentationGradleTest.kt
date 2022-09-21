@@ -287,7 +287,7 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `removing preview makes it disappear without refresh`() {
-    runAndWaitForRefresh(Duration.ofSeconds(30)) {
+    runAndWaitForRefresh {
       // Remove the @Preview from the NavigatablePreview
       runWriteActionAndWait {
         fixture.openFileInEditor(psiMainFile.virtualFile)
@@ -370,7 +370,7 @@ class ComposePreviewRepresentationGradleTest {
       FileDocumentManager.getInstance().saveAllDocuments()
     }
 
-    runAndWaitForRefresh(Duration.ofSeconds(30)) {
+    runAndWaitForRefresh {
       // Annotate DefaultPreview with the new MultiPreview annotation class
       runWriteActionAndWait {
         fixture.openFileInEditor(psiMainFile.virtualFile)
@@ -622,7 +622,7 @@ class ComposePreviewRepresentationGradleTest {
 
     // Now both ComposePreviewRepresentation are active, so modifying otherPreviewsFile
     // should trigger a refresh in the main file representation.
-    runAndWaitForRefresh(Duration.ofSeconds(30)) {
+    runAndWaitForRefresh {
       runWriteActionAndWait {
         fixture.openFileInEditor(otherPreviewsFile.virtualFile)
         // Add a MultiPreview annotation that won't be used
@@ -651,7 +651,7 @@ class ComposePreviewRepresentationGradleTest {
     // so modifying otherPreviewsFile shouldn't trigger a refresh in the later one.
     invokeAndWaitIfNeeded { fixture.openFileInEditor(otherPreviewsFile.virtualFile) }
     assertFailsWith<TimeoutCancellationException> {
-      runAndWaitForRefresh(Duration.ofSeconds(30)) {
+      runAndWaitForRefresh {
         runWriteActionAndWait {
           // Add a MultiPreview annotation that won't be used
           fixture.moveCaret("|@Preview")
