@@ -803,7 +803,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within package private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
             line="103"/>
@@ -811,7 +811,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within package private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
             line="103"/>
@@ -819,7 +819,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within package private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
             line="105"/>
@@ -827,7 +827,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within package private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
             line="105"/>
@@ -835,7 +835,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/common/surface/notifications/DesignSurfaceNotificationProvider.kt"
             line="37"/>
@@ -843,58 +843,10 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/common/surface/notifications/DesignSurfaceNotificationProvider.kt"
             line="37"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/common/surface/Interactable.kt"
-            line="35"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/common/surface/Interactable.kt"
-            line="35"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/common/surface/InteractionHandler.kt"
-            line="235"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/common/surface/InteractionHandler.kt"
-            line="235"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/common/surface/InteractionHandler.kt"
-            line="332"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/common/surface/InteractionHandler.kt"
-            line="332"/>
     </issue>
 
     <issue
@@ -915,7 +867,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within package private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/motion/editor/adapters/MESaveGif.java"
             line="83"/>
@@ -955,26 +907,10 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="654"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="811"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="969"/>
+            line="801"/>
     </issue>
 
     <issue
@@ -1003,7 +939,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/statelist/SelectorMenuAction.kt"
             line="183"/>
@@ -1011,7 +947,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/statelist/SelectorMenuAction.kt"
             line="183"/>
@@ -1019,7 +955,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
             line="582"/>
@@ -1027,7 +963,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
             line="582"/>
@@ -1035,7 +971,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
             line="131"/>
@@ -1043,7 +979,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
             line="131"/>
@@ -1051,7 +987,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
             line="135"/>
@@ -1059,7 +995,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
             line="135"/>
@@ -1067,7 +1003,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
             line="176"/>
@@ -1075,7 +1011,7 @@
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
             line="176"/>
