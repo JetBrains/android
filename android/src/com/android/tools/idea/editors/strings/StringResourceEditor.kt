@@ -13,170 +13,113 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings;
+package com.android.tools.idea.editors.strings
 
-import com.android.tools.idea.res.ResourceNotificationManager;
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
-import com.intellij.ide.structureView.StructureViewBuilder;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorLocation;
-import com.intellij.openapi.fileEditor.FileEditorState;
-import com.intellij.openapi.fileEditor.FileEditorStateLevel;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.UserDataHolderBase;
-import com.intellij.util.ui.JBFont;
-import com.intellij.util.ui.UIUtil;
-import icons.StudioIcons;
-import java.awt.Font;
-import java.beans.PropertyChangeListener;
-import java.util.concurrent.atomic.AtomicBoolean;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-public class StringResourceEditor extends UserDataHolderBase implements FileEditor {
+import com.android.tools.idea.res.ResourceNotificationManager
+import com.intellij.codeHighlighting.BackgroundEditorHighlighter
+import com.intellij.ide.structureView.StructureViewBuilder
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorLocation
+import com.intellij.openapi.fileEditor.FileEditorState
+import com.intellij.openapi.fileEditor.FileEditorStateLevel
+import com.intellij.openapi.util.UserDataHolderBase
+import com.intellij.util.ui.JBFont
+import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
+import org.jetbrains.android.facet.AndroidFacet
+import java.awt.Font
+import java.beans.PropertyChangeListener
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.swing.Icon
+import javax.swing.JComponent
 
-  @NotNull private final StringsVirtualFile myStringsVirtualFile;
-  public static final Icon ICON = StudioIcons.LayoutEditor.Toolbar.LANGUAGE;
-  public static final String NAME = "String Resource Editor";
-
-  private StringResourceViewPanel myPanel;
-  private final ResourceNotificationManager.ResourceChangeListener myResourceChangeListener;
+/**
+ * The editor for string resources and translations.
+ *
+ * This editor is mostly a wrapper around the [StringResourceViewPanel] which holds most of the functionality.
+ */
+class StringResourceEditor(private val file: StringsVirtualFile) : UserDataHolderBase(), FileEditor {
   // We sometimes get extra calls to `selectNotify`. This ensures that we know when
   // those calls represent a real transition.
-  private final AtomicBoolean mySelected = new AtomicBoolean();
-  private @Nullable ResourceNotificationManager.ResourceVersion myResourceVersion = null;
-
-  StringResourceEditor(@NotNull StringsVirtualFile file) {
-    myStringsVirtualFile = file;
-    AndroidFacet facet = myStringsVirtualFile.getFacet();
-    // Post startup activities (such as when reopening last open editors) are run from a background thread
-    UIUtil.invokeAndWaitIfNeeded(() -> myPanel = new StringResourceViewPanel(facet, this));
-    myResourceChangeListener = reason -> {
-      if (reason.contains(ResourceNotificationManager.Reason.RESOURCE_EDIT)) {
-        myPanel.reloadData();
-      }
-    };
-  }
-
-  @NotNull
-  public static Font getFont(@NotNull Font defaultFont) {
-    return JBFont.create(new Font(Font.DIALOG, Font.PLAIN, defaultFont.getSize()), !(defaultFont instanceof JBFont));
-  }
-
-  @NotNull
-  public StringResourceViewPanel getPanel() {
-    return myPanel;
-  }
-
-  @NotNull
-  @Override
-  public JComponent getComponent() {
-    return myPanel.getLoadingPanel();
-  }
-
-  @Nullable
-  @Override
-  public JComponent getPreferredFocusedComponent() {
-    return myPanel.getPreferredFocusedComponent();
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return NAME;
-  }
-
-  @Override
-  public StringsVirtualFile getFile() {
-    return myStringsVirtualFile;
-  }
-
-  @NotNull
-  @Override
-  public FileEditorState getState(@NotNull FileEditorStateLevel level) {
-    return FileEditorState.INSTANCE;
-  }
-
-  @Override
-  public void setState(@NotNull FileEditorState state) {
-  }
-
-  @Override
-  public boolean isModified() {
-    return false;
-  }
-
-  @Override
-  public boolean isValid() {
-    return true;
-  }
-
-  @Override
-  public void selectNotify() {
-    if (mySelected.compareAndSet(false, true)) {
-      addListener();
+  private val selected = AtomicBoolean()
+  private val resourceChangeListener = ResourceNotificationManager.ResourceChangeListener { reason ->
+    if (reason.contains(ResourceNotificationManager.Reason.RESOURCE_EDIT)) {
+      panel.reloadData()
     }
   }
 
-  @Override
-  public void deselectNotify() {
-    if (mySelected.compareAndSet(true, false)) {
-      removeListener();
-    }
+  private var resourceVersion = file.facet.let {
+    ResourceNotificationManager.getInstance(it.module.project).getCurrentVersion(it, /* file = */ null, /* configuration = */ null)
   }
 
-  @Override
-  public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
+  /** The [StringResourceViewPanel] that holds most of the UI. */
+  lateinit var panel: StringResourceViewPanel
+    private set
+
+  init {
+    // Post-startup activities (such as when reopening last open editors) are run from a background thread
+    UIUtil.invokeAndWaitIfNeeded(Runnable { panel = StringResourceViewPanel(file.facet, this) })
   }
 
-  @Override
-  public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
+  override fun getFile() = file
+
+  override fun getComponent(): JComponent = panel.loadingPanel
+
+  override fun getPreferredFocusedComponent(): JComponent = panel.preferredFocusedComponent
+
+  override fun getName() = "String Resource Editor"
+
+  override fun getState(level: FileEditorStateLevel): FileEditorState = FileEditorState.INSTANCE
+
+  override fun setState(state: FileEditorState) {}
+
+  override fun isModified() = false
+
+  override fun isValid() = true
+
+  override fun selectNotify() {
+    if (selected.compareAndSet(false, true)) addListener()
   }
 
-  @Nullable
-  @Override
-  public BackgroundEditorHighlighter getBackgroundHighlighter() {
-    return null;
+  override fun deselectNotify() {
+    if (selected.compareAndSet(true, false)) removeListener()
   }
 
-  @Nullable
-  @Override
-  public FileEditorLocation getCurrentLocation() {
-    return null;
+  override fun addPropertyChangeListener(listener: PropertyChangeListener) {}
+
+  override fun removePropertyChangeListener(listener: PropertyChangeListener) {}
+
+  override fun getBackgroundHighlighter(): BackgroundEditorHighlighter? = null
+
+  override fun getCurrentLocation(): FileEditorLocation? = null
+
+  override fun getStructureViewBuilder(): StructureViewBuilder? = null
+
+  override fun dispose() {}
+
+  override fun toString() = "StringResourceEditor ${panel.facet} ${System.identityHashCode(this)}"
+
+  private fun addListener() {
+    val facet: AndroidFacet = file.facet
+    val latest = ResourceNotificationManager.getInstance(facet.module.project)
+      .addListener(resourceChangeListener, facet, /* file = */ null, /* configuration = */ null)
+    if (resourceVersion != latest) panel.reloadData()
   }
 
-  @Nullable
-  @Override
-  public StructureViewBuilder getStructureViewBuilder() {
-    return null;
+  private fun removeListener() {
+    val facet: AndroidFacet = file.facet
+    val manager = ResourceNotificationManager.getInstance(facet.module.project)
+    resourceVersion = manager.getCurrentVersion(facet, /* file = */ null, /* configuration = */ null)
+    manager.removeListener(resourceChangeListener, facet, /* file = */ null, /* configuration = */ null)
   }
 
-  @Override
-  public void dispose() {
-  }
+  companion object {
+    /** An [Icon] representing the editor. */
+    @JvmField
+    val ICON: Icon = StudioIcons.LayoutEditor.Toolbar.LANGUAGE
 
-  @NotNull
-  @Override
-  public String toString() {
-    return "StringResourceEditor " + myPanel.getFacet() + " " + System.identityHashCode(this);
-  }
-
-  private void addListener() {
-    AndroidFacet facet = myStringsVirtualFile.getFacet();
-    Project project = facet.getModule().getProject();
-    ResourceNotificationManager.ResourceVersion latest = ResourceNotificationManager.getInstance(project)
-      .addListener(myResourceChangeListener, facet, /* file= */ null, /* configuration= */ null);
-    if (myResourceVersion != null && myResourceVersion != latest) {
-      myPanel.reloadData();
-    }
-  }
-
-  private void removeListener() {
-    AndroidFacet facet = myStringsVirtualFile.getFacet();
-    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(facet.getModule().getProject());
-    myResourceVersion = manager.getCurrentVersion(facet, /* file= */ null, /* configuration= */null);
-    manager.removeListener(myResourceChangeListener, facet, /* file= */ null, /* configuration= */ null);
+    /** Creates a font to use for certain components in the editor. */
+    @JvmStatic
+    fun getFont(defaultFont: Font): Font = JBFont.create(Font(Font.DIALOG, Font.PLAIN, defaultFont.size), defaultFont !is JBFont)
   }
 }

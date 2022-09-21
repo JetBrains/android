@@ -13,58 +13,242 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings;
+package com.android.tools.idea.editors.strings
 
-import static org.junit.Assert.assertEquals;
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.res.ResourceNotificationManager
+import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
+import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.util.androidFacet
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.fileEditor.FileEditorState
+import com.intellij.openapi.fileEditor.FileEditorStateLevel
+import com.intellij.openapi.util.Disposer
+import com.intellij.ui.components.JBLoadingPanelListener
+import com.intellij.ui.scale.JBUIScale
+import com.intellij.util.ui.JBFont
+import icons.StudioIcons
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.mockito.ArgumentMatchers.isNull
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
+import java.awt.Font
+import kotlin.test.fail
 
-import com.intellij.ui.scale.JBUIScale;
-import com.intellij.util.ui.JBFont;
-import java.awt.Font;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+/** Tests for the [StringResourceEditor] class. */
+@RunWith(JUnit4::class)
+class StringResourceEditorTest {
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory()
 
-@RunWith(JUnit4.class)
-public final class StringResourceEditorTest {
-  private Font myFont;
-  private float myOldScale;
+  private val font = Font(Font.DIALOG, Font.PLAIN, 12)
+  private val oldScale = JBUIScale.scale(1.0f)
+  private val resourceVersion1: ResourceVersion = mock()
+  private val resourceVersion2: ResourceVersion = mock()
+  private val resourceVersion3: ResourceVersion = mock()
+  private var currentResourceVersion: ResourceVersion = resourceVersion1
+  private val listeners: MutableList<ResourceChangeListener> = mutableListOf()
+  private lateinit var stringsVirtualFile: StringsVirtualFile
+  private lateinit var facet: AndroidFacet
+  private lateinit var editor: StringResourceEditor
+  private lateinit var resourceNotificationManager: ResourceNotificationManager
+  private var reloadsStarted = 0
+  private var reloadsFinished = 0
 
   @Before
-  public void initFont() {
-    myFont = new Font(Font.DIALOG, Font.PLAIN, 12);
-  }
+  fun setUp() {
+    facet = projectRule.module.androidFacet!!
+    resourceNotificationManager = projectRule.mockProjectService(ResourceNotificationManager::class.java)
+    doAnswer {
+      currentResourceVersion
+    }.whenever(resourceNotificationManager).getCurrentVersion(any(), isNull(), isNull())
 
-  @Before
-  public void setScale() {
-    myOldScale = JBUIScale.scale(1);
-    JBUIScale.setUserScaleFactor(2);
+    doAnswer {
+      listeners.add(it.getArgument(0))
+      currentResourceVersion
+    }.whenever(resourceNotificationManager).addListener(any(), eq(facet), isNull(), isNull())
+
+    doAnswer {
+      listeners.remove(it.getArgument(0))
+    }.whenever(resourceNotificationManager).removeListener(any(), eq(facet) , isNull(), isNull())
+
+    JBUIScale.setUserScaleFactor(2.0f)
+    stringsVirtualFile = StringsVirtualFile.getStringsVirtualFile(projectRule.module)!!
+    editor = StringResourceEditor(stringsVirtualFile)
+    verify(resourceNotificationManager).getCurrentVersion(eq(facet), isNull(), isNull())
+    Disposer.register(projectRule.fixture.testRootDisposable, editor);
+
+    editor.panel.loadingPanel.addListener(
+      object: JBLoadingPanelListener {
+        override fun onLoadingStart() { reloadsStarted++ }
+        override fun onLoadingFinish() { reloadsFinished++ }
+      }
+    )
+
   }
 
   @After
-  public void resetScaleToOldValue() {
-    JBUIScale.setUserScaleFactor(myOldScale);
+  fun tearDown() {
+    JBUIScale.setUserScaleFactor(oldScale);
   }
 
   @Test
-  public void getFontScalesFonts() {
-    // Act
-    Font font = StringResourceEditor.getFont(myFont);
-
-    // Assert
-    assertEquals(24, font.getSize());
+  fun file() {
+    assertThat(editor.file).isEqualTo(stringsVirtualFile)
   }
 
   @Test
-  public void getFontDoesntScaleJBFonts() {
-    // Arrange
-    Font font = JBFont.create(myFont);
+  fun panelCreated() {
+    assertThat(editor.panel).isNotNull()
+    assertThat(editor.panel.facet).isEqualTo(facet)
+  }
 
-    // Act
-    font = StringResourceEditor.getFont(font);
+  @Test
+  fun component() {
+    assertThat(editor.component).isEqualTo(editor.panel.loadingPanel)
+  }
 
-    // Assert
-    assertEquals(24, font.getSize());
+  @Test
+  fun preferredFocusedComponent() {
+    assertThat(editor.preferredFocusedComponent).isEqualTo(editor.panel.preferredFocusedComponent)
+  }
+
+  @Test
+  fun state() {
+    FileEditorStateLevel.values().forEach {
+      assertThat(editor.getState(it)).isSameAs(FileEditorState.INSTANCE)
+    }
+
+    // Setting the state should do nothing.
+    editor.setState { _, _ -> fail("Should never be called") }
+
+    FileEditorStateLevel.values().forEach {
+      assertThat(editor.getState(it)).isSameAs(FileEditorState.INSTANCE)
+    }
+  }
+
+  @Test
+  fun isModified() {
+    assertThat(editor.isModified).isFalse()
+  }
+
+  @Test
+  fun isValid() {
+    assertThat(editor.isValid).isTrue()
+  }
+
+  @Test
+  fun backgroundHighlighter() {
+    assertThat(editor.backgroundHighlighter).isNull()
+  }
+
+  @Test
+  fun currentLocation() {
+    assertThat(editor.currentLocation).isNull()
+  }
+
+  @Test
+  fun structureViewBuilder() {
+    assertThat(editor.structureViewBuilder).isNull()
+  }
+  @Test
+  fun toStringCorrect() {
+    assertThat(editor.toString())
+      .isEqualTo("StringResourceEditor ${facet} ${System.identityHashCode(editor)}")
+  }
+
+  @Test
+  fun listenerAddedOnTransition() {
+    editor.selectNotify()  // Should add the listener
+
+    assertThat(listeners).hasSize(1)
+    verify(resourceNotificationManager).addListener(eq(listeners[0]), eq(facet), isNull(), isNull())
+
+    editor.selectNotify()  // Should do nothing
+
+    assertThat(listeners).hasSize(1)
+
+    verifyNoMoreInteractions(resourceNotificationManager)
+
+    // Should not have reloaded the panel, since nothing has changed since we first loaded
+    assertThat(reloadsStarted).isEqualTo(0)
+    assertThat(reloadsFinished).isEqualTo(0)
+  }
+
+  @Test
+  fun listenerRemovedOnTransition() {
+    editor.selectNotify()  // Should add the listener
+
+    assertThat(listeners).hasSize(1)
+    val listener = listeners[0]
+    verify(resourceNotificationManager).addListener(eq(listener), eq(facet), isNull(), isNull())
+
+    editor.deselectNotify()  // Should remove the listener
+
+    assertThat(listeners).hasSize(0)
+    verify(resourceNotificationManager).removeListener(eq(listener), eq(facet), isNull(), isNull())
+    verify(resourceNotificationManager, times(2)).getCurrentVersion(eq(facet), isNull(), isNull())
+
+    editor.deselectNotify()  // Should do nothing
+
+    verifyNoMoreInteractions(resourceNotificationManager)
+  }
+
+  @Test
+  fun panelRefreshedWhenOutOfDate() {
+    currentResourceVersion = resourceVersion2
+
+    editor.selectNotify()  // Should add the listener and reload the panel
+
+    assertThat(reloadsStarted).isEqualTo(1)
+    assertThat(reloadsFinished).isEqualTo(1)
+
+    currentResourceVersion = resourceVersion3
+
+    editor.selectNotify()  // Should do nothing
+
+    assertThat(reloadsStarted).isEqualTo(1)
+    assertThat(reloadsFinished).isEqualTo(1)
+
+    editor.deselectNotify()  // Stores the version
+    editor.selectNotify()  // No updates because nothing changed since we were deselected
+
+    assertThat(reloadsStarted).isEqualTo(1)
+    assertThat(reloadsFinished).isEqualTo(1)
+
+    editor.deselectNotify() // Stores the version
+    currentResourceVersion = resourceVersion1
+    editor.selectNotify()  // Now something has changed since we were deselected, so should reload
+
+    assertThat(reloadsStarted).isEqualTo(2)
+    assertThat(reloadsFinished).isEqualTo(2)
+  }
+
+
+  @Test
+  fun iconIsCorrect() {
+    assertThat(StringResourceEditor.ICON).isEqualTo(StudioIcons.LayoutEditor.Toolbar.LANGUAGE)
+  }
+
+  @Test
+  fun getFontScalesFonts() {
+    assertThat(StringResourceEditor.getFont(font).size).isEqualTo(24)
+  }
+
+  @Test
+  fun getFontDoesNotScaleJBFonts() {
+    assertThat(StringResourceEditor.getFont(JBFont.create(font, false)).size).isEqualTo(12)
   }
 }
