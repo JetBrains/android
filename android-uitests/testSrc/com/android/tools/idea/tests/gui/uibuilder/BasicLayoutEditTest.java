@@ -65,8 +65,12 @@ public class BasicLayoutEditTest {
                                            .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
                                            .getLayoutEditor()
                                            .waitForSurfaceToLoad();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     assertThat(editorFixture.canInteractWithSurface()).isTrue();
+
+    editorFixture.dragComponentToSurface("Buttons", "Button")
+      .waitForRenderToFinish();
 
     editorFixture
       .dragComponentToSurface("Common", "TextView")
@@ -83,10 +87,9 @@ public class BasicLayoutEditTest {
 
     List<NlComponentFixture>  components = editorFixture.getAllComponents();
 
-    assertEquals("Hello world!", components.get(components.size() - 2).getText());
+    assertEquals("Hello world!", components.get(components.size() - 3).getText());
 
-    editorFixture.dragComponentToSurface("Buttons", "Button")
-      .waitForRenderToFinish();
+
 
     String layoutFileContents = guiTest.ideFrame()
                                        .getEditor()

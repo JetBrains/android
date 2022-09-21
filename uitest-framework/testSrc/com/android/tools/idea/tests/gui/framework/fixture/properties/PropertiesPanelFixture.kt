@@ -57,7 +57,7 @@ class PropertiesPanelFixture<P : PropertyItem>(private val propertiesPanel: Prop
     get() = (findHeader()?.components?.firstOrNull() as? SelectedComponentPanelFixture)?.id
 
   fun waitForId(id: String): PropertiesPanelFixture<P> {
-    Wait.seconds(10)
+    Wait.seconds(20)
       .expecting("properties panel to populate for $id currently shown: ${currentId}")
       .until { currentId == id }
     robot.waitForIdle()
