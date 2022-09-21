@@ -19,8 +19,6 @@ com.android.tools.idea.gradle.project.importing.TopLevelModuleFactoryTest
 com.android.tools.idea.gradle.project.model.IdeAndroidProjectImplTest
 com.android.tools.idea.gradle.project.model.ModelSerializationTest
 com.android.tools.idea.gradle.project.sync.GradleTaskListIntegrationTest
-com.android.tools.idea.gradle.project.sync.IdeAndroidProjectIntegrationTest
-com.android.tools.idea.gradle.project.sync.IdeAndroidProjectIntegrationTestCase
 com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtilTest
 com.android.tools.idea.gradle.project.sync.idea.data.IdeaSyncCachesTest
 com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheckTest

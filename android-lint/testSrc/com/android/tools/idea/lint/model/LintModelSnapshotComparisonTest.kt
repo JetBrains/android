@@ -63,7 +63,7 @@ class LintModelSnapshotComparisonTest : SnapshotComparisonTest {
       TestProjectDef(LintTestProject.SIMPLE_APPLICATION),
       TestProjectDef(LintTestProject.BASIC_CMAKE_APP),
       TestProjectDef(LintTestProject.PSD_SAMPLE_GROOVY),
-      TestProjectDef(LintTestProject.MULTI_FLAVOR), // TODO(b/178796251): The snaphot does not include `proguardFiles`.
+      TestProjectDef(LintTestProject.MULTI_FLAVOR), // TODO(b/178796251): The snapshot does not include `proguardFiles`.
       TestProjectDef(LintTestProject.COMPOSITE_BUILD),
       TestProjectDef(LintTestProject.NON_STANDARD_SOURCE_SETS),
       TestProjectDef(LintTestProject.LINKED),

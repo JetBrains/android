@@ -19,8 +19,8 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProjectKt.migratePackageAttribute;
 import static com.android.tools.idea.gradle.util.LastBuildOrSyncServiceKt.emulateStartupActivityForTest;
 import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentUtil.resolveAgpVersionSoftwareEnvironment;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
@@ -33,6 +33,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
@@ -289,6 +290,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                       @Nullable String ndkVersion,
                                       File... localRepos) throws IOException {
     AndroidGradleTests.defaultPatchPreparedProject(projectRoot, agpVersion, ndkVersion, localRepos);
+    GradleVersion agpVersionParsed = GradleVersion.tryParseAndroidGradlePluginVersion(agpVersion.getAgpVersion());
+    if (agpVersionParsed != null && agpVersionParsed.isAtLeastIncludingPreviews(8, 0, 0)) {
+      migratePackageAttribute(projectRoot);
+    }
   }
 
   @NotNull
@@ -401,10 +406,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     });
     assert result != null;
     return result;
-  }
-
-  protected static void createGradleWrapper(@NotNull File projectRoot) throws IOException {
-    AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
   }
 
   protected void importProject() throws Exception {

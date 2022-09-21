@@ -17,6 +17,8 @@ package com.android.tools.idea.instantapp
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.devices.Abi
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidRunConfiguration
@@ -28,15 +30,10 @@ import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.tasks.RunInstantAppTask
 import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.IdeComponents
-import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP_WITH_DYNAMIC_FEATURES
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.mockDeviceFor
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.util.androidFacet
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
@@ -53,9 +50,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
-import java.io.File
 
-class DynamicFeatureInstantAppTest : GradleIntegrationTest {
+class DynamicFeatureInstantAppTest  {
 
   private lateinit var configSettings: RunnerAndConfigurationSettings
   private lateinit var configuration: AndroidRunConfiguration
@@ -85,8 +81,8 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
   }
 
   private fun runTest(test: (Project) -> Unit) {
-    prepareGradleProject(INSTANT_APP_WITH_DYNAMIC_FEATURES, "project").also { println(it) }
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.INSTANT_APP_WITH_DYNAMIC_FEATURES)
+    preparedProject.open { project ->
       configSettings = RunManager.getInstance(project).allSettings.single { it.configuration is AndroidRunConfiguration }
       configuration = configSettings.configuration as AndroidRunConfiguration
 
@@ -199,8 +195,4 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
     override fun stderr(message: String) {
     }
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
 }

@@ -110,7 +110,8 @@ class GradleBuildFileNamespaceRClassesTest : AndroidGradleTestCase() {
     myFixture.enableInspections(AndroidDomInspection())
   }
 
-  fun testManifestActivityXml() {
+  // TODO(b/248089634): Move to told AGP tests or re-implement.
+  fun /*test*/ManifestActivityXml() {
     val virtualFile = project.guessProjectDir()!!.findFileByRelativePath("lib/src/main/AndroidManifest.xml")
     myFixture.openFileInEditor(virtualFile!!)
 

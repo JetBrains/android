@@ -15,26 +15,23 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject.openPreparedTestProject;
+import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
-import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.openPreparedProject;
-import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.MakeBeforeRunTaskProviderTestUtilKt.mockDeviceFor;
-import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
-import static java.util.Collections.emptyList;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.devices.Abi;
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.run.editor.AndroidJavaDebugger;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.android.tools.idea.testing.GradleIntegrationTest;
 import com.android.tools.idea.testing.MakeBeforeRunTaskProviderTestUtilKt;
-import com.android.tools.idea.testing.TestProjectPaths;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
@@ -45,19 +42,15 @@ import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.openapi.diagnostic.Logger;
-import java.io.File;
-import java.util.Collection;
 import java.util.List;
 import kotlin.Unit;
 import one.util.streamex.MoreCollectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.SystemDependent;
-import org.jetbrains.annotations.SystemIndependent;
 import org.junit.Rule;
 import org.junit.Test;
 
-public class AndroidLaunchTaskProviderTest implements GradleIntegrationTest {
+public class AndroidLaunchTaskProviderTest {
   @Rule
   public AndroidProjectRule projectRule = AndroidProjectRule.withAndroidModels();
 
@@ -68,8 +61,8 @@ public class AndroidLaunchTaskProviderTest implements GradleIntegrationTest {
 
   @Test
   public void testDynamicAppApks() throws Exception {
-    prepareGradleProject(this, DYNAMIC_APP, "project");
-    openPreparedProject(this, "project", project -> {
+    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.DYNAMIC_APP);
+    openPreparedTestProject(preparedProject, project -> {
       AndroidFacet androidFacet = AndroidFacet.getInstance(gradleModule(project, ":app"));
       // Prepare
       final boolean debug = true;
@@ -128,23 +121,5 @@ public class AndroidLaunchTaskProviderTest implements GradleIntegrationTest {
       launchTasks.forEach(task -> Logger.getInstance(this.getClass()).info("LaunchTask: " + task));
       return Unit.INSTANCE;
     });
-  }
-
-  @NotNull
-  @Override
-  public @SystemDependent String getBaseTestPath() {
-    return projectRule.fixture.getTempDirPath();
-  }
-
-  @NotNull
-  @Override
-  public @SystemIndependent String getTestDataDirectoryWorkspaceRelativePath() {
-    return TestProjectPaths.TEST_DATA_PATH;
-  }
-
-  @NotNull
-  @Override
-  public Collection<File> getAdditionalRepos() {
-    return emptyList();
   }
 }
