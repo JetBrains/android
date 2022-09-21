@@ -34,7 +34,6 @@ class BuildResultsProtoMessageConverter {
       tasks: Map<String, TaskData>
     ): BuildAnalysisResultsMessage {
       val analyzersDataBuilder = BuildAnalysisResultsMessage.newBuilder()
-      // TODO(b/246728389): Add field for TaskCategoryWarningsAnalyzerResult
       analyzersDataBuilder.requestData = GradleBuildInvokerRequestRequestDataMessageConverter.transform(buildResults.getBuildRequestData())
       analyzersDataBuilder.annotationProcessorsAnalyzerResult = AnnotationProcessorsAnalyzerResultMessageConverter.transform(
         buildResults.getAnnotationProcessorAnalyzerResult()
@@ -57,6 +56,8 @@ class BuildResultsProtoMessageConverter {
         buildResults.getJetifierUsageResult())
       analyzersDataBuilder.downloadsAnalyzerResult = DownloadsAnalyzerResultMessageConverter.transform(
         buildResults.getDownloadsAnalyzerResult())
+      analyzersDataBuilder.taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzerResultConverter.transform(
+        buildResults.getTaskCategoryWarningsAnalyzerResult())
       analyzersDataBuilder.buildSessionID = buildResults.getBuildSessionID()
       analyzersDataBuilder.pluginCache = BuildAnalysisResultsMessage.PluginCache.newBuilder()
         .addAllValues(plugins.values.map(::transformPluginData)).build()
@@ -91,6 +92,7 @@ class BuildResultsProtoMessageConverter {
       val configurationCachingCompatibilityAnalyzerResult = NoDataFromSavedResult
       val jetifierUsageAnalyzerResult = JetifierUsageAnalyzerResultMessageConverter.construct(buildResultsMsg.jetifierUsageAnalyzerResult)
       val downloadAnalyzerResult = DownloadsAnalyzerResultMessageConverter.construct(buildResultsMsg.downloadsAnalyzerResult)
+      val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzerResultConverter.construct(buildResultsMsg.taskCategoryWarningsAnalyzerResult)
       val buildSessionID: String = buildResultsMsg.buildSessionID
       return BuildAnalysisResults(
         buildRequestData = requestData,
@@ -104,8 +106,7 @@ class BuildResultsProtoMessageConverter {
         configurationCachingCompatibilityAnalyzerResult = configurationCachingCompatibilityAnalyzerResult,
         jetifierUsageAnalyzerResult = jetifierUsageAnalyzerResult,
         downloadsAnalyzerResult = downloadAnalyzerResult,
-        // TODO(b/246728389): Add TaskCategoryWarningsAnalyzerResult
-        taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.Result(emptyList()),
+        taskCategoryWarningsAnalyzerResult = taskCategoryWarningsAnalyzerResult,
         buildSessionID = buildSessionID,
         taskMap = tasks,
         pluginMap = plugins

@@ -15,6 +15,7 @@ message BuildAnalysisResultsMessage {
   optional TasksConfigurationIssuesAnalyzerResult tasksConfigurationAnalyzerResult = 7;
   optional JetifierUsageAnalyzerResult jetifierUsageAnalyzerResult = 8;
   optional DownloadsAnalyzerResult downloadsAnalyzerResult = 9;
+  optional TaskCategoryWarningsAnalyzerResult taskCategoryWarningsAnalyzerResult = 10;
   optional string buildSessionID = 11;
   optional TaskCache taskCache = 13;
   optional PluginCache pluginCache = 14;
@@ -296,6 +297,20 @@ message BuildAnalysisResultsMessage {
         SUCCESS = 2;
         MISSED = 3;
       }
+    }
+  }
+
+  message TaskCategoryWarningsAnalyzerResult {
+    repeated BuildAnalyzerTaskCategoryIssue buildAnalyzerTaskCategoryIssues = 1;
+    enum BuildAnalyzerTaskCategoryIssue {
+      UNKNOWN = 0;
+      NON_FINAL_RES_IDS_DISABLED = 1;
+      NON_TRANSITIVE_R_CLASS_DISABLED = 2;
+      RESOURCE_VALIDATION_ENABLED = 3;
+      TEST_SHARDING_DISABLED = 4;
+      RENDERSCRIPT_API_DEPRECATED = 5;
+      AVOID_AIDL_UNNECESSARY_USE = 6;
+      JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR = 7;
     }
   }
 }
