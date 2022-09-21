@@ -2353,6 +2353,7 @@ MODULE                        : kotlinMultiPlatform.app
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
+                        backendThreads                : 1
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -2395,7 +2396,6 @@ MODULE                        : kotlinMultiPlatform.app
                         noJdk                         : true
                         noReflect                     : true
                         noStdlib                      : true
-                        parallelBackendThreads        : 1
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -2500,6 +2500,7 @@ MODULE                        : kotlinMultiPlatform.app
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
+                        backendThreads                : 1
                         - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2-api.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
@@ -2550,7 +2551,6 @@ MODULE                        : kotlinMultiPlatform.app
                         noJdk                         : true
                         noReflect                     : true
                         noStdlib                      : true
-                        parallelBackendThreads        : 1
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -2628,6 +2628,7 @@ MODULE                        : kotlinMultiPlatform.app
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
+                        backendThreads                : 1
                         - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2-api.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
@@ -2678,7 +2679,6 @@ MODULE                        : kotlinMultiPlatform.app
                         noJdk                         : true
                         noReflect                     : true
                         noStdlib                      : true
-                        parallelBackendThreads        : 1
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -2773,6 +2773,7 @@ MODULE                        : kotlinMultiPlatform.app
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
+                        backendThreads                : 1
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -2782,7 +2783,6 @@ MODULE                        : kotlinMultiPlatform.app
                         moduleName                    : app
                         noReflect                     : true
                         noStdlib                      : true
-                        parallelBackendThreads        : 1
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -2860,6 +2860,7 @@ MODULE                        : kotlinMultiPlatform.app
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
+                        backendThreads                : 1
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -2871,7 +2872,6 @@ MODULE                        : kotlinMultiPlatform.app
                         moduleName                    : app
                         noReflect                     : true
                         noStdlib                      : true
-                        parallelBackendThreads        : 1
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -3760,6 +3760,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
+                        backendThreads                : 1
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -3772,7 +3773,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         noJdk                         : true
                         noReflect                     : true
                         noStdlib                      : true
-                        parallelBackendThreads        : 1
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -3881,6 +3881,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
+                        backendThreads                : 1
                         - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2-api.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/junit/junit/4.12/junit-4.12.jar
@@ -3902,7 +3903,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         noJdk                         : true
                         noReflect                     : true
                         noStdlib                      : true
-                        parallelBackendThreads        : 1
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -3993,6 +3993,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
+                        backendThreads                : 1
                         - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2-api.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/junit/junit/4.12/junit-4.12.jar
@@ -4014,7 +4015,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         noJdk                         : true
                         noReflect                     : true
                         noStdlib                      : true
-                        parallelBackendThreads        : 1
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -4113,6 +4113,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
+                        backendThreads                : 1
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -4122,7 +4123,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         moduleName                    : module2
                         noReflect                     : true
                         noStdlib                      : true
-                        parallelBackendThreads        : 1
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -4201,6 +4201,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
+                        backendThreads                : 1
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -4212,7 +4213,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         moduleName                    : module2
                         noReflect                     : true
                         noStdlib                      : true
-                        parallelBackendThreads        : 1
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
