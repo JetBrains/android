@@ -42,4 +42,13 @@ class AndroidSdkTest {
       assertThat(Haxm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS);
     }
   }
+
+  @Test
+  fun `GVM is only compatible on Windows`() {
+    if (SystemInfo.isWindows) {
+      assertThat(Gvm.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS);
+    } else {
+      assertThat(Gvm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS);
+    }
+  }
 }
