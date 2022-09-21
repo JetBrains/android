@@ -15,52 +15,38 @@
  */
 package com.android.tools.idea.editors.strings.action;
 
-import com.android.tools.idea.editors.strings.StringResourceEditor;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.editor.Caret;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.EditorCopyPasteHelper;
-import com.intellij.openapi.editor.actions.BasePasteHandler;
-import com.intellij.openapi.editor.actions.TextComponentEditorAction;
-import com.intellij.openapi.editor.ex.EditorEx;
-import com.intellij.openapi.util.TextRange;
-import java.awt.Component;
-import javax.swing.text.JTextComponent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.editors.strings.StringResourceEditor
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.editor.Caret
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.EditorCopyPasteHelper
+import com.intellij.openapi.editor.actions.BasePasteHandler
+import com.intellij.openapi.editor.actions.TextComponentEditorAction
+import com.intellij.openapi.editor.ex.EditorEx
+import javax.swing.text.JTextComponent
 
 /**
- * This is a copy of {@link com.intellij.openapi.editor.actions.PasteAction} with handling for languages that can't be displayed by the
+ * This is a copy of [com.intellij.openapi.editor.actions.PasteAction] with handling for languages that can't be displayed by the
  * default font.
  */
-public final class TranslationsEditorPasteAction extends TextComponentEditorAction {
-  public TranslationsEditorPasteAction() {
-    super(new Handler());
-    copyShortcutFrom(ActionManager.getInstance().getAction("EditorPaste"));
+ class TranslationsEditorPasteAction : TextComponentEditorAction(Handler()) {
+
+  init {
+    copyShortcutFrom(ActionManager.getInstance().getAction("EditorPaste"))
   }
 
-  private static final class Handler extends BasePasteHandler {
-    @Override
-    public void executeWriteAction(@NotNull Editor editor, @Nullable Caret caret, @Nullable DataContext context) {
+  private class Handler : BasePasteHandler() {
+    override fun executeWriteAction(editor: Editor, caret: Caret?, dataContext: DataContext?) {
       // This stuff is adapted from PasteAction
-      if (myTransferable == null) {
-        editor.putUserData(EditorEx.LAST_PASTED_REGION, null);
-      }
-      else {
-        TextRange[] ranges = EditorCopyPasteHelper.getInstance().pasteTransferable(editor, myTransferable);
-
-        if (ranges != null && ranges.length == 1) {
-          editor.putUserData(EditorEx.LAST_PASTED_REGION, ranges[0]);
+      when(myTransferable) {
+        null -> editor.putUserData(EditorEx.LAST_PASTED_REGION, null)
+        else -> EditorCopyPasteHelper.getInstance().pasteTransferable(editor, myTransferable)?.let {
+          if (it.size == 1) editor.putUserData(EditorEx.LAST_PASTED_REGION, it[0])
         }
       }
-
-      // Make sure the font can display the language
-      Component component = editor.getComponent();
-
-      if (component instanceof JTextComponent) {
-        component.setFont(StringResourceEditor.getFont(component.getFont()));
-      }
+      // Make sure the font can display the language if this is a JTextComponent
+      (editor.component as? JTextComponent)?.apply { font = StringResourceEditor.getFont(font) }
     }
   }
 }

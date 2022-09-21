@@ -54,9 +54,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public final class TranslationsEditorTest {
-  private static final int CHINESE_IN_CHINA_COLUMN = 4;
   private static final int ENGLISH_COLUMN = 5;
-  private static final int HEBREW_COLUMN = 7;
 
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
@@ -200,17 +198,6 @@ public final class TranslationsEditorTest {
     field.enterText("cancel_en");
 
     translationsEditor.waitUntilTableValueAtEquals(cancelEnglishTranslation, "cancel_en");
-  }
-
-  @Test
-  public void translationTextFieldFontCanDisplayPastedHebrew() throws IOException {
-    importSimpleApplication();
-    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
-
-    translationsEditor.getTable().selectCell(translationsEditor.cell("hello_world", "app/src/main/res", HEBREW_COLUMN));
-    myGuiTest.robot().pasteText("יישום פשוט");
-
-    assertEquals(-1, translationsEditor.getTranslationTextField().font().target().canDisplayUpTo("יישום פשוט"));
   }
 
   @Test
