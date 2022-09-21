@@ -181,53 +181,27 @@ class CustomViewPreviewRepresentation(
   override val notificationsState: CustomViewPreviewManager.NotificationsState
     get() = stateTracker.notificationsState
 
-  private val notificationsPanel = NotificationPanel(
-    ExtensionPointName.create<EditorNotifications.Provider<EditorNotificationPanel>>(
-      "com.android.tools.idea.customview.preview.customViewEditorNotificationProvider"))
-
-  private val surface = NlDesignSurface.builder(project, this)
-    .setSceneManagerProvider { surface, model ->
-      NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
-        setShrinkRendering(true)
-      }
-    }.setSupportedActions(CUSTOM_VIEW_SUPPORTED_ACTIONS)
-    .setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false)
-    .build().apply {
-      name = "Custom View"
-    }
-
-  private val actionsToolbar = invokeAndWaitIfNeeded {
-    ActionsToolbar(this@CustomViewPreviewRepresentation, surface)
+  private val view = invokeAndWaitIfNeeded {
+    CustomViewPreviewView(
+      NlDesignSurface.builder(project, this)
+        .setSceneManagerProvider { surface, model ->
+          NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
+            setShrinkRendering(true)
+          }
+        }.setSupportedActions(CUSTOM_VIEW_SUPPORTED_ACTIONS)
+        .setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false),
+      this,
+      project,
+      psiFile
+    )
   }
 
-  private val editorPanel = JPanel(BorderLayout()).apply {
-    add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
-
-    val overlayPanel = object : JPanel() {
-      // Since the overlay panel is transparent, we can not use optimized drawing or it will produce rendering artifacts.
-      override fun isOptimizedDrawingEnabled(): Boolean = false
-    }
-
-    overlayPanel.apply {
-      layout = OverlayLayout(this)
-
-      add(notificationsPanel)
-      add(surface)
-    }
-
-    add(overlayPanel, BorderLayout.CENTER)
-  }
+  private val surface = view.surface
 
   /**
    * [WorkBench] used to contain all the preview elements.
    */
-  private val workbench: WorkBench<DesignSurface<*>> =
-    object : WorkBench<DesignSurface<*>>(project, "Main Preview", null, this), DataProvider {
-      override fun getData(dataId: String): Any? = if (DESIGN_SURFACE.`is`(dataId)) surface else null
-    }.apply {
-      val issuePanelSplitter = IssuePanelSplitter(psiFile.virtualFile, surface, editorPanel)
-      init(issuePanelSplitter, surface, listOf(), false)
-    }
+  private val workbench = view.workbench
 
   @Volatile
   private var lastBuildStartedNanos = 0L
@@ -416,7 +390,7 @@ class CustomViewPreviewRepresentation(
       return
     }
 
-    notificationsPanel.updateNotifications(psiFile.virtualFile, parentEditor, project)
+    view.notificationsPanel.updateNotifications(psiFile.virtualFile, parentEditor, project)
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {
