@@ -77,7 +77,7 @@ class OldAndroidPluginIssueChecker: GradleIssueChecker {
   }
 
   private fun tryToGetUnsupportedGradleMessage(message: String): String? {
-    // Try to prevent updates to versions lower than 4.8.1 since they are not supported by AS 4.2+
+    // Try to prevent updates to versions lower than 4.10 since they are not supported by AS Flamingo+
     val matcher = UNSUPPORTED_GRADLE_VERSION_PATTERN.matcher(message)
     if (matcher.matches()) {
       val minimumVersion = GradleVersion.parse(matcher.group (1))
