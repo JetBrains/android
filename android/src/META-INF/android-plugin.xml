@@ -408,7 +408,6 @@
     <facetType implementation="com.android.tools.idea.apk.ApkFacetType"/>
     <projectService serviceImplementation="com.android.tools.idea.apk.ApkFacetCheckerImpl"
                     serviceInterface="com.android.tools.idea.ApkFacetChecker" />
-    <framework.detector implementation="org.jetbrains.android.facet.AndroidFrameworkDetector"/>
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>
     <postStartupActivity implementation="com.android.tools.idea.stats.CompletionStats$MyStartupActivity"/>
     <completion.contributor language="JAVA"

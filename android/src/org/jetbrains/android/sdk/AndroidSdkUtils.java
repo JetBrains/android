@@ -336,31 +336,6 @@ public final class AndroidSdkUtils {
     ProjectSettingsService.getInstance(module.getProject()).openModuleDependenciesSettings(module, null);
   }
 
-  @Nullable
-  public static Sdk findAppropriateAndroidPlatform(@NotNull IAndroidTarget target, @NotNull AndroidSdkData sdkData, boolean forMaven) {
-    for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
-      String homePath = sdk.getHomePath();
-
-      AndroidSdks androidSdks = AndroidSdks.getInstance();
-      if (homePath != null && androidSdks.isAndroidSdk(sdk)) {
-        AndroidSdkData currentSdkData = getSdkData(homePath);
-
-        if (sdkData.equals(currentSdkData)) {
-          AndroidSdkAdditionalData data = androidSdks.getAndroidSdkAdditionalData(sdk);
-          if (data != null) {
-            IAndroidTarget currentTarget = data.getBuildTarget(currentSdkData);
-            if (currentTarget != null &&
-                target.hashString().equals(currentTarget.hashString()) &&
-                checkSdkRoots(sdk, target, forMaven)) {
-              return sdk;
-            }
-          }
-        }
-      }
-    }
-    return null;
-  }
-
   public static boolean checkSdkRoots(@NotNull Sdk sdk, @NotNull IAndroidTarget target, boolean forMaven) {
     String homePath = sdk.getHomePath();
     if (homePath == null) {
@@ -561,28 +536,6 @@ public final class AndroidSdkUtils {
     while (retry);
 
     return bridge;
-  }
-
-  /**
-   * Refresh the library {@link VirtualFile}s in the given {@link Sdk}.
-   *
-   * After changes to installed Android SDK components, the contents of the {@link Sdk}s do not automatically get refreshed.
-   * The referenced {@link VirtualFile}s can be obsolete, new files may be created, or files may be deleted. The result is that
-   * references to Android classes may not be found in editors.
-   * Removing and adding the libraries effectively refreshes the contents of the IDEA SDK, and references in editors work again.
-   */
-  public static void refreshLibrariesIn(@NotNull Sdk sdk) {
-    VirtualFile[] libraries = sdk.getRootProvider().getFiles(CLASSES);
-
-    SdkModificator sdkModificator = sdk.getSdkModificator();
-    sdkModificator.removeRoots(CLASSES);
-    sdkModificator.commitChanges();
-
-    sdkModificator = sdk.getSdkModificator();
-    for (VirtualFile library : libraries) {
-      sdkModificator.addRoot(library, CLASSES);
-    }
-    sdkModificator.commitChanges();
   }
 
   public static boolean isAndroidSdkManagerEnabled() {
