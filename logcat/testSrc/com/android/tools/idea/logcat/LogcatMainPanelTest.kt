@@ -629,15 +629,17 @@ class LogcatMainPanelTest {
     val logcatService = FakeLogcatService()
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel(logcatService = logcatService, adbSession = fakeAdbSession).also {
-        waitForCondition { it.getConnectedDevice() != null }
+        waitForCondition { it.getConnectedDevice() != null && it.logcatServiceJob != null}
       }
     }
+    // Grab logcatServiceJob now, so we can assert that it was canceled later
+    val logcatServiceJob = logcatMainPanel.logcatServiceJob!!
 
     logcatMainPanel.pauseLogcat()
     waitForCondition { logcatMainPanel.isLogcatPaused() }
 
-    // We can't actually check that it was canceled, but we can check it was set to null
-    assertThat(logcatMainPanel.logcatServiceJob).isNull()
+    assertThat(logcatServiceJob.isCancelled).isTrue()
+    waitForCondition { logcatMainPanel.logcatServiceJob == null }
   }
 
   @Test
