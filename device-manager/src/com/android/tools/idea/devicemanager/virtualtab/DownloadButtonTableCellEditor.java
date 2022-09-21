@@ -44,10 +44,10 @@ final class DownloadButtonTableCellEditor extends IconButtonTableCellEditor {
         return;
       }
 
-      dialog.show();
-
-      // Multiple AVDs can have the same missing system image, so refresh all
-      myTable.refreshAvds();
+      if (dialog.showAndGet()) {
+        // Multiple AVDs can have the same missing system image, so refresh all
+        myTable.refreshAvds();
+      }
 
       fireEditingCanceled();
     });

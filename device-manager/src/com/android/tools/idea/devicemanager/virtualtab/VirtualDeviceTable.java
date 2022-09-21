@@ -23,7 +23,6 @@ import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButt
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.ApiTableCellRenderer;
 import com.android.tools.idea.devicemanager.Device;
-import com.android.tools.idea.devicemanager.DeviceIconButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceTable;
@@ -93,6 +92,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
     initListener();
 
+    setDefaultEditor(DeviceType.class, new DownloadButtonTableCellEditor(project));
     setDefaultEditor(VirtualDevice.State.class, new LaunchOrStopButtonTableCellEditor());
 
     setDefaultEditor(ActivateDeviceFileExplorerWindowValue.class,
@@ -103,7 +103,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     setDefaultEditor(EditValue.class, new EditButtonTableCellEditor(panel));
     setDefaultEditor(PopUpMenuValue.class, new VirtualDevicePopUpMenuButtonTableCellEditor(panel));
 
-    setDefaultRenderer(DeviceType.class, new DeviceIconButtonTableCellRenderer<>(this));
+    setDefaultRenderer(DeviceType.class, new VirtualDeviceIconButtonTableCellRenderer());
     setDefaultRenderer(Device.class, new VirtualDeviceTableCellRenderer());
     setDefaultRenderer(AndroidVersion.class, new ApiTableCellRenderer());
     setDefaultRenderer(Long.class, new SizeOnDiskTableCellRenderer());
@@ -257,7 +257,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   @Override
   public void doLayout() {
     Tables.setWidths(columnModel.getColumn(deviceIconViewColumnIndex()),
-                     DeviceIconButtonTableCellRenderer.getPreferredWidth(this, DeviceType.class));
+                     VirtualDeviceIconButtonTableCellRenderer.getPreferredWidth(this, DeviceType.class));
 
     columnModel.getColumn(deviceViewColumnIndex()).setMinWidth(JBUIScale.scale(200));
 

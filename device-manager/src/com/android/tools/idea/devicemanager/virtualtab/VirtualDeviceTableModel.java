@@ -38,6 +38,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -268,6 +269,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   public boolean isCellEditable(int modelRowIndex, int modelColumnIndex) {
     switch (modelColumnIndex) {
       case DEVICE_ICON_MODEL_COLUMN_INDEX:
+        return myDevices.get(modelRowIndex).getIcon().equals(AllIcons.Actions.Download);
       case DEVICE_MODEL_COLUMN_INDEX:
       case API_MODEL_COLUMN_INDEX:
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
@@ -309,14 +311,15 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
     }
   }
 
+  @SuppressWarnings("DuplicateBranchesInSwitch")
   @Override
   public void setValueAt(@NotNull Object value, int modelRowIndex, int modelColumnIndex) {
     switch (modelColumnIndex) {
       case DEVICE_ICON_MODEL_COLUMN_INDEX:
+        break;
       case DEVICE_MODEL_COLUMN_INDEX:
       case API_MODEL_COLUMN_INDEX:
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
-        // noinspection DuplicateBranchesInSwitch
         assert false : modelColumnIndex;
         break;
       case LAUNCH_OR_STOP_MODEL_COLUMN_INDEX:
