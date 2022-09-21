@@ -118,12 +118,3 @@ class AndroidBinaryResourceFileUsageTypeProvider : UsageTypeProvider {
   }
 }
 
-class AndroidPropertiesUsageType : UsageTypeProvider {
-  companion object {
-    private val ANDROID_PROPERTIES_FILE = UsageType(AndroidBundle.messagePointer("android.usageType.gradle.properties.file"))
-  }
-
-  override fun getUsageType(element: PsiElement): UsageType? {
-    return if (element is PsiFile && element.name == SdkConstants.FN_GRADLE_PROPERTIES) ANDROID_PROPERTIES_FILE else null
-  }
-}
