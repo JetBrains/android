@@ -7,6 +7,7 @@ apply<AppPlugin>()
 apply<KotlinAndroidPluginWrapper>()
 
 configure<AppExtension> {
+    namespace = "com.example.kotlingradle"
     buildToolsVersion("28.0.3")
     compileSdkVersion(28)
 
