@@ -18,9 +18,8 @@ package com.android.tools.idea.file.explorer.toolwindow.mocks
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystemService
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystemServiceListener
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.concurrent.Executor
 
 const val OPERATION_TIMEOUT_MILLIS = 10L
@@ -29,39 +28,18 @@ class MockDeviceFileSystemService(val project: Project, edtExecutor: Executor, t
   : DeviceFileSystemService<DeviceFileSystem> {
 
   val edtExecutor = FutureCallbackExecutor(edtExecutor)
-  private val myListeners: MutableList<DeviceFileSystemServiceListener> = ArrayList()
-  private val myDevices: MutableList<MockDeviceFileSystem> = ArrayList()
 
-  override fun addListener(listener: DeviceFileSystemServiceListener) {
-    myListeners.add(listener)
-  }
-
-  override fun removeListener(listener: DeviceFileSystemServiceListener) {
-    myListeners.remove(listener)
-  }
-
-  val listeners: Array<DeviceFileSystemServiceListener>
-    get() = myListeners.toTypedArray()
-
-  override suspend fun start() {
-    delay(OPERATION_TIMEOUT_MILLIS)
-  }
-
-  override val devices: List<DeviceFileSystem>
-    get() = ArrayList<DeviceFileSystem>(myDevices)
+  override val devices = MutableStateFlow(emptyList<DeviceFileSystem>())
 
   fun addDevice(deviceName: String): MockDeviceFileSystem {
     val device = MockDeviceFileSystem(this, deviceName)
-    myDevices.add(device)
-    myListeners.forEach { it.deviceAdded(device) }
+    devices.value += device
     return device
   }
 
   fun removeDevice(device: MockDeviceFileSystem): Boolean {
-    val removed = myDevices.remove(device)
-    if (removed) {
-      myListeners.forEach { it.deviceRemoved(device) }
-    }
+    val removed = devices.value.contains(device)
+    devices.value -= device
     return removed
   }
 }

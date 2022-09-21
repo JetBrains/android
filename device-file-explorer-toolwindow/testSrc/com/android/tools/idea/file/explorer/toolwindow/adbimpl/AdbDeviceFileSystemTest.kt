@@ -15,26 +15,38 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
-import com.android.ddmlib.IDevice
-import com.android.ddmlib.testing.FakeAdbRule
+import com.android.adblib.AdbSession
+import com.android.adblib.ConnectedDevice
+import com.android.adblib.SOCKET_CONNECT_TIMEOUT_MS
+import com.android.adblib.deviceInfo
+import com.android.adblib.testingutils.CloseablesRule
+import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
+import com.android.adblib.testingutils.FakeAdbServerProvider
+import com.android.adblib.testingutils.TestingAdbSessionHost
 import com.android.fakeadbserver.DeviceFileState
+import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
-import com.android.flags.junit.SetFlagRule
+import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.file.explorer.toolwindow.fs.FileTransferProgress
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.DebugLoggerRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.EmptyRunnable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.TestApplicationManager
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import com.intellij.util.concurrency.AppExecutorUtil
+import java.nio.file.Files
+import java.time.Duration
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.flow.dropWhile
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.After
@@ -44,98 +56,107 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
 import org.junit.rules.TestRule
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
-import java.nio.file.Files
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 
-@RunWith(Parameterized::class)
-class AdbDeviceFileSystemTest(deviceInterfaceLibrary: DeviceInterfaceLibrary) {
-  private lateinit var myParentDisposable: Disposable
-  private lateinit var myFileSystem: AdbDeviceFileSystem
-  private lateinit var myMockDevice: IDevice
-  private lateinit var myCallbackExecutor: ExecutorService
-  private lateinit var deviceState: com.android.fakeadbserver.DeviceState
-
-  val shellCommands = TestShellCommands()
-
-  @get:Rule
-  var thrown = ExpectedException.none()
-
-  @get:Rule
-  val adb = FakeAdbRule()
-    .withDeviceCommandHandler(TestShellCommandHandler(shellCommands))
-    .withDeviceCommandHandler(SyncCommandHandler())
-
-  @get:Rule
-  val enableAdblib = SetFlagRule(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER,
-                                 deviceInterfaceLibrary == DeviceInterfaceLibrary.ADBLIB)
-
-  val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
-  val coroutineScope = CoroutineScope(dispatcher)
-
-  @Before
-  fun setUp() {
-    // AdbLib makes use of ApplicationManager, so we need to set one up.
-    TestApplicationManager.getInstance()
-
-    myParentDisposable = Disposer.newDisposable()
-    myCallbackExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
+class AdbDeviceFileSystemTest {
+  private val myParentDisposable = Disposer.newDisposable()
+  private val myCallbackExecutor =
+    AppExecutorUtil.createBoundedApplicationPoolExecutor(
       "EDT Simulation Thread",
       PooledThreadExecutor.INSTANCE,
       1,
       myParentDisposable
     )
 
-    deviceState = adb.attachDevice(
-      deviceId = "test_device_01", manufacturer = "Google", model = "Pixel 10", release = "8.0", sdk = "31",
-      hostConnectionType = com.android.fakeadbserver.DeviceState.HostConnectionType.USB)
+  private lateinit var myFileSystem: AdbDeviceFileSystem
+  private lateinit var deviceHandle: DeviceHandle
+  private lateinit var connectedDevice: ConnectedDevice
+  private lateinit var deviceState: DeviceState
 
-    setUserIsRoot(false)
+  val shellCommands = TestShellCommands()
 
-    myMockDevice = adb.bridge.devices.single()
+  @JvmField @Rule val thrown = ExpectedException.none()
+
+  @JvmField @Rule val closeables = CloseablesRule()
+
+  val fakeAdb =
+    closeables.register(
+      FakeAdbServerProvider()
+        .installDefaultCommandHandlers()
+        .installDeviceHandler(TestShellCommandHandler(shellCommands))
+        .installDeviceHandler(SyncCommandHandler())
+        .build()
+    )
+  val host = closeables.register(TestingAdbSessionHost())
+  val session =
+    AdbSession.create(
+      host,
+      fakeAdb.createChannelProvider(host),
+      Duration.ofMillis(SOCKET_CONNECT_TIMEOUT_MS)
+    )
+
+  val provisioner = DeviceProvisioner.create(session, emptyList())
+
+  val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
+  val coroutineScope = CoroutineScope(dispatcher)
+
+  @Before
+  fun setUp() {
     val edtExecutor = FutureCallbackExecutor(myCallbackExecutor)
 
-    myFileSystem = AdbDeviceFileSystem(coroutineScope, myMockDevice, edtExecutor, dispatcher)
-    val fileNameGenerator: UniqueFileNameGenerator = object : UniqueFileNameGenerator() {
-      private var myNextId = 0
-      override fun getUniqueFileName(prefix: String, suffix: String): String {
-        return String.format("%s%d%s", prefix, myNextId++, suffix)
+    // AdbLib makes use of ApplicationManager, so we need to set one up.
+    TestApplicationManager.getInstance()
+
+    fakeAdb.start()
+    deviceState =
+      fakeAdb.connectDevice(
+        deviceId = "test_device_01",
+        manufacturer = "Google",
+        deviceModel = "Pixel 10",
+        release = "8.0",
+        sdk = "31",
+        hostConnectionType = DeviceState.HostConnectionType.USB
+      )
+    deviceState.deviceStatus = DeviceState.DeviceStatus.ONLINE
+
+    setUserIsRoot(false)
+    deviceHandle =
+      runBlockingWithTimeout(Duration.ofSeconds(5)) {
+        provisioner.devices.dropWhile { it.isEmpty() }.first().first()
       }
-    }
+
+    connectedDevice = checkNotNull(deviceHandle.state.connectedDevice)
+
+    myFileSystem = AdbDeviceFileSystem(deviceHandle, connectedDevice, edtExecutor, dispatcher)
+    val fileNameGenerator: UniqueFileNameGenerator =
+      object : UniqueFileNameGenerator() {
+        private var myNextId = 0
+        override fun getUniqueFileName(prefix: String, suffix: String): String {
+          return String.format("%s%d%s", prefix, myNextId++, suffix)
+        }
+      }
     UniqueFileNameGenerator.setInstanceOverride(fileNameGenerator)
   }
 
   @After
   fun cleanUp() {
+    fakeAdb.close()
     Disposer.dispose(myParentDisposable)
     UniqueFileNameGenerator.setInstanceOverride(null)
   }
 
-  @Test
-  fun test_FileSystem_Has_DeviceName() {
+   @Test
+   fun test_FileSystem_Has_DeviceName() {
     // Prepare
     TestDevices.NEXUS_7_API23.addCommands(shellCommands)
 
     // Act/Assert
-    assertThat(myFileSystem.name).isEqualTo(myMockDevice.name)
-  }
-
-  @Test
-  fun test_FileSystem_Is_Device() {
-    // Prepare
-    TestDevices.NEXUS_7_API23.addCommands(shellCommands)
-
-    // Act/Assert
-    assertThat(myFileSystem.device).isEqualTo(myMockDevice)
-    assertThat(myFileSystem.isDevice(myMockDevice)).isTrue()
-  }
+    assertThat(myFileSystem.name).isEqualTo(deviceHandle.state.properties.title())
+   }
 
   @Test
   fun test_FileSystem_Exposes_DeviceState() {
-    assertThat(myMockDevice.state.toString()).isEqualTo(myFileSystem.deviceState.toString())
+    assertThat(connectedDevice.deviceInfo.deviceState.toString())
+      .isEqualTo(myFileSystem.deviceState.toString())
   }
 
   @Test
@@ -324,7 +345,6 @@ class AdbDeviceFileSystemTest(deviceInterfaceLibrary: DeviceInterfaceLibrary) {
     val tempFile = FileUtil.createTempFile("localFile", "tmp").toPath()
     Files.write(tempFile, ByteArray(1024))
 
-
     // Act
     val totalBytesRef = AtomicReference<Long>()
     val result = dataEntry.uploadFile(tempFile, object : FileTransferProgress {
@@ -336,6 +356,7 @@ class AdbDeviceFileSystemTest(deviceInterfaceLibrary: DeviceInterfaceLibrary) {
         return false
       }
     })
+
     // Ensure all progress callbacks have been executed
     myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
 
@@ -371,6 +392,7 @@ class AdbDeviceFileSystemTest(deviceInterfaceLibrary: DeviceInterfaceLibrary) {
         return false
       }
     })
+
     // Ensure all progress callbacks have been executed
     myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
 
@@ -395,17 +417,19 @@ class AdbDeviceFileSystemTest(deviceInterfaceLibrary: DeviceInterfaceLibrary) {
     val totalBytesRef = AtomicReference<Long>()
     assertThrows(AdbShellCommandException::class.java, "cp: /system/build.prop: Read-only file system") {
       runBlocking {
-        dataEntry.uploadFile(tempFile, "build.prop", object : FileTransferProgress {
-          override fun progress(currentBytes: Long, totalBytes: Long) {
-            totalBytesRef.set(totalBytes)
-          }
+        dataEntry.uploadFile(tempFile, "build.prop",
+          object : FileTransferProgress {
+            override fun progress(currentBytes: Long, totalBytes: Long) {
+              totalBytesRef.set(totalBytes)
+            }
 
-          override fun isCancelled(): Boolean {
-            return false
-          }
-        })
+            override fun isCancelled(): Boolean {
+              return false
+            }
+          })
       }
     }
+
     // Ensure all progress callbacks have been executed
     myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
 
@@ -482,13 +506,6 @@ class AdbDeviceFileSystemTest(deviceInterfaceLibrary: DeviceInterfaceLibrary) {
     const val OWNER_READABLE = 4 shl 6
     const val UNREADABLE = 0
 
-    @SuppressWarnings("unused")
-    @JvmStatic
-    @Parameterized.Parameters(name="{0}")
-    fun data(): Array<Any?> = arrayOf(DeviceInterfaceLibrary.DDMLIB, DeviceInterfaceLibrary.ADBLIB)
-
-    @JvmField
-    @ClassRule
-    val ourLoggerRule: TestRule = DebugLoggerRule()
+    @JvmField @ClassRule val ourLoggerRule: TestRule = DebugLoggerRule()
   }
 }

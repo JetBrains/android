@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
-import com.android.ddmlib.IDevice
+import com.android.adblib.ConnectedDevice
+import com.android.adblib.DeviceSelector
+import com.android.adblib.serialNumber
 
-fun IDevice.toDebugString(): String {
-  return "$name ($serialNumber) - $state"
-}
+val ConnectedDevice.selector
+  get() = DeviceSelector.fromSerialNumber(serialNumber)

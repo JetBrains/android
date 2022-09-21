@@ -24,7 +24,6 @@ import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbPathUtil
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileEntry
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystemService
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystemServiceListener
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceState
 import com.android.tools.idea.file.explorer.toolwindow.fs.DownloadProgress
 import com.android.tools.idea.file.explorer.toolwindow.fs.FileTransferProgress
@@ -61,6 +60,7 @@ import com.intellij.util.ExceptionUtil
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.time.withTimeout
@@ -108,12 +108,10 @@ class DeviceExplorerController(
   private val loadingNodesAlarms = Alarm()
   private val transferringNodesAlarms = Alarm()
   private val loadingChildrenAlarms = Alarm()
-  private val setupJob = CompletableDeferred<Unit>()
   private var longRunningOperationTracker: LongRunningOperationTracker? = null
 
   init {
     Disposer.register(project, this)
-    service.addListener(ServiceListener())
     view.addListener(ViewListener())
     project.putUserData(KEY, this)
   }
@@ -131,14 +129,9 @@ class DeviceExplorerController(
   fun setup() {
     scope.launch {
       view.setup()
-      view.startRefresh("Initializing ADB")
+      view.startRefresh("Refreshing list of devices")
       try {
-        service.start()
-        setupJob.complete(Unit)
-        refreshDeviceList(null)
-      } catch (t: Throwable) {
-        view.reportErrorRelatedToService(service, "Error initializing ADB", t)
-        setupJob.completeExceptionally(t)
+        trackServiceChanges()
       } finally {
         view.stopRefresh()
       }
@@ -151,36 +144,12 @@ class DeviceExplorerController(
 
   fun selectActiveDevice(serialNumber: String) {
     scope.launch {
-      // This is called shortly after setup; wait for setup to complete
-      setupJob.await()
+      cancelOrMoveToBackgroundPendingOperations()
 
       when (val device = model.devices.find { it.deviceSerialNumber == serialNumber }) {
-        null -> refreshDeviceList(serialNumber)
+        null -> reportErrorFindingDevice("Unable to find device with serial number $serialNumber. Please retry.")
         else -> setActiveDevice(device)
       }
-    }
-  }
-
-  private suspend fun refreshDeviceList(serialNumberToSelect: String?) {
-    cancelOrMoveToBackgroundPendingOperations()
-    view.startRefresh("Refreshing list of devices")
-    try {
-      val devices = service.devices
-      model.removeAllDevices()
-      devices.forEach { model.addDevice(it) }
-      if (devices.isEmpty()) {
-        view.showNoDeviceScreen()
-      } else if (serialNumberToSelect != null) {
-        when (val device = model.devices.find { it.deviceSerialNumber == serialNumberToSelect }) {
-          null -> reportErrorFindingDevice("Unable to find device with serial number $serialNumberToSelect. Please retry.")
-          else -> setActiveDevice(device)
-        }
-      }
-    } catch (t: Throwable) {
-      model.removeAllDevices()
-      view.reportErrorRelatedToService(service, "Error refreshing list of devices", t)
-    } finally {
-      view.stopRefresh()
     }
   }
 
@@ -195,35 +164,17 @@ class DeviceExplorerController(
     cancelOrMoveToBackgroundPendingOperations()
     model.activeDevice = device
     trackAction(DeviceExplorerEvent.Action.DEVICE_CHANGE)
-    refreshActiveDevice(device)
+    updateActiveDeviceState(device, device.deviceState)
   }
 
-  private suspend fun deviceStateUpdated(device: DeviceFileSystem) {
-    if (device != model.activeDevice) {
-      return
-    }
-
-    // Refresh the active device view only if the device state has changed,
-    // for example from offline -> online.
-    val newState = device.deviceState
-    val lastKnownState = model.getActiveDeviceLastKnownState(device)
-    if (newState == lastKnownState) {
-      return
-    }
-    model.setActiveDeviceLastKnownState(device)
-    refreshActiveDevice(device)
-  }
-
-  private suspend fun refreshActiveDevice(device: DeviceFileSystem) {
-    if (device != model.activeDevice) {
-      return
-    }
-    if (device.deviceState != DeviceState.ONLINE) {
-      val message = when (device.deviceState) {
+  /** Updates the view and tree model to reflect the given device and state. */
+  private suspend fun updateActiveDeviceState(device: DeviceFileSystem, state: DeviceState) {
+    if (state != DeviceState.ONLINE) {
+      val message = when (state) {
         DeviceState.UNAUTHORIZED, DeviceState.OFFLINE ->
           "Device is pending authentication: please accept debugging session on the device"
         else ->
-          String.format("Device is not online (%s)", device.deviceState)
+          String.format("Device is not online (%s)", state)
       }
       view.reportMessageRelatedToDevice(device, message)
       model.setActiveDeviceTreeModel(device, null, null)
@@ -336,26 +287,31 @@ class DeviceExplorerController(
     return model.activeDevice != null
   }
 
-  @UiThread
-  private inner class ServiceListener : DeviceFileSystemServiceListener {
-    override fun serviceRestarted() {
-      scope.launch {
-        refreshDeviceList(null)
+
+  private fun trackServiceChanges() = scope.launch(uiThread) {
+    val devices = mutableSetOf<DeviceFileSystem>()
+    service.devices.collect { newDevices ->
+      (devices - newDevices).forEach {
+        devices.remove(it)
+        model.removeDevice(it)
       }
-    }
 
-    override fun deviceAdded(device: DeviceFileSystem) {
-      model.addDevice(device)
-    }
+      for (device in newDevices) {
+        if (devices.add(device)) {
+          model.addDevice(device)
+          device.scope.launch(uiThread) {
+            device.deviceStateFlow.collect { state ->
+              model.updateDevice(device)
+              if (device == model.activeDevice) {
+                updateActiveDeviceState(device, state)
+              }
+            }
+          }
+        }
+      }
 
-    override fun deviceRemoved(device: DeviceFileSystem) {
-      model.removeDevice(device)
-    }
-
-    override fun deviceUpdated(device: DeviceFileSystem) {
-      scope.launch {
-        model.updateDevice(device)
-        deviceStateUpdated(device)
+      if (newDevices.isEmpty()) {
+        view.showNoDeviceScreen()
       }
     }
   }

@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.fs
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.StateFlow
+
 /**
  * Abstraction over the file system of a single device.
  */
 interface DeviceFileSystem {
   /**
-   * The device name
+   * The device name. Not for display; only used to construct a directory to download files into.
    */
   val name: String
 
@@ -32,7 +35,12 @@ interface DeviceFileSystem {
   /**
    * The device state, as defined by [DeviceState]
    */
+  val deviceStateFlow: StateFlow<DeviceState>
+
   val deviceState: DeviceState
+    get() = deviceStateFlow.value
+
+  val scope: CoroutineScope
 
   /**
    * Returns the root [DeviceFileEntry] of the device. The returned directory

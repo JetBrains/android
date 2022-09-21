@@ -24,12 +24,15 @@ import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceState
 import com.android.tools.idea.file.explorer.toolwindow.fs.FileTransferProgress
 import com.android.tools.idea.file.explorer.toolwindow.mocks.MockDeviceFileEntry.Companion.createRoot
 import com.intellij.openapi.util.text.StringUtil
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.min
 
 class MockDeviceFileSystem(val service: MockDeviceFileSystemService, override val name: String) : DeviceFileSystem {
@@ -44,8 +47,11 @@ class MockDeviceFileSystem(val service: MockDeviceFileSystemService, override va
   var rootDirectoryError: Throwable? = null
   var uploadError: Throwable? = null
 
-  override val deviceState: DeviceState
-    get() = DeviceState.ONLINE
+  override fun toString() = "MockDevice-$name"
+
+  override val deviceStateFlow = MutableStateFlow(DeviceState.ONLINE)
+
+  override val scope = CoroutineScope(EmptyCoroutineContext)
 
   override suspend fun rootDirectory(): DeviceFileEntry {
     delay(OPERATION_TIMEOUT_MILLIS)

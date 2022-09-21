@@ -15,33 +15,38 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
+import com.android.adblib.AdbSession
+import com.android.adblib.ConnectedDevice
+import com.android.adblib.SOCKET_CONNECT_TIMEOUT_MS
+import com.android.adblib.connectedDevicesTracker
+import com.android.adblib.testingutils.CloseablesRule
+import com.android.adblib.testingutils.FakeAdbServerProvider
+import com.android.adblib.testingutils.TestingAdbSessionHost
 import com.android.ddmlib.DdmPreferences
-import com.android.ddmlib.IDevice
 import com.android.ddmlib.ShellCommandUnresponsiveException
-import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
-import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbFileListingEntry.EntryKind
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.TestApplicationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
-import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import java.time.Duration
 import java.util.concurrent.TimeoutException
 import java.util.function.Consumer
 
-@RunWith(Parameterized::class)
-class AdbFileListingTest(private val deviceInterfaceLibrary: DeviceInterfaceLibrary) {
-  private lateinit var device: IDevice
+class AdbFileListingTest {
+  private val deviceName = "Test Device"
+  private lateinit var device: ConnectedDevice
   private lateinit var deviceState: com.android.fakeadbserver.DeviceState
 
   private val commands = TestShellCommands()
@@ -49,13 +54,20 @@ class AdbFileListingTest(private val deviceInterfaceLibrary: DeviceInterfaceLibr
   @get:Rule
   var thrown = ExpectedException.none()
 
-  @get:Rule
-  val adb = FakeAdbRule()
-    .withDeviceCommandHandler(TestShellCommandHandler(commands))
-    .withDeviceCommandHandler(SyncCommandHandler())
+  @JvmField
+  @Rule
+  val closeables = CloseablesRule()
 
-  @get:Rule
-  val enableAdblib = SetFlagRule(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER, deviceInterfaceLibrary == DeviceInterfaceLibrary.ADBLIB)
+  val fakeAdb = closeables.register(FakeAdbServerProvider()
+                                      .installDeviceHandler(TestShellCommandHandler(commands))
+                                      .installDeviceHandler(SyncCommandHandler())
+                                      .buildDefault())
+  val host = closeables.register(TestingAdbSessionHost())
+  val session = AdbSession.create(
+    host,
+    fakeAdb.createChannelProvider(host),
+    Duration.ofMillis(SOCKET_CONNECT_TIMEOUT_MS)
+  )
 
   private val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
   private val scope = CoroutineScope(dispatcher)
@@ -75,11 +87,16 @@ class AdbFileListingTest(private val deviceInterfaceLibrary: DeviceInterfaceLibr
     originalTimeout = DdmPreferences.getTimeOut()
     DdmPreferences.setTimeOut(5_000)
 
-    deviceState = adb.attachDevice(
-      deviceId = "test_device_01", manufacturer = "Google", model = "Pixel 10", release = "8.0", sdk = "31",
+    fakeAdb.start()
+    deviceState = fakeAdb.connectDevice(
+      deviceId = "test_device_01", manufacturer = "Google", deviceModel = "Pixel 10", release = "8.0", sdk = "31",
       hostConnectionType = com.android.fakeadbserver.DeviceState.HostConnectionType.USB)
 
-    device = adb.bridge.devices.single()
+    device = runBlocking {
+      withTimeout(Duration.ofSeconds(5).toMillis()) {
+        session.connectedDevicesTracker.connectedDevices.first { it.isNotEmpty() }.first()
+      }
+    }
   }
 
   @After
@@ -91,7 +108,7 @@ class AdbFileListingTest(private val deviceInterfaceLibrary: DeviceInterfaceLibr
   fun test_Nexus7Api23_GetRoot() = runBlocking {
     // Prepare
     TestDevices.NEXUS_7_API23.addCommands(commands)
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, device), dispatcher)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
     val root = fileListing.root
@@ -108,16 +125,13 @@ class AdbFileListingTest(private val deviceInterfaceLibrary: DeviceInterfaceLibr
     // Prepare
     TestDevices.NEXUS_7_API23.addCommands(commands)
     commands.addError("ls -al /" + TestDevices.COMMAND_ERROR_CHECK_SUFFIX, ShellCommandUnresponsiveException())
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, device), dispatcher)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
     val root = fileListing.root
 
     // Assert
-    thrown.expect(when (deviceInterfaceLibrary) {
-      DeviceInterfaceLibrary.DDMLIB -> ShellCommandUnresponsiveException::class.java
-      DeviceInterfaceLibrary.ADBLIB -> TimeoutException::class.java
-    })
+    thrown.expect(TimeoutException::class.java)
     fileListing.getChildren(root)
   }
 
@@ -125,7 +139,7 @@ class AdbFileListingTest(private val deviceInterfaceLibrary: DeviceInterfaceLibr
   fun test_Nexus7Api23_GetRootChildren(): Unit = runBlocking {
     // Prepare
     TestDevices.NEXUS_7_API23.addCommands(commands)
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, device), dispatcher)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
     val root = fileListing.root
@@ -187,7 +201,7 @@ class AdbFileListingTest(private val deviceInterfaceLibrary: DeviceInterfaceLibr
   fun test_Nexus7Api23_IsDirectoryLink(): Unit = runBlocking {
     // Prepare
     TestDevices.NEXUS_7_API23.addCommands(commands)
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, device), dispatcher)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
     val root = fileListing.root
@@ -207,7 +221,7 @@ class AdbFileListingTest(private val deviceInterfaceLibrary: DeviceInterfaceLibr
   fun test_EmulatorApi25_GetRoot(): Unit = runBlocking {
     // Prepare
     TestDevices.NEXUS_7_API23.addCommands(commands)
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, device), dispatcher)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
     val root = fileListing.root
@@ -224,16 +238,13 @@ class AdbFileListingTest(private val deviceInterfaceLibrary: DeviceInterfaceLibr
     // Prepare
     TestDevices.EMULATOR_API25.addCommands(commands)
     commands.addError("su 0 sh -c 'ls -al /'" + TestDevices.COMMAND_ERROR_CHECK_SUFFIX, ShellCommandUnresponsiveException())
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, device), dispatcher)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
     val root = fileListing.root
 
     // Assert
-    thrown.expect(when (deviceInterfaceLibrary) {
-                    DeviceInterfaceLibrary.DDMLIB -> ShellCommandUnresponsiveException::class.java
-                    DeviceInterfaceLibrary.ADBLIB -> TimeoutException::class.java
-                  })
+    thrown.expect(TimeoutException::class.java)
     fileListing.getChildren(root)
   }
 
@@ -241,7 +252,7 @@ class AdbFileListingTest(private val deviceInterfaceLibrary: DeviceInterfaceLibr
   fun test_EmulatorApi25_GetRootChildren(): Unit = runBlocking {
     // Prepare
     TestDevices.EMULATOR_API25.addCommands(commands)
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, device), dispatcher)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
     val root = fileListing.root
@@ -303,7 +314,7 @@ class AdbFileListingTest(private val deviceInterfaceLibrary: DeviceInterfaceLibr
   @Test
   fun whenLsEscapes(): Unit = runBlocking {
     TestDevices.addWhenLsEscapesCommands(commands)
-    val listing = AdbFileListing(device, AdbDeviceCapabilities(scope, device), dispatcher)
+    val listing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
     val dir = AdbFileListingEntry(
       "/sdcard/dir",
       EntryKind.DIRECTORY,
@@ -321,7 +332,7 @@ class AdbFileListingTest(private val deviceInterfaceLibrary: DeviceInterfaceLibr
   @Test
   fun whenLsDoesNotEscape(): Unit = runBlocking {
     TestDevices.addWhenLsDoesNotEscapeCommands(commands)
-    val listing = AdbFileListing(device, AdbDeviceCapabilities(scope, device), dispatcher)
+    val listing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
     val dir = AdbFileListingEntry(
       "/sdcard/dir",
       EntryKind.DIRECTORY,
@@ -340,7 +351,7 @@ class AdbFileListingTest(private val deviceInterfaceLibrary: DeviceInterfaceLibr
   fun test_EmulatorApi25_IsDirectoryLink(): Unit = runBlocking {
     // Prepare
     TestDevices.EMULATOR_API25.addCommands(commands)
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, device), dispatcher)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
     val root = fileListing.root

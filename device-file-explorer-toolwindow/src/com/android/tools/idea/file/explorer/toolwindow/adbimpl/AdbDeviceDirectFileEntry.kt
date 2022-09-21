@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
+import com.android.adblib.AdbFailResponseException
 import com.android.ddmlib.SyncException
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileEntry
 import com.android.tools.idea.file.explorer.toolwindow.fs.FileTransferProgress
 import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.nio.file.Path
 
 /**
@@ -62,8 +64,8 @@ class AdbDeviceDirectFileEntry(
     //       download the file via a temp. directory using the "su 0" user.
     try {
       fileSystem.adbFileTransfer.downloadFile(myEntry, localPath, progress)
-    } catch (syncException: SyncException) {
-      if (isSyncPermissionError(syncException) && isDeviceSuAndNotRoot()) {
+    } catch (syncException: IOException) {
+      if (syncException is AdbFailResponseException && isDeviceSuAndNotRoot()) {
         fileSystem.adbFileTransfer.downloadFileViaTempLocation(fullPath, size, localPath, progress, null)
       } else {
         throw syncException

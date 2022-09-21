@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.fs
 
+import kotlinx.coroutines.flow.StateFlow
+
 /**
  * Abstraction over ADB devices and their corresponding file system.
  *
@@ -24,16 +26,8 @@ package com.android.tools.idea.file.explorer.toolwindow.fs
  * thread.
  */
 interface DeviceFileSystemService<S : DeviceFileSystem> {
-  fun addListener(listener: DeviceFileSystemServiceListener)
-  fun removeListener(listener: DeviceFileSystemServiceListener)
-
-  /**
-   * Starts the service, usually after registering one or more [DeviceFileSystemServiceListener].
-   */
-  suspend fun start()
-
   /**
    * Returns the list of currently known devices.
    */
-  val devices: List<S>
+  val devices: StateFlow<List<DeviceFileSystem>>
 }

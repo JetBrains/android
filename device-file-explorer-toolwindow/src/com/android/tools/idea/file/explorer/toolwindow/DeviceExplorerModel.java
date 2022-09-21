@@ -34,7 +34,6 @@ public class DeviceExplorerModel {
   @NotNull private final List<DeviceExplorerModelListener> myListeners = new ArrayList<>();
   @NotNull private final List<DeviceFileSystem> myDevices = new ArrayList<>();
   @Nullable private DeviceFileSystem myActiveDevice;
-  @Nullable private DeviceState myActiveDeviceLastKnownState;
   @Nullable private DefaultTreeModel myTreeModel;
   @Nullable private DefaultTreeSelectionModel myTreeSelectionModel;
 
@@ -50,24 +49,8 @@ public class DeviceExplorerModel {
 
   public void setActiveDevice(@Nullable DeviceFileSystem activeDevice) {
     myActiveDevice = activeDevice;
-    myActiveDeviceLastKnownState = (activeDevice == null ? null : activeDevice.getDeviceState());
     myListeners.forEach(x -> x.activeDeviceChanged(myActiveDevice));
     setActiveDeviceTreeModel(activeDevice, null, null);
-  }
-
-  @Nullable
-  public DeviceState getActiveDeviceLastKnownState(@NotNull DeviceFileSystem device) {
-    if (!Objects.equals(device, myActiveDevice)) {
-      return null;
-    }
-    return myActiveDeviceLastKnownState;
-  }
-
-  public void setActiveDeviceLastKnownState(@NotNull DeviceFileSystem device) {
-    if (!Objects.equals(device, myActiveDevice)) {
-      return;
-    }
-    myActiveDeviceLastKnownState = device.getDeviceState();
   }
 
   @Nullable
@@ -118,13 +101,6 @@ public class DeviceExplorerModel {
       return;
     myListeners.forEach(l -> l.deviceRemoved(device));
     myDevices.remove(device);
-  }
-
-  public void removeAllDevices() {
-    myDevices.clear();
-    setActiveDevice(null);
-    setActiveDeviceTreeModel(null, null, null);
-    myListeners.forEach(DeviceExplorerModelListener::allDevicesRemoved);
   }
 
   public void updateDevice(@NotNull DeviceFileSystem device) {

@@ -22,10 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface DeviceExplorerModelListener {
-  /**
-   * All devices were removed, for example during a service restart
-   */
-  void allDevicesRemoved();
 
   /**
    * A new device has been discovered, e.g. attached to a USB port.

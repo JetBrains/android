@@ -15,18 +15,23 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
-import com.android.ddmlib.testing.FakeAdbRule
+import com.android.adblib.AdbSession
+import com.android.adblib.SOCKET_CONNECT_TIMEOUT_MS
+import com.android.adblib.connectedDevicesTracker
+import com.android.adblib.testingutils.CloseablesRule
+import com.android.adblib.testingutils.FakeAdbServerProvider
+import com.android.adblib.testingutils.TestingAdbSessionHost
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
-import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.adb.AdbShellCommandException
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.DebugLoggerRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.TestApplicationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.Before
 import org.junit.ClassRule
@@ -35,21 +40,29 @@ import org.junit.Test
 import org.junit.rules.ExpectedException
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import java.time.Duration
 
 @RunWith(Parameterized::class)
-class AdbFileOperationsTest(deviceInterfaceLibrary: DeviceInterfaceLibrary, private val testDevice: TestDevices) {
+class AdbFileOperationsTest(private val testDevice: TestDevices) {
   @get:Rule
   val thrown = ExpectedException.none()
 
   val shellCommands = TestShellCommands()
 
-  @get:Rule
-  val adb = FakeAdbRule()
-    .withDeviceCommandHandler(TestShellCommandHandler(shellCommands))
-    .withDeviceCommandHandler(SyncCommandHandler())
+  @JvmField
+  @Rule
+  val closeables = CloseablesRule()
 
-  @get:Rule
-  val enableAdblib = SetFlagRule(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER, deviceInterfaceLibrary == DeviceInterfaceLibrary.ADBLIB)
+  val fakeAdb = closeables.register(FakeAdbServerProvider()
+                                      .installDefaultCommandHandlers()
+                                      .installDeviceHandler(TestShellCommandHandler(shellCommands))
+                                      .installDeviceHandler(SyncCommandHandler())
+                                      .build().start())
+  val host = closeables.register(TestingAdbSessionHost())
+  val session = closeables.register(AdbSession.create(
+    host,
+    fakeAdb.createChannelProvider(host),
+    Duration.ofMillis(SOCKET_CONNECT_TIMEOUT_MS)))
 
   val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
   val scope = CoroutineScope(dispatcher)
@@ -63,12 +76,17 @@ class AdbFileOperationsTest(deviceInterfaceLibrary: DeviceInterfaceLibrary, priv
   private fun setupMockDevice(): AdbFileOperations {
     testDevice.addCommands(shellCommands)
 
-    val deviceState = adb.attachDevice(
-      deviceId = "test_device_01", manufacturer = "Google", model = "Pixel 10", release = "8.0", sdk = "31",
+    fakeAdb.connectDevice(
+      deviceId = "test_device_01", manufacturer = "Google", deviceModel = "Pixel 10", release = "8.0", sdk = "31",
       hostConnectionType = DeviceState.HostConnectionType.USB)
 
-    val device = adb.bridge.devices.single()
-    return AdbFileOperations(device, AdbDeviceCapabilities(scope, device), dispatcher)
+    val device = runBlocking {
+      withTimeout(Duration.ofSeconds(5).toMillis()) {
+        session.connectedDevicesTracker.connectedDevices.first { it.isNotEmpty() }.first()
+      }
+    }
+
+    return AdbFileOperations(device, AdbDeviceCapabilities(scope, "Test Device", device), dispatcher)
   }
 
   @Test
@@ -323,14 +341,9 @@ class AdbFileOperationsTest(deviceInterfaceLibrary: DeviceInterfaceLibrary, priv
   companion object {
     @SuppressWarnings("unused")
     @JvmStatic
-    @Parameterized.Parameters(name="{0},{1}")
+    @Parameterized.Parameters(name="{0}")
     fun data(): List<Array<Any>> =
-      crossProduct(
-        arrayOf(DeviceInterfaceLibrary.DDMLIB, DeviceInterfaceLibrary.ADBLIB),
-        arrayOf(TestDevices.EMULATOR_API10, TestDevices.NEXUS_7_API23))
-
-    fun crossProduct(a1: Array<Any>, a2: Array<Any>): List<Array<Any>> =
-      a1.flatMap { v1 -> a2.map { v2 -> arrayOf(v1, v2) } }
+      listOf(arrayOf(TestDevices.EMULATOR_API10), arrayOf(TestDevices.NEXUS_7_API23))
 
     @JvmField
     @ClassRule

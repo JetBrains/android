@@ -20,6 +20,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
     ],
 )
 
@@ -53,5 +55,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
     ],
 )

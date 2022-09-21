@@ -20,5 +20,7 @@
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.adblib" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.device-provisioner" scope="TEST" />
   </component>
 </module>

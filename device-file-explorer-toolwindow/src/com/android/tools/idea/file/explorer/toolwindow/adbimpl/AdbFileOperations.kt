@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
-import com.android.ddmlib.IDevice
+import com.android.adblib.ConnectedDevice
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.adb.AdbShellCommandsUtil
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.base.Strings.emptyToNull
 import com.intellij.openapi.util.text.StringUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
 class AdbFileOperations(
-  private val device: IDevice,
+  device: ConnectedDevice,
   private val deviceCapabilities: AdbDeviceCapabilities,
   private val dispatcher: CoroutineDispatcher) {
-  private val shellCommandsUtil = AdbShellCommandsUtil.create(device, StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get())
+  private val shellCommandsUtil = AdbShellCommandsUtil.create(device)
 
   suspend fun createNewFile(parentPath: String, fileName: String) {
     return createNewFileRunAs(parentPath, fileName, null)

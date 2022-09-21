@@ -15,138 +15,136 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
-import com.android.ddmlib.AndroidDebugBridge
-import com.android.ddmlib.testing.FakeAdbRule
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.adb.AdbFileProvider
-import com.android.tools.idea.adb.AdbService
-import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbDeviceFileSystemService.Companion.getInstance
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.runDispatching
+import com.android.adblib.AdbSession
+import com.android.adblib.SOCKET_CONNECT_TIMEOUT_MS
+import com.android.adblib.testingutils.CloseablesRule
+import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
+import com.android.adblib.testingutils.FakeAdbServerProvider
+import com.android.adblib.testingutils.TestingAdbSessionHost
+import com.android.sdklib.deviceprovisioner.Connected
+import com.android.sdklib.deviceprovisioner.DeviceProvisioner
+import com.android.sdklib.deviceprovisioner.OfflineDeviceProperties
+import com.android.sdklib.deviceprovisioner.isOnline
+import com.android.sdklib.deviceprovisioner.receiveUntilPassing
+import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin
+import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem
+import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceState
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.Futures.immediateFailedFuture
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.UsefulTestCase.assertThrows
-import com.intellij.testFramework.replaceService
-import com.intellij.util.concurrency.EdtExecutorService
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
-import org.junit.Before
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import java.io.FileNotFoundException
+import java.time.Duration
 
-@RunsInEdt
 class AdbDeviceFileSystemServiceTest {
 
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.withSdk()
+  @JvmField @Rule val closeables = CloseablesRule()
 
-  @get:Rule
-  val adb = FakeAdbRule()
+  val fakeAdb = closeables.register(FakeAdbServerProvider().buildDefault().start())
+  val host = closeables.register(TestingAdbSessionHost())
+  val session =
+    closeables.register(AdbSession.create(
+      host,
+      fakeAdb.createChannelProvider(host),
+      Duration.ofMillis(SOCKET_CONNECT_TIMEOUT_MS)
+    ))
 
-  @get:Rule
-  val edtRule = EdtRule()
+  val provisioner = DeviceProvisioner.create(session, emptyList())
+  val plugin = FakeAdbDeviceProvisionerPlugin(fakeAdb)
+  val service = AdbDeviceFileSystemService(DeviceProvisioner.create(session, listOf(plugin)))
 
-  private val project: Project
-    get() = androidProjectRule.project
+  /**
+   * Verify that we do not pass DeviceHandles for devices that are not connected to ADB.
+   */
+  @Test
+  fun onlyConnectedDevicesProvided() = runBlockingWithTimeout {
 
-  private val edtExecutor = EdtExecutorService.getInstance()
+    val deviceHandle = plugin.addNewDevice()
 
-  @Before
-  fun setUp() {
-    adb.attachDevice(
-      deviceId = "test_device_01", manufacturer = "Google", model = "Pixel 10", release = "8.0", sdk = "31",
-      hostConnectionType = com.android.fakeadbserver.DeviceState.HostConnectionType.USB)
+    val channel = Channel<List<DeviceFileSystem>>()
+    val job = launch(Dispatchers.IO) { service.devices.collect { channel.send(it) } }
+
+    // Device is offline
+    assertThat(channel.receive()).isEmpty()
+
+    // Activate the device; it shows up
+    deviceHandle.activationAction.activate()
+
+    // As the device activates, we may encounter various transitional states as the
+    // OfflineDeviceHandle becomes ONLINE and then removed, and the expected handle
+    // comes online.
+    channel.receiveUntilPassing {
+      assertThat(it).hasSize(1)
+      assertThat(it[0].deviceState).isEqualTo(DeviceState.ONLINE)
+      assertThat(it[0]).isInstanceOf(AdbDeviceFileSystem::class.java)
+      val handle = (it[0] as AdbDeviceFileSystem).deviceHandle
+      assertThat(handle).isSameAs(deviceHandle)
+    }
+
+    val state = deviceHandle.state
+    assertThat(state.properties.title()).isEqualTo("Google Pixel 6")
+    assertThat(state).isInstanceOf(Connected::class.java)
+
+    // Deactivate the device; it goes away
+    deviceHandle.deactivationAction.deactivate()
+
+    assertThat(channel.receive()).isEmpty()
+
+    job.cancel()
   }
 
   @Test
-  fun initialDeviceList() = runDispatching(edtExecutor.asCoroutineDispatcher()) {
-    // Prepare
-    val service = getInstance(project)
+  fun unauthorizedDevicesProvided() =
+    runBlockingWithTimeout {
 
-    // Act
-    service.start()
-
-    // Assert
-    // We should see the connected device immediately after start returns.
-    // (FakeAdbRule waits for AndroidDebugBridge to be fully initialized.)
-    assertThat(service.devices).hasSize(1)
-  }
-
-  @Test
-  fun debugBridgeListenersRemovedOnDispose() = runDispatching(edtExecutor.asCoroutineDispatcher()) {
-    // Prepare
-    val service = getInstance(project)
-    service.start()
-    assertEquals(2, AndroidDebugBridge.getDebugBridgeChangeListenerCount())
-    assertEquals(1, AndroidDebugBridge.getDeviceChangeListenerCount())
-
-    // Act
-    Disposer.dispose(service)
-
-    // Assert
-    assertEquals(1, AndroidDebugBridge.getDebugBridgeChangeListenerCount())
-    assertEquals(0, AndroidDebugBridge.getDeviceChangeListenerCount())
-  }
-
-  @Test
-  fun startAlreadyStartedService() = runDispatching(edtExecutor.asCoroutineDispatcher()) {
-    // Prepare
-    val service = getInstance(project)
-
-    // Act
-    service.start()
-    service.start()
-
-    // Assert
-    assertThat(service.devices).hasSize(1)
-  }
-
-  @Test
-  fun startServiceFailsIfAdbIsNull() {
-    // Prepare
-    val adbFileProvider = AdbFileProvider { null }
-    project.replaceService(AdbFileProvider::class.java, adbFileProvider, androidProjectRule.testRootDisposable)
-    val service = getInstance(project)
-
-    // Act
-    assertThrows(FileNotFoundException::class.java, "Android Debug Bridge not found.") {
-      runBlocking {
-        service.start()
+      val channel = Channel<List<DeviceFileSystem>>()
+      val job = launch(Dispatchers.IO) {
+        service.devices.collect {
+          channel.send(it)
+        }
       }
+
+      // Receive initial empty state
+      assertThat(channel.receive()).isEmpty()
+
+      val deviceState =
+        fakeAdb.connectDevice(
+          deviceId = "test_device_01",
+          manufacturer = "Google",
+          deviceModel = "Pixel 10",
+          release = "8.0",
+          sdk = "31",
+          hostConnectionType = com.android.fakeadbserver.DeviceState.HostConnectionType.USB
+        )
+      deviceState.deviceStatus = com.android.fakeadbserver.DeviceState.DeviceStatus.UNAUTHORIZED
+
+      // Device is offline, but connected, so it shows up as a DeviceFileSystem
+      assertThat(channel.receiveOneFilesystem().deviceHandle.state.properties)
+        .isInstanceOf(OfflineDeviceProperties::class.java)
+
+      // Activate the device; it shows up
+      deviceState.deviceStatus = com.android.fakeadbserver.DeviceState.DeviceStatus.ONLINE
+
+      var deviceFileSystems = channel.receive()
+      if (deviceFileSystems.isEmpty()) {
+        deviceFileSystems = channel.receive()
+      }
+      assertThat(deviceFileSystems).hasSize(1)
+      assertThat((deviceFileSystems[0] as AdbDeviceFileSystem).deviceHandle.state.isOnline()).isTrue()
+
+      // Disconnect the device; it goes away
+      fakeAdb.disconnectDevice(deviceState.deviceId)
+
+      assertThat(channel.receive()).isEmpty()
+
+      job.cancel()
     }
-  }
 
-  @Test
-  fun getDebugBridgeFailure() {
-    // Prepare
-    val service = getInstance(project)
-    val mockAdbService = androidProjectRule.mockService(AdbService::class.java)
-    whenever(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(immediateFailedFuture(RuntimeException("test fail")))
-
-    assertThrows(RuntimeException::class.java, "test fail") {
-      runBlocking { service.start() }
-    }
-  }
-
-  @Test
-  fun getDebugBridgeFailureNoMessage() {
-    // Prepare
-    val service = getInstance(project)
-    val mockAdbService = androidProjectRule.mockService(AdbService::class.java)
-    whenever(mockAdbService.getDebugBridge(any(File::class.java))).thenReturn(immediateFailedFuture(RuntimeException()))
-
-    // Act
-    assertThrows(RuntimeException::class.java) {
-      runBlocking { service.start() }
-    }
+  suspend fun Channel<List<DeviceFileSystem>>.receiveOneFilesystem(): AdbDeviceFileSystem {
+    val deviceFileSystems = receive()
+    assertThat(deviceFileSystems).hasSize(1)
+    return deviceFileSystems[0] as AdbDeviceFileSystem
   }
 }

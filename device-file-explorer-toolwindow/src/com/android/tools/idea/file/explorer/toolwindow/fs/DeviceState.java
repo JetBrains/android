@@ -16,7 +16,7 @@
 package com.android.tools.idea.file.explorer.toolwindow.fs;
 
 /**
- * See {@link com.android.ddmlib.IDevice.DeviceState}
+ * See {@link com.android.adblib.DeviceState}
  */
 @SuppressWarnings("SpellCheckingInspection")
 public enum DeviceState {

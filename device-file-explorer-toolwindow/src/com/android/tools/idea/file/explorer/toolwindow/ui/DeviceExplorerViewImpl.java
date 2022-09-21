@@ -18,8 +18,6 @@ package com.android.tools.idea.file.explorer.toolwindow.ui;
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
 
-import com.android.tools.idea.ddms.DeviceNameProperties;
-import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerModel;
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerModelListener;
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerToolWindowFactory;
@@ -27,11 +25,9 @@ import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerView;
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerViewListener;
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerViewProgressListener;
 import com.android.tools.idea.file.explorer.toolwindow.DeviceFileEntryNode;
-import com.android.tools.idea.file.explorer.toolwindow.DeviceFileSystemRendererFactory;
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem;
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystemRenderer;
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystemService;
-import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.dnd.FileCopyPasteUtil;
 import com.intellij.notification.Notification;
@@ -41,10 +37,7 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.treeStructure.Tree;
 import icons.AndroidIcons;
@@ -91,20 +84,10 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   private int myTreeLoadingCount;
 
   public DeviceExplorerViewImpl(@NotNull Project project,
-                                @NotNull DeviceFileSystemRendererFactory rendererFactory,
+                                @NotNull DeviceFileSystemRenderer renderer,
                                 @NotNull DeviceExplorerModel model) {
     model.addListener(new ModelListener());
-    myDeviceRenderer = rendererFactory.create(new DeviceNamePropertiesFetcher(project, new FutureCallback<DeviceNameProperties>() {
-      @Override
-      public void onSuccess(@Nullable DeviceNameProperties result) {
-        myPanel.getDeviceCombo().updateUI();
-      }
-
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        Logger.getInstance(DeviceExplorerViewImpl.class).warn("Error retrieving device name properties", t);
-      }
-    }));
+    myDeviceRenderer = renderer;
     myPanel = new DeviceExplorerPanel();
     myPanel.setCancelActionListener(e -> myProgressListeners.forEach(DeviceExplorerViewProgressListener::cancellationRequested));
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project);
@@ -500,10 +483,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   }
 
   private class ModelListener implements DeviceExplorerModelListener {
-    @Override
-    public void allDevicesRemoved() {
-      myPanel.getDeviceCombo().removeAllItems();
-    }
 
     @Override
     public void deviceAdded(@NotNull DeviceFileSystem device) {

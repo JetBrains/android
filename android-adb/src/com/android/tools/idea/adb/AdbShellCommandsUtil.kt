@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.adb
 
-import com.android.adblib.DeviceSelector
+import com.android.adblib.ConnectedDevice
 import com.android.adblib.ShellCollector
 import com.android.adblib.TextShellCollector
+import com.android.adblib.selector
 import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.ddmlib.TimeoutException
 import com.android.tools.idea.adblib.ddmlibcompatibility.defaultDdmTimeoutMillis
-import com.android.tools.idea.adblib.ddmlibcompatibility.deviceServices
 import com.android.tools.idea.adblib.ddmlibcompatibility.executeShellCommand
-import com.android.tools.idea.adblib.ddmlibcompatibility.toDeviceSelector
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.flow.Flow
@@ -96,19 +95,15 @@ abstract class AdbShellCommandsUtil {
     private const val COMMAND_ERROR_CHECK_SUFFIX = " || echo $ERROR_LINE_MARKER"
 
     @JvmStatic
-    fun create(device: IDevice, useAdbLib: Boolean) =
-      if (useAdbLib) create(device.toDeviceSelector()) else create(device)
-
-    @JvmStatic
     fun create(device: IDevice) = object : AdbShellCommandsUtil() {
       override fun <T> executeCommandImpl(command: String, receiver: ShellCollector<T>): Flow<T> =
         executeShellCommand(device, command, receiver)
     }
 
     @JvmStatic
-    fun create(device: DeviceSelector) = object : AdbShellCommandsUtil() {
+    fun create(device: ConnectedDevice) = object : AdbShellCommandsUtil() {
       override fun <T> executeCommandImpl(command: String, receiver: ShellCollector<T>): Flow<T> =
-        deviceServices.shell(device, command, receiver, commandTimeout = Duration.ofMillis(defaultDdmTimeoutMillis))
+        device.session.deviceServices.shell(device.selector, command, receiver, commandTimeout = Duration.ofMillis(defaultDdmTimeoutMillis))
     }
   }
 }

@@ -22,14 +22,12 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutures
-import com.android.tools.idea.ddms.DeviceNamePropertiesProvider
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerController.Companion.getProjectController
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerController.NodeSorting.CustomComparator
-import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbDeviceFileSystem
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileEntry
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystemRenderer
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystemService
+import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceState
 import com.android.tools.idea.file.explorer.toolwindow.mocks.MockDeviceExplorerFileManager
 import com.android.tools.idea.file.explorer.toolwindow.mocks.MockDeviceExplorerView
 import com.android.tools.idea.file.explorer.toolwindow.mocks.MockDeviceFileEntry
@@ -72,7 +70,6 @@ import com.intellij.util.Consumer
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.systemIndependentPath
 import com.intellij.util.ui.tree.TreeModelAdapter
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -168,7 +165,7 @@ class DeviceExplorerControllerTest {
       }
     }
     myMockService = MockDeviceFileSystemService(project, myEdtExecutor, myTaskExecutor)
-    myMockView = MockDeviceExplorerView(project, MockDeviceFileSystemRendererFactory(), myModel)
+    myMockView = MockDeviceExplorerView(project, MockDeviceFileSystemRenderer<MockDeviceFileSystem>(), myModel)
     val downloadPath = FileUtil.createTempDirectory("device-explorer-temp", "", true)
     myDownloadLocation.set(downloadPath.toPath())
     myMockFileManager = MockDeviceExplorerFileManager(project, myDownloadLocation::get)
@@ -230,56 +227,6 @@ class DeviceExplorerControllerTest {
 
     // Assert
     checkMockViewInitialState(controller, myDevice1)
-  }
-
-  @Test
-  fun startControllerFailure() = runBlocking {
-    // Prepare
-    val setupErrorMessage = "<Unique error message>"
-    val service = mock<DeviceFileSystemService<*>>()
-    whenever(service.start()).thenThrow(RuntimeException(setupErrorMessage))
-    val controller = createController(service = service)
-
-    // Act
-    controller.setup()
-    val errorMessage = pumpEventsAndWaitForFuture(myMockView.reportErrorRelatedToServiceTracker.consume())
-
-    // Assert
-    checkNotNull(errorMessage)
-    assertTrue(errorMessage.contains(setupErrorMessage))
-  }
-
-  @Test
-  fun startControllerUnexpectedFailure() = runBlocking {
-    // Prepare
-    val service = mock<DeviceFileSystemService<*>>()
-    whenever(service.start()).thenThrow(RuntimeException())
-    val controller = createController(service = service)
-
-    // Act
-    controller.setup()
-    val errorMessage = pumpEventsAndWaitForFuture(myMockView.reportErrorRelatedToServiceTracker.consume())
-
-    // Assert
-    checkNotNull(errorMessage)
-    assertTrue(errorMessage.contains("Error initializing ADB"))
-  }
-
-  @Test
-  fun getDevicesFailure() = runBlocking {
-    // Prepare
-    val setupErrorMessage = "<Unique error message>"
-    val service = mock<DeviceFileSystemService<*>>()
-    whenever(service.devices).thenThrow(RuntimeException(setupErrorMessage))
-    val controller = createController(service = service)
-
-    // Act
-    controller.setup()
-    val errorMessage = pumpEventsAndWaitForFuture(myMockView.reportErrorRelatedToServiceTracker.consume())
-
-    // Assert
-    checkNotNull(errorMessage)
-    assertTrue(errorMessage.contains(errorMessage))
   }
 
   @Test
@@ -531,14 +478,14 @@ class DeviceExplorerControllerTest {
 
     // Act
     injectRepaintManagerMock()
-    myMockService.listeners.forEach { it.deviceUpdated(myDevice1) }
+    myDevice1.deviceStateFlow.value = DeviceState.OFFLINE
     pumpEventsAndWaitForFuture(myMockView.deviceUpdatedTracker.consume())
 
     // Assert
-    // Check there was no update to the underlying model, and that only
-    // the combo box UI has been invalidated.
+    // The device went offline, so the tree model is now null, and the
+    // combo box UI has been invalidated.
     assertEquals(myDevice1, myModel.activeDevice)
-    assertEquals(model, myModel.treeModel)
+    assertNull(myModel.treeModel)
     Mockito.verify(myMockRepaintManager).addDirtyRegion(
       myMockView.deviceCombo,
       0,
@@ -578,7 +525,10 @@ class DeviceExplorerControllerTest {
     // Assert
     checkNotNull(selectError)
     assertTrue(selectError.contains("Unable to find device with serial number"))
-    checkMockViewActiveDevice(myDevice1)
+
+    // Check the file system tree is displaying the file system of the first device
+    val rootEntry = DeviceFileEntryNode.fromNode(myMockView.tree.model.root)
+    assertEquals(myDevice1.root, rootEntry?.entry)
   }
 
   @Test
@@ -1700,7 +1650,17 @@ class DeviceExplorerControllerTest {
   private fun checkMockViewInitialState(controller: DeviceExplorerController, activeDevice: MockDeviceFileSystem) {
     checkMockViewComboBox(controller)
     checkMockViewActiveDevice(activeDevice)
+
+    // Check the file system tree is displaying the file system of the first device
+    val rootEntry = DeviceFileEntryNode.fromNode(myMockView.tree.model.root)
+    checkNotNull(rootEntry)
+    assertEquals(activeDevice.root, rootEntry.entry)
+
     pumpEventsAndWaitForFuture(myMockView.treeNodesInsertedTacker.consume())
+    assertEquals(
+      "mock: ${activeDevice.root.mockEntries} rootEntry: " + TreeUtil.getChildren(rootEntry).collect(Collectors.toList()),
+      activeDevice.root.mockEntries.size, rootEntry.childCount
+    )
   }
 
   private fun checkMockViewComboBox(controller: DeviceExplorerController) {
@@ -1724,17 +1684,8 @@ class DeviceExplorerControllerTest {
     // The root node should have been expanded to show the first level of children
     pumpEventsAndWaitForFuture(myMockView.treeNodeExpandingTracker.consume())
 
-    // Check the file system tree is displaying the file system of the first device
-    val rootEntry = DeviceFileEntryNode.fromNode(myMockView.tree.model.root)
-    checkNotNull(rootEntry)
-    assertEquals(activeDevice.root, rootEntry.entry)
-
     // Check the file system tree is showing the first level of entries of the file system
     pumpEventsAndWaitForFuture(myMockView.treeModelChangedTracker.consume())
-    assertEquals(
-      "mock: ${activeDevice.root.mockEntries} rootEntry: " + TreeUtil.getChildren(rootEntry).collect(Collectors.toList()),
-      activeDevice.root.mockEntries.size, rootEntry.childCount
-    )
   }
 
   private fun downloadFileSetup() {
@@ -1816,12 +1767,6 @@ class DeviceExplorerControllerTest {
       nodes.add(currentNode)
     }
     return TreePath(nodes.toTypedArray())
-  }
-
-  class MockDeviceFileSystemRendererFactory : DeviceFileSystemRendererFactory {
-    override fun create(deviceNamePropertiesProvider: DeviceNamePropertiesProvider): DeviceFileSystemRenderer<AdbDeviceFileSystem> {
-      return MockDeviceFileSystemRenderer()
-    }
   }
 
   companion object {

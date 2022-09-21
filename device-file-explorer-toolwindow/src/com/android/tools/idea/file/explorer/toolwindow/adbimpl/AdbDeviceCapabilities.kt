@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
-import com.android.ddmlib.AdbCommandRejectedException
-import com.android.ddmlib.IDevice
-import com.android.ddmlib.SyncException
-import com.android.ddmlib.SyncService
-import com.android.ddmlib.TimeoutException
+import com.android.adblib.ConnectedDevice
+import com.android.adblib.RemoteFileMode
+import com.android.adblib.syncSend
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.adb.AdbShellCommandResult
 import com.android.tools.idea.adb.AdbShellCommandsUtil
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.io.FileUtil
@@ -32,16 +30,15 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
-import java.io.IOException
 
 /**
- * Helper class used to detect various capabilities/features supported by a [IDevice]
+ * Helper class used to detect various capabilities/features supported by a device
  * so callers can make decisions about which adb commands to use.
  */
-class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: IDevice) {
+class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceName: String, private val device: ConnectedDevice) {
   private val logger = thisLogger()
 
-  private val shellCommandsUtil = AdbShellCommandsUtil.create(device, StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get())
+  private val shellCommandsUtil = AdbShellCommandsUtil.create(device)
 
   suspend fun supportsTestCommand() = supportsTestCommand.await()
   private val supportsTestCommand = coroutineScope.async(start = CoroutineStart.LAZY) {
@@ -59,7 +56,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
       }
       catch (e: AdbShellCommandException) {
         logger.info(
-          """Device "${device.toDebugString()}" does not seem to support the "test" command: ${
+          """Device "$deviceName" does not seem to support the "test" command: ${
             commandResult.outputSummary()}""", e)
         false
       }
@@ -83,7 +80,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
         true
       }
       catch (e: AdbShellCommandException) {
-        logger.info("""Device "${device.toDebugString()}" does not seem to support "-f" flag for rm: ${
+        logger.info("""Device "$deviceName" does not seem to support "-f" flag for rm: ${
             commandResult.outputSummary()}""", e)
         false
       }
@@ -106,7 +103,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
         true
       }
       catch (e: AdbShellCommandException) {
-        logger.info("""Device "${device.toDebugString()}" does not seem to support "touch" command: ${
+        logger.info("""Device "$deviceName" does not seem to support "touch" command: ${
           commandResult.outputSummary()
         }""", e)
         false
@@ -126,7 +123,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
     }
     catch (e: AdbShellCommandException) {
       logger.info(
-          """Device "${device.toDebugString()}" does not seem to support the "su 0" command: ${
+          """Device "$deviceName" does not seem to support the "su 0" command: ${
               commandResult.outputSummary()}""", e)
       false
     }
@@ -136,10 +133,8 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
   private val isRoot = coroutineScope.async(start = CoroutineStart.LAZY) {
     assertNotDispatchThread()
 
-    // Note: The "isRoot" method below does not cache its results in case of negative answer.
-    //       This means a round-trip to the device at each call when the device is not root.
-    //       By caching the value in this class, we avoid these extra round trips.
-    device.isRoot
+    val result = shellCommandsUtil.executeCommandNoErrorCheck("echo \$USER_ID")
+    result.output.joinToString().trim() == "0"
   }
 
   suspend fun supportsCpCommand() = supportsCpCommand.await()
@@ -167,7 +162,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
         }
         catch (e: AdbShellCommandException) {
           logger.info(
-              """Device "${device.toDebugString()}" does not seem to support the "cp" command: ${
+              """Device "$deviceName" does not seem to support the "cp" command: ${
                   commandResult.outputSummary()}""", e)
           false
         }
@@ -182,7 +177,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
       touchEscapedPath()
     }
     catch (exception: AdbShellCommandException) {
-      logger.info("""Device "${device.toDebugString()}" does not seem to support the touch command""", exception)
+      logger.info("""Device "$deviceName" does not seem to support the touch command""", exception)
       return@async false
     }
     try {
@@ -192,7 +187,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
       }
     }
     catch (exception: AdbShellCommandException) {
-      logger.info("""Device "${device.toDebugString()}" does not seem to support the ls command""", exception)
+      logger.info("""Device "$deviceName" does not seem to support the ls command""", exception)
       false
     }
   }
@@ -236,7 +231,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
     }
     catch (e: AdbShellCommandException) {
       logger.info(
-          """Device "${device.toDebugString()}" does not seem to support the "cp" command: ${
+          """Device "$deviceName" does not seem to support the "cp" command: ${
               commandResult.outputSummary()}""", e)
       false
     }
@@ -244,14 +239,12 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
 
   /**
    * An [AutoCloseable] wrapper around a temporary file on a remote device.
-   * The [.close] method attempts to delete the file from the remote device
-   * unless the [setDeletedOnClose(false)][.setDeleteOnClose] is called.
+   * The [close] method attempts to delete the file from the remote device
+   * unless [deleteOnClose] is set to false.
    */
   private inner class ScopedRemoteFile(val remotePath: String) {
     var deleteOnClose = false
 
-    // TODO: Convert this blocking call to use AdbLib. We should already be on the background thread.
-    @Throws(TimeoutException::class, AdbCommandRejectedException::class, SyncException::class, IOException::class)
     suspend fun create() {
       assert(!deleteOnClose)
       assertNotDispatchThread()
@@ -295,13 +288,13 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
         catch (e: AdbShellCommandException) {
           // There is not much we can do if we can't delete the test file other than logging the error.
           logger.warn(
-              """Device "${device.toDebugString()}": Error deleting temporary test file "$remotePath": ${
+              """Device "$deviceName": Error deleting temporary test file "$remotePath": ${
                   commandResult.outputSummary()}""", e)
         }
       }
       catch (e: Exception) {
         // There is not much we can do if we can't delete the test file other than logging the error.
-        logger.warn("""Device "${device.toDebugString()}": Error deleting temporary test file "$remotePath"""", e)
+        logger.warn("""Device "$deviceName": Error deleting temporary test file "$remotePath"""", e)
       }
     }
 
@@ -309,23 +302,21 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
      * Create an empty file on the remote device by first creating a local empty temporary file,
      * then pushing it to the remote device.
      */
-    @Throws(IOException::class, TimeoutException::class, AdbCommandRejectedException::class, SyncException::class)
-    private fun createRemoteTemporaryFile() {
-      val file = FileUtil.createTempFile(remotePath, "", true)
-      return try {
-        val sync = device.syncService
-                   ?: throw IOException("""Device "${device.toDebugString()}": Unable to open sync connection""")
-        sync.use {
-          logger.trace("""Device "${device.toDebugString()}": Uploading temporary file "$file" to remote file "$remotePath"""")
-          sync.pushFile(file.path, remotePath, SyncService.getNullProgressMonitor())
-        }
+    private suspend fun createRemoteTemporaryFile() = withContext(diskIoThread) {
+      val tempFile = FileUtil.createTempFile(remotePath, "", true)
+      try {
+        val tempFileChannel = device.session.channelFactory.openFile(tempFile.toPath())
+        logger.trace("""Device "$deviceName": Uploading temporary file "$tempFile" to remote file "$remotePath"""")
+        device.session.deviceServices.syncSend(device.selector, tempFileChannel, remotePath, RemoteFileMode.DEFAULT)
       }
       finally {
-        try {
-          FileUtil.delete(file)
-        }
-        catch (e: Exception) {
-          logger.warn("""Device "${device.toDebugString()}": Error deleting temporary file "$file"""", e)
+        withContext(NonCancellable) {
+          try {
+            FileUtil.delete(tempFile)
+          }
+          catch (e: Exception) {
+            logger.warn("""Device "$deviceName": Error deleting temporary file "$tempFile"""", e)
+          }
         }
       }
     }

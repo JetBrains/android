@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
+import com.android.adblib.ConnectedDevice
+import com.android.adblib.deviceInfo
+import com.android.adblib.scope
+import com.android.adblib.serialNumber
 import com.android.ddmlib.FileListingService
-import com.android.ddmlib.IDevice
+import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileEntry
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem
@@ -24,38 +28,56 @@ import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceState
 import com.intellij.openapi.util.text.StringUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.job
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import java.util.concurrent.Executor
 
-class AdbDeviceFileSystem(coroutineScope: CoroutineScope, val device: IDevice, edtExecutor: Executor, val dispatcher: CoroutineDispatcher) : DeviceFileSystem {
+class AdbDeviceFileSystem(
+  val deviceHandle: DeviceHandle,
+  val device: ConnectedDevice,
+  edtExecutor: Executor,
+  val dispatcher: CoroutineDispatcher
+) : DeviceFileSystem {
+
+  override val scope: CoroutineScope = device.scope + SupervisorJob(device.scope.coroutineContext.job)
+
   private val myEdtExecutor = FutureCallbackExecutor(edtExecutor)
-  val capabilities = AdbDeviceCapabilities(coroutineScope + dispatcher, this.device)
+  val capabilities = AdbDeviceCapabilities(scope + dispatcher, deviceHandle.state.properties.title(), this.device)
   val adbFileListing = AdbFileListing(this.device, capabilities, dispatcher)
   val adbFileOperations = AdbFileOperations(this.device, capabilities, dispatcher)
   val adbFileTransfer = AdbFileTransfer(this.device, adbFileOperations, myEdtExecutor, dispatcher)
 
-  fun isDevice(device: IDevice?): Boolean {
-    return this.device == device
-  }
-
-  override val name: String
-    get() = device.name
+  override val name = deviceHandle.state.properties.title()
 
   override val deviceSerialNumber: String
     get() = device.serialNumber
 
-  override val deviceState: DeviceState
-    get() = when (device.state) {
-      IDevice.DeviceState.ONLINE -> DeviceState.ONLINE
-      IDevice.DeviceState.OFFLINE -> DeviceState.OFFLINE
-      IDevice.DeviceState.UNAUTHORIZED -> DeviceState.UNAUTHORIZED
-      IDevice.DeviceState.DISCONNECTED -> DeviceState.DISCONNECTED
-      IDevice.DeviceState.BOOTLOADER -> DeviceState.BOOTLOADER
-      IDevice.DeviceState.RECOVERY -> DeviceState.RECOVERY
-      IDevice.DeviceState.SIDELOAD -> DeviceState.SIDELOAD
+  private fun com.android.adblib.DeviceState.toDeviceState() =
+    when (this) {
+      com.android.adblib.DeviceState.ONLINE -> DeviceState.ONLINE
+      com.android.adblib.DeviceState.OFFLINE -> DeviceState.OFFLINE
+      com.android.adblib.DeviceState.UNAUTHORIZED -> DeviceState.UNAUTHORIZED
+      com.android.adblib.DeviceState.DISCONNECTED -> DeviceState.DISCONNECTED
+      com.android.adblib.DeviceState.BOOTLOADER -> DeviceState.BOOTLOADER
+      com.android.adblib.DeviceState.RECOVERY -> DeviceState.RECOVERY
+      com.android.adblib.DeviceState.SIDELOAD -> DeviceState.SIDELOAD
       else -> DeviceState.DISCONNECTED
     }
+
+  override val deviceStateFlow: StateFlow<DeviceState> =
+    device.deviceInfoFlow
+      .map { it.deviceState.toDeviceState() }
+      .stateIn(
+        scope,
+        SharingStarted.Eagerly,
+        device.deviceInfo.deviceState.toDeviceState()
+      )
 
   override suspend fun rootDirectory(): DeviceFileEntry {
     return AdbDeviceDefaultFileEntry(this, adbFileListing.root, null)

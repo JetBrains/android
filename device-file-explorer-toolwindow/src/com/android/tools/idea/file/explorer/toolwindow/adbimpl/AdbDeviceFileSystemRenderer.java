@@ -15,25 +15,18 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl;
 
-import com.android.ddmlib.IDevice;
-import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
-import com.android.tools.idea.ddms.DeviceRenderer;
+import com.android.tools.idea.deviceprovisioner.DeviceHandleRenderer;
+import com.android.tools.idea.deviceprovisioner.DeviceHandleRendererKt;
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystemRenderer;
+import com.google.common.collect.Iterables;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.util.containers.ContainerUtil;
-import java.util.List;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
 public final class AdbDeviceFileSystemRenderer implements DeviceFileSystemRenderer<AdbDeviceFileSystem> {
-  @NotNull private final DeviceNameRenderer myDeviceNameRenderer;
-
-  public AdbDeviceFileSystemRenderer(@NotNull AdbDeviceFileSystemService service,
-                                     @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
-    myDeviceNameRenderer = new DeviceNameRenderer(service, deviceNamePropertiesProvider);
-  }
+  @NotNull private final DeviceNameRenderer myDeviceNameRenderer = new DeviceNameRenderer();
 
   @NotNull
   @Override
@@ -42,15 +35,6 @@ public final class AdbDeviceFileSystemRenderer implements DeviceFileSystemRender
   }
 
   private static final class DeviceNameRenderer extends ColoredListCellRenderer<AdbDeviceFileSystem> {
-    @NotNull private final AdbDeviceFileSystemService myService;
-    private final DeviceNamePropertiesProvider myDeviceNamePropertiesProvider;
-
-    private DeviceNameRenderer(@NotNull AdbDeviceFileSystemService service,
-                               @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
-      myService = service;
-      myDeviceNamePropertiesProvider = deviceNamePropertiesProvider;
-    }
-
     @Override
     protected void customizeCellRenderer(@NotNull JList<? extends AdbDeviceFileSystem> list,
                                          AdbDeviceFileSystem value,
@@ -62,12 +46,9 @@ public final class AdbDeviceFileSystemRenderer implements DeviceFileSystemRender
         return;
       }
 
-      IDevice device = value.getDevice();
-
-      List<IDevice> devices = ContainerUtil.map(myService.getDevices(), AdbDeviceFileSystem::getDevice);
-      boolean showSerialNumbers = DeviceRenderer.shouldShowSerialNumbers(devices, myDeviceNamePropertiesProvider);
-
-      DeviceRenderer.renderDeviceName(device, myDeviceNamePropertiesProvider.get(device), this, showSerialNumbers);
+      DeviceHandleRenderer.renderDevice(this, value.getDeviceHandle(),
+                                        Iterables.transform(DeviceHandleRendererKt.toIterable(list.getModel()),
+                                                            AdbDeviceFileSystem::getDeviceHandle));
     }
   }
 }

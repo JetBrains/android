@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.mocks;
 
+import com.android.tools.idea.FutureValuesTracker;
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerModel;
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerModelListener;
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerView;
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerViewListener;
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerViewProgressListener;
 import com.android.tools.idea.file.explorer.toolwindow.DeviceFileEntryNode;
-import com.android.tools.idea.file.explorer.toolwindow.DeviceFileSystemRendererFactory;
-import com.android.tools.idea.FutureValuesTracker;
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem;
+import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystemRenderer;
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystemService;
 import com.android.tools.idea.file.explorer.toolwindow.ui.DeviceExplorerViewImpl;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -63,7 +63,6 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceAddedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceRemovedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceUpdatedTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<Unit> myAllDevicesRemovedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DefaultTreeModel> myTreeModelChangedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<TreeModelEvent> myTreeNodesChangedTacker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<TreeModelEvent> myTreeNodesInsertedTacker = new FutureValuesTracker<>();
@@ -79,9 +78,9 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   private int myBusyIndicatorCount;
 
   public MockDeviceExplorerView(@NotNull Project project,
-                                @NotNull DeviceFileSystemRendererFactory deviceRendererFactory,
+                                @NotNull DeviceFileSystemRenderer deviceRenderer,
                                 @NotNull DeviceExplorerModel model) {
-    myViewImpl = new DeviceExplorerViewImpl(project, deviceRendererFactory, model);
+    myViewImpl = new DeviceExplorerViewImpl(project, deviceRenderer, model);
     myViewImpl.addListener(new MyDeviceExplorerViewListener());
     myViewImpl.addProgressListener(new MyDeviceExplorerViewProgressListener());
     model.addListener(new MyDeviceExplorerModelListener());
@@ -339,11 +338,6 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   }
 
   @NotNull
-  public FutureValuesTracker<Unit> getAllDevicesRemovedTracker() {
-    return myAllDevicesRemovedTracker;
-  }
-
-  @NotNull
   public FutureValuesTracker<String> getReportErrorRelatedToServiceTracker() {
     return myReportErrorRelatedToServiceTracker;
   }
@@ -493,10 +487,6 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   }
 
   private class MyDeviceExplorerModelListener implements DeviceExplorerModelListener {
-    @Override
-    public void allDevicesRemoved() {
-      myAllDevicesRemovedTracker.produce(null);
-    }
 
     @Override
     public void deviceAdded(@NotNull DeviceFileSystem device) {

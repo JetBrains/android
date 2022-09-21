@@ -15,22 +15,21 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
+import com.android.adblib.ConnectedDevice
 import com.android.ddmlib.FileListingService
-import com.android.ddmlib.IDevice
 import com.android.tools.idea.adb.AdbShellCommandsUtil
 import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbFileListingEntry.EntryKind
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.util.regex.MatchResult
 
 class AdbFileListing(
-    private val myDevice: IDevice,
-    private val myDeviceCapabilities: AdbDeviceCapabilities,
-    private val dispatcher: CoroutineDispatcher) {
+  myDevice: ConnectedDevice,
+  private val myDeviceCapabilities: AdbDeviceCapabilities,
+  private val dispatcher: CoroutineDispatcher) {
   private val LOGGER = thisLogger()
-  private val myShellCommandsUtil = AdbShellCommandsUtil.create(myDevice, StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get())
+  private val myShellCommandsUtil = AdbShellCommandsUtil.create(myDevice)
 
   val root: AdbFileListingEntry = AdbFileListingEntryBuilder().setPath("/").setKind(EntryKind.DIRECTORY).build()
 
