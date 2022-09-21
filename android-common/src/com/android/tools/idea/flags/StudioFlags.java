@@ -1477,6 +1477,14 @@ public final class StudioFlags {
       "Enable offline mode support.",
       "Show previously cached data when network has issues.",
       false);
+
+  public static final Flag<Boolean> NOTES_ENABLED =
+    Flag.create(
+      APP_INSIGHTS,
+      "enable.notes",
+      "Enable read/write notes functionality.",
+      "Add notes tab to App Quality Insights panel.",
+      false);
   // endregion App Insights
 
   // region App Links Assistant
