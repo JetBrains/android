@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution.proto
+package com.android.build.attribution.proto.converters
 
 import com.android.build.attribution.BuildAnalysisResultsMessage
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
-import com.google.common.annotations.VisibleForTesting
+import com.android.build.attribution.proto.PairEnumFinder
 
 class TaskDataMessageConverter {
   companion object {
@@ -53,24 +53,10 @@ class TaskDataMessageConverter {
       return taskDataList
     }
 
-    private fun transformExecutionMode(executionMode: TaskData.TaskExecutionMode) : BuildAnalysisResultsMessage.TaskData.TaskExecutionMode {
-      return when (executionMode) {
-        TaskData.TaskExecutionMode.FROM_CACHE -> BuildAnalysisResultsMessage.TaskData.TaskExecutionMode.FROM_CACHE
-        TaskData.TaskExecutionMode.UP_TO_DATE -> BuildAnalysisResultsMessage.TaskData.TaskExecutionMode.UP_TO_DATE
-        TaskData.TaskExecutionMode.INCREMENTAL -> BuildAnalysisResultsMessage.TaskData.TaskExecutionMode.INCREMENTAL
-        TaskData.TaskExecutionMode.FULL -> BuildAnalysisResultsMessage.TaskData.TaskExecutionMode.FULL
-      }
-    }
+    private fun transformExecutionMode(executionMode: TaskData.TaskExecutionMode): BuildAnalysisResultsMessage.TaskData.TaskExecutionMode =
+      PairEnumFinder.aToB(executionMode)
 
-    @VisibleForTesting
-    fun constructExecutionMode(executionMode: BuildAnalysisResultsMessage.TaskData.TaskExecutionMode) =
-      when (executionMode) {
-        BuildAnalysisResultsMessage.TaskData.TaskExecutionMode.FROM_CACHE -> TaskData.TaskExecutionMode.FROM_CACHE
-        BuildAnalysisResultsMessage.TaskData.TaskExecutionMode.UP_TO_DATE -> TaskData.TaskExecutionMode.UP_TO_DATE
-        BuildAnalysisResultsMessage.TaskData.TaskExecutionMode.INCREMENTAL -> TaskData.TaskExecutionMode.INCREMENTAL
-        BuildAnalysisResultsMessage.TaskData.TaskExecutionMode.FULL -> TaskData.TaskExecutionMode.FULL
-        BuildAnalysisResultsMessage.TaskData.TaskExecutionMode.UNKNOWN -> throw IllegalStateException("Unrecognized task execution mode")
-        BuildAnalysisResultsMessage.TaskData.TaskExecutionMode.UNRECOGNIZED -> throw IllegalStateException("Unrecognized task execution mode")
-      }
+    private fun constructExecutionMode(executionMode: BuildAnalysisResultsMessage.TaskData.TaskExecutionMode): TaskData.TaskExecutionMode =
+      PairEnumFinder.bToA(executionMode)
   }
 }

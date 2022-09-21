@@ -19,6 +19,7 @@ import com.android.build.attribution.analyzers.AlwaysRunTasksAnalyzer
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
+import com.android.build.attribution.proto.converters.AlwaysRunTasksAnalyzerResultMessageConverter
 import com.google.common.truth.Truth
 import org.junit.Test
 

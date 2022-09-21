@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution.proto
+package com.android.build.attribution.proto.converters
 
 import com.android.build.attribution.BuildAnalysisResults
 import com.android.build.attribution.BuildAnalysisResultsMessage
@@ -21,6 +21,8 @@ import com.android.build.attribution.analyzers.NoDataFromSavedResult
 import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
+import com.android.build.attribution.proto.constructPluginType
+import com.android.build.attribution.proto.transformPluginData
 
 class BuildResultsProtoMessageConverter {
 
@@ -59,7 +61,7 @@ class BuildResultsProtoMessageConverter {
       analyzersDataBuilder.pluginCache = BuildAnalysisResultsMessage.PluginCache.newBuilder()
         .addAllValues(plugins.values.map(::transformPluginData)).build()
       analyzersDataBuilder.taskCache = BuildAnalysisResultsMessage.TaskCache.newBuilder()
-        .addAllValues(tasks.values.map(TaskDataMessageConverter::transform)).build()
+        .addAllValues(tasks.values.map(TaskDataMessageConverter.Companion::transform)).build()
       return analyzersDataBuilder.build()
     }
 

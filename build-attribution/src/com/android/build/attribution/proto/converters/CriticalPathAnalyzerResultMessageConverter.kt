@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution.proto
+package com.android.build.attribution.proto.converters
 
-import com.android.build.attribution.BuildAnalysisResultsMessage.CriticalPathAnalyzerResult
+import com.android.build.attribution.BuildAnalysisResultsMessage
 import com.android.build.attribution.analyzers.CriticalPathAnalyzer
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginData
@@ -23,15 +23,16 @@ import com.android.build.attribution.data.TaskData
 
 class CriticalPathAnalyzerResultMessageConverter {
   companion object {
-    fun transform(criticalPathAnalyzerData: CriticalPathAnalyzer.Result): CriticalPathAnalyzerResult =
-      CriticalPathAnalyzerResult.newBuilder()
+    fun transform(criticalPathAnalyzerData: CriticalPathAnalyzer.Result): BuildAnalysisResultsMessage.CriticalPathAnalyzerResult =
+      BuildAnalysisResultsMessage.CriticalPathAnalyzerResult.newBuilder()
         .addAllTaskIdsDeterminingBuildDuration(criticalPathAnalyzerData.tasksDeterminingBuildDuration.map { it.getTaskPath() })
-        .addAllPluginsDeterminingBuildDuration(criticalPathAnalyzerData.pluginsDeterminingBuildDuration.map(::transformPluginBuildData))
+        .addAllPluginsDeterminingBuildDuration(criticalPathAnalyzerData.pluginsDeterminingBuildDuration.map(
+          Companion::transformPluginBuildData))
         .setBuildFinishedTimestamp(criticalPathAnalyzerData.buildFinishedTimestamp)
         .setBuildStartedTimestamp(criticalPathAnalyzerData.buildStartedTimestamp)
         .build()
 
-    fun construct(criticalPathAnalyzerResult: CriticalPathAnalyzerResult,
+    fun construct(criticalPathAnalyzerResult: BuildAnalysisResultsMessage.CriticalPathAnalyzerResult,
                   tasks: MutableMap<String, TaskData>,
                   plugins: MutableMap<String, PluginData>)
       : CriticalPathAnalyzer.Result {
@@ -49,7 +50,7 @@ class CriticalPathAnalyzerResultMessageConverter {
     }
 
     private fun transformPluginBuildData(pluginBuildData: PluginBuildData) =
-      CriticalPathAnalyzerResult.PluginBuildData.newBuilder()
+      BuildAnalysisResultsMessage.CriticalPathAnalyzerResult.PluginBuildData.newBuilder()
         .setBuildDuration(pluginBuildData.buildDuration)
         .setPluginID(pluginBuildData.plugin.idName)
         .build()

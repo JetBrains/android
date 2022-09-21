@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution.proto
+package com.android.build.attribution.proto.converters
 
 import com.android.build.attribution.BuildAnalysisResultsMessage
+import com.android.build.attribution.proto.PairEnumFinder
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode
 import com.google.common.annotations.VisibleForTesting
@@ -51,17 +52,11 @@ class GradleBuildInvokerRequestRequestDataMessageConverter {
     }
 
     @VisibleForTesting
-    fun transformBuildMode(mode: BuildMode?) = when (mode) {
-      BuildMode.CLEAN -> BuildAnalysisResultsMessage.RequestData.BuildMode.CLEAN
-      BuildMode.ASSEMBLE -> BuildAnalysisResultsMessage.RequestData.BuildMode.ASSEMBLE
-      BuildMode.REBUILD -> BuildAnalysisResultsMessage.RequestData.BuildMode.REBUILD
-      BuildMode.COMPILE_JAVA -> BuildAnalysisResultsMessage.RequestData.BuildMode.COMPILE_JAVA
-      BuildMode.SOURCE_GEN -> BuildAnalysisResultsMessage.RequestData.BuildMode.SOURCE_GEN
-      BuildMode.BUNDLE -> BuildAnalysisResultsMessage.RequestData.BuildMode.BUNDLE
-      BuildMode.APK_FROM_BUNDLE -> BuildAnalysisResultsMessage.RequestData.BuildMode.APK_FROM_BUNDLE
-      BuildMode.DEFAULT_BUILD_MODE -> BuildAnalysisResultsMessage.RequestData.BuildMode.UNSPECIFIED
-      null -> BuildAnalysisResultsMessage.RequestData.BuildMode.UNSPECIFIED
-    }
+    fun transformBuildMode(mode: BuildMode?): BuildAnalysisResultsMessage.RequestData.BuildMode =
+      when (mode) {
+        null -> BuildAnalysisResultsMessage.RequestData.BuildMode.UNSPECIFIED
+        else -> PairEnumFinder.aToB(mode)
+      }
 
     private fun transformEnv(key: String, value: String) =
       BuildAnalysisResultsMessage.RequestData.Env.newBuilder()
@@ -70,18 +65,9 @@ class GradleBuildInvokerRequestRequestDataMessageConverter {
         .build()
 
     @VisibleForTesting
-    fun constructBuildMode(mode: BuildAnalysisResultsMessage.RequestData.BuildMode) =
-      when (mode) {
-        BuildAnalysisResultsMessage.RequestData.BuildMode.CLEAN -> BuildMode.CLEAN
-        BuildAnalysisResultsMessage.RequestData.BuildMode.ASSEMBLE -> BuildMode.ASSEMBLE
-        BuildAnalysisResultsMessage.RequestData.BuildMode.REBUILD -> BuildMode.REBUILD
-        BuildAnalysisResultsMessage.RequestData.BuildMode.COMPILE_JAVA -> BuildMode.COMPILE_JAVA
-        BuildAnalysisResultsMessage.RequestData.BuildMode.SOURCE_GEN -> BuildMode.SOURCE_GEN
-        BuildAnalysisResultsMessage.RequestData.BuildMode.BUNDLE -> BuildMode.BUNDLE
-        BuildAnalysisResultsMessage.RequestData.BuildMode.APK_FROM_BUNDLE -> BuildMode.APK_FROM_BUNDLE
-        BuildAnalysisResultsMessage.RequestData.BuildMode.UNSPECIFIED -> null
-        BuildAnalysisResultsMessage.RequestData.BuildMode.UNRECOGNIZED -> throw IllegalStateException("Unrecognized build mode")
-        null -> throw IllegalStateException("Unrecognized build mode")
-      }
+    fun constructBuildMode(mode: BuildAnalysisResultsMessage.RequestData.BuildMode) = when (mode) {
+      BuildAnalysisResultsMessage.RequestData.BuildMode.UNSPECIFIED -> null
+      else -> PairEnumFinder.bToA<BuildMode, BuildAnalysisResultsMessage.RequestData.BuildMode>(mode)
+    }
   }
 }

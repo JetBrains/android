@@ -19,6 +19,7 @@ import com.android.build.attribution.analyzers.CriticalPathAnalyzer
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
+import com.android.build.attribution.proto.converters.CriticalPathAnalyzerResultMessageConverter
 import com.google.common.truth.Truth
 import org.junit.Test
 

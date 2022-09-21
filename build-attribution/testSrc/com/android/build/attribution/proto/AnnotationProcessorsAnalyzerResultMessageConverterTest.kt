@@ -17,6 +17,7 @@ package com.android.build.attribution.proto
 
 import com.android.build.attribution.analyzers.AnnotationProcessorsAnalyzer
 import com.android.build.attribution.data.AnnotationProcessorData
+import com.android.build.attribution.proto.converters.AnnotationProcessorsAnalyzerResultMessageConverter
 import com.google.common.truth.Truth
 import org.junit.Test
 import java.time.Duration

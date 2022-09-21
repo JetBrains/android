@@ -17,28 +17,15 @@ package com.android.build.attribution.proto
 
 import com.android.build.attribution.BuildAnalysisResultsMessage
 import com.android.build.attribution.data.PluginData
-import com.android.utils.HelpfulEnumConverter
-import java.lang.Exception
 
-fun transformPluginData(pluginData: PluginData): BuildAnalysisResultsMessage.PluginData =
+internal fun transformPluginData(pluginData: PluginData): BuildAnalysisResultsMessage.PluginData =
   BuildAnalysisResultsMessage.PluginData.newBuilder()
     .setPluginType(transformPluginType(pluginData.pluginType))
     .setIdName(pluginData.idName)
     .build()
 
-fun transformPluginType(pluginType: PluginData.PluginType) =
-  when (pluginType) {
-    PluginData.PluginType.UNKNOWN -> BuildAnalysisResultsMessage.PluginData.PluginType.UNKNOWN
-    PluginData.PluginType.SCRIPT -> BuildAnalysisResultsMessage.PluginData.PluginType.SCRIPT
-    PluginData.PluginType.BUILDSRC_PLUGIN -> BuildAnalysisResultsMessage.PluginData.PluginType.BUILDSRC_PLUGIN
-    PluginData.PluginType.BINARY_PLUGIN -> BuildAnalysisResultsMessage.PluginData.PluginType.BINARY_PLUGIN
-  }
+internal fun transformPluginType(pluginType: PluginData.PluginType): BuildAnalysisResultsMessage.PluginData.PluginType =
+  PairEnumFinder.aToB(pluginType)
 
-fun constructPluginType(type: BuildAnalysisResultsMessage.PluginData.PluginType) =
-  when (type) {
-    BuildAnalysisResultsMessage.PluginData.PluginType.BINARY_PLUGIN -> PluginData.PluginType.BINARY_PLUGIN
-    BuildAnalysisResultsMessage.PluginData.PluginType.BUILDSRC_PLUGIN -> PluginData.PluginType.BUILDSRC_PLUGIN
-    BuildAnalysisResultsMessage.PluginData.PluginType.SCRIPT -> PluginData.PluginType.SCRIPT
-    BuildAnalysisResultsMessage.PluginData.PluginType.UNKNOWN -> PluginData.PluginType.UNKNOWN
-    BuildAnalysisResultsMessage.PluginData.PluginType.UNRECOGNIZED -> throw IllegalStateException("Unrecognized plugin type")
-  }
+internal fun constructPluginType(type: BuildAnalysisResultsMessage.PluginData.PluginType): PluginData.PluginType =
+  PairEnumFinder.bToA(type)

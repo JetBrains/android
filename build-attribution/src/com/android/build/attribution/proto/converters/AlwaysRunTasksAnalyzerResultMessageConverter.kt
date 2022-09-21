@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution.proto
+package com.android.build.attribution.proto.converters
 
-import com.android.build.attribution.BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult
+import com.android.build.attribution.BuildAnalysisResultsMessage
 import com.android.build.attribution.analyzers.AlwaysRunTasksAnalyzer
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.TaskData
-import com.google.common.annotations.VisibleForTesting
+import com.android.build.attribution.proto.PairEnumFinder
 
 class AlwaysRunTasksAnalyzerResultMessageConverter {
   companion object {
     fun transform(alwaysRunTasks: List<AlwaysRunTaskData>):
-      AlwaysRunTasksAnalyzerResult? =
-      AlwaysRunTasksAnalyzerResult.newBuilder()
+      BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult? =
+      BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.newBuilder()
         .addAllAlwaysRunTasksData(alwaysRunTasks.map { transformAlwaysRunTaskData(it) })
         .build()
 
     fun construct(
-      alwaysRunTasksAnalyzerResult: AlwaysRunTasksAnalyzerResult,
+      alwaysRunTasksAnalyzerResult: BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult,
       tasks: Map<String, TaskData>
     ): AlwaysRunTasksAnalyzer.Result {
       val alwaysRunTaskData = mutableListOf<AlwaysRunTaskData>()
@@ -43,29 +43,19 @@ class AlwaysRunTasksAnalyzerResultMessageConverter {
     }
 
     private fun transformAlwaysRunTaskData(alwaysRunTaskData: AlwaysRunTaskData):
-      AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData {
-      val arTaskData = AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.newBuilder()
+      BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData {
+      val arTaskData = BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.newBuilder()
         .setReason((transformAlwaysRunTaskReason(alwaysRunTaskData.rerunReason)))
       arTaskData.taskId = alwaysRunTaskData.taskData.getTaskPath()
       return arTaskData.build()
     }
 
-    private fun transformAlwaysRunTaskReason(reason: AlwaysRunTaskData.Reason) =
-      when (reason) {
-        AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS ->
-          AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.Reason.NO_OUTPUTS_WITH_ACTIONS
+    private fun transformAlwaysRunTaskReason(reason: AlwaysRunTaskData.Reason): BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.Reason =
+      PairEnumFinder.aToB(
+        reason)
 
-        AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE ->
-          AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.Reason.UP_TO_DATE_WHEN_FALSE
-      }
 
-    @VisibleForTesting
-    fun constructAlwaysRunTaskReason(reason: AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.Reason) =
-      when (reason) {
-        AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.Reason.NO_OUTPUTS_WITH_ACTIONS -> AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS
-        AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.Reason.UP_TO_DATE_WHEN_FALSE -> AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE
-        AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.Reason.UNRECOGNIZED -> throw IllegalStateException("Unrecognised reason")
-        AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.Reason.UNSPECIFIED -> throw IllegalStateException("Unrecognised reason")
-      }
+    private fun constructAlwaysRunTaskReason(reason: BuildAnalysisResultsMessage.AlwaysRunTasksAnalyzerResult.AlwaysRunTasksData.Reason): AlwaysRunTaskData.Reason =
+      PairEnumFinder.bToA(reason)
   }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution.proto
+package com.android.build.attribution.proto.converters
 
 import com.android.build.attribution.BuildAnalysisResultsMessage
 import com.android.build.attribution.analyzers.AnalyzerNotRun

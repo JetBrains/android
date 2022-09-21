@@ -18,6 +18,7 @@ package com.android.build.attribution.proto
 import com.android.build.attribution.analyzers.ProjectConfigurationAnalyzer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
+import com.android.build.attribution.proto.converters.ProjectConfigurationAnalyzerResultMessageConverter
 import com.google.common.truth.Truth
 import org.junit.Test
 

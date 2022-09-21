@@ -13,39 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution.proto
+package com.android.build.attribution.proto.converters
 
-import com.android.build.attribution.BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult
+import com.android.build.attribution.BuildAnalysisResultsMessage
 import com.android.build.attribution.analyzers.GarbageCollectionAnalyzer
 import com.android.build.attribution.data.GarbageCollectionData
 
 class GarbageCollectionAnalyzerResultMessageConverter {
   companion object {
     fun transform(garbageCollectionAnalyzerResult: GarbageCollectionAnalyzer.Result)
-      : GarbageCollectionAnalyzerResult {
-      val garbageCollectionAnalyzerResultBuilder = GarbageCollectionAnalyzerResult.newBuilder()
+      : BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult {
+      val garbageCollectionAnalyzerResultBuilder = BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.newBuilder()
       garbageCollectionAnalyzerResultBuilder.addAllGarbageCollectionData(
-        (garbageCollectionAnalyzerResult.garbageCollectionData).map(::transformGarbageCollectionDatum))
+        (garbageCollectionAnalyzerResult.garbageCollectionData).map(Companion::transformGarbageCollectionDatum))
       if (garbageCollectionAnalyzerResult.javaVersion != null) {
         garbageCollectionAnalyzerResultBuilder.javaVersion = garbageCollectionAnalyzerResult.javaVersion
       }
       when (garbageCollectionAnalyzerResult.isSettingSet) {
-        true -> garbageCollectionAnalyzerResultBuilder.isSettingSet = GarbageCollectionAnalyzerResult.TrueFalseUnknown.TRUE
-        false -> garbageCollectionAnalyzerResultBuilder.isSettingSet = GarbageCollectionAnalyzerResult.TrueFalseUnknown.FALSE
-        null -> garbageCollectionAnalyzerResultBuilder.isSettingSet = GarbageCollectionAnalyzerResult.TrueFalseUnknown.UNKNOWN
+        true -> garbageCollectionAnalyzerResultBuilder.isSettingSet = BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.TRUE
+        false -> garbageCollectionAnalyzerResultBuilder.isSettingSet = BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.FALSE
+        null -> garbageCollectionAnalyzerResultBuilder.isSettingSet = BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.UNKNOWN
       }
       return garbageCollectionAnalyzerResultBuilder.build()
     }
 
     fun construct(
-      garbageCollectionAnalyzerResult: GarbageCollectionAnalyzerResult
+      garbageCollectionAnalyzerResult: BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult
     ): GarbageCollectionAnalyzer.Result {
       val garbageCollectionData: MutableList<GarbageCollectionData> = mutableListOf()
       val isSettingSet = when (garbageCollectionAnalyzerResult.isSettingSet) {
-        GarbageCollectionAnalyzerResult.TrueFalseUnknown.TRUE -> true
-        GarbageCollectionAnalyzerResult.TrueFalseUnknown.FALSE -> false
-        GarbageCollectionAnalyzerResult.TrueFalseUnknown.UNKNOWN -> null
-        GarbageCollectionAnalyzerResult.TrueFalseUnknown.UNRECOGNIZED -> throw IllegalStateException(
+        BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.TRUE -> true
+        BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.FALSE -> false
+        BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.UNKNOWN -> null
+        BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.TrueFalseUnknown.UNRECOGNIZED -> throw IllegalStateException(
           "Unrecognized setting state")
         null -> throw IllegalStateException("Unrecognized setting state")
 
@@ -60,7 +60,7 @@ class GarbageCollectionAnalyzerResultMessageConverter {
       return GarbageCollectionAnalyzer.Result(garbageCollectionData, javaVersion, isSettingSet)
     }
 
-    private fun transformGarbageCollectionDatum(garbageCollectionDatum: GarbageCollectionData) = GarbageCollectionAnalyzerResult.GarbageCollectionData.newBuilder()
+    private fun transformGarbageCollectionDatum(garbageCollectionDatum: GarbageCollectionData) = BuildAnalysisResultsMessage.GarbageCollectionAnalyzerResult.GarbageCollectionData.newBuilder()
       .setCollectionTimeMs(garbageCollectionDatum.collectionTimeMs)
       .setName(garbageCollectionDatum.name)
       .build()

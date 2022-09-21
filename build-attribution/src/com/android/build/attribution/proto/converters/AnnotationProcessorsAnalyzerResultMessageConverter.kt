@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution.proto
+package com.android.build.attribution.proto.converters
 
 import com.android.build.attribution.BuildAnalysisResultsMessage
-import com.android.build.attribution.BuildAnalysisResultsMessage.AnnotationProcessorsAnalyzerResult
 import com.android.build.attribution.analyzers.AnnotationProcessorsAnalyzer
 import com.android.build.attribution.data.AnnotationProcessorData
 import java.time.Duration
@@ -24,23 +23,23 @@ import java.time.Duration
 class AnnotationProcessorsAnalyzerResultMessageConverter {
   companion object {
     fun transform(annotationProcessorsAnalyzerResult: AnnotationProcessorsAnalyzer.Result)
-      : AnnotationProcessorsAnalyzerResult =
-      AnnotationProcessorsAnalyzerResult.newBuilder()
+      : BuildAnalysisResultsMessage.AnnotationProcessorsAnalyzerResult =
+      BuildAnalysisResultsMessage.AnnotationProcessorsAnalyzerResult.newBuilder()
         .addAllAnnotationProcessorsData(
-          annotationProcessorsAnalyzerResult.annotationProcessorsData.map(::transformAnnotationProcessorsDatum))
+          annotationProcessorsAnalyzerResult.annotationProcessorsData.map(Companion::transformAnnotationProcessorsDatum))
         .addAllNonIncrementalAnnotationProcessorsData(
-          annotationProcessorsAnalyzerResult.nonIncrementalAnnotationProcessorsData.map(::transformAnnotationProcessorsDatum))
+          annotationProcessorsAnalyzerResult.nonIncrementalAnnotationProcessorsData.map(Companion::transformAnnotationProcessorsDatum))
         .build()
 
     fun construct(
-      annotationProcessorsAnalyzerResult: AnnotationProcessorsAnalyzerResult
+      annotationProcessorsAnalyzerResult: BuildAnalysisResultsMessage.AnnotationProcessorsAnalyzerResult
     ): AnnotationProcessorsAnalyzer.Result = AnnotationProcessorsAnalyzer.Result(
       constructAnnotationProcessorsData(annotationProcessorsAnalyzerResult.annotationProcessorsDataList),
       constructAnnotationProcessorsData(annotationProcessorsAnalyzerResult.nonIncrementalAnnotationProcessorsDataList)
     )
 
     private fun transformAnnotationProcessorsDatum(annotationProcessorData: AnnotationProcessorData) =
-      AnnotationProcessorsAnalyzerResult.AnnotationProcessorsData.newBuilder()
+      BuildAnalysisResultsMessage.AnnotationProcessorsAnalyzerResult.AnnotationProcessorsData.newBuilder()
         .setClassName(annotationProcessorData.className)
         .setCompilationDuration(transformDuration(annotationProcessorData.compilationDuration))
         .build()
@@ -52,7 +51,7 @@ class AnnotationProcessorsAnalyzerResultMessageConverter {
         .build()
 
     private fun constructAnnotationProcessorsData(
-      annotationProcessorData: MutableList<AnnotationProcessorsAnalyzerResult.AnnotationProcessorsData>
+      annotationProcessorData: MutableList<BuildAnalysisResultsMessage.AnnotationProcessorsAnalyzerResult.AnnotationProcessorsData>
     ): MutableList<AnnotationProcessorData> {
       val annotationProcessorDataConverted = mutableListOf<AnnotationProcessorData>()
       for (annotationProcessorsDatum in annotationProcessorData) {

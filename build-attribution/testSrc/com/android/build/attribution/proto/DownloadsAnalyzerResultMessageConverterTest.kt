@@ -16,6 +16,7 @@
 package com.android.build.attribution.proto
 
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
+import com.android.build.attribution.proto.converters.DownloadsAnalyzerResultMessageConverter
 import com.google.common.truth.Truth
 import org.junit.Test
 

@@ -17,6 +17,7 @@ package com.android.build.attribution.proto
 
 import com.android.build.attribution.analyzers.GarbageCollectionAnalyzer
 import com.android.build.attribution.data.GarbageCollectionData
+import com.android.build.attribution.proto.converters.GarbageCollectionAnalyzerResultMessageConverter
 import com.google.common.truth.Truth
 import org.junit.Test
 

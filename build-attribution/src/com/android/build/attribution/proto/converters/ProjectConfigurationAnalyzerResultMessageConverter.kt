@@ -13,26 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution.proto
+package com.android.build.attribution.proto.converters
 
-import com.android.build.attribution.BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult
+import com.android.build.attribution.BuildAnalysisResultsMessage
 import com.android.build.attribution.analyzers.ProjectConfigurationAnalyzer
 import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
-import com.google.common.annotations.VisibleForTesting
+import com.android.build.attribution.proto.PairEnumFinder
+import com.android.build.attribution.proto.constructPluginType
+import com.android.build.attribution.proto.transformPluginData
 
 class ProjectConfigurationAnalyzerResultMessageConverter {
   companion object {
-    fun transform(projectConfigurationAnalyzerResult: ProjectConfigurationAnalyzer.Result): ProjectConfigurationAnalyzerResult =
-      ProjectConfigurationAnalyzerResult.newBuilder()
+    fun transform(projectConfigurationAnalyzerResult: ProjectConfigurationAnalyzer.Result): BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult =
+      BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult.newBuilder()
         .addAllPluginsConfigurationDataMap(
           projectConfigurationAnalyzerResult.pluginsConfigurationDataMap.map {
             transformPluginsDataLongMap(it.key, it.value)
           }
         )
         .addAllProjectConfigurationData(
-          projectConfigurationAnalyzerResult.projectsConfigurationData.map(::transformProjectConfigurationData))
+          projectConfigurationAnalyzerResult.projectsConfigurationData.map(Companion::transformProjectConfigurationData))
         .addAllAllAppliedPlugins(
           projectConfigurationAnalyzerResult.allAppliedPlugins.map {
             transformStringPluginDataMap(it.key, it.value)
@@ -40,7 +42,7 @@ class ProjectConfigurationAnalyzerResultMessageConverter {
         )
         .build()
 
-    fun construct(projectConfigurationAnalyzerResult: ProjectConfigurationAnalyzerResult)
+    fun construct(projectConfigurationAnalyzerResult: BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult)
       : ProjectConfigurationAnalyzer.Result {
       val projectConfigurationData = mutableListOf<ProjectConfigurationData>()
       for (projectConfigurationDatum in projectConfigurationAnalyzerResult.projectConfigurationDataList) {
@@ -80,80 +82,43 @@ class ProjectConfigurationAnalyzerResultMessageConverter {
     }
 
     private fun transformPluginsDataLongMap(pluginData: PluginData,
-                                            long: Long): ProjectConfigurationAnalyzerResult.PluginDataLongMap =
-      ProjectConfigurationAnalyzerResult.PluginDataLongMap.newBuilder()
+                                            long: Long): BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult.PluginDataLongMap =
+      BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult.PluginDataLongMap.newBuilder()
         .setPluginData(transformPluginData(pluginData))
         .setLong(long)
         .build()
 
     private fun transformProjectConfigurationData(projectConfigurationData: ProjectConfigurationData) =
-      ProjectConfigurationAnalyzerResult.ProjectConfigurationData.newBuilder()
-        .addAllPluginsConfigurationData((projectConfigurationData.pluginsConfigurationData).map(::transformPluginConfigurationData))
-        .addAllConfigurationSteps((projectConfigurationData.configurationSteps).map(::transformConfigurationStep))
+      BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult.ProjectConfigurationData.newBuilder()
+        .addAllPluginsConfigurationData((projectConfigurationData.pluginsConfigurationData).map(Companion::transformPluginConfigurationData))
+        .addAllConfigurationSteps((projectConfigurationData.configurationSteps).map(Companion::transformConfigurationStep))
         .setProjectPath(projectConfigurationData.projectPath)
         .setTotalConfigurationTime(projectConfigurationData.totalConfigurationTimeMs)
         .build()
 
     private fun transformPluginConfigurationData(pluginConfigurationData: PluginConfigurationData) =
-      ProjectConfigurationAnalyzerResult.ProjectConfigurationData.PluginConfigurationData.newBuilder()
+      BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult.ProjectConfigurationData.PluginConfigurationData.newBuilder()
         .setPlugin(transformPluginData(pluginConfigurationData.plugin))
         .setConfigurationTimeMS(pluginConfigurationData.configurationTimeMs)
         .build()
 
     private fun transformConfigurationStep(configurationStep: ProjectConfigurationData.ConfigurationStep) =
-      ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.newBuilder()
+      BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.newBuilder()
         .setType(transformConfigurationStepTypes(configurationStep.type))
         .setConfigurationTimeMs(configurationStep.configurationTimeMs)
         .build()
 
-    private fun transformConfigurationStepTypes(type: ProjectConfigurationData.ConfigurationStep.Type) =
-      when (type) {
-        ProjectConfigurationData.ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS ->
-          ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS
-
-        ProjectConfigurationData.ConfigurationStep.Type.RESOLVING_DEPENDENCIES ->
-          ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type.RESOLVING_DEPENDENCIES
-
-        ProjectConfigurationData.ConfigurationStep.Type.COMPILING_BUILD_SCRIPTS ->
-          ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type.COMPILING_BUILD_SCRIPTS
-
-        ProjectConfigurationData.ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS ->
-          ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS
-
-        ProjectConfigurationData.ConfigurationStep.Type.OTHER ->
-          ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type.OTHER
-      }
+    private fun transformConfigurationStepTypes(type: ProjectConfigurationData.ConfigurationStep.Type): BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type =
+      PairEnumFinder.aToB(type)
 
     private fun transformStringPluginDataMap(appliedPlugins: String,
-                                             plugins: List<PluginData>): ProjectConfigurationAnalyzerResult.StringPluginDataMap =
-      ProjectConfigurationAnalyzerResult.StringPluginDataMap.newBuilder()
+                                             plugins: List<PluginData>): BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult.StringPluginDataMap =
+      BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult.StringPluginDataMap.newBuilder()
         .setAppliedPlugins(appliedPlugins)
         .addAllPlugins(plugins.map(::transformPluginData))
         .build()
 
-    @VisibleForTesting
-    fun constructConfigurationStepTypes(type: ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type) =
-      when (type) {
-        ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS
-        -> ProjectConfigurationData.ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS
-
-        ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type.RESOLVING_DEPENDENCIES
-        -> ProjectConfigurationData.ConfigurationStep.Type.RESOLVING_DEPENDENCIES
-
-        ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type.COMPILING_BUILD_SCRIPTS
-        -> ProjectConfigurationData.ConfigurationStep.Type.COMPILING_BUILD_SCRIPTS
-
-        ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS
-        -> ProjectConfigurationData.ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS
-
-        ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type.UNKNOWN
-        -> throw IllegalStateException("Unrecognized type")
-
-        ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type.OTHER
-        -> ProjectConfigurationData.ConfigurationStep.Type.OTHER
-
-        ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type.UNRECOGNIZED
-        -> throw IllegalStateException("Unrecognized type")
-      }
+    private fun constructConfigurationStepTypes(type: BuildAnalysisResultsMessage.ProjectConfigurationAnalyzerResult.ProjectConfigurationData.ConfigurationStep.Type): ProjectConfigurationData.ConfigurationStep.Type =
+      PairEnumFinder.bToA(type)
   }
 }

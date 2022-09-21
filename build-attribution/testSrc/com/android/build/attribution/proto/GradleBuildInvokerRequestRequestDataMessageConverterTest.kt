@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.proto
 
+import com.android.build.attribution.proto.converters.GradleBuildInvokerRequestRequestDataMessageConverter
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode
 import com.google.common.truth.Truth

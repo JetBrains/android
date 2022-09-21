@@ -21,7 +21,7 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
-import com.android.build.attribution.proto.BuildResultsProtoMessageConverter
+import com.android.build.attribution.proto.converters.BuildResultsProtoMessageConverter
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode
@@ -34,7 +34,6 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.File
 import java.io.FileInputStream
-import java.io.IOException
 import java.time.Duration
 import java.util.UUID
 

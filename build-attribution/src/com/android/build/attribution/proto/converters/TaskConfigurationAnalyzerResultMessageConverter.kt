@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution.proto
+package com.android.build.attribution.proto.converters
 
-import com.android.build.attribution.BuildAnalysisResultsMessage.TasksConfigurationIssuesAnalyzerResult
+import com.android.build.attribution.BuildAnalysisResultsMessage
 import com.android.build.attribution.analyzers.TasksConfigurationIssuesAnalyzer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
@@ -23,13 +23,13 @@ import com.android.build.attribution.data.TasksSharingOutputData
 class TaskConfigurationAnalyzerResultMessageConverter {
   companion object {
     fun transform(tasksSharingOutputData: List<TasksSharingOutputData>)
-      : TasksConfigurationIssuesAnalyzerResult? =
-      TasksConfigurationIssuesAnalyzerResult.newBuilder()
-        .addAllTasksSharingOutputData(tasksSharingOutputData.map(::transformTasksSharingOutputData))
+      : BuildAnalysisResultsMessage.TasksConfigurationIssuesAnalyzerResult? =
+      BuildAnalysisResultsMessage.TasksConfigurationIssuesAnalyzerResult.newBuilder()
+        .addAllTasksSharingOutputData(tasksSharingOutputData.map(Companion::transformTasksSharingOutputData))
         .build()
 
     fun construct(
-      tasksConfigurationAnalyzerResult: TasksConfigurationIssuesAnalyzerResult,
+      tasksConfigurationAnalyzerResult: BuildAnalysisResultsMessage.TasksConfigurationIssuesAnalyzerResult,
       tasks: Map<String, TaskData>
     ): TasksConfigurationIssuesAnalyzer.Result {
       val tasksSharingOutputData = mutableListOf<TasksSharingOutputData>()
@@ -42,7 +42,7 @@ class TaskConfigurationAnalyzerResultMessageConverter {
     }
 
     private fun transformTasksSharingOutputData(tasksSharingOutputData: TasksSharingOutputData) =
-      TasksConfigurationIssuesAnalyzerResult.TasksSharingOutputData.newBuilder()
+      BuildAnalysisResultsMessage.TasksConfigurationIssuesAnalyzerResult.TasksSharingOutputData.newBuilder()
         .addAllTaskIdList(tasksSharingOutputData.taskList.map { it.getTaskPath() })
         .setOutputFilePath(tasksSharingOutputData.outputFilePath)
         .build()

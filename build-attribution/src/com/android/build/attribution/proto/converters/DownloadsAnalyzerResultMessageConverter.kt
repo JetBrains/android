@@ -13,34 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution.proto
+package com.android.build.attribution.proto.converters
 
-import com.android.build.attribution.BuildAnalysisResultsMessage.DownloadsAnalyzerResult
+import com.android.build.attribution.BuildAnalysisResultsMessage
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
-import com.google.common.annotations.VisibleForTesting
+import com.android.build.attribution.proto.PairEnumFinder
 import com.google.wireless.android.sdk.stats.BuildDownloadsAnalysisData
 
 class DownloadsAnalyzerResultMessageConverter {
   companion object {
-    fun transform(downloadsAnalyzerResult: DownloadsAnalyzer.Result): DownloadsAnalyzerResult = when (downloadsAnalyzerResult) {
-      is DownloadsAnalyzer.ActiveResult -> DownloadsAnalyzerResult.newBuilder()
+    fun transform(downloadsAnalyzerResult: DownloadsAnalyzer.Result): BuildAnalysisResultsMessage.DownloadsAnalyzerResult = when (downloadsAnalyzerResult) {
+      is DownloadsAnalyzer.ActiveResult -> BuildAnalysisResultsMessage.DownloadsAnalyzerResult.newBuilder()
         .setActiveResult(transformActiveResult(downloadsAnalyzerResult.repositoryResults))
-        .setResultStatus(DownloadsAnalyzerResult.ResultStatus.ACTIVE_RESULT)
+        .setResultStatus(BuildAnalysisResultsMessage.DownloadsAnalyzerResult.ResultStatus.ACTIVE_RESULT)
         .build()
 
-      is DownloadsAnalyzer.GradleDoesNotProvideEvents -> DownloadsAnalyzerResult.newBuilder()
-        .setResultStatus(DownloadsAnalyzerResult.ResultStatus.GRADLE_DOES_NOT_PROVIDE_EVENTS)
+      is DownloadsAnalyzer.GradleDoesNotProvideEvents -> BuildAnalysisResultsMessage.DownloadsAnalyzerResult.newBuilder()
+        .setResultStatus(BuildAnalysisResultsMessage.DownloadsAnalyzerResult.ResultStatus.GRADLE_DOES_NOT_PROVIDE_EVENTS)
         .build()
 
-      is DownloadsAnalyzer.AnalyzerIsDisabled -> DownloadsAnalyzerResult.newBuilder()
-        .setResultStatus(DownloadsAnalyzerResult.ResultStatus.ANALYZER_IS_DISABLED)
+      is DownloadsAnalyzer.AnalyzerIsDisabled -> BuildAnalysisResultsMessage.DownloadsAnalyzerResult.newBuilder()
+        .setResultStatus(BuildAnalysisResultsMessage.DownloadsAnalyzerResult.ResultStatus.ANALYZER_IS_DISABLED)
         .build()
     }
 
-    fun construct(downloadsAnalyzerResult: DownloadsAnalyzerResult): DownloadsAnalyzer.Result {
+    fun construct(downloadsAnalyzerResult: BuildAnalysisResultsMessage.DownloadsAnalyzerResult): DownloadsAnalyzer.Result {
       val downloadAnalyzerResult: DownloadsAnalyzer.Result
       when (downloadsAnalyzerResult.resultStatus) {
-        DownloadsAnalyzerResult.ResultStatus.ACTIVE_RESULT -> {
+        BuildAnalysisResultsMessage.DownloadsAnalyzerResult.ResultStatus.ACTIVE_RESULT -> {
           val repositoryResults = mutableListOf<DownloadsAnalyzer.RepositoryResult>()
           for (repositoryResult in downloadsAnalyzerResult.activeResult.repositoryResultList) {
             val downloadResults = mutableListOf<DownloadsAnalyzer.DownloadResult>()
@@ -64,20 +64,20 @@ class DownloadsAnalyzerResultMessageConverter {
           downloadAnalyzerResult = DownloadsAnalyzer.ActiveResult(repositoryResults)
         }
 
-        DownloadsAnalyzerResult.ResultStatus.GRADLE_DOES_NOT_PROVIDE_EVENTS -> downloadAnalyzerResult = DownloadsAnalyzer.GradleDoesNotProvideEvents
+        BuildAnalysisResultsMessage.DownloadsAnalyzerResult.ResultStatus.GRADLE_DOES_NOT_PROVIDE_EVENTS -> downloadAnalyzerResult = DownloadsAnalyzer.GradleDoesNotProvideEvents
         else -> downloadAnalyzerResult = DownloadsAnalyzer.AnalyzerIsDisabled
       }
       return downloadAnalyzerResult
     }
 
     private fun transformActiveResult(repositoryResults: List<DownloadsAnalyzer.RepositoryResult>) =
-      DownloadsAnalyzerResult.ActiveResult.newBuilder()
-        .addAllRepositoryResult(repositoryResults.map(::transformRepositoryResult))
+      BuildAnalysisResultsMessage.DownloadsAnalyzerResult.ActiveResult.newBuilder()
+        .addAllRepositoryResult(repositoryResults.map(Companion::transformRepositoryResult))
         .build()
 
-    private fun transformRepositoryResult(repositoryResult: DownloadsAnalyzer.RepositoryResult): DownloadsAnalyzerResult.ActiveResult.RepositoryResult {
-      val result = DownloadsAnalyzerResult.ActiveResult.RepositoryResult.newBuilder()
-        .addAllDownloads(repositoryResult.downloads.map(::transformDownloadResult))
+    private fun transformRepositoryResult(repositoryResult: DownloadsAnalyzer.RepositoryResult): BuildAnalysisResultsMessage.DownloadsAnalyzerResult.ActiveResult.RepositoryResult {
+      val result = BuildAnalysisResultsMessage.DownloadsAnalyzerResult.ActiveResult.RepositoryResult.newBuilder()
+        .addAllDownloads(repositoryResult.downloads.map(Companion::transformDownloadResult))
       if (repositoryResult.repository is DownloadsAnalyzer.OtherRepository) {
         result.repository = transformOtherRepository(repositoryResult.repository)
       }
@@ -87,8 +87,8 @@ class DownloadsAnalyzerResultMessageConverter {
       return result.build()
     }
 
-    private fun transformDownloadResult(downloadResult: DownloadsAnalyzer.DownloadResult): DownloadsAnalyzerResult.DownloadResult {
-      val result = DownloadsAnalyzerResult.DownloadResult.newBuilder()
+    private fun transformDownloadResult(downloadResult: DownloadsAnalyzer.DownloadResult): BuildAnalysisResultsMessage.DownloadsAnalyzerResult.DownloadResult {
+      val result = BuildAnalysisResultsMessage.DownloadsAnalyzerResult.DownloadResult.newBuilder()
         .setTimestamp(downloadResult.timestamp)
         .setUrl(downloadResult.url)
         .setStatus(transformDownloadStatus(downloadResult.status))
@@ -105,73 +105,59 @@ class DownloadsAnalyzerResultMessageConverter {
     }
 
     private fun transformOtherRepository(repository: DownloadsAnalyzer.OtherRepository) =
-      DownloadsAnalyzerResult.Repository.newBuilder()
+      BuildAnalysisResultsMessage.DownloadsAnalyzerResult.Repository.newBuilder()
         .setAnalyticsType(transformRepositoryType(repository.analyticsType))
         .setHost(repository.host)
         .build()
 
     private fun transformRepository(repository: DownloadsAnalyzer.Repository) =
-      DownloadsAnalyzerResult.Repository.newBuilder()
+      BuildAnalysisResultsMessage.DownloadsAnalyzerResult.Repository.newBuilder()
         .setAnalyticsType(transformRepositoryType(repository.analyticsType))
         .build()
 
-    private fun transformDownloadStatus(status: DownloadsAnalyzer.DownloadStatus) =
-      when (status) {
-        DownloadsAnalyzer.DownloadStatus.SUCCESS -> DownloadsAnalyzerResult.DownloadResult.DownloadStatus.SUCCESS
-        DownloadsAnalyzer.DownloadStatus.MISSED -> DownloadsAnalyzerResult.DownloadResult.DownloadStatus.MISSED
-        DownloadsAnalyzer.DownloadStatus.FAILURE -> DownloadsAnalyzerResult.DownloadResult.DownloadStatus.FAILURE
-      }
+
+    private fun transformDownloadStatus(status: DownloadsAnalyzer.DownloadStatus): BuildAnalysisResultsMessage.DownloadsAnalyzerResult.DownloadResult.DownloadStatus =
+      PairEnumFinder.aToB(status)
 
     private fun transformRepositoryType(repositoryType: BuildDownloadsAnalysisData.RepositoryStats.RepositoryType) =
-      when (repositoryType) {
-        BuildDownloadsAnalysisData.RepositoryStats.RepositoryType.UNKNOWN_REPOSITORY ->
-          DownloadsAnalyzerResult.Repository.RepositoryType.UNKNOWN_REPOSITORY
-
+      when(repositoryType) {
         BuildDownloadsAnalysisData.RepositoryStats.RepositoryType.GOOGLE ->
-          DownloadsAnalyzerResult.Repository.RepositoryType.GOOGLE
-
-        BuildDownloadsAnalysisData.RepositoryStats.RepositoryType.MAVEN_CENTRAL ->
-          DownloadsAnalyzerResult.Repository.RepositoryType.MAVEN_CENTRAL
-
+          BuildAnalysisResultsMessage.DownloadsAnalyzerResult.Repository.RepositoryType.GOOGLE
         BuildDownloadsAnalysisData.RepositoryStats.RepositoryType.JCENTER ->
-          DownloadsAnalyzerResult.Repository.RepositoryType.JCENTER
-
+          BuildAnalysisResultsMessage.DownloadsAnalyzerResult.Repository.RepositoryType.JCENTER
+        BuildDownloadsAnalysisData.RepositoryStats.RepositoryType.MAVEN_CENTRAL ->
+          BuildAnalysisResultsMessage.DownloadsAnalyzerResult.Repository.RepositoryType.MAVEN_CENTRAL
         BuildDownloadsAnalysisData.RepositoryStats.RepositoryType.OTHER_REPOSITORY ->
-          DownloadsAnalyzerResult.Repository.RepositoryType.OTHER_REPOSITORY
+          BuildAnalysisResultsMessage.DownloadsAnalyzerResult.Repository.RepositoryType.OTHER_REPOSITORY
+        BuildDownloadsAnalysisData.RepositoryStats.RepositoryType.UNKNOWN_REPOSITORY ->
+          BuildAnalysisResultsMessage.DownloadsAnalyzerResult.Repository.RepositoryType.UNKNOWN_REPOSITORY
       }
 
     private fun constructRepositoryType(
-      repositoryType: DownloadsAnalyzerResult.Repository.RepositoryType,
+      repositoryType: BuildAnalysisResultsMessage.DownloadsAnalyzerResult.Repository.RepositoryType,
       host: String
     ) =
       when (repositoryType) {
-        DownloadsAnalyzerResult.Repository.RepositoryType.UNKNOWN_REPOSITORY
+        BuildAnalysisResultsMessage.DownloadsAnalyzerResult.Repository.RepositoryType.UNKNOWN_REPOSITORY
         -> DownloadsAnalyzer.OtherRepository(host)
 
-        DownloadsAnalyzerResult.Repository.RepositoryType.GOOGLE
+        BuildAnalysisResultsMessage.DownloadsAnalyzerResult.Repository.RepositoryType.GOOGLE
         -> DownloadsAnalyzer.KnownRepository.GOOGLE
 
-        DownloadsAnalyzerResult.Repository.RepositoryType.MAVEN_CENTRAL
+        BuildAnalysisResultsMessage.DownloadsAnalyzerResult.Repository.RepositoryType.MAVEN_CENTRAL
         -> DownloadsAnalyzer.KnownRepository.MAVEN_CENTRAL
 
-        DownloadsAnalyzerResult.Repository.RepositoryType.JCENTER
+        BuildAnalysisResultsMessage.DownloadsAnalyzerResult.Repository.RepositoryType.JCENTER
         -> DownloadsAnalyzer.KnownRepository.JCENTER
 
-        DownloadsAnalyzerResult.Repository.RepositoryType.OTHER_REPOSITORY
+        BuildAnalysisResultsMessage.DownloadsAnalyzerResult.Repository.RepositoryType.OTHER_REPOSITORY
         -> DownloadsAnalyzer.OtherRepository(host)
 
-        DownloadsAnalyzerResult.Repository.RepositoryType.UNRECOGNIZED -> throw IllegalStateException(
+        BuildAnalysisResultsMessage.DownloadsAnalyzerResult.Repository.RepositoryType.UNRECOGNIZED -> throw IllegalStateException(
           "Unrecognized repository type")
       }
 
-    @VisibleForTesting
-    fun constructDownloadStatus(status: DownloadsAnalyzerResult.DownloadResult.DownloadStatus) =
-      when (status) {
-        DownloadsAnalyzerResult.DownloadResult.DownloadStatus.SUCCESS -> DownloadsAnalyzer.DownloadStatus.SUCCESS
-        DownloadsAnalyzerResult.DownloadResult.DownloadStatus.FAILURE -> DownloadsAnalyzer.DownloadStatus.FAILURE
-        DownloadsAnalyzerResult.DownloadResult.DownloadStatus.MISSED -> DownloadsAnalyzer.DownloadStatus.MISSED
-        DownloadsAnalyzerResult.DownloadResult.DownloadStatus.UNKNOWN -> throw IllegalStateException("Unrecognised download status")
-        DownloadsAnalyzerResult.DownloadResult.DownloadStatus.UNRECOGNIZED -> throw IllegalStateException("Unrecognised download status")
-      }
+    private fun constructDownloadStatus(status: BuildAnalysisResultsMessage.DownloadsAnalyzerResult.DownloadResult.DownloadStatus): DownloadsAnalyzer.DownloadStatus =
+      PairEnumFinder.bToA(status)
   }
 }
