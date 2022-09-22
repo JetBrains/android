@@ -1,10 +1,10 @@
 ==================== HISTOGRAM ====================
 Histogram. Top 2147483647 by instance count [All-objects] [Only-strong-ref]:
-    1: [   18/2.08KB] [   18/2.08KB] java.lang.Class
+    1: [   18/1.94KB] [   18/1.94KB] java.lang.Class
     2: [   12/  192B] [    9/  144B] TestString
     3: [    8/  192B] [    6/  144B] TestClassB
     4: [    4/  128B] [    3/   96B] TestClassA
-    5: [    3/   63B] [    3/   63B] java.lang.String
+    5: [    3/   66B] [    3/   66B] java.lang.String
     6: [    3/   68B] [    3/   68B] byte[]
     7: [    3/   48B] [    3/   48B] MyRef
     8: [    2/   16B] [    2/   16B] java.lang.ref.WeakReference
@@ -12,8 +12,8 @@ Histogram. Top 2147483647 by instance count [All-objects] [Only-strong-ref]:
    10: [    1/   16B] [    1/   16B] java.util.Arrays$ArrayList
    11: [    1/   44B] [    1/   44B] java.lang.Object[]
    12: [    1/    8B] [    1/    8B] java.lang.ref.ReferenceQueue$Null
-Total -        All:    57 2.87KB 12 classes (Total instances: 57)
-Total - Strong-ref:    51 2.74KB 12 classes (Total instances: 51)
+Total -        All:    57 2.73KB 12 classes (Total instances: 57)
+Total - Strong-ref:    51  2.6KB 12 classes (Total instances: 51)
 Unreachable objects:     0      0B
 =================== HEAP SUMMARY ==================
 Class count: 18
