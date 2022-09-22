@@ -194,7 +194,9 @@ class DeviceViewPanel(
     currentClient = { layoutInspector.currentClient },
     pannable = this,
     selectTargetAction = targetSelectedAction,
-    disposableParent = disposableParent
+    disposableParent = disposableParent,
+    isLoading = { isLoading },
+    isCurrentForegroundProcessDebuggable = { isCurrentForegroundProcessDebuggable }
   )
 
   private fun deviceAttribution(device: DeviceDescriptor, event: AnActionEvent) = when {
@@ -281,31 +283,31 @@ class DeviceViewPanel(
 
   private val actionToolbar: ActionToolbar = createToolbar(targetSelectedAction?.dropDownAction)
 
+  private var isLoading = false
+  private var isCurrentForegroundProcessDebuggable = false
+
   /**
    * If the new [ForegroundProcess] is not debuggable (it's not present in [ProcessesModel]),
    * [DeviceViewContentPanel] will show an error message.
    */
   fun onNewForegroundProcess(foregroundProcess: ForegroundProcess) {
-    if (processesModel == null) {
-      contentPanel.showProcessNotDebuggableText = false
+    isCurrentForegroundProcessDebuggable = if (processesModel == null) {
+      false
     }
     else {
       val processDescriptor = foregroundProcess.matchToProcessDescriptor(processesModel)
-      contentPanel.showProcessNotDebuggableText = processDescriptor == null
-
-      contentPanel.revalidate()
-      contentPanel.repaint()
+      processDescriptor != null
     }
   }
 
   init {
     loadingPane.addListener(object : JBLoadingPanelListener {
       override fun onLoadingStart() {
-        contentPanel.showEmptyText = false
+        isLoading = true
       }
 
       override fun onLoadingFinish() {
-        contentPanel.showEmptyText = true
+        isLoading = false
       }
     })
 

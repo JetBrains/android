@@ -97,13 +97,21 @@ class DeviceViewContentPanel(
   val currentClient: () -> InspectorClient?,
   val pannable: Pannable,
   @VisibleForTesting val selectTargetAction: DropDownActionWithButton?,
-  disposableParent: Disposable
+  disposableParent: Disposable,
+  val isLoading: () -> Boolean,
+  val isCurrentForegroundProcessDebuggable: () -> Boolean,
 ) : AdtPrimaryPanel() {
 
-  var showEmptyText = true
-  var showProcessNotDebuggableText = false
-
   val renderModel = RenderModel(inspectorModel, treeSettings, currentClient)
+
+  @get:VisibleForTesting
+  val showEmptyText get() = !renderModel.isActive && !isLoading() && deviceModel?.selectedDevice == null
+
+  @get:VisibleForTesting
+  val showProcessNotDebuggableText get() = !renderModel.isActive &&
+                                           !isLoading() &&
+                                           deviceModel?.selectedDevice != null &&
+                                           !isCurrentForegroundProcessDebuggable()
 
   val rootLocation: Point?
     get() {
@@ -124,11 +132,11 @@ class DeviceViewContentPanel(
     }
 
   private val emptyText: StatusText = object : StatusText(this) {
-    override fun isStatusVisible() = !renderModel.isActive && showEmptyText && deviceModel?.selectedDevice == null
+    override fun isStatusVisible() = showEmptyText
   }
 
   private val processNotDebuggableText: StatusText = object : StatusText(this) {
-    override fun isStatusVisible() = !renderModel.isActive && showProcessNotDebuggableText && deviceModel?.selectedDevice != null
+    override fun isStatusVisible() = showProcessNotDebuggableText
   }
 
   init {
