@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.data.BuildRequestHolder
+import com.android.build.attribution.proto.BuildResultsProtoMessageConverter
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.toIoFile
 import com.android.utils.FileUtils
@@ -132,7 +133,7 @@ class BuildAnalyzerStorageManagerImpl(
       FileUtils.mkdirs(dataFolder)
       val buildResultFile = File(dataFolder, buildResults.getBuildSessionID())
       buildResultFile.createNewFile()
-      BuildResultsProtoMessageConverter(project).convertBuildAnalysisResultsFromObjectToBytes(
+      BuildResultsProtoMessageConverter.convertBuildAnalysisResultsFromObjectToBytes(
         buildResults,
         buildResults.getPluginMap(),
         buildResults.getTaskMap()
@@ -160,7 +161,7 @@ class BuildAnalyzerStorageManagerImpl(
       dataFolder?.let {
         val stream = FileInputStream(dataFolder.resolve(buildSessionID))
         val message = BuildAnalysisResultsMessage.parseDelimitedFrom(stream)
-        return BuildResultsProtoMessageConverter(project)
+        return BuildResultsProtoMessageConverter
           .convertBuildAnalysisResultsFromBytesToObject(message)
       } ?: throw IOException("No data storage folder")
     }

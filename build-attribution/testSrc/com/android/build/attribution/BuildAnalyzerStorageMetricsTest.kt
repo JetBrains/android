@@ -1,7 +1,6 @@
 import com.android.build.attribution.BuildAnalysisResults
 import com.android.build.attribution.BuildAnalysisResultsMessage
 import com.android.build.attribution.BuildAnalyzerStorageManagerImpl
-import com.android.build.attribution.BuildResultsProtoMessageConverter
 import com.android.build.attribution.analyzers.AlwaysRunTasksAnalyzer
 import com.android.build.attribution.analyzers.AnalyzerNotRun
 import com.android.build.attribution.analyzers.AnnotationProcessorsAnalyzer
@@ -22,6 +21,7 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
+import com.android.build.attribution.proto.BuildResultsProtoMessageConverter
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode
@@ -159,7 +159,7 @@ class BuildAnalyzerStorageMetricsTest {
   private fun getHistoricBuildResultsFromFile(file: File) {
     val stream = FileInputStream(file)
     val message = BuildAnalysisResultsMessage.parseDelimitedFrom(stream)
-    BuildResultsProtoMessageConverter(projectRule.project).convertBuildAnalysisResultsFromBytesToObject(message)
+    BuildResultsProtoMessageConverter.convertBuildAnalysisResultsFromBytesToObject(message)
   }
 
   private fun storeBuildResultsPlaceholderData(listSize: Int): File? {
@@ -277,8 +277,8 @@ class BuildAnalyzerStorageMetricsTest {
       taskCache as HashMap<String, TaskData>,
       pluginCache as HashMap<String, PluginData>
     )
-    // Uncomment to see the nicely printed result:
-    //val resultsMessage = BuildResultsProtoMessageConverter(projectRule.project).convertBuildAnalysisResultsFromObjectToBytes(
+     //Uncomment to see the nicely printed result:
+    //val resultsMessage = BuildResultsProtoMessageConverter.convertBuildAnalysisResultsFromObjectToBytes(
     //      results,
     //      results.getPluginMap(),
     //      results.getTaskMap()
