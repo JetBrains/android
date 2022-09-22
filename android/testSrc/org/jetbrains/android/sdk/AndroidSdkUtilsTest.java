@@ -71,15 +71,6 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
     }
   }
 
-  public void DISABLEDtestTryToCreateAndSetAndroidSdkWithPathOfModernSdk() {
-    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, TestUtils.getLatestAndroidPlatform());
-    System.out.println("Trying to set sdk for module from: " + mySdkPath + " -> " + sdkSet);
-    assertTrue(sdkSet);
-    Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
-    assertNotNull(sdk);
-    assertTrue(FileUtil.pathsEqual(mySdkPath.getPath(), sdk.getHomePath()));
-  }
-
   public void DISABLEDtestCreateNewAndroidPlatformWithPathOfModernSdkOnly() {
     Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(mySdkPath.getPath(), false);
     System.out.println("Creating new android platform from: " + mySdkPath + " -> " + sdk);
@@ -120,17 +111,6 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
     }
   }
 
-  public void testGetAdbInNonAndroidProject() {
-    assertWithMessage("Precondition: project with no android facets")
-        .that(ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)).isFalse();
-    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, TestUtils.getLatestAndroidPlatform());
-    System.out.println("Trying to set sdk for module from: " + mySdkPath + " -> " + sdkSet);
-    assertWithMessage("Precondition: android SDK configured").that(sdkSet).isTrue();
-
-    assertThat(AndroidSdkUtils.getAdb(myProject))
-        .isEqualTo(new File(IdeSdks.getInstance().getAndroidSdkPath(), AndroidBuildCommonUtils.platformToolPath(SdkConstants.FN_ADB)));
-  }
-
   public void testGetAdbInPath() throws Exception {
     assertWithMessage("Precondition: project with no android facets")
         .that(ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)).isFalse();
@@ -140,15 +120,5 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
       when(EnvironmentUtil.getValue("PATH")).thenReturn("foo" + separator + fakeAdb.getParent() + separator + "bar");
       assertThat(AndroidSdkUtils.findAdb(myProject).adbPath).isEqualTo(fakeAdb);
     }
-  }
-
-  private static void createAndroidSdk(@NotNull File androidHomePath, @NotNull String targetHashString, @NotNull Sdk javaSdk) {
-    Sdk sdk = SdkConfigurationUtil.createAndAddSDK(androidHomePath.getPath(), AndroidSdkType.getInstance());
-    assertNotNull(sdk);
-    AndroidSdkData sdkData = AndroidSdkData.getSdkData(androidHomePath);
-    assertNotNull(sdkData);
-    IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
-    assertNotNull(target);
-    AndroidSdks.getInstance().setUpSdk(sdk, target, target.getName(), Collections.singletonList(javaSdk), javaSdk);
   }
 }

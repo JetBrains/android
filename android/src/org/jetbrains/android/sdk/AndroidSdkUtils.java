@@ -16,21 +16,14 @@
 
 package org.jetbrains.android.sdk;
 
-import static com.android.SdkConstants.ANDROID_HOME_ENV;
 import static com.android.SdkConstants.FN_ADB;
-import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
 import static com.intellij.openapi.roots.ModuleRootModificationUtil.setModuleSdk;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static org.jetbrains.android.facet.AndroidRootUtil.getProjectPropertyValue;
-import static org.jetbrains.android.facet.AndroidRootUtil.getPropertyValue;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.platformToolPath;
-import static org.jetbrains.android.util.AndroidUtils.ANDROID_TARGET_PROPERTY;
 
-import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -42,11 +35,8 @@ import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.ide.highlighter.ArchiveFileType;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
@@ -58,16 +48,12 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.EnvironmentUtil;
 import com.intellij.util.SystemProperties;
 import java.io.File;
@@ -77,18 +63,17 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public final class AndroidSdkUtils {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidSdkUtils");
 
-  public static final String DEFAULT_PLATFORM_NAME_PROPERTY = "AndroidPlatformName";
   public static final String DEFAULT_JDK_NAME = "JDK";
   public static final String ADB_PATH_PROPERTY = "android.adb.path";
 
@@ -154,97 +139,6 @@ public final class AndroidSdkUtils {
     return id.equals(target.getVersion().getApiString()) || id.equals(target.getVersionName());
   }
 
-  private static boolean tryToSetAndroidPlatform(@NotNull Module module, @NotNull Sdk sdk) {
-    AndroidPlatform platform = AndroidPlatform.parse(sdk);
-    if (platform != null) {
-      setModuleSdk(module, sdk);
-      return true;
-    }
-    return false;
-  }
-
-  private static void setupPlatform(@NotNull Module module) {
-    String targetHashString = getTargetHashStringFromPropertyFile(module);
-    if (targetHashString != null && findAndSetSdkWithHashString(module, targetHashString)) {
-      return;
-    }
-
-    PropertiesComponent component = PropertiesComponent.getInstance();
-    if (component.isValueSet(DEFAULT_PLATFORM_NAME_PROPERTY)) {
-      String defaultPlatformName = component.getValue(DEFAULT_PLATFORM_NAME_PROPERTY);
-      Sdk defaultLib = ProjectJdkTable.getInstance().findJdk(defaultPlatformName, AndroidSdkType.getInstance().getName());
-      if (defaultLib != null && tryToSetAndroidPlatform(module, defaultLib)) {
-        return;
-      }
-    }
-    for (Sdk sdk : AndroidSdks.getInstance().getAllAndroidSdks()) {
-      AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
-
-      if (platform != null &&
-          checkSdkRoots(sdk, platform.getTarget(), false) &&
-          tryToSetAndroidPlatform(module, sdk)) {
-        component.setValue(DEFAULT_PLATFORM_NAME_PROPERTY, sdk.getName());
-        return;
-      }
-    }
-  }
-
-  @Nullable
-  private static String getTargetHashStringFromPropertyFile(@NotNull Module module) {
-    Pair<String, VirtualFile> targetProp = getProjectPropertyValue(module, ANDROID_TARGET_PROPERTY);
-    return targetProp != null ? targetProp.getFirst() : null;
-  }
-
-  private static boolean findAndSetSdkWithHashString(@NotNull Module module, @NotNull String targetHashString) {
-    Pair<String, VirtualFile> sdkDirProperty = getPropertyValue(module, FN_LOCAL_PROPERTIES, "sdk.dir");
-    String sdkDir = sdkDirProperty != null ? sdkDirProperty.getFirst() : null;
-    return findAndSetSdk(module, targetHashString, sdkDir);
-  }
-
-  /**
-   * Finds a matching Android SDK and sets it in the given module.
-   *
-   * @param module           the module to set the found SDK to.
-   * @param targetHashString compile target.
-   * @param sdkPath          path, in the file system, of the Android SDK.
-   * @return {@code true} if a matching Android SDK was found and set in the module; {@code false} otherwise.
-   */
-  public static boolean findAndSetSdk(@NotNull Module module, @NotNull String targetHashString, @Nullable String sdkPath) {
-    File path = null;
-    if (sdkPath != null) {
-      path = new File(toSystemIndependentName(sdkPath));
-    }
-
-    Sdk sdk = AndroidSdks.getInstance().findSuitableAndroidSdk(targetHashString);
-    if (sdk != null) {
-      setModuleSdk(module, sdk);
-      return true;
-    }
-
-    if (sdkPath != null && tryToCreateAndSetAndroidSdk(module, path, targetHashString)) {
-      return true;
-    }
-
-    String androidHomeValue = System.getenv(ANDROID_HOME_ENV);
-    if (androidHomeValue != null &&
-        tryToCreateAndSetAndroidSdk(module, new File(toSystemIndependentName(androidHomeValue)), targetHashString)) {
-      return true;
-    }
-
-    String androidSdkRootValue = System.getenv(SdkConstants.ANDROID_SDK_ROOT_ENV);
-    if (androidSdkRootValue != null &&
-        tryToCreateAndSetAndroidSdk(module, new File(toSystemIndependentName(androidSdkRootValue)), targetHashString)) {
-      return true;
-    }
-
-    for (File dir : AndroidSdks.getInstance().getAndroidSdkPathsFromExistingPlatforms()) {
-      if (tryToCreateAndSetAndroidSdk(module, dir, targetHashString)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   /**
    * Reload SDK information and update the source root of the SDK.
    */
@@ -257,16 +151,6 @@ public final class AndroidSdkUtils {
       AndroidSdks.getInstance().findAndSetPlatformSources(target, sdkModificator);
       sdkModificator.commitChanges();
     }
-  }
-
-  @VisibleForTesting
-  static boolean tryToCreateAndSetAndroidSdk(@NotNull Module module, @NotNull File sdkPath, @NotNull String targetHashString) {
-    Sdk sdk = AndroidSdks.getInstance().tryToCreate(sdkPath, targetHashString);
-    if (sdk != null) {
-      setModuleSdk(module, sdk);
-      return true;
-    }
-    return false;
   }
 
   @Nullable
@@ -313,56 +197,8 @@ public final class AndroidSdkUtils {
     return null;
   }
 
-  public static void setupAndroidPlatformIfNecessary(@NotNull Module module, boolean forceImportFromProperties) {
-    Sdk currentSdk = ModuleRootManager.getInstance(module).getSdk();
-    if (currentSdk == null || !AndroidSdks.getInstance().isAndroidSdk(currentSdk)) {
-      setupPlatform(module);
-      return;
-    }
-    if (forceImportFromProperties) {
-      AndroidPlatform platform = AndroidPlatform.getInstance(currentSdk);
-      if (platform != null) {
-        String targetHashString = getTargetHashStringFromPropertyFile(module);
-        String currentTargetHashString = platform.getTarget().hashString();
-
-        if (targetHashString != null && !targetHashString.equals(currentTargetHashString)) {
-          findAndSetSdkWithHashString(module, targetHashString);
-        }
-      }
-    }
-  }
-
   public static void openModuleDependenciesConfigurable(@NotNull Module module) {
     ProjectSettingsService.getInstance(module.getProject()).openModuleDependenciesSettings(module, null);
-  }
-
-  public static boolean checkSdkRoots(@NotNull Sdk sdk, @NotNull IAndroidTarget target, boolean forMaven) {
-    String homePath = sdk.getHomePath();
-    if (homePath == null) {
-      return false;
-    }
-    AndroidSdks androidSdks = AndroidSdks.getInstance();
-    AndroidSdkAdditionalData sdkAdditionalData = androidSdks.getAndroidSdkAdditionalData(sdk);
-    Sdk javaSdk = sdkAdditionalData != null ? sdkAdditionalData.getJavaSdk() : null;
-    if (javaSdk == null) {
-      return false;
-    }
-    Set<VirtualFile> filesInSdk = Sets.newHashSet(sdk.getRootProvider().getFiles(CLASSES));
-
-    List<VirtualFile> platformAndAddOnJars = androidSdks.getPlatformAndAddOnJars(target);
-    for (VirtualFile file : platformAndAddOnJars) {
-      if (filesInSdk.contains(file) == forMaven) {
-        return false;
-      }
-    }
-    boolean containsJarFromJdk = false;
-
-    for (VirtualFile file : javaSdk.getRootProvider().getFiles(CLASSES)) {
-      if (file.getFileType() instanceof ArchiveFileType && filesInSdk.contains(file)) {
-        containsJarFromJdk = true;
-      }
-    }
-    return containsJarFromJdk == forMaven;
   }
 
   /**
