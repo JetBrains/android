@@ -103,6 +103,23 @@ abstract class RoomQueryInjectionTest : LightJavaCodeInsightFixtureAdtTestCase()
     injectionFixture.assertInjectedLangAtCaret(AndroidSqlLanguage.INSTANCE.id)
   }
 
+  fun testDatabaseViewKotlin() {
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      """
+        package com.example
+
+        import androidx.room.DatabaseView
+
+        interface UserDao {
+          @DatabaseView("select * $caret from User")
+          fun findAll(): List<User>
+        }""".trimIndent()
+    )
+
+    injectionFixture.assertInjectedLangAtCaret(AndroidSqlLanguage.INSTANCE.id)
+  }
+
   fun testConcatenation() {
     myFixture.configureByText(
       JavaFileType.INSTANCE,

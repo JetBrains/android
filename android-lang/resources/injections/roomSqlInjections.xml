@@ -22,6 +22,11 @@
     <place><![CDATA[psiMethod().withName("value").withParameters().definedInClass("android.arch.persistence.room.DatabaseView")]]></place>
     <place><![CDATA[psiMethod().withName("value").withParameters().definedInClass("androidx.room.DatabaseView")]]></place>
   </injection>
+  <injection language="RoomSql" injector-id="kotlin">
+    <display-name>Room Query annotation</display-name>
+    <place><![CDATA[kotlinParameter().ofFunction(0, kotlinFunction().withName("Query").definedInClass("androidx.room.Query"))]]></place>
+    <place><![CDATA[kotlinParameter().ofFunction(0, kotlinFunction().withName("DatabaseView").definedInClass("androidx.room.DatabaseView"))]]></place>
+  </injection>
   <injection language="RoomSql" injector-id="java">
     <display-name>SQLiteDatabase methods</display-name>
     <place><![CDATA[psiParameter().ofMethod(0, psiMethod().withName("compileStatement").withParameters("java.lang.String").definedInClass("android.database.sqlite.SQLiteDatabase"))]]></place>
