@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.util;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.SdkConstants.ATTR_CONTEXT;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.intellij.openapi.application.ApplicationManager.getApplication;
@@ -27,7 +26,6 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
@@ -40,8 +38,6 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.ide.wizard.CommitStepException;
@@ -52,7 +48,6 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -103,14 +98,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextArea;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidFacetProperties;
@@ -289,37 +282,6 @@ public class AndroidUtils extends CommonAndroidUtil {
     }
 
     return qualifiedName.substring(start + 1);
-  }
-
-  @NotNull
-  public static AndroidFacet addAndroidFacetInWriteAction(@NotNull Module module,
-                                                          @NotNull VirtualFile contentRoot,
-                                                          boolean library) {
-    return WriteAction.compute(() -> addAndroidFacet(module, contentRoot, library));
-  }
-
-  @NotNull
-  public static AndroidFacet addAndroidFacet(Module module, @NotNull VirtualFile contentRoot,
-                                             boolean library) {
-    FacetManager facetManager = FacetManager.getInstance(module);
-    ModifiableFacetModel model = facetManager.createModifiableModel();
-    AndroidFacet facet = model.getFacetByType(AndroidFacet.ID);
-
-    if (facet == null) {
-      facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
-      setUpAndroidFacetConfiguration(facet, contentRoot.getPath());
-      if (library) {
-        facet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
-      }
-      model.addFacet(facet);
-    }
-    model.commit();
-
-    return facet;
-  }
-
-  public static void setUpAndroidFacetConfiguration(@NotNull AndroidFacet androidFacet, @NotNull String baseDirectoryPath) {
-    setUpAndroidFacetConfiguration(androidFacet.getModule(), androidFacet.getConfiguration(), baseDirectoryPath);
   }
 
   public static void setUpAndroidFacetConfiguration(@NotNull Module module,

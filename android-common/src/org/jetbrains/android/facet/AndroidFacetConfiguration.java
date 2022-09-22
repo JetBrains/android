@@ -28,6 +28,7 @@ import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Implementation of {@link FacetConfiguration} for {@link AndroidFacet}.
@@ -101,6 +102,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
     return getState().PROJECT_TYPE;
   }
 
+  @VisibleForTesting
   public void setProjectType(int type) {
     getState().PROJECT_TYPE = type;
   }
