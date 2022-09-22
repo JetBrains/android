@@ -53,7 +53,7 @@ class ShowFilesUnknownToCMakeActionTest {
 
     // Turn off show unused files
     projectView.showOptionsMenu()
-    GuiTests.clickPopupMenuItem("Show Files Unknown to CMake", ideFrame.target(), ideFrame.robot())
+    ideFrame.clickPopupMenuItem("Show Files Unknown to CMake")
 
     // Add a new file inside the IDE
 
@@ -82,7 +82,7 @@ class ShowFilesUnknownToCMakeActionTest {
 
     // Turn on show unused files
     projectView.showOptionsMenu()
-    GuiTests.clickPopupMenuItem("Show Files Unknown to CMake", ideFrame.target(), ideFrame.robot())
+    ideFrame.clickPopupMenuItem("Show Files Unknown to CMake")
 
     Truth.assertThat(androidPane.hasPath("app", "cpp", "unused.c")).isTrue()
   }

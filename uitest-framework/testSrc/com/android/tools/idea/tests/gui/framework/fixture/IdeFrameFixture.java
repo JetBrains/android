@@ -635,6 +635,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public void clickPopupMenuItem(String labelPrefix) {
+    PopupMenuFixture.clickPopupMenuItem(this, labelPrefix);
+  }
+
+  @NotNull
   public IdeSettingsDialogFixture openIdeSettings() {
     // Using invokeLater because we are going to show a *modal* dialog via API
     // (instead of clicking a button, for example.) If we use
