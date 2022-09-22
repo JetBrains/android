@@ -258,15 +258,19 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         // Keep starting the daemon in case it's killed, as long as this thread is running (which should be the case
         // as long as the device is connected). The execution may exit this loop only via exceptions.
         long lastDaemonStartTime = System.currentTimeMillis();  // initialized as current time
+        int attemptCounter = 0;
         for (boolean reconnectAgents = false; ; reconnectAgents = true) {
           long currentTimeMs = System.currentTimeMillis();
           reportTransportDaemonStarted(reconnectAgents, currentTimeMs - lastDaemonStartTime);
           // Start transport daemon and block until it is terminated or an exception is thrown.
-          startTransportDaemon(transportDevice, reconnectAgents);
+          startTransportDaemon(transportDevice, reconnectAgents, attemptCounter);
           getLogger().info("Daemon stopped running; will try to restart it");
           // Disconnect the proxy and datastore before attempting to reconnect to agents.
           disconnect(mySerialToDeviceContextMap.get(myDevice.getSerialNumber()), myDataStore);
           lastDaemonStartTime = currentTimeMs;
+          attemptCounter += 1;
+          // wait some time between attempts
+          Thread.sleep(TimeUnit.SECONDS.toMillis(2));
         }
       }
       catch (ShellCommandUnresponsiveException | SyncException e) {
@@ -295,31 +299,42 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
      * @param transportDevice The device on which the daemon is going to be running.
      * @param reconnectAgents True if attempting to reconnect to the agents that are last known connected (assuming the device stays
      *                        connected).
+     * @param attemptNumber the number of times the transport tried to start the daemon.
      * @throws TimeoutException
      * @throws AdbCommandRejectedException
      * @throws ShellCommandUnresponsiveException
      * @throws IOException
      */
-    private void startTransportDaemon(@NotNull Common.Device transportDevice, boolean reconnectAgents)
+    private void startTransportDaemon(@NotNull Common.Device transportDevice, boolean reconnectAgents, int attemptNumber)
       throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
       String command = TransportFileManager.getTransportExecutablePath() + " -config_file=" + TransportFileManager.getDaemonConfigPath();
       getLogger().info("[Transport]: Executing " + command);
       myDevice.executeShellCommand(command, new IShellOutputReceiver() {
         @Override
         public void addOutput(byte[] data, int offset, int length) {
-          String s = new String(data, offset, length, Charsets.UTF_8);
-          if (s.contains("Perfd Segmentation Fault:")) {
-            reportTransportSegmentationFault(s);
+          String startGrpcServerOutput = new String(data, offset, length, Charsets.UTF_8);
+          if (startGrpcServerOutput.contains("Perfd Segmentation Fault:")) {
+            reportTransportSegmentationFault(startGrpcServerOutput);
           }
-          getLogger().info("[Transport]: " + s);
+          getLogger().info("[Transport]: " + startGrpcServerOutput);
 
-          // On supported API levels (Lollipop+), we should only start the proxy once Transport has successfully launched the grpc server.
+          // We should only start the proxy once Transport has successfully launched the grpc server.
           // This is indicated by a "Server listening on ADDRESS" printout from Transport (ADDRESS can vary depending on pre-O vs JVMTI).
-          // The reason for this check is because we get linker warnings when starting Transport on pre-M devices (an issue which would not
-          // be fixed by now), and we need to avoid starting the proxy in those cases.
-          if (myDevice.getVersion().getApiLevel() >= AndroidVersion.VersionCodes.LOLLIPOP &&
-              !s.startsWith("Server listening on")) {
-            return;
+          // If starting the grpc server returns an output different from "Server listening on ADDRESS", we should not continue.
+          // Known instances of when this happens are:
+          //  1. we get linker warnings when starting Transport on pre-M devices
+          //  2. we try to start the server, but another version of Studio already started it.
+          //     (Note that it's ok to have multiple instances of the same version of Studio, as they are one single application.)
+          if (!startGrpcServerOutput.startsWith("Server listening on")) {
+            if (attemptNumber >= 3) {
+              // By throwing an exception we stop the transport from keep trying to start the server forever.
+              // An `onStartTransportDaemonFail` is published to the `TransportDeviceManager.TOPIC`.
+              throw new RuntimeException(startGrpcServerOutput);
+            }
+            else {
+              // By returning the transport will try to connect again.
+              return;
+            }
           }
 
           boolean[] alreadyExists = new boolean[]{false};
