@@ -31,6 +31,7 @@ import com.android.tools.idea.logcat.util.logcatEvents
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -49,11 +50,11 @@ import javax.swing.JComboBox
 @RunsInEdt
 class LogcatFormatDialogTest {
   private val projectRule = ProjectRule()
-
   private val usageTrackerRule = UsageTrackerRule()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), usageTrackerRule)
+  val rule = RuleChain(projectRule, EdtRule(), usageTrackerRule, disposableRule)
 
   private val formattingOptions = FormattingOptions(
     TimestampFormat(DATETIME, enabled = true),
@@ -78,7 +79,7 @@ class LogcatFormatDialogTest {
 
   @Before
   fun setUp() {
-    enableHeadlessDialogs(projectRule.project)
+    enableHeadlessDialogs(disposableRule.disposable)
   }
 
   @Test

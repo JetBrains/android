@@ -207,7 +207,7 @@ internal class FilterTextField(
       })
       addFocusListener(object : FocusAdapter() {
         override fun focusGained(e: FocusEvent?) {
-          GotItTooltip(GOT_IT_ID, LogcatBundle.message("logcat.filter.hint"), project)
+          GotItTooltip(GOT_IT_ID, LogcatBundle.message("logcat.filter.hint"), logcatPresenter)
             .withBrowserLink(LogcatBundle.message("logcat.filter.got.it.link.text"), LOGCAT_FILTER_HELP_URL)
             .show(textField, BOTTOM_LEFT)
         }

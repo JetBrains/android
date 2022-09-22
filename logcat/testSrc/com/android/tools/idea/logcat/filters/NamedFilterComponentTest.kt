@@ -25,6 +25,7 @@ import com.android.tools.idea.logcat.filters.NamedFilterComboItem.Separator
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -43,16 +44,17 @@ import javax.swing.JList
 @RunsInEdt
 class NamedFilterComponentTest {
   private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  val rule = RuleChain(projectRule, EdtRule(), disposableRule)
 
   private val androidLogcatNamedFilters = AndroidLogcatNamedFilters()
 
   @Before
   fun setUp() {
     ApplicationManager.getApplication()
-      .replaceService(AndroidLogcatNamedFilters::class.java, androidLogcatNamedFilters, projectRule.project)
+      .replaceService(AndroidLogcatNamedFilters::class.java, androidLogcatNamedFilters, disposableRule.disposable)
   }
 
   @Test
@@ -166,7 +168,7 @@ class NamedFilterComponentTest {
     initialText: String = "",
   ): NamedFilterComponent {
     val logcatPresenter = FakeLogcatPresenter().apply {
-      Disposer.register(projectRule.project, this)
+      Disposer.register(disposableRule.disposable, this)
     }
     return NamedFilterComponent(
       projectRule.project,

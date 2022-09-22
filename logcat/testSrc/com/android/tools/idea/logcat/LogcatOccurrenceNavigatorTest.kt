@@ -26,6 +26,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.psi.search.PsiShortNamesCache
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -49,9 +50,10 @@ private val PROJECT_FILES = listOf(
 @RunsInEdt
 class LogcatOccurrenceNavigatorTest {
   private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  val rule = RuleChain(projectRule, EdtRule(), disposableRule)
 
   private val editor by lazy { createLogcatEditor(projectRule.project) }
   private val editorHyperlinkDetector by lazy { EditorHyperlinkDetector(projectRule.project, editor) }
@@ -59,8 +61,8 @@ class LogcatOccurrenceNavigatorTest {
 
   @Before
   fun setUp() {
-    val project = projectRule.project
-    project.replaceService(PsiShortNamesCache::class.java, FakePsiShortNamesCache(project, PROJECT_FILES), project)
+    projectRule.project.replaceService(
+      PsiShortNamesCache::class.java, FakePsiShortNamesCache(projectRule.project, PROJECT_FILES), disposableRule.disposable)
   }
 
   @After

@@ -30,6 +30,7 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration.Preset
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -47,17 +48,17 @@ import javax.swing.JComboBox
 @RunsInEdt
 class LogcatFormatPresetsDialogTest {
   private val projectRule = ProjectRule()
-
   private val usageTrackerRule = UsageTrackerRule()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), usageTrackerRule)
+  val rule = RuleChain(projectRule, EdtRule(), usageTrackerRule, disposableRule)
 
   @Before
   fun setUp() {
-    enableHeadlessDialogs(projectRule.project)
+    enableHeadlessDialogs(disposableRule.disposable)
     ApplicationManager.getApplication()
-      .replaceService(AndroidLogcatFormattingOptions::class.java, AndroidLogcatFormattingOptions(), projectRule.project)
+      .replaceService(AndroidLogcatFormattingOptions::class.java, AndroidLogcatFormattingOptions(), disposableRule.disposable)
   }
 
   private val applyAction = MockitoKt.mock<LogcatFormatDialogBase.ApplyAction>()

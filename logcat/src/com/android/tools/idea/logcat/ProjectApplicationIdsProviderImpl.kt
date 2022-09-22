@@ -22,6 +22,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.intellij.openapi.project.Project
+import org.jetbrains.android.AndroidPluginDisposable
 
 /**
  * Prod implementation of [ProjectApplicationIdsProvider]
@@ -30,7 +31,8 @@ internal class ProjectApplicationIdsProviderImpl(private val project: Project) :
   private var applicationIds = loadApplicationIds()
 
   init {
-    project.messageBus.connect(project).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, RefreshApplicationIds())
+    project.messageBus.connect(
+      AndroidPluginDisposable.getProjectInstance(project)).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, RefreshApplicationIds())
   }
 
   override fun getPackageNames(): Set<String> = applicationIds

@@ -28,6 +28,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.mock.MockModule
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import org.jetbrains.android.facet.AndroidFacet
@@ -41,16 +42,17 @@ import org.junit.Test
  */
 class ProjectApplicationIdsProviderImplTest {
   private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule)
+  val rule = RuleChain(projectRule, disposableRule)
 
   private val project get() = projectRule.project
   private val mockProjectFacetManager = mock<ProjectFacetManager>()
 
   @Before
   fun setUp() {
-    project.registerServiceInstance(ProjectFacetManager::class.java, mockProjectFacetManager, project)
+    project.registerServiceInstance(ProjectFacetManager::class.java, mockProjectFacetManager, disposableRule.disposable)
   }
 
   @Test
@@ -91,7 +93,7 @@ class ProjectApplicationIdsProviderImplTest {
     whenever(mockProjectFacetManager.getFacets(AndroidFacet.ID)).thenReturn(listOf(facet1))
     ProjectApplicationIdsProviderImpl(project)
     var notified = false
-    project.messageBus.connect(project).subscribe(PROJECT_APPLICATION_IDS_CHANGED_TOPIC, ProjectApplicationIdsListener {
+    project.messageBus.connect(disposableRule.disposable).subscribe(PROJECT_APPLICATION_IDS_CHANGED_TOPIC, ProjectApplicationIdsListener {
       notified = true
     })
 
@@ -108,7 +110,7 @@ class ProjectApplicationIdsProviderImplTest {
     whenever(mockProjectFacetManager.getFacets(AndroidFacet.ID)).thenReturn(listOf(facet1))
     ProjectApplicationIdsProviderImpl(project)
     var notified = false
-    project.messageBus.connect(project).subscribe(PROJECT_APPLICATION_IDS_CHANGED_TOPIC, ProjectApplicationIdsListener {
+    project.messageBus.connect(disposableRule.disposable).subscribe(PROJECT_APPLICATION_IDS_CHANGED_TOPIC, ProjectApplicationIdsListener {
       notified = true
     })
 
@@ -118,8 +120,12 @@ class ProjectApplicationIdsProviderImplTest {
   }
 
   private fun mockFacet(vararg applicationIds: String): AndroidFacet {
-    val facet = AndroidFacet(MockModule(project), "ProjectApplicationIdsProviderImplTest:Facet", AndroidFacetConfiguration())
-    Disposer.register(project, facet)
+    val facet = AndroidFacet(
+      MockModule(disposableRule.disposable),
+      "ProjectApplicationIdsProviderImplTest:Facet",
+      AndroidFacetConfiguration()
+    )
+    Disposer.register(disposableRule.disposable, facet)
     AndroidModel.set(facet, TestAndroidModel(allApplicationIds = applicationIds.toSet()))
     return facet
   }

@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.colors.ColorSettingsPages
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -50,17 +51,17 @@ import org.mockito.Mockito.verify
 @RunsInEdt
 class LogcatToolWindowFactoryTest {
   private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  val rule = RuleChain(projectRule, EdtRule(), disposableRule)
 
   private val settings = LogcatExperimentalSettings()
-
   private val mockProcessNameMonitor = mock<ProcessNameMonitor>()
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication().replaceService(LogcatExperimentalSettings::class.java, settings, projectRule.project)
+    ApplicationManager.getApplication().replaceService(LogcatExperimentalSettings::class.java, settings, disposableRule.disposable)
   }
 
   @Test
@@ -79,7 +80,7 @@ class LogcatToolWindowFactoryTest {
   fun isApplicable_nonAndroidEnvironment() {
     val mockIdeInfo = spy(IdeInfo.getInstance())
     whenever(mockIdeInfo.isAndroidStudio).thenReturn(false)
-    ApplicationManager.getApplication().replaceService(IdeInfo::class.java, mockIdeInfo, projectRule.project)
+    ApplicationManager.getApplication().replaceService(IdeInfo::class.java, mockIdeInfo, disposableRule.disposable)
 
     assertThat(logcatToolWindowFactory().isApplicable(projectRule.project)).isFalse()
   }
@@ -132,7 +133,7 @@ class LogcatToolWindowFactoryTest {
   fun colorSettingsPagesRegistration() {
     // We have to use a mock because there is no clean way to clean up ColorSettingsPages
     val mockColorSettingsPages = mock<ColorSettingsPages>()
-    ApplicationManager.getApplication().replaceService(ColorSettingsPages::class.java, mockColorSettingsPages, projectRule.project)
+    ApplicationManager.getApplication().replaceService(ColorSettingsPages::class.java, mockColorSettingsPages, disposableRule.disposable)
 
     logcatToolWindowFactory()
     AndroidLogcatToolWindowFactory()
@@ -146,7 +147,7 @@ class LogcatToolWindowFactoryTest {
   fun colorSettingsPagesRegistration_legacy() {
     // We have to use a mock because there is no clean way to clean up ColorSettingsPages
     val mockColorSettingsPages = mock<ColorSettingsPages>()
-    ApplicationManager.getApplication().replaceService(ColorSettingsPages::class.java, mockColorSettingsPages, projectRule.project)
+    ApplicationManager.getApplication().replaceService(ColorSettingsPages::class.java, mockColorSettingsPages, disposableRule.disposable)
     settings.logcatV2Enabled = false
 
     logcatToolWindowFactory()

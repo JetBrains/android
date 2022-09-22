@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.DumbAware
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -44,17 +45,17 @@ import javax.swing.JPanel
 @RunsInEdt
 class LogcatFormatActionTest {
   private val projectRule = ProjectRule()
-
   private val popupRule = JBPopupRule()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, popupRule)
+  val rule = RuleChain(projectRule, popupRule, disposableRule)
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
 
   @Before
   fun setUp() {
-    enableHeadlessDialogs(projectRule.project)
+    enableHeadlessDialogs(disposableRule.disposable)
   }
 
   @Test

@@ -36,7 +36,7 @@ import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.testing.TestDevice
 import com.android.tools.idea.logcat.testing.attachDevice
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -65,14 +65,13 @@ private val LAST_MESSAGE = """
 /**
  * Tests for [LogcatServiceImpl]
  */
-@Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
 class LogcatServiceImplTest {
-  private val projectRule = ProjectRule()
   private val fakeAdb = FakeAdbRule()
   private val closeables = CloseablesRule()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, fakeAdb, closeables)
+  val rule = RuleChain(fakeAdb, closeables, disposableRule)
 
   private val device30 = TestDevice("device", ONLINE, release = 10, sdk = 30, manufacturer = "Google", model = "Pixel")
   private val device23 = TestDevice("device", ONLINE, release = 7, sdk = 23, manufacturer = "Google", model = "Pixel")
@@ -216,7 +215,7 @@ class LogcatServiceImplTest {
     // message. We pass a longer delay to LogcatServiceImpl to prevent LogcatMessageAssembler from consuming the last message before the
     // server terminates.
     val service = LogcatServiceImpl(
-      projectRule.project,
+      disposableRule.disposable,
       deviceServicesFactory = { fakeAdb.createAdbSession(closeables).deviceServices },
       processNameMonitor = fakeProcessNameMonitor,
       lastMessageDelayMs = SECONDS.toMillis(10),
@@ -267,7 +266,7 @@ class LogcatServiceImplTest {
     deviceServicesFactory: () -> AdbDeviceServices = { fakeDeviceServices },
     processNameMonitor: ProcessNameMonitor = fakeProcessNameMonitor,
   ): LogcatServiceImpl =
-    LogcatServiceImpl(projectRule.project, deviceServicesFactory, processNameMonitor)
+    LogcatServiceImpl(disposableRule.disposable, deviceServicesFactory, processNameMonitor)
 
   private class CheckFormatLogcatHandler : LogcatCommandHandler() {
     var lastDeviceId: String? = null

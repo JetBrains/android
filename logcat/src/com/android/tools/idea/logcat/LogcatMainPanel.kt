@@ -114,6 +114,7 @@ import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.tools.SimpleActionGroup
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
@@ -127,6 +128,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Cursor
 import java.awt.Point
@@ -176,20 +178,38 @@ private val BANNER_BORDER = BorderFactory.createCompoundBorder(Borders.customLin
  * @param foldingDetector A [FoldingDetector] or null to create the default one. For testing.
  * @param zoneId A [ZoneId] or null to create the default one. For testing.
  */
-internal class LogcatMainPanel(
+internal class LogcatMainPanel @TestOnly constructor(
   private val project: Project,
   private val splitterPopupActionGroup: ActionGroup,
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
   adbSession: AdbSession,
-  private var logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings.getInstance(),
-  private var androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
-  hyperlinkDetector: HyperlinkDetector? = null,
-  foldingDetector: FoldingDetector? = null,
-  private val logcatService: LogcatService =
-    LogcatServiceImpl(project, { AdbLibService.getInstance(project).session.deviceServices }, ProcessNameMonitor.getInstance(project)),
+  private var logcatSettings: AndroidLogcatSettings,
+  private var androidProjectDetector: AndroidProjectDetector,
+  hyperlinkDetector: HyperlinkDetector?,
+  foldingDetector: FoldingDetector?,
+  logcatService: LogcatService?,
   zoneId: ZoneId = ZoneId.systemDefault()
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, DataProvider, Disposable {
+
+  constructor(
+    project: Project,
+    splitterPopupActionGroup: ActionGroup,
+    logcatColors: LogcatColors,
+    state: LogcatPanelConfig?,
+    adbSession: AdbSession,
+  ) : this(
+    project,
+    splitterPopupActionGroup,
+    logcatColors,
+    state,
+    adbSession,
+    AndroidLogcatSettings.getInstance(),
+    AndroidProjectDetectorImpl(),
+    hyperlinkDetector = null,
+    foldingDetector = null,
+    logcatService = null,
+  )
 
   private var isLogcatPaused: Boolean = false
   private var caretLine = 0
@@ -239,6 +259,10 @@ internal class LogcatMainPanel(
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
   private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor)
   private val foldingDetector = foldingDetector ?: EditorFoldingDetector(project, editor)
+  private val logcatService = logcatService ?: LogcatServiceImpl(
+    this,
+    { AdbLibService.getInstance(project).session.deviceServices },
+    ProcessNameMonitor.getInstance(project))
   private var ignoreCaretAtBottom = false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   private val connectedDevice = AtomicReference<Device?>()
   private val logcatServiceChannel = Channel<LogcatServiceEvent>(1)
@@ -464,9 +488,11 @@ internal class LogcatMainPanel(
   }
 
   override fun dispose() {
-    EditorFactory.getInstance().releaseEditor(editor)
-    AndroidDebugBridge.removeDeviceChangeListener(clientListener)
-    AndroidDebugBridge.removeClientChangeListener(clientListener)
+    runInEdtAndWait {
+      EditorFactory.getInstance().releaseEditor(editor)
+      AndroidDebugBridge.removeDeviceChangeListener(clientListener)
+      AndroidDebugBridge.removeClientChangeListener(clientListener)
+    }
   }
 
   override fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings) {
@@ -617,6 +643,7 @@ internal class LogcatMainPanel(
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name -> device?.let {
         ScreenRecorderAction.Parameters(it.serialNumber, it.sdk, if (it.isEmulator) it.deviceId else null, this)
       }
+
       EDITOR.name -> editor
       else -> null
     }
@@ -741,10 +768,12 @@ private fun FormattingConfig?.toUsageTracking(): LogcatFormatConfiguration {
       builder.preset = defaultFormatting.toUsageTracking()
       formattingOptions = defaultFormatting.formattingOptions
     }
+
     this is Preset -> {
       builder.preset = style.toUsageTracking()
       formattingOptions = style.formattingOptions
     }
+
     else -> {
       formattingOptions = this.toFormattingOptions()
     }

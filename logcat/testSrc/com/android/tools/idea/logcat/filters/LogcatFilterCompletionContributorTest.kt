@@ -71,8 +71,8 @@ class LogcatFilterCompletionContributorTest {
   fun setUp() {
     StudioFlags.LOGCAT_IS_FILTER.override(true)
     val application = ApplicationManager.getApplication()
-    application.replaceService(AndroidLogcatFilterHistory::class.java, history, projectRule.project)
-    application.replaceService(AndroidLogcatSettings::class.java, settings, projectRule.project)
+    application.replaceService(AndroidLogcatFilterHistory::class.java, history, projectRule.fixture.testRootDisposable)
+    application.replaceService(AndroidLogcatSettings::class.java, settings, projectRule.fixture.testRootDisposable)
   }
 
   @Test

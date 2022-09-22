@@ -59,7 +59,7 @@ internal class LogcatToolWindowFactory(
   override fun init(toolWindow: ToolWindow) {
     super.init(toolWindow)
     val project = (toolWindow as ToolWindowEx).project
-    project.messageBus.connect(project)
+    project.messageBus.connect(toolWindow.disposable)
       .subscribe(ShowLogcatListener.TOPIC, ShowLogcatListener { serialNumber, _ -> showLogcat(toolWindow, serialNumber) })
 
     ProcessNameMonitor.getInstance(project).start()
@@ -71,7 +71,7 @@ internal class LogcatToolWindowFactory(
   }
 
   private fun showLogcat(toolWindow: ToolWindowEx, serialNumber: String) {
-    AndroidCoroutineScope(toolWindow.project).launch {
+    AndroidCoroutineScope(toolWindow.disposable).launch {
       val device = DeviceFactory(AdbLibService.getSession(toolWindow.project)).createDevice(serialNumber)
       withContext(uiThread) {
         toolWindow.activate {
