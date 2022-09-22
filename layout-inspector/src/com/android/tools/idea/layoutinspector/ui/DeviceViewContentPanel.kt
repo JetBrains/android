@@ -100,6 +100,7 @@ class DeviceViewContentPanel(
   disposableParent: Disposable,
   val isLoading: () -> Boolean,
   val isCurrentForegroundProcessDebuggable: () -> Boolean,
+  val hasForegroundProcess: () -> Boolean
 ) : AdtPrimaryPanel() {
 
   val renderModel = RenderModel(inspectorModel, treeSettings, currentClient)
@@ -111,7 +112,14 @@ class DeviceViewContentPanel(
   val showProcessNotDebuggableText get() = !renderModel.isActive &&
                                            !isLoading() &&
                                            deviceModel?.selectedDevice != null &&
+                                           hasForegroundProcess() &&
                                            !isCurrentForegroundProcessDebuggable()
+
+  @get:VisibleForTesting
+  val showNavigateToDebuggableProcess get() = !model.isActive &&
+                                              !isLoading() &&
+                                              deviceModel?.selectedDevice != null &&
+                                              !hasForegroundProcess()
 
   val rootLocation: Point?
     get() {
@@ -139,9 +147,15 @@ class DeviceViewContentPanel(
     override fun isStatusVisible() = showProcessNotDebuggableText
   }
 
+  private val navigateToDebuggableProcessText: StatusText = object : StatusText(this) {
+    override fun isStatusVisible() = showNavigateToDebuggableProcess
+  }
+
   init {
     processNotDebuggableText.appendLine("Application not inspectable.")
     processNotDebuggableText.appendLine("Switch to a debuggable application on your device to inspect.")
+
+    navigateToDebuggableProcessText.appendLine("Navigate to a debuggable app on your device to begin inspection.")
 
     selectTargetAction?.let { selectTargetAction ->
       emptyText.appendLine("No process connected")
@@ -307,8 +321,10 @@ class DeviceViewContentPanel(
     g2d.setRenderingHints(HQ_RENDERING_HINTS)
     g2d.color = primaryPanelBackground
     g2d.fillRect(0, 0, width, height)
+
     emptyText.paint(this, g)
     processNotDebuggableText.paint(this, g)
+    navigateToDebuggableProcessText.paint(this, g)
 
     g2d.transform = g2d.transform.apply { concatenate(deviceViewContentPanelTransform) }
 

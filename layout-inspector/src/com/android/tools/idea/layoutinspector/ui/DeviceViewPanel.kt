@@ -196,7 +196,8 @@ class DeviceViewPanel(
     selectTargetAction = targetSelectedAction,
     disposableParent = disposableParent,
     isLoading = { isLoading },
-    isCurrentForegroundProcessDebuggable = { isCurrentForegroundProcessDebuggable }
+    isCurrentForegroundProcessDebuggable = { isCurrentForegroundProcessDebuggable },
+    hasForegroundProcess = { hasForegroundProcess }
   )
 
   private fun deviceAttribution(device: DeviceDescriptor, event: AnActionEvent) = when {
@@ -285,6 +286,7 @@ class DeviceViewPanel(
 
   private var isLoading = false
   private var isCurrentForegroundProcessDebuggable = false
+  private var hasForegroundProcess = false
 
   /**
    * If the new [ForegroundProcess] is not debuggable (it's not present in [ProcessesModel]),
@@ -295,6 +297,7 @@ class DeviceViewPanel(
       false
     }
     else {
+      hasForegroundProcess = true
       val processDescriptor = foregroundProcess.matchToProcessDescriptor(processesModel)
       processDescriptor != null
     }
@@ -305,8 +308,7 @@ class DeviceViewPanel(
       // as soon as a new device is connected default to the process not being debuggable.
       // this will change as soon as an actual process shows up
       // and protects us against cases when the device has no foreground process (eg. is locked)
-      // TODO consider showing a different message like "navigate to a debuggable app on your device to begin inspection"
-      isCurrentForegroundProcessDebuggable = false
+      hasForegroundProcess = false
     }
 
     loadingPane.addListener(object : JBLoadingPanelListener {
