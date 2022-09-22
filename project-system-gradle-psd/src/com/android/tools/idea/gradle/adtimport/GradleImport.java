@@ -951,6 +951,17 @@ public class GradleImport {
       }
       sb.append(NL);
       sb.append("android {").append(NL);
+
+      File manifestFile = module.getManifestFile();
+      assert manifestFile.exists() : manifestFile;
+      Document manifest = getXmlDocument(manifestFile, true);
+      if (manifest != null && manifest.getDocumentElement() != null) {
+        String namespace = manifest.getDocumentElement().getAttribute(ATTR_PACKAGE);
+        if (!namespace.isEmpty()) {
+          sb.append("    namespace \"").append(namespace).append("\"").append(NL);
+        }
+      }
+
       AndroidVersion compileSdkVersion = module.getCompileSdkVersion();
       AndroidVersion minSdkVersion = module.getMinSdkVersion();
       AndroidVersion targetSdkVersion = module.getTargetSdkVersion();
@@ -999,15 +1010,15 @@ public class GradleImport {
 
       if (module.getInstrumentationDir() != null) {
         sb.append(NL);
-        File manifestFile = new File(module.getInstrumentationDir(), ANDROID_MANIFEST_XML);
-        assert manifestFile.exists() : manifestFile;
-        Document manifest = getXmlDocument(manifestFile, true);
-        if (manifest != null && manifest.getDocumentElement() != null) {
-          String pkg = manifest.getDocumentElement().getAttribute(ATTR_PACKAGE);
+        File androidTestManifestFile = new File(module.getInstrumentationDir(), ANDROID_MANIFEST_XML);
+        assert androidTestManifestFile.exists() : androidTestManifestFile;
+        Document androidTestManifest = getXmlDocument(androidTestManifestFile, true);
+        if (androidTestManifest != null && androidTestManifest.getDocumentElement() != null) {
+          String pkg = androidTestManifest.getDocumentElement().getAttribute(ATTR_PACKAGE);
           if (pkg != null && !pkg.isEmpty()) {
             sb.append("        testApplicationId \"").append(pkg).append("\"").append(NL);
           }
-          NodeList list = manifest.getElementsByTagName(NODE_INSTRUMENTATION);
+          NodeList list = androidTestManifest.getElementsByTagName(NODE_INSTRUMENTATION);
           if (list.getLength() > 0) {
             Element tag = (Element)list.item(0);
             String runner = tag.getAttributeNS(ANDROID_URI, ATTR_NAME);
