@@ -1429,18 +1429,23 @@ class DeviceViewPanelWithNoClientsTest {
 
     // false by default
     assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isFalse()
+    assertThat(deviceViewContentPanel.showNavigateToDebuggableProcess).isFalse()
 
     // connect device
     deviceModel.selectedDevice = MODERN_DEVICE
 
+    // remains false, because the device is connected but no foreground process showed up yet
+    assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isFalse()
+
     // becomes true, because the device is connected but no foreground process showed up yet
-    assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isTrue()
+    assertThat(deviceViewContentPanel.showNavigateToDebuggableProcess).isTrue()
 
     // send a non-debuggable process (not in the process model)
     panel.onNewForegroundProcess(ForegroundProcess(1, "random"))
 
     // remains true because the foreground process is not in the process model
     assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isTrue()
+    assertThat(deviceViewContentPanel.showNavigateToDebuggableProcess).isFalse()
 
     val process = MODERN_PROCESS
     inspectorRule.processNotifier.addDevice(process.device)
@@ -1454,6 +1459,7 @@ class DeviceViewPanelWithNoClientsTest {
 
     // goes back to false because MODERN_PROCESS is in the process model
     assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isFalse()
+    assertThat(deviceViewContentPanel.showNavigateToDebuggableProcess).isFalse()
   }
 }
 
