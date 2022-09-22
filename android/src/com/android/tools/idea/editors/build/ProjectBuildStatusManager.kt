@@ -132,10 +132,14 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
                                             psiFile: PsiFile,
                                             private val psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
                                             scope: CoroutineScope) : ProjectBuildStatusManager, ProjectBuildStatusManagerForTests {
-  private val editorFile: SmartPsiElementPointer<PsiFile> = runReadAction {
+  private val editorFilePtr: SmartPsiElementPointer<PsiFile> = runReadAction {
     SmartPointerManager.getInstance(psiFile.project).createSmartPsiElementPointer(psiFile)
   }
-  private val project: Project = editorFile.project
+
+  private val editorFile: PsiFile?
+    get() = runReadAction { editorFilePtr.element }
+
+  private val project: Project = psiFile.project
   private val psiFileChangeDetector = PsiFileChangeDetector.getInstance { psiFilter.accepts(it) }
   private val fileChangeDetector: PsiFileChangeDetector
     get() =
@@ -159,7 +163,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
         lastFilterModificationCount = psiFilter.modificationCount
 
         if (projectBuildStatus != ProjectBuildStatus.NotReady) {
-          fileChangeDetector.forceMarkFileAsUpToDate(editorFile.element)
+          fileChangeDetector.forceMarkFileAsUpToDate(editorFile)
         }
       }
       return when {
@@ -206,23 +210,23 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
   }
 
   private fun onSuccessfulBuild() {
-    fileChangeDetector.markFileAsUpToDate(editorFile.element)
+    fileChangeDetector.markFileAsUpToDate(editorFile)
   }
 
   init {
     Disposer.register(parentDisposable) {
-      fileChangeDetector.clearMarks(editorFile.element)
+      fileChangeDetector.clearMarks(editorFile)
     }
     ProjectSystemService.getInstance(project).projectSystem.getBuildManager()
       .addBuildListener(parentDisposable, buildListener)
 
     project.runWhenSmartAndSyncedOnEdt(parentDisposable, {
-      fileChangeDetector.markFileAsUpToDate(editorFile.element)
+      fileChangeDetector.markFileAsUpToDate(editorFile)
 
       if (projectBuildStatus === ProjectBuildStatus.NotReady) {
         // Check in the background the state of the build (hasBeenBuiltSuccessfully is a slow method).
         scope.launch {
-          val newState = if (hasExistingClassFile(editorFile.element)) ProjectBuildStatus.Built else ProjectBuildStatus.NeedsBuild
+          val newState = if (hasExistingClassFile(editorFile)) ProjectBuildStatus.Built else ProjectBuildStatus.NeedsBuild
           // Only update the status if we are still in NotReady.
           if (projectBuildStatus === ProjectBuildStatus.NotReady) {
             // Set the initial state of the project and initialize the modification count.
@@ -241,7 +245,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
         override fun onCompilationStarted(files: Collection<PsiFile>) { }
 
         override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
-          val file = editorFile.element ?: return
+          val file = editorFile ?: return
           lastCompilationResult = result
           if (result == CompilationResult.Success && files.any { it.isEquivalentTo(file) }) onSuccessfulBuild()
         }
@@ -255,7 +259,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
     }
   }
 
-  private fun isBuildOutOfDate() = fileChangeDetector.hasFileChanged(editorFile.element)
+  private fun isBuildOutOfDate() = fileChangeDetector.hasFileChanged(editorFile)
 
   @TestOnly
   override fun getBuildListenerForTest(): ProjectSystemBuildManager.BuildListener = buildListener
