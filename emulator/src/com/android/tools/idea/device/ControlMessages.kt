@@ -134,7 +134,7 @@ internal data class KeyEventMessage(
   }
 
   override fun toString(): String {
-    return "KeyEventMessage(action=$action, keyCode=$keyCode, metaState=$metaState)"
+    return "KeyEventMessage(action=$action, keyCode=$keyCode, metaState=0x${metaState.toString(16)})"
   }
 
   companion object : Deserializer {

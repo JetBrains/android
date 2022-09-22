@@ -60,6 +60,45 @@ class DeviceController(
     outputStream.flush()
   }
 
+  fun sendKeystroke(androidKeystroke: AndroidKeyStroke) {
+    pressMetaKeys(androidKeystroke.metaState)
+    sendControlMessage(KeyEventMessage(AndroidKeyEventActionType.ACTION_DOWN_AND_UP, androidKeystroke.keyCode, androidKeystroke.metaState))
+    releaseMetaKeys(androidKeystroke.metaState)
+  }
+
+  // Simulates pressing of meta keys corresponding to the given [metaState].
+  private fun pressMetaKeys(metaState: Int) {
+    if (metaState != 0) {
+      var currentMetaState = 0
+      for ((key, state) in ANDROID_META_KEYS) {
+        if ((metaState and state) != 0) {
+          currentMetaState = currentMetaState or state
+          sendControlMessage(KeyEventMessage(AndroidKeyEventActionType.ACTION_DOWN, key, currentMetaState))
+          if (currentMetaState == metaState) {
+            break
+          }
+        }
+      }
+    }
+  }
+
+  // Simulates releasing of meta keys corresponding to the given [metaState].
+  private fun releaseMetaKeys(metaState: Int) {
+    if (metaState != 0) {
+      // Simulate releasing of meta keys.
+      var currentMetaState = metaState
+      for ((key, state) in ANDROID_META_KEYS.asReversed()) {
+        if ((currentMetaState and state) != 0) {
+          currentMetaState = currentMetaState and state.inv()
+          sendControlMessage(KeyEventMessage(AndroidKeyEventActionType.ACTION_UP, key, currentMetaState))
+          if (currentMetaState == 0) {
+            break
+          }
+        }
+      }
+    }
+  }
+
   override fun dispose() {
     executor.shutdown()
     executor.awaitTermination(2, TimeUnit.SECONDS)
@@ -110,3 +149,11 @@ class DeviceController(
 }
 
 private const val CONTROL_MSG_BUFFER_SIZE = 4096
+
+/** Android meta keys and their corresponding meta states. */
+private val ANDROID_META_KEYS = listOf(
+  AndroidKeyStroke(AKEYCODE_ALT_LEFT, AMETA_ALT_ON),
+  AndroidKeyStroke(AKEYCODE_SHIFT_LEFT, AMETA_SHIFT_ON),
+  AndroidKeyStroke(AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON),
+  AndroidKeyStroke(AKEYCODE_META_LEFT, AMETA_META_ON),
+)

@@ -15,11 +15,23 @@
  */
 package com.android.tools.adtui.swing;
 
+import static java.awt.event.InputEvent.ALT_DOWN_MASK;
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
+import static java.awt.event.InputEvent.META_DOWN_MASK;
+import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
+import static java.awt.event.KeyEvent.KEY_PRESSED;
+import static java.awt.event.KeyEvent.KEY_RELEASED;
+import static java.awt.event.KeyEvent.KEY_TYPED;
+import static java.awt.event.KeyEvent.VK_ALT;
+import static java.awt.event.KeyEvent.VK_CONTROL;
+import static java.awt.event.KeyEvent.VK_META;
+import static java.awt.event.KeyEvent.VK_SHIFT;
+import static java.awt.event.KeyEvent.VK_UNDEFINED;
+
 import com.intellij.openapi.util.SystemInfo;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
  * Do not instantiate directly - use {@link FakeUi#keyboard} instead.
  */
 public final class FakeKeyboard {
-  public static final int MENU_KEY_CODE = SystemInfo.isMac ? KeyEvent.VK_META : KeyEvent.VK_CONTROL;
+  public static final int MENU_KEY_CODE = SystemInfo.isMac ? VK_META : VK_CONTROL;
 
   private final IntArrayList myPressedKeys = new IntArrayList();
   @Nullable private Component myFocus;
@@ -58,7 +70,7 @@ public final class FakeKeyboard {
    * after calling this method, to ensure the key is handled before you check a component's state.
    */
   public void press(int keyCode) {
-    performDownKeyEvent(keyCode, KeyEvent.KEY_PRESSED);
+    performDownKeyEvent(keyCode, KEY_PRESSED);
   }
 
   /**
@@ -82,7 +94,7 @@ public final class FakeKeyboard {
     myPressedKeys.rem(keyCode);
     // Dispatch AFTER removing the key from our list of pressed keys. If it is a modifier key, we
     // don't want it to included in "toModifiersCode" logic called by "dispatchKeyEvent".
-    dispatchKeyEvent(KeyEvent.KEY_RELEASED, keyCode);
+    dispatchKeyEvent(KEY_RELEASED, keyCode);
   }
 
   public void release(@NotNull Key key) {
@@ -112,7 +124,7 @@ public final class FakeKeyboard {
    *       using an input method) this might be a significant undertaking to do correctly.
    */
   public void type(int keyCode) {
-    performDownKeyEvent(keyCode, KeyEvent.KEY_TYPED);
+    performDownKeyEvent(keyCode, KEY_TYPED);
   }
 
   /**
@@ -136,7 +148,7 @@ public final class FakeKeyboard {
       throw new IllegalStateException(String.format("Can't press key %s as it's already pressed.", KeyEvent.getKeyText(keyCode)));
     }
 
-    if (event == KeyEvent.KEY_PRESSED) {
+    if (event == KEY_PRESSED) {
       myPressedKeys.add(keyCode);
     }
     dispatchKeyEvent(event, keyCode);
@@ -144,19 +156,51 @@ public final class FakeKeyboard {
 
   public int toModifiersCode() {
     int modifiers = 0;
-    if (myPressedKeys.contains(KeyEvent.VK_ALT)) {
-      modifiers |= InputEvent.ALT_DOWN_MASK;
+    if (myPressedKeys.contains(VK_ALT)) {
+      modifiers |= ALT_DOWN_MASK;
     }
-    if (myPressedKeys.contains(KeyEvent.VK_CONTROL)) {
-      modifiers |= InputEvent.CTRL_DOWN_MASK;
+    if (myPressedKeys.contains(VK_CONTROL)) {
+      modifiers |= CTRL_DOWN_MASK;
     }
-    if (myPressedKeys.contains(KeyEvent.VK_SHIFT)) {
-      modifiers |= InputEvent.SHIFT_DOWN_MASK;
+    if (myPressedKeys.contains(VK_SHIFT)) {
+      modifiers |= SHIFT_DOWN_MASK;
     }
-    if (myPressedKeys.contains(KeyEvent.VK_META)) {
-      modifiers |= InputEvent.META_DOWN_MASK;
+    if (myPressedKeys.contains(VK_META)) {
+      modifiers |= META_DOWN_MASK;
     }
     return modifiers;
+  }
+
+  /** Presses keys corresponding to the given modifiers. */
+  public void pressForModifiers(int modifiers) {
+    if ((modifiers & ALT_DOWN_MASK) != 0) {
+      press(VK_ALT);
+    }
+    if ((modifiers & SHIFT_DOWN_MASK) != 0) {
+      press(VK_SHIFT);
+    }
+    if ((modifiers & CTRL_DOWN_MASK) != 0) {
+      press(VK_CONTROL);
+    }
+    if ((modifiers & META_DOWN_MASK) != 0) {
+      press(VK_META);
+    }
+  }
+
+  /** Releases keys corresponding to the given modifiers. */
+  public void releaseForModifiers(int modifiers) {
+    if ((modifiers & META_DOWN_MASK) != 0) {
+      release(VK_META);
+    }
+    if ((modifiers & CTRL_DOWN_MASK) != 0) {
+      release(VK_CONTROL);
+    }
+    if ((modifiers & SHIFT_DOWN_MASK) != 0) {
+      release(VK_SHIFT);
+    }
+    if ((modifiers & ALT_DOWN_MASK) != 0) {
+      release(VK_ALT);
+    }
   }
 
   private void dispatchKeyEvent(int eventType, int keyCode) {
@@ -171,7 +215,7 @@ public final class FakeKeyboard {
 
     //noinspection MagicConstant toModifiersCode returns correct magic number type
     KeyEvent event = new KeyEvent(component, eventType, System.nanoTime(), toModifiersCode(),
-                                  eventType == KeyEvent.KEY_TYPED ? KeyEvent.VK_UNDEFINED : keyCode, (char)keyCode);
+                                  eventType == KEY_TYPED ? VK_UNDEFINED : keyCode, (char)keyCode);
 
     // If you use myFocus.dispatchEvent(), the event goes through a flow which gives other systems
     // a chance to handle it first. The following approach bypasses the event queue and sends the
@@ -180,18 +224,18 @@ public final class FakeKeyboard {
   }
 
   public enum Key {
-    ALT(KeyEvent.VK_ALT),
+    ALT(VK_ALT),
     BACKSPACE(KeyEvent.VK_BACK_SPACE),
-    CTRL(KeyEvent.VK_CONTROL),
+    CTRL(VK_CONTROL),
     DELETE(KeyEvent.VK_DELETE),
     ENTER(KeyEvent.VK_ENTER),
     ESC(KeyEvent.VK_ESCAPE),
     LEFT(KeyEvent.VK_LEFT),
-    META(KeyEvent.VK_META),
+    META(VK_META),
     PAGE_DOWN(KeyEvent.VK_PAGE_DOWN),
     PAGE_UP(KeyEvent.VK_PAGE_UP),
     RIGHT(KeyEvent.VK_RIGHT),
-    SHIFT(KeyEvent.VK_SHIFT),
+    SHIFT(VK_SHIFT),
     SPACE(KeyEvent.VK_SPACE),
     TAB(KeyEvent.VK_TAB),
     // Add more modifier keys here (alphabetically) as necessary

@@ -18,7 +18,8 @@ package com.android.tools.idea.device
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
+import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_DOWN
+import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.device.DeviceClient.AgentTerminationListener
 import com.android.tools.idea.emulator.AbstractDisplayView
 import com.android.tools.idea.emulator.DeviceMirroringSettings
@@ -31,7 +32,36 @@ import com.android.tools.idea.emulator.location
 import com.android.tools.idea.emulator.rotatedByQuadrants
 import com.android.tools.idea.emulator.scaled
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_LEFT
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_PAGE_DOWN
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_PAGE_DOWN_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_PAGE_UP
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_PAGE_UP_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_RIGHT
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_RIGHT_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_UP
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_UP_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_LINE_END
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_LINE_END_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_LINE_START
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_LINE_START_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_NEXT_WORD
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_NEXT_WORD_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_PREVIOUS_WORD
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_PREVIOUS_WORD_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_END
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_END_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_START
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_START_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_PASTE
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
@@ -46,35 +76,29 @@ import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import java.awt.event.InputEvent.ALT_DOWN_MASK
 import java.awt.event.InputEvent.BUTTON1_DOWN_MASK
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
+import java.awt.event.InputEvent.META_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
+import java.awt.event.KeyEvent.KEY_PRESSED
 import java.awt.event.KeyEvent.VK_BACK_SPACE
 import java.awt.event.KeyEvent.VK_CONTROL
 import java.awt.event.KeyEvent.VK_DELETE
-import java.awt.event.KeyEvent.VK_DOWN
-import java.awt.event.KeyEvent.VK_END
 import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
-import java.awt.event.KeyEvent.VK_HOME
-import java.awt.event.KeyEvent.VK_KP_DOWN
-import java.awt.event.KeyEvent.VK_KP_LEFT
-import java.awt.event.KeyEvent.VK_KP_RIGHT
-import java.awt.event.KeyEvent.VK_KP_UP
-import java.awt.event.KeyEvent.VK_LEFT
-import java.awt.event.KeyEvent.VK_PAGE_DOWN
-import java.awt.event.KeyEvent.VK_PAGE_UP
-import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_TAB
-import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.geom.AffineTransform
 import java.util.concurrent.CancellationException
+import javax.swing.KeyStroke
 import kotlin.math.min
 
 /**
@@ -123,6 +147,17 @@ class DeviceView(
   private val displayTransform = AffineTransform()
   private var disposed = false
 
+  private var cachedKeyStrokeMap: Map<KeyStroke, AndroidKeyStroke>? = null
+  private val keyStrokeMap: Map<KeyStroke, AndroidKeyStroke>
+    get() {
+      var map = cachedKeyStrokeMap
+      if (map == null) {
+        map = buildKeystrokeMap()
+        cachedKeyStrokeMap = map
+      }
+      return map
+    }
+
   private var multiTouchMode = false
     set(value) {
       if (value != field) {
@@ -150,6 +185,11 @@ class DeviceView(
         if (realWidth > 0 && realHeight > 0 && connectionState == ConnectionState.INITIAL) {
           initializeAgentAsync(initialDisplayOrientation)
         }
+      }
+    })
+    addFocusListener(object : FocusAdapter() {
+      override fun focusGained(event: FocusEvent) {
+        cachedKeyStrokeMap = null // Keyboard shortcuts may have changed while the view didn't have focus.
       }
     })
 
@@ -398,6 +438,46 @@ class DeviceView(
     connectionStateListeners.remove(listener)
   }
 
+  private fun buildKeystrokeMap(): Map<KeyStroke, AndroidKeyStroke> {
+    return mutableMapOf<KeyStroke, AndroidKeyStroke>().apply {
+      addKeystrokesForAction(ACTION_CUT, AndroidKeyStroke(AKEYCODE_CUT))
+      addKeystrokesForAction(ACTION_CUT, AndroidKeyStroke(AKEYCODE_CUT))
+      addKeystrokesForAction(ACTION_COPY, AndroidKeyStroke(AKEYCODE_COPY))
+      addKeystrokesForAction(ACTION_PASTE, AndroidKeyStroke(AKEYCODE_PASTE))
+      addKeystrokesForAction(ACTION_SELECT_ALL, AndroidKeyStroke(AKEYCODE_A, AMETA_CTRL_ON))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT, AndroidKeyStroke(AKEYCODE_DPAD_LEFT))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_RIGHT, AndroidKeyStroke(AKEYCODE_DPAD_RIGHT))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_LEFT, AMETA_SHIFT_ON))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_RIGHT_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_RIGHT, AMETA_SHIFT_ON))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_UP, AndroidKeyStroke(AKEYCODE_DPAD_UP))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_DOWN, AndroidKeyStroke(AKEYCODE_DPAD_DOWN))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_UP_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_UP, AMETA_SHIFT_ON))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_DOWN, AMETA_SHIFT_ON))
+      addKeystrokesForAction(ACTION_EDITOR_PREVIOUS_WORD, AndroidKeyStroke(AKEYCODE_DPAD_LEFT, AMETA_CTRL_ON))
+      addKeystrokesForAction(ACTION_EDITOR_NEXT_WORD, AndroidKeyStroke(AKEYCODE_DPAD_RIGHT, AMETA_CTRL_ON))
+      addKeystrokesForAction(ACTION_EDITOR_PREVIOUS_WORD_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_LEFT, AMETA_CTRL_SHIFT_ON))
+      addKeystrokesForAction(ACTION_EDITOR_NEXT_WORD_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_RIGHT, AMETA_CTRL_SHIFT_ON))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_LINE_START, AndroidKeyStroke(AKEYCODE_MOVE_HOME))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_LINE_END, AndroidKeyStroke(AKEYCODE_MOVE_END))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_LINE_START_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_HOME, AMETA_SHIFT_ON))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_LINE_END_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_END, AMETA_SHIFT_ON))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_UP, AndroidKeyStroke(AKEYCODE_PAGE_UP))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN, AndroidKeyStroke(AKEYCODE_PAGE_DOWN))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_UP_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_PAGE_UP, AMETA_SHIFT_ON))
+      addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_PAGE_DOWN, AMETA_SHIFT_ON))
+      addKeystrokesForAction(ACTION_EDITOR_TEXT_START, AndroidKeyStroke(AKEYCODE_MOVE_HOME, AMETA_CTRL_ON))
+      addKeystrokesForAction(ACTION_EDITOR_TEXT_END, AndroidKeyStroke(AKEYCODE_MOVE_END, AMETA_CTRL_ON))
+      addKeystrokesForAction(ACTION_EDITOR_TEXT_START_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_HOME, AMETA_CTRL_SHIFT_ON))
+      addKeystrokesForAction(ACTION_EDITOR_TEXT_END_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_END, AMETA_CTRL_SHIFT_ON))
+    }
+  }
+
+  private fun MutableMap<KeyStroke, AndroidKeyStroke>.addKeystrokesForAction(actionId: String, androidKeystroke: AndroidKeyStroke) {
+    for (keyStroke in KeymapUtil.getKeyStrokes(KeymapUtil.getActiveKeymapShortcuts(actionId))) {
+      put(keyStroke, androidKeystroke)
+    }
+  }
+
   enum class ConnectionState { INITIAL, CONNECTING, CONNECTED, DISCONNECTED }
 
   /**
@@ -442,33 +522,62 @@ class DeviceView(
     }
 
     override fun keyPressed(event: KeyEvent) {
-      if (event.keyCode == VK_CONTROL && event.modifiersEx == CTRL_DOWN_MASK) {
-        multiTouchMode = true
-        return
-      }
-
-      // The Tab character is passed to the device, but Shift+Tab is converted to Tab and processed locally.
-      if (event.keyCode == VK_TAB && event.modifiersEx == SHIFT_DOWN_MASK) {
-        val tabEvent = KeyEvent(event.source as Component, event.id, event.getWhen(), 0, event.keyCode, event.keyChar, event.keyLocation)
-        traverseFocusLocally(tabEvent)
-        return
-      }
-
-      if (event.modifiersEx != 0) {
-        return
-      }
-      val deviceController = deviceController ?: return
-      val keyCode = hostKeyCodeToDeviceKeyCode(event.keyCode)
-      if (keyCode == AKEYCODE_UNKNOWN) {
-        return
-      }
-      deviceController.sendControlMessage(KeyEventMessage(ACTION_DOWN_AND_UP, keyCode, 0))
+      keyPressedOrReleased(event)
     }
 
     override fun keyReleased(event: KeyEvent) {
-      if (event.keyCode == VK_CONTROL) {
-        multiTouchMode = false
+      keyPressedOrReleased(event)
+    }
+
+    private fun keyPressedOrReleased(event: KeyEvent) {
+      val keyCode = event.keyCode
+      val modifiers = event.modifiersEx
+
+      if (keyCode == VK_CONTROL) {
+        if (modifiers == CTRL_DOWN_MASK) {
+          multiTouchMode = true
+        }
+        else if ((modifiers and CTRL_DOWN_MASK) == 0) {
+          multiTouchMode = false
+        }
       }
+
+      // The Tab character is passed to the device, but Shift+Tab is converted to Tab and processed locally.
+      if (keyCode == VK_TAB && modifiers == SHIFT_DOWN_MASK) {
+        if (event.id == KEY_PRESSED) {
+          val tabEvent =
+              KeyEvent(event.source as Component, event.id, event.getWhen(), 0, keyCode, event.keyChar, event.keyLocation)
+          traverseFocusLocally(tabEvent)
+        }
+        return
+      }
+
+      val deviceController = deviceController ?: return
+      val androidKeystroke = hostKeyStrokeToAndroidKeyStroke(keyCode, modifiers)
+      if (androidKeystroke == null) {
+        if (modifiers == 0) {
+          val androidKeyCode = hostKeyCodeToDeviceKeyCode(keyCode)
+          if (androidKeyCode != AKEYCODE_UNKNOWN) {
+            val action = if (event.id == KEY_PRESSED) ACTION_DOWN else ACTION_UP
+            deviceController.sendControlMessage(KeyEventMessage(action, androidKeyCode, modifiersToMetaState(modifiers)))
+          }
+        }
+      }
+      else if (event.id == KEY_PRESSED) {
+        deviceController.sendKeystroke(androidKeystroke)
+      }
+    }
+
+    private fun hostKeyStrokeToAndroidKeyStroke(hostKeyCode: Int, modifiers: Int): AndroidKeyStroke? {
+      val canonicalKeyCode = when (hostKeyCode) {
+        KeyEvent.VK_KP_LEFT -> KeyEvent.VK_LEFT
+        KeyEvent.VK_KP_RIGHT -> KeyEvent.VK_RIGHT
+        KeyEvent.VK_KP_UP -> KeyEvent.VK_UP
+        KeyEvent.VK_KP_DOWN -> KeyEvent.VK_DOWN
+        else -> hostKeyCode
+      }
+
+      return keyStrokeMap[KeyStroke.getKeyStroke(canonicalKeyCode, modifiers)]
     }
 
     private fun hostKeyCodeToDeviceKeyCode(hostKeyCode: Int): Int {
@@ -478,17 +587,19 @@ class DeviceView(
         VK_ENTER -> AKEYCODE_ENTER
         VK_ESCAPE -> AKEYCODE_ESCAPE
         VK_TAB -> AKEYCODE_TAB
-        VK_LEFT, VK_KP_LEFT -> AKEYCODE_DPAD_LEFT
-        VK_RIGHT, VK_KP_RIGHT -> AKEYCODE_DPAD_RIGHT
-        VK_UP, VK_KP_UP -> AKEYCODE_DPAD_UP
-        VK_DOWN, VK_KP_DOWN -> AKEYCODE_DPAD_DOWN
-        VK_HOME -> AKEYCODE_MOVE_HOME
-        VK_END -> AKEYCODE_MOVE_END
-        VK_PAGE_UP -> AKEYCODE_PAGE_UP
-        VK_PAGE_DOWN -> AKEYCODE_PAGE_DOWN
         else -> AKEYCODE_UNKNOWN
       }
     }
+
+    private fun modifiersToMetaState(modifiers: Int): Int {
+      return modifierToMetaState(modifiers, SHIFT_DOWN_MASK,  AMETA_SHIFT_ON) or
+             modifierToMetaState(modifiers, CTRL_DOWN_MASK,  AMETA_CTRL_ON) or
+             modifierToMetaState(modifiers, META_DOWN_MASK,  AMETA_META_ON) or
+             modifierToMetaState(modifiers, ALT_DOWN_MASK,  AMETA_ALT_ON)
+    }
+
+    private fun modifierToMetaState(modifiers: Int, modifierMask: Int, metaState: Int) =
+        if ((modifiers and modifierMask) != 0) metaState else 0
   }
 
   private inner class MyMouseListener : MouseAdapter() {
