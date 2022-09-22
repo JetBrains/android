@@ -23,7 +23,12 @@ import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
 final class StatusTableCellRenderer implements TableCellRenderer {
-  private final JLabel myLabel = new JBLabel();
+  private final @NotNull JLabel myLabel;
+
+  StatusTableCellRenderer() {
+    myLabel = new JBLabel();
+    myLabel.setOpaque(true);
+  }
 
   @Override
   public @NotNull Component getTableCellRendererComponent(@NotNull JTable table,
