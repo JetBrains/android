@@ -403,6 +403,21 @@ class FilterTextFieldTest {
     assertThat(AndroidLogcatFilterHistory.getInstance().mostRecentlyUsed).isEqualTo("bar")
   }
 
+  @Test
+  @RunsInEdt
+  fun updateText_updatesFavorite() {
+    val filterTextField = filterTextField(initialText = "bar")
+    val textField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>()[0]
+    val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
+    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
+    fakeUi.clickOn(favoriteButton)
+
+    textField.text = "foo"
+    assertThat(favoriteButton.icon).isEqualTo(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
+    textField.text = "bar"
+    assertThat(favoriteButton.icon).isEqualTo(StudioIcons.Logcat.Input.FAVORITE_FILLED)
+  }
+
   private fun filterTextField(
     project: Project = this.project,
     logcatPresenter: LogcatPresenter = fakeLogcatPresenter,
