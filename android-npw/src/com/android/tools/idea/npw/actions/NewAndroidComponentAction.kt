@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.actions
 
 import com.android.AndroidProjectTypes
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.COMPOSE_MIN_AGP_VERSION
@@ -100,6 +101,11 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
       }
       !hasComposeMinAgpVersion(module.project, category) -> {
         presentation.text = AndroidBundle.message("android.wizard.action.requires.new.agp", templateName, COMPOSE_MIN_AGP_VERSION)
+        presentation.isEnabled = false
+      }
+      templateConstraints.contains(TemplateConstraint.Aidl) &&
+      ProjectBuildModel.get(module.project).getModuleBuildModel(module)?.android()?.buildFeatures()?.aidl()?.toBoolean() != true -> {
+        presentation.text = AndroidBundle.message("android.wizard.action.requires.aidlEnabled", templateName)
         presentation.isEnabled = false
       }
       else -> {

@@ -220,7 +220,7 @@ class ModuleTemplateDataBuilder(
     manifestDir!!,
     testDir ?: srcDir!!.resolve(FD_TEST),
     unitTestDir ?: srcDir!!.resolve(FD_UNIT_TEST),
-    aidlDir!!,
+    aidlDir,
     rootDir!!,
     isNewModule,
     name!!,
