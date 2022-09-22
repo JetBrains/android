@@ -166,14 +166,14 @@ public class StringResourceViewPanel implements Disposable {
   }
 
   private void initKeyTextField() {
-    myKeyTextField = new TranslationsEditorTextField(myTable, StringResourceTableModel.KEY_COLUMN);
+    myKeyTextField = new TranslationsEditorTextField(myTable, () -> StringResourceTableModel.KEY_COLUMN);
 
     myKeyTextField.setEnabled(false);
     myKeyTextField.setName("keyTextField");
   }
 
   private void initDefaultValueTextField() {
-    JTextField textField = new TranslationsEditorTextField(myTable, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
+    JTextField textField = new TranslationsEditorTextField(myTable, () -> StringResourceTableModel.DEFAULT_VALUE_COLUMN);
     new TranslationsEditorPasteAction().registerCustomShortcutSet(textField, this);
 
     myDefaultValueTextField = new TextFieldWithBrowseButton(textField, new ShowMultilineActionListener(), this);

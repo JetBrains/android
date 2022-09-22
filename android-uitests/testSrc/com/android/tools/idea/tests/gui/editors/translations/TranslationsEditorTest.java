@@ -166,41 +166,6 @@ public final class TranslationsEditorTest {
   }
 
   @Test
-  public void enteringTextInDefaultValueTextFieldUpdatesTableCell() throws IOException {
-    importSimpleApplication();
-
-    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
-    FrozenColumnTableFixture table = translationsEditor.getTable();
-    TableCell actionSettingsDefaultValue = translationsEditor.cell("action_settings", "app/src/main/res", DEFAULT_VALUE_COLUMN);
-    table.selectCell(actionSettingsDefaultValue);
-
-    JTextComponentFixture field = translationsEditor.getDefaultValueTextField();
-    field.selectAll();
-    field.enterText("action_settings");
-
-    TableCell appNameDefaultValue = translationsEditor.cell("app_name", "app/src/main/res", DEFAULT_VALUE_COLUMN);
-    table.selectCell(appNameDefaultValue);
-
-    translationsEditor.waitUntilTableValueAtEquals(actionSettingsDefaultValue, "action_settings");
-    assertEquals("Simple Application", table.valueAt(appNameDefaultValue));
-  }
-
-  @Test
-  public void enteringTextInTranslationTextFieldUpdatesTableCell() throws IOException {
-    importSimpleApplication();
-
-    TranslationsEditorFixture translationsEditor = myGuiTest.ideFrame().getEditor().getTranslationsEditor();
-    TableCell cancelEnglishTranslation = translationsEditor.cell("cancel", "app/src/main/res", ENGLISH_COLUMN);
-    translationsEditor.getTable().selectCell(cancelEnglishTranslation);
-
-    JTextComponentFixture field = translationsEditor.getTranslationTextField();
-    field.selectAll();
-    field.enterText("cancel_en");
-
-    translationsEditor.waitUntilTableValueAtEquals(cancelEnglishTranslation, "cancel_en");
-  }
-
-  @Test
   public void multilineEditUpdateShowsInTable() throws IOException {
     importSimpleApplication();
 
