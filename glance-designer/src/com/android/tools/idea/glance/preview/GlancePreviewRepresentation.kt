@@ -35,6 +35,7 @@ import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.CodeOutOfDateTracker
 import com.android.tools.idea.projectsystem.setupBuildListener
+import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -132,13 +133,9 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
     get() = previewView.surface
 
   private val previewViewModel: GlancePreviewViewModel =
-    GlancePreviewViewModel(
-      adapterViewFqcn,
-      previewView,
-      projectBuildStatusManager,
-      project,
-      psiFilePointer
-    ) { surface.sceneManagers.map { it.renderResult } }
+    GlancePreviewViewModel(previewView, projectBuildStatusManager, project, psiFilePointer) {
+      surface.sceneManagers.any { it.renderResult.isErrorResult(adapterViewFqcn) }
+    }
 
   private val previewFreshnessTracker =
     CodeOutOfDateTracker.create(module, this) { requestRefresh() }

@@ -25,6 +25,7 @@ import com.android.tools.idea.glance.preview.mvvm.PreviewView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import kotlinx.coroutines.runBlocking
@@ -77,17 +78,23 @@ class GlancePreviewViewModelTest {
 
   private val testView = TestPreviewView()
 
+  private val hasRenderErrors =
+    object : () -> Boolean {
+      var has = false
+
+      override fun invoke() = has
+    }
+
+  private lateinit var file: PsiFile
+
   private lateinit var viewModel: GlancePreviewViewModel
 
   @Before
   fun setUp() {
-    val file = fixture.configureByText("foo.txt", "")
+    file = fixture.configureByText("foo.txt", "")
     val filePtr = runReadAction { SmartPointerManager.createPointer(file) }
 
-    viewModel =
-      GlancePreviewViewModel("foo.bar.AdapterView", testView, statusManager, project, filePtr) {
-        listOf()
-      }
+    viewModel = GlancePreviewViewModel(testView, statusManager, project, filePtr, hasRenderErrors)
   }
 
   @After
@@ -239,4 +246,60 @@ class GlancePreviewViewModelTest {
         testView.errorMessages.last()
       )
     }
+
+  @Test
+  fun testIsRefreshing() {
+    Assert.assertFalse(viewModel.isRefreshing)
+
+    viewModel.refreshStarted()
+
+    Assert.assertTrue(viewModel.isRefreshing)
+
+    viewModel.refreshStarted()
+
+    Assert.assertTrue(viewModel.isRefreshing)
+
+    viewModel.refreshFinished()
+
+    Assert.assertTrue(viewModel.isRefreshing)
+
+    viewModel.refreshFinished()
+
+    Assert.assertFalse(viewModel.isRefreshing)
+  }
+
+  @Test
+  fun testHasErrorsAndNeedsBuild() {
+    Assert.assertFalse(viewModel.hasErrorsAndNeedsBuild)
+
+    viewModel.setHasPreviews(true)
+
+    Assert.assertTrue(viewModel.hasErrorsAndNeedsBuild)
+
+    viewModel.afterPreviewsRefreshed()
+
+    Assert.assertFalse(viewModel.hasErrorsAndNeedsBuild)
+
+    hasRenderErrors.has = true
+
+    Assert.assertTrue(viewModel.hasErrorsAndNeedsBuild)
+
+    viewModel.setHasPreviews(false)
+
+    Assert.assertFalse(viewModel.hasErrorsAndNeedsBuild)
+  }
+
+  @Test
+  fun testIsOutOfDate() {
+    Assert.assertFalse(viewModel.isOutOfDate)
+
+    statusManager.status = ProjectStatus.OutOfDate
+
+    Assert.assertTrue(viewModel.isOutOfDate)
+  }
+
+  @Test
+  fun testPreviewedFile() {
+    Assert.assertEquals(file, viewModel.previewedFile)
+  }
 }

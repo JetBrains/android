@@ -26,8 +26,6 @@ import com.android.tools.idea.glance.preview.mvvm.PreviewView
 import com.android.tools.idea.glance.preview.mvvm.PreviewViewModel
 import com.android.tools.idea.glance.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.projectsystem.requestBuild
-import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.rendering.isErrorResult
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -46,12 +44,11 @@ import org.apache.commons.lang.time.DurationFormatUtils
 
 /** [PreviewViewModel] for the Glance previews. */
 class GlancePreviewViewModel(
-  private val adapterViewFqcn: String,
   private val previewView: PreviewView,
   private val projectBuildStatusManager: ProjectBuildStatusManager,
   private val project: Project,
   private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
-  private val renderResultsProvider: () -> List<RenderResult?>
+  private val hasRenderErrors: () -> Boolean
 ) : PreviewViewModel, PreviewViewModelStatus {
   private val refreshCallsCount = AtomicInteger(0)
   private val hasRendered = AtomicBoolean(false)
@@ -104,7 +101,9 @@ class GlancePreviewViewModel(
     updateViewAndNotifications()
   }
 
-  override fun setHasPreviews(hasPreviews: Boolean) {}
+  override fun setHasPreviews(hasPreviews: Boolean) {
+    this.hasPreviews.set(hasPreviews)
+  }
 
   override fun refreshCompleted(isCancelled: Boolean, durationNanos: Long) {
     updateViewAndNotifications()
@@ -177,9 +176,7 @@ class GlancePreviewViewModel(
     get() = refreshCallsCount.get() > 0
 
   override val hasErrorsAndNeedsBuild: Boolean
-    get() =
-      hasPreviews.get() &&
-        (!hasRendered.get() || renderResultsProvider().any { it.isErrorResult(adapterViewFqcn) })
+    get() = hasPreviews.get() && (!hasRendered.get() || hasRenderErrors())
 
   override val hasSyntaxErrors: Boolean
     get() = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
