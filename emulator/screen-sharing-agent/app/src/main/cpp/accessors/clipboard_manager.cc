@@ -16,6 +16,8 @@
 
 #include "clipboard_manager.h"
 
+#include <atomic>
+
 #include "agent.h"
 #include "jvm.h"
 #include "log.h"
@@ -30,7 +32,7 @@ namespace {
 constexpr int USER_ID = 0;
 constexpr char PACKAGE_NAME[] = "com.android.shell";
 
-ClipboardManager* clipboard_manager_instance = nullptr;
+atomic<ClipboardManager*> clipboard_manager_instance = nullptr;
 
 }  // namespace
 
@@ -204,8 +206,9 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_android_tools_screensharing_ClipboardListener_dispatchPrimaryClipChanged(JNIEnv* env, jobject thiz) {
   Log::D("ClipboardListener.dispatchPrimaryClipChanged");
-  if (clipboard_manager_instance != nullptr) {
-    clipboard_manager_instance->OnPrimaryClipChanged();
+  ClipboardManager* clipboard_manager = clipboard_manager_instance;
+  if (clipboard_manager != nullptr) {
+    clipboard_manager->OnPrimaryClipChanged();
   }
 }
 

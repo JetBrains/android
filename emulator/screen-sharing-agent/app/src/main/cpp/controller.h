@@ -82,7 +82,6 @@ private:
   ScopedSetting accelerometer_rotation_;
 
   ClipboardListener clipboard_listener_;
-  ClipboardManager* clipboard_manager_;  // Not owned.
   std::mutex clipboard_mutex_;
   int max_synced_clipboard_length_;  // GUARDED_BY(clipboard_mutex_)
   std::string last_clipboard_text_;  // GUARDED_BY(clipboard_mutex_)

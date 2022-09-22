@@ -107,7 +107,6 @@ Controller::Controller(int socket_fd)
       stay_on_(Settings::Table::GLOBAL, "stay_on_while_plugged_in"),
       accelerometer_rotation_(Settings::Table::SYSTEM, "accelerometer_rotation"),
       clipboard_listener_(this),
-      clipboard_manager_(),  // Assigned on first use.
       max_synced_clipboard_length_(0),
       setting_clipboard_(false) {
   assert(socket_fd > 0);
@@ -344,30 +343,28 @@ void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage
 }
 
 void Controller::StartClipboardSync(const StartClipboardSyncMessage& message) {
-  {
-    scoped_lock lock(clipboard_mutex_);
-    if (message.text() != last_clipboard_text_) {
-      last_clipboard_text_ = message.text();
-      setting_clipboard_ = true;
-    }
-    clipboard_manager_ = ClipboardManager::GetInstance(jni_);
-    if (setting_clipboard_) {
-      clipboard_manager_->SetText(jni_, message.text());
-    }
-    setting_clipboard_ = false;
-    bool was_stopped = max_synced_clipboard_length_ == 0;
-    max_synced_clipboard_length_ = message.max_synced_length();
-    if (was_stopped) {
-      clipboard_manager_->AddClipboardListener(&clipboard_listener_);
-    }
+  scoped_lock lock(clipboard_mutex_);
+  if (message.text() != last_clipboard_text_) {
+    last_clipboard_text_ = message.text();
+    setting_clipboard_ = true;
+  }
+  ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni_);
+  if (setting_clipboard_) {
+    clipboard_manager->SetText(jni_, message.text());
+  }
+  setting_clipboard_ = false;
+  bool was_stopped = max_synced_clipboard_length_ == 0;
+  max_synced_clipboard_length_ = message.max_synced_length();
+  if (was_stopped) {
+    clipboard_manager->AddClipboardListener(&clipboard_listener_);
   }
 }
 
 void Controller::StopClipboardSync() {
   scoped_lock lock(clipboard_mutex_);
   if (max_synced_clipboard_length_ != 0) {
-    clipboard_manager_ = ClipboardManager::GetInstance(jni_);
-    clipboard_manager_->RemoveClipboardListener(&clipboard_listener_);
+    ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni_);
+    clipboard_manager->RemoveClipboardListener(&clipboard_listener_);
     max_synced_clipboard_length_ = 0;
     last_clipboard_text_.resize(0);
   }
@@ -381,7 +378,9 @@ void Controller::OnPrimaryClipChanged() {
       return;
     }
     // Cannot use jni_ because this method may be called on an arbitrary thread.
-    text = clipboard_manager_->GetText(Jvm::GetJni());
+    JNIEnv* jni = Jvm::GetJni();
+    ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni);
+    text = clipboard_manager->GetText(jni);
     if (text.empty() || text == last_clipboard_text_) {
       return;
     }
