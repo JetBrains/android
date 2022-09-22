@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -61,7 +60,7 @@ public final class VirtualDeviceTableTest {
     CountDownLatchAssert.await(myLatch);
 
     assertEquals(Optional.empty(), table.getSelectedDevice());
-    assertThat(table.getEmptyText().getText()).isEqualTo("Loading...");
+    assertEquals("Loading...", table.getEmptyText().getText());
   }
 
   @Test

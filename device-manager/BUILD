@@ -43,7 +43,6 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/device-manager:intellij.android.device-manager[module, test]",
-        "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",

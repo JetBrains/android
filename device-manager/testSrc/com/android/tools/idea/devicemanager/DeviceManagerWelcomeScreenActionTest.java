@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanager;
 
-import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
@@ -77,7 +76,7 @@ public final class DeviceManagerWelcomeScreenActionTest {
     when(myEvent.getProject()).thenReturn(Mockito.mock(Project.class));
     myAction.update(myEvent);
 
-    assertThat(myEvent.getPresentation().isEnabled()).isFalse();
-    assertThat(myEvent.getPresentation().isVisible()).isFalse();
+    assertFalse(myEvent.getPresentation().isEnabled());
+    assertFalse(myEvent.getPresentation().isVisible());
   }
 }
