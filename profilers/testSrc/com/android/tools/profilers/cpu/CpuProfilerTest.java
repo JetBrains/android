@@ -29,6 +29,7 @@ import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
@@ -156,8 +157,8 @@ public final class CpuProfilerTest {
     // Insert a completed CpuTraceInfo.
     Cpu.CpuTraceInfo info1 = Cpu.CpuTraceInfo.newBuilder()
       .setTraceId(1).setFromTimestamp(1).setToTimestamp(2)
-      .setStartStatus(Cpu.TraceStartStatus.newBuilder().setStatus(Cpu.TraceStartStatus.Status.SUCCESS))
-      .setStopStatus(Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.SUCCESS))
+      .setStartStatus(Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.SUCCESS))
+      .setStopStatus(Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.SUCCESS))
       .build();
     myTransportService.addEventToStream(
       session.getStreamId(),
@@ -171,7 +172,7 @@ public final class CpuProfilerTest {
     // Insert a not yet completed info followed up by a generic end event.
     Cpu.CpuTraceInfo info2 = Cpu.CpuTraceInfo.newBuilder()
       .setTraceId(5).setFromTimestamp(5).setToTimestamp(-1)
-      .setStartStatus(Cpu.TraceStartStatus.newBuilder().setStatus(Cpu.TraceStartStatus.Status.SUCCESS))
+      .setStartStatus(Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.SUCCESS))
       .build();
     myTransportService.addEventToStream(
       session.getStreamId(),
@@ -185,7 +186,7 @@ public final class CpuProfilerTest {
     infos = CpuProfiler.getTraceInfoFromSession(myProfilers.getClient(), session);
     assertThat(infos)
       .containsExactly(info1, info2.toBuilder().setToTimestamp(session.getEndTimestamp())
-        .setStopStatus(Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.APP_PROCESS_DIED)).build());
+        .setStopStatus(Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.APP_PROCESS_DIED)).build());
   }
 
   @Test
@@ -194,8 +195,8 @@ public final class CpuProfilerTest {
     int TRACE_ID = 123;
 
     // Insert a start status.
-    Cpu.CpuTraceStatusData status1 = Cpu.CpuTraceStatusData.newBuilder()
-      .setTraceStartStatus(Cpu.TraceStartStatus.newBuilder().setStatus(Cpu.TraceStartStatus.Status.SUCCESS))
+    Trace.TraceStatusData status1 = Trace.TraceStatusData.newBuilder()
+      .setTraceStartStatus(Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.SUCCESS))
       .build();
     Common.Event event1 =
       Common.Event.newBuilder().setGroupId(TRACE_ID).setPid(session.getPid()).setKind(Common.Event.Kind.CPU_TRACE_STATUS).setTimestamp(1)
@@ -206,8 +207,8 @@ public final class CpuProfilerTest {
     assertThat(event).isEqualTo(event1);
 
     // Insert a stop status.
-    Cpu.CpuTraceStatusData status2 = Cpu.CpuTraceStatusData.newBuilder()
-      .setTraceStopStatus(Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.WAIT_TIMEOUT).setErrorMessage("error"))
+    Trace.TraceStatusData status2 = Trace.TraceStatusData.newBuilder()
+      .setTraceStopStatus(Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.WAIT_TIMEOUT).setErrorMessage("error"))
       .build();
     Common.Event event2 =
       Common.Event.newBuilder().setGroupId(TRACE_ID).setPid(session.getPid()).setKind(Common.Event.Kind.CPU_TRACE_STATUS).setTimestamp(5)

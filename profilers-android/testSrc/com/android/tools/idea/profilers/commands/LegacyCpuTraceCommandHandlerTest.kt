@@ -31,6 +31,7 @@ import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.truth.Truth.assertThat
 import com.android.tools.idea.io.grpc.ManagedChannel
 import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
+import com.android.tools.profiler.proto.Trace
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
@@ -64,7 +65,7 @@ class LegacyCpuTraceCommandHandlerTest {
     timer.currentTimeNs = startTimestamp
     commandHandler.execute(buildStartCommand(testPid, 1))
 
-    val expectedStartStatus = Cpu.TraceStartStatus.newBuilder().setStatus(Cpu.TraceStartStatus.Status.SUCCESS).build()
+    val expectedStartStatus = Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.SUCCESS).build()
     val expectedTraceInfo = Cpu.CpuTraceInfo.newBuilder().apply {
       traceId = startTimestamp
       configuration = TRACE_CONFIG
@@ -76,7 +77,7 @@ class LegacyCpuTraceCommandHandlerTest {
       pid = testPid
       kind = Common.Event.Kind.CPU_TRACE_STATUS
       commandId = 1
-      cpuTraceStatus = Cpu.CpuTraceStatusData.newBuilder().apply {
+      cpuTraceStatus = Trace.TraceStatusData.newBuilder().apply {
         traceStartStatus = expectedStartStatus
       }.build()
     }.build()
@@ -95,7 +96,7 @@ class LegacyCpuTraceCommandHandlerTest {
     timer.currentTimeNs = endTimestamp
     commandHandler.execute(buildStopCommand(testPid, 2))
 
-    val expectedEndStatus = Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.SUCCESS).build()
+    val expectedEndStatus = Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.SUCCESS).build()
     expectedTraceInfo.apply {
       toTimestamp = endTimestamp
       stopStatus = expectedEndStatus
@@ -104,7 +105,7 @@ class LegacyCpuTraceCommandHandlerTest {
       pid = testPid
       kind = Common.Event.Kind.CPU_TRACE_STATUS
       commandId = 2
-      cpuTraceStatus = Cpu.CpuTraceStatusData.newBuilder().apply {
+      cpuTraceStatus = Trace.TraceStatusData.newBuilder().apply {
         traceStopStatus = expectedEndStatus
       }.build()
     }.build()

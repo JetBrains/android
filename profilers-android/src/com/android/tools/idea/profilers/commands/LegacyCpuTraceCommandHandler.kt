@@ -28,6 +28,7 @@ import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.intellij.openapi.diagnostic.Logger
 import com.android.tools.idea.io.grpc.StatusRuntimeException
+import com.android.tools.profiler.proto.Trace
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.TimeUnit
 
@@ -89,16 +90,16 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     val client = if (appPkgName != null) device.getClient(appPkgName) else null
 
     if (client == null) {
-      val status = Cpu.TraceStartStatus.newBuilder().apply {
-        status = Cpu.TraceStartStatus.Status.FAILURE
+      val status = Trace.TraceStartStatus.newBuilder().apply {
+        status = Trace.TraceStartStatus.Status.FAILURE
         errorMessage = "App is not running"
       }.build()
       sendStartStatusEvent(command, status)
     }
     else {
       if (!LegacyCpuTraceRecord.isMethodProfilingStatusOff(legacyProfilingRecord.get(pid), client)) {
-        val status = Cpu.TraceStartStatus.newBuilder().apply {
-          status = Cpu.TraceStartStatus.Status.FAILURE
+        val status = Trace.TraceStartStatus.newBuilder().apply {
+          status = Trace.TraceStartStatus.Status.FAILURE
           errorMessage = "Start request ignored. The app has an on-going profiling session."
         }.build()
         sendStartStatusEvent(command, status)
@@ -129,16 +130,16 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
           // so we countDown here to indicate that we are done processing the start callback.
           record.startLatch.countDown()
           if (record.isStartFailed) {
-            val status = Cpu.TraceStartStatus.newBuilder().apply {
-              status = Cpu.TraceStartStatus.Status.FAILURE
+            val status = Trace.TraceStartStatus.newBuilder().apply {
+              status = Trace.TraceStartStatus.Status.FAILURE
               errorMessage = "Failed to start profiling: " + record.startFailureMessage
             }.build()
             legacyProfilingRecord.remove(pid)
             sendStartStatusEvent(command, status)
           }
           else {
-            val status = Cpu.TraceStartStatus.newBuilder().apply {
-              status = Cpu.TraceStartStatus.Status.SUCCESS
+            val status = Trace.TraceStartStatus.newBuilder().apply {
+              status = Trace.TraceStartStatus.Status.SUCCESS
             }.build()
             sendStartStatusEvent(command, status)
 
@@ -155,8 +156,8 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
           }
         }
         catch (e: Exception) {
-          val status = Cpu.TraceStartStatus.newBuilder().apply {
-            status = Cpu.TraceStartStatus.Status.FAILURE
+          val status = Trace.TraceStartStatus.newBuilder().apply {
+            status = Trace.TraceStartStatus.Status.FAILURE
             errorMessage = "Failed: $e"
           }.build()
           legacyProfilingRecord.remove(pid)
@@ -176,8 +177,8 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     val appPkgName = device.getClientName(pid)
     val client = if (appPkgName != null) device.getClient(appPkgName) else null
     if (client == null) {
-      val status = Cpu.TraceStopStatus.newBuilder().apply {
-        status = Cpu.TraceStopStatus.Status.APP_PROCESS_DIED
+      val status = Trace.TraceStopStatus.newBuilder().apply {
+        status = Trace.TraceStopStatus.Status.APP_PROCESS_DIED
         errorMessage = "App is not running"
       }.build()
       sendStopStatusEvent(command, status)
@@ -191,8 +192,8 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     else {
       val record = legacyProfilingRecord.get(pid)
       if (LegacyCpuTraceRecord.isMethodProfilingStatusOff(record, client)) {
-        val status = Cpu.TraceStopStatus.newBuilder().apply {
-          status = Cpu.TraceStopStatus.Status.NO_ONGOING_PROFILING
+        val status = Trace.TraceStopStatus.newBuilder().apply {
+          status = Trace.TraceStopStatus.Status.NO_ONGOING_PROFILING
           errorMessage = "The app is not being profiled."
         }.build()
         sendStopStatusEvent(command, status)
@@ -212,8 +213,8 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
           sendStopTraceEvent(command, record.traceInfo!!.setToTimestamp(endTimeNs).build())
         }
         catch (e: Exception) {
-          val status = Cpu.TraceStopStatus.newBuilder().apply {
-            status = Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED
+          val status = Trace.TraceStopStatus.newBuilder().apply {
+            status = Trace.TraceStopStatus.Status.STOP_COMMAND_FAILED
             errorMessage = "Failed: $e"
           }.build()
           sendStopStatusEvent(command, status)
@@ -238,12 +239,12 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     return endTimeNs
   }
 
-  private fun sendStartStatusEvent(command: Commands.Command, startStatus: Cpu.TraceStartStatus) {
+  private fun sendStartStatusEvent(command: Commands.Command, startStatus: Trace.TraceStartStatus) {
     val statusEvent = Common.Event.newBuilder().apply {
       pid = command.pid
       kind = Common.Event.Kind.CPU_TRACE_STATUS
       commandId = command.commandId
-      cpuTraceStatus = Cpu.CpuTraceStatusData.newBuilder().setTraceStartStatus(startStatus).build()
+      cpuTraceStatus = Trace.TraceStatusData.newBuilder().setTraceStartStatus(startStatus).build()
     }.build()
     eventQueue.offer(statusEvent)
   }
@@ -260,12 +261,12 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     eventQueue.offer(traceStartEvent)
   }
 
-  private fun sendStopStatusEvent(command: Commands.Command, startStatus: Cpu.TraceStopStatus) {
+  private fun sendStopStatusEvent(command: Commands.Command, startStatus: Trace.TraceStopStatus) {
     val statusEvent = Common.Event.newBuilder().apply {
       pid = command.pid
       kind = Common.Event.Kind.CPU_TRACE_STATUS
       commandId = command.commandId
-      cpuTraceStatus = Cpu.CpuTraceStatusData.newBuilder().setTraceStopStatus(startStatus).build()
+      cpuTraceStatus = Trace.TraceStatusData.newBuilder().setTraceStopStatus(startStatus).build()
     }.build()
     eventQueue.offer(statusEvent)
   }

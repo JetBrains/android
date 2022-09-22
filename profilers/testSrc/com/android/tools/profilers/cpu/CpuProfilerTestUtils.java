@@ -26,8 +26,8 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.idea.transport.faketransport.commands.StartCpuTrace;
 import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
 import com.android.tools.profiler.proto.Commands;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import java.io.File;
 import java.io.IOException;
@@ -170,8 +170,8 @@ public class CpuProfilerTestUtils {
     throws InterruptedException {
     assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     ((StartCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.START_CPU_TRACE))
-      .setStartStatus(Cpu.TraceStartStatus.newBuilder()
-                        .setStatus(success ? Cpu.TraceStartStatus.Status.SUCCESS : Cpu.TraceStartStatus.Status.FAILURE)
+      .setStartStatus(Trace.TraceStartStatus.newBuilder()
+                        .setStatus(success ? Trace.TraceStartStatus.Status.SUCCESS : Trace.TraceStartStatus.Status.FAILURE)
                         .build());
 
     CountDownLatch latch;
@@ -211,8 +211,8 @@ public class CpuProfilerTestUtils {
     long traceId = stage.getStudioProfilers().getUpdater().getTimer().getCurrentTimeNs();
     StopCpuTrace stopTraceCommand = (StopCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
     stopTraceCommand.setStopStatus(
-      Cpu.TraceStopStatus.newBuilder()
-        .setStatus(success ? Cpu.TraceStopStatus.Status.SUCCESS : Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED)
+      Trace.TraceStopStatus.newBuilder()
+        .setStatus(success ? Trace.TraceStopStatus.Status.SUCCESS : Trace.TraceStopStatus.Status.STOP_COMMAND_FAILED)
         .setStoppingTimeNs(TimeUnit.MILLISECONDS.toNanos(FAKE_STOPPING_TIME_MS))
         .build());
     stopTraceCommand.setTraceDurationNs(traceDurationNs);

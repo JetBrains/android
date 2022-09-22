@@ -23,6 +23,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMonitor;
@@ -254,7 +255,7 @@ public class CpuProfiler implements StudioProfiler {
           if (info.getToTimestamp() == -1) {
             info = info.toBuilder()
               .setToTimestamp(session.getEndTimestamp())
-              .setStopStatus(Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.APP_PROCESS_DIED))
+              .setStopStatus(Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.APP_PROCESS_DIED))
               .build();
           }
         }
@@ -316,7 +317,7 @@ public class CpuProfiler implements StudioProfiler {
   public static void stopTracing(@NotNull StudioProfilers profilers,
                                  @NotNull Common.Session session,
                                  @NotNull Cpu.CpuTraceConfiguration configuration,
-                                 @Nullable Consumer<Cpu.TraceStopStatus> responseHandler) {
+                                 @Nullable Consumer<Trace.TraceStopStatus> responseHandler) {
     Commands.Command stopCommand = Commands.Command.newBuilder()
       .setStreamId(session.getStreamId())
       .setPid(session.getPid())

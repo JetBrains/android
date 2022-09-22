@@ -19,10 +19,11 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import java.util.concurrent.TimeUnit
 
 class StopCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
-  var stopStatus: Cpu.TraceStopStatus = Cpu.TraceStopStatus.getDefaultInstance()
+  var stopStatus: Trace.TraceStopStatus = Trace.TraceStopStatus.getDefaultInstance()
   var traceDurationNs: Long = TimeUnit.SECONDS.toNanos(1)
   var lastTraceInfo: Cpu.CpuTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance()
 
@@ -43,7 +44,7 @@ class StopCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
       kind = Common.Event.Kind.CPU_TRACE_STATUS
       timestamp = timer.currentTimeNs
       commandId = command.commandId
-      cpuTraceStatus = Cpu.CpuTraceStatusData.newBuilder().apply {
+      cpuTraceStatus = Trace.TraceStatusData.newBuilder().apply {
         traceStopStatus = stopStatus
       }.build()
     }.build())

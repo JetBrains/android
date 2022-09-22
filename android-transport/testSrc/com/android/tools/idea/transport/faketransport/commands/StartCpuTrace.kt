@@ -19,9 +19,10 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 
 class StartCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
-  var startStatus: Cpu.TraceStartStatus = Cpu.TraceStartStatus.getDefaultInstance()
+  var startStatus: Trace.TraceStartStatus = Trace.TraceStartStatus.getDefaultInstance()
 
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
     val traceId = timer.currentTimeNs
@@ -40,12 +41,12 @@ class StartCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
       kind = Common.Event.Kind.CPU_TRACE_STATUS
       timestamp = timer.currentTimeNs
       commandId = command.commandId
-      cpuTraceStatus = Cpu.CpuTraceStatusData.newBuilder().apply {
+      cpuTraceStatus = Trace.TraceStatusData.newBuilder().apply {
         traceStartStatus = startStatus
       }.build()
     }.build())
 
-    if (startStatus.status == Cpu.TraceStartStatus.Status.SUCCESS) {
+    if (startStatus.status == Trace.TraceStartStatus.Status.SUCCESS) {
       events.add(Common.Event.newBuilder().apply {
         groupId = traceId
         pid = command.pid

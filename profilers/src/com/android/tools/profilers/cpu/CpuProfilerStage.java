@@ -44,6 +44,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.TraceInitiationType;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.RecordingOption;
@@ -379,8 +380,8 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     myInstructionsEaseOutModel.setCurrentPercentage(1);
   }
 
-  private void startCapturingCallback(@NotNull Cpu.TraceStartStatus status) {
-    if (status.getStatus().equals(Cpu.TraceStartStatus.Status.SUCCESS)) {
+  private void startCapturingCallback(@NotNull Trace.TraceStartStatus status) {
+    if (status.getStatus().equals(Trace.TraceStartStatus.Status.SUCCESS)) {
       // Set myCaptureStartTimeNs before updating the state because the timestamp may be used to construct recording panel.
       myCaptureStartTimeNs = currentTimeNs();
       setCaptureState(CaptureState.CAPTURING);
@@ -417,19 +418,19 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     return myCaptureStopTimeNs;
   }
 
-  private void stopCapturingCallback(@NotNull Cpu.TraceStopStatus status) {
-    if (status.getStatus().equals(Cpu.TraceStopStatus.Status.UNSPECIFIED)) {
+  private void stopCapturingCallback(@NotNull Trace.TraceStopStatus status) {
+    if (status.getStatus().equals(Trace.TraceStopStatus.Status.UNSPECIFIED)) {
       // Daemon reports a matching ongoing recording has been found. Stopping is in progress. Do nothing.
       // When the stopping is done, a CPU_TRACE event will be generated, and it will be tracked via the InProgressTraceHandler.
     }
-    else if (!status.getStatus().equals(Cpu.TraceStopStatus.Status.SUCCESS)) {
+    else if (!status.getStatus().equals(Trace.TraceStopStatus.Status.SUCCESS)) {
       trackAndLogTraceStopFailures(status);
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
     }
   }
 
-  private void trackAndLogTraceStopFailures(@NotNull Cpu.TraceStopStatus status) {
+  private void trackAndLogTraceStopFailures(@NotNull Trace.TraceStopStatus status) {
     CpuCaptureMetadata captureMetadata = new CpuCaptureMetadata(myProfilerConfigModel.getProfilingConfiguration());
     long estimateDurationMs = TimeUnit.NANOSECONDS.toMillis(currentTimeNs() - myCaptureStartTimeNs);
     // Set the estimate duration of the capture, i.e. the time difference between device time when user clicked start and stop.
@@ -638,7 +639,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
           }
 
           // Inform CpuCaptureParser to track metrics when the successful trace is parsed.
-          if (trace.getStopStatus().getStatus().equals(Cpu.TraceStopStatus.Status.SUCCESS)) {
+          if (trace.getStopStatus().getStatus().equals(Trace.TraceStopStatus.Status.SUCCESS)) {
             CpuCaptureMetadata captureMetadata =
               new CpuCaptureMetadata(ProfilingConfiguration.fromProto(finishedTraceToSelect.getConfiguration().getUserOptions()));
             // If the capture is successful, we can track a more accurate time, calculated from the capture itself.
@@ -654,7 +655,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
 
       if (finishedTraceToSelect != null) {
         myInProgressTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance();
-        if (finishedTraceToSelect.getStopStatus().getStatus() == Cpu.TraceStopStatus.Status.SUCCESS) {
+        if (finishedTraceToSelect.getStopStatus().getStatus() == Trace.TraceStopStatus.Status.SUCCESS) {
           setAndSelectCapture(finishedTraceToSelect.getTraceId());
         }
         else {

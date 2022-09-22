@@ -21,6 +21,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.profilers.LegacyCpuProfilingHandler.registerDevice
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 
 /**
  * A singleton handler that implements [ClientData.setMethodProfilingHandler] since ddmlib only supports one such handler at a time.
@@ -50,8 +51,8 @@ internal object LegacyCpuProfilingHandler : ClientData.IMethodProfilingHandler {
       traceRecords[client.clientData.pid]?.let { record ->
         // Devices older than API 10 don't return profile results via JDWP. Instead they save the results on the
         // sdcard. We don't support this.
-        val status = Cpu.TraceStopStatus.newBuilder()
-          .setStatus(Cpu.TraceStopStatus.Status.CANNOT_COPY_FILE)
+        val status = Trace.TraceStopStatus.newBuilder()
+          .setStatus(Trace.TraceStopStatus.Status.CANNOT_COPY_FILE)
           .setErrorMessage("Method profiling: Older devices (API level < 10) are not supported. Please use DDMS.")
           .build()
         record.traceInfo!!.stopStatus = status
@@ -64,7 +65,7 @@ internal object LegacyCpuProfilingHandler : ClientData.IMethodProfilingHandler {
     deviceToProfilingMetadata[client.device]?.let { (traceRecords, byteCache) ->
       traceRecords[client.clientData.pid]?.let { record ->
         val traceInfo = record.traceInfo!!
-        traceInfo.stopStatus = Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.SUCCESS).build()
+        traceInfo.stopStatus = Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.SUCCESS).build()
         byteCache[traceInfo.traceId.toString()] = ByteString.copyFrom(data)
         record.stopLatch.countDown()
       }
@@ -97,8 +98,8 @@ internal object LegacyCpuProfilingHandler : ClientData.IMethodProfilingHandler {
           record.startLatch.countDown()
         }
         else {
-          val status = Cpu.TraceStopStatus.newBuilder()
-            .setStatus(Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED)
+          val status = Trace.TraceStopStatus.newBuilder()
+            .setStatus(Trace.TraceStopStatus.Status.STOP_COMMAND_FAILED)
             .setErrorMessage("Failed to stop profiling: $message")
             .build()
           record.traceInfo!!.stopStatus = status
