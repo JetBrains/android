@@ -1188,7 +1188,7 @@ class LogcatMainPanelTest {
       splitterPopupActionGroup,
       logcatColors,
       state,
-      adbSession,
+      { adbSession },
       logcatSettings,
       androidProjectDetector,
       hyperlinkDetector,

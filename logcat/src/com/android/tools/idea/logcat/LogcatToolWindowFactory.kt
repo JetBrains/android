@@ -24,10 +24,15 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.isAndroidEnvironment
 import com.android.tools.idea.logcat.LogcatExperimentalSettings.Companion.getInstance
+import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
+import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
 import com.android.tools.idea.logcat.devices.DeviceFactory
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
+import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColors
+import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
+import com.android.tools.idea.logcat.util.getDefaultFilter
 import com.android.tools.idea.run.ShowLogcatListener
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.options.colors.ColorSettingsPages
@@ -72,7 +77,7 @@ internal class LogcatToolWindowFactory(
 
   private fun showLogcat(toolWindow: ToolWindowEx, serialNumber: String) {
     AndroidCoroutineScope(toolWindow.disposable).launch {
-      val device = DeviceFactory(AdbLibService.getSession(toolWindow.project)).createDevice(serialNumber)
+      val device = DeviceFactory(adbSessionFactory(toolWindow.project)).createDevice(serialNumber)
       withContext(uiThread) {
         toolWindow.activate {
           val contentManager = toolWindow.contentManager
@@ -86,9 +91,13 @@ internal class LogcatToolWindowFactory(
               }
             }
           }
-          createNewTab(toolWindow, device.name).findLogcatPresenters().firstOrNull()?.selectDevice(serialNumber)
+          val config = LogcatPanelConfig(
+            device,
+            getDefaultFormattingConfig(),
+            getDefaultFilter(toolWindow.project, AndroidProjectDetectorImpl()),
+            isSoftWrap = false)
+          createNewTab(toolWindow, serialNumber, LogcatPanelConfig.toJson(config))
         }
-
       }
     }
   }
@@ -101,7 +110,7 @@ internal class LogcatToolWindowFactory(
     UniqueNameGenerator.generateUniqueName("Logcat", "", "", " (", ")") { !tabNames.contains(it) }
 
   override fun createChildComponent(project: Project, popupActionGroup: ActionGroup, clientState: String?) =
-    LogcatMainPanel(project, popupActionGroup, logcatColors, LogcatPanelConfig.fromJson(clientState), adbSessionFactory(project))
+    LogcatMainPanel(project, popupActionGroup, logcatColors, LogcatPanelConfig.fromJson(clientState), adbSessionFactory)
       .also {
         logcatPresenters.add(it)
         Disposer.register(it) { logcatPresenters.remove(it) }
@@ -117,3 +126,9 @@ internal class LogcatToolWindowFactory(
 private fun isLogcatV2Enabled() = getInstance().logcatV2Enabled
 
 private fun Content.findLogcatPresenters(): List<LogcatPresenter> = TreeWalker(component).descendants().filterIsInstance<LogcatPresenter>()
+
+private fun getDefaultFormattingConfig(): LogcatPanelConfig.FormattingConfig {
+  val formattingOptions = AndroidLogcatFormattingOptions.getDefaultOptions()
+  val style = formattingOptions.getStyle()
+  return if (style == null) Custom(formattingOptions) else Preset(style)
+}

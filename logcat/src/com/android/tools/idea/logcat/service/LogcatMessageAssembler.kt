@@ -23,7 +23,6 @@ import com.android.tools.idea.logcat.message.LogcatHeader
 import com.android.tools.idea.logcat.message.LogcatHeaderParser
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -61,16 +60,12 @@ internal class LogcatMessageAssembler(
   processNameMonitor: ProcessNameMonitor,
   coroutineContext: CoroutineContext,
   private val lastMessageDelayMs: Long,
-) : Disposable {
-  private val coroutineScope = AndroidCoroutineScope(this, coroutineContext)
+) {
+  private val coroutineScope = AndroidCoroutineScope(disposableParent, coroutineContext)
 
   private val previousState = AtomicPendingMessage()
 
   private val headerParser = LogcatHeaderParser(logcatFormat, processNameMonitor)
-
-  init {
-    Disposer.register(disposableParent, this)
-  }
 
   /**
    * Parse a batch of new lines.
@@ -125,8 +120,6 @@ internal class LogcatMessageAssembler(
   fun getAndResetLastMessage(): LogcatMessage? = previousState.getAndReset()?.toLogcatMessage()
 
   private fun getAndResetPendingMessage(expected: PartialMessage): LogcatMessage? = previousState.getAndResetIf(expected)?.toLogcatMessage()
-
-  override fun dispose() {}
 
   private fun parseNewLines(
     state: PartialMessage?, newLines: List<String>): Batch {

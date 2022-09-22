@@ -46,7 +46,6 @@ internal class FakeLogcatPresenter : LogcatPresenter {
   val lineBatches = mutableListOf<List<String>>()
   val filterMatchesCount = mutableMapOf<String, Int>()
 
-  @Suppress("UNUSED_PARAMETER")
   override var formattingOptions: FormattingOptions = FormattingOptions()
 
   override fun reloadMessages() {
@@ -92,10 +91,6 @@ internal class FakeLogcatPresenter : LogcatPresenter {
 
   override fun getProcessNames(): Set<String> {
     TODO("Not yet implemented")
-  }
-
-  override fun selectDevice(serialNumber: String) {
-    TODO()
   }
 
   override fun countFilterMatches(filter: String): Int {

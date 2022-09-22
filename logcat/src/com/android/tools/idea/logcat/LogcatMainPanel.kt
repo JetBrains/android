@@ -47,7 +47,6 @@ import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.RestartLogcatAction
 import com.android.tools.idea.logcat.actions.ToggleFilterAction
 import com.android.tools.idea.logcat.devices.Device
-import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatFilter.Companion.MY_PACKAGE
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
@@ -78,6 +77,7 @@ import com.android.tools.idea.logcat.util.LOGGER
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
 import com.android.tools.idea.logcat.util.createLogcatEditor
+import com.android.tools.idea.logcat.util.getDefaultFilter
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.isScrollAtBottom
 import com.android.tools.idea.logcat.util.toggleFilterTerm
@@ -160,7 +160,7 @@ private val TEXT_CURSOR = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
 class LogcatMainPanelFactory {
   companion object {
     fun create(project: Project): JComponent {
-      return LogcatMainPanel(project, SimpleActionGroup(), LogcatColors(), null, AdbLibService.getInstance(project).session)
+      return LogcatMainPanel(project, SimpleActionGroup(), LogcatColors(), null) { AdbLibService.getInstance(it).session }
     }
   }
 }
@@ -183,7 +183,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   private val splitterPopupActionGroup: ActionGroup,
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
-  adbSession: AdbSession,
+  adbSessionFactory: (Project) -> AdbSession,
   private var logcatSettings: AndroidLogcatSettings,
   private var androidProjectDetector: AndroidProjectDetector,
   hyperlinkDetector: HyperlinkDetector?,
@@ -197,13 +197,13 @@ internal class LogcatMainPanel @TestOnly constructor(
     splitterPopupActionGroup: ActionGroup,
     logcatColors: LogcatColors,
     state: LogcatPanelConfig?,
-    adbSession: AdbSession,
+    adbSessionFactory: (Project) -> AdbSession,
   ) : this(
     project,
     splitterPopupActionGroup,
     logcatColors,
     state,
-    adbSession,
+    adbSessionFactory,
     AndroidLogcatSettings.getInstance(),
     AndroidProjectDetectorImpl(),
     hyperlinkDetector = null,
@@ -246,7 +246,7 @@ internal class LogcatMainPanel @TestOnly constructor(
     logcatFilterParser,
     state?.filter ?: getDefaultFilter(project, androidProjectDetector),
     state?.device,
-    adbSession,
+    adbSessionFactory(project),
   )
 
 
@@ -261,7 +261,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   private val foldingDetector = foldingDetector ?: EditorFoldingDetector(project, editor)
   private val logcatService = logcatService ?: LogcatServiceImpl(
     this,
-    { AdbLibService.getInstance(project).session.deviceServices },
+    { adbSessionFactory(project).deviceServices },
     ProcessNameMonitor.getInstance(project))
   private var ignoreCaretAtBottom = false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   private val connectedDevice = AtomicReference<Device?>()
@@ -537,10 +537,6 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   override fun getConnectedDevice() = connectedDevice.get()
 
-  override fun selectDevice(serialNumber: String) {
-    headerPanel.selectDevice(serialNumber)
-  }
-
   override fun countFilterMatches(filter: String): Int {
     return LogcatMasterFilter(logcatFilterParser.parse(filter)).filter(messageBacklog.get().messages).size
   }
@@ -793,15 +789,6 @@ private fun FormattingConfig?.toUsageTracking(): LogcatFormatConfiguration {
 }
 
 private fun FormattingOptions.Style.toUsageTracking() = if (this == FormattingOptions.Style.STANDARD) STANDARD else COMPACT
-
-private fun getDefaultFilter(project: Project, androidProjectDetector: AndroidProjectDetector): String {
-  val logcatSettings = AndroidLogcatSettings.getInstance()
-  val filter = when {
-    logcatSettings.mostRecentlyUsedFilterIsDefault -> AndroidLogcatFilterHistory.getInstance().mostRecentlyUsed
-    else -> logcatSettings.defaultFilter
-  }
-  return if (!androidProjectDetector.isAndroidProject(project) && filter.contains("package:mine")) "" else filter
-}
 
 private fun AnAction.withText(text: String): AnAction {
   templatePresentation.text = text
