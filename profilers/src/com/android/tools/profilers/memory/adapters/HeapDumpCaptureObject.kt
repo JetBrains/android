@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("ReplacePutWithAssignment")
+
 package com.android.tools.profilers.memory.adapters
 
 import com.android.tools.adtui.model.Range
@@ -48,7 +50,8 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Loading
-import gnu.trove.TLongObjectHashMap
+import gnu.trove.TObjectProcedure
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.io.OutputStream
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -62,7 +65,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
                                  private val featureTracker: FeatureTracker,
                                  private val ideProfilerServices: IdeProfilerServices) : CaptureObject {
   private val _heapSets: MutableMap<Int, HeapSet> = HashMap()
-  private val instanceIndex = TLongObjectHashMap<InstanceObject>()
+  private val instanceIndex = Long2ObjectOpenHashMap<InstanceObject>()
 
   @get:VisibleForTesting
   val classDb = ClassDb()
@@ -83,7 +86,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   )
 
   private val allInstances: Set<InstanceObject>
-    get() = HashSet<InstanceObject>(instanceIndex.size()).also { instanceIndex.forEachValue(it::add) }
+    get() = HashSet<InstanceObject>(instanceIndex.size).also { instanceIndex.values.forEach(it::add) }
 
   @VisibleForTesting
   val instanceFilterExecutor get() = executorService
@@ -106,7 +109,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
     else true.also {
       ideProfilerServices.featureTracker.trackLoading(Loading.Type.HPROF,
                                                       sizeKb = countBytes() / 1024,
-                                                      measure = { instanceIndex.size().toLong() }) {
+                                                      measure = { instanceIndex.size.toLong() }) {
         load(InMemoryBuffer(response.contents.asReadOnlyByteBuffer()))
       }
     }
@@ -115,7 +118,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   @VisibleForTesting
   fun load(buffer: InMemoryBuffer) {
     val nativeRegistryPostProcessor = NativeRegistryPostProcessor()
-    val snapshot = Snapshot.createSnapshot(buffer!!, proguardMap ?: ProguardMap(), listOf(nativeRegistryPostProcessor))
+    val snapshot = Snapshot.createSnapshot(buffer, proguardMap ?: ProguardMap(), listOf(nativeRegistryPostProcessor))
     snapshot.computeRetainedSizes()
     hasNativeAllocations = nativeRegistryPostProcessor.hasNativeAllocations
     hasLoaded = true
@@ -132,13 +135,16 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
       }
     heapSetMappings.forEach { (heap, heapSet) ->
       heap.classes.forEach { addInstanceToRightHeap(heapSet, it.id, createClassObjectInstance(javaLangClassObject, it)) }
-      heap.forEachInstance { instance -> true.also {
-        assert(ClassDb.JAVA_LANG_CLASS != instance.classObj!!.className)
-        val classEntry = instance.classObj!!.makeEntry()
-        addInstanceToRightHeap(heapSet, instance.id, HeapDumpInstanceObject(this, instance, classEntry, null))
-      } }
+      heap.forEachInstance(object : TObjectProcedure<Instance> {
+        override fun execute(instance: Instance): Boolean {
+          assert(ClassDb.JAVA_LANG_CLASS != instance.classObj!!.className)
+          val classEntry = instance.classObj!!.makeEntry()
+          addInstanceToRightHeap(heapSet, instance.id, HeapDumpInstanceObject(this@HeapDumpCaptureObject, instance, classEntry, null))
+          return true
+        }
+      })
       if ("default" != heap.name || snapshot.heaps.size == 1 || heap.instancesCount > 0) {
-        _heapSets[heap.id] = heapSet
+        _heapSets.put(heap.id, heapSet)
       }
     }
   }
@@ -164,7 +170,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
         InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.NATIVE_SIZE, InstanceAttribute.SHALLOW_SIZE,
         InstanceAttribute.RETAINED_SIZE)
     else listOf(InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.SHALLOW_SIZE, InstanceAttribute.RETAINED_SIZE)
-  open fun findInstanceObject(instance: Instance) = if (hasLoaded) instanceIndex[instance.id] else null
+  open fun findInstanceObject(instance: Instance) = if (hasLoaded) instanceIndex.get(instance.id) else null
 
   private fun createClassObjectInstance(javaLangClass: InstanceObject?, classObj: ClassObj): InstanceObject {
     val classEntry = classObj.makeEntry(if (javaLangClass == null) ClassDb.JAVA_LANG_CLASS else classObj.className)
