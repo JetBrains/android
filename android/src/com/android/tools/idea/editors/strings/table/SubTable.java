@@ -26,7 +26,6 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.table.JBTable;
 import java.awt.Dimension;
 import java.awt.datatransfer.Transferable;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -73,21 +72,22 @@ final class SubTable<M extends TableModel> extends JBTable implements DataProvid
     setRowSelectionInterval(selectedViewRowIndex, selectedViewRowIndex);
   }
 
-  @NotNull
-  int[] getSelectedModelRowIndices() {
-    return Arrays.stream(getSelectedRows())
-      .map(this::convertRowIndexToModel)
-      .toArray();
+  boolean hasSelectedCell() {
+    return getSelectedRow() >= 0 && getSelectedColumn() >= 0;
   }
 
-  @NotNull
-  int[] getSelectedModelColumnIndices() {
+  int getSelectedModelRowIndex() {
+    int selectedRow = getSelectedRow();
+    return selectedRow == -1 ? selectedRow : convertRowIndexToModel(selectedRow);
+  }
+
+  int getSelectedModelColumnIndex() {
     SubTableModel model = (SubTableModel)getModel();
 
-    return Arrays.stream(getSelectedColumns())
-      .map(this::convertColumnIndexToModel)
-      .map(model::convertColumnIndexToDelegate)
-      .toArray();
+    int selectedColumn = getSelectedColumn();
+    return selectedColumn == -1
+           ? selectedColumn
+           : model.convertColumnIndexToDelegate(convertColumnIndexToModel(selectedColumn));
   }
 
   @NotNull

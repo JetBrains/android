@@ -271,7 +271,7 @@ public class StringResourceViewPanel implements Disposable {
   private final class CellSelectionListener implements FrozenColumnTableListener {
     @Override
     public void selectedCellChanged() {
-      if (myTable.getSelectedColumnCount() != 1 || myTable.getSelectedRowCount() != 1) {
+      if (!myTable.hasSelectedCell()) {
         setTextAndEditable(myXmlTextField, "", false);
         setTextAndEditable(myKeyTextField, "", false);
         setTextAndEditable(myDefaultValueTextField.getTextField(), "", false);
@@ -344,7 +344,7 @@ public class StringResourceViewPanel implements Disposable {
   private class ShowMultilineActionListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
-      if (myTable.getSelectedRowCount() != 1 || myTable.getSelectedColumnCount() != 1) {
+      if (!myTable.hasSelectedCell()) {
         return;
       }
 

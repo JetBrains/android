@@ -257,4 +257,9 @@ public class StringResourceTableModel extends AbstractTableModel {
     assert myProject != null;
     return key.getDirectory() == null ? "" : VirtualFiles.toString(key.getDirectory(), myProject);
   }
+
+  /** Returns whether the column at the given index is a string value, i.e. a default value or translation. */
+  public static boolean isStringValueColumn(int index) {
+    return index >= DEFAULT_VALUE_COLUMN;
+  }
 }

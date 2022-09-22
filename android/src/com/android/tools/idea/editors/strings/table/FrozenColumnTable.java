@@ -31,7 +31,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.IntUnaryOperator;
@@ -135,7 +134,7 @@ public class FrozenColumnTable<M extends TableModel> {
       fireSelectedCellChanged();
     });
 
-    myScrollableTable.addMouseListener(new CellPopupTriggerListener(converter));
+    myScrollableTable.addMouseListener(new CellPopupTriggerListener<>(converter));
   }
 
   private static final class HeaderPopupTriggerListener<M extends TableModel> extends MouseAdapter {
@@ -190,7 +189,7 @@ public class FrozenColumnTable<M extends TableModel> {
     mySelectedRow = selectedRow;
     mySelectedColumn = selectedColumn;
 
-    myListeners.forEach(listener -> listener.selectedCellChanged());
+    myListeners.forEach(FrozenColumnTableListener::selectedCellChanged);
   }
 
   private static final class CellPopupTriggerListener<M extends TableModel> extends MouseAdapter {
@@ -261,50 +260,17 @@ public class FrozenColumnTable<M extends TableModel> {
   }
 
   public final int getSelectedModelRowIndex() {
-    int index = myFrozenTable.convertRowIndexToModel(myFrozenTable.getSelectedRow());
-    assert index == myScrollableTable.convertRowIndexToModel(myScrollableTable.getSelectedRow());
+    int index = myFrozenTable.getSelectedModelRowIndex();
+    assert index == myScrollableTable.getSelectedModelRowIndex();
 
     return index;
   }
 
   public final int getSelectedModelColumnIndex() {
-    int index = getSelectedColumn();
-
-    if (index == -1) {
-      return -1;
-    }
-
-    int count = myFrozenTable.getColumnCount();
-    JTable table;
-
-    if (index < count) {
-      table = myFrozenTable;
-    }
-    else {
-      table = myScrollableTable;
-      index -= count;
-    }
-
-    return ((SubTableModel)table.getModel()).convertColumnIndexToDelegate(table.getColumnModel().getColumn(index).getModelIndex());
-  }
-
-  public final int[] getSelectedModelRowIndices() {
-    int[] indices = myFrozenTable.getSelectedModelRowIndices();
-    assert Arrays.equals(indices, myScrollableTable.getSelectedModelRowIndices());
-
-    return indices;
-  }
-
-  public final int[] getSelectedModelColumnIndices() {
-    int[] frozenIndices = myFrozenTable.getSelectedModelColumnIndices();
-    int[] scrollableIndices = myScrollableTable.getSelectedModelColumnIndices();
-
-    int[] indices = new int[frozenIndices.length + scrollableIndices.length];
-
-    System.arraycopy(frozenIndices, 0, indices, 0, frozenIndices.length);
-    System.arraycopy(scrollableIndices, 0, indices, frozenIndices.length, scrollableIndices.length);
-
-    return indices;
+    int index = myFrozenTable.getSelectedModelColumnIndex();
+    return index == -1
+      ? myScrollableTable.getSelectedModelColumnIndex()
+      : index;
   }
 
   public final int getFrozenColumnCount() {
@@ -420,11 +386,7 @@ public class FrozenColumnTable<M extends TableModel> {
   }
 
   final void paste(@NotNull Transferable transferable) {
-    if (getSelectedRowCount() != 1 || getSelectedColumnCount() != 1) {
-      return;
-    }
-
-    if (!transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+    if (!hasSelectedCell() || !transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
       return;
     }
 
@@ -499,6 +461,11 @@ public class FrozenColumnTable<M extends TableModel> {
     myRowSorter = rowSorter;
   }
 
+  /** Returns whether any cell in the table is selected. */
+  public final boolean hasSelectedCell() {
+    return myFrozenTable.hasSelectedCell() || myScrollableTable.hasSelectedCell();
+  }
+
   public final int getSelectedRow() {
     int row = myFrozenTable.getSelectedRow();
     assert row == myScrollableTable.getSelectedRow();
@@ -520,17 +487,6 @@ public class FrozenColumnTable<M extends TableModel> {
     }
 
     return -1;
-  }
-
-  public final int getSelectedRowCount() {
-    int count = myFrozenTable.getSelectedRowCount();
-    assert count == myScrollableTable.getSelectedRowCount();
-
-    return count;
-  }
-
-  public final int getSelectedColumnCount() {
-    return myFrozenTable.getSelectedColumnCount() + myScrollableTable.getSelectedColumnCount();
   }
 
   public final int getRowCount() {

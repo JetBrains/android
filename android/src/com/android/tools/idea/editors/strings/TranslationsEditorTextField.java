@@ -33,16 +33,11 @@ final class TranslationsEditorTextField extends JBTextField {
     addKeyListener(new KeyAdapter() {
       @Override
       public void keyReleased(@NotNull KeyEvent event) {
-        int rowCount = table.getSelectedRowCount();
-        int columnCount = table.getSelectedColumnCount();
-
-        if (rowCount != 1 || columnCount != 1) {
-          // The text field is not editable when there's more than one selected row or column
-          return;
+        // The text field is only editable when there is a selected cell
+        if (table.hasSelectedCell()) {
+          JTextComponent textField = (JTextComponent)event.getSource();
+          table.getModel().setValueAt(textField.getText(), table.getSelectedModelRowIndex(), columnSupplier.getAsInt());
         }
-
-        JTextComponent textField = (JTextComponent)event.getSource();
-        table.getModel().setValueAt(textField.getText(), table.getSelectedModelRowIndex(), columnSupplier.getAsInt());
       }
     });
   }

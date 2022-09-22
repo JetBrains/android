@@ -43,43 +43,34 @@ public class DeleteStringAction extends AbstractAction {
 
   public void update(@NotNull JMenuItem delete, @NotNull FrozenColumnTableEvent event) {
     StringResourceTable table = myPanel.getTable();
-    int[] rows = table.getSelectedModelRowIndices();
-    int[] cols = table.getSelectedModelColumnIndices();
-    int tableRow = event.getViewRowIndex();
-    int tableColumn = event.getViewColumnIndex();
+    int modelRow = table.getSelectedModelRowIndex();
+    int modelColumn = table.getSelectedModelColumnIndex();
+    int viewRow = event.getViewRowIndex();
+    int viewColumn = event.getViewColumnIndex();
 
     // nothing is selected, select cell under mouse
-    if ((rows.length == 0 || cols.length == 0) && tableRow >= 0 && tableColumn >= 0) {
-      table.selectCellAt(tableRow, tableColumn);
-      rows = table.getSelectedModelRowIndices();
-      cols = table.getSelectedModelColumnIndices();
+    if ((modelRow == -1 || modelColumn == -1) && viewRow >= 0 && viewColumn >= 0) {
+      table.selectCellAt(viewRow, viewColumn);
+      modelRow = table.getSelectedModelRowIndex();
+      modelColumn = table.getSelectedModelColumnIndex();
     }
 
-    for (int col : cols) {
-      if (col == StringResourceTableModel.KEY_COLUMN ||
-          col == StringResourceTableModel.RESOURCE_FOLDER_COLUMN ||
-          col == StringResourceTableModel.UNTRANSLATABLE_COLUMN) {
-
-        delete.setText("Delete Key(s)");
-        delete.setVisible(true);
-        return;
-      }
+    if (!StringResourceTableModel.isStringValueColumn(modelColumn)) {
+      delete.setText("Delete Key(s)");
+      delete.setVisible(true);
+      return;
     }
 
     StringResourceTableModel model = table.getModel();
-    for (int row : rows) {
-      for (int column : cols) {
-        Locale locale = model.getLocale(column);
-        StringResource resource = model.getStringResourceAt(row);
+    Locale locale = model.getLocale(modelColumn);
+    StringResource resource = model.getStringResourceAt(modelRow);
 
-        ResourceItem item =
-          locale == null ? resource.getDefaultValueAsResourceItem() : resource.getTranslationAsResourceItem(locale);
-        if (item != null) {
-          delete.setText("Delete String(s)");
-          delete.setVisible(true);
-          return;
-        }
-      }
+    ResourceItem item =
+      locale == null ? resource.getDefaultValueAsResourceItem() : resource.getTranslationAsResourceItem(locale);
+    if (item != null) {
+      delete.setText("Delete String(s)");
+      delete.setVisible(true);
+      return;
     }
 
     delete.setVisible(false);
@@ -88,35 +79,21 @@ public class DeleteStringAction extends AbstractAction {
   @Override
   public void actionPerformed(@Nullable ActionEvent event) {
     StringResourceTable table = myPanel.getTable();
-    int[] cols = table.getSelectedModelColumnIndices();
-    for (int col : cols) {
-      if (col == StringResourceTableModel.KEY_COLUMN ||
-          col == StringResourceTableModel.RESOURCE_FOLDER_COLUMN ||
-          col == StringResourceTableModel.UNTRANSLATABLE_COLUMN) {
-        // if it's not a translation we are deleting, then call the delete action for the whole string
-        StringResourceTableModel model = table.getModel();
-        List<ResourceItem> items = Arrays.stream(table.getSelectedModelRowIndices())
-          .mapToObj(model::getKey)
-          .flatMap(key -> model.getRepository().getItems(key).stream())
-          .collect(Collectors.toUnmodifiableList());
-        Project project = myPanel.getFacet().getModule().getProject();
-        StringResourceWriter.INSTANCE.safeDelete(project, items, myPanel::reloadData);
-        return;
-      }
+    int modelColumn = table.getSelectedModelColumnIndex();
+    int modelRow = table.getSelectedModelRowIndex();
+    if (modelColumn < 0 || modelRow < 0) {
+      return;
     }
-    int[] rows = table.getSelectedModelRowIndices();
-    if (rows.length == 1 && cols.length == 1) {
-      table.getModel().setValueAt("", rows[0], cols[0]);
+
+    if (!StringResourceTableModel.isStringValueColumn(modelColumn)) {
+      // if it's not a translation we are deleting, then call the delete action for the whole string
+      StringResourceTableModel model = table.getModel();
+      List<ResourceItem> items = model.getRepository().getItems(model.getKey(modelRow));
+      Project project = myPanel.getFacet().getModule().getProject();
+      StringResourceWriter.INSTANCE.safeDelete(project, items, myPanel::reloadData);
+      return;
     }
-    else {
-      // remove all in a single action (so we can undo it in 1 go)
-      WriteCommandAction.runWriteCommandAction(myPanel.getFacet().getModule().getProject(), "Delete multiple strings", null, () -> {
-        for (int row : rows) {
-          for (int col : cols) {
-            table.getModel().setValueAt("", row, col);
-          }
-        }
-      });
-    }
+
+    table.getModel().setValueAt("", modelRow, modelColumn);
   }
 }

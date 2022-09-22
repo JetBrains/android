@@ -29,14 +29,16 @@ internal constructor(private val stringResourceWriter: StringResourceWriter) :
 
   constructor() : this(StringResourceWriter.INSTANCE)
 
-  override fun doUpdate(event: AnActionEvent) = event.panel.table.selectedRowCount > 0
+  override fun doUpdate(event: AnActionEvent) = event.panel.table.hasSelectedCell()
 
   override fun actionPerformed(event: AnActionEvent) {
     val table: StringResourceTable = event.panel.table
     val model = table.model
     val repository = model.repository
-    val items =
-        table.selectedModelRowIndices.flatMap { index -> repository.getItems(model.getKey(index)) }
-    stringResourceWriter.safeDelete(event.requiredProject, items, event.panel::reloadData)
+    val index = table.selectedModelRowIndex
+    if (index >= 0) {
+      val items = repository.getItems(model.getKey(index))
+      stringResourceWriter.safeDelete(event.requiredProject, items, event.panel::reloadData)
+    }
   }
 }
