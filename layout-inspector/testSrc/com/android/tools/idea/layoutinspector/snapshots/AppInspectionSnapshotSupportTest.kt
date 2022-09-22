@@ -45,6 +45,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.awt.Dimension
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
@@ -73,6 +74,7 @@ class AppInspectionSnapshotSupportTest {
   @Test
   fun saveAndLoadLiveSnapshot() {
     InspectorClientSettings.isCapturingModeOn = true
+    inspectorRule.inspectorModel.resourceLookup.updateConfiguration(640, 2f, Dimension(800, 1600))
     appInspectorRule.viewInspector.interceptWhen ({ it.hasCaptureSnapshotCommand() }) {
       LayoutInspectorViewProtocol.Response.newBuilder().apply {
         captureSnapshotResponseBuilder.apply {
@@ -93,10 +95,16 @@ class AppInspectionSnapshotSupportTest {
     waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }
 
     inspectorRule.inspectorClient.saveSnapshot(savePath)
+    inspectorRule.inspectorModel.resourceLookup.updateConfiguration(null, null, null)
+
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(inspectorRule.project)
     snapshotLoader.loadFile(savePath, newModel, inspectorRule.inspectorClient.stats)
     checkSnapshot(newModel, snapshotLoader)
+
+    assertThat(newModel.resourceLookup.dpi).isEqualTo(640)
+    assertThat(newModel.resourceLookup.fontScale).isEqualTo(2f)
+    assertThat(newModel.resourceLookup.screenDimension).isEqualTo(Dimension(800, 1600))
   }
 
   @Test

@@ -89,6 +89,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
           composeInfo?.composeParameters?.let { composeParametersCache.setAllFrom(it) }
         }
       }
+      model.resourceLookup.updateConfiguration(metadata.dpi, metadata.fontScale, metadata.screenDimension)
       snapshot.foldInfo?.let {
         model.foldInfo = it.convert()
       }

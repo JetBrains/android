@@ -100,6 +100,7 @@ class LegacySnapshotLoader : SnapshotLoader {
           }
         }
         model.update(window, windows, 1)
+        model.resourceLookup.updateConfiguration(metadata.dpi)
       }
     }
     return metadata
@@ -111,7 +112,8 @@ fun saveLegacySnapshot(
   path: Path,
   data: Map<String, ByteArray>,
   images: Map<String, ByteArray>,
-  process: ProcessDescriptor
+  process: ProcessDescriptor,
+  model: InspectorModel
 ): SnapshotMetadata {
   val baos = ByteArrayOutputStream(4096)
   val metadata: SnapshotMetadata
@@ -124,7 +126,8 @@ fun saveLegacySnapshot(
       processName = process.name,
       source = Metadata.Source.STUDIO,
       sourceVersion = ApplicationInfo.getInstance().fullVersion,
-      liveDuringCapture = false
+      liveDuringCapture = false,
+      dpi = model.resourceLookup.dpi
     )
 
     metadata.toProto().writeDelimitedTo(output)

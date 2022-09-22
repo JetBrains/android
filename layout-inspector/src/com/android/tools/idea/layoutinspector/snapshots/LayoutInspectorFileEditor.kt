@@ -99,6 +99,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
       val model = InspectorModel(project)
       stats = SessionStatisticsImpl(SNAPSHOT_CLIENT, model)
       metadata = snapshotLoader?.loadFile(path, model, stats) ?: throw Exception()
+      model.resourceLookup.updateConfiguration(metadata.dpi, metadata.fontScale, metadata.screenDimension)
       val client = object : InspectorClient by DisconnectedClient {
         override val provider: PropertiesProvider
           get() = snapshotLoader.propertiesProvider

@@ -61,6 +61,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.argThat
 import org.mockito.ArgumentMatchers.eq
+import org.mockito.ArgumentMatchers.isNull
 import org.mockito.Mockito.verify
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
@@ -266,7 +267,7 @@ DONE.
       view(0x3d2ff9c)
     }
     assertDrawTreesEqual(expected, window.root)
-    verify(resourceLookup).updateLegacyConfiguration(eq(560))
+    verify(resourceLookup).updateConfiguration(eq(560), isNull(), isNull())
     verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_RECEIVED)
     verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_RECEIVED)
   }

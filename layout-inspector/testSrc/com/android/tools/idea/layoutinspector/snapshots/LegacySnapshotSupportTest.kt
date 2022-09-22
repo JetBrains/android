@@ -130,6 +130,9 @@ DONE.
     assertThat(actionMenuView.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=ac}")
     val actualImage = ViewNode.readAccess { window.root.drawChildren.filterIsInstance<DrawViewImage>().first().image }
     ImageDiffUtil.assertImageSimilar(imageFile, actualImage as BufferedImage, 0.0)
+    assertThat(newModel.resourceLookup.dpi).isEqualTo(560)
+    assertThat(newModel.resourceLookup.fontScale).isNull()
+    assertThat(newModel.resourceLookup.screenDimension).isNull()
   }
 
   private fun setUpLegacyClient(): LegacyClient {
@@ -184,6 +187,7 @@ DONE.
         .getArgument<DebugViewDumpHandler>(2)
         .handleChunk(client, DebugViewDumpHandler.CHUNK_VUOP, ByteBuffer.wrap(imageFile.readBytes()), true, 1234)
     }
+    whenever(client.device.density).thenReturn(560)
     legacyClient.treeLoader.ddmClientOverride = client
   }
 

@@ -100,13 +100,13 @@ class ResourceLookup(private val project: Project) {
   }
 
   /**
-   * Update the configuration after a legacy reload.
+   * Update the configuration after a legacy reload, or snapshot load.
    */
-  fun updateLegacyConfiguration(deviceDpi: Int) {
-    dpi = deviceDpi.takeIf { it > 0 }
-    fontScale = null
+  fun updateConfiguration(deviceDpi: Int?, deviceFontScale: Float? = null, screenSize: Dimension? = null) {
+    dpi = deviceDpi?.takeIf { it > 0 }
+    fontScale = deviceFontScale?.takeIf { it > 0f }
     resolver = null
-    screenDimension = null
+    screenDimension = screenSize
   }
 
   @Slow

@@ -319,7 +319,10 @@ class ViewLayoutInspectorClient(
       processName = processDescriptor.name,
       liveDuringCapture = isFetchingContinuously,
       source = Metadata.Source.STUDIO,
-      sourceVersion = ApplicationInfo.getInstance().fullVersion
+      sourceVersion = ApplicationInfo.getInstance().fullVersion,
+      dpi = model.resourceLookup.dpi,
+      fontScale = model.resourceLookup.fontScale,
+      screenDimension = model.resourceLookup.screenDimension
     )
 
     if (isFetchingContinuously) {
