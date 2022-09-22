@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
@@ -32,21 +33,21 @@ import com.intellij.psi.PsiFile
  * @param providers list of [PreviewRepresentationProvider] for this file type.
  */
 internal class SourceCodePreview(psiFile: PsiFile, textEditor: Editor, providers: Collection<PreviewRepresentationProvider>) :
-  MultiRepresentationPreview(psiFile, textEditor, providers) {
+  MultiRepresentationPreview(psiFile, textEditor, providers, psiFile.project.coroutineScope) {
 
   val project = psiFile.project
 
   init {
     project.messageBus.connect(this).subscribe(DUMB_MODE, object : DumbService.DumbModeListener {
       override fun exitDumbMode() {
-        updateRepresentationsAsync()
+        updateRepresentations()
       }
     })
 
-    project.runWhenSmartAndSynced(parentDisposable = this, callback = { updateRepresentationsAsync() })
+    project.runWhenSmartAndSynced(parentDisposable = this, callback = { updateRepresentations() })
 
     setupChangeListener(project, psiFile, {
-      updateRepresentationsAsync()
+      updateRepresentations()
     }, this)
   }
 }
