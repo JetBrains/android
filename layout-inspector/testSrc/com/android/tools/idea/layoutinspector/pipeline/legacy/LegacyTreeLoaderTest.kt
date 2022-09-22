@@ -22,6 +22,7 @@ import com.android.ddmlib.DebugViewDumpHandler.CHUNK_VURT
 import com.android.ddmlib.FakeClientBuilder
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.ClientImpl
+import com.android.ddmlib.internal.DebugViewChunkHandler
 import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.ImageDiffUtil
@@ -224,7 +225,7 @@ DONE.
     }, any())).thenAnswer { invocation ->
       verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_REQUESTED)
       invocation
-        .getArgument(1, DebugViewDumpHandler::class.java)
+        .getArgument(1, DebugViewChunkHandler::class.java)
         .handleChunk(client, CHUNK_VURT, ByteBuffer.wrap(treeSample.toByteArray(Charsets.UTF_8)), true, 1)
     }
     whenever(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
@@ -287,7 +288,7 @@ DONE.
       argument.payload.getInt(8) == 1 /* VURT_DUMP_HIERARCHY */
     }, any())).thenAnswer { invocation ->
       invocation
-        .getArgument(1, DebugViewDumpHandler::class.java)
+        .getArgument(1, DebugViewChunkHandler::class.java)
         .handleChunk(client, CHUNK_VURT, ByteBuffer.wrap("""
           com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1920 layout:getWidth()=4,1080
            android.widget.LinearLayout@8dc1681 mID=5,NO_ID layout:getHeight()=4,1794 layout:getWidth()=4,1080

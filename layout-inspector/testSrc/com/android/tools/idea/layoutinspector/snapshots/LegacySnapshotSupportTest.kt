@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.ddmlib.DebugViewDumpHandler
 import com.android.ddmlib.internal.ClientImpl
+import com.android.ddmlib.internal.DebugViewChunkHandler
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
@@ -159,7 +160,7 @@ DONE.
         argument.payload.getInt(8) == 1 /* VURT_DUMP_HIERARCHY */
     }, ArgumentMatchers.any())).thenAnswer { invocation ->
       invocation
-        .getArgument(1, DebugViewDumpHandler::class.java)
+        .getArgument(1, DebugViewChunkHandler::class.java)
         .handleChunk(client, DebugViewDumpHandler.CHUNK_VURT, ByteBuffer.wrap(treeSample.toByteArray(Charsets.UTF_8)), true, 1)
     }
     whenever(client.dumpViewHierarchy(ArgumentMatchers.eq(windowName), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
