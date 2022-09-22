@@ -42,11 +42,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import layout_inspector.LayoutInspector
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 class ForegroundProcessDetectionInitializerTest {
   private val timer = FakeTimer()
@@ -84,11 +82,12 @@ class ForegroundProcessDetectionInitializerTest {
     fakeProcess1 = fakeStream1.createFakeProcess("process1", 1)
     fakeProcess2 = fakeStream2.createFakeProcess("process2", 2)
     fakeProcess3 = fakeStream2.createFakeProcess("process3", 3)
-    testProcessDiscovery.fireConnected(fakeProcess1)
-    testProcessDiscovery.fireConnected(fakeProcess2)
 
     testProcessDiscovery.addDevice(fakeStream1.device.toDeviceDescriptor())
     testProcessDiscovery.addDevice(fakeStream2.device.toDeviceDescriptor())
+
+    testProcessDiscovery.fireConnected(fakeProcess1)
+    testProcessDiscovery.fireConnected(fakeProcess2)
   }
 
   @Test
@@ -113,15 +112,17 @@ class ForegroundProcessDetectionInitializerTest {
   @Test
   fun testStartPollingOnDeviceWhenProcessIsSelectedFromOutside() {
     val transportClient = TransportClient(grpcServerRule.name)
-    val latch1 = CountDownLatch(1)
-    val latch2 = CountDownLatch(1)
 
-    val handshakeLatch1 = CountDownLatch(1)
-    val handshakeLatch2 = CountDownLatch(1)
+    val startTrackingReceivedOnDeviceLatch1 = CountDownLatch(1)
+    val startTrackingReceivedOnDeviceLatch2 = CountDownLatch(1)
 
-    val observedConnectedStreamIds = mutableListOf<Long>()
-    val observedDisconnectedStreamIds = mutableListOf<Long>()
+    val deviceHandshakeLatch1 = CountDownLatch(1)
+    val deviceHandshakeLatch2 = CountDownLatch(1)
 
+    val startTrackingStreamIds = mutableListOf<Long>()
+    val stopTrackingStreamIds = mutableListOf<Long>()
+
+    // fake device handler for handshake request
     transportService.setCommandHandler(Commands.Command.CommandType.IS_TRACKING_FOREGROUND_PROCESS_SUPPORTED) { command ->
       val event = Common.Event.newBuilder()
         .setKind(Common.Event.Kind.LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED)
@@ -131,29 +132,31 @@ class ForegroundProcessDetectionInitializerTest {
         )
         .build()
 
+      // after receiving handshake, fake device send TRACKING_FOREGROUND_PROCESS_SUPPORTED event to Studio
       transportService.addEventToStream(command.streamId, event)
 
       when (command.streamId) {
-        fakeStream1.streamId -> handshakeLatch1.countDown()
-        fakeStream2.streamId -> handshakeLatch2.countDown()
+        fakeStream1.streamId -> deviceHandshakeLatch1.countDown()
+        fakeStream2.streamId -> deviceHandshakeLatch2.countDown()
         else -> throw RuntimeException("Received handshake command from unexpected stream.")
       }
     }
+
+    // fake device handler for start tracking command
     transportService.setCommandHandler(Commands.Command.CommandType.START_TRACKING_FOREGROUND_PROCESS) { command ->
-      observedConnectedStreamIds.add(command.streamId)
+      startTrackingStreamIds.add(command.streamId)
       when (command.streamId) {
-        fakeStream1.streamId -> latch1.countDown()
-        fakeStream2.streamId -> latch2.countDown()
+        fakeStream1.streamId -> startTrackingReceivedOnDeviceLatch1.countDown()
+        fakeStream2.streamId -> startTrackingReceivedOnDeviceLatch2.countDown()
         else -> throw RuntimeException("Received start command from unexpected stream.")
       }
     }
+    // fake device handler for stop tracking command
     transportService.setCommandHandler(Commands.Command.CommandType.STOP_TRACKING_FOREGROUND_PROCESS) { command ->
-      observedDisconnectedStreamIds.add(command.streamId)
+      stopTrackingStreamIds.add(command.streamId)
     }
 
-    connectStream(fakeStream1)
-
-    val foregroundProcessDetection = ForegroundProcessDetectionInitializer.initialize(
+    ForegroundProcessDetectionInitializer.initialize(
       project = projectRule.project,
       processModel = processModel,
       deviceModel = deviceModel,
@@ -162,26 +165,25 @@ class ForegroundProcessDetectionInitializerTest {
       metrics = ForegroundProcessDetectionMetrics(LayoutInspectorMetrics(projectRule.project)),
     )
 
-    handshakeLatch1.await(5, TimeUnit.SECONDS)
+    connectStream(fakeStream1)
 
-    foregroundProcessDetection.startListeningForEvents()
+    deviceHandshakeLatch1.await()
+    startTrackingReceivedOnDeviceLatch1.await()
 
-    latch1.await(5, TimeUnit.SECONDS)
-
-    assertThat(observedConnectedStreamIds).containsExactly(fakeStream1.streamId)
-    assertThat(observedDisconnectedStreamIds).isEmpty()
+    assertThat(startTrackingStreamIds).containsExactly(fakeStream1.streamId)
+    assertThat(stopTrackingStreamIds).isEmpty()
 
     connectStream(fakeStream2)
 
-    handshakeLatch2.await(5, TimeUnit.SECONDS)
+    deviceHandshakeLatch2.await()
 
-    // setting process from outside ForegroundProcessDetection should start polling on the process's device
+    // setting process from outside ForegroundProcessDetection should start polling on the process's device (stream)
     processModel.selectedProcess = fakeProcess2
 
-    latch2.await(5, TimeUnit.SECONDS)
+    startTrackingReceivedOnDeviceLatch2.await()
 
-    assertThat(observedConnectedStreamIds).containsExactly(fakeStream1.streamId, fakeStream2.streamId)
-    assertThat(observedDisconnectedStreamIds).containsExactly(fakeStream1.streamId)
+    assertThat(startTrackingStreamIds).containsExactly(fakeStream1.streamId, fakeStream2.streamId)
+    assertThat(stopTrackingStreamIds).containsExactly(fakeStream1.streamId)
   }
 
   private fun Common.Stream.createFakeProcess(name: String? = null, pid: Int = 0): ProcessDescriptor {
@@ -213,20 +215,6 @@ class ForegroundProcessDetectionInitializerTest {
 
   private fun sendEvent(stream: Common.Stream, event: Common.Event) {
     transportService.addEventToStream(stream.streamId, event)
-  }
-
-  private fun createStreamConnectedEvent(stream: Common.Stream): Common.Event {
-    val eventBuilder = Common.Event.newBuilder()
-    return eventBuilder
-      .setKind(Common.Event.Kind.STREAM)
-      .setTimestamp(1)
-      .setGroupId(stream.streamId)
-      .setStream(
-        eventBuilder.streamBuilder.setStreamConnected(
-          eventBuilder.streamBuilder.streamConnectedBuilder
-            .setStream(stream)
-        )
-      ).build()
   }
 
   private fun FakeDevice.toTransport(id: Long): Common.Device {
