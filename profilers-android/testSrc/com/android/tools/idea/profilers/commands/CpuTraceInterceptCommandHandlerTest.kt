@@ -70,7 +70,7 @@ class CpuTraceInterceptCommandHandlerTest {
 
     var eventStream = service.getListForStream(0L)
     Truth.assertThat(eventStream).hasSize(1)
-    Truth.assertThat(eventStream.first { it.kind == Common.Event.Kind.CPU_TRACE_STATUS }.commandId).isEqualTo(1)
+    Truth.assertThat(eventStream.first { it.kind == Common.Event.Kind.TRACE_STATUS }.commandId).isEqualTo(1)
 
     command = buildCommand(2, Cpu.CpuTraceType.PERFETTO)
     returnValue = commandHandler.execute(command)
@@ -78,7 +78,7 @@ class CpuTraceInterceptCommandHandlerTest {
 
     eventStream = service.getListForStream(0L)
     Truth.assertThat(eventStream).hasSize(2)
-    Truth.assertThat(eventStream.last { it.kind == Common.Event.Kind.CPU_TRACE_STATUS }.commandId).isEqualTo(2)
+    Truth.assertThat(eventStream.last { it.kind == Common.Event.Kind.TRACE_STATUS }.commandId).isEqualTo(2)
   }
 
   @Test

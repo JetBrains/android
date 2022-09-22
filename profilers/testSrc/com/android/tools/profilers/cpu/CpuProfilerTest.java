@@ -199,8 +199,8 @@ public final class CpuProfilerTest {
       .setTraceStartStatus(Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.SUCCESS))
       .build();
     Common.Event event1 =
-      Common.Event.newBuilder().setGroupId(TRACE_ID).setPid(session.getPid()).setKind(Common.Event.Kind.CPU_TRACE_STATUS).setTimestamp(1)
-        .setCpuTraceStatus(status1).build();
+      Common.Event.newBuilder().setGroupId(TRACE_ID).setPid(session.getPid()).setKind(Common.Event.Kind.TRACE_STATUS).setTimestamp(1)
+        .setTraceStatus(status1).build();
     myTransportService.addEventToStream(session.getStreamId(), event1);
 
     Common.Event event = CpuProfiler.getTraceStatusEventFromId(myProfilers, TRACE_ID);
@@ -211,8 +211,8 @@ public final class CpuProfilerTest {
       .setTraceStopStatus(Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.WAIT_TIMEOUT).setErrorMessage("error"))
       .build();
     Common.Event event2 =
-      Common.Event.newBuilder().setGroupId(TRACE_ID).setPid(session.getPid()).setKind(Common.Event.Kind.CPU_TRACE_STATUS).setTimestamp(5)
-        .setCpuTraceStatus(status2).build();
+      Common.Event.newBuilder().setGroupId(TRACE_ID).setPid(session.getPid()).setKind(Common.Event.Kind.TRACE_STATUS).setTimestamp(5)
+        .setTraceStatus(status2).build();
     myTransportService.addEventToStream(session.getStreamId(), event2);
     // Insert an event from another TRACE_ID.
     Common.Event event3 = event2.toBuilder().setGroupId(TRACE_ID + 100).build();

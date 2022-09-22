@@ -363,13 +363,13 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     getStudioProfilers().getClient().executeAsync(startCommand, poolExecutor)
       .thenAcceptAsync(response -> {
         TransportEventListener statusListener = new TransportEventListener(
-          Common.Event.Kind.CPU_TRACE_STATUS,
+          Common.Event.Kind.TRACE_STATUS,
           getStudioProfilers().getIdeServices().getMainExecutor(),
           event -> event.getCommandId() == response.getCommandId(),
           mySession::getStreamId,
           mySession::getPid,
           event -> {
-            startCapturingCallback(event.getCpuTraceStatus().getTraceStartStatus());
+            startCapturingCallback(event.getTraceStatus().getTraceStartStatus());
             // unregisters the listener.
             return true;
           });
@@ -686,7 +686,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
       CaptureState state = CaptureState.CAPTURING;
       myCaptureStartTimeNs = myInProgressTraceInfo.getFromTimestamp();
       Common.Event statusEvent = CpuProfiler.getTraceStatusEventFromId(getStudioProfilers(), myInProgressTraceInfo.getTraceId());
-      if (statusEvent.getKind() == Common.Event.Kind.CPU_TRACE_STATUS && statusEvent.getCpuTraceStatus().hasTraceStopStatus()) {
+      if (statusEvent.getKind() == Common.Event.Kind.TRACE_STATUS && statusEvent.getTraceStatus().hasTraceStopStatus()) {
         // A STOP_CPU_TRACE command has been issued.
         state = CaptureState.STOPPING;
         myCaptureStopTimeNs = statusEvent.getTimestamp();

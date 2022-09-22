@@ -75,9 +75,9 @@ class LegacyCpuTraceCommandHandlerTest {
     }
     val startStatusEvent = Common.Event.newBuilder().apply {
       pid = testPid
-      kind = Common.Event.Kind.CPU_TRACE_STATUS
+      kind = Common.Event.Kind.TRACE_STATUS
       commandId = 1
-      cpuTraceStatus = Trace.TraceStatusData.newBuilder().apply {
+      traceStatus = Trace.TraceStatusData.newBuilder().apply {
         traceStartStatus = expectedStartStatus
       }.build()
     }.build()
@@ -103,9 +103,9 @@ class LegacyCpuTraceCommandHandlerTest {
     }
     val stopStatusEvent = Common.Event.newBuilder().apply {
       pid = testPid
-      kind = Common.Event.Kind.CPU_TRACE_STATUS
+      kind = Common.Event.Kind.TRACE_STATUS
       commandId = 2
-      cpuTraceStatus = Trace.TraceStatusData.newBuilder().apply {
+      traceStatus = Trace.TraceStatusData.newBuilder().apply {
         traceStopStatus = expectedEndStatus
       }.build()
     }.build()

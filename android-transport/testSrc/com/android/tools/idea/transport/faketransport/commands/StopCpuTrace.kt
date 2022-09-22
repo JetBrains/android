@@ -41,10 +41,10 @@ class StopCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
     events.add(Common.Event.newBuilder().apply {
       groupId = traceId
       pid = command.pid
-      kind = Common.Event.Kind.CPU_TRACE_STATUS
+      kind = Common.Event.Kind.TRACE_STATUS
       timestamp = timer.currentTimeNs
       commandId = command.commandId
-      cpuTraceStatus = Trace.TraceStatusData.newBuilder().apply {
+      traceStatus = Trace.TraceStatusData.newBuilder().apply {
         traceStopStatus = stopStatus
       }.build()
     }.build())

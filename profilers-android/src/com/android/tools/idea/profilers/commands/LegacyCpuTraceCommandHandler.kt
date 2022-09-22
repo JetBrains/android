@@ -242,9 +242,9 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
   private fun sendStartStatusEvent(command: Commands.Command, startStatus: Trace.TraceStartStatus) {
     val statusEvent = Common.Event.newBuilder().apply {
       pid = command.pid
-      kind = Common.Event.Kind.CPU_TRACE_STATUS
+      kind = Common.Event.Kind.TRACE_STATUS
       commandId = command.commandId
-      cpuTraceStatus = Trace.TraceStatusData.newBuilder().setTraceStartStatus(startStatus).build()
+      traceStatus = Trace.TraceStatusData.newBuilder().setTraceStartStatus(startStatus).build()
     }.build()
     eventQueue.offer(statusEvent)
   }
@@ -264,9 +264,9 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
   private fun sendStopStatusEvent(command: Commands.Command, startStatus: Trace.TraceStopStatus) {
     val statusEvent = Common.Event.newBuilder().apply {
       pid = command.pid
-      kind = Common.Event.Kind.CPU_TRACE_STATUS
+      kind = Common.Event.Kind.TRACE_STATUS
       commandId = command.commandId
-      cpuTraceStatus = Trace.TraceStatusData.newBuilder().setTraceStopStatus(startStatus).build()
+      traceStatus = Trace.TraceStatusData.newBuilder().setTraceStopStatus(startStatus).build()
     }.build()
     eventQueue.offer(statusEvent)
   }

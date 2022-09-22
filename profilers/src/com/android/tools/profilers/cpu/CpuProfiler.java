@@ -305,7 +305,7 @@ public class CpuProfiler implements StudioProfiler {
     Transport.GetEventGroupsResponse response = profilers.getClient().getTransportClient().getEventGroups(
       Transport.GetEventGroupsRequest.newBuilder()
         .setStreamId(profilers.getSession().getStreamId())
-        .setKind(Common.Event.Kind.CPU_TRACE_STATUS)
+        .setKind(Common.Event.Kind.TRACE_STATUS)
         .setGroupId(traceId)
         .build());
     if (response.getGroupsCount() == 0) {
@@ -329,14 +329,14 @@ public class CpuProfiler implements StudioProfiler {
     Transport.ExecuteResponse response = profilers.getClient().getTransportClient().execute(
       Transport.ExecuteRequest.newBuilder().setCommand(stopCommand).build());
     if (responseHandler != null) {
-      TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.CPU_TRACE_STATUS,
+      TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.TRACE_STATUS,
                                                                          profilers.getIdeServices().getMainExecutor(),
                                                                          event -> event.getCommandId() == response.getCommandId(),
                                                                          () -> session.getStreamId(),
                                                                          () -> session.getPid(),
                                                                          event -> {
                                                                            responseHandler
-                                                                             .accept(event.getCpuTraceStatus().getTraceStopStatus());
+                                                                             .accept(event.getTraceStatus().getTraceStopStatus());
                                                                            // return true to unregister the listener.
                                                                            return true;
                                                                          });
