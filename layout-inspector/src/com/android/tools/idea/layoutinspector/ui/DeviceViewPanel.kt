@@ -301,6 +301,14 @@ class DeviceViewPanel(
   }
 
   init {
+    deviceModel?.newSelectedDeviceListeners?.add { _ ->
+      // as soon as a new device is connected default to the process not being debuggable.
+      // this will change as soon as an actual process shows up
+      // and protects us against cases when the device has no foreground process (eg. is locked)
+      // TODO consider showing a different message like "navigate to a debuggable app on your device to begin inspection"
+      isCurrentForegroundProcessDebuggable = false
+    }
+
     loadingPane.addListener(object : JBLoadingPanelListener {
       override fun onLoadingStart() {
         isLoading = true

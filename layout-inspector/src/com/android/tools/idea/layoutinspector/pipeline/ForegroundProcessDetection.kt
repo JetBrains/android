@@ -142,8 +142,11 @@ class DeviceModel(private val processesModel: ProcessesModel) {
     set(value) {
       // each time the selected device changes, the selected process should be reset
       processesModel.selectedProcess = null
+      newSelectedDeviceListeners.forEach { it.invoke(value) }
       field = value
     }
+
+  val newSelectedDeviceListeners = mutableListOf<(DeviceDescriptor?) -> Unit>()
 
   /**
    * The set of connected devices that support foreground process detection.
