@@ -13,84 +13,76 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.table;
+package com.android.tools.idea.editors.strings.table
 
-import com.android.tools.idea.editors.strings.StringResourceEditor;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.ColoredTableCellRenderer;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.SimpleTextAttributes;
-import java.awt.Font;
-import javax.swing.JTable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.editors.strings.StringResourceEditor
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN
+import com.intellij.ui.ColoredTableCellRenderer
+import com.intellij.ui.JBColor
+import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.SimpleTextAttributes.ERROR_ATTRIBUTES
+import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
+import com.intellij.ui.SimpleTextAttributes.STYLE_WAVED
+import java.awt.Font
+import javax.swing.JTable
 
-final class StringsCellRenderer extends ColoredTableCellRenderer {
-  private static final SimpleTextAttributes CELL_ERROR_ATTRIBUTES = new SimpleTextAttributes(SimpleTextAttributes.STYLE_WAVED, JBColor.red);
+private val CELL_ERROR_ATTRIBUTES = SimpleTextAttributes(STYLE_WAVED, JBColor.red)
 
-  @Override
-  protected void customizeCellRenderer(@NotNull JTable subTable,
-                                       @Nullable Object value,
-                                       boolean selected,
-                                       boolean focusOwner,
-                                       int viewRowIndex,
-                                       int viewColumnIndex) {
-    @SuppressWarnings("unchecked")
-    FrozenColumnTable<StringResourceTableModel> frozenColumnTable = ((SubTable<StringResourceTableModel>)subTable).getFrozenColumnTable();
+/**
+ * Chops the string from the first instance of [delimiter] and replaces that with `"[...]"`
+ *
+ * Note this is different from [String.replaceAfter] because that would leave the [delimiter] in place.
+ */
+private fun String.clip(delimiter: Char): String =
+  if (contains(delimiter)) "${substringBefore(delimiter)}[...]" else this
 
-    JTable frozenTable = frozenColumnTable.getFrozenTable();
+/** Translates the column index from sub-table indexing to overall table indexing. */
+private fun SubTable<StringResourceTableModel>.translateColumn(column: Int): Int {
+  // If we are our parent's frozen table, the column indices are the same, otherwise we must offset
+  // by the number of columns in the parent's frozen table.
+  return if (this === frozenColumnTable.frozenTable) column else column + frozenColumnTable.frozenColumnCount
+}
 
-    if (subTable == frozenTable) {
-      customizeCellRenderer(frozenColumnTable, value, viewRowIndex, viewColumnIndex);
-      return;
+/** Controls rendering of cells in the [StringResourceTable] displaying [String] values. */
+internal class StringsCellRenderer : ColoredTableCellRenderer() {
+  override fun customizeCellRenderer(
+    table: JTable,
+    value: Any?,
+    selected: Boolean,
+    focusOwner: Boolean,
+    viewRowIndex: Int,
+    viewColumnIndex: Int
+  ) {
+    if (value !is String) return
+
+    @Suppress("UNCHECKED_CAST")
+    with(table as SubTable<StringResourceTableModel>) {
+      customizeCellRenderer(frozenColumnTable, value, viewRowIndex, translateColumn(viewColumnIndex))
     }
-
-    customizeCellRenderer(frozenColumnTable, value, viewRowIndex, viewColumnIndex + frozenTable.getColumnCount());
   }
 
-  private void customizeCellRenderer(@NotNull FrozenColumnTable<StringResourceTableModel> table,
-                                     @Nullable Object value,
-                                     int viewRowIndex,
-                                     int viewColumnIndex) {
-    if (!(value instanceof String)) {
-      return;
+  private fun customizeCellRenderer(
+    table: FrozenColumnTable<StringResourceTableModel>,
+    value: String,
+    viewRowIndex: Int,
+    viewColumnIndex: Int
+  ) {
+    updateFontIfNecessary(table.font)
+
+    val modelRowIndex = table.convertRowIndexToModel(viewRowIndex)
+    val modelColumnIndex = table.convertColumnIndexToModel(viewColumnIndex)
+    val problem = table.model.getCellProblem(modelRowIndex, modelColumnIndex).also { toolTipText = it }
+
+    val attributes = when {
+      problem == null -> REGULAR_ATTRIBUTES
+      modelColumnIndex == KEY_COLUMN -> ERROR_ATTRIBUTES
+      else -> CELL_ERROR_ATTRIBUTES
     }
 
-    String s = (String)value;
-
-    if (StringUtil.containsChar(s, '\n')) {
-      s = clip(s);
-    }
-
-    int modelRowIndex = table.convertRowIndexToModel(viewRowIndex);
-    int modelColumnIndex = table.convertColumnIndexToModel(viewColumnIndex);
-
-    String problem = table.getModel().getCellProblem(modelRowIndex, modelColumnIndex);
-    SimpleTextAttributes attributes;
-
-    if (problem == null) {
-      attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
-    }
-    else if (modelColumnIndex == StringResourceTableModel.KEY_COLUMN) {
-      attributes = SimpleTextAttributes.ERROR_ATTRIBUTES;
-    }
-    else {
-      attributes = CELL_ERROR_ATTRIBUTES;
-    }
-
-    Font currentFont = table.getFont();
-    Font f = StringResourceEditor.getFont(currentFont);
-
-    if (!currentFont.equals(f)) {
-      setFont(f);
-    }
-
-    setToolTipText(problem);
-    append(s, attributes);
+    append(value.clip('\n'), attributes)
   }
 
-  private static String clip(String str) {
-    int end = str.indexOf('\n');
-    return end < 0 ? str : str.substring(0, end) + "[...]";
+  private fun updateFontIfNecessary(tableFont: Font) {
+    StringResourceEditor.getFont(tableFont).let { if (tableFont != it) font = it }
   }
 }

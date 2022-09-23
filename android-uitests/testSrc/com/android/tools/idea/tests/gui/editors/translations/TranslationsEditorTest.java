@@ -118,54 +118,6 @@ public final class TranslationsEditorTest {
   }
 
   @Test
-  public void invalidDefaultValueXml() throws IOException {
-    EditorFixture editor = myGuiTest.importSimpleApplication().getEditor();
-
-    editor
-      .open(myStringsXmlPath, Tab.EDITOR)
-      .moveBetween("</string>\n", "    <string-array name=\"my_array\">")
-      .enterText(
-        "    <string name=\"oslo_bysykkel_terms_url\">https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s</string>\n")
-      .awaitNotification("Edit translations for all locales in the translations editor.")
-      .performAction("Open editor");
-
-    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
-    translationsEditor.finishLoading();
-
-    SimpleColoredComponent component =
-      translationsEditor.getCellRenderer(translationsEditor.cell("oslo_bysykkel_terms_url", "app/src/main/res", DEFAULT_VALUE_COLUMN));
-
-    assertEquals("https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s", component.myValue);
-    assertEquals(SimpleTextAttributes.STYLE_WAVED, component.myAttributes.getStyle());
-    assertEquals(JBColor.RED, component.myAttributes.getFgColor());
-    assertEquals("Invalid XML", component.myTooltipText);
-  }
-
-  @Test
-  public void invalidTranslationXml() throws IOException {
-    EditorFixture editor = myGuiTest.importSimpleApplication().getEditor();
-
-    editor
-      .open(Paths.get("app", "src", "main", "res", "values-en", "strings.xml"), Tab.EDITOR)
-      .moveBetween("</string>\n", "\n")
-      .enterText(
-        "    <string name=\"oslo_bysykkel_terms_url\">https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s</string>")
-      .awaitNotification("Edit translations for all locales in the translations editor.")
-      .performAction("Open editor");
-
-    TranslationsEditorFixture translationsEditor = editor.getTranslationsEditor();
-    translationsEditor.finishLoading();
-
-    SimpleColoredComponent component =
-      translationsEditor.getCellRenderer(translationsEditor.cell("oslo_bysykkel_terms_url", "app/src/main/res", ENGLISH_COLUMN));
-
-    assertEquals("https://oslobysykkel.no/_app/options/terms?locale=%1$s&product_id=%2$s", component.myValue);
-    assertEquals(SimpleTextAttributes.STYLE_WAVED, component.myAttributes.getStyle());
-    assertEquals(JBColor.RED, component.myAttributes.getFgColor());
-    assertEquals("Invalid XML", component.myTooltipText);
-  }
-
-  @Test
   public void multilineEditUpdateShowsInTable() throws IOException {
     importSimpleApplication();
 
