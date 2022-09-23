@@ -56,8 +56,8 @@ import com.android.ide.common.resources.ResourceItem.XLIFF_NAMESPACE_PREFIX
 import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.ResourceRepository
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
-import com.android.ide.common.resources.ValueXmlHelper
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.escape.string.StringResourceEscaper
 import com.android.ide.common.resources.toFileResourcePathString
 import com.android.ide.common.util.PathString
 import com.android.resources.FolderTypeRelationship
@@ -1184,7 +1184,7 @@ fun requiresDynamicFeatureModuleResources(context: PsiElement): Boolean {
 }
 
 fun normalizeXmlResourceValue(value: String): String {
-  return ValueXmlHelper.escapeResourceString(value, false)
+  return StringResourceEscaper.escape(value, false)
 }
 
 fun packageToRClass(packageName: String): String {

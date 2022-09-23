@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.android.ide.common.resources.ValueXmlHelper;
+import com.android.ide.common.resources.escape.xml.CharacterDataEscaper;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
@@ -62,7 +62,7 @@ public final class StringTableCellEditor extends DefaultCellEditor {
   @Override
   public boolean stopCellEditing() {
     try {
-      ValueXmlHelper.escapeResourceStringAsXml((String)getCellEditorValue());
+      CharacterDataEscaper.escape((String)getCellEditorValue());
       return super.stopCellEditing();
     }
     catch (IllegalArgumentException exception) {
