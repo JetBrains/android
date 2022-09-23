@@ -19,8 +19,14 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiParameter
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 
-class ParameterReferencesTest : RoomLightTestCase() {
+class ParameterReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
+  override fun setUp() {
+    super.setUp()
+    createStubRoomClasses(myFixture)
+  }
+
   fun testReference_single() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 

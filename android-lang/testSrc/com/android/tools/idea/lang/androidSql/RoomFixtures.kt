@@ -171,10 +171,3 @@ fun JavaCodeInsightTestFixture.addRoomEntity(
       """.trimIndent()
   )
 }
-
-abstract class RoomLightTestCase : LightJavaCodeInsightFixtureAdtTestCase() {
-  override fun setUp() {
-    super.setUp()
-    createStubRoomClasses(myFixture)
-  }
-}

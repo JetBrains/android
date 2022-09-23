@@ -15,7 +15,14 @@
  */
 package com.android.tools.idea.lang.androidSql
 
-class EditingTest : RoomLightTestCase() {
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
+
+class EditingTest : LightJavaCodeInsightFixtureAdtTestCase() {
+  override fun setUp() {
+    super.setUp()
+    createStubRoomClasses(myFixture)
+  }
+  
   fun testParens() {
     myFixture.configureByText("UserDao.java", """
         package com.example;

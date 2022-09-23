@@ -16,14 +16,16 @@ package com.android.tools.idea.lang.androidSql
 import com.android.tools.idea.lang.androidSql.room.RoomBindParameterSyntaxInspection
 import com.intellij.testFramework.LightProjectDescriptor
 import org.jetbrains.android.AndroidFacetProjectDescriptor
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 
-class AndroidSqlBindParameterSyntaxInspectionTest : RoomLightTestCase() {
+class AndroidSqlBindParameterSyntaxInspectionTest : LightJavaCodeInsightFixtureAdtTestCase() {
 
   /** Uses a descriptor that gives us the Android SDK. */
   override fun getProjectDescriptor(): LightProjectDescriptor = AndroidFacetProjectDescriptor
 
   override fun setUp() {
     super.setUp()
+    createStubRoomClasses(myFixture)
     myFixture.enableInspections(RoomBindParameterSyntaxInspection::class.java)
   }
 

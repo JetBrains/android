@@ -26,11 +26,13 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.PsiManager
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 
-class ColumnReferencesTest : RoomLightTestCase() {
+class ColumnReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
 
   override fun setUp() {
     super.setUp()
+    createStubRoomClasses(myFixture)
     AndroidSqlContext.Provider.EP_NAME.getPoint().registerExtension(AndroidSqlTestContext.Provider(), testRootDisposable)
   }
 

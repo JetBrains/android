@@ -21,11 +21,17 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.fixtures.InjectionTestFixture
 import org.jetbrains.android.AndroidFacetProjectDescriptor
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.kotlin.idea.KotlinFileType
 
-class RoomQueryInjectionTest : RoomLightTestCase() {
+class RoomQueryInjectionTest : LightJavaCodeInsightFixtureAdtTestCase() {
 
   private val injectionFixture: InjectionTestFixture by lazy { InjectionTestFixture(myFixture) }
+
+  override fun setUp() {
+    super.setUp()
+    createStubRoomClasses(myFixture)
+  }
 
   fun testSanityCheck() {
     myFixture.configureByText(
@@ -139,7 +145,11 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
   }
 }
 
-class OtherApisInjectionTest : RoomLightTestCase() {
+class OtherApisInjectionTest : LightJavaCodeInsightFixtureAdtTestCase() {
+  override fun setUp() {
+    super.setUp()
+    createStubRoomClasses(myFixture)
+  }
 
   override fun getProjectDescriptor(): LightProjectDescriptor = AndroidFacetProjectDescriptor
 
