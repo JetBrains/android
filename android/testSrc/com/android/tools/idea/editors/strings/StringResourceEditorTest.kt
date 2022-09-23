@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.editors.strings
 
+import com.android.flags.junit.RestoreFlagRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion
@@ -41,17 +43,22 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers.isNull
 import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import java.awt.Font
 import kotlin.test.fail
 
+
 /** Tests for the [StringResourceEditor] class. */
 @RunWith(JUnit4::class)
 class StringResourceEditorTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
+
+  @get:Rule
+  val myRestoreFlagRule = RestoreFlagRule(StudioFlags.TRANSLATIONS_EDITOR_SYNCHRONIZATION)
 
   private val font = Font(Font.DIALOG, Font.PLAIN, 12)
   private val oldScale = JBUIScale.scale(1.0f)
@@ -170,7 +177,21 @@ class StringResourceEditorTest {
   }
 
   @Test
+  fun listenerNotAddedIfFlagOff() {
+    StudioFlags.TRANSLATIONS_EDITOR_SYNCHRONIZATION.override(false);
+    editor.selectNotify()  // Should not add the listener
+
+    assertThat(listeners).isEmpty()
+    verify(resourceNotificationManager, never()).addListener(any(), eq(facet), isNull(), isNull())
+
+    // Should not have reloaded the panel
+    assertThat(reloadsStarted).isEqualTo(0)
+    assertThat(reloadsFinished).isEqualTo(0)
+  }
+
+  @Test
   fun listenerAddedOnTransition() {
+    StudioFlags.TRANSLATIONS_EDITOR_SYNCHRONIZATION.override(true);
     editor.selectNotify()  // Should add the listener
 
     assertThat(listeners).hasSize(1)
@@ -189,11 +210,15 @@ class StringResourceEditorTest {
 
   @Test
   fun listenerRemovedOnTransition() {
+    StudioFlags.TRANSLATIONS_EDITOR_SYNCHRONIZATION.override(true);
     editor.selectNotify()  // Should add the listener
 
     assertThat(listeners).hasSize(1)
     val listener = listeners[0]
     verify(resourceNotificationManager).addListener(eq(listener), eq(facet), isNull(), isNull())
+
+    // Should remove listener irrespective of flag status.
+    StudioFlags.TRANSLATIONS_EDITOR_SYNCHRONIZATION.override(false);
 
     editor.deselectNotify()  // Should remove the listener
 
@@ -208,6 +233,7 @@ class StringResourceEditorTest {
 
   @Test
   fun panelRefreshedWhenOutOfDate() {
+    StudioFlags.TRANSLATIONS_EDITOR_SYNCHRONIZATION.override(true);
     currentResourceVersion = resourceVersion2
 
     editor.selectNotify()  // Should add the listener and reload the panel

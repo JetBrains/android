@@ -984,6 +984,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> TRANSLATIONS_EDITOR_SYNCHRONIZATION = Flag.create(
+    EDITOR, "translations.editor.synchronization",
+    "Synchronize translations editor with resource file updates",
+    "If enabled, causes the translations editor to reload data when resource files are edited",
+    false
+  );
+
   //endregion
 
   //region Unified App Bundle

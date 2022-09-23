@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.strings
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.ide.structureView.StructureViewBuilder
@@ -78,7 +79,13 @@ class StringResourceEditor(private val file: StringsVirtualFile) : UserDataHolde
   override fun isValid() = true
 
   override fun selectNotify() {
-    if (selected.compareAndSet(false, true)) addListener()
+    // TODO(b/200817330): Figure out whether it is worth updating the editor when the files change
+    //  and find a way to do it that does not cause edits in the editor itself to trigger
+    //  those updates. The approach enabled below unfortunately breaks the editor because the call to
+    //  reload the data is a non-trivial operation with a progress bar and everything. It also
+    //  deselects the current cell and kicks the user out of the editing fields at the bottom.
+    //  This is off by default.
+    if (StudioFlags.TRANSLATIONS_EDITOR_SYNCHRONIZATION.get() && selected.compareAndSet(false, true)) addListener()
   }
 
   override fun deselectNotify() {
