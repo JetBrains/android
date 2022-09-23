@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.resourceexplorer;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerFixture;
@@ -72,11 +73,14 @@ public class MultiModuleSearchTest {
     assertThat(resourceExplorerFixture.comboBox().selectedItem()).containsMatch("app.main");
     int selectedTabIndex = resourceExplorerFixture.tabbedPane().target().getSelectedIndex();
     assertThat(resourceExplorerFixture.tabbedPane().target().getTitleAt(selectedTabIndex)).matches("Drawable");
+    resourceExplorerFixture.click();
 
     // Verify 1 : Verify Text link with asserts found in the other module.
     resourceExplorerFixture.getSearchField().enterText("event");
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-    Wait.seconds(2).expecting("Wait for search link to show up").until(() ->
+    resourceExplorerFixture.click();
+    // Add extra step to refresh files system to remove the flakiness on RBE instances in go/ab
+    GuiTests.refreshFiles();
+    Wait.seconds(30).expecting("Wait for search link to show up").until(() ->
       resourceExplorerFixture.findLinklabelByTextContains(RESOURCE_MATCH_IN_LIBRARY).isEnabled()
       );
     resourceExplorerFixture.findLinklabelByTextContains(RESOURCE_MATCH_IN_LIBRARY)
@@ -85,7 +89,10 @@ public class MultiModuleSearchTest {
     // Verify 2: Verify clicking on the link update the module in the dropdown.
     // Verify 2: Verify assert shows up in the resource manager. Drawable tab is still selected.
     assertThat(resourceExplorerFixture.comboBox().selectedItem()).containsMatch("library.main");
-    assertThat(resourceExplorerFixture.findResource("event")).isNotNull();
+    resourceExplorerFixture.click();
+    Wait.seconds(30).expecting("wait for event resource to show up").until(() ->
+      resourceExplorerFixture.findResource("event").index() >=0 );
+
     assertThat(resourceExplorerFixture.tabbedPane().target().getTitleAt(selectedTabIndex)).matches("Drawable");
   }
 }

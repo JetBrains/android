@@ -1645,7 +1645,11 @@ java_test(
     name = "MultiModuleSearchTest",
     size = "large",
     data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/MultiAndroidModule/**",
     ]),
