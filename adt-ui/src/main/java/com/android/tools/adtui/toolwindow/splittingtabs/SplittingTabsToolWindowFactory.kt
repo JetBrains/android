@@ -16,6 +16,7 @@
 package com.android.tools.adtui.toolwindow.splittingtabs
 
 import com.android.tools.adtui.toolwindow.splittingtabs.actions.NewTabAction
+import com.android.tools.adtui.toolwindow.splittingtabs.state.PanelState
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateManager
 import com.android.tools.adtui.toolwindow.splittingtabs.state.TabState
 import com.android.tools.adtui.toolwindow.splittingtabs.state.ToolWindowState
@@ -80,13 +81,9 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
     return content
   }
 
-  protected fun createNewTab(toolWindow: ToolWindowEx, tabName: String): Content {
+  protected fun createNewTab(toolWindow: ToolWindowEx, tabName: String, clientState: String?): Content {
     val contentManager = toolWindow.contentManager
-    val content = createContent(toolWindow.project, contentManager, tabState = null)
-    contentManager.addContent(content)
-    contentManager.setSelectedContent(content, true)
-    content.displayName = tabName
-    return content
+    return createNewTab(toolWindow.project, contentManager, TabState(tabName, PanelState(clientState)))
   }
 
   private fun createContent(project: Project, contentManager: ContentManager, tabState: TabState?): Content {

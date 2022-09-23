@@ -47,7 +47,6 @@ import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.RestartLogcatAction
 import com.android.tools.idea.logcat.actions.ToggleFilterAction
 import com.android.tools.idea.logcat.devices.Device
-import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatFilter.Companion.MY_PACKAGE
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
@@ -78,6 +77,7 @@ import com.android.tools.idea.logcat.util.LOGGER
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
 import com.android.tools.idea.logcat.util.createLogcatEditor
+import com.android.tools.idea.logcat.util.getDefaultFilter
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.isScrollAtBottom
 import com.android.tools.idea.logcat.util.toggleFilterTerm
@@ -509,10 +509,6 @@ internal class LogcatMainPanel(
 
   override fun getConnectedDevice() = connectedDevice.get()
 
-  override fun selectDevice(serialNumber: String) {
-    headerPanel.selectDevice(serialNumber)
-  }
-
   override fun countFilterMatches(filter: String): Int {
     return LogcatMasterFilter(logcatFilterParser.parse(filter)).filter(messageBacklog.get().messages).size
   }
@@ -762,15 +758,6 @@ private fun FormattingConfig?.toUsageTracking(): LogcatFormatConfiguration {
 }
 
 private fun FormattingOptions.Style.toUsageTracking() = if (this == FormattingOptions.Style.STANDARD) STANDARD else COMPACT
-
-private fun getDefaultFilter(project: Project, androidProjectDetector: AndroidProjectDetector): String {
-  val logcatSettings = AndroidLogcatSettings.getInstance()
-  val filter = when {
-    logcatSettings.mostRecentlyUsedFilterIsDefault -> AndroidLogcatFilterHistory.getInstance().mostRecentlyUsed
-    else -> logcatSettings.defaultFilter
-  }
-  return if (!androidProjectDetector.isAndroidProject(project) && filter.contains("package:mine")) "" else filter
-}
 
 private fun AnAction.withText(text: String): AnAction {
   templatePresentation.text = text
