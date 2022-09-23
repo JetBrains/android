@@ -20,8 +20,8 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinitio
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.navigator.nodes.FileGroupNode
 import com.android.tools.idea.navigator.nodes.FolderGroupNode
+import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.util.toIoFile
@@ -30,6 +30,8 @@ import com.intellij.ide.FileSelectInContext
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.ProjectViewNode
 import com.intellij.ide.util.treeView.AbstractTreeStructure
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.guessModuleDir
 import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Rule
 import org.junit.Test
@@ -130,6 +132,7 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : IntegrationTestEnviro
     when (this) {
       is FileGroupNode -> files.mapNotNull { it.virtualFile }.let(result::addAll)
       is FolderGroupNode -> folders.map { it.virtualFile }.let(result::addAll)
+      is AndroidModuleNode -> result.add((value as Module).guessModuleDir()!!)
     }
     return result
   }

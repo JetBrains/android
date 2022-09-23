@@ -20,16 +20,21 @@ import com.android.tools.idea.fileTypes.AndroidIconProvider
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode
 import com.android.tools.idea.navigator.nodes.AndroidViewNodeProvider
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.ide.projectView.PresentationData
+import com.intellij.ide.projectView.ProjectViewNode
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.ui.Queryable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
+import com.intellij.psi.util.PsiUtilCore
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -83,6 +88,33 @@ class AndroidModuleNode(
     // Use Android Studio Icons if module is available. If module was disposed, super.update will set the value of this node to null.
     // This can happen when a module was just deleted, see b/67838273.
     presentation.setIcon(AndroidIconProvider.getModuleIcon(module))
+  }
+
+  /**
+   * This node represents:
+   * - module represented by this node
+   * - all virtual files that belong to this module or its linked modules that are not contained by its children
+   *
+   * TODO (http://b/249099672): This should be expanded to handle more cases.
+   */
+  override fun canRepresent(element: Any?): Boolean {
+    if (super.canRepresent(element)) return true
+
+    val file = when (element) {
+      is VirtualFile -> element
+      is PsiElement -> PsiUtilCore.getVirtualFile(element)
+      else -> null
+    } ?: return false
+
+    val project = project.takeUnless { it == null || it.isDisposed } ?: return false
+    val moduleForFile = ProjectFileIndex.getInstance(project).getModuleForFile(file, false)
+    if (value != moduleForFile?.getHolderModule()) return false
+
+    val childrenContainFile = moduleChildren.any {
+      it !is ProjectViewNode || it.contains(file)
+    }
+
+    return !childrenContainFile
   }
 
   companion object {
