@@ -18,6 +18,7 @@ package com.android.tools.idea.adblib
 import com.android.adblib.AdbLoggerFactory
 import com.android.adblib.AdbSessionHost
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.androidCoroutineExceptionHandler
 
 /**
  * Implementation of [AdbSessionHost] that integrates with the IntelliJ/Android Studio platform.
@@ -28,6 +29,8 @@ internal class AndroidAdbSessionHost : AdbSessionHost() {
   override val loggerFactory: AdbLoggerFactory by lazy {
     AndroidAdbLoggerFactory()
   }
+
+  override val parentContext = androidCoroutineExceptionHandler
 
   override fun close() {
     // Nothing to do
