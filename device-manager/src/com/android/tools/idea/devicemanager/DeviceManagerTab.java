@@ -18,6 +18,11 @@ package com.android.tools.idea.devicemanager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
+import java.awt.BorderLayout;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 
 public interface DeviceManagerTab {
@@ -33,4 +38,15 @@ public interface DeviceManagerTab {
 
   @NotNull
   DevicePanel getPanel(@NotNull Project project, @NotNull Disposable parentDisposable);
+
+  @NotNull
+  default JComponent getErrorComponent(@NotNull Throwable throwable) {
+    JPanel errorPanel = new JPanel(new BorderLayout());
+    JLabel errorLabel = new JLabel(throwable.getMessage());
+    errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
+    errorPanel.add(errorLabel, BorderLayout.CENTER);
+    return errorPanel;
+  }
+
+  default void setRecreateCallback(@NotNull Runnable r, @NotNull Disposable disposable) {}
 }

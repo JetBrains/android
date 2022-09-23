@@ -30,7 +30,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Container
+import javax.swing.JComponent
 import javax.swing.JLabel
+import javax.swing.JPanel
 
 class DeviceManagerToolWindowFactoryTest {
   @get:Rule
@@ -45,6 +47,13 @@ class DeviceManagerToolWindowFactoryTest {
       override fun getName() = "Failing Tab"
       override fun getPanel(project: Project, parentDisposable: Disposable) = throw Exception("it failed")
     }
+    val failingTab2 = object: DeviceManagerTab {
+      override fun getName() = "Failing Tab with custom error"
+      override fun getPanel(project: Project, parentDisposable: Disposable) = throw Exception("it failed")
+      override fun getErrorComponent(throwable: Throwable): JComponent {
+        return JPanel().apply { add(JLabel("${throwable.message} custom"))}
+      }
+    }
     val table = JBTable()
     val successfulPanel = object : DevicePanel(projectRule.project) {
       override fun newTable() = table
@@ -57,20 +66,58 @@ class DeviceManagerToolWindowFactoryTest {
       }
     }
     DeviceManagerTab.EP_NAME.point.registerExtension(failingTab, disposableRule.disposable)
+    DeviceManagerTab.EP_NAME.point.registerExtension(failingTab2, disposableRule.disposable)
     DeviceManagerTab.EP_NAME.point.registerExtension(successfulTab, disposableRule.disposable)
     val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)
 
     DeviceManagerToolWindowFactory().createToolWindowContent(projectRule.project, toolWindow)
 
     val tabs = toolWindow.contentManager.contents[0].component as JBTabbedPane
-    assertEquals(4, tabs.tabCount)
+    assertEquals(5, tabs.tabCount)
     assertEquals("Virtual", (tabs.getTabComponentAt(0) as JLabel).text)
     assertTrue(tabs.getComponentAt(0) is VirtualDevicePanel)
     assertEquals("Physical", (tabs.getTabComponentAt(1) as JLabel).text)
     assertTrue(tabs.getComponentAt(1) is PhysicalDevicePanel)
     assertEquals("Failing Tab", (tabs.getTabComponentAt(2) as JLabel).text)
     assertEquals("it failed", ((tabs.getComponentAt(2) as Container).getComponent(0) as JLabel).text)
-    assertEquals("Success Tab", (tabs.getTabComponentAt(3) as JLabel).text)
-    assertSame(successfulPanel, tabs.getComponentAt(3))
+    assertEquals("Failing Tab with custom error", (tabs.getTabComponentAt(3) as JLabel).text)
+    assertEquals("it failed custom", ((tabs.getComponentAt(3) as Container).getComponent(0) as JLabel).text)
+    assertEquals("Success Tab", (tabs.getTabComponentAt(4) as JLabel).text)
+    assertSame(successfulPanel, tabs.getComponentAt(4))
+  }
+
+
+  @Test
+  fun testReloadErrorTab() {
+    lateinit var callback: Runnable
+    val table = JBTable()
+    val successfulPanel = object : DevicePanel(projectRule.project) {
+      override fun newTable() = table
+      override fun newDetailsPanel() = DetailsPanel("my details")
+    }
+
+    var shouldFail = true
+    val tab = object: DeviceManagerTab {
+      override fun getName() = "My Tab"
+      override fun getPanel(project: Project, parentDisposable: Disposable) =
+        if (shouldFail) throw Exception("it failed") else successfulPanel
+      override fun setRecreateCallback(runnable: Runnable, disposable: Disposable) {
+        callback = runnable
+      }
+    }
+    DeviceManagerTab.EP_NAME.point.registerExtension(tab, disposableRule.disposable)
+    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)
+
+    DeviceManagerToolWindowFactory().createToolWindowContent(projectRule.project, toolWindow)
+
+    val tabs = toolWindow.contentManager.contents[0].component as JBTabbedPane
+    assertEquals("My Tab", (tabs.getTabComponentAt(2) as JLabel).text)
+    assertEquals("it failed", ((tabs.getComponentAt(2) as Container).getComponent(0) as JLabel).text)
+
+    shouldFail = false
+    callback.run()
+
+    assertEquals("My Tab", (tabs.getTabComponentAt(2) as JLabel).text)
+    assertSame(successfulPanel, tabs.getComponentAt(2))
   }
 }
