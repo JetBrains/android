@@ -21,9 +21,8 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 
-private val roomAnnotationToClassBody = mapOf(
+private val roomAnnotationToClassBodyJava = mapOf(
   "Dao" to """
   package androidx.room;
 
@@ -85,12 +84,141 @@ private val roomAnnotationToClassBody = mapOf(
   """.trimIndent()
 )
 
-fun createStubRoomClasses(codeInsightTestFixture: JavaCodeInsightTestFixture) {
-  roomAnnotationToClassBody.values.forEach { codeInsightTestFixture.addClass(it) }
+private val roomAnnotationToClassBodyKotlin = mapOf(
+  "androidx/room/Dao.kt" to """
+    package androidx.room
+  
+    @Target(AnnotationTarget.CLASS)
+    @Retention(AnnotationRetention.BINARY)
+    public annotation class Dao
+    """.trimIndent(),
+
+  "androidx/room/Database.kt" to """
+    package androidx.room
+  
+    @Target(AnnotationTarget.CLASS)
+    @Retention(AnnotationRetention.BINARY)
+    public annotation class Database(
+      val entities: Array<KClass<*>> = [],
+      val views: Array<KClass<*>> = [],
+      val version: Int,
+      val exportSchema: Boolean = true,
+      val autoMigrations: Array<AutoMigration> = []
+    )
+    """.trimIndent(),
+
+  "androidx/room/Entity.kt" to """
+    package androidx.room
+  
+    @Target(AnnotationTarget.CLASS)
+    @Retention(AnnotationRetention.BINARY)
+    public annotation class Entity(
+      val tableName: String = "",
+      val indices: Array<Index> = [],
+      val inheritSuperIndices: Boolean = false,
+      val primaryKeys: Array<String> = [],
+      val foreignKeys: Array<ForeignKey> = [],
+      val ignoredColumns: Array<String> = []
+    )
+    """.trimIndent(),
+
+  "androidx/room/Query.kt" to """
+    package androidx.room
+  
+    @Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER)
+    @Retention(AnnotationRetention.BINARY)
+    public annotation class Query(
+      val value: String
+    )
+    """.trimIndent(),
+
+  "androidx/room/DatabaseView.kt" to """
+    package androidx.room
+  
+    @Target(AnnotationTarget.CLASS)
+    @Retention(AnnotationRetention.BINARY)
+    public annotation class DatabaseView(
+      val value: String = "",
+      val viewName: String = ""
+    )
+    """.trimIndent(),
+
+  "androidx/room/Ignore.kt" to """
+    package androidx.room
+  
+    @Target(
+      AnnotationTarget.FUNCTION,
+      AnnotationTarget.FIELD,
+      AnnotationTarget.CONSTRUCTOR,
+      AnnotationTarget.PROPERTY_GETTER
+    )
+    @Retention(AnnotationRetention.BINARY)
+    public annotation class Ignore
+    """.trimIndent(),
+
+  "androidx/room/ColumnInfo.kt" to """
+    package androidx.room
+  
+    @Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION)
+    @Retention(AnnotationRetention.BINARY)
+    public annotation class ColumnInfo(
+        val name: String = INHERIT_FIELD_NAME,
+        @get:SQLiteTypeAffinity
+        val typeAffinity: Int = UNDEFINED,
+        val index: Boolean = false,
+        @get:Collate
+        val collate: Int = UNSPECIFIED,
+        val defaultValue: String = VALUE_UNSPECIFIED,
+    )
+    """.trimIndent(),
+
+  "androidx/room/Embedded.kt" to """
+    package androidx.room
+  
+    @Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION)
+    @Retention(AnnotationRetention.BINARY)
+    public annotation class Embedded(val prefix: String = "")
+    """.trimIndent(),
+
+  "androidx/room/Fts3.kt" to """
+    package androidx.room
+  
+    @Target(AnnotationTarget.CLASS)
+    @Retention(AnnotationRetention.BINARY)
+    @RequiresApi(16)
+    public annotation class Fts3(val tokenizer: String = TOKENIZER_SIMPLE, val tokenizerArgs: Array<String> = [])
+    """.trimIndent(),
+
+  "androidx/room/Fts4.kt" to """
+    package androidx.room
+  
+    @Target(AnnotationTarget.CLASS)
+    @Retention(AnnotationRetention.BINARY)
+    @RequiresApi(16)
+    public annotation class Fts4(
+      val tokenizer: String = TOKENIZER_SIMPLE,
+      val tokenizerArgs: Array<String> = [],
+      val contentEntity: KClass<*> = Any::class,
+      val languageId: String = "",
+      val matchInfo: MatchInfo = MatchInfo.FTS4,
+      val notIndexed: Array<String> = [],
+      val prefix: IntArray = [],
+      val order: Order = Order.ASC
+    )
+    """.trimIndent()
+)
+
+fun createStubRoomClasses(codeInsightTestFixture: JavaCodeInsightTestFixture, useJavaSource: Boolean = true) {
+  if (useJavaSource){
+    roomAnnotationToClassBodyJava.values.forEach { codeInsightTestFixture.addClass(it) }
+  }
+  else {
+    roomAnnotationToClassBodyKotlin.forEach { (file, content) -> codeInsightTestFixture.addFileToProject(file, content) }
+  }
 }
 
 fun createStubRoomClassesInPath(codeInsightTestFixture: JavaCodeInsightTestFixture, path: String) {
-  roomAnnotationToClassBody.forEach {
+  roomAnnotationToClassBodyJava.forEach {
     codeInsightTestFixture.addFileToProject(path + "/androidx/room/${it.key}.java", it.value)
   }
 }

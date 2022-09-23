@@ -24,13 +24,15 @@ import org.jetbrains.android.AndroidFacetProjectDescriptor
 import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.kotlin.idea.KotlinFileType
 
-class RoomQueryInjectionTest : LightJavaCodeInsightFixtureAdtTestCase() {
+abstract class RoomQueryInjectionTest : LightJavaCodeInsightFixtureAdtTestCase() {
 
   private val injectionFixture: InjectionTestFixture by lazy { InjectionTestFixture(myFixture) }
 
+  abstract val useJavaSource: Boolean
+
   override fun setUp() {
     super.setUp()
-    createStubRoomClasses(myFixture)
+    createStubRoomClasses(myFixture, useJavaSource)
   }
 
   fun testSanityCheck() {
@@ -143,6 +145,14 @@ class RoomQueryInjectionTest : LightJavaCodeInsightFixtureAdtTestCase() {
     injectionFixture.assertInjectedLangAtCaret(AndroidSqlLanguage.INSTANCE.id)
     assertThat(injectionFixture.getAllInjections().last().second.text).isEqualTo("select * from UserTable")
   }
+}
+
+class RoomQueryInjectionJavaTest : RoomQueryInjectionTest() {
+  override val useJavaSource = true
+}
+
+class RoomQueryInjectionKotlinTest : RoomQueryInjectionTest() {
+  override val useJavaSource = false
 }
 
 class OtherApisInjectionTest : LightJavaCodeInsightFixtureAdtTestCase() {
