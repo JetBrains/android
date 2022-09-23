@@ -33,7 +33,7 @@ import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
@@ -620,13 +620,14 @@ public final class StudioProfilersTest {
     myTransportService.addEventToStream(device.getDeviceId(), Common.Event.newBuilder()
       .setPid(process.getPid())
       .setCommandId(1)
-      .setKind(Common.Event.Kind.MEMORY_NATIVE_SAMPLE_STATUS)
+      .setKind(Common.Event.Kind.TRACE_STATUS)
       .setTimestamp(myTimer.getCurrentTimeNs())
       .setGroupId(myTimer.getCurrentTimeNs())
-      .setMemoryNativeTrackingStatus(Memory.MemoryNativeTrackingData.newBuilder()
-                                       .setStartTime(myTimer.getCurrentTimeNs())
-                                       .setStatus(Memory.MemoryNativeTrackingData.Status.SUCCESS)
-                                       .build())
+      .setTraceStatus(Trace.TraceStatusData.newBuilder()
+                        .setTraceStartStatus(Trace.TraceStartStatus.newBuilder()
+                                               .setStartTimeNs(myTimer.getCurrentTimeNs())
+                                               .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
+                                               .build()))
       .build());
     // To make sure that StudioProfilers#update is called, which in a consequence polls devices and processes,
     // and starts a new session with the preferred process name.

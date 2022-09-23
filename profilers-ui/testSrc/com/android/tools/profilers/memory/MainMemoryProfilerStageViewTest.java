@@ -41,6 +41,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeProfilerService;
@@ -238,7 +239,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
 
     FakeCaptureObject fakeCapture1 =
-      new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
+      new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10)
+        .build();
     InstanceObject fakeInstance1 =
       new FakeInstanceObject.Builder(fakeCapture1, 1, sampleClassName1).setName("SAMPLE_INSTANCE1").setHeapId(0).setDepth(4)
         .setShallowSize(5).setRetainedSize(6).build();
@@ -248,7 +250,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     fakeCapture1.addInstanceObjects(ImmutableSet.of(fakeInstance1, fakeInstance2));
 
     FakeCaptureObject fakeCapture2 =
-      new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE2").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
+      new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE2").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10)
+        .build();
     InstanceObject fakeInstance3 =
       new FakeInstanceObject.Builder(fakeCapture2, 1, sampleClassName1).setName("SAMPLE_INSTANCE1").setHeapId(0).setDepth(4)
         .setShallowSize(5).setRetainedSize(6).build();
@@ -363,7 +366,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     Map<Integer, String> heapIdMap = ImmutableMap.of(0, "heap1", 1, "heap2");
 
     FakeCaptureObject fakeCapture1 =
-      new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
+      new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10)
+        .build();
     FakeCaptureObject fakeCapture2 =
       new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE2").setHeapIdToNameMap(heapIdMap).setStartTime(10).setEndTime(15)
         .build();
@@ -394,7 +398,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     Map<Integer, String> heapIdMap = ImmutableMap.of(0, "heap1", 1, "heap2");
 
     FakeCaptureObject fakeCapture1 =
-      new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
+      new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10)
+        .build();
     FakeCaptureObject fakeCapture2 =
       new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE2").setHeapIdToNameMap(heapIdMap).setStartTime(10).setEndTime(15)
         .build();
@@ -480,7 +485,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
           assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
           MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
           assertThat(stage.isMemoryCaptureOnly()).isTrue();
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
           throw new RuntimeException("IO");
         }
       },
@@ -523,7 +529,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
           assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
           MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
           assertThat(stage.isMemoryCaptureOnly()).isTrue();
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
           throw new RuntimeException(e.getMessage());
         }
       },
@@ -556,7 +563,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
           .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, () -> {
             try {
               assertThat(firstFinished.await(120, TimeUnit.SECONDS)).isTrue();
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
               throw new RuntimeException(e.getMessage());
             }
             stage.getAspect().removeDependencies(myAspectObserver);
@@ -716,7 +724,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     JPanel toolbar = (JPanel)view1.getToolbar().getComponent(0);
     assertThat(toolbar.getComponents()).asList().containsExactly(
       view1.getGarbageCollectionButtion(),
-        view1.getCaptureElapsedTimeLabel()
+      view1.getCaptureElapsedTimeLabel()
     );
 
     // Test toolbar configuration for O+;
@@ -726,7 +734,6 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     assertThat(toolbar.getComponents()).asList().containsExactly(
       view2.getGarbageCollectionButtion()
     );
-
   }
 
   @Test
@@ -766,7 +773,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     // Change allocation tracking sampling mode
     myTransportService.addEventToStream(
       device.getDeviceId(), ProfilersTestData
-        .generateMemoryAllocSamplingData(process.getPid(), 5, MainMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build());
+        .generateMemoryAllocSamplingData(process.getPid(), 5, MainMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())
+        .build());
     // Generate stop live allocation tracking
     myTransportService.addEventToStream(
       device.getDeviceId(), ProfilersTestData
@@ -904,8 +912,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
   public void uiInSyncWithStartupNativeRecording() {
     startWithNewDevice("Test", AndroidVersion.VersionCodes.Q);
     assertThat(myStage.isNativeAllocationSamplingEnabled()).isTrue();
-    myStage.nativeAllocationTrackingStart(Memory.MemoryNativeTrackingData.newBuilder()
-                                            .setStatus(Memory.MemoryNativeTrackingData.Status.SUCCESS)
+    myStage.nativeAllocationTrackingStart(Trace.TraceStartStatus.newBuilder()
+                                            .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
                                             .build());
     RecordingOptionsView view = ((MainMemoryProfilerStageView)myProfilersView.getStageView()).getRecordingOptionsView();
     assertThat(view.getStartStopButton().getText()).isEqualTo(RecordingOptionsView.STOP);

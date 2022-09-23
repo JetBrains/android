@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
+import com.android.tools.profiler.proto.Trace
 
 /**
  * Test helper to handle native memory commands. This helper assumes both start and stop are success and return
@@ -32,12 +33,14 @@ class MemoryNativeSampling(timer: FakeTimer) : CommandHandler(timer) {
       events.add(Common.Event.newBuilder().apply {
         pid = command.pid
         commandId = command.commandId
-        kind = Common.Event.Kind.MEMORY_NATIVE_SAMPLE_STATUS
+        kind = Common.Event.Kind.TRACE_STATUS
         timestamp = timer.currentTimeNs
         groupId = startCommandTimestamp
-        memoryNativeTrackingStatus = Memory.MemoryNativeTrackingData.newBuilder().apply {
-          startTime = timer.currentTimeNs
-          status = Memory.MemoryNativeTrackingData.Status.SUCCESS
+        traceStatus = Trace.TraceStatusData.newBuilder().apply {
+          traceStartStatus = Trace.TraceStartStatus.newBuilder().apply {
+            startTimeNs = timer.currentTimeNs
+            status = Trace.TraceStartStatus.Status.SUCCESS
+          }.build()
         }.build()
       }.build())
       events.add(Common.Event.newBuilder().apply {
@@ -57,13 +60,13 @@ class MemoryNativeSampling(timer: FakeTimer) : CommandHandler(timer) {
       events.add(Common.Event.newBuilder().apply {
         pid = command.pid
         commandId = command.commandId
-        kind = Common.Event.Kind.MEMORY_NATIVE_SAMPLE_STATUS
+        kind = Common.Event.Kind.TRACE_STATUS
         timestamp = timer.currentTimeNs
         groupId = startCommandTimestamp
-        memoryNativeTrackingStatus = Memory.MemoryNativeTrackingData.newBuilder().apply {
-          startTime = timer.currentTimeNs
-
-          status = Memory.MemoryNativeTrackingData.Status.NOT_RECORDING
+        traceStatus = Trace.TraceStatusData.newBuilder().apply {
+          traceStopStatus = Trace.TraceStopStatus.newBuilder().apply {
+            status = Trace.TraceStopStatus.Status.SUCCESS
+          }.build()
         }.build()
       }.build())
       events.add(Common.Event.newBuilder().apply {

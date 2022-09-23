@@ -34,7 +34,7 @@ import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetDevicesRequest;
@@ -704,15 +704,15 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   private boolean startupMemoryProfilingStarted() {
-    List<Memory.MemoryNativeTrackingData> samples =
+    List<Trace.TraceStatusData> samples =
       MemoryProfiler.getNativeHeapStatusForSession(myClient, mySelectedSession, new Range(Long.MIN_VALUE, Long.MAX_VALUE));
     if (samples.isEmpty()) {
       return false;
     }
-    Memory.MemoryNativeTrackingData last = samples.get(samples.size() - 1);
+    Trace.TraceStartStatus lastStartStatus = samples.get(samples.size() - 1).getTraceStartStatus();
     // If we are ongoing, and we started before the process then we have a startup session.
-    return last.getStatus() == Memory.MemoryNativeTrackingData.Status.SUCCESS &&
-           last.getStartTime() <= mySelectedSession.getStartTimestamp();
+    return lastStartStatus.getStatus() == Trace.TraceStartStatus.Status.SUCCESS &&
+           lastStartStatus.getStartTimeNs() <= mySelectedSession.getStartTimestamp();
   }
 
   /**

@@ -38,6 +38,7 @@ import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
@@ -88,7 +89,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     super();
     myTransportService = new FakeTransportService(myTimer, true, featureLevel);
     myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService, myTransportService, new FakeProfilerService(myTimer),
-                        new FakeCpuService(), new FakeEventService());
+                                        new FakeCpuService(), new FakeEventService());
   }
 
   @Override
@@ -171,15 +172,23 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   public void testToggleNativeAllocationTracking() {
     assertThat(myStage.isTrackingAllocations()).isFalse();
     assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isFalse();
-    // Validate we enable tracking allocations
+    // Set time to 1 second (in ns) before starting tracking to verify start time field of TraceStartStatus event.
+    myTimer.setCurrentTimeNs(FakeTimer.ONE_SECOND_IN_NS);
+    // Validate we enabled tracking allocations.
     myStage.toggleNativeAllocationTracking();
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.isTrackingAllocations()).isTrue();
+    assertThat(myStage.myNativeAllocationTracking).isTrue();
+    // Make sure start time is equivalent to fake time set above
+    assertThat(myStage.getPendingCaptureStartTime()).isEqualTo(1000000000);
+    // Validate timeline streaming has begun.
+    assertThat(myStage.getTimeline().isStreaming()).isTrue();
     assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isTrue();
-    // Validate we disable tracking allocations
+    // Validate we disabled tracking allocations.
     myStage.toggleNativeAllocationTracking();
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.isTrackingAllocations()).isFalse();
+    assertThat(myStage.myNativeAllocationTracking).isFalse();
   }
 
   @Test
@@ -782,13 +791,14 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     myTransportService.addEventToStream(FAKE_DEVICE_ID, Common.Event.newBuilder()
       .setPid(FAKE_PROCESS.getPid())
       .setCommandId(1)
-      .setKind(Common.Event.Kind.MEMORY_NATIVE_SAMPLE_STATUS)
+      .setKind(Common.Event.Kind.TRACE_STATUS)
       .setTimestamp(myTimer.getCurrentTimeNs())
       .setGroupId(myTimer.getCurrentTimeNs())
-      .setMemoryNativeTrackingStatus(Memory.MemoryNativeTrackingData.newBuilder()
-                                       .setStartTime(myTimer.getCurrentTimeNs())
-                                       .setStatus(Memory.MemoryNativeTrackingData.Status.SUCCESS)
-                                       .build())
+      .setTraceStatus(Trace.TraceStatusData.newBuilder()
+                        .setTraceStartStatus(Trace.TraceStartStatus.newBuilder()
+                                               .setStartTimeNs(myTimer.getCurrentTimeNs())
+                                               .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
+                                               .build()).build())
       .build());
     MainMemoryProfilerStage stage = new MainMemoryProfilerStage(myProfilers, myMockLoader);
     assertThat(stage.isTrackingAllocations()).isFalse();

@@ -29,6 +29,7 @@ import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
@@ -76,7 +77,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   private final DurationDataModel<CaptureDurationData<? extends CaptureObject>> myAllocationDurations;
   private final DurationDataModel<CaptureDurationData<? extends CaptureObject>> myNativeAllocationDurations;
   private long myPendingLegacyAllocationStartTimeNs = BaseMemoryProfilerStage.INVALID_START_TIME;
-  private boolean myNativeAllocationTracking = false;
+
+  @VisibleForTesting boolean myNativeAllocationTracking = false;
 
   private final RecordingOptionsModel myRecordingOptionsModel;
 
@@ -235,48 +237,101 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     else {
       response = stopNativeAllocationTracking(getPendingCaptureStartTime());
     }
-    TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.MEMORY_NATIVE_SAMPLE_STATUS,
+    TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.TRACE_STATUS,
                                                                        getStudioProfilers().getIdeServices().getMainExecutor(),
                                                                        event -> event.getCommandId() == response.getCommandId(),
                                                                        () -> getSessionData().getStreamId(),
                                                                        () -> getSessionData().getPid(),
                                                                        event -> {
-                                                                         nativeAllocationTrackingStart(
-                                                                           event.getMemoryNativeTrackingStatus());
+                                                                         if (event.getTraceStatus().hasTraceStartStatus()) {
+                                                                           // trace status event is a start tracing event
+                                                                           nativeAllocationTrackingStart(event.getTraceStatus()
+                                                                                                           .getTraceStartStatus());
+                                                                         }
+                                                                         else if (event.getTraceStatus().hasTraceStopStatus()) {
+                                                                           // trace status event is a stop tracing event
+                                                                           nativeAllocationTrackingStop(
+                                                                             event.getTraceStatus().getTraceStopStatus());
+                                                                         }
+                                                                         else {
+                                                                           // unknown/undefined trace status event found
+                                                                           getLogger().error("Invalid trace status event received.");
+                                                                         }
                                                                          // unregisters the listener.
                                                                          return true;
                                                                        });
     getStudioProfilers().getTransportPoller().registerListener(statusListener);
   }
 
+
+  /**
+   * Handles start tracing status events received by the transport event listener.
+   */
   @VisibleForTesting
-  void nativeAllocationTrackingStart(@NotNull Memory.MemoryNativeTrackingData status) {
+  void nativeAllocationTrackingStart(@NotNull Trace.TraceStartStatus status) {
     switch (status.getStatus()) {
       case SUCCESS:
         myNativeAllocationTracking = true;
         setModelToRecordingNative();
-        setPendingCaptureStartTime(status.getStartTime());
+        setPendingCaptureStartTime(status.getStartTimeNs());
         setTrackingAllocations(true);
-        myPendingLegacyAllocationStartTimeNs = status.getStartTime();
+        myPendingLegacyAllocationStartTimeNs = status.getStartTimeNs();
         getTimeline().setStreaming(true);
         break;
-      case IN_PROGRESS:
-        myNativeAllocationTracking = true;
-        setModelToRecordingNative();
-        setTrackingAllocations(true);
-        getLogger().debug(String.format(Locale.getDefault(), "A heap dump for %d is already in progress.", getSessionData().getPid()));
-        break;
       case FAILURE:
-        getLogger().error(status.getFailureMessage());
-        // fall through
-      case NOT_RECORDING:
+        getLogger().error(status.getErrorMessage());
+        break;
       case UNSPECIFIED:
-      case UNRECOGNIZED:
+        break;
+    }
+  }
+
+  /**
+   * Handles stop tracing status events received by the transport event listener.
+   */
+  @VisibleForTesting
+  void nativeAllocationTrackingStop(@NotNull Trace.TraceStopStatus status) {
+    switch (status.getStatus()) {
+      case SUCCESS:
+        // stop allocation tracing
         myNativeAllocationTracking = false;
         setTrackingAllocations(false);
         break;
+      case OTHER_FAILURE:
+        // other_failure encompasses all non-explicit defined failure statuses
+        getLogger().error(status.getErrorMessage());
+        break;
+      case NO_ONGOING_PROFILING:
+        // TODO: Integrate the ongoing profile detection cpu profiler has with memory profiler
+        break;
+      default:
+        // handle explicitly defined failure statuses
+        handleNativeAllocationStopFailures(status);
+        break;
     }
-    getAspect().changed(MemoryProfilerAspect.TRACKING_ENABLED);
+  }
+
+  /**
+   * Placeholder method to handle failure statuses that will be reported as metadata.
+   * TODO: Merge this method with "fromStopStatus" in CpuCaptureMetadata.java
+   */
+  private void handleNativeAllocationStopFailures(@NotNull Trace.TraceStopStatus status) {
+    switch (status.getStatus()) {
+      case UNSPECIFIED:
+      case APP_PROCESS_DIED:
+      case APP_PID_CHANGED:
+      case PROFILER_PROCESS_DIED:
+      case STOP_COMMAND_FAILED:
+      case STILL_PROFILING_AFTER_STOP:
+      case CANNOT_START_WAITING:
+      case WAIT_TIMEOUT:
+      case WAIT_FAILED:
+      case CANNOT_READ_WAIT_EVENT:
+      case CANNOT_COPY_FILE:
+      case CANNOT_FORM_FILE:
+      case CANNOT_READ_FILE:
+        break;
+    }
   }
 
   private void setModelToRecordingNative() {
@@ -305,7 +360,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
                                                                            () -> getSessionData().getStreamId(),
                                                                            () -> getSessionData().getPid(),
                                                                            event -> {
-                                                                             handleHeapDumpStart(event.getMemoryHeapdumpStatus().getStatus());
+                                                                             handleHeapDumpStart(
+                                                                               event.getMemoryHeapdumpStatus().getStatus());
                                                                              // unregisters the listener.
                                                                              return true;
                                                                            });
@@ -313,7 +369,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
       }, getStudioProfilers().getIdeServices().getPoolExecutor());
     }
     else {
-      TriggerHeapDumpResponse response = getClient().triggerHeapDump(TriggerHeapDumpRequest.newBuilder().setSession(getSessionData()).build());
+      TriggerHeapDumpResponse response =
+        getClient().triggerHeapDump(TriggerHeapDumpRequest.newBuilder().setSession(getSessionData()).build());
       handleHeapDumpStart(response.getStatus());
     }
 
@@ -441,15 +498,15 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   }
 
   private void updateNativeAllocationTrackingStatus() {
-    List<Memory.MemoryNativeTrackingData> samples = MemoryProfiler
+    List<Trace.TraceStatusData> samples = MemoryProfiler
       .getNativeHeapStatusForSession(getStudioProfilers().getClient(), getSessionData(), new Range(Long.MIN_VALUE, Long.MAX_VALUE));
     if (samples.isEmpty()) {
       return;
     }
-    Memory.MemoryNativeTrackingData last = samples.get(samples.size() - 1);
+    Trace.TraceStartStatus lastStartStatus = samples.get(samples.size() - 1).getTraceStartStatus();
     // If there is an ongoing recording.
-    if (last.getStatus() == Memory.MemoryNativeTrackingData.Status.SUCCESS) {
-      nativeAllocationTrackingStart(last);
+    if (lastStartStatus.getStatus() == Trace.TraceStartStatus.Status.SUCCESS) {
+      nativeAllocationTrackingStart(lastStartStatus);
     }
   }
 
