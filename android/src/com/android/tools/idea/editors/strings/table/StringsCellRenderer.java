@@ -17,20 +17,41 @@ package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import java.awt.Font;
+import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class StringsCellRenderer extends FrozenColumnTableCellRenderer<StringResourceTableModel> {
+final class StringsCellRenderer extends ColoredTableCellRenderer {
   private static final SimpleTextAttributes CELL_ERROR_ATTRIBUTES = new SimpleTextAttributes(SimpleTextAttributes.STYLE_WAVED, JBColor.red);
 
   @Override
-  void customizeCellRenderer(@NotNull FrozenColumnTable<StringResourceTableModel> table,
-                             @Nullable Object value,
-                             int viewRowIndex,
-                             int viewColumnIndex) {
+  protected void customizeCellRenderer(@NotNull JTable subTable,
+                                       @Nullable Object value,
+                                       boolean selected,
+                                       boolean focusOwner,
+                                       int viewRowIndex,
+                                       int viewColumnIndex) {
+    @SuppressWarnings("unchecked")
+    FrozenColumnTable<StringResourceTableModel> frozenColumnTable = ((SubTable<StringResourceTableModel>)subTable).getFrozenColumnTable();
+
+    JTable frozenTable = frozenColumnTable.getFrozenTable();
+
+    if (subTable == frozenTable) {
+      customizeCellRenderer(frozenColumnTable, value, viewRowIndex, viewColumnIndex);
+      return;
+    }
+
+    customizeCellRenderer(frozenColumnTable, value, viewRowIndex, viewColumnIndex + frozenTable.getColumnCount());
+  }
+
+  private void customizeCellRenderer(@NotNull FrozenColumnTable<StringResourceTableModel> table,
+                                     @Nullable Object value,
+                                     int viewRowIndex,
+                                     int viewColumnIndex) {
     if (!(value instanceof String)) {
       return;
     }
