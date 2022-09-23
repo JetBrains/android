@@ -63,6 +63,7 @@ import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.RenderingHints
+import java.awt.Shape
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
@@ -106,9 +107,9 @@ class DeviceViewContentPanel(
 
   val rootLocation: Point?
     get() {
-      val modelLocation = model.hitRects.firstOrNull()?.bounds?.bounds?.location ?: return null
-      return Point((modelLocation.x * viewSettings.scaleFraction).toInt() + (size.width / 2),
-                   (modelLocation.y * viewSettings.scaleFraction).toInt() + (size.height / 2))
+      val modelCoordinates = model.hitRects.firstOrNull()?.bounds?.bounds?.location ?: return null
+      val panelCoordinates = toPanelCoordinates(modelCoordinates.x, modelCoordinates.y)
+      return Point(panelCoordinates.x.toInt(), panelCoordinates.y.toInt())
     }
 
   /**
@@ -213,12 +214,10 @@ class DeviceViewContentPanel(
         }
       }
 
-      private fun nodeAtPoint(e: MouseEvent) = model.findTopViewAt((e.x - size.width / 2.0) / viewSettings.scaleFraction,
-                                                                 (e.y - size.height / 2.0) / viewSettings.scaleFraction)
-
       override fun mouseClicked(e: MouseEvent) {
         if (e.isConsumed) return
-        val view = nodeAtPoint(e)
+        val modelCoordinates = toModelCoordinates(e.x, e.y)
+        val view = model.findTopViewAt(modelCoordinates.x, modelCoordinates.y)
         inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
         currentClient()?.stats?.selectionMadeFromImage(view)
       }
@@ -284,6 +283,17 @@ class DeviceViewContentPanel(
     return transformedPoint2D
   }
 
+  private fun toPanelCoordinates(x: Int, y: Int): Point2D {
+    val originalPoint2D = Point2D.Double(x.toDouble(), y.toDouble())
+    val transformedPoint2D = Point2D.Double()
+    deviceViewContentPanelTransform.transform(originalPoint2D, transformedPoint2D)
+    return transformedPoint2D
+  }
+
+  private fun toPanelCoordinates(rectangle: Rectangle): Shape {
+    return deviceViewContentPanelTransform.createTransformedShape(rectangle)
+  }
+
   override fun paint(g: Graphics?) {
     val g2d = g as? Graphics2D ?: return
     g2d.setRenderingHints(HQ_RENDERING_HINTS)
@@ -333,10 +343,13 @@ class DeviceViewContentPanel(
         bounds.y -= borderSize + labelHeight
         bounds.width += borderSize * 2
         bounds.height += borderSize * 2 + labelHeight
-        bounds.x = (bounds.x * viewSettings.scaleFraction).toInt() + (size.width / 2)
-        bounds.y = (bounds.y * viewSettings.scaleFraction).toInt() + (size.height / 2)
-        bounds.width = (bounds.width * viewSettings.scaleFraction).toInt()
-        bounds.height = (bounds.height * viewSettings.scaleFraction).toInt()
+
+        val panelBounds = toPanelCoordinates(bounds)
+        bounds.x = panelBounds.bounds.x
+        bounds.y = panelBounds.bounds.y
+        bounds.width = panelBounds.bounds.width
+        bounds.height = panelBounds.bounds.height
+
         scrollRectToVisible(bounds)
       }
     }
