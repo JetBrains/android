@@ -31,6 +31,7 @@ import java.util.List;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class StringResourceTableModel extends AbstractTableModel {
   public static final int KEY_COLUMN = 0;
@@ -40,33 +41,27 @@ public class StringResourceTableModel extends AbstractTableModel {
   public static final int FIXED_COLUMN_COUNT = 4;
 
   private final StringResourceRepository myRepository;
-
+  private final @Nullable Project myProject;
   private final @Nullable StringResourceData myData;
 
   private List<StringResourceKey> myKeys;
   private List<Locale> myLocales;
 
-
-  private final @Nullable Project myProject;
-
-  StringResourceTableModel() {
-    myRepository = StringResourceRepository.empty();
-    myData = null;
-    myProject = null;
-
-    myKeys = Collections.emptyList();
-    myLocales = Collections.emptyList();
+  public StringResourceTableModel(@NotNull StringResourceRepository repository, @NotNull Project project) {
+    this(repository, project, StringResourceData.create(project, repository));
   }
 
-  public StringResourceTableModel(@NotNull StringResourceRepository repository, @NotNull Project project) {
+  StringResourceTableModel() {
+    this(StringResourceRepository.empty(), null, null);
+  }
+
+  @VisibleForTesting
+  StringResourceTableModel(@Nullable StringResourceRepository repository, @Nullable Project project, @Nullable StringResourceData data) {
     myRepository = repository;
     myProject = project;
-
-    StringResourceData data = StringResourceData.create(project, repository);
     myData = data;
-
-    myKeys = data.getKeys();
-    myLocales = data.getLocaleList();
+    myKeys = data == null ? Collections.emptyList() : data.getKeys();
+    myLocales = data == null ? Collections.emptyList() : data.getLocaleList();
   }
 
   @NotNull
