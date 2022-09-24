@@ -59,7 +59,7 @@ public class MultiModuleSearchTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.FAST_BAZEL)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testMultiModuleSearch() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
