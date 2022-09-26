@@ -22,6 +22,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import org.apache.maven.artifact.versioning.ComparableVersion
@@ -41,8 +42,10 @@ class ComposeTracingNavSource @VisibleForTesting internal constructor(
   @VisibleForTesting private val mavenSignatureResolver : (file: PsiFile) -> LibrarySignature?
 ) : NavSource {
   constructor(project: Project) : this(
-    // TODO(b/244437735): find non-deprecated API
-    getFilesByName = { fileName -> FilenameIndex.getFilesByName(project, fileName, GlobalSearchScope.allScope(project)).asList() },
+    getFilesByName = { fileName ->
+      val psiManager = PsiManager.getInstance(project)
+      FilenameIndex.getVirtualFilesByName(fileName, GlobalSearchScope.allScope(project)).mapNotNull { psiManager.findFile(it) }
+    },
     createNavigatable = { files, lineNumber ->
       if (files.isEmpty()) null
       else MultiNavigatable(files.map { OpenFileDescriptor(project, it.virtualFile, lineNumber, -1) })
