@@ -21,7 +21,7 @@ import com.intellij.testFramework.RuleChain
 import org.junit.Rule
 import org.junit.Test
 
-class DeviceViewSettingsTest {
+class RenderSettingsTest {
 
   val projectRule = ProjectRule()
 
@@ -30,7 +30,7 @@ class DeviceViewSettingsTest {
 
   @Test
   fun testInspectorSettingsPersisted() {
-    val settings1 = InspectorDeviceViewSettings()
+    val settings1 = InspectorRenderSettings()
 
     settings1.drawBorders = true
     settings1.drawLabel = false
@@ -38,7 +38,7 @@ class DeviceViewSettingsTest {
     assertThat(settings1.drawBorders).isTrue()
     assertThat(settings1.drawLabel).isFalse()
 
-    val settings2 = InspectorDeviceViewSettings()
+    val settings2 = InspectorRenderSettings()
     assertThat(settings2.drawBorders).isTrue()
     assertThat(settings2.drawLabel).isFalse()
 
@@ -52,14 +52,14 @@ class DeviceViewSettingsTest {
 
   @Test
   fun testEditorSettingsNotPersisted() {
-    val settings1 = EditorDeviceViewSettings()
+    val settings1 = EditorRenderSettings()
     settings1.drawBorders = false
     settings1.drawLabel = false
 
     assertThat(settings1.drawBorders).isFalse()
     assertThat(settings1.drawLabel).isFalse()
 
-    val settings2 = EditorDeviceViewSettings()
+    val settings2 = EditorRenderSettings()
     // settings2 has the default values
     assertThat(settings2.drawBorders).isTrue()
     assertThat(settings2.drawLabel).isTrue()

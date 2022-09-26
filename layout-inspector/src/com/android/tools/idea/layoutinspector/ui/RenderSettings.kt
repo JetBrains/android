@@ -20,7 +20,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.DataKey
 import kotlin.properties.Delegates
 
-val DEVICE_VIEW_SETTINGS_KEY = DataKey.create<DeviceViewSettings>(DeviceViewSettings::class.qualifiedName!!)
+val DEVICE_VIEW_SETTINGS_KEY = DataKey.create<RenderSettings>(RenderSettings::class.qualifiedName!!)
 
 private const val DRAW_BORDERS_KEY = "live.layout.inspector.draw.borders"
 private const val SHOW_LAYOUT_BOUNDS_KEY = "live.layout.inspector.draw.layout"
@@ -28,7 +28,7 @@ private const val DRAW_LABEL_KEY = "live.layout.inspector.draw.label"
 private const val DRAW_FOLD_KEY = "live.layout.inspector.draw.fold"
 private const val HIGHLIGHT_COLOR_KEY = "live.layout.inspector.highlight.color"
 
-interface DeviceViewSettings {
+interface RenderSettings {
   val modificationListeners: MutableList<() -> Unit>
 
   /** Scale of the view in percentage: 100 = 100% */
@@ -49,7 +49,7 @@ interface DeviceViewSettings {
   var highlightColor: Int
 }
 
-class EditorDeviceViewSettings(scalePercent: Int = 100): DeviceViewSettings {
+class EditorRenderSettings(scalePercent: Int = 100): RenderSettings {
   override val modificationListeners = mutableListOf<() -> Unit>()
   override var scalePercent: Int by Delegates.observable(scalePercent) { _, _, _ ->
     modificationListeners.forEach { it() }
@@ -76,7 +76,7 @@ class EditorDeviceViewSettings(scalePercent: Int = 100): DeviceViewSettings {
     set(_) {}
 }
 
-class InspectorDeviceViewSettings(scalePercent: Int = 100): DeviceViewSettings {
+class InspectorRenderSettings(scalePercent: Int = 100): RenderSettings {
   override val modificationListeners = mutableListOf<() -> Unit>()
 
   /** Scale of the view in percentage: 100 = 100% */

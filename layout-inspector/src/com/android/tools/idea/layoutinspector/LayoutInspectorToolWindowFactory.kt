@@ -41,7 +41,7 @@ import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefin
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
-import com.android.tools.idea.layoutinspector.ui.InspectorDeviceViewSettings
+import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.ide.DataManager
@@ -79,7 +79,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
-    val viewSettings = InspectorDeviceViewSettings()
+    val viewSettings = InspectorRenderSettings()
 
     val edtExecutor = EdtExecutorService.getInstance()
 

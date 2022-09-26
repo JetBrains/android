@@ -28,14 +28,14 @@ class DeviceViewSettingsRule : NamedExternalResource() {
   private var origDrawUntransformedBounds = false
 
   override fun before(description: Description) {
-    val settings = InspectorDeviceViewSettings()
+    val settings = InspectorRenderSettings()
     origDrawLabel = settings.drawLabel
     origDrawBorders = settings.drawBorders
     origDrawUntransformedBounds = settings.drawUntransformedBounds
   }
 
   override fun after(description: Description) {
-    val settings = InspectorDeviceViewSettings()
+    val settings = InspectorRenderSettings()
     settings.drawLabel = origDrawLabel
     settings.drawBorders = origDrawBorders
     settings.drawUntransformedBounds = origDrawUntransformedBounds

@@ -93,7 +93,7 @@ class DeviceViewContentPanel(
   val inspectorModel: InspectorModel,
   val deviceModel: DeviceModel?,
   val treeSettings: TreeSettings,
-  val viewSettings: DeviceViewSettings,
+  val renderSettings: RenderSettings,
   val currentClient: () -> InspectorClient?,
   val pannable: Pannable,
   @VisibleForTesting val selectTargetAction: DropDownActionWithButton?,
@@ -119,7 +119,7 @@ class DeviceViewContentPanel(
     get() {
       return AffineTransform().apply {
         translate(size.width / 2.0, size.height / 2.0)
-        scale(viewSettings.scaleFraction, viewSettings.scaleFraction)
+        scale(renderSettings.scaleFraction, renderSettings.scaleFraction)
       }
     }
 
@@ -242,7 +242,7 @@ class DeviceViewContentPanel(
       }
     })
 
-    viewSettings.modificationListeners.add { repaint() }
+    renderSettings.modificationListeners.add { repaint() }
     // If we get three consecutive pictures where SKPs aren't needed, reset to bitmap.
     var toResetCount = 0
     inspectorModel.modificationListeners.add { _, _, _ ->
@@ -257,7 +257,7 @@ class DeviceViewContentPanel(
         if (toResetCount++ > FRAMES_BEFORE_RESET_TO_BITMAP) {
           toResetCount = 0
           // Be sure to reset the scale as well, since if we were previously paused the scale will be set to 1.
-          currentClient.updateScreenshotType(AndroidWindow.ImageType.BITMAP_AS_REQUESTED, viewSettings.scaleFraction.toFloat())
+          currentClient.updateScreenshotType(AndroidWindow.ImageType.BITMAP_AS_REQUESTED, renderSettings.scaleFraction.toFloat())
         }
       }
       else {
@@ -322,8 +322,8 @@ class DeviceViewContentPanel(
       renderModel.isRotated -> Pair(renderModel.maxWidth * 2, renderModel.maxHeight * 2)
       else -> inspectorModel.root.transitiveBounds.run { Pair(width, height) }
     }
-    return Dimension((desiredWidth * viewSettings.scaleFraction).toInt() + JBUIScale.scale(MARGIN) * 2,
-                     (desiredHeight * viewSettings.scaleFraction).toInt() + JBUIScale.scale(MARGIN) * 2)
+    return Dimension((desiredWidth * renderSettings.scaleFraction).toInt() + JBUIScale.scale(MARGIN) * 2,
+                     (desiredHeight * renderSettings.scaleFraction).toInt() + JBUIScale.scale(MARGIN) * 2)
   }
 
   private fun autoScrollAndRepaint(origin: SelectionOrigin) {
@@ -333,11 +333,11 @@ class DeviceViewContentPanel(
       val bounds = Rectangle()
       hits.forEach { if (bounds.isEmpty) bounds.bounds = it.bounds.bounds else bounds.add(it.bounds.bounds) }
       if (!bounds.isEmpty) {
-        val font = StartupUiUtil.getLabelFont().deriveFont(getLabelFontSize(viewSettings.scaleFraction))
+        val font = StartupUiUtil.getLabelFont().deriveFont(getLabelFontSize(renderSettings.scaleFraction))
         val fontMetrics = getFontMetrics(font)
         val textWidth = fontMetrics.stringWidth(selection.unqualifiedName)
-        val labelHeight = getDrawNodeLabelHeight(viewSettings.scaleFraction).toInt()
-        val borderSize = getEmphasizedBorderOutlineThickness(viewSettings.scaleFraction).toInt() / 2
+        val labelHeight = getDrawNodeLabelHeight(renderSettings.scaleFraction).toInt()
+        val borderSize = getEmphasizedBorderOutlineThickness(renderSettings.scaleFraction).toInt() / 2
         bounds.width = kotlin.math.max(bounds.width, textWidth)
         bounds.x -= borderSize
         bounds.y -= borderSize + labelHeight
@@ -366,15 +366,15 @@ class DeviceViewContentPanel(
     g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
 
     if (!drawInfo.isCollapsed &&
-        (viewSettings.drawBorders || viewSettings.drawUntransformedBounds || view == selection || view == hoveredNode ||
+        (renderSettings.drawBorders || renderSettings.drawUntransformedBounds || view == selection || view == hoveredNode ||
          (treeSettings.showRecompositions &&
           (view as? ComposeViewNode)?.recompositions?.hasHighlight == true &&
           inspectorModel.maxHighlight != 0f)
         )
     ) {
-      drawView.paintBorder(g2, view == selection, view == hoveredNode, inspectorModel, viewSettings, treeSettings)
+      drawView.paintBorder(g2, view == selection, view == hoveredNode, inspectorModel, renderSettings, treeSettings)
     }
-    if (viewSettings.drawFold && renderModel.hitRects.isNotEmpty() && (
+    if (renderSettings.drawFold && renderModel.hitRects.isNotEmpty() && (
         // nothing is selected or hovered: draw on the root
         (renderModel.hoveredDrawInfo == null && inspectorModel.selection == null && drawInfo == renderModel.hitRects.first()) ||
         // We're hovering over this node
@@ -388,7 +388,7 @@ class DeviceViewContentPanel(
 
   private fun drawFold(g2: Graphics2D) {
     g2.color = Color(255, 0, 255)
-    g2.stroke = getFoldStroke(viewSettings.scaleFraction)
+    g2.stroke = getFoldStroke(renderSettings.scaleFraction)
     val foldInfo = inspectorModel.foldInfo ?: return
     val maxWidth = inspectorModel.windows.values.map { it.width }.maxOrNull() ?: 0
     val maxHeight = inspectorModel.windows.values.map { it.height }.maxOrNull() ?: 0

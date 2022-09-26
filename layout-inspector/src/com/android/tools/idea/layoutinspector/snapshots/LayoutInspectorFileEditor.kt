@@ -31,7 +31,7 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
-import com.android.tools.idea.layoutinspector.ui.EditorDeviceViewSettings
+import com.android.tools.idea.layoutinspector.ui.EditorRenderSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.SNAPSHOT_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
@@ -88,7 +88,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
     val startTime = System.currentTimeMillis()
     var metadata: SnapshotMetadata? = null
     try {
-      val viewSettings = EditorDeviceViewSettings()
+      val viewSettings = EditorRenderSettings()
 
       val contentPanel = JPanel(BorderLayout())
       contentPanel.add(InspectorBanner(project), BorderLayout.NORTH)

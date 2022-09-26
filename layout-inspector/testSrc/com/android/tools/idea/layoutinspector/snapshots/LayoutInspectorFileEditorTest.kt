@@ -26,7 +26,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
-import com.android.tools.idea.layoutinspector.ui.EditorDeviceViewSettings
+import com.android.tools.idea.layoutinspector.ui.EditorRenderSettings
 import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.ComponentUtil
 import com.google.common.truth.Truth.assertThat
@@ -85,8 +85,8 @@ class LayoutInspectorFileEditorTest {
     )
     Disposer.register(disposableRule.disposable, editor)
     val editorComponent = editor.component
-    val settings = ComponentUtil.flatten(editorComponent).firstIsInstance<DeviceViewContentPanel>().viewSettings
-    assertThat(settings).isInstanceOf(EditorDeviceViewSettings::class.java)
+    val settings = ComponentUtil.flatten(editorComponent).firstIsInstance<DeviceViewContentPanel>().renderSettings
+    assertThat(settings).isInstanceOf(EditorRenderSettings::class.java)
 
     val inspector = DataManager.getDataProvider(ComponentUtil.flatten(editorComponent).firstIsInstance<WorkBench<*>>())?.getData(
       LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
@@ -102,8 +102,8 @@ class LayoutInspectorFileEditorTest {
     )
     Disposer.register(disposableRule.disposable, editor)
     val editorComponent = editor.component
-    val settings = ComponentUtil.flatten(editorComponent).firstIsInstance<DeviceViewContentPanel>().viewSettings
-    assertThat(settings).isInstanceOf(EditorDeviceViewSettings::class.java)
+    val settings = ComponentUtil.flatten(editorComponent).firstIsInstance<DeviceViewContentPanel>().renderSettings
+    assertThat(settings).isInstanceOf(EditorRenderSettings::class.java)
 
     val inspector = DataManager.getDataProvider(ComponentUtil.flatten(editorComponent).firstIsInstance<WorkBench<*>>())?.getData(
       LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector

@@ -119,7 +119,7 @@ class DeviceViewPanel(
   onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
   val onStopInspector: () -> Unit,
   private val layoutInspector: LayoutInspector,
-  private val viewSettings: DeviceViewSettings,
+  private val viewSettings: RenderSettings,
   disposableParent: Disposable,
   @TestOnly private val backgroundExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
 ) : JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
@@ -190,7 +190,7 @@ class DeviceViewPanel(
     inspectorModel = layoutInspector.layoutInspectorModel,
     deviceModel = deviceModel,
     treeSettings = layoutInspector.treeSettings,
-    viewSettings = viewSettings,
+    renderSettings = viewSettings,
     currentClient = { layoutInspector.currentClient },
     pannable = this,
     selectTargetAction = targetSelectedAction,

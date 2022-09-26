@@ -61,7 +61,7 @@ class ViewMenuActionTest {
     .around(SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true))
 
   private val treeSettings = FakeTreeSettings().apply { showRecompositions = true }
-  private val viewSettings = FakeDeviceViewSettings()
+  private val viewSettings = FakeRenderSettings()
   private val capabilities = EnumSet.noneOf(Capability::class.java).apply { add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) }
   private var isConnected = true
 
@@ -154,7 +154,7 @@ class ViewMenuActionTest {
   }
 }
 
-class FakeDeviceViewSettings: DeviceViewSettings {
+class FakeRenderSettings: RenderSettings {
   override val modificationListeners = mutableListOf<() -> Unit>()
   override var scalePercent = 100
   override var drawBorders = true

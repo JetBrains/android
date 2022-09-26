@@ -32,7 +32,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspecti
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
-import com.android.tools.idea.layoutinspector.ui.InspectorDeviceViewSettings
+import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
 import com.android.tools.idea.layoutinspector.util.ComponentUtil
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -251,7 +251,7 @@ class LayoutInspectorToolWindowFactoryTest {
       LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
     assertThat(inspector.treeSettings).isInstanceOf(InspectorTreeSettings::class.java)
     val contentPanel = ComponentUtil.flatten(component).firstIsInstance<DeviceViewContentPanel>()
-    assertThat(contentPanel.viewSettings).isInstanceOf(InspectorDeviceViewSettings::class.java)
+    assertThat(contentPanel.renderSettings).isInstanceOf(InspectorRenderSettings::class.java)
   }
 }
 

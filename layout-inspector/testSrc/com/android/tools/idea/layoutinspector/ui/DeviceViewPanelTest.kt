@@ -181,7 +181,7 @@ class DeviceViewPanelWithFullInspectorTest {
     connect(MODERN_PROCESS)
     assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
 
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
         deviceModel,
         inspectorRule.processes,
@@ -248,7 +248,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() {
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         deviceModel,
@@ -272,7 +272,7 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testLiveControlEnabledAndNotSetInSnapshotModeWhenDisconnected() {
     InspectorClientSettings.isCapturingModeOn = false
 
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         deviceModel,
@@ -299,7 +299,7 @@ class DeviceViewPanelWithFullInspectorTest {
     connect(MODERN_PROCESS)
     assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
 
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         deviceModel,
@@ -330,7 +330,7 @@ class DeviceViewPanelWithFullInspectorTest {
     latch = CountDownLatch(1)
     connect(MODERN_PROCESS)
     assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         deviceModel,
@@ -360,7 +360,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
     val stats = inspectorRule.inspector.currentClient.stats
     stats.currentModeIsLive = true
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         deviceModel,
@@ -395,7 +395,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
     val stats = inspectorRule.inspector.currentClient.stats
     stats.currentModeIsLive = false
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         deviceModel,
@@ -434,7 +434,7 @@ class DeviceViewPanelWithFullInspectorTest {
     val stats = inspectorRule.inspector.currentClient.stats
     stats.currentModeIsLive = true
     latch = CountDownLatch(2)
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         deviceModel,
@@ -478,7 +478,7 @@ class DeviceViewPanelWithFullInspectorTest {
     stats.currentModeIsLive = false
 
     latch = CountDownLatch(1)
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         deviceModel,
@@ -519,7 +519,7 @@ class DeviceViewPanelWithFullInspectorTest {
       latch.await(20, TimeUnit.SECONDS)
       inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
     }
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
       deviceModel,
       inspectorRule.processes,
@@ -557,7 +557,7 @@ class DeviceViewPanelWithFullInspectorTest {
       latch.await(5, TimeUnit.HOURS)
       inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
     }
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
       deviceModel,
       inspectorRule.processes,
@@ -604,7 +604,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testSelectProcessDropDown() {
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
       deviceModel,
       inspectorRule.processes,
@@ -690,7 +690,7 @@ class DeviceViewPanelWithFullInspectorTest {
       {},
       {},
       inspectorRule.inspector,
-      FakeDeviceViewSettings(),
+      FakeRenderSettings(),
       projectRule.fixture.testRootDisposable
     )
     delegateDataProvider(panel)
@@ -776,7 +776,7 @@ class DeviceViewPanelTest {
 
   @Test
   fun testZoomOnConnect() {
-    val viewSettings = EditorDeviceViewSettings()
+    val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
@@ -827,7 +827,7 @@ class DeviceViewPanelTest {
 
   @Test
   fun testZoomOnConnectWithFiltering() {
-    val viewSettings = EditorDeviceViewSettings()
+    val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
@@ -865,7 +865,7 @@ class DeviceViewPanelTest {
 
   @Test
   fun testZoomOnConnectWithFilteringAndScreenSizeFromAppContext() {
-    val viewSettings = EditorDeviceViewSettings()
+    val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
@@ -904,7 +904,7 @@ class DeviceViewPanelTest {
 
   @Test
   fun testDrawNewWindow() {
-    val viewSettings = EditorDeviceViewSettings()
+    val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
@@ -952,7 +952,7 @@ class DeviceViewPanelTest {
 
   @Test
   fun testNewWindowDoesntResetZoom() {
-    val viewSettings = EditorDeviceViewSettings()
+    val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
@@ -1010,7 +1010,7 @@ class DeviceViewPanelTest {
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
       DeviceModel(processes),
       processes,
@@ -1069,7 +1069,7 @@ class DeviceViewPanelTest {
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
       DeviceModel(processes),
       processes,
@@ -1148,7 +1148,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
 
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         DeviceModel(inspectorRule.processes),
@@ -1173,7 +1173,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
 
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         DeviceModel(inspectorRule.processes),
@@ -1381,7 +1381,7 @@ class DeviceViewPanelWithNoClientsTest {
   fun testLoadingPane() {
     inspectorRule.startLaunch(4)
     inspectorRule.launchSynchronously = false
-    val settings = EditorDeviceViewSettings()
+    val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
       DeviceModel(inspectorRule.processes),
       inspectorRule.processes,
@@ -1420,7 +1420,7 @@ class DeviceViewPanelWithNoClientsTest {
       {},
       {},
       inspectorRule.inspector,
-      EditorDeviceViewSettings(),
+      EditorRenderSettings(),
       projectRule.fixture.testRootDisposable,
     )
 

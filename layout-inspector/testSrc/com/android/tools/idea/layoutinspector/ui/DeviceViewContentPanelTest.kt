@@ -146,7 +146,7 @@ class DeviceViewContentPanelTest {
     }
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.scalePercent = 30
     settings.drawLabel = false
 
@@ -181,7 +181,7 @@ class DeviceViewContentPanelTest {
     }
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(120, 200, TYPE_INT_ARGB)
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
@@ -294,7 +294,7 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(130, 250, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = EditorDeviceViewSettings(scalePercent = 100)
+    val settings = EditorRenderSettings(scalePercent = 100)
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
@@ -361,7 +361,7 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(40, 60, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
@@ -406,7 +406,7 @@ class DeviceViewContentPanelTest {
     model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeDeviceViewSettings(), { mock() }, mock(), null, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeRenderSettings(), { mock() }, mock(), null, disposable.disposable)
     panel.setSize(10, 15)
     panel.renderModel.rotate(-1.0, -1.0)
 
@@ -431,7 +431,7 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(1000, 1500, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
@@ -462,7 +462,7 @@ class DeviceViewContentPanelTest {
       }
     }
 
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
@@ -510,7 +510,7 @@ class DeviceViewContentPanelTest {
         }
       }
     }
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
@@ -543,7 +543,7 @@ class DeviceViewContentPanelTest {
         }
       }
     }
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
@@ -577,7 +577,7 @@ class DeviceViewContentPanelTest {
         }
       }
     }
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
@@ -605,7 +605,7 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testEmptyTextVisibility() {
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.drawLabel = false
     val model = model {}
     val launcher: InspectorClientLauncher = mock()
@@ -664,7 +664,7 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
@@ -708,7 +708,7 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
@@ -748,7 +748,7 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(350, 450, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.scalePercent = 50
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
@@ -832,7 +832,7 @@ class DeviceViewContentPanelTest {
 
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeDeviceViewSettings(), { mock() }, mock(), null, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeRenderSettings(), { mock() }, mock(), null, disposable.disposable)
     panel.setSize(120, 140)
 
     panel.paint(graphics)
@@ -870,7 +870,7 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(350, 450, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.scalePercent = 50
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
@@ -916,7 +916,7 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
 
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.scalePercent = 50
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
@@ -978,7 +978,7 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
 
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.scalePercent = 75
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
@@ -1012,7 +1012,7 @@ class DeviceViewContentPanelTest {
     val view1 = model[VIEW1]
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeDeviceViewSettings(), { mock() }, mock(), null, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeRenderSettings(), { mock() }, mock(), null, disposable.disposable)
     val scrollPane = JBScrollPane(panel)
     panel.setBounds(0, 0, 1000, 1000)
     scrollPane.setBounds(0, 0, 200, 200)
@@ -1082,7 +1082,7 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(350, 450, TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.scalePercent = 50
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
@@ -1108,7 +1108,7 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(90, 70, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
@@ -1138,7 +1138,7 @@ class DeviceViewContentPanelTest {
       }
     }
 
-    val settings = FakeDeviceViewSettings()
+    val settings = FakeRenderSettings()
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
@@ -1183,7 +1183,7 @@ class DeviceViewContentPanelWithScaledFontTest {
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val model = model {}
-    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeDeviceViewSettings(), { mock() }, mock(), mock(),
+    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeRenderSettings(), { mock() }, mock(), mock(),
                                        disposable.disposable)
     panel.setSize(800, 400)
     @Suppress("UndesirableClassUsage")
