@@ -582,29 +582,6 @@ public class AndroidGradleTests {
     }
   }
 
-
-  /**
-   * Imports {@code project}, syncs the project and checks the result.
-   */
-  public static void importProject(@NotNull Project project) throws Exception {
-    importProject(project, GradleSyncInvoker.Request.testRequest());
-  }
-
-  /**
-   * Imports {@code project}, syncs the project and checks the result.
-   */
-  public static void importProject(
-    @NotNull Project project,
-    @NotNull GradleSyncInvoker.Request syncRequest) throws Exception {
-    EdtTestUtil.runInEdtAndWait(() -> {
-      GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
-      GradleProjectImporter.configureNewProject(project);
-      GradleProjectImporter.getInstance().importProjectNoSync(request);
-      syncProject(project, syncRequest, it -> AndroidGradleTests.checkSyncStatus(project, it));
-    });
-    AndroidTestBase.refreshProjectFiles();
-  }
-
   public static void prepareProjectForImportCore(@NotNull File srcRoot,
                                                  @NotNull File projectRoot,
                                                  @NotNull ThrowableConsumer<File, IOException> patcher)

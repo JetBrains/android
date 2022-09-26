@@ -65,7 +65,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
         forceOpenInNewFrame = forceOpenInNewFrame,
         projectToClose = projectToClose,
         beforeOpen = {
-          gradleImporter.beforeOpen(it)
+          GradleProjectImporter.beforeOpen(it)
           true
         },
       )

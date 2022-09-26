@@ -182,13 +182,8 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         )
       ) ?: throw NullPointerException("Failed to create a new project")
       configureNewProject(newProject)
-      beforeOpen(newProject)
       return newProject
     }
-  }
-
-  internal fun beforeOpen(project: Project) {
-    ApplicationManager.getApplication().getUserData(AFTER_CREATE)?.invoke(project)
   }
 
   class Request(@JvmField val project: Project) {
@@ -208,6 +203,10 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
 
     @JvmStatic
     fun getInstance(): GradleProjectImporter = ApplicationManager.getApplication().getService(GradleProjectImporter::class.java)
+
+    internal fun beforeOpen(project: Project) {
+      ApplicationManager.getApplication().getUserData(AFTER_CREATE)?.invoke(project)
+    }
 
     @VisibleForTesting
     @JvmStatic
@@ -232,6 +231,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
           ProjectRootManager.getInstance(newProject).projectSdk = jdk
         }
       }
+      beforeOpen(newProject)
     }
 
     private fun silenceUnlinkedGradleProjectNotificationIfNecessary(newProject: Project) {

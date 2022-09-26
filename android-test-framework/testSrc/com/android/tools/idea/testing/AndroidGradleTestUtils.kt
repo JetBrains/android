@@ -1917,19 +1917,18 @@ fun GradleIntegrationTest.prepareGradleProject(
 
   return prepareGradleProject(
     testProjectAbsolutePath,
+    agpVersion.resolve(),
     additionalRepositories,
     name,
-    agpVersion,
     ndkVersion
   )
 }
 
-@JvmOverloads
 internal fun IntegrationTestEnvironment.prepareGradleProject(
   testProjectAbsolutePath: File,
+  resolvedAgpVersion: ResolvedAgpVersionSoftwareEnvironment,
   additionalRepositories: Collection<File>,
   name: String,
-  agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
   ndkVersion: String?
 ): File {
   val projectPath = nameToPath(name)
@@ -1941,7 +1940,7 @@ internal fun IntegrationTestEnvironment.prepareGradleProject(
   ) { projectRoot ->
     AndroidGradleTests.defaultPatchPreparedProject(
       projectRoot,
-      agpVersion.resolve(),
+      resolvedAgpVersion,
       ndkVersion,
       *additionalRepositories.toTypedArray()
     )

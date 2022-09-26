@@ -89,19 +89,13 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
     agpVersion: AgpVersionSoftwareEnvironment = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
     ndkVersion: String? = null,
     preLoad: ((projectRoot: File) -> Unit)? = null
-  ) {
-    if (preLoad != null) {
-      val rootFile = delegateTestCase.prepareProjectForImport(projectPath, agpVersion, ndkVersion)
-
-      preLoad(rootFile)
-      delegateTestCase.importProject()
-      delegateTestCase.prepareProjectForTest(project, null)
-    }
-    else {
-      delegateTestCase.loadProject(
-        projectPath, null, agpVersion, ndkVersion)
-    }
-  }
+  ) = loadProject(
+    projectPath = projectPath,
+    chosenModuleName = null,
+    agpVersion = agpVersion,
+    ndkVersion = ndkVersion,
+    preLoad = preLoad
+  )
 
   /**
    * Triggers loading the target Android Gradle project. Be sure to call [fixture]'s
@@ -117,10 +111,20 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
   fun loadProject(
     projectPath: String,
     chosenModuleName: String? = null,
-    agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
-    ndkVersion: String? = null
+    agpVersion: AgpVersionSoftwareEnvironment = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+    ndkVersion: String? = null,
+    preLoad: ((projectRoot: File) -> Unit)? = null
   ) {
-      delegateTestCase.loadProject(projectPath, chosenModuleName, agpVersion, ndkVersion)
+    val resolvedAgpVersion = agpVersion.resolve()
+    if (preLoad != null) {
+      val rootFile = delegateTestCase.prepareProjectForImport(projectPath, resolvedAgpVersion, ndkVersion)
+
+      preLoad(rootFile)
+      delegateTestCase.importProject()
+      delegateTestCase.prepareProjectForTest(project, chosenModuleName)
+    } else {
+      delegateTestCase.loadProject(projectPath, chosenModuleName, resolvedAgpVersion, ndkVersion)
+    }
   }
 
   fun requestSyncAndWait() {

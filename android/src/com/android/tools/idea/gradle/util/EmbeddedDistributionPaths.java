@@ -179,17 +179,7 @@ public class EmbeddedDistributionPaths {
 
       // Development build.
       String embeddedJdkPath = System.getProperty("embedded.jdk.path", "prebuilts/studio/jdk/jdk11").trim();
-      Path jdkRootPath = StudioPathManager.resolvePathFromSourcesRoot(embeddedJdkPath);
-      if (SystemInfo.isWindows) {
-        jdkRootPath = jdkRootPath.resolve("win");
-      }
-      else if (SystemInfo.isLinux) {
-        jdkRootPath = jdkRootPath.resolve("linux");
-      }
-      else if (SystemInfo.isMac) {
-        jdkRootPath = jdkRootPath.resolve("mac");
-      }
-      Path jdkDir = getSystemSpecificJdkPath(jdkRootPath);
+      Path jdkDir = getJdkRootPathFromSourcesRoot(embeddedJdkPath);
 
       // Resolve real path
       //
@@ -211,6 +201,22 @@ public class EmbeddedDistributionPaths {
       Path jdkRootPath = Paths.get(ideHomePath, "jbr");
       return getSystemSpecificJdkPath(jdkRootPath);
     }
+  }
+
+  @NotNull
+  public static Path getJdkRootPathFromSourcesRoot(String embeddedJdkPath) {
+    Path jdkRootPath = StudioPathManager.resolvePathFromSourcesRoot(embeddedJdkPath);
+    if (SystemInfo.isWindows) {
+      jdkRootPath = jdkRootPath.resolve("win");
+    }
+    else if (SystemInfo.isLinux) {
+      jdkRootPath = jdkRootPath.resolve("linux");
+    }
+    else if (SystemInfo.isMac) {
+      jdkRootPath = jdkRootPath.resolve("mac");
+    }
+    Path jdkDir = getSystemSpecificJdkPath(jdkRootPath);
+    return jdkDir;
   }
 
   @NotNull

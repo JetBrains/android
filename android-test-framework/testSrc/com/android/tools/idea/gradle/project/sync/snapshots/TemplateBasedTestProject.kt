@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.switchVariant
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
@@ -79,11 +80,12 @@ interface TemplateBasedTestProject : TestProjectDefinition {
     agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
     ndkVersion: String?
   ): PreparedTestProject {
+    val resolvedAgpVersion = agpVersion.resolve()
     val root = integrationTestEnvironment.prepareGradleProject(
       templateAbsolutePath,
+      resolvedAgpVersion,
       additionalRepositories,
       name,
-      agpVersion,
       ndkVersion = ndkVersion
     )
     if (autoMigratePackageAttribute && agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80) {

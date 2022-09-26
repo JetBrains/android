@@ -346,8 +346,6 @@ private fun skipTest(message: String): Nothing {
   error(message)
 }
 
-class CurrentAgpV2 : SyncedProjectTest(agpVersion = AGP_CURRENT)
-
 @Ignore
 @Suppress("UnconstructableJUnitTestCase")
 private class AllTestsForSelfChecks : SyncedProjectTest(selfTest = true, AGP_CURRENT)
