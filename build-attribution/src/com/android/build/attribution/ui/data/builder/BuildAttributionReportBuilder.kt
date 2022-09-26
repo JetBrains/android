@@ -33,7 +33,6 @@ import com.android.build.attribution.ui.data.IssueLevel
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.displayName
 import com.android.build.attribution.ui.getLink
-import com.android.build.attribution.ui.getTaskCategoryDescription
 import com.android.build.attribution.ui.getWarningMessage
 import com.android.ide.common.attribution.BuildAnalyzerTaskCategoryIssue
 import com.android.ide.common.attribution.IssueSeverity
@@ -170,7 +169,7 @@ class BuildAttributionReportBuilder(
     override val warningCount = issues.sumBy { it.warningCount }
     override val infoCount = issues.sumBy { it.infoCount }
     override val taskCategoryDescription: String
-      get() = taskCategoryCriticalPathBuildData.taskCategory.getTaskCategoryDescription()
+      get() = taskCategoryCriticalPathBuildData.taskCategory.description
     override val taskCategoryWarnings = buildAnalyzerTaskCategoryIssues.filter{ it.severity == IssueSeverity.WARNING }.map{
       BuildAnalyzerTaskCategoryIssueUiData (it, it.getWarningMessage(nonIncrementalAnnotationProcessors), it.getLink())
     }

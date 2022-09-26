@@ -135,7 +135,7 @@ class MockUiData(
     override val warningCount = tasks.count { it.hasWarning }
     override val infoCount = tasks.count { it.hasInfo }
     override val taskCategoryDescription: String
-      get() = taskCategory.getTaskCategoryDescription()
+      get() = taskCategory.description
     override val taskCategoryWarnings: List<BuildAnalyzerTaskCategoryIssueUiData>
       get() = if (createTaskCategoryWarning)
         listOf(BuildAnalyzerTaskCategoryIssueUiData(BuildAnalyzerTaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED, "test", BuildAnalyzerBrowserLinks.NON_TRANSITIVE_R_CLASS))
