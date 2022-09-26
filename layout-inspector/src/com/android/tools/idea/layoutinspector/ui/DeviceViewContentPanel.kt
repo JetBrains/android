@@ -338,6 +338,11 @@ class DeviceViewContentPanel(
     }
   }
 
+
+  /**
+   * Change the panel size with the size of what is being rendered.
+   * This makes sure that when the render is too big to be entirely visible, the panel expands and scrollbars are shown.
+   */
   override fun getPreferredSize(): Dimension {
     val (desiredWidth, desiredHeight) = when {
       inspectorModel.isEmpty -> Pair(0, 0)
