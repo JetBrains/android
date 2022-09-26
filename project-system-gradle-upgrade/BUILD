@@ -143,6 +143,7 @@ old_agp_test(
     timeout = "long",
     agp_version = AGP_4_0,
     data = [
+        "//prebuilts/studio/jdk:jdk11",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/project-system-gradle-upgrade/testData",
         "//tools/base/build-system:gradle-distrib-6.1.1",
@@ -170,6 +171,7 @@ old_agp_test(
     timeout = "long",
     agp_version = AGP_4_1,
     data = [
+        "//prebuilts/studio/jdk:jdk11",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/project-system-gradle-upgrade/testData",
         "//tools/base/build-system:gradle-distrib-6.5",
@@ -197,6 +199,7 @@ old_agp_test(
     timeout = "long",
     agp_version = AGP_4_2,
     data = [
+        "//prebuilts/studio/jdk:jdk11",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/project-system-gradle-upgrade/testData",
         "//tools/base/build-system:gradle-distrib-6.7.1",
@@ -224,6 +227,7 @@ old_agp_test(
     timeout = "long",
     agp_version = AGP_7_0,
     data = [
+        "//prebuilts/studio/jdk:jdk11",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData:snapshots",
         "//tools/adt/idea/project-system-gradle-upgrade/testData",

@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.ALL_DEPRECATIONS
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.BASIC
 import com.android.utils.FileUtils
+import com.intellij.openapi.projectRoots.JavaSdkVersion
 
 /**
  * List of projects available for integration tests.
@@ -58,14 +59,15 @@ enum class TestProject(
 enum class TestAGPVersion(
   val agpVersion: String?,
   val gradleVersion: CompatibleGradleVersion,
+  val jdkVersion: JavaSdkVersion? = null,
   val kotlinVersion: String = "1.3.72",
 ) {
-  V_4_0("4.0.0", CompatibleGradleVersion.VERSION_6_1_1),
-  V_4_1("4.1.0", CompatibleGradleVersion.VERSION_6_5),
-  V_4_2("4.2.0", CompatibleGradleVersion.VERSION_6_7_1),
-  V_7_0("7.0.0", CompatibleGradleVersion.VERSION_7_0_2),
+  V_4_0("4.0.0", CompatibleGradleVersion.VERSION_6_1_1, jdkVersion = JavaSdkVersion.JDK_11),
+  V_4_1("4.1.0", CompatibleGradleVersion.VERSION_6_5, jdkVersion = JavaSdkVersion.JDK_11),
+  V_4_2("4.2.0", CompatibleGradleVersion.VERSION_6_7_1, jdkVersion = JavaSdkVersion.JDK_11),
+  V_7_0("7.0.0", CompatibleGradleVersion.VERSION_7_0_2, jdkVersion = JavaSdkVersion.JDK_11),
   V_7_1("7.1.0", CompatibleGradleVersion.VERSION_7_2),
-  LATEST(null, CompatibleGradleVersion.VERSION_FOR_DEV, "1.6.21"),
+  LATEST(null, CompatibleGradleVersion.VERSION_FOR_DEV, kotlinVersion = "1.6.21"),
 }
 
 /**

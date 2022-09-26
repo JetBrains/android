@@ -220,10 +220,16 @@ open class ProjectsUpgradeTestBase {
     agpGradleVersion()
   ).version.toString()
 
+  private fun AUATestProjectState.jdkVersion() = version.jdkVersion
   private fun AUATestProjectState.kotlinVersion() = version.kotlinVersion
 
   private fun AUATestProjectState.agpVersionDef(): AgpVersionSoftwareEnvironment =
-    CustomAgpVersionSoftwareEnvironment(agpVersion = agpVersion(), gradleVersion = gradleVersion(), kotlinVersion = kotlinVersion())
+    CustomAgpVersionSoftwareEnvironment(
+      agpVersion = agpVersion(),
+      gradleVersion = gradleVersion(),
+      jdkVersion = jdkVersion(),
+      kotlinVersion = kotlinVersion()
+    )
 
   private fun AUATestProjectState.ndkVersion(): String? = null
 }
