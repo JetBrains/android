@@ -43,7 +43,6 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
-import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
@@ -152,6 +151,7 @@ DONE.
     assertThat(root.layoutBounds.y).isEqualTo(0)
     assertThat(root.layoutBounds.width).isEqualTo(1080)
     assertThat(root.layoutBounds.height).isEqualTo(1920)
+    assertThat(root.renderBounds).isSameAs(root.layoutBounds)
     assertThat(root.viewId).isNull()
     assertThat(printTree(root).trim()).isEqualTo("""
           0x41673e3
