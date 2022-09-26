@@ -23,13 +23,10 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.ComposeViewNode
-import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.getDrawNodeLabelHeight
 import com.android.tools.idea.layoutinspector.model.getEmphasizedBorderOutlineThickness
-import com.android.tools.idea.layoutinspector.model.getFoldStroke
 import com.android.tools.idea.layoutinspector.model.getLabelFontSize
 import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -46,46 +43,30 @@ import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.ui.GotItTooltip
-import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.scale.JBUIScale
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.StatusText
-import icons.StudioIcons
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.AlphaComposite
-import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.Rectangle
-import java.awt.RenderingHints
 import java.awt.Shape
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.geom.AffineTransform
-import java.awt.geom.Line2D
 import java.awt.geom.Point2D
 import javax.swing.JComponent
 
 private const val MARGIN = 50
 
 private const val FRAMES_BEFORE_RESET_TO_BITMAP = 3
-
-private val HQ_RENDERING_HINTS = mapOf(
-  RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
-  RenderingHints.KEY_TEXT_ANTIALIASING to RenderingHints.VALUE_TEXT_ANTIALIAS_ON,
-  RenderingHints.KEY_FRACTIONALMETRICS to RenderingHints.VALUE_FRACTIONALMETRICS_ON,
-  RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY,
-  RenderingHints.KEY_INTERPOLATION to RenderingHints.VALUE_INTERPOLATION_BILINEAR,
-  RenderingHints.KEY_STROKE_CONTROL to RenderingHints.VALUE_STROKE_PURE
-)
 
 // We use a generic DropDownAction container because actions can be [SelectDeviceAction] or [SelectProcessAction].
 data class DropDownActionWithButton(val dropDownAction: DropDownAction, val getButton: () -> JComponent?)
@@ -105,6 +86,7 @@ class DeviceViewContentPanel(
 ) : AdtPrimaryPanel() {
 
   val renderModel = RenderModel(inspectorModel, treeSettings, currentClient)
+  val renderLogic = RenderLogic(renderModel, renderSettings)
 
   @get:VisibleForTesting
   val showEmptyText get() = !renderModel.isActive && !isLoading() && deviceModel?.selectedDevice == null
@@ -318,7 +300,6 @@ class DeviceViewContentPanel(
 
   override fun paint(g: Graphics?) {
     val g2d = g as? Graphics2D ?: return
-    g2d.setRenderingHints(HQ_RENDERING_HINTS)
     g2d.color = primaryPanelBackground
     g2d.fillRect(0, 0, width, height)
 
@@ -328,16 +309,10 @@ class DeviceViewContentPanel(
 
     g2d.transform = g2d.transform.apply { concatenate(deviceViewContentPanelTransform) }
 
-    renderModel.hitRects.forEach { drawImages(g2d, it) }
-    renderModel.hitRects.forEach { drawBorders(g2d, it) }
-
-    if (renderModel.overlay != null) {
-      g2d.composite = AlphaComposite.SrcOver.derive(renderModel.overlayAlpha)
-      val bounds = renderModel.hitRects[0].bounds.bounds
-      g2d.drawImage(renderModel.overlay, bounds.x, bounds.y, bounds.width, bounds.height, null)
-    }
+    renderLogic.renderImages(g2d)
+    renderLogic.renderBorders(g2d, this, foreground)
+    renderLogic.renderOverlay(g2d)
   }
-
 
   /**
    * Change the panel size with the size of what is being rendered.
@@ -383,101 +358,5 @@ class DeviceViewContentPanel(
       }
     }
     repaint()
-  }
-
-  private fun drawBorders(g: Graphics2D, drawInfo: ViewDrawInfo) {
-    val hoveredNode = inspectorModel.hoveredNode
-    val drawView = drawInfo.node
-    val view = drawView.findFilteredOwner(treeSettings)
-    val selection = inspectorModel.selection
-
-    val g2 = g.create() as Graphics2D
-    g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
-
-    if (!drawInfo.isCollapsed &&
-        (renderSettings.drawBorders || renderSettings.drawUntransformedBounds || view == selection || view == hoveredNode ||
-         (treeSettings.showRecompositions &&
-          (view as? ComposeViewNode)?.recompositions?.hasHighlight == true &&
-          inspectorModel.maxHighlight != 0f)
-        )
-    ) {
-      drawView.paintBorder(g2, view == selection, view == hoveredNode, inspectorModel, renderSettings, treeSettings)
-    }
-    // the fold has to be drawn over the View that is select/hovered.
-    // This matters only in 3D, where users want to know where the fold is relative to each View.
-    // Since the Views are rotated it is more difficult to understand where they are relative to the fold.
-    if (renderSettings.drawFold && renderModel.hitRects.isNotEmpty() && (
-        // nothing is selected or hovered: draw on the root
-        (renderModel.hoveredDrawInfo == null && inspectorModel.selection == null && drawInfo == renderModel.hitRects.first()) ||
-        // We're hovering over this node
-        renderModel.hoveredDrawInfo == drawInfo ||
-        // We're not hovering but there is a selection. If the selected ViewNode corresponds to multiple DrawViewNodes (that is, both
-        // a structural DrawViewChild and one or more image-containing DrawViewImage), only draw on the bottom one (the DrawViewChild).
-        (renderModel.hoveredDrawInfo == null && view != null && inspectorModel.selection == view && drawView is DrawViewChild))) {
-      drawFold(g2)
-    }
-  }
-
-  private fun drawFold(g2: Graphics2D) {
-    g2.color = Color(255, 0, 255)
-    g2.stroke = getFoldStroke(renderSettings.scaleFraction)
-    val foldInfo = inspectorModel.foldInfo ?: return
-    val maxWidth = inspectorModel.windows.values.map { it.width }.maxOrNull() ?: 0
-    val maxHeight = inspectorModel.windows.values.map { it.height }.maxOrNull() ?: 0
-
-    val startX: Float
-    val startY: Float
-    val endX: Float
-    val endY: Float
-
-    val angleText = (if (foldInfo.angle == null) "" else foldInfo.angle?.toString() + "°") + " " + foldInfo.posture
-    val labelPosition = Point()
-    val icon = StudioIcons.LayoutInspector.DEGREE
-    // Note this could be AdtUiUtils.DEFAULT_FONT, but since that's a static if it gets initialized during a test that overrides
-    // ui defaults it can end up as something unexpected.
-    g2.font = JBUI.Fonts.label(10f)
-    val labelGraphics = (g2.create() as Graphics2D).apply { transform = AffineTransform() }
-    val iconTextGap = JBUIScale.scale(4)
-    val labelLineGap = JBUIScale.scale(7)
-    val lineExtensionLength = JBUIScale.scale(70f)
-
-    when (foldInfo.orientation) {
-      InspectorModel.FoldOrientation.HORIZONTAL -> {
-        startX = -lineExtensionLength
-        endX = maxWidth + lineExtensionLength
-        startY = maxHeight / 2f
-        endY = maxHeight / 2f
-        val transformed = g2.transform.transform(Point2D.Float(startX, startY), null)
-        labelPosition.x = transformed.x.toInt() - labelGraphics.fontMetrics.stringWidth(
-          angleText) - icon.iconWidth - iconTextGap - labelLineGap
-        labelPosition.y = transformed.y.toInt() - icon.iconHeight / 2
-      }
-      InspectorModel.FoldOrientation.VERTICAL -> {
-        startX = maxWidth / 2f
-        endX = maxWidth / 2f
-        startY = -lineExtensionLength
-        endY = maxHeight + lineExtensionLength
-        val transformed = g2.transform.transform(Point2D.Float(startX, startY), null)
-        labelPosition.x = transformed.x.toInt() - (labelGraphics.fontMetrics.stringWidth(angleText) + icon.iconWidth + iconTextGap) / 2
-        labelPosition.y = transformed.y.toInt() - icon.iconHeight - labelLineGap
-      }
-    }
-    g2.draw(Line2D.Float(startX, startY, endX, endY))
-    labelGraphics.color = JBColor.white
-    val labelBorder = JBUIScale.scale(3)
-    labelGraphics.fillRoundRect(labelPosition.x - labelBorder, labelPosition.y - labelBorder,
-                                labelGraphics.fontMetrics.stringWidth(angleText) + icon.iconWidth + iconTextGap + labelBorder * 2,
-                                icon.iconHeight + labelBorder * 2, JBUIScale.scale(5), JBUIScale.scale(5))
-    labelGraphics.color = foreground
-    icon.paintIcon(this, labelGraphics, labelPosition.x, labelPosition.y)
-    labelGraphics.drawString(angleText, labelPosition.x + icon.iconWidth + iconTextGap,
-                             labelPosition.y + labelGraphics.fontMetrics.maxAscent)
-  }
-
-  private fun drawImages(g: Graphics, drawInfo: ViewDrawInfo) {
-    val g2 = g.create() as Graphics2D
-    g2.setRenderingHints(HQ_RENDERING_HINTS)
-    g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
-    drawInfo.node.paint(g2, inspectorModel)
   }
 }

@@ -47,8 +47,11 @@ data class ViewDrawInfo(
 
 private data class LevelListItem(val node: DrawViewNode, val isCollapsed: Boolean)
 
+/**
+ * Class defining what is being rendered by [RenderLogic].
+ */
 class RenderModel(
-  private val model: InspectorModel,
+  val model: InspectorModel,
   val treeSettings: TreeSettings,
   private val client: (() -> InspectorClient?)? = null
 ) {
