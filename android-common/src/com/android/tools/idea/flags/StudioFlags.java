@@ -1454,6 +1454,14 @@ public final class StudioFlags {
       "Enable open/close issue functionality.",
       "Add open/close button to App Quality Insights panel.",
       false);
+
+  public static final Flag<Boolean> ADDITIONAL_FILTERS_ENABLED =
+    Flag.create(
+      APP_INSIGHTS,
+      "enable.issue.filters",
+      "Enable additional issue filters.",
+      "Add device, OS, Play Track filters to App Quality Insights panel.",
+      false);
   // endregion App Insights
 
   // region App Links Assistant
