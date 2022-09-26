@@ -47,6 +47,7 @@ import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.table.TableView
 import com.intellij.util.containers.getIfSingle
 import kotlinx.coroutines.CoroutineScope
@@ -791,6 +792,148 @@ class RuleDetailsViewTest {
       assertThat(transformations.size).isEqualTo(2)
       assertThat(transformations[0].hasBodyModified()).isTrue()
       assertThat(transformations[1].hasBodyReplaced()).isTrue()
+    }
+  }
+
+  @Test
+  fun warningShownAndRuleNotUpdatedOnInvalidUrl() {
+    val invalidUrl = "www google com"
+    val rule = addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+
+    val urlComponent = findComponentWithUniqueName(ruleDetailsView, "urlTextField") as JTextField
+    assertThat(urlComponent.text).isEmpty()
+    urlComponent.text = invalidUrl
+    urlComponent.onFocusLost()
+
+    val urlWarningLabel = findComponentWithUniqueName(ruleDetailsView, "urlWarningLabel") as JBLabel
+    assert(urlWarningLabel.isVisible)
+
+    tracker.verifyLatestEvent {
+      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
+    }
+
+    assertThat(rule.criteria.host).isNotEqualTo(invalidUrl)
+
+    // Assert URL shown in table is the default URL
+    assertThat(inspectorView.rulesView.table.getValueAt(0, 2)).isEqualTo("https://*")
+    client.verifyLatestCommand {
+      it.interceptRuleUpdated.rule.criteria.also { criteria ->
+        assertThat(criteria.host).isNotEqualTo(invalidUrl)
+        assertThat(criteria.host).isEqualTo("")
+      }
+    }
+  }
+
+  @Test
+  fun warningShownAndRuleNotUpdatedOnInvalidPort() {
+    val invalidPort = "-12345"
+    val rule = addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+
+    val portComponent = findComponentWithUniqueName(ruleDetailsView, "portTextField") as JTextField
+    val portWarningLabel = findComponentWithUniqueName(ruleDetailsView, "portWarningLabel") as JBLabel
+    assertThat(portComponent.text).isEmpty()
+    portComponent.text = invalidPort
+    portComponent.onFocusLost()
+
+    assert(portWarningLabel.isVisible)
+
+    tracker.verifyLatestEvent {
+      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
+    }
+
+    assertThat(rule.criteria.port).isNotEqualTo(invalidPort)
+
+    // Assert URL shown in table is the default URL
+    assertThat(inspectorView.rulesView.table.getValueAt(0, 2)).isEqualTo("https://*")
+    client.verifyLatestCommand {
+      it.interceptRuleUpdated.rule.criteria.also { criteria ->
+        assertThat(criteria.port).isNotEqualTo(invalidPort)
+        assertThat(criteria.port).isEqualTo("")
+      }
+    }
+  }
+
+  @Test
+  fun warningShownForInvalidFindStatusCode() {
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val findCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
+    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+
+    findCodeTextField.text = "ABC"
+    findCodeTextField.onFocusLost()
+    isActiveCheckBox.doClick()
+
+    assert(findCodeWarningLabel.isVisible)
+
+
+    tracker.verifyLatestEvent {
+      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
+    }
+  }
+
+
+  @Test
+  fun warningShownForInvalidNewStatusCode() {
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val newCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
+    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+    isActiveCheckBox.doClick()
+
+    // Warning label is visible since the current input is "" which is invalid
+    assert(newCodeWarningLabel.isVisible)
+
+    newCodeTextField.text = "ABC"
+    newCodeTextField.onFocusLost()
+
+    assert(newCodeWarningLabel.isVisible)
+
+    tracker.verifyLatestEvent {
+      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
+    }
+  }
+
+  @Test
+  fun ruleNotUpdatedWhenNewCodeIsBlank() {
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+
+    findCodeTextField.text = "123"
+    isActiveCheckBox.doClick()
+    assert(newCodeTextField.text.isBlank())
+
+    tracker.verifyLatestEvent {
+      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
+    }
+  }
+
+  @Test
+  fun ruleNotUpdatedWhenBothStatusCodeBlank() {
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val findCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
+    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val newCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
+    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+
+    isActiveCheckBox.doClick()
+
+    assert(findCodeTextField.text.isBlank())
+    assert(findCodeWarningLabel.isVisible)
+    assert(newCodeTextField.text.isBlank())
+    assert(newCodeWarningLabel.isVisible)
+
+    tracker.verifyLatestEvent {
+      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
     }
   }
 

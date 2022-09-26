@@ -32,6 +32,7 @@ import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.scale
+import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -206,6 +207,21 @@ fun createTextField(
       focusLost(text.trim())
     }
   })
+}
+
+fun createWarningLabel(warningText: String, labelName: String?) = JBLabel(StudioIcons.Common.WARNING).apply {
+  isVisible = false
+  border = JBUI.Borders.emptyLeft(5)
+  toolTipText = warningText
+  name = labelName
+}
+
+fun createPanelWithTextFieldAndWarningLabel(
+  textField: JBTextField,
+  warningLabel: JBLabel
+) = JPanel(TabularLayout("*,Fit")).apply {
+  add(textField, TabularLayout.Constraint(0, 0))
+  add(warningLabel, TabularLayout.Constraint(0, 1))
 }
 
 /**

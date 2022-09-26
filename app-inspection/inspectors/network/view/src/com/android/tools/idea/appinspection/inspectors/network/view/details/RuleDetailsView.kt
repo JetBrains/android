@@ -52,10 +52,14 @@ import java.awt.Dimension
 import java.awt.Insets
 import java.awt.Rectangle
 import java.awt.geom.RectangularShape
+import java.net.URI
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.plaf.ComboBoxUI
+import javax.swing.text.AbstractDocument
+import javax.swing.text.AttributeSet
+import javax.swing.text.DocumentFilter
 
 /**
  * View to display a single network interception rule and its detailed information.
@@ -115,33 +119,52 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
 
   private fun createStatusCodeCategoryPanel(rule: RuleData): JPanel {
     val statusCodeData = rule.statusCodeRuleData
+
+    val findCodeWarningLabel = createWarningLabel("Status code should be an integer", "findCodeWarningLabel")
     val findCodeTextField = createTextField(statusCodeData.findCode, "200", "findCodeTextField") {
+      if(!validateIntegerInput(it, !statusCodeData.isActive)) {
+        findCodeWarningLabel.isVisible = true
+        return@createTextField
+      }
       if (statusCodeData.findCode != it) {
         statusCodeData.findCode = it
         usageTracker.trackRuleUpdated(InterceptionCriteria.FIND_CODE)
       }
     }
+    (findCodeTextField.document as AbstractDocument).documentFilter = ClearWarningLabelDocumentFilter(findCodeWarningLabel)
+    val findCodePanel = createPanelWithTextFieldAndWarningLabel(findCodeTextField, findCodeWarningLabel)
+
+    val newCodeWarningLabel = createWarningLabel("Status code should be an integer", "newCodeWarningLabel")
     val newCodeTextField = createTextField(statusCodeData.newCode, "500", "newCodeTextField") {
+      if (isEnabled && !validateIntegerInput(it, false)) {
+        newCodeWarningLabel.isVisible = true
+        return@createTextField
+      }
       if (statusCodeData.newCode != it) {
         statusCodeData.newCode = it
         usageTracker.trackRuleUpdated(InterceptionCriteria.FIND_REPLACE_CODE)
       }
     }
+    (newCodeTextField.document as AbstractDocument).documentFilter = ClearWarningLabelDocumentFilter(newCodeWarningLabel)
+    val newCodePanel = createPanelWithTextFieldAndWarningLabel(newCodeTextField, newCodeWarningLabel)
+
     val isActiveCheckBox = JBCheckBox("Replace with status code:").apply {
       isSelected = statusCodeData.isActive
       newCodeTextField.isEnabled = isSelected
       addActionListener {
         statusCodeData.isActive = isSelected
         newCodeTextField.isEnabled = isSelected
+        newCodeWarningLabel.isVisible = isSelected && !validateIntegerInput(newCodeTextField.text, false)
+        findCodeWarningLabel.isVisible = !validateIntegerInput(findCodeTextField.text, !isSelected)
       }
     }
     return JPanel(VerticalLayout(6)).apply {
       add(TitledSeparator("Response").apply { minimumSize = Dimension(0, 34) })
       add(JPanel(TabularLayout("Fit,5px,*,40px,Fit,5px,*")).apply {
         add(JLabel("Apply rule for status:"), TabularLayout.Constraint(0, 0))
-        add(findCodeTextField, TabularLayout.Constraint(0, 2))
+        add(findCodePanel, TabularLayout.Constraint(0, 2))
         add(isActiveCheckBox, TabularLayout.Constraint(0, 4))
-        add(newCodeTextField, TabularLayout.Constraint(0, 6))
+        add(newCodePanel, TabularLayout.Constraint(0, 6))
       })
     }
   }
@@ -161,7 +184,12 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
       }
       name = "protocolComboBox"
     }
+    val urlWarningLabel = createWarningLabel("URL is malformed", "urlWarningLabel")
     val urlTextField = createTextField(rule.criteria.host, "www.google.com", "urlTextField") { text ->
+      if (!validateHostInput("${(protocolComboBox.selectedItem as Protocol).name}://$text", text)) {
+        urlWarningLabel.isVisible = true
+        return@createTextField
+      }
       rule.criteria.apply {
         if (host != text) {
           host = text
@@ -169,7 +197,15 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
         }
       }
     }
+    val urlPanel = createPanelWithTextFieldAndWarningLabel(urlTextField, urlWarningLabel)
+    (urlTextField.document as AbstractDocument).documentFilter = ClearWarningLabelDocumentFilter(urlWarningLabel)
+
+    val portWarningLabel = createWarningLabel("Port should be an integer between 0 and 65535", "portWarningLabel")
     val portTextField = createTextField(rule.criteria.port, "80", "portTextField") { text ->
+      if (text == "-0" || !validateIntegerInput(text, true, 0, 65535)) {
+        portWarningLabel.isVisible = true
+        return@createTextField
+      }
       rule.criteria.apply {
         if (port != text) {
           port = text
@@ -177,6 +213,9 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
         }
       }
     }
+    (portTextField.document as AbstractDocument).documentFilter = ClearWarningLabelDocumentFilter(portWarningLabel)
+    val portPanel = createPanelWithTextFieldAndWarningLabel(portTextField, portWarningLabel)
+
     val pathTextField = createTextField(rule.criteria.path, "search", "pathTextField") { text ->
       rule.criteria.apply {
         if (path != text) {
@@ -209,8 +248,8 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
     return createCategoryPanel(
       "Origin",
       JLabel("Protocol:") to protocolComboBox,
-      JLabel("Host url:") to urlTextField,
-      JLabel("Port:") to portTextField,
+      JLabel("Host URL:") to urlPanel,
+      JLabel("Port:") to portPanel,
       JLabel("Path:") to pathTextField,
       JLabel("Query:") to queryTextField,
       JLabel("Method:") to methodComboBox
@@ -323,4 +362,43 @@ private class BorderlessComboBoxUI : DarculaComboBoxUI(DarculaUIUtil.COMPONENT_A
   override fun getInnerShape(r: Rectangle, bw: Float, lw: Float, arc: Float): RectangularShape? {
     return super.getInnerShape(r, 0f, lw, arc)
   }
+}
+
+/**
+ * Document filter to make the [warningLabel] invisible when addition/deletion occurs in input.
+ */
+private class ClearWarningLabelDocumentFilter(private val warningLabel: JLabel) : DocumentFilter() {
+
+  override fun remove(fb: FilterBypass?, offset: Int, length: Int) {
+    warningLabel.isVisible = false
+    super.remove(fb, offset, length)
+  }
+
+  override fun replace(fb: FilterBypass?, offset: Int, length: Int, text: String?, attrs: AttributeSet?) {
+    warningLabel.isVisible = false
+    super.replace(fb, offset, length, text, attrs)
+  }
+}
+
+/**
+ * Validate the input in text field to be a valid host. Compare the host field of the [url] to the [host].
+ */
+private fun validateHostInput(url: String, host: String): Boolean {
+  // Empty host is acceptable.
+  if (host.isEmpty()) return true
+  return try { URI(url).host == host } catch (ignored: Exception) { false }
+}
+
+/**
+ * Validate the input in text field to be an integer.
+ */
+private fun validateIntegerInput(
+  text: String,
+  isEmptyValid: Boolean,
+  lowerBound: Int = Int.MIN_VALUE,
+  upperBound: Int = Int.MAX_VALUE
+): Boolean {
+  if (text.isEmpty()) return isEmptyValid
+  val intInput = text.toIntOrNull() ?: return false
+  return intInput in lowerBound..upperBound
 }
