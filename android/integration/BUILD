@@ -243,6 +243,70 @@ iml_test(
     test_class = "com.android.tools.idea.BuildAndRunTest",
 )
 
+iml_test(
+    name = "CreateProjectTest",
+    timeout = "long",
+    data = select({
+        "@platforms//os:linux": [
+            "//tools/adt/idea/studio:android-studio.linux.zip",
+        ],
+        "@platforms//os:macos": [
+            "//tools/adt/idea/studio:android-studio.mac.zip",
+        ],
+        "@platforms//os:windows": [
+            "//tools/adt/idea/studio:android-studio.win.zip",
+        ],
+    }) + [
+        ":createproject_deps",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//tools/base/build-system:gradle-distrib-7.3.3",
+    ],
+    module = ":intellij.android.core.integration",
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.CreateProjectTest",
+)
+
+maven_repository(
+    name = "createproject_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "@maven//:androidx.activity.activity-compose_1.5.1",
+        "@maven//:androidx.appcompat.appcompat_1.4.1",
+        "@maven//:androidx.compose.compiler.compiler_1.3.2",
+        "@maven//:androidx.compose.compose-bom_2022.10.00",
+        "@maven//:androidx.compose.foundation.foundation-layout_1.3.0",
+        "@maven//:androidx.compose.foundation.foundation_1.3.0",
+        "@maven//:androidx.compose.material.material-icons-core_1.3.0",
+        "@maven//:androidx.compose.material.material-ripple_1.3.0",
+        "@maven//:androidx.compose.material.material_1.3.0",
+        "@maven//:androidx.compose.material3.material3_1.0.0",
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.3.0",
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.3.0",
+        "@maven//:androidx.compose.ui.ui-tooling-preview_1.3.0",
+        "@maven//:androidx.compose.ui.ui-tooling_1.3.0",
+        "@maven//:androidx.compose.ui.ui_1.3.0",
+        "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
+        "@maven//:androidx.core.core-ktx_1.8.0",
+        "@maven//:androidx.databinding.viewbinding_7.2.0",
+        "@maven//:androidx.navigation.navigation-fragment-ktx_2.4.1",
+        "@maven//:androidx.navigation.navigation-ui-ktx_2.4.1",
+        "@maven//:androidx.test.espresso.espresso-core_3.4.0",
+        "@maven//:androidx.test.ext.junit_1.1.3",
+        "@maven//:com.android.application.com.android.application.gradle.plugin_7.2.0",
+        "@maven//:com.android.library.com.android.library.gradle.plugin_7.2.0",
+        "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
+        "@maven//:com.android.tools.build.gradle_7.2.0",
+        "@maven//:com.google.android.material.material_1.5.0",
+        "@maven//:junit.junit_4.13.2",
+        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",
+    ],
+)
+
 maven_repository(
     name = "openproject_deps",
     # keep sorted: for buildifier

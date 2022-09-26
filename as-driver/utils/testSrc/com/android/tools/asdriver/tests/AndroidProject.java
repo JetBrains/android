@@ -20,6 +20,7 @@ import com.android.utils.FileUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.regex.Pattern;
 
 public class AndroidProject {
@@ -30,6 +31,9 @@ public class AndroidProject {
 
   public AndroidProject(String path) {
     this.path = path;
+
+    // For projects created through the test, targetProject is the same as the original path.
+    this.targetProject = Paths.get(path);
   }
 
   public void setDistribution(String path) {

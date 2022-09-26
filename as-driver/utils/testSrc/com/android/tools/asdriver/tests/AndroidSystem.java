@@ -87,6 +87,10 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     };
   }
 
+  public AndroidSdk getSdk() {
+    return sdk;
+  }
+
   /**
    * Creates a standard system with a default temp folder
    * that contains a preinstalled version of android studio
@@ -158,6 +162,14 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   public AndroidStudioInstallation getInstallation() {
     Preconditions.checkState(install != null, "Android studio has not been installed on this system.");
     return install;
+  }
+
+  /**
+   * Runs Android Studio without a project (e.g. for a scenario where you want to create that project).
+   */
+  public AndroidStudio runStudioWithoutProject() throws IOException, InterruptedException {
+    AndroidStudioInstallation install = getInstallation();
+    return install.run(display, env);
   }
 
   public AndroidStudio runStudio(AndroidProject project) throws IOException, InterruptedException {

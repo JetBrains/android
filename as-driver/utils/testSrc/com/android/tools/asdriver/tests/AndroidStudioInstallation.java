@@ -179,6 +179,32 @@ public class AndroidStudioInstallation {
     Files.createDirectories(consentOptions.getParent());
     Files.writeString(consentOptions, combinedString);
   }
+
+  /**
+   * Sets the SDK for the entire IDE rather than for a single project. Projects will then inherit
+   * this value.
+   */
+  public void setGlobalSdk(AndroidSdk sdk) throws IOException {
+    Path filetypePaths = configDir.resolve("options/other.xml");
+
+    if (filetypePaths.toFile().exists()) {
+      throw new IllegalStateException(
+        String.format("%s already exists, which means this method should be changed to merge with it rather than overwriting it.",
+                      filetypePaths));
+    }
+
+    Files.createDirectories(filetypePaths.getParent());
+    String filetypeContents = String.format(
+      "<application>%n" +
+      "  <component name=\"PropertyService\"><![CDATA[{%n" +
+      "  \"keyToString\": {%n" +
+      "    \"android.sdk.path\": \"%s\"%n" +
+      "  }%n" +
+      "}]]></component>%n" +
+      "</application>", sdk.getSourceDir());
+    Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8);
+  }
+
   /**
    * Prevents a notification about {@code .pro} files and "Shrinker Config" from popping up. This
    * notification occurs as a result of two plugins trying to register the {@code .pro} file type.
