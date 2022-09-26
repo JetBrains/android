@@ -1,0 +1,6 @@
+<resources>
+  <declare-styleable name="EncodedIntegerView">
+    <attr name="maxBits" format="integer" />
+    <attr name="bitsPerChannel" format="integer" />
+  </declare-styleable>
+</resources>

@@ -17,10 +17,11 @@ package com.android.tools.screensharing.benchmark
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.graphics.Point
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import android.util.Size
@@ -31,7 +32,8 @@ import android.view.ViewGroup.MarginLayoutParams
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.annotation.ColorInt
+import android.widget.Toast
+import android.widget.Toast.makeText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -40,8 +42,24 @@ import androidx.core.view.descendants
 import androidx.core.view.updateMargins
 import com.android.tools.screensharing.benchmark.databinding.ActivityFullscreenBinding
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.math.ceil
+import kotlin.math.log2
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlin.random.Random
+
+private const val TAG = "DMBench.Render"
+private const val NOISE_BITMAP_SIZE = 10
+private val NUMERIC_KEYCODES = KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9
+
+/**
+ * Scales a point from the source space to the destination space.
+ */
+private fun Point.scale(src: Size, dst: Size): Point {
+  val scaledX = x * dst.width / src.width.toDouble()
+  val scaledY = y * dst.height / src.height.toDouble()
+  return Point(scaledX.roundToInt(), scaledY.roundToInt())
+}
 
 /**
  * An activity that displays and encodes touches and some other inputs in its video output.
@@ -50,15 +68,22 @@ import kotlin.random.Random
  * way to the device and for the resulting video from the device to make it back to Studio.
  */
 class InputEventRenderingActivity : AppCompatActivity() {
-  private val benchmarkUiVisible: AtomicBoolean = AtomicBoolean()
+  private val benchmarkUiVisible = AtomicBoolean()
+  private val textVisible = AtomicBoolean()
+  private val visibilityHandler = Handler(Looper.getMainLooper())
+  private val makeTextVisible = Runnable { setTextVisible(true) }
 
+  private var stringBuilder = StringBuilder()
+  private var lastToast: Toast? = null
   private lateinit var binding: ActivityFullscreenBinding
   private lateinit var objectTrackingView: FrameLayout
   private lateinit var rick: ImageView
-  private lateinit var x: TextView
-  private lateinit var y: TextView
+  private lateinit var x: EncodedIntegerView
+  private lateinit var y: EncodedIntegerView
+  private lateinit var coordinates: TextView
   private lateinit var noiseBitmapView: ImageView
-  private lateinit var frameLatency: TextView
+  private lateinit var frameLatency: EncodedIntegerView
+  private lateinit var frameLatencyText: TextView
 
   @SuppressLint("ClickableViewAccessibility")
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,34 +97,118 @@ class InputEventRenderingActivity : AppCompatActivity() {
     noiseBitmapView = binding.noiseBitmap
     x = binding.x
     y = binding.y
+    coordinates = binding.coordinates
     objectTrackingView = binding.objectTracking
     rick = binding.rick
     frameLatency = binding.frameLatency
+    frameLatencyText = binding.frameLatencyText
   }
 
   override fun onTouchEvent(event: MotionEvent): Boolean = processEvent(event)
   override fun onGenericMotionEvent(event: MotionEvent): Boolean = processEvent(event)
   override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean = processKey(keyCode)
 
-  private fun processEvent(event: MotionEvent) : Boolean {
+  private fun setTextVisible(visibility: Boolean) {
+    if (textVisible.compareAndSet(!visibility, visibility)) {
+      val targetVisibility = if (visibility) View.VISIBLE else View.INVISIBLE
+      positionCoordinates()
+      coordinates.visibility = targetVisibility
+      frameLatencyText.visibility = targetVisibility
+      x.setTextVisible(visibility)
+      y.setTextVisible(visibility)
+      frameLatency.setTextVisible(visibility)
+    }
+  }
+
+  @SuppressLint("SetTextI18n")
+  private fun processEvent(event: MotionEvent): Boolean {
     makeBenchmarkUiVisible()
+    setTextVisible(false)
+    with (visibilityHandler) {
+      removeCallbacks(makeTextVisible)
+      postDelayed(makeTextVisible, resources.getInteger(R.integer.delay_before_showing_text_ms).toLong())
+    }
     Point(event.rawX.toInt(), event.rawY.toInt()).let {
-      colorEncodeAndDisplay(it)
+      x.displayAsColors(it.x)
+      y.displayAsColors(it.y)
       val activitySize = Size(binding.root.width, binding.root.height)
       val objectTrackingViewSize = Size(objectTrackingView.width, objectTrackingView.height)
-      moveRickTo(it.scale(activitySize, objectTrackingViewSize))
+      val scaled = it.scale(activitySize, objectTrackingViewSize)
+      coordinates.text = "(${it.x},${it.y})"
+      moveRickTo(scaled)
     }
     makeSomeNoise()
-    displayFrameLatency((SystemClock.uptimeMillis() - event.eventTime).toInt())
+    (SystemClock.uptimeMillis() - event.eventTime).toInt().let {
+      frameLatency.displayAsColors(it)
+      frameLatencyText.text = "$it ms"
+    }
     return true
   }
 
-  private fun processKey(keyCode: Int) : Boolean {
+  private fun processKey(keyCode: Int): Boolean {
     when (keyCode) {
-      KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_DPAD_UP -> showTouchableArea()
+      KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_DPAD_UP -> {
+        stringBuilder.clear()
+        showTouchableArea()
+      }
+      KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_DPAD_DOWN -> manuallyDecrementBitsPerChannel()
+      in NUMERIC_KEYCODES -> stringBuilder.append(NUMERIC_KEYCODES.indexOf(keyCode))
+      KeyEvent.KEYCODE_COMMA -> stringBuilder.append(',')
+      KeyEvent.KEYCODE_ENTER -> if (setBitConfigFromStringBuilder()) showTouchableArea()
       else -> return false
     }
     return true
+  }
+
+  /** Decrements the number of bits per channel (modulo 8). */
+  private fun manuallyDecrementBitsPerChannel() {
+    setMaxBitsFromDeviceDisplaySpecs()
+    // Use the least value
+    val oldBitsPerChannel = min(min(x.bitsPerChannel, y.bitsPerChannel), frameLatency.bitsPerChannel)
+    val bitsPerChannel = (oldBitsPerChannel - 1) and 7
+    setBitsPerChannel(bitsPerChannel)
+    lastToast?.cancel()
+    lastToast = makeText(this, "Bits per channel set to $bitsPerChannel", Toast.LENGTH_SHORT).also(Toast::show)
+  }
+
+  private fun setBitsPerChannel(bitsPerChannel: Int) {
+    x.bitsPerChannel = bitsPerChannel
+    y.bitsPerChannel = bitsPerChannel
+    frameLatency.bitsPerChannel = bitsPerChannel
+  }
+
+  /** Sets the maximum number of bits based on the largest display dimension that might need to be encoded. */
+  private fun setMaxBitsFromDeviceDisplaySpecs() {
+    setMaxBits(ceil(log2(max(binding.root.width, binding.root.height).toDouble())).roundToInt())
+  }
+
+  private fun setMaxBits(maxBits: Int) {
+    x.maxBits = maxBits
+    y.maxBits = maxBits
+  }
+
+  private fun setMaxLatencyBits(maxLatencyBits: Int) {
+    frameLatency.maxBits = maxLatencyBits
+  }
+
+  private fun setBitConfigFromStringBuilder(): Boolean {
+    var succeeded = false
+    try {
+      Log.d(TAG, "Setting bit config from string: $stringBuilder")
+      val numbers = stringBuilder.split(',').map(String::toInt)
+      if (numbers.size == 3 && numbers[0] > 0 && numbers[1] > 0 && numbers[2] >= 0) {
+        val (maxBits, maxLatencyBits, bitsPerChannel) = numbers
+        setMaxBits(maxBits)
+        setMaxLatencyBits(maxLatencyBits)
+        setBitsPerChannel(bitsPerChannel)
+        Log.d(TAG, "maxBits: $maxBits, maxLatencyBits: $maxLatencyBits, bitsPerChannel: $bitsPerChannel")
+        succeeded = true
+      }
+    } catch (e: NumberFormatException) {
+      Log.e(TAG, "Failed to parse number", e)
+    }
+    stringBuilder.clear()
+    return succeeded
   }
 
   private fun showTouchableArea() {
@@ -112,26 +221,10 @@ class InputEventRenderingActivity : AppCompatActivity() {
   private fun makeBenchmarkUiVisible() {
     if (benchmarkUiVisible.compareAndSet(false, true)) {
       Log.d(TAG, "Showing benchmarking UI to begin benchmarking.")
-      binding.root.descendants.forEach { it.visibility = View.VISIBLE }
+      binding.root.descendants.forEach {
+        if (it !== coordinates && it !== frameLatencyText) it.visibility = View.VISIBLE
+      }
     }
-  }
-
-  /**
-   * Encodes a [Point] as two colors on the display.
-   *
-   * Also displays the value encoded as well as the color to which it has been encoded
-   * for diagnostic purposes.
-   */
-  @SuppressLint("SetTextI18n")
-  private fun colorEncodeAndDisplay(p: Point) {
-    @ColorInt val xColor: Int = p.x.toColor(BITS_PER_CHANNEL)
-    @ColorInt val yColor = p.y.toColor(BITS_PER_CHANNEL)
-    x.setBackgroundColor(xColor)
-    y.setBackgroundColor(yColor)
-    x.text = "${p.x} ${xColor.toHexColorString()}"
-    x.setTextColor(xColor.contrastingColor())
-    y.text = "${p.y} ${yColor.toHexColorString()}"
-    y.setTextColor(yColor.contrastingColor())
   }
 
   /** Moves the draggable target to the given [Point] within the [objectTrackingView]. */
@@ -143,6 +236,19 @@ class InputEventRenderingActivity : AppCompatActivity() {
     rick.invalidate()
   }
 
+  /** Position the coordinates display next to the draggable target. */
+  private fun positionCoordinates() {
+    coordinates.measure(objectTrackingView.measuredWidth, objectTrackingView.measuredHeight)
+    val layoutParams: MarginLayoutParams = coordinates.layoutParams as MarginLayoutParams
+    // If Rick is too far to the right, put the coordinates to the left.
+    val coordinatesOnLeft = coordinates.measuredWidth + rick.right > objectTrackingView.right
+    val leftMargin = if (coordinatesOnLeft) rick.left - coordinates.measuredWidth else rick.right
+    val topMargin = rick.top.coerceIn(0, objectTrackingView.height - coordinates.measuredHeight)
+    layoutParams.updateMargins(left = leftMargin, top = topMargin)
+    coordinates.layoutParams = layoutParams
+    coordinates.invalidate()
+  }
+
   /** Creates noise in the [noiseBitmapView] to make the encoder's job a little harder. */
   private fun makeSomeNoise() {
     val bitmap = getOrInitializeNoiseBitmap()
@@ -152,16 +258,7 @@ class InputEventRenderingActivity : AppCompatActivity() {
     noiseBitmapView.invalidate()
   }
 
-  /** Color-encodes and displays the latency associated with producing this frame. */
-  @SuppressLint("SetTextI18n")
-  private fun displayFrameLatency(latency: Int) {
-    val latencyColors = LATENCY_COLORS[latency] ?: OUT_OF_BOUNDS_LATENCY_COLORS
-    frameLatency.setBackgroundColor(latencyColors.first)
-    frameLatency.setTextColor(latencyColors.second)
-    frameLatency.text = "$latency ${latencyColors.first.toHexColorString()}"
-  }
-
-  private fun getOrInitializeNoiseBitmap() : Bitmap {
+  private fun getOrInitializeNoiseBitmap(): Bitmap {
     val drawable = noiseBitmapView.drawable
     if (drawable is BitmapDrawable && drawable.bitmap != null) {
       return drawable.bitmap
@@ -189,74 +286,6 @@ class InputEventRenderingActivity : AppCompatActivity() {
       it.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
       // Hide both the status bar and the navigation bar
       it.hide(WindowInsetsCompat.Type.systemBars())
-    }
-  }
-
-  companion object {
-    private const val TAG = "DMBench.Render"
-    private const val MAX_COLOR_BITS = 8
-    private const val BITS_PER_CHANNEL = 4
-    private const val NOISE_BITMAP_SIZE = 10
-
-    // Precompute all the latency colors so it doesn't affect our latency measurement.
-    private val LATENCY_COLORS: Map<Int, Pair<Int, Int>> = (0 until (1 shl 6)).associateWith {
-      val bgColor = it.toColor(2)
-      bgColor to bgColor.contrastingColor()
-    }
-
-    private val OUT_OF_BOUNDS_LATENCY_COLORS: Pair<Int, Int> = Color.WHITE to Color.BLACK
-
-    /**
-     * Encodes a positive integer into a color using at most [bitsPerChannel] bits per channel.
-     *
-     * Because the alpha channel is not used, the integer must always fit in 24 bits, i.e. be less
-     * than or equal to 2^15-1.
-     *
-     * Will throw an [IllegalArgumentException] if the integer is negative, if [bitsPerChannel] is
-     * more than 8, or if the integer cannot be encoded in the number of available bits.
-     */
-    @ColorInt
-    private fun Int.toColor(bitsPerChannel: Int): Int {
-      require(this >= 0) { "Cannot encode a negative integer" }
-      require(bitsPerChannel <= MAX_COLOR_BITS) {
-        "Cannot use more than $MAX_COLOR_BITS bits per channel for color."
-      }
-      require(1 shl (3 * bitsPerChannel) > this) {
-        "Cannot encode $this in ${bitsPerChannel * 3} bits."
-      }
-      val bitmask = (1 shl bitsPerChannel) - 1
-      val emptyBits = 8 - bitsPerChannel
-      val r = ((this shr (bitsPerChannel * 2)) and bitmask) shl emptyBits
-      val g = ((this shr bitsPerChannel) and bitmask) shl emptyBits
-      val b = (this and bitmask) shl emptyBits
-      return Color.rgb(r, g, b)
-    }
-
-    /** Returns a contrasting color for the [ColorInt]. */
-    @ColorInt
-    private fun @receiver:ColorInt Int.contrastingColor(): Int {
-      val r = Color.red(this)
-      val g = Color.green(this)
-      val b = Color.blue(this)
-      return if (r * 0.299 + g * 0.587 + b * 0.114 > 128) Color.BLACK else Color.WHITE
-    }
-
-    /** Pretty-prints a [ColorInt] as a hex string (e.g. #123ABC) */
-    private fun @receiver:ColorInt Int.toHexColorString(): String {
-      return String.format("#%06X", (0xFFFFFF and this))
-    }
-
-    @ColorInt
-    private fun randomColor(): Int =
-      Color.rgb(Random.nextInt(255), Random.nextInt(255), Random.nextInt(255))
-
-    /**
-     * Scales a point from the source space to the destination space.
-     */
-    private fun Point.scale(src: Size, dst: Size): Point {
-      val scaledX = x * dst.width / src.width.toDouble()
-      val scaledY = y * dst.height / src.height.toDouble()
-      return Point(scaledX.roundToInt(), scaledY.roundToInt())
     }
   }
 }
