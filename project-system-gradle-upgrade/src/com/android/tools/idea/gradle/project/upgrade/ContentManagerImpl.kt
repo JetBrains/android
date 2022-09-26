@@ -1009,7 +1009,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
             selectedStep.blockReasons.forEach { reason ->
               reason.shortDescription.let { text.append("<li>$it") }
               reason.description?.let { text.append("<br>${it.replace("\n", "<br>")}") }
-              reason.helpLinkUrl?.let { text.append("  <a href='$it'>Read more</a><icon src='AllIcons.Ide.External_link_arrow'>.") }
+              reason.readMoreUrl?.let { text.append("  <a href='${it.url}'>Read more</a><icon src='AllIcons.Ide.External_link_arrow'>.") }
               text.append("</li>")
             }
             text.append("</ul>")

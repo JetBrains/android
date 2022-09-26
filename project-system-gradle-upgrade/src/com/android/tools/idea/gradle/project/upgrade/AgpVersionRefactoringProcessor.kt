@@ -51,7 +51,7 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     description = "Cannot locate the version specification for the Android Gradle Plugin dependency, \n" +
                   "possibly because the project's build files use features not currently support by the \n" +
                   "Upgrade Assistant (for example: using constants defined in buildSrc).",
-    helpLinkUrl = "https://developer.android.com/studio/build/agp-upgrade-assistant#project-structure"
+    readMoreUrl = ReadMoreUrlRedirect("agp-version-not-found")
   )
 
   object Pre80MavenPublish: BlockReason(
@@ -61,7 +61,7 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
                   "blocks to use the new API (and mark the project as migrated by adding \n" +
                   "<tt>android.disableAutomaticComponentCreation=true</tt> to the project's gradle.properties \n" +
                   "file.",
-    helpLinkUrl = "https://developer.android.com/studio/publish-library"
+    readMoreUrl = ReadMoreUrlRedirect("pre-80-maven-publish")
   )
 
   private var _isPre80MavenPublish: Boolean? = null

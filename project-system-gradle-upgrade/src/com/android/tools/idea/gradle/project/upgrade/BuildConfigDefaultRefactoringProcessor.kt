@@ -51,7 +51,7 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
       To proceed, execute the "Run Generate Sources Gradle Tasks" action and refresh
       the AGP Upgrade Assistant.
     """.trimIndent(),
-    helpLinkUrl = "https://developer.android.com/studio/build/gradle-tips#share-custom-fields-and-resource-values-with-your-app-code",
+    readMoreUrl = ReadMoreUrlRedirect("build-config-sources-not-generated"),
   )
 
   override fun blockProcessorReasons(): List<BlockReason> {

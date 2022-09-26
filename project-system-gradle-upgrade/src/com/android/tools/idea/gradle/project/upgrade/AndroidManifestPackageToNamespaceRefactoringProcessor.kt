@@ -82,7 +82,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
                   "package for the main and androidTest artifacts, in the following modules: \n" +
                   moduleNames.descriptionText + "\n" +
                   "To proceed, change the androidTest package in the manifest for all affected modules.",
-    helpLinkUrl = "https://developer.android.com/studio/build/configure-app-module#change-namespace-for-testing",
+    readMoreUrl = ReadMoreUrlRedirect("main-and-test-package-equal"),
   )
 
   override fun blockProcessorReasons(): List<BlockReason> {

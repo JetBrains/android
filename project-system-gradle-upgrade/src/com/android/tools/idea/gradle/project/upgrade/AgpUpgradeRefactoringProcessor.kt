@@ -801,7 +801,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   sealed class BlockReason(
     val shortDescription: String,
     val description: String? = null,
-    val helpLinkUrl: String? = null
+    val readMoreUrl: ReadMoreUrlRedirect? = null
   )
 
   open fun blockProcessorReasons(): List<BlockReason> = listOf()
@@ -871,9 +871,12 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   open val groupingName
     get() = commandName
 
-  data class ReadMoreUrlRedirect(val leaf: String)
+  data class ReadMoreUrlRedirect(val leaf: String) {
+    val url: String
+      get() = "https://developer.android.com/r/tools/upgrade-assistant/$leaf"
+  }
   protected open val readMoreUrlRedirect: ReadMoreUrlRedirect? = null
-  fun getReadMoreUrl(): String? = readMoreUrlRedirect?.run { "https://developer.android.com/r/tools/upgrade-assistant/$leaf" }
+  fun getReadMoreUrl(): String? = readMoreUrlRedirect?.url
 
   open fun getShortDescription(): String? = null
 

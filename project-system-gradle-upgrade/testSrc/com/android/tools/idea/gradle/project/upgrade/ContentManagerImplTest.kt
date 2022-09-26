@@ -397,6 +397,7 @@ class ContentManagerImplTest {
     val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
     assertThat(detailsPanelContent.text).contains("<b>Upgrade AGP dependency from $currentAgpVersion to $latestAgpVersion</b>")
     assertThat(detailsPanelContent.text).contains("This step is blocked")
+    assertThat(detailsPanelContent.text).contains("https://developer.android.com/r/tools/upgrade-assistant/agp-version-not-found")
   }
 
   @Test
