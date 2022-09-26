@@ -403,6 +403,9 @@ class DeviceViewContentPanel(
     ) {
       drawView.paintBorder(g2, view == selection, view == hoveredNode, inspectorModel, renderSettings, treeSettings)
     }
+    // the fold has to be drawn over the View that is select/hovered.
+    // This matters only in 3D, where users want to know where the fold is relative to each View.
+    // Since the Views are rotated it is more difficult to understand where they are relative to the fold.
     if (renderSettings.drawFold && renderModel.hitRects.isNotEmpty() && (
         // nothing is selected or hovered: draw on the root
         (renderModel.hoveredDrawInfo == null && inspectorModel.selection == null && drawInfo == renderModel.hitRects.first()) ||
