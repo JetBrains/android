@@ -40,12 +40,11 @@ import java.awt.Polygon
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
-import java.awt.geom.Area
 
 private val activityMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 private const val EPSILON = 0.001
 
-class DeviceViewPanelModelTest {
+class RenderModelTest {
 
   @Test
   fun testFlatRects() {
@@ -174,7 +173,7 @@ class DeviceViewPanelModelTest {
     }
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panelModel = DeviceViewPanelModel(model, treeSettings)
+    val panelModel = RenderModel(model, treeSettings)
     panelModel.rotate(0.1, 0.2)
     assertEqualAffineTransform(AffineTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468), panelModel.hitRects[0].transform)
 
@@ -201,7 +200,7 @@ class DeviceViewPanelModelTest {
 
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panelModel = DeviceViewPanelModel(model, treeSettings)
+    val panelModel = RenderModel(model, treeSettings)
     panelModel.rotate(0.1, 0.2)
     // Only the bounds of the roots themselves should be taken into account.
     assertThat(model.root.layoutBounds).isEqualTo(Rectangle(-10, 0, 110, 200))
@@ -223,7 +222,7 @@ class DeviceViewPanelModelTest {
     val client: InspectorClient = mock()
     whenever(client.capabilities).thenReturn(capabilities)
 
-    val panelModel = DeviceViewPanelModel(model, treeSettings) { client }
+    val panelModel = RenderModel(model, treeSettings) { client }
     panelModel.rotate(0.1, 0.2)
     assertThat(panelModel.isRotated).isTrue()
 
@@ -257,7 +256,7 @@ class DeviceViewPanelModelTest {
       }
     }
     val treeSettings = FakeTreeSettings()
-    var panelModel = DeviceViewPanelModel(model, treeSettings)
+    var panelModel = RenderModel(model, treeSettings)
     // Note that coordinates are transformed to center the view, so (-45, -45) below corresponds to (5, 5)
     assertThat(panelModel.findViewsAt(-45.0, -45.0).map { it.drawId }.toList()).containsExactly(VIEW2, VIEW1, ROOT)
     assertThat(panelModel.findViewsAt(-1.0, -1.0).map { it.drawId }.toList()).containsExactly(ROOT)
@@ -271,7 +270,7 @@ class DeviceViewPanelModelTest {
         view(VIEW3, 0, 0, 100, 100)
       }
     }
-    panelModel = DeviceViewPanelModel(model, treeSettings)
+    panelModel = RenderModel(model, treeSettings)
     assertThat(panelModel.findViewsAt(0.0, 0.0).map { it.drawId }.toList()).containsExactly(VIEW3, VIEW2, VIEW1, ROOT)
   }
 
@@ -286,7 +285,7 @@ class DeviceViewPanelModelTest {
       }
     }
     val treeSettings = FakeTreeSettings()
-    val panelModel = DeviceViewPanelModel(model, treeSettings)
+    val panelModel = RenderModel(model, treeSettings)
     panelModel.layerSpacing = 0
     model.showOnlySubtree(model[VIEW1]!!)
     model.hideSubtree(model[VIEW1]!!)
@@ -307,7 +306,7 @@ class DeviceViewPanelModelTest {
     val p1 = Polygon(intArrayOf(-5, 5, 80, 80), intArrayOf(5, -5, 80, 120), 4)
     val p2 = Polygon(intArrayOf(80, 120, 5, -5), intArrayOf(-5, 5, 20, 10), 4)
     val p3 = Polygon(intArrayOf(-5, 5, 80, 80), intArrayOf(200, 180, 380, 420), 4)
-    val model = DeviceViewPanelModel(model {}, FakeTreeSettings())
+    val model = RenderModel(model {}, FakeTreeSettings())
     assertThat(model.testOverlap(r1, r2)).isTrue()
     assertThat(model.testOverlap(r1, r3)).isFalse()
     assertThat(model.testOverlap(p1, r1)).isTrue()
@@ -350,7 +349,7 @@ class DeviceViewPanelModelTest {
   ) {
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = hideSystemNodes
-    val panelModel = DeviceViewPanelModel(model, treeSettings)
+    val panelModel = RenderModel(model, treeSettings)
     panelModel.rotate(xOff, yOff)
 
     val actualTransforms = panelModel.hitRects.associate { it.node.findFilteredOwner(treeSettings)?.drawId to it.transform }

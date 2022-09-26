@@ -192,7 +192,7 @@ class DeviceViewPanelWithFullInspectorTest {
         settings,
         projectRule.fixture.testRootDisposable
     )
-    val deviceModel = panel.getData(DEVICE_VIEW_MODEL_KEY.name) as DeviceViewPanelModel
+    val deviceModel = panel.getData(DEVICE_VIEW_MODEL_KEY.name) as RenderModel
     delegateDataProvider(panel)
     flatten(panel).filterIsInstance<ActionToolbar>().forEach { it.updateActionsImmediately() }
     val toggle = flatten(panel).filterIsInstance<ActionButton>().single { it.action is Toggle3dAction }
@@ -973,7 +973,7 @@ class DeviceViewPanelTest {
     )
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
-    val contentPanelModel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first().model
+    val contentPanelModel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first().renderModel
     scrollPane.setSize(200, 300)
 
     val window1 = window(ROOT, ROOT, 0, 0, 100, 200) {
@@ -1099,7 +1099,7 @@ class DeviceViewPanelTest {
     fakeUi.keyboard.setFocus(contentPanel)
 
     // Rotate the model so that dragging would normally rotate
-    contentPanel.model.xOff = 0.02
+    contentPanel.renderModel.xOff = 0.02
 
     assertThat(panel.isPanning).isFalse()
     startPan(fakeUi, panel)
@@ -1110,16 +1110,16 @@ class DeviceViewPanelTest {
     fakeUi.mouse.release()
 
     // Unchanged--we panned instead
-    TestCase.assertEquals(0.02, contentPanel.model.xOff)
-    TestCase.assertEquals(0.0, contentPanel.model.yOff)
+    TestCase.assertEquals(0.02, contentPanel.renderModel.xOff)
+    TestCase.assertEquals(0.0, contentPanel.renderModel.yOff)
     assertThat(viewport.viewPosition).isEqualTo(Point(10, 10))
 
     endPan(fakeUi, panel)
     // Now we'll actually rotate
     fakeUi.mouse.drag(20, 20, -10, -10)
     assertThat(panel.isPanning).isFalse()
-    TestCase.assertEquals(0.01, contentPanel.model.xOff)
-    TestCase.assertEquals(-0.01, contentPanel.model.yOff)
+    TestCase.assertEquals(0.01, contentPanel.renderModel.xOff)
+    TestCase.assertEquals(-0.01, contentPanel.renderModel.yOff)
 
     startPan(fakeUi, panel)
     fakeUi.mouse.press(20, 20, panButton)

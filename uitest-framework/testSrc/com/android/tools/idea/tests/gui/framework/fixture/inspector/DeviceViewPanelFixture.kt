@@ -101,18 +101,18 @@ class DeviceViewPanelFixture(
 
   val angleAfterLastPaint: Double
     get() {
-      val model = contentPanel.model
+      val model = contentPanel.renderModel
       val (xOff, yOff) = GuiQuery.get { Pair(model.xOff, model.yOff) }!!
       return Math.toDegrees(sqrt(xOff * xOff + yOff * yOff))
     }
 
   var layerSpacing: Int
     get() {
-      val model = contentPanel.model
+      val model = contentPanel.renderModel
       return GuiQuery.get { model.layerSpacing }!!
     }
     set(value) {
-      val model = contentPanel.model
+      val model = contentPanel.renderModel
       GuiQuery.get { model.layerSpacing = value }!!
     }
 

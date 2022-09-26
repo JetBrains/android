@@ -77,7 +77,7 @@ class Toggle3dActionTest {
     }
   }
   private lateinit var inspector: LayoutInspector
-  private lateinit var viewModel: DeviceViewPanelModel
+  private lateinit var viewModel: RenderModel
 
   private val event: AnActionEvent = mock()
   private val presentation: Presentation = mock()
@@ -97,7 +97,7 @@ class Toggle3dActionTest {
     val launcher: InspectorClientLauncher = mock()
     whenever(launcher.activeClient).thenReturn(client)
     inspector = LayoutInspector(launcher, inspectorModel, mock(), MoreExecutors.directExecutor())
-    viewModel = DeviceViewPanelModel(inspectorModel, inspector.treeSettings)
+    viewModel = RenderModel(inspectorModel, inspector.treeSettings)
     val process: ProcessDescriptor = mock()
     whenever(process.device).thenReturn(device)
     whenever(client.process).thenReturn(process)

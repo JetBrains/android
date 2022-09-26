@@ -35,7 +35,7 @@ import kotlin.math.hypot
 import kotlin.math.min
 import kotlin.math.sqrt
 
-val DEVICE_VIEW_MODEL_KEY = DataKey.create<DeviceViewPanelModel>(DeviceViewPanelModel::class.qualifiedName!!)
+val DEVICE_VIEW_MODEL_KEY = DataKey.create<RenderModel>(RenderModel::class.qualifiedName!!)
 
 data class ViewDrawInfo(
   val bounds: Shape,
@@ -47,7 +47,7 @@ data class ViewDrawInfo(
 
 private data class LevelListItem(val node: DrawViewNode, val isCollapsed: Boolean)
 
-class DeviceViewPanelModel(
+class RenderModel(
   private val model: InspectorModel,
   val treeSettings: TreeSettings,
   private val client: (() -> InspectorClient?)? = null

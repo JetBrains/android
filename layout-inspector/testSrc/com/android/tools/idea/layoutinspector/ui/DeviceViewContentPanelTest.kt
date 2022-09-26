@@ -152,7 +152,7 @@ class DeviceViewContentPanelTest {
 
     val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     assertEquals(Dimension(130, 160), panel.preferredSize)
-    panel.model.rotate(1.0, 0.0)
+    panel.renderModel.rotate(1.0, 0.0)
     assertEquals(Dimension(376, 395), panel.preferredSize)
 
     settings.scalePercent = 100
@@ -163,9 +163,9 @@ class DeviceViewContentPanelTest {
         view(VIEW1, 0, 0, 50, 50)
       }, listOf(ROOT), 0)
     // This is usually handled by a listener registered in DeviceViewPanel
-    panel.model.refresh()
+    panel.renderModel.refresh()
     assertEquals(Dimension(200, 300), panel.preferredSize)
-    panel.model.rotate(1.0, 0.0)
+    panel.renderModel.rotate(1.0, 0.0)
     assertEquals(Dimension(732, 820), panel.preferredSize)
   }
 
@@ -195,23 +195,23 @@ class DeviceViewContentPanelTest {
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_scaled.png"), generatedImage, DIFF_THRESHOLD)
 
-    panel.model.layerSpacing = 3
+    panel.renderModel.layerSpacing = 3
     settings.scalePercent = 100
-    panel.model.rotate(0.3, 0.2)
+    panel.renderModel.rotate(0.3, 0.2)
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_rotated.png"), generatedImage, DIFF_THRESHOLD)
 
-    panel.model.layerSpacing = 1
+    panel.renderModel.layerSpacing = 1
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_spacing1.png"), generatedImage, DIFF_THRESHOLD)
 
-    panel.model.layerSpacing = 15
+    panel.renderModel.layerSpacing = 15
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_spacing2.png"), generatedImage, DIFF_THRESHOLD)
 
-    panel.model.layerSpacing = 3
+    panel.renderModel.layerSpacing = 3
     val windowRoot = model[ROOT]!!
     model.setSelection(windowRoot, SelectionOrigin.INTERNAL)
     paint(panel, generatedImage)
@@ -307,14 +307,14 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintFold.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
-    panel.model.layerSpacing = 10
-    panel.model.rotate(0.5, 0.7)
+    panel.renderModel.layerSpacing = 10
+    panel.renderModel.rotate(0.5, 0.7)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintFold_rotated.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
-    panel.model.hoveredDrawInfo = panel.model.hitRects.find { it.node is DrawViewImage }
+    panel.renderModel.hoveredDrawInfo = panel.renderModel.hitRects.find { it.node is DrawViewImage }
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
@@ -326,7 +326,7 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintFold_hovered_selected.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
-    panel.model.hoveredDrawInfo = null
+    panel.renderModel.hoveredDrawInfo = null
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
@@ -372,14 +372,14 @@ class DeviceViewContentPanelTest {
                                      generatedImage, DIFF_THRESHOLD)
 
     settings.scalePercent = 100
-    panel.model.layerSpacing = 3
-    panel.model.rotate(0.3, 0.2)
+    panel.renderModel.layerSpacing = 3
+    panel.renderModel.rotate(0.3, 0.2)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithHiddenSystemView_rotated.png"),
                                      generatedImage, DIFF_THRESHOLD)
 
-    panel.model.layerSpacing = 10
+    panel.renderModel.layerSpacing = 10
     val windowRoot = model[ROOT]!!
     model.setSelection(windowRoot, SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
@@ -408,12 +408,12 @@ class DeviceViewContentPanelTest {
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewContentPanel(model, null, treeSettings, FakeDeviceViewSettings(), { mock() }, mock(), null, disposable.disposable)
     panel.setSize(10, 15)
-    panel.model.rotate(-1.0, -1.0)
+    panel.renderModel.rotate(-1.0, -1.0)
 
     for (i in 0..20) {
-      panel.model.rotate(-2.0, 0.1)
+      panel.renderModel.rotate(-2.0, 0.1)
       for (j in 0..20) {
-        panel.model.rotate(0.1, 0.0)
+        panel.renderModel.rotate(0.1, 0.0)
         panel.paint(graphics)
       }
     }
@@ -438,17 +438,17 @@ class DeviceViewContentPanelTest {
     val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(1000, 1500)
 
-    panel.model.overlay = ImageIO.read(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
+    panel.renderModel.overlay = ImageIO.read(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
 
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_overlay-60.png"), generatedImage, DIFF_THRESHOLD)
 
-    panel.model.overlayAlpha = 0.2f
+    panel.renderModel.overlayAlpha = 0.2f
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_overlay-20.png"), generatedImage, DIFF_THRESHOLD)
 
-    panel.model.overlayAlpha = 0.9f
+    panel.renderModel.overlayAlpha = 0.9f
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_overlay-90.png"), generatedImage, DIFF_THRESHOLD)
@@ -483,18 +483,18 @@ class DeviceViewContentPanelTest {
 
     fakeUi.mouse.drag(10, 10, 50, 10)
     // We're not in rotated mode, so nothing should have happened yet.
-    assertEquals(0.0, panel.model.xOff)
-    assertEquals(0.0, panel.model.yOff)
+    assertEquals(0.0, panel.renderModel.xOff)
+    assertEquals(0.0, panel.renderModel.yOff)
 
     // Now modify the model to be rotated and verify that dragging changes the rotation
-    panel.model.xOff = 0.1
+    panel.renderModel.xOff = 0.1
     fakeUi.mouse.drag(10, 10, 10, 10)
-    assertEquals(0.11, panel.model.xOff)
-    assertEquals(0.01, panel.model.yOff)
+    assertEquals(0.11, panel.renderModel.xOff)
+    assertEquals(0.01, panel.renderModel.yOff)
 
-    panel.model.resetRotation()
-    assertEquals(0.0, panel.model.xOff)
-    assertEquals(0.0, panel.model.yOff)
+    panel.renderModel.resetRotation()
+    assertEquals(0.0, panel.renderModel.xOff)
+    assertEquals(0.0, panel.renderModel.yOff)
   }
 
   @Test
@@ -680,7 +680,7 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintMultiWindow_selected.png"), generatedImage,
                                      DIFF_THRESHOLD)
 
-    panel.model.rotate(0.3, 0.2)
+    panel.renderModel.rotate(0.3, 0.2)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintMultiWindow_rotated.png"), generatedImage,
@@ -718,7 +718,7 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintMultiWindowDimBehind.png"), generatedImage, DIFF_THRESHOLD)
 
-    panel.model.rotate(0.3, 0.2)
+    panel.renderModel.rotate(0.3, 0.2)
     settings.scalePercent = 50
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
@@ -839,8 +839,8 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithImagesBetweenChildren.png"), generatedImage,
                                      DIFF_THRESHOLD)
 
-    panel.model.layerSpacing = 60
-    panel.model.rotate(0.3, 0.2)
+    panel.renderModel.layerSpacing = 60
+    panel.renderModel.rotate(0.3, 0.2)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithImagesBetweenChildren_rotated.png"),
@@ -1118,9 +1118,9 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithChildrenOutsideParent.png"), generatedImage,
                                      DIFF_THRESHOLD)
 
-    panel.model.layerSpacing = 30
+    panel.renderModel.layerSpacing = 30
     settings.scalePercent = 100
-    panel.model.rotate(0.3, 0.2)
+    panel.renderModel.rotate(0.3, 0.2)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithChildrenOutsideParent_rotated.png"),
@@ -1145,9 +1145,9 @@ class DeviceViewContentPanelTest {
     val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(70, 70)
 
-    panel.model.layerSpacing = 30
+    panel.renderModel.layerSpacing = 30
     settings.scalePercent = 100
-    panel.model.rotate(0.3, 0.2)
+    panel.renderModel.rotate(0.3, 0.2)
 
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(70, 70, TYPE_INT_ARGB)

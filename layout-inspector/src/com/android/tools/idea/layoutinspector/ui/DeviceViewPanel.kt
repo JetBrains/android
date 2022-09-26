@@ -276,7 +276,7 @@ class DeviceViewPanel(
   private val layeredPane = JLayeredPane()
   private val loadingPane: JBLoadingPanel = JBLoadingPanel(BorderLayout(), disposableParent)
   private val deviceViewPanelActionsToolbar: DeviceViewPanelActionsToolbarProvider
-  private val viewportLayoutManager = MyViewportLayoutManager(scrollPane.viewport, { contentPanel.model.layerSpacing },
+  private val viewportLayoutManager = MyViewportLayoutManager(scrollPane.viewport, { contentPanel.renderModel.layerSpacing },
                                                               { contentPanel.rootLocation })
 
   private val actionToolbar: ActionToolbar = createToolbar(targetSelectedAction?.dropDownAction)
@@ -395,14 +395,14 @@ class DeviceViewPanel(
         loadingPane.stopLoading()
       }
     }
-    contentPanel.model.modificationListeners.add {
+    contentPanel.renderModel.modificationListeners.add {
       ApplicationManager.getApplication().invokeLater {
         actionToolbar.updateActionsImmediately()
-        val performanceWarningNeeded = layoutInspector.currentClient.isCapturing && (contentPanel.model.isRotated || model.hasHiddenNodes())
+        val performanceWarningNeeded = layoutInspector.currentClient.isCapturing && (contentPanel.renderModel.isRotated || model.hasHiddenNodes())
         if (performanceWarningNeeded != performanceWarningGiven) {
           if (performanceWarningNeeded) {
             when {
-              contentPanel.model.isRotated -> LayoutInspectorBundle.message(PERFORMANCE_WARNING_3D)
+              contentPanel.renderModel.isRotated -> LayoutInspectorBundle.message(PERFORMANCE_WARNING_3D)
               model.hasHiddenNodes() -> LayoutInspectorBundle.message(PERFORMANCE_WARNING_HIDDEN)
               else -> null
             }?.let { InspectorBannerService.getInstance(model.project).setNotification(it) }
@@ -437,20 +437,20 @@ class DeviceViewPanel(
 
     // Zoom to fit on initial connect
     model.modificationListeners.add { _, new, _ ->
-      if (contentPanel.model.maxWidth == 0) {
+      if (contentPanel.renderModel.maxWidth == 0) {
         layoutInspector.currentClient.stats.recompositionHighlightColor = viewSettings.highlightColor
-        contentPanel.model.refresh()
+        contentPanel.renderModel.refresh()
         if (!zoom(ZoomType.FIT)) {
           // If we didn't change the zoom, we need to refresh explicitly. Otherwise the zoom listener will do it.
           new?.refreshImages(viewSettings.scaleFraction)
-          contentPanel.model.refresh()
+          contentPanel.renderModel.refresh()
         }
       }
       else {
         // refreshImages is done here instead of by the model itself so that we can be sure to zoom to fit first before trying to render
         // images upon first connecting.
         new?.refreshImages(viewSettings.scaleFraction)
-        contentPanel.model.refresh()
+        contentPanel.renderModel.refresh()
       }
     }
     var prevZoom = viewSettings.scalePercent
@@ -466,7 +466,7 @@ class DeviceViewPanel(
           model.windows.values.forEach {
             it.refreshImages(viewSettings.scaleFraction)
           }
-          contentPanel.model.refresh()
+          contentPanel.renderModel.refresh()
         }
       }
     }
@@ -548,7 +548,7 @@ class DeviceViewPanel(
       return this
     }
     if (DEVICE_VIEW_MODEL_KEY.`is`(dataId)) {
-      return contentPanel.model
+      return contentPanel.renderModel
     }
     if (DEVICE_VIEW_SETTINGS_KEY.`is`(dataId)) {
       return viewSettings
