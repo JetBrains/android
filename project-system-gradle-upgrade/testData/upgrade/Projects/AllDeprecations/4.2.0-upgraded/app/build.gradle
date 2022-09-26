@@ -72,7 +72,6 @@ android {
             pickFirsts += ['readme.md']
         }
     }
-    namespace 'com.example.myapplication'
 }
 
 dependencies {

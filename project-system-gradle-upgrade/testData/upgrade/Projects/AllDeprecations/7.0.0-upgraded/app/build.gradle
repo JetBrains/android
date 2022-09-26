@@ -73,6 +73,7 @@ android {
         }
     }
     namespace 'com.example.myapplication'
+    testNamespace 'com.example.myapplication.test'
 }
 
 dependencies {

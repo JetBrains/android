@@ -18,10 +18,14 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
+import com.android.tools.idea.projectsystem.getAndroidTestModule
+import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.util.toVirtualFile
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ANDROID_MANIFEST_PACKAGE
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
@@ -39,7 +43,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
   override fun necessity() =
-    standardRegionNecessity(current, new, GradleVersion.parse("4.2.0-beta03"), GradleVersion.parse("8.0.0-beta01"))
+    standardRegionNecessity(current, new, GradleVersion.parse("7.0.0-alpha05"), GradleVersion.parse("8.0.0-beta01"))
 
   data class Namespaces(val namespace: String?, val testNamespace: String?)
 
@@ -83,15 +87,21 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
 
   override fun blockProcessorReasons(): List<BlockReason> {
     val moduleNames = mutableListOf<String>()
-    projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
-      model.psiElement ?: return@model
-      val moduleDirectory = model.moduleRootDirectory
+    val modules = ModuleManager.getInstance(project).modules.filter { it.isMainModule() }
+    modules.forEach module@{ module ->
+      val modelNamespace = GradleAndroidModel.get(module)?.androidProject?.namespace
+      val androidTestModule = module.getAndroidTestModule()
+      val modelTestNamespace = androidTestModule?.let { GradleAndroidModel.get(it)?.androidProject?.testNamespace }
+      val buildModel = projectBuildModel.getModuleBuildModel(module) ?: return@module
+      buildModel.psiElement ?: return@module
+      val moduleDirectory = buildModel.moduleRootDirectory
       val (namespace, testNamespace) = moduleDirectory.computeNamespacesFromManifestPackageAttributes()
-      testNamespace?.let { testNamespace ->
-        if (model.android().testNamespace().valueType != GradlePropertyModel.ValueType.NONE) return@let
+      (testNamespace ?: modelTestNamespace)?.let { testNamespace ->
+        if (buildModel.android().testNamespace().valueType != GradlePropertyModel.ValueType.NONE) return@let
         val currentNamespace = when {
-          model.android().namespace().valueType != GradlePropertyModel.ValueType.NONE -> model.android().namespace().forceString()
+          buildModel.android().namespace().valueType != GradlePropertyModel.ValueType.NONE -> buildModel.android().namespace().forceString()
           namespace != null -> namespace
+          modelNamespace != null -> modelNamespace
           else -> ""
         }
         // TODO(xof): the moduleDirectory need not have the same name as the module (though I guess it's reasonably common?)
@@ -120,13 +130,6 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
       }
       testNamespace?.let { testNamespace ->
         if (model.android().testNamespace().valueType != GradlePropertyModel.ValueType.NONE) return@let
-        val currentNamespace = when {
-          model.android().namespace().valueType != GradlePropertyModel.ValueType.NONE -> model.android().namespace().forceString()
-          namespace != null -> namespace
-          else -> ""
-        }
-        if (testNamespace == "$currentNamespace.test") return@let // default value for testNamespace is correct.
-        // TODO(b/191813691): check for agreement between model and specified testNamespace
         val psiElement = model.android().namespace().psiElement ?: model.android().psiElement ?: modelPsiElement
         val wrappedPsiElement = WrappedPsiElement(psiElement, this, ADD_TEST_NAMESPACE_BUILDFILE)
         val usageInfo = AndroidTestNamespaceUsageInfo(wrappedPsiElement, model, testNamespace)

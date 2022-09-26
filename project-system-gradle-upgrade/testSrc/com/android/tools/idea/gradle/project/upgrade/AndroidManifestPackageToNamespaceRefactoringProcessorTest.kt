@@ -51,10 +51,10 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
   @Test
   fun testNecessities() {
     val expectedNecessitiesMap = mapOf(
-      ("4.0.0" to "4.1.0") to IRRELEVANT_FUTURE,
-      ("4.1.0" to "4.2.0") to OPTIONAL_CODEPENDENT,
+      ("4.0.0" to "4.2.0") to IRRELEVANT_FUTURE,
+      ("4.1.0" to "7.0.0") to OPTIONAL_CODEPENDENT,
       ("7.0.0" to "7.1.0") to OPTIONAL_INDEPENDENT,
-      ("4.2.0" to "8.0.0") to MANDATORY_INDEPENDENT,
+      ("7.0.0" to "8.0.0") to MANDATORY_INDEPENDENT,
       ("4.1.0" to "8.0.0") to MANDATORY_CODEPENDENT,
       ("8.0.0" to "8.1.0") to IRRELEVANT_PAST
     )
@@ -100,7 +100,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
     val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("7.0.0"))
     processor.run()
 
-    verifyFileContents(buildFile, TestFileName("AndroidManifestPackageToNamespace/PackageToNamespaceExpected"))
+    verifyFileContents(buildFile, TestFileName("AndroidManifestPackageToNamespace/PackageToDefaultTestNamespaceExpected"))
     verifyManifestFileContents(manifestFile, TestFileName("AndroidManifestPackageToNamespace/ManifestWithoutPackage"))
     verifyManifestFileContents(androidTestManifestFile, TestFileName("AndroidManifestPackageToNamespace/ManifestWithoutPackage"))
   }
