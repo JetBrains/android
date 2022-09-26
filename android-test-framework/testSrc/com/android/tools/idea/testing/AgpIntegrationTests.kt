@@ -19,6 +19,9 @@ import com.android.testutils.junit4.OldAgpSuite
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
+import com.intellij.openapi.projectRoots.JavaSdkVersion
+import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11
+import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8
 
 /**
  * An AGP Version definition to be used in AGP integration tests.
@@ -33,6 +36,11 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
    * The version of Gradle to be used in integration tests for this AGP version. `null` means the latest/default version.
    */
   override val gradleVersion: String?,
+
+  /**
+   * The version of the JDK to launch Gradle with. `null` means the current version used by the IDE.
+   */
+  override val jdkVersion: JavaSdkVersion? = null,
 
   /**
    * The version of the Gradle Kotlin plugin to be used in integration tests for this AGP version. `null` means the default version used by
@@ -50,14 +58,15 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
    */
   override val modelVersion: ModelVersion = ModelVersion.V2
 ) : AgpVersionSoftwareEnvironment {
-  AGP_31("3.1.4", gradleVersion = "5.3.1", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
-  AGP_33_WITH_5_3_1("3.3.2", gradleVersion = "5.3.1", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
-  AGP_33("3.3.2", gradleVersion = "5.5", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
-  AGP_35("3.5.0", gradleVersion = "5.5", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
-  AGP_40("4.0.0", gradleVersion = "6.7.1", modelVersion = ModelVersion.V1, compileSdk = "32"),
-  AGP_41("4.1.0", gradleVersion = "6.7.1", modelVersion = ModelVersion.V1, compileSdk = "32"),
-  AGP_42("4.2.0", gradleVersion = "6.7.1", modelVersion = ModelVersion.V1, compileSdk = "32"),
-  AGP_70("7.0.0", gradleVersion = "7.0.2", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_31("3.1.4", gradleVersion = "5.3.1", jdkVersion = JDK_11, kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_33_WITH_5_3_1("3.3.2", gradleVersion = "5.3.1", jdkVersion = JDK_11, kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_33("3.3.2", gradleVersion = "5.5", jdkVersion = JDK_11, kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_35_JDK_8("3.5.0", gradleVersion = "5.5", jdkVersion = JDK_1_8, kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_35("3.5.0", gradleVersion = "5.5", jdkVersion = JDK_11, kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_40("4.0.0", gradleVersion = "6.7.1", jdkVersion = JDK_11, modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_41("4.1.0", gradleVersion = "6.7.1", jdkVersion = JDK_11, modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_42("4.2.0", gradleVersion = "6.7.1", jdkVersion = JDK_11, modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_70("7.0.0", gradleVersion = "7.0.2", jdkVersion = JDK_11, modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_71("7.1.0", gradleVersion = "7.2", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_72_V1("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_72("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V2, compileSdk = "32"),

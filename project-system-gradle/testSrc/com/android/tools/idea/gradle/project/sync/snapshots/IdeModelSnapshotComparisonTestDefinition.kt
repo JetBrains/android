@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35_JDK_8
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
@@ -168,6 +169,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
       AGP_31 -> Unit
       AGP_33_WITH_5_3_1 -> Unit
       AGP_33 -> Unit
+      AGP_35_JDK_8 -> Unit
       AGP_35 -> Unit
       AGP_40 -> Unit
       AGP_41 -> Unit

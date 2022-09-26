@@ -905,8 +905,9 @@ public class IdeSdks {
    * Looks for an IntelliJ SDK for the JDK at the given location, if it does not exist then tries to create it and returns it, or
    * {@code null} if it could not be created successfully.
    */
+  @VisibleForTesting
   @Nullable
-  private Sdk createJdk(@NotNull Path homeDirectory) {
+  public Sdk createJdk(@NotNull Path homeDirectory) {
     ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
     for (Sdk jdk : projectJdkTable.getSdksOfType(JavaSdk.getInstance())) {
       if (FileUtil.pathsEqual(jdk.getHomePath(), homeDirectory.toString())) {

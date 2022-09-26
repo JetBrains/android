@@ -53,6 +53,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.openapi.util.io.FileUtil;
@@ -262,7 +263,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                    @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
                                    @Nullable String ndkVersion) throws Exception {
     prepareProjectForImport(relativePath, agpVersion, ndkVersion);
-    importProject();
+    importProject(agpVersion.getJdkVersion());
 
     prepareProjectForTest(getProject(), chosenModuleName);
   }
@@ -411,9 +412,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     return result;
   }
 
-  protected void importProject() throws Exception {
+  protected final void importProject() {
+    importProject(resolveAgpVersionSoftwareEnvironment(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT).getJdkVersion());
+  }
+
+  protected final void importProject(@NotNull JavaSdkVersion jdkVersion) {
     Project project = getProject();
-    AgpIntegrationTestUtil.importProject(project);
+    AgpIntegrationTestUtil.importProject(project, jdkVersion, getTestRootDisposable());
   }
 
   @NotNull

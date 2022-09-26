@@ -17,13 +17,14 @@ package com.android.build
 
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.ModelVersion
+import com.intellij.openapi.projectRoots.JavaSdkVersion
 
 enum class AgpVersionInBuildAttributionTest(
   override val agpVersion: String? = null,
   override val gradleVersion: String? = null,
+  override val jdkVersion: JavaSdkVersion? = null,
   override val compileSdk: String? = null,
   override val kotlinVersion: String? = null
-
 ) : AgpVersionSoftwareEnvironment {
   CURRENT,
   AGP_71(agpVersion = "7.1.0")

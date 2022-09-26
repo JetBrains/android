@@ -39,27 +39,11 @@ import org.junit.Test
 class Jvm1_8SyncTest {
   @Test
   fun test18() {
-    expect.that(IdeSdks.getInstance().jdk?.version).isEqualTo(JDK_1_8)
     val preparedProject =
-      projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
+      projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35_JDK_8)
     preparedProject.open { project ->
       val projectSdk = ProjectRootManager.getInstance(project).projectSdk
       expect.that(projectSdk?.version).isEqualTo(JDK_1_8)
-    }
-  }
-
-  @Before
-  fun setUp() {
-    runWriteAction {
-      AndroidGradleTests.overrideJdkTo8()
-    }
-    IdeSdks.removeJdksOn(projectRule.testRootDisposable)
-  }
-
-  @After
-  fun tearDown() {
-    runWriteAction {
-      AndroidGradleTests.restoreJdk()
     }
   }
 

@@ -182,6 +182,7 @@ private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (
   AgpVersionSoftwareEnvironmentDescriptor.AGP_31 -> "_Agp_3.1_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1 -> "_Agp_3.3_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_33 -> "_Agp_3.3_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_35_JDK_8 -> "_Agp_3.5_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_35 -> "_Agp_3.5_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_40 -> "_Agp_4.0_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_41 -> "_Agp_4.1_"

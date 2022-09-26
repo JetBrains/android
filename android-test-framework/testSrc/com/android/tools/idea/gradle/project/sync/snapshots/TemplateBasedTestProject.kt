@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.testing.AgpIntegrationTestUtil.maybeCreateJdkOverride
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.IntegrationTestEnvironment
@@ -25,7 +26,9 @@ import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.switchVariant
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.exists
@@ -96,26 +99,36 @@ interface TemplateBasedTestProject : TestProjectDefinition {
     return object : PreparedTestProject {
       override val root: File = root
       override fun <T> open(updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions, body: (Project) -> T): T {
-        val tearDown = setup()
+        val jdkOverride = maybeCreateJdkOverride(resolvedAgpVersion.jdkVersion)
         try {
-          return integrationTestEnvironment.openPreparedProject(
-            name = "$name$pathToOpen",
-            options = updateOptions(defaultOpenPreparedProjectOptions())
-          ) { project ->
-            invokeAndWaitIfNeeded {
-              AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-            }
-            switchVariant?.let { switchVariant ->
-              switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
+          val tearDown = setup()
+          try {
+            val options = updateOptions(defaultOpenPreparedProjectOptions().copy(overrideProjectJdk = jdkOverride))
+            return integrationTestEnvironment.openPreparedProject(
+              name = "$name$pathToOpen",
+              options = options
+            ) { project ->
               invokeAndWaitIfNeeded {
                 AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
               }
-              verifyOpened?.invoke(project)// Second time.
+              switchVariant?.let { switchVariant ->
+                switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
+                invokeAndWaitIfNeeded {
+                  AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+                }
+                verifyOpened?.invoke(project) // Second time.
+              }
+              body(project)
             }
-            body(project)
+          } finally {
+            tearDown()
           }
         } finally {
-          tearDown()
+          jdkOverride?.let {
+            runWriteActionAndWait {
+              ProjectJdkTable.getInstance().removeJdk(it)
+            }
+          }
         }
       }
     }

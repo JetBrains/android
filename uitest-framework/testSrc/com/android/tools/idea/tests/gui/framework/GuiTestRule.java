@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
 import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentUtil.resolveAgpVersionSoftwareEnvironment;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
@@ -415,7 +414,7 @@ public class GuiTestRule implements TestRule {
     // If the index.zip does not exist, or if the plugin is not installed, this step does not affect the test
     System.setProperty("STUDIO_PREBUILT_INDEX", projectPath.toPath().resolve("index.zip").toAbsolutePath().toString());
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
-    updateGradleVersions(projectPath, new CustomAgpVersionSoftwareEnvironment(gradlePluginVersion, gradleVersion, kotlinVersion),
+    updateGradleVersions(projectPath, new CustomAgpVersionSoftwareEnvironment(gradlePluginVersion, gradleVersion, null, kotlinVersion),
                          ndkVersion);
     updateLocalProperties(projectPath);
     cleanUpProjectForImport(projectPath);
@@ -451,7 +450,7 @@ public class GuiTestRule implements TestRule {
                            @Nullable String ndkVersion) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
-    updateGradleVersions(projectPath, new CustomAgpVersionSoftwareEnvironment(gradlePluginVersion, gradleVersion, kotlinVersion),
+    updateGradleVersions(projectPath, new CustomAgpVersionSoftwareEnvironment(gradlePluginVersion, gradleVersion, null, kotlinVersion),
                          ndkVersion);
     updateLocalProperties(projectPath);
     cleanUpProjectForImport(projectPath);

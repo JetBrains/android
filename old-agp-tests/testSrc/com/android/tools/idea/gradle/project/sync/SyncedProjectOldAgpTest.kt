@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectTest
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35_JDK_8
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
@@ -54,7 +55,7 @@ class SyncedProjectsAllAgpTest(agpVersion: AgpVersionSoftwareEnvironmentDescript
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun testParameters(): Collection<*> {
-      return applicableAgpVersions().filter { it >= AGP_33 }.reversed().map { arrayOf(it) }
+      return applicableAgpVersions().filter { it >= AGP_33 && it != AGP_35_JDK_8 }.reversed().map { arrayOf(it) }
     }
   }
 }
