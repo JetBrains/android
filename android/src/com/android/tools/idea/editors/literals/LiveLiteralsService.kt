@@ -194,7 +194,7 @@ class LiveLiteralsService private constructor(private val project: Project,
       if (fileSnapshot.all.isNotEmpty()) {
         editorRef.get()?.let { editor ->
           fileSnapshot.highlightSnapshotInEditor(project, editor, LITERAL_TEXT_ATTRIBUTE_KEY, outHighlighters) {
-            it.containingFile.hasCompilerLiveLiteral(it.containingFile.virtualFile.path, it.initialTextRange.startOffset)
+            it.containingFile.hasCompilerLiveLiteral(it.initialTextRange.startOffset)
           }
         }
 
@@ -247,8 +247,8 @@ class LiveLiteralsService private constructor(private val project: Project,
     @JvmStatic
     fun getInstance(project: Project): LiveLiteralsService = project.getService(LiveLiteralsService::class.java)
 
-    private fun PsiFile?.hasCompilerLiveLiteral(path: String, offset: Int) =
-      this?.getUserData(COMPILER_LITERALS_FINDER)?.hasCompilerLiveLiteral(path, offset) ?: true
+    private fun PsiFile?.hasCompilerLiveLiteral(offset: Int) =
+      this?.getUserData(COMPILER_LITERALS_FINDER)?.hasCompilerLiveLiteral(this, offset) ?: true
   }
 
   private val log = Logger.getInstance(LiveLiteralsService::class.java)
@@ -428,7 +428,7 @@ class LiveLiteralsService private constructor(private val project: Project,
       if (editor.isDisposed || !isActive) return@launch
       val tracker = HighlightTracker(file, editor, cachedSnapshot)
 
-      CompilerLiveLiteralsManager.find(file).also {
+      CompilerLiveLiteralsManager.getInstance().find(file).also {
         file.putUserData(COMPILER_LITERALS_FINDER, it)
         withContext(workerThread) {
           project.messageBus.syncPublisher(MANAGED_ELEMENTS_UPDATED_TOPIC).onChange(file)
@@ -595,7 +595,7 @@ class LiveLiteralsService private constructor(private val project: Project,
     val literalReferencePath = literalReference.containingFile?.virtualFile?.path ?: return false
     @Suppress("USELESS_ELVIS") // initialTextRange can be null under certain conditions
     val initialTextRange = literalReference.initialTextRange ?: return false
-    return containingFile.hasCompilerLiveLiteral(literalReferencePath, initialTextRange.startOffset)
+    return containingFile.hasCompilerLiveLiteral(initialTextRange.startOffset)
   }
 
   override fun dispose() {

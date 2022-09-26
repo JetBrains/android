@@ -176,6 +176,9 @@ iml_module(
         "editors.manifest": {
             "test_filter": "com.android.tools.idea.editors.manifest",
         },
+        "editors.literals": {
+            "test_filter": "com.android.tools.idea.editors.literals",
+        },
         "instantapp": {
             "test_filter": "com.android.tools.idea.instantapp",
         },

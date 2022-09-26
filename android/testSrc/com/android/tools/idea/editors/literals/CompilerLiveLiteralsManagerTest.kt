@@ -18,6 +18,8 @@ package com.android.tools.idea.editors.literals
 import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
+import junit.framework.Assert.assertFalse
+import junit.framework.Assert.assertTrue
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.junit.Rule
@@ -51,7 +53,59 @@ internal class CompilerLiveLiteralsManagerTest {
     ModuleClassLoaderOverlays.getInstance(projectRule.fixture.module).overlayPath = outputDir
     runBlocking {
       // This should not throw even though the classes are invalid
-      CompilerLiveLiteralsManager.find(file)
+      CompilerLiveLiteralsManager.getInstance().find(file)
+    }
+  }
+
+  @Test
+  fun `verify finding of relative and absolute path literals`() {
+    val file = projectRule.fixture.addFileToProject(
+      "/src/test/app/LiteralsTest.kt",
+      // language=kotlin
+      """
+        package test.app
+
+        private val testVal = "TEST"
+
+        fun testCall() {
+            println(name = "NAME ${'$'}testVal")
+        }
+      """)
+
+    run {
+      val path = file.virtualFile.path
+      val compilerLiveLiteralsManager = CompilerLiveLiteralsManager.getTestInstance {
+        listOf(
+          CompilerLiveLiteralsManager.CompilerLiteralDefinition(path, 10),
+          CompilerLiveLiteralsManager.CompilerLiteralDefinition(path, 20),
+          CompilerLiveLiteralsManager.CompilerLiteralDefinition(path, 30)
+        )
+      }
+      runBlocking {
+        val finder = compilerLiveLiteralsManager.find(file)
+        assertTrue(finder.hasCompilerLiveLiteral(file, 10))
+        assertFalse(finder.hasCompilerLiveLiteral(file, 15))
+        assertTrue(finder.hasCompilerLiveLiteral(file, 20))
+        assertTrue(finder.hasCompilerLiveLiteral(file, 30))
+      }
+    }
+
+    run {
+      val path = file.getRelativePath()!!
+      val compilerLiveLiteralsManager = CompilerLiveLiteralsManager.getTestInstance {
+        listOf(
+          CompilerLiveLiteralsManager.CompilerLiteralDefinition(path, 10),
+          CompilerLiveLiteralsManager.CompilerLiteralDefinition(path, 20),
+          CompilerLiveLiteralsManager.CompilerLiteralDefinition(path, 30)
+        )
+      }
+      runBlocking {
+        val finder = compilerLiveLiteralsManager.find(file)
+        assertTrue(finder.hasCompilerLiveLiteral(file, 10))
+        assertFalse(finder.hasCompilerLiveLiteral(file, 15))
+        assertTrue(finder.hasCompilerLiveLiteral(file, 20))
+        assertTrue(finder.hasCompilerLiveLiteral(file, 30))
+      }
     }
   }
 }
