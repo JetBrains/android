@@ -25,6 +25,7 @@ import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
 import java.nio.file.Paths
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -97,10 +98,10 @@ class SingleComposePreviewElementRendererTest {
    * Checks that the [RenderTask#dispose] releases the `WindowRecomposer#animationScale` that could
    * potentially cause leaks.
    *
-   * Regression test for b/244234828.
+   * Regression test for b/244234828 and b/247681348.
    */
   @Test
-  fun testDisposeOfAnimationScale() {
+  fun testDisposeOfComposeLeaks() {
     val renderTaskFuture =
       createRenderTaskFuture(
         projectRule.androidFacet(":app"),
@@ -120,12 +121,20 @@ class SingleComposePreviewElementRendererTest {
     val animationScaleField =
       windowRecomposer.getDeclaredField("animationScale").apply { isAccessible = true }
 
+    val fontRequestWorker = classLoader.loadClass("androidx.core.provider.FontRequestWorker")
+    val pendingRepliesField =
+      fontRequestWorker.getDeclaredField("PENDING_REPLIES").apply { isAccessible = true }
+    val pendingReplies = pendingRepliesField.get(fontRequestWorker)
+
     assertTrue((animationScaleField.get(windowRecomposer) as Map<*, *>).isNotEmpty())
     renderTask.dispose().get()
     assertTrue(
       "animationScale should have been cleared",
       (animationScaleField.get(windowRecomposer) as Map<*, *>).isEmpty()
     )
+
+    val size = pendingReplies::class.java.getMethod("size").invoke(pendingReplies) as Int
+    assertEquals("FontRequestWorker.PENDING_REPLIES size must be 0 after dispose", 0, size)
   }
 
   @Test
