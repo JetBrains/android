@@ -77,6 +77,18 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
             .javaLibrary.main ==> :javaLibrary/MAIN
             .javaLibrary.test ==> :javaLibrary/test
             .javaLibrary.testEnv ==> :javaLibrary/testEnv
+            .kmp-java ==> :kmp-java
+            .kmp-java.sample ==> :kmp-java:sample
+            .kmp-java.sample-test ==> :kmp-java:sample-test
+            .kmp-java.sample-test.androidTest ==> :kmp-java:sample-test/ANDROID_TEST
+            .kmp-java.sample-test.main ==> :kmp-java:sample-test/MAIN
+            .kmp-java.sample-test.unitTest ==> :kmp-java:sample-test/UNIT_TEST
+            .kmp-java.sample.commonMain ==> :kmp-java:sample/commonMain
+            .kmp-java.sample.commonTest ==> :kmp-java:sample/commonTest
+            .kmp-java.sample.jvmMain ==> :kmp-java:sample/jvmMain
+            .kmp-java.sample.jvmTest ==> :kmp-java:sample/jvmTest
+            .kmp-java.sample.main ==> :kmp-java:sample/MAIN
+            .kmp-java.sample.test ==> :kmp-java:sample/test
             .lib ==> :lib
             .lib.androidTest ==> :lib/ANDROID_TEST
             .lib.main ==> :lib/MAIN
