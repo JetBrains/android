@@ -151,6 +151,7 @@ class BasicCompileTest {
     Assert.assertEquals("y", returnedValue)
   }
 
+  @org.junit.Ignore("b/249073553")
   @Test
   fun simpleComposeChange() {
     var output = compile(files["ComposeSimple.kt"], "composableFun").singleOutput()
@@ -169,6 +170,7 @@ class BasicCompileTest {
     Assert.assertTrue(foundFunction)
   }
 
+  @org.junit.Ignore("b/249073553")
   @Test
   fun simpleComposeNested() {
     var output = compile(files["ComposeNested.kt"], "composableNested").singleOutput()
