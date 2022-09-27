@@ -220,8 +220,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
 
       JBScrollPane scrollPane = new JBScrollPane(textArea);
 
-      Border unfocusedBorder = setupBordersForTextArea(textArea);
-      myValueFieldContainer.setBorder(unfocusedBorder);
+      setupBordersForTextArea(textArea, myValueFieldContainer);
       myValueFieldContainer.add(scrollPane);
     }
     else {
@@ -237,11 +236,8 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
    * Configures borders for a JTextArea, so that the border of its container is highlighted when it gains focus. The border for a JTextArea
    * has to be manually set to match focus behavior for the other JTextFields in this panel, since default IJ themes don't do that
    * automatically.
-   *
-   * @return the unfocused border.
    */
-  @NotNull
-  private Border setupBordersForTextArea(@NotNull JTextArea textArea) {
+  private void setupBordersForTextArea(@NotNull JTextArea textArea, @NotNull JPanel containingPanel) {
     Border empty1pixel = JBUI.Borders.empty(1);
     Border empty3pixel = JBUI.Borders.empty(3);
     Border unfocusedLine = JBUI.Borders.customLine(JBColor.border(), 1);
@@ -252,16 +248,17 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     textArea.addFocusListener(new FocusListener() {
       @Override
       public void focusGained(FocusEvent e) {
-        myValueFieldContainer.setBorder(focusedBorder);
+        containingPanel.setBorder(focusedBorder);
       }
 
       @Override
       public void focusLost(FocusEvent e) {
-        myValueFieldContainer.setBorder(unfocusedBorder);
+        containingPanel.setBorder(unfocusedBorder);
       }
     });
 
-    return unfocusedBorder;
+    textArea.setBorder(JBUI.Borders.empty(/* topAndBottom= */ 1, /* leftAndRight= */ 4));
+    containingPanel.setBorder(unfocusedBorder);
   }
 
   @Override
