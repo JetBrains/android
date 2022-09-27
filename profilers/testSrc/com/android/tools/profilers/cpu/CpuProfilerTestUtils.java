@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.android.tools.profilers.cpu.FakeCpuService.FAKE_STOPPING_TIME_MS;
+import static com.android.tools.profilers.cpu.FakeCpuService.FAKE_STOPPING_DURATION_MS;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.testutils.TestUtils;
@@ -213,7 +213,7 @@ public class CpuProfilerTestUtils {
     stopTraceCommand.setStopStatus(
       Trace.TraceStopStatus.newBuilder()
         .setStatus(success ? Trace.TraceStopStatus.Status.SUCCESS : Trace.TraceStopStatus.Status.STOP_COMMAND_FAILED)
-        .setStoppingTimeNs(TimeUnit.MILLISECONDS.toNanos(FAKE_STOPPING_TIME_MS))
+        .setStoppingDurationNs(TimeUnit.MILLISECONDS.toNanos(FAKE_STOPPING_DURATION_MS))
         .build());
     stopTraceCommand.setTraceDurationNs(traceDurationNs);
 
