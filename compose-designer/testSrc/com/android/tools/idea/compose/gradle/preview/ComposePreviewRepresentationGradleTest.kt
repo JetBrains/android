@@ -80,9 +80,11 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
+@Ignore("b/232880163")
 class ComposePreviewRepresentationGradleTest {
   private val logger = Logger.getInstance(ComposePreviewRepresentationGradleTest::class.java)
 
