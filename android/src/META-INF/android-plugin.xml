@@ -55,6 +55,11 @@
       <add-to-group group-id="RunnerActions" anchor="after" relative-to-action="Run"/>
     </group>
 
+    <group id="Android.LiveEdit">
+      <action id="android.deploy.livedit.trigger" class="com.android.tools.idea.editors.literals.ManualLiveEditTrigger"/>
+      <action id="android.deploy.livedit.recompose" class="com.android.tools.idea.editors.literals.ManualLiveEditReset"/>
+    </group>
+
     <action id="LegacyNewAndroidComponent" class="com.android.tools.idea.actions.LegacyNewAndroidComponentAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
     </action>

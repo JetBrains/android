@@ -18,12 +18,16 @@ package com.android.tools.idea.editors.literals
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.util.ListenerCollection
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeEvent
@@ -36,6 +40,8 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
+import javax.swing.KeyStroke
+
 
 /**
  * @param file: Where the file event originate
@@ -50,7 +56,13 @@ data class EditEvent(val file: PsiFile,
 }
 
 enum class EditState {
-  ERROR, PAUSED, IN_PROGRESS, UP_TO_DATE, DISABLED
+  ERROR,            // LiveEdit has encountered an error (can also be a recompose error).
+  PAUSED,           // No apps are ready to receive live edit updates or a compilation error is preventing push to the device.
+  IN_PROGRESS,      // Processing...
+  UP_TO_DATE,       // The device and the code are in Sync.
+  OUT_OF_DATE,      // In manual mode, changes have been detected but not pushed to the device yet.
+  RECOMPOSE_NEEDED, // In manual mode, changes have been pushed to the devices but not recomposed yet.
+  DISABLED          // LiveEdit has been disabled (via UI or custom properties).
 }
 
 data class EditStatus(val editState: EditState, val message: String)
@@ -59,7 +71,7 @@ data class EditStatus(val editState: EditState, val message: String)
  * Allows any component to listen to all method body edits of a project.
  */
 @Service
-class LiveEditService private constructor(project: Project, var listenerExecutor: Executor) : Disposable {
+class LiveEditService private constructor(val project: Project, var listenerExecutor: Executor) : Disposable {
 
   val inlineCandidateCache = SourceInlineCandidateCache()
 
@@ -96,9 +108,65 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
     val listener = MyPsiListener(::onMethodBodyUpdated)
     PsiManager.getInstance(project).addPsiTreeChangeListener(listener, this)
     deployMonitor = AndroidLiveEditDeployMonitor(this, project)
+    bindKeyMapShortcut(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
   }
 
   companion object {
+    val leKey = 'K' // This must match the text in AndroidBundle.properties
+
+    fun leTriggerKey() = if (SystemInfo.isMac) "meta" else "ctrl"
+    fun leTriggerTextKey() = if (SystemInfo.isMac) "Cmd" else "Ctrl"
+
+    // Used to display mouse over text.
+    fun leTextKey() : String {
+      val cmd = leTriggerTextKey()
+      return "$cmd-$leKey"
+    }
+
+    // Used to display mouse over text.
+    fun leResetTextKey() : String {
+      val cmd = leTriggerTextKey()
+      return "$cmd-Shift-$leKey"
+    }
+
+    enum class LiveEditTriggerMode {
+      LE_TRIGGER_MANUAL,
+      LE_TRIGGER_AUTOMATIC,
+    }
+
+    // In manual mode LiveEdit changes are pushed only when the user triggered it via a key combination. The shortcut needs to be installed.
+    // In automatic mode the shortcut needs to be uninstalled.
+    fun bindKeyMapShortcut(mode: LiveEditTriggerMode) {
+      // TODO: Change this to 'S' when we found out how to chain Action (and if it is even possible). For now, use K.
+      val triggerShortcut = KeyboardShortcut(KeyStroke.getKeyStroke("${leTriggerKey()} $leKey"), null)
+
+      val recomposeKey = "shift $leKey" // This must match the text in AndroidBundle.properties
+      val recomposeShortcut = KeyboardShortcut(KeyStroke.getKeyStroke("${leTriggerKey()} $recomposeKey"), null)
+
+      val manager = KeymapManager.getInstance() ?: return
+      val keymap = manager.getActiveKeymap();
+
+      // Keep these in sync with android-plugin.xml
+      val TRIGGER_ACTION_ID = "android.deploy.livedit.trigger"
+      val RECOMPOSE_ACTION_ID = "android.deploy.livedit.recompose"
+
+      if (isLeTriggerManual()) {
+        // Add listeners
+        keymap.addShortcut(TRIGGER_ACTION_ID, triggerShortcut)
+        keymap.addShortcut(RECOMPOSE_ACTION_ID, recomposeShortcut)
+      } else {
+        // Remove listeners
+        keymap.removeShortcut(TRIGGER_ACTION_ID, triggerShortcut)
+        keymap.removeShortcut(RECOMPOSE_ACTION_ID, recomposeShortcut)
+      }
+    }
+
+    fun isLeTriggerManual(mode : LiveEditTriggerMode) : Boolean {
+      return mode == LiveEditTriggerMode.LE_TRIGGER_MANUAL
+    }
+
+    fun isLeTriggerManual() = isLeTriggerManual(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
+
     @JvmStatic
     fun getInstance(project: Project): LiveEditService = project.getService(LiveEditService::class.java)
 
@@ -249,5 +317,13 @@ class LiveEditService private constructor(project: Project, var listenerExecutor
 
   override fun dispose() {
     //TODO: "Not yet implemented"
+  }
+
+  fun triggerLiveEdit() {
+    deployMonitor.onManualLETrigger(project)
+  }
+
+  fun sendRecomposeRequest() {
+    deployMonitor.sendRecomposeRequest();
   }
 }

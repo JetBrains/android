@@ -23,6 +23,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.deploy.proto.Deploy;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.Installer;
@@ -151,6 +152,13 @@ public class AndroidLiveEditDeployMonitor {
 
   private static final EditStatus DISCONNECTED = new EditStatus(EditState.PAUSED, "No apps are ready to receive live edits");
 
+  private static final EditStatus UP_TO_DATE = new EditStatus(EditState.UP_TO_DATE, "Up to date");
+
+  private static final EditStatus OUT_OF_DATE = new EditStatus(EditState.OUT_OF_DATE, "Refresh ("+ LiveEditService.Companion.leTextKey() +") to view the latest Live Edit Changes");
+
+  private static final EditStatus RECOMPOSE_NEEDED = new EditStatus(EditState.RECOMPOSE_NEEDED, "Hard refresh (" + LiveEditService.Companion.leResetTextKey() + ") must occur for all changes to be applied. App state will be reset");
+
+
   private final @NotNull Project project;
 
   private final @NotNull LinkedHashMap<String, SourceInlineCandidate> sourceInlineCandidateCache;
@@ -160,6 +168,9 @@ public class AndroidLiveEditDeployMonitor {
   private final ScheduledExecutorService methodChangesExecutor = Executors.newSingleThreadScheduledExecutor();
 
   private final @NotNull AtomicReference<EditStatus> editStatus = new AtomicReference<>(LiveEditService.DISABLED_STATUS);
+
+  // In manual mode, we buffer events until user triggers a LE push.
+  private final ArrayList<EditEvent> bufferedEvents = new ArrayList<>();
 
   private class EditStatusGetter implements LiveEditService.EditStatusProvider {
     @NotNull
@@ -198,7 +209,7 @@ public class AndroidLiveEditDeployMonitor {
 
     // This method is invoked on the listener executor thread in LiveEditService and does not block the UI thread.
     public void onLiteralsChanged(EditEvent event) {
-      if (!LiveEditApplicationConfiguration.Companion.getInstance().isLiveEdit()) {
+      if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
         return;
       }
 
@@ -236,7 +247,7 @@ public class AndroidLiveEditDeployMonitor {
         }
       }));
 
-      if (!handleChangedMethods(project, applicationId, copy)) {
+      if (!handleChangedMethods(project, copy)) {
         changedMethodQueue.addAll(copy);
         methodChangesExecutor.schedule(this::processChanges, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
       }
@@ -258,7 +269,7 @@ public class AndroidLiveEditDeployMonitor {
     // TODO: Don't use Live Literal's reporting
     LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(deviceId + "#" + applicationId);
 
-    if (!LiveEditApplicationConfiguration.Companion.getInstance().isLiveEdit()) {
+    if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
       LOGGER.info("Live Edit on device disabled via settings.");
       return null;
     }
@@ -313,12 +324,45 @@ public class AndroidLiveEditDeployMonitor {
     }
   }
 
+  // Triggered from LiveEdit manual mode. Use buffered changes.
   @Trace
-  private boolean handleChangedMethods(Project project,
-                                       String packageName,
-                                       List<EditEvent> changes) {
-    LOGGER.info("Change detected for project %s targeting app %s", project.getName(), packageName);
+  public void onManualLETrigger(Project project) {
+    methodChangesExecutor.schedule(this::doOnManualLETrigger, 0, TimeUnit.MILLISECONDS);
+  }
 
+  private void doOnManualLETrigger() {
+    updateEditStatus(UPDATE_IN_PROGRESS);
+    boolean success = processChanges(project, bufferedEvents);
+    if (success) {
+      bufferedEvents.clear();
+    }
+  }
+
+
+
+  @Trace
+  boolean handleChangedMethods(Project project, List<EditEvent> changes) {
+    LOGGER.info("Change detected for project %s targeting app %s", project.getName(), applicationId);
+
+    // In manual mode, we store changes and update status but defer processing.
+    if (LiveEditService.Companion.isLeTriggerManual()) {
+      updateEditStatus(OUT_OF_DATE);
+
+      if (bufferedEvents.size() < 2000) {
+        bufferedEvents.addAll(changes);
+      } else {
+        // Something is wrong. Discard event otherwise we will run Out Of Memory
+        updateEditStatus(new EditStatus(EditState.ERROR, "Too many buffered LE keystrokes. Redeploy app."));
+      }
+
+      return true;
+    }
+
+    return processChanges(project, changes);
+  }
+
+  @Trace
+  private boolean processChanges(Project project, List<EditEvent> changes) {
     LiveEditEvent.Builder event = LiveEditEvent.newBuilder();
 
     long start = System.nanoTime();
@@ -350,16 +394,14 @@ public class AndroidLiveEditDeployMonitor {
     event.setCompileDurationMs(TimeUnit.NANOSECONDS.toMillis(compileFinish - start));
     LOGGER.info("LiveEdit compile completed in %dms", event.getCompileDurationMs());
 
-    Optional<LiveUpdateDeployer.UpdateLiveEditError> error = deviceIterator(project, packageName)
-      .map(device -> pushUpdatesToDevice(packageName, device, compiled))
+    Optional<LiveUpdateDeployer.UpdateLiveEditError> error = deviceIterator(project, applicationId)
+      .map(device -> pushUpdatesToDevice(applicationId, device, compiled))
       .flatMap(List::stream)
       .findFirst();
 
     if (error.isPresent()) {
-      updateEditStatus(new EditStatus(EditState.ERROR, error.get().getMessage()));
       event.setStatus(errorToStatus(error.get()));
     } else {
-      updateEditStatus(LiveEditService.UP_TO_DATE_STATUS);
       event.setStatus(LiveEditEvent.Status.SUCCESS);
     }
 
@@ -426,28 +468,59 @@ public class AndroidLiveEditDeployMonitor {
       .filter(AndroidLiveEditDeployMonitor::supportLiveEdits);
   }
 
-  private static List<LiveUpdateDeployer.UpdateLiveEditError> pushUpdatesToDevice(
-      String packageName, IDevice device, List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> updates) {
-    AdbClient adb = new AdbClient(device, LOGGER);
+  private static Installer newInstaller(IDevice device) {
     MetricsRecorder metrics = new MetricsRecorder();
-    Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
+    AdbClient adb = new AdbClient(device, LOGGER);
+    return  new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
+  }
+
+  public void sendRecomposeRequest() {
+    updateEditStatus(UPDATE_IN_PROGRESS);
+    methodChangesExecutor.schedule(this::doSendRecomposeRequest, 0 , TimeUnit.MILLISECONDS);
+  }
+
+  private void doSendRecomposeRequest() {
+    try {
+      deviceIterator(project, applicationId).forEach(device -> sendRecomposeRequests(device));
+      // TODO: Check that no error happened during recompose.
+    } finally {
+      updateEditStatus(UP_TO_DATE);
+    }
+  }
+
+  private void sendRecomposeRequests(IDevice device) {
     LiveUpdateDeployer deployer = new LiveUpdateDeployer();
+    Installer installer = newInstaller(device);
+    AdbClient adb = new AdbClient(device, LOGGER);
+    deployer.recompose(installer, adb, applicationId);
+  }
+
+  private List<LiveUpdateDeployer.UpdateLiveEditError> pushUpdatesToDevice(
+      String packageName, IDevice device, List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> updates) {
+    LiveUpdateDeployer deployer = new LiveUpdateDeployer();
+    Installer installer = newInstaller(device);
+    AdbClient adb = new AdbClient(device, LOGGER);
 
     // TODO: Batch multiple updates in one LiveEdit operation; listening to all PSI events means multiple class events can be
     //  generated from a single keystroke, leading to multiple LEs and multiple recomposes.
     List<LiveUpdateDeployer.UpdateLiveEditError> results = new ArrayList<>();
-    updates.forEach(update -> {
+    boolean recomposeNeeded = false;
+    for (AndroidLiveEditCodeGenerator.CodeGeneratorOutput update : updates) {
       boolean useDebugMode = LiveEditAdvancedConfiguration.getInstance().getUseDebugMode();
       boolean usePartialRecompose = LiveEditAdvancedConfiguration.getInstance().getUsePartialRecompose() &&
                                     (update.getFunctionType() == AndroidLiveEditCodeGenerator.FunctionType.COMPOSABLE ||
                                      update.getHasGroupId());
+
+      // In manual mode we don't recompose automatically if priming happened.
+      boolean recomposeAfterPriming = !LiveEditService.Companion.isLeTriggerManual();
       LiveUpdateDeployer.UpdateLiveEditsParam param =
         new LiveUpdateDeployer.UpdateLiveEditsParam(
           update.getClassName(), update.getMethodName(), update.getMethodDesc(),
           usePartialRecompose,
           update.getGroupId(),
           update.getClassData(),
-          update.getSupportClasses(), useDebugMode);
+          update.getSupportClasses(), useDebugMode,
+          recomposeAfterPriming);
 
 
       if (useDebugMode) {
@@ -458,8 +531,25 @@ public class AndroidLiveEditDeployMonitor {
         }
       }
 
-      results.addAll(deployer.updateLiveEdit(installer, adb, packageName, param));
-    });
+      LiveUpdateDeployer.UpdateLiveEditResult result = deployer.updateLiveEdit(installer, adb, packageName, param);
+      if (LiveEditService.Companion.isLeTriggerManual()) {
+        // In manual mode, we need to let the user know that recompose was not called if classes were Primed.
+        if (result.recomposeType == Deploy.AgentLiveEditResponse.RecomposeType.RESET_SKIPPED) {
+          recomposeNeeded = true;
+        }
+      }
+      results.addAll(result.errors);
+    }
+
+    if (recomposeNeeded) {
+      updateEditStatus(RECOMPOSE_NEEDED);
+    } else {
+      updateEditStatus(UP_TO_DATE);
+    }
+
+    if (!results.isEmpty()) {
+      updateEditStatus(new EditStatus(EditState.ERROR, results.get(0).getMessage()));
+    }
     return results;
   }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.liveedit
 
+import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDiagnosticsManager
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
@@ -38,6 +39,7 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
 
   class State : BaseState() {
     var mode by enum(LIVE_LITERALS)
+    var leTriggerMode by enum(LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_MANUAL)
   }
 
   var mode
@@ -51,6 +53,14 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
         state.mode = patchedValue
         LiveLiteralsDiagnosticsManager.getApplicationWriteInstance().userChangedLiveLiteralsState(patchedValue == LIVE_LITERALS)
       }
+    }
+
+  // Live Edit Trigger Mode
+  var leTriggerMode
+    get() = state.leTriggerMode
+    set(value) {
+        state.leTriggerMode = value
+        LiveEditService.bindKeyMapShortcut(value)
     }
 
   /**
@@ -70,6 +80,7 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
   }
 
   companion object {
+    @JvmStatic
     fun getInstance(): LiveEditApplicationConfiguration = ApplicationManager.getApplication().getService(
       LiveEditApplicationConfiguration::class.java)
   }

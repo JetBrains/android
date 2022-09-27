@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
+import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_MANUAL
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.intellij.ide.ActivityTracker
@@ -28,8 +31,10 @@ import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.ui.layout.CellBuilder
 import com.intellij.ui.layout.panel
 import org.jetbrains.android.util.AndroidBundle.message
+import javax.swing.JRadioButton
 
 class LiveEditConfigurable : BoundSearchableConfigurable(
   message("live.edit.configurable.display.name"), "android.live.edit"
@@ -49,14 +54,41 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
         }
 
         if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()) {
-          row {
-            radioButton(
-              message("live.edit.configurable.display.name"),
-              { config.mode == LIVE_EDIT },
-              { enabled -> if (enabled) config.mode = LIVE_EDIT },
-              message("live.edit.configurable.display.name.comment")
-            )
-          }
+            var rb : CellBuilder<JRadioButton>? = null
+            row {
+              rb = radioButton(
+                message("live.edit.configurable.display.name"),
+                { config.mode == LIVE_EDIT },
+                { enabled -> if (enabled) config.mode = LIVE_EDIT },
+                message("live.edit.configurable.display.name.comment")
+              )
+            }
+            row { // Add a row to indent
+              buttonGroup {
+                row {
+                  radioButton(
+                    message("live.edit.mode.manual", LiveEditService.leTriggerTextKey()),
+                    { config.leTriggerMode == LE_TRIGGER_MANUAL },
+                    { enabled ->
+                      if (enabled) {
+                      config.leTriggerMode = LE_TRIGGER_MANUAL
+                    }},
+                  )
+                }
+                row {
+                  radioButton(
+                    message("live.edit.mode.automatic"),
+                    { config.leTriggerMode == LE_TRIGGER_AUTOMATIC },
+                    { enabled ->
+                      if (enabled) {
+                        config.leTriggerMode = LE_TRIGGER_AUTOMATIC
+                      }
+                    },
+                  )
+                }
+              }
+            }
+
         }
 
         row {
