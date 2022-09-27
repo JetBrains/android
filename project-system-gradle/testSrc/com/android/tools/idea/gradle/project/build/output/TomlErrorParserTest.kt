@@ -39,7 +39,7 @@ class TomlErrorParserTest {
 
   @Test
   fun testTomlErrorParsed() {
-    val buildOutput = VERSION_CATALOG_LIBS_BUILD_OUTPUT
+    val buildOutput = getVersionCatalogLibsBuildOutput()
 
     val parser = TomlErrorParser()
     val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
@@ -53,7 +53,7 @@ class TomlErrorParserTest {
       Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
       Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
       Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
-      Truth.assertThat(it.description).isEqualTo(VERSION_CATALOG_LIBS_BUILD_ISSUE_DESCRIPTION)
+      Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription())
       Truth.assertThat(it.getNavigatable(project)).isNull()
     }
   }
@@ -68,7 +68,7 @@ class TomlErrorParserTest {
       file = gradleDir?.findOrCreateChildData(this, "libs.versions.toml")
     }
     try {
-      val buildOutput = VERSION_CATALOG_LIBS_BUILD_OUTPUT
+      val buildOutput = getVersionCatalogLibsBuildOutput()
 
       val parser = TomlErrorParser()
       val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
@@ -82,7 +82,7 @@ class TomlErrorParserTest {
         Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
         Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
         Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
-        Truth.assertThat(it.description).isEqualTo(VERSION_CATALOG_LIBS_BUILD_ISSUE_DESCRIPTION)
+        Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription())
         Truth.assertThat(it.getNavigatable(project)).isInstanceOf(OpenFileDescriptor::class.java)
         (it.getNavigatable(project) as OpenFileDescriptor).let { ofd ->
           Truth.assertThat(ofd.line).isEqualTo(10)
@@ -136,7 +136,7 @@ class TomlErrorParserTest {
   }
 
   companion object {
-    val VERSION_CATALOG_LIBS_BUILD_OUTPUT = """
+    fun getVersionCatalogLibsBuildOutput(): String = """
 FAILURE: Build failed with an exception.
 
 * What went wrong:
@@ -165,7 +165,7 @@ org.gradle.api.InvalidUserDataException: Invalid TOML catalog definition:
 * Get more help at https://help.gradle.org
       """.trimIndent()
 
-    val VERSION_CATALOG_LIBS_BUILD_ISSUE_DESCRIPTION = """
+    fun getVersionCatalogLibsBuildIssueDescription(): String = """
 Invalid TOML catalog definition.
   - Problem: In version catalog libs, parsing failed with 1 error.
     
