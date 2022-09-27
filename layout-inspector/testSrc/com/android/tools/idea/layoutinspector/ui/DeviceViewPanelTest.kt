@@ -192,6 +192,7 @@ class DeviceViewPanelWithFullInspectorTest {
         settings,
         projectRule.fixture.testRootDisposable
     )
+    val banner = InspectorBannerService.getInstance(inspectorRule.project) ?: error("no banner")
     val deviceModel = panel.getData(DEVICE_VIEW_MODEL_KEY.name) as RenderModel
     delegateDataProvider(panel)
     flatten(panel).filterIsInstance<ActionToolbar>().forEach { it.updateActionsImmediately() }
@@ -216,25 +217,23 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(scheduler.isShutdown).isTrue()
     assertThat(deviceModel.isRotated).isTrue()
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(InspectorBannerService.getInstance(inspectorRule.project).notification?.message)
-      .isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_3D))
+    assertThat(banner.notification?.message).isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_3D))
 
     // Turn 3D mode off:
     toggle.click()
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(InspectorBannerService.getInstance(inspectorRule.project).notification?.message).isNull()
+    assertThat(banner.notification?.message).isNull()
 
     // Hide VIEW2:
     val view2 = inspectorRule.inspectorModel[VIEW2]!!
     inspectorRule.inspectorModel.hideSubtree(view2)
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(InspectorBannerService.getInstance(inspectorRule.project).notification?.message)
-      .isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_HIDDEN))
+    assertThat(banner.notification?.message).isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_HIDDEN))
 
     // Show all:
     inspectorRule.inspectorModel.showAll()
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(InspectorBannerService.getInstance(inspectorRule.project).notification?.message).isNull()
+    assertThat(banner.notification?.message).isNull()
   }
 
   private fun delegateDataProvider(panel: DeviceViewPanel) {
@@ -659,7 +658,7 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testGotoDeclarationOfViewWithoutAnId() {
     gotoDeclaration(VIEW3)
     fileOpenCaptureRule.checkNoNavigation()
-    assertThat(InspectorBannerService.getInstance(inspectorRule.project).notification?.message)
+    assertThat(InspectorBannerService.getInstance(inspectorRule.project)?.notification?.message)
       .isEqualTo("It appears that the v3 in the layout demo.xml doesnt have an id.")
   }
 

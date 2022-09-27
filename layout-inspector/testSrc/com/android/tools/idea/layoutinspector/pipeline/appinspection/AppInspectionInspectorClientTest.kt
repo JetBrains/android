@@ -539,7 +539,7 @@ class AppInspectionInspectorClientTest {
     }
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(error.await()).isEqualTo(startFetchError)
-    assertThat(InspectorBannerService.getInstance(inspectorRule.project).notification?.message)
+    assertThat(InspectorBannerService.getInstance(inspectorRule.project)?.notification?.message)
       .isEqualTo("Failed to start fetching or whatever")
   }
 
@@ -971,7 +971,7 @@ class AppInspectionInspectorClientTest {
     assertThat(banner.text.text).isEqualTo("The activity was restarted. This can be avoided by selecting " +
                                            "\"Enable view attribute inspection\" in the developer options on the device or " +
                                            "by enabling \"Connect without restarting activity\" in the run configuration options.")
-    val service = InspectorBannerService.getInstance(inspectorRule.project)
+    val service = InspectorBannerService.getInstance(inspectorRule.project) ?: error("no banner")
     service.DISMISS_ACTION.actionPerformed(mock())
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 

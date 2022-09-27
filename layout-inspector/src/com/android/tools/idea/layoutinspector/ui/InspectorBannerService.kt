@@ -54,6 +54,7 @@ class InspectorBannerService {
   }
 
   companion object {
-    fun getInstance(project: Project) = project.getService(InspectorBannerService::class.java)
+    fun getInstance(project: Project): InspectorBannerService? =
+      if (project.isDisposed) null else project.getService(InspectorBannerService::class.java)
   }
 }

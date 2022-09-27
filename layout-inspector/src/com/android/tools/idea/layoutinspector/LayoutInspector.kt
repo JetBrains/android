@@ -140,7 +140,7 @@ class LayoutInspector private constructor(
 
   private fun logError(error: String) {
     Logger.getInstance(LayoutInspector::class.java.canonicalName).warn(error)
-    InspectorBannerService.getInstance(layoutInspectorModel.project).setNotification(error)
+    InspectorBannerService.getInstance(layoutInspectorModel.project)?.setNotification(error)
 
     @Suppress("ConstantConditionIf")
     if (SHOW_ERROR_MESSAGES_IN_DIALOG) {

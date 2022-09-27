@@ -133,9 +133,9 @@ class ComposeLayoutInspectorClient(
         }
         catch (e: AppInspectionArtifactNotFoundException) {
           if (version.endsWith("-SNAPSHOT")) {
-            InspectorBannerService.getInstance(model.project).setNotification(INSPECTOR_NOT_FOUND_USE_SNAPSHOT)
+            InspectorBannerService.getInstance(model.project)?.setNotification(INSPECTOR_NOT_FOUND_USE_SNAPSHOT)
           } else {
-            InspectorBannerService.getInstance(model.project).setNotification(COMPOSE_INSPECTION_NOT_AVAILABLE)
+            InspectorBannerService.getInstance(model.project)?.setNotification(COMPOSE_INSPECTION_NOT_AVAILABLE)
           }
           return null
         }
@@ -149,12 +149,12 @@ class ComposeLayoutInspectorClient(
         ComposeLayoutInspectorClient(model, treeSettings, messenger, capabilities, launchMonitor).apply { updateSettings() }
       }
       catch (ignored: AppInspectionVersionIncompatibleException) {
-        InspectorBannerService.getInstance(model.project).setNotification(INCOMPATIBLE_LIBRARY_MESSAGE)
+        InspectorBannerService.getInstance(model.project)?.setNotification(INCOMPATIBLE_LIBRARY_MESSAGE)
         null
       }
       catch (ignored: AppInspectionAppProguardedException) {
         val banner = InspectorBannerService.getInstance(model.project)
-        banner.setNotification(
+        banner?.setNotification(
           PROGUARDED_LIBRARY_MESSAGE,
           listOf(InspectorBannerService.LearnMoreAction(PROGUARD_LEARN_MORE), banner.DISMISS_ACTION))
         null

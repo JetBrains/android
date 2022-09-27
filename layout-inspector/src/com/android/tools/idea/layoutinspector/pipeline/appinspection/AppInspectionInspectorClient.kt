@@ -118,7 +118,7 @@ class AppInspectionInspectorClient(
 
   private val bannerExceptionHandler = CoroutineExceptionHandler { ctx, t ->
     loggingExceptionHandler.handleException(ctx, t)
-    InspectorBannerService.getInstance(model.project).setNotification(
+    InspectorBannerService.getInstance(model.project)?.setNotification(
       when {
         t is ConnectionFailedException -> t.message!!
         process.device.apiLevel >= 29 -> AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
@@ -297,7 +297,7 @@ class AppInspectionInspectorClient(
 
     val tags = (image.typeDetails as? DetailsTypes.SysImgDetailsType)?.tags ?: listOf()
 
-    val bannerService = InspectorBannerService.getInstance(project)
+    val bannerService = InspectorBannerService.getInstance(project) ?: return
     if (tags.contains(SystemImage.GOOGLE_APIS_TAG) || tags.contains(SystemImage.DEFAULT_TAG)) {
       val logger = StudioLoggerProgressIndicator(AppInspectionInspectorClient::class.java)
       val showBanner = RepoManager.RepoLoadedListener { packages ->

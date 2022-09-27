@@ -223,8 +223,8 @@ class InspectorClientLauncher(
       }
     }
 
-    if (!validClientConnected && !project.isDisposed) {
-      val bannerService = InspectorBannerService.getInstance(project)
+    if (!validClientConnected) {
+      val bannerService = InspectorBannerService.getInstance(project) ?: return
       // Save the banner so we can put it back after it's cleared by the client change, to show the error that made us disconnect.
       val currentBanner = bannerService.notification
       activeClient = DisconnectedClient

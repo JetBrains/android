@@ -128,7 +128,7 @@ class LegacyInspectorMetricsTest {
 
     // Launch monitor will set a banner
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
-    val banner = InspectorBannerService.getInstance(projectRule.project)
+    val banner = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
     assertThat(banner.notification?.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
 
     // User disconnects:

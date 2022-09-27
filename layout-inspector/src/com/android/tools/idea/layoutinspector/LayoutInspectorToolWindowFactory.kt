@@ -109,9 +109,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         processesModel.addSelectedProcessListeners {
           // Reset notification bar every time active process changes, since otherwise we might leave up stale notifications from an error
           // encountered during a previous run.
-          if (!project.isDisposed) {
-            InspectorBannerService.getInstance(project).notification = null
-          }
+          InspectorBannerService.getInstance(project)?.notification = null
         }
 
         lateinit var launcher: InspectorClientLauncher

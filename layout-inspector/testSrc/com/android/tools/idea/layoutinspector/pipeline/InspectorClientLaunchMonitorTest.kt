@@ -42,7 +42,7 @@ class InspectorClientLaunchMonitorTest {
   fun monitorOffersUserToStopsStuckConnection() {
     val project = projectRule.project
     val scheduler = VirtualTimeScheduler()
-    val banner = InspectorBannerService.getInstance(project)
+    val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
     run {
       val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), scheduler)
       val client = mock<InspectorClient>()
@@ -104,7 +104,7 @@ class InspectorClientLaunchMonitorTest {
     projectSystem.setModuleSystem(moduleSystem.module, moduleSystem)
     moduleSystem.usesCompose = true
 
-    val banner = InspectorBannerService.getInstance(project)
+    val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
     val scheduler = VirtualTimeScheduler()
     val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), scheduler)
     monitor.start(client)
@@ -148,7 +148,7 @@ class InspectorClientLaunchMonitorTest {
     projectSystem.setModuleSystem(moduleSystem.module, moduleSystem)
     moduleSystem.usesCompose = true
 
-    val banner = InspectorBannerService.getInstance(project)
+    val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
     val scheduler = VirtualTimeScheduler()
     val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), scheduler)
     val client = mock<InspectorClient>()

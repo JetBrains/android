@@ -58,7 +58,7 @@ class InspectorBanner(project: Project) : JPanel(BorderLayout()) {
     add(text, BorderLayout.WEST)
     add(actionPanel, BorderLayout.EAST)
     applyUISettings()
-    InspectorBannerService.getInstance(project).notificationListeners.add(::applyNewNotification)
+    InspectorBannerService.getInstance(project)?.notificationListeners?.add(::applyNewNotification)
   }
 
   private fun applyUISettings() {

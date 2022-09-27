@@ -129,7 +129,7 @@ class ViewAndroidWindow(
     val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, requestedNodeInfo, skiaParser, scale)
 
     if (errorMessage != null) {
-      InspectorBannerService.getInstance(project).setNotification(errorMessage)
+      InspectorBannerService.getInstance(project)?.setNotification(errorMessage)
     }
     if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id != 0L) {
       logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)

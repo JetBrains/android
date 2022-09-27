@@ -53,8 +53,8 @@ class InspectorBannerTest {
   @Test
   fun testVisibleWithStatus() {
     val banner = InspectorBanner(projectRule.project)
-    InspectorBannerService.getInstance(projectRule.project).notification =
-      StatusNotificationImpl ("There is an error somewhere", emptyList())
+    val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
+    bannerService.notification = StatusNotificationImpl ("There is an error somewhere", emptyList())
     invokeAndWaitIfNeeded {
       UIUtil.dispatchAllInvocationEvents()
     }
@@ -64,7 +64,7 @@ class InspectorBannerTest {
   @Test
   fun testInvisibleAfterEmptyStatus() {
     val banner = InspectorBanner(projectRule.project)
-    val bannerService = InspectorBannerService.getInstance(projectRule.project)
+    val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
     bannerService.notification = StatusNotificationImpl("There is an error somewhere", emptyList())
     bannerService.notification = null
     invokeAndWaitIfNeeded {
@@ -80,7 +80,7 @@ class InspectorBannerTest {
     val action = object: AnAction("Fix") {
       override fun actionPerformed(event: AnActionEvent) {}
     }
-    val bannerService = InspectorBannerService.getInstance(projectRule.project)
+    val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
     bannerService.notification = StatusNotificationImpl("There is an error somewhere", listOf(action))
     invokeAndWaitIfNeeded {
       UIUtil.dispatchAllInvocationEvents()
@@ -96,7 +96,7 @@ class InspectorBannerTest {
   @Test
   fun testSynchronization() {
     val banner = InspectorBanner(projectRule.project)
-    val service = InspectorBannerService.getInstance(projectRule.project)
+    val service = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
     val actionPanel = banner.components.find { it.name == INSPECTOR_BANNER_ACTION_PANEL_NAME } as Container
     val text = banner.components.find { it.name == INSPECTOR_BANNER_TEXT_NAME } as JLabel
     var addedSecond = false

@@ -37,7 +37,7 @@ class ComposeWarning(private val project: Project) {
         "Cannot display compose nodes, try restarting the application"
       }
       val bannerService = InspectorBannerService.getInstance(project)
-      bannerService.setNotification(message, listOf(bannerService.DISMISS_ACTION))
+      bannerService?.setNotification(message, listOf(bannerService.DISMISS_ACTION))
     }
   }
 

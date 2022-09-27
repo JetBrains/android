@@ -94,7 +94,7 @@ fun showActivityRestartedInBanner(project: Project, process: ProcessDescriptor) 
   val doNotShowAgainAction = object : AnAction(LayoutInspectorBundle.message("do.not.show.again")) {
     override fun actionPerformed(event: AnActionEvent) {
       PropertiesComponent.getInstance().setValue(KEY_HIDE_ACTIVITY_RESTART_BANNER, true)
-      val banner = InspectorBannerService.getInstance(project)
+      val banner = InspectorBannerService.getInstance(project) ?: return
       banner.DISMISS_ACTION.actionPerformed(event)
     }
   }
@@ -108,7 +108,7 @@ fun showActivityRestartedInBanner(project: Project, process: ProcessDescriptor) 
     moduleFromCurrentProjectBeingInspected(project, process)
   }
 
-  val banner = InspectorBannerService.getInstance(project)
+  val banner = InspectorBannerService.getInstance(project) ?: return
   val config = module?.let { getConfiguration(module) }
   val showEnableAction = config?.INSPECTION_WITHOUT_ACTIVITY_RESTART == false
   val actions = mutableListOf(doNotShowAgainAction, banner.DISMISS_ACTION)
