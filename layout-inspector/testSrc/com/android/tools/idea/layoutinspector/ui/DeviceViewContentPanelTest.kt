@@ -160,8 +160,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     assertEquals(Dimension(130, 160), panel.preferredSize)
@@ -209,8 +208,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(120, 200)
@@ -338,8 +336,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(130, 250)
@@ -416,8 +413,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(40, 60)
@@ -472,8 +468,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(10, 15)
@@ -515,8 +510,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(1000, 1500)
@@ -561,8 +555,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
@@ -622,8 +615,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(100, 200)
@@ -669,8 +661,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(100, 200)
@@ -717,8 +708,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(100, 200)
@@ -766,8 +756,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = dropDownActionWithButton,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(200, 200)
@@ -831,8 +820,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(200, 300)
@@ -889,8 +877,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(200, 300)
@@ -944,8 +931,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(350, 450)
@@ -1037,8 +1023,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(120, 140)
@@ -1094,8 +1079,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(350, 450)
@@ -1154,8 +1138,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(400, 600)
@@ -1230,8 +1213,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(200, 200)
@@ -1273,8 +1255,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     val scrollPane = JBScrollPane(panel)
@@ -1362,8 +1343,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(350, 450)
@@ -1401,8 +1381,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(90, 70)
@@ -1445,8 +1424,7 @@ class DeviceViewContentPanelTest {
       selectTargetAction = null,
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(70, 70)
@@ -1500,8 +1478,7 @@ class DeviceViewContentPanelWithScaledFontTest {
       selectTargetAction = mock(),
       disposableParent =  disposable.disposable,
       isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false },
-      hasForegroundProcess = { false }
+      isCurrentForegroundProcessDebuggable = { false }
     )
 
     panel.setSize(800, 400)
