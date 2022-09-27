@@ -15,18 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
-import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.TestCase.assertTrue;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.gradle.AGPProjectUpdateNotificationCenterPanelFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -34,12 +31,32 @@ import org.jetbrains.annotations.NotNull;
 public class NewFolderWizardFixture {
 
   private final IdeFrameFixture myIdeFrame;
-  private final JDialog myDialog;
+  JDialog myDialog;
+  static int count = 0;
 
-  public static NewFolderWizardFixture find(IdeFrameFixture ideFrame) {
-    JDialog dialog = GuiTests.waitUntilShowing(ideFrame.robot(), Matchers.byTitle(JDialog.class, "New Android Component"));
+  public static NewFolderWizardFixture find2(IdeFrameFixture ideFrame) {
+    JDialog dialog = GuiTests.waitUntilShowing(ideFrame.robot(),
+                                               Matchers.byTitle(JDialog.class, "New Android Component"));
     assertTrue(dialog.isVisible());
     return new NewFolderWizardFixture(ideFrame, dialog);
+  }
+
+  public static NewFolderWizardFixture open(IdeFrameFixture ideFrame) {
+    // Opening new java folder creation panel till the combo box is seen. Due to a product bug b/240730295.
+    while (count < 6) {
+      ideFrame.getProjectView().selectAndroidPane();
+      ideFrame.invokeMenuPath("File", "New", "Folder", "Java Folder");
+      JDialog dialog = GuiTests.waitUntilShowing(ideFrame.robot(),
+                                                 Matchers.byTitle(JDialog.class, "New Android Component"));
+      assertTrue(dialog.isVisible());
+      if (!ideFrame.robot().finder().findAll(dialog, Matchers.byType(JComboBox.class)).isEmpty()) {
+        return new NewFolderWizardFixture(ideFrame, dialog);
+      }
+      JButton cancelButton = ideFrame.robot().finder().find(dialog, Matchers.byText(JButton.class, "Cancel"));
+      ideFrame.robot().click(cancelButton);
+      count++;
+    }
+    throw new AssertionError("The combo box is not showing up.");
   }
 
   private NewFolderWizardFixture(@NotNull IdeFrameFixture ideFrame, @NotNull JDialog target) {
@@ -49,7 +66,8 @@ public class NewFolderWizardFixture {
 
   @NotNull
   public NewFolderWizardFixture selectResFolder(@NotNull String resFolder) {
-    JComboBoxFixture comboBoxFixture = new JComboBoxFixture(myIdeFrame.robot(), myIdeFrame.robot().finder().findByType(myDialog, JComboBox.class, true));
+    JComboBoxFixture comboBoxFixture = new JComboBoxFixture(myIdeFrame.robot(),
+                                                            myIdeFrame.robot().finder().findByType(myDialog, JComboBox.class, true));
     assertTrue(comboBoxFixture.isEnabled());
     comboBoxFixture.click();
     comboBoxFixture.selectItem(resFolder);
@@ -78,9 +96,9 @@ public class NewFolderWizardFixture {
 
   public void clickCancel() {
     String buttonName = "Cancel";
-    JButton finishButton = myIdeFrame.robot().finder().find(myDialog, Matchers.byText(JButton.class, buttonName));
-    finishButton.isEnabled();
-    myIdeFrame.robot().click(finishButton);
+    JButton cancelButton = myIdeFrame.robot().finder().find(myDialog, Matchers.byText(JButton.class, buttonName));
+    cancelButton.isEnabled();
+    myIdeFrame.robot().click(cancelButton);
     waitForDialogToDisappear();
   }
 

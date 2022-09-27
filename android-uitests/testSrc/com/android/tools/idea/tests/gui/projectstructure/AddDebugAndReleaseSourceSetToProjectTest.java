@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.projectstructure;
 
 import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.TestCase.assertFalse;
-
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.NewJavaClassDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewFolderWizardFixture;
@@ -28,12 +26,9 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.event.KeyEvent;
-import org.fest.swing.core.MouseButton;
 import java.util.concurrent.TimeUnit;
-import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,28 +37,32 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class AddDebugAndReleaseSourceSetToProjectTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  @Rule
+  public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Activity";
-  protected static final String DEBUG_IMPORT_CLASS_NAME = "com.google.myapplication.DebugTestClass.BuildVariantDebugTest";
-  protected static final String DEBUG_IMPORT_CLASS_STRING_USAGE = "BuildVariantDebugTest testingClassDebug = new BuildVariantDebugTest();";
-  protected static final String RELEASE_IMPORT_CLASS_NAME = "com.google.myapplication.ReleaseTestClass.BuildVariantReleaseTest";
-  protected static final String RELEASE_IMPORT_CLASS_STRING_USAGE = "BuildVariantReleaseTest testClassRelease = new BuildVariantReleaseTest();";
+  protected static final String DEBUG_IMPORT_CLASS_NAME = "com.google.myapplication.DebugTest.BuildVariantDebugClass";
+  protected static final String DEBUG_IMPORT_CLASS_STRING_USAGE = "BuildVariantDebugClass testingClassDebug = new BuildVariantDebugClass();";
+  protected static final String RELEASE_IMPORT_CLASS_NAME = "com.google.myapplication.ReleaseTest.BuildVariantReleaseClass";
+  protected static final String RELEASE_IMPORT_CLASS_STRING_USAGE = "BuildVariantReleaseClass testClassRelease = new BuildVariantReleaseClass();";
 
   @Before
   public void setUp() throws Exception {
-    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE); // Default projects are created with androidx dependencies
+    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE); // Default projects are created with androidx
+    // dependencies
     guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
   /**
    * Verifies user can add debug and release source set to project.
    * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * This is run to qualify releases. Please involve the test team in substantial
+   * changes.
    * <p>
    * TT ID: b0e0d2bc-7c8a-40fe-979c-3a43d969088a
    * <p>
-   *   <pre>
+   *
+   * <pre>
    *   Test Steps:
    *   Debug Source set
    *   1) Create a new project
@@ -87,10 +86,9 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
    *   2)  Import statement should import with shortcut (Alt+ Enter) & Symbol should resolve
    *   3)  There should be a package name  with name com.example.test and ProjectReleaseClass  Java class
    *   4) Only  selected variant package/class should be displayed in Android View
-   *   </pre>
+   * </pre>
    * <p>
    */
-
 
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
@@ -99,12 +97,11 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor();
 
-    //Clearing any notifications on the ideframe
+    // Clearing any notifications on the ideframe
     ideFrame.clearNotificationsPresentOnIdeFrame();
 
-    //Debug Source Set test
-    ideFrame.invokeMenuPath("File", "New", "Folder", "Java Folder");
-    NewFolderWizardFixture newFolderCreationDebug = NewFolderWizardFixture.find(ideFrame);
+    // Debug Source Set test (Steps 1-7)
+    NewFolderWizardFixture newFolderCreationDebug = NewFolderWizardFixture.open(ideFrame);
     newFolderCreationDebug.selectResFolder("debug");
     newFolderCreationDebug.clickFinishAndWaitForSyncToComplete();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
@@ -112,9 +109,12 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
     ideFrame.find(guiTest.robot()).requestFocusIfLost();
     ideFrame.getProjectView()
       .selectProjectPane()
-      .clickPath(MouseButton.RIGHT_BUTTON, "MyApplication", "app", "src", "debug", "java")
-      .openFromMenu(NewJavaClassDialogFixture::find, "New", "Java Class")
-      .enterName(DEBUG_IMPORT_CLASS_NAME).clickOk();
+      .clickPath("MyApplication", "app", "src", "debug", "java");
+    ideFrame.invokeMenuPath("File", "New", "Java Class");
+    NewJavaClassDialogFixture.find(ideFrame)
+      .enterName(DEBUG_IMPORT_CLASS_NAME)
+      .clickOk();
+
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     ideFrame.find(guiTest.robot()).requestFocusIfLost();
@@ -127,25 +127,17 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
       .moveBetween("super.onCreate(savedInstanceState);", "")
       .enterText("\n" + DEBUG_IMPORT_CLASS_STRING_USAGE);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    editor.moveBetween("BuildVariantDebugT", "est");
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    editor.moveBetween("BuildVariantDebugC", "lass");
+    guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
+    TimeUnit.SECONDS.sleep(5);
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, KeyEvent.ALT_MASK);
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     assertThat(editor.getCurrentFileContents()).contains("import " + DEBUG_IMPORT_CLASS_NAME + ";");
 
     ideFrame.requestProjectSyncAndWaitForSyncToFinish();
 
-    //Release source set
-
-    ideFrame.find(guiTest.robot()).requestFocusIfLost();
-    ideFrame.getProjectView().selectAndroidPane().clickPath("app", "java");
-    ideFrame.invokeMenuPath("File", "New", "Folder", "Java Folder");
-    NewFolderWizardFixture newFolderCreationRelease = NewFolderWizardFixture.find(ideFrame);
-    newFolderCreationRelease.selectResFolder("release");
-    newFolderCreationRelease.clickFinishAndWaitForSyncToComplete();
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    // Release source set test (Steps 8-15)
 
     ideFrame.find(guiTest.robot()).requestFocusIfLost();
     ideFrame.getBuildVariantsWindow()
@@ -158,11 +150,19 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
     GuiTests.waitForProjectIndexingToFinish(ideFrame.getProject());
 
     ideFrame.find(guiTest.robot()).requestFocusIfLost();
+    NewFolderWizardFixture newFolderCreationRelease = NewFolderWizardFixture.open(ideFrame);
+    newFolderCreationRelease.selectResFolder("release");
+    newFolderCreationRelease.clickFinishAndWaitForSyncToComplete();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    ideFrame.find(guiTest.robot()).requestFocusIfLost();
     ideFrame.getProjectView()
       .selectProjectPane()
-      .clickPath(MouseButton.RIGHT_BUTTON, "MyApplication", "app", "src", "release", "java")
-      .openFromMenu(NewJavaClassDialogFixture::find, "New", "Java Class")
-      .enterName(RELEASE_IMPORT_CLASS_NAME).clickOk();
+      .clickPath("MyApplication", "app", "src", "release", "java");
+    ideFrame.invokeMenuPath("File", "New", "Java Class");
+    NewJavaClassDialogFixture.find(ideFrame)
+      .enterName(RELEASE_IMPORT_CLASS_NAME)
+      .clickOk();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     ideFrame.find(guiTest.robot()).requestFocusIfLost();
@@ -175,11 +175,11 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
       .moveBetween("super.onCreate(savedInstanceState);", "")
       .enterText("\n" + RELEASE_IMPORT_CLASS_STRING_USAGE);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    editor.moveBetween("BuildVariantReleaseT", "est");
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    editor.moveBetween("BuildVariantReleaseC", "lass");
+    guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
+    TimeUnit.SECONDS.sleep(5);
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, KeyEvent.ALT_MASK);
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     assertThat(editor.getCurrentFileContents()).contains("import " + RELEASE_IMPORT_CLASS_NAME + ";");
 
@@ -190,16 +190,17 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     ideFrame.find(guiTest.robot()).requestFocusIfLost();
     ideFrame.getProjectView()
-      .assertFilesExist("/app/src/debug/java/com/google/myapplication/DebugTestClass/BuildVariantDebugTest.java");
+      .assertFilesExist("/app/src/debug/java/com/google/myapplication/DebugTest/BuildVariantDebugClass.java");
 
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     ideFrame.find(guiTest.robot()).requestFocusIfLost();
-      ideFrame.getBuildVariantsWindow()
+    ideFrame.getBuildVariantsWindow()
       .selectVariantForModule("My_Application.app", "release");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     ideFrame.find(guiTest.robot()).requestFocusIfLost();
-      ideFrame.getProjectView()
-      .assertFilesExist("/app/src/release/java/com/google/myapplication/ReleaseTestClass/BuildVariantReleaseTest.java");
+    ideFrame.getProjectView()
+      .assertFilesExist(
+        "/app/src/release/java/com/google/myapplication/ReleaseTest/BuildVariantReleaseClass.java");
   }
 }
