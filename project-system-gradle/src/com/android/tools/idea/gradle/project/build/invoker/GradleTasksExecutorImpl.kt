@@ -403,7 +403,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
                                                    buildInfo.agpVersion,
                                                    syncedAgpVersions.joinToString(", ") { obj: GradleVersion? -> obj.toString() }
         )
-        logger.error(incompatibilityMessage)
+        logger.warn(incompatibilityMessage)
         val quickFix = SyncProjectWithExtraCommandLineOptionsHyperlink("Sync project", "")
         NotificationGroupManager.getInstance()
           .getNotificationGroup("Android Gradle Sync Issues")
