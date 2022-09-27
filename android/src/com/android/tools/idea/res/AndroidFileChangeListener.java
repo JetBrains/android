@@ -351,7 +351,9 @@ public class AndroidFileChangeListener implements Disposable {
       }
 
       VirtualFile resDir = created.isDirectory() ? parent : parent.getParent();
-      myRegistry.dispatchToRepositories(resDir, (repository, dir) -> onFileOrDirectoryCreated(created, repository));
+      if (resDir != null) {
+        myRegistry.dispatchToRepositories(resDir, (repository, dir) -> onFileOrDirectoryCreated(created, repository));
+      }
     }
 
     private @NotNull String pathForLogging(@Nullable VirtualFile parent, @NotNull String childName) {
