@@ -72,7 +72,6 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.INC
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.PROGUARDED_LIBRARY_MESSAGE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
-import com.android.tools.idea.layoutinspector.resource.DEFAULT_FONT_SCALE
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
@@ -891,8 +890,8 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun testConfigurationUpdates() {
-    assertThat(inspectorRule.inspectorModel.resourceLookup.dpi).isEqualTo(Density.DEFAULT_DENSITY)
-    assertThat(inspectorRule.inspectorModel.resourceLookup.fontScale).isEqualTo(DEFAULT_FONT_SCALE)
+    assertThat(inspectorRule.inspectorModel.resourceLookup.dpi).isNull()
+    assertThat(inspectorRule.inspectorModel.resourceLookup.fontScale).isNull()
 
     val inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
     inspectorState.createFakeViewTree()

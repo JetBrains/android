@@ -887,7 +887,7 @@ class DeviceViewPanelTest {
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
     scrollPane.setSize(200, 300)
-    model.resourceLookup.screenDimension.setSize(200, 300)
+    model.resourceLookup.screenDimension = Dimension(200, 300)
 
     assertThat(viewSettings.scalePercent).isEqualTo(100)
 

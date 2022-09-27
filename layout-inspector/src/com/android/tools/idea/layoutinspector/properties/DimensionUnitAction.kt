@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.adtui.workbench.ToolContent
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
@@ -26,6 +27,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
  */
 @Suppress("ComponentNotRegistered")
 object DimensionUnitAction: DefaultActionGroup("Units", listOf(
+
   object : ToggleAction("dp") {
     override fun isSelected(event: AnActionEvent): Boolean = PropertiesSettings.dimensionUnits == DimensionUnits.DP
 
@@ -46,6 +48,11 @@ object DimensionUnitAction: DefaultActionGroup("Units", listOf(
     }
   }
 )) {
+  override fun update(event: AnActionEvent) {
+    val model = LayoutInspector.get(event)?.layoutInspectorModel
+    event.presentation.isEnabled = model?.resourceLookup?.dpi != null
+  }
+
   init {
     isPopup = true
   }

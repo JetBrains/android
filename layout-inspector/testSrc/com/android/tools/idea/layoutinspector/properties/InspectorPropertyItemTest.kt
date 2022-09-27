@@ -132,7 +132,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     assertThat(dimensionPropertyOf("84").value).isEqualTo("24dp")
     assertThat(dimensionPropertyOf("2168").value).isEqualTo("619dp")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionPropertyOf("").value).isEqualTo("")
     assertThat(dimensionPropertyOf("-1").value).isEqualTo("-1")
     assertThat(dimensionPropertyOf("-2147483648").value).isEqualTo("-2147483648")
@@ -148,7 +148,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     assertThat(dimensionFloatPropertyOf("0.499999999").value).isEqualTo("0.5px")
     assertThat(dimensionFloatPropertyOf("0.1234567").value).isEqualTo("0.123px")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionFloatPropertyOf("").value).isEqualTo("")
     assertThat(dimensionFloatPropertyOf("0").value).isEqualTo("0px")
     assertThat(dimensionFloatPropertyOf("0.5").value).isEqualTo("0.5px")
@@ -165,7 +165,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     assertThat(dimensionFloatPropertyOf("1.749").value).isEqualTo("0.5dp")
     assertThat(dimensionFloatPropertyOf("1.234567").value).isEqualTo("0.353dp")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionFloatPropertyOf("").value).isEqualTo("")
     assertThat(dimensionFloatPropertyOf("0").value).isEqualTo("0px")
     assertThat(dimensionFloatPropertyOf("0.5").value).isEqualTo("0.5px")
@@ -180,7 +180,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     model!!.resourceLookup.fontScale = 0.9f
     assertThat(textSizePropertyOf("44.0").value).isEqualTo("44.0px")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(textSizePropertyOf("").value).isEqualTo("")
     assertThat(textSizePropertyOf("49.0").value).isEqualTo("49.0px")
     model!!.resourceLookup.fontScale = 0.9f
@@ -198,7 +198,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     model!!.resourceLookup.fontScale = 1.3f
     assertThat(textSizePropertyOf("64.0").value).isEqualTo("14.1sp")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(textSizePropertyOf("").value).isEqualTo("")
     assertThat(textSizePropertyOf("49.0").value).isEqualTo("49.0px")
     model!!.resourceLookup.fontScale = 0.9f
@@ -214,7 +214,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     assertThat(dimensionDpPropertyOf("1.74978").value).isEqualTo("1.75dp")
     assertThat(dimensionDpPropertyOf("1.234567").value).isEqualTo("1.235dp")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionDpPropertyOf("").value).isEqualTo("")
     assertThat(dimensionDpPropertyOf("0").value).isEqualTo("0dp")
     assertThat(dimensionDpPropertyOf("0.5").value).isEqualTo("0.5dp")
@@ -231,7 +231,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     assertThat(dimensionDpPropertyOf("0.4999").value).isEqualTo("1.75px")
     assertThat(dimensionDpPropertyOf("1.23456").value).isEqualTo("4.321px")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionDpPropertyOf("").value).isEqualTo("")
     assertThat(dimensionDpPropertyOf("0").value).isEqualTo("0dp")
     assertThat(dimensionDpPropertyOf("0.5").value).isEqualTo("0.5dp")
@@ -247,7 +247,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     model!!.resourceLookup.fontScale = 0.9f
     assertThat(dimensionSpPropertyOf("12.0").value).isEqualTo("12.0sp")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionSpPropertyOf("").value).isEqualTo("")
     assertThat(dimensionSpPropertyOf("12.0").value).isEqualTo("12.0sp")
     model!!.resourceLookup.fontScale = 0.9f
@@ -265,7 +265,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     model!!.resourceLookup.fontScale = 1.3f
     assertThat(dimensionSpPropertyOf("14.0").value).isEqualTo("63.7px")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionSpPropertyOf("").value).isEqualTo("")
     assertThat(dimensionSpPropertyOf("14.0").value).isEqualTo("14.0sp")
     model!!.resourceLookup.fontScale = 0.9f
@@ -280,7 +280,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     model!!.resourceLookup.fontScale = 0.9f
     assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionEmPropertyOf("").value).isEqualTo("")
     assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
     model!!.resourceLookup.fontScale = 0.9f
@@ -294,7 +294,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     model!!.resourceLookup.fontScale = 0.9f
     assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionEmPropertyOf("").value).isEqualTo("")
     assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
     model!!.resourceLookup.fontScale = 0.9f

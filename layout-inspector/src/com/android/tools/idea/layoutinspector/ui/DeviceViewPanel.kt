@@ -539,7 +539,7 @@ class DeviceViewPanel(
     // Example: If the initial screen has a dialog open, we may receive the dialog first. We do not want to zoom to fit the dialog size
     // since it is often smaller than the screen size.
     val size = layoutInspector.layoutInspectorModel.resourceLookup.screenDimension
-    if (size.width > 0 && size.height > 0) {
+    if (size != null) {
       return size
     }
     // For the legacy inspector and for snapshots loaded from file, we do not have the screen size, but we know that all windows are loaded.
