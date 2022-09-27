@@ -161,6 +161,7 @@ public class RenderTask {
     AppExecutorUtil.createBoundedApplicationPoolExecutor("RenderTask Dispose Thread", 1);
   public static final String GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker";
   private static final String WINDOW_RECOMPOSER_ANDROID_KT_FQN = "androidx.compose.ui.platform.WindowRecomposer_androidKt";
+  private static final String FONT_REQUEST_WORKER_FQN = "androidx.core.provider.FontRequestWorker";
 
   @NotNull private final ImagePool myImagePool;
   @NotNull private final RenderContext myContext;
@@ -1440,6 +1441,20 @@ public class RenderTask {
         LOG.debug("Unable to dispose the recompose animationScale", ex);
       }
     }
+
+    try {
+      Class<?> fontRequestWorker = myLayoutlibCallback.findClass(FONT_REQUEST_WORKER_FQN);
+      Field pendingRepliesField = fontRequestWorker.getDeclaredField("PENDING_REPLIES");
+      pendingRepliesField.setAccessible(true);
+      Object pendingReplies = pendingRepliesField.get(fontRequestWorker);
+      // Clear the SimpleArrayMap
+      pendingReplies.getClass().getMethod("clear").invoke(pendingReplies);
+    }
+    catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ex) {
+      // If the FontRequestWorker does not exist or the PENDING_REPLIES does not exist anymore, ignore.
+      LOG.debug("Unable to dispose the PENDING_REPLIES", ex);
+    }
+
     disposeMethod.ifPresent(m -> m.setAccessible(true));
     Optional<Method> finalDisposeMethod = disposeMethod;
     return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> {
