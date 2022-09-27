@@ -33,8 +33,8 @@ class AndroidGradleProjectResolverTest {
     assertEquals(
       actual = mergedArtifactsModuleIdMap,
       expected = mutableMapOf(
-        "app/build/classes/java/main" to listOf(":app:main"),
-        "app/build/classes/java/test" to listOf(":app:test")
+        "app/build/classes/java/main" to setOf(":app:main"),
+        "app/build/classes/java/test" to setOf(":app:test")
       )
     )
   }
@@ -51,7 +51,7 @@ class AndroidGradleProjectResolverTest {
     assertEquals(
       actual = mergedArtifactsModuleIdMap,
       expected = mutableMapOf(
-        "desktop/build/libs/desktop-jvm.jar" to listOf(":desktop:jvmMain", ":desktop:commonMain")
+        "desktop/build/libs/desktop-jvm.jar" to setOf(":desktop:jvmMain", ":desktop:commonMain")
       )
     )
   }
@@ -73,10 +73,10 @@ class AndroidGradleProjectResolverTest {
     assertEquals(
       actual = mergedArtifactsModuleIdMap,
       expected = mutableMapOf(
-        "desktop/build/classes/java/main" to listOf(":desktop:main"),
-        "desktop/build/classes/java/test" to listOf(":desktop:test"),
-        "desktop/build/libs/desktop-jvm.jar" to listOf(":desktop:jvmMain", ":desktop:commonMain"),
-        "desktop/build/libs/desktop-jvm.jar-MPP" to listOf(":desktop:commonMain")
+        "desktop/build/classes/java/main" to setOf(":desktop:main"),
+        "desktop/build/classes/java/test" to setOf(":desktop:test"),
+        "desktop/build/libs/desktop-jvm.jar" to setOf(":desktop:jvmMain", ":desktop:commonMain"),
+        "desktop/build/libs/desktop-jvm.jar-MPP" to setOf(":desktop:commonMain")
       )
     )
   }
@@ -96,24 +96,28 @@ class AndroidGradleProjectResolverTest {
     assertEquals(
       actual = mergedArtifactsModuleIdMap,
       expected = mutableMapOf(
-        "common/build/classes/java/main" to listOf(":common:main"),
-        "common/build/classes/java/test" to listOf(":common:test"),
-        "common/build/libs/common-jvm.jar" to listOf(":common:jvmMain", ":common:commonMain")
+        "common/build/classes/java/main" to setOf(":common:main"),
+        "common/build/classes/java/test" to setOf(":common:test"),
+        "common/build/libs/common-jvm.jar" to setOf(":common:jvmMain", ":common:commonMain")
       )
     )
   }
 
-  @Test(expected = IllegalStateException::class)
-  fun `Given same artifact with different values When merge artifactsToModuleMaps Then an exception happened`() {
-    mergeProjectResolvedArtifacts(
+  @Test
+  fun `Given same artifact with different values When merge artifactsToModuleMaps Then expect to have both maps combined`() {
+    val mergedArtifactsModuleIdMap = mergeProjectResolvedArtifacts(
       kmpArtifactToModuleIdMap = mutableMapOf(
         "desktop/build/libs/desktop-jvm.jar" to listOf(":desktop:jvmMain", ":desktop:commonMain")
       ),
       artifactToModuleIdMap = mutableMapOf(
-        "desktop/build/classes/java/main" to ":desktop:main",
-        "desktop/build/classes/java/test" to ":desktop:test",
-        "desktop/build/libs/desktop-jvm.jar" to ":desktop:XYZ",
-        "desktop/build/libs/desktop-jvm.jar-MPP" to ":desktop:commonMain"
+        "desktop/build/libs/desktop-jvm.jar" to ":desktop:main",
+      )
+    )
+
+    assertEquals(
+      actual = mergedArtifactsModuleIdMap,
+      expected = mutableMapOf(
+        "desktop/build/libs/desktop-jvm.jar" to setOf(":desktop:jvmMain", ":desktop:commonMain", ":desktop:main")
       )
     )
   }
