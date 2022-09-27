@@ -59,6 +59,27 @@ class TomlErrorParserTest {
   }
 
   @Test
+  fun testTomlErrorWithFileParsed() {
+    val buildOutput = getVersionCatalogLibsBuildOutput("/arbitrary/path/to/file.versions.toml")
+
+    val parser = TomlErrorParser()
+    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
+    val consumer = TestMessageEventConsumer()
+
+    val line = reader.readLine()!!
+    val parsed = parser.parse(line, reader, consumer)
+
+    Truth.assertThat(parsed).isTrue()
+    consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
+      Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
+      Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
+      Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
+      Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription("/arbitrary/path/to/file.versions.toml"))
+      Truth.assertThat(it.getNavigatable(project)).isNull()
+    }
+  }
+
+  @Test
   @RunsInEdt
   fun testTomlErrorParsedAndNavigable() {
     var file: VirtualFile? = null
@@ -83,6 +104,48 @@ class TomlErrorParserTest {
         Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
         Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
         Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription())
+        Truth.assertThat(it.getNavigatable(project)).isInstanceOf(OpenFileDescriptor::class.java)
+        (it.getNavigatable(project) as OpenFileDescriptor).let { ofd ->
+          Truth.assertThat(ofd.line).isEqualTo(10)
+          Truth.assertThat(ofd.column).isEqualTo(18)
+          Truth.assertThat(ofd.file).isEqualTo(file)
+        }
+      }
+    }
+    finally {
+      runWriteAction {
+        file?.delete(this)
+        gradleDir?.delete(this)
+      }
+    }
+  }
+
+  @Test
+  @RunsInEdt
+  fun testTomlErrorWithFileParsedAndNavigable() {
+    var file: VirtualFile? = null
+    var gradleDir: VirtualFile? = null
+    runWriteAction {
+      gradleDir = project.baseDir?.createChildDirectory(this, "gradle")
+      file = gradleDir?.findOrCreateChildData(this, "arbitrary.versions.toml")
+    }
+    try {
+      val absolutePath = file!!.toNioPath().toAbsolutePath().toString()
+      val buildOutput = getVersionCatalogLibsBuildOutput(absolutePath)
+
+      val parser = TomlErrorParser()
+      val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
+      val consumer = TestMessageEventConsumer()
+
+      val line = reader.readLine()!!
+      val parsed = parser.parse(line, reader, consumer)
+
+      Truth.assertThat(parsed).isTrue()
+      consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
+        Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
+        Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
+        Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
+        Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription(absolutePath))
         Truth.assertThat(it.getNavigatable(project)).isInstanceOf(OpenFileDescriptor::class.java)
         (it.getNavigatable(project) as OpenFileDescriptor).let { ofd ->
           Truth.assertThat(ofd.line).isEqualTo(10)
@@ -136,14 +199,14 @@ class TomlErrorParserTest {
   }
 
   companion object {
-    fun getVersionCatalogLibsBuildOutput(): String = """
+    fun getVersionCatalogLibsBuildOutput(absolutePath: String? = null): String = """
 FAILURE: Build failed with an exception.
 
 * What went wrong:
 org.gradle.api.InvalidUserDataException: Invalid TOML catalog definition:
   - Problem: In version catalog libs, parsing failed with 1 error.
     
-    Reason: At line 11, column 19: Unexpected '/', expected a newline or end-of-input.
+    Reason: ${absolutePath?.let { "In file '$it' at" } ?: "At" } line 11, column 19: Unexpected '/', expected a newline or end-of-input.
     
     Possible solution: Fix the TOML file according to the syntax described at https://toml.io.
     
@@ -151,7 +214,7 @@ org.gradle.api.InvalidUserDataException: Invalid TOML catalog definition:
 > Invalid TOML catalog definition:
     - Problem: In version catalog libs, parsing failed with 1 error.
       
-      Reason: At line 11, column 19: Unexpected '/', expected a newline or end-of-input.
+      Reason: ${absolutePath?.let { "Int file '$it' at" } ?: "At" } line 11, column 19: Unexpected '/', expected a newline or end-of-input.
       
       Possible solution: Fix the TOML file according to the syntax described at https://toml.io.
       
@@ -165,11 +228,11 @@ org.gradle.api.InvalidUserDataException: Invalid TOML catalog definition:
 * Get more help at https://help.gradle.org
       """.trimIndent()
 
-    fun getVersionCatalogLibsBuildIssueDescription(): String = """
+    fun getVersionCatalogLibsBuildIssueDescription(absolutePath: String? = null): String = """
 Invalid TOML catalog definition.
   - Problem: In version catalog libs, parsing failed with 1 error.
     
-    Reason: At line 11, column 19: Unexpected '/', expected a newline or end-of-input.
+    Reason: ${absolutePath?.let { "In file '$it' at" } ?: "At" } line 11, column 19: Unexpected '/', expected a newline or end-of-input.
     
     Possible solution: Fix the TOML file according to the syntax described at https://toml.io.
     
