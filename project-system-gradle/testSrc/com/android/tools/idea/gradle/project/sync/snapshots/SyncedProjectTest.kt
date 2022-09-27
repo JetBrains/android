@@ -256,7 +256,7 @@ abstract class SyncedProjectTest(
 
   @Test
   fun testPureJavaProject() = testProject(TestProject.PURE_JAVA_PROJECT)
-  
+
   @Test
   fun testBuildSrcWithComposite() = testProject(TestProject.BUILDSRC_WITH_COMPOSITE)
 

@@ -2774,6 +2774,848 @@ PROJECT                       : NonStandardSourceSetDependencies
                 ASSEMBLE                      : :javaLibrary:assemble
                 REBUILD                       : :javaLibrary:assemble, :javaLibrary:clean
                 COMPILE_JAVA                  : :javaLibrary:compileJava
+    MODULE                        : NonStandardSourceSetDependencies.kmp-java
+        ExternalModuleGroup           : NonStandardSourceSetDependencies
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :kmp-java
+        LinkedProjectPath             : <PROJECT>/kmp-java
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.kmp-java [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.kmp-java [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/NonStandardSourceSetDependencies.kmp-java.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            ExternalSource                : GRADLE
+            GradlePath                    : :kmp-java
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java
+            EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/build [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+            TEST_COMPILE_MODE             : Android tests
+            TEST_COMPILE_MODE             : Unit tests
+            TEST_COMPILE_MODE             : None
+    MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
+        ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :kmp-java:sample
+        LinkedProjectPath             : <PROJECT>/kmp-java/sample
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.kmp-java.sample [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.kmp-java.sample [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample/NonStandardSourceSetDependencies.kmp-java.sample.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            ExternalSource                : GRADLE
+            GradlePath                    : :kmp-java:sample
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample
+            EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample/build [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
+    MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample-test
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : NonStandardSourceSetDependencies.kmp-java.sample-test
+            main                          : NonStandardSourceSetDependencies.kmp-java.sample-test.main
+            unitTest                      : NonStandardSourceSetDependencies.kmp-java.sample-test.unitTest
+            androidTest                   : NonStandardSourceSetDependencies.kmp-java.sample-test.androidTest
+        ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :kmp-java:sample-test
+        LinkedProjectPath             : <PROJECT>/kmp-java/sample-test
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample-test/NonStandardSourceSetDependencies.kmp-java.sample-test.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 1
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            ExternalSource                : GRADLE
+            GradlePath                    : :kmp-java:sample-test
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test
+            EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample-test/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample-test/build [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest, :kmp-java:sample-test:assembleDebugUnitTest
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest, :kmp-java:sample-test:assembleDebugUnitTest, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugAndroidTestSources, :kmp-java:sample-test:compileDebugSources, :kmp-java:sample-test:compileDebugUnitTestSources
+                SOURCE_GEN                    : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugAndroidTestSources, :kmp-java:sample-test:compileDebugSources
+                SOURCE_GEN                    : :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugUnitTest
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugUnitTest, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugUnitTestSources
+                SOURCE_GEN                    : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugSources
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugSources
+                SOURCE_GEN                    : :kmp-java:sample-test:generateDebugSources
+    MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample-test.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : NonStandardSourceSetDependencies.kmp-java.sample-test
+            main                          : NonStandardSourceSetDependencies.kmp-java.sample-test.main
+            unitTest                      : NonStandardSourceSetDependencies.kmp-java.sample-test.unitTest
+            androidTest                   : NonStandardSourceSetDependencies.kmp-java.sample-test.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :kmp-java:sample-test:androidTest
+        LinkedProjectPath             : <PROJECT>/kmp-java/sample-test
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : NonStandardSourceSetDependencies.kmp-java.sample-test.main
+        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample-test/NonStandardSourceSetDependencies.kmp-java.sample-test.androidTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/kmp-java/sample-test/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/kmp-java/sample-test/build/generated/res/resValues/androidTest/debug [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 1
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/build/generated/res/resValues/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/build/generated/source/buildConfig/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/androidTest/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/androidTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/androidTest/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/androidTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/androidTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/androidTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/androidTest/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample-test.main
+            Scope                         : Test
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest, :kmp-java:sample-test:assembleDebugUnitTest
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest, :kmp-java:sample-test:assembleDebugUnitTest, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugAndroidTestSources, :kmp-java:sample-test:compileDebugSources, :kmp-java:sample-test:compileDebugUnitTestSources
+                SOURCE_GEN                    : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugAndroidTestSources, :kmp-java:sample-test:compileDebugSources
+                SOURCE_GEN                    : :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugUnitTest
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugUnitTest, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugUnitTestSources
+                SOURCE_GEN                    : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugSources
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugSources
+                SOURCE_GEN                    : :kmp-java:sample-test:generateDebugSources
+    MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample-test.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : NonStandardSourceSetDependencies.kmp-java.sample-test
+            main                          : NonStandardSourceSetDependencies.kmp-java.sample-test.main
+            unitTest                      : NonStandardSourceSetDependencies.kmp-java.sample-test.unitTest
+            androidTest                   : NonStandardSourceSetDependencies.kmp-java.sample-test.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :kmp-java:sample-test:main
+        LinkedProjectPath             : <PROJECT>/kmp-java/sample-test
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample-test/NonStandardSourceSetDependencies.kmp-java.sample-test.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/kmp-java/sample-test/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/kmp-java/sample-test/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/kmp-java/sample-test/build/generated/res/resValues/debug [-]
+            - TestResFoldersRelativePath  :  [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 1
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/main
+            JavaSource                    : file://<PROJECT>/kmp-java/sample-test/src/main/kotlin
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample-test/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/src/debug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample-test/src/debug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/src/debug/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample-test/src/debug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample-test/src/debug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/src/debug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample-test/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/src/main/java [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample-test/src/main/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample-test/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        Classes
+            -                             : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest, :kmp-java:sample-test:assembleDebugUnitTest
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest, :kmp-java:sample-test:assembleDebugUnitTest, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugAndroidTestSources, :kmp-java:sample-test:compileDebugSources, :kmp-java:sample-test:compileDebugUnitTestSources
+                SOURCE_GEN                    : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugAndroidTestSources, :kmp-java:sample-test:compileDebugSources
+                SOURCE_GEN                    : :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugUnitTest
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugUnitTest, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugUnitTestSources
+                SOURCE_GEN                    : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugSources
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugSources
+                SOURCE_GEN                    : :kmp-java:sample-test:generateDebugSources
+    MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample-test.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : NonStandardSourceSetDependencies.kmp-java.sample-test
+            main                          : NonStandardSourceSetDependencies.kmp-java.sample-test.main
+            unitTest                      : NonStandardSourceSetDependencies.kmp-java.sample-test.unitTest
+            androidTest                   : NonStandardSourceSetDependencies.kmp-java.sample-test.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :kmp-java:sample-test:unitTest
+        LinkedProjectPath             : <PROJECT>/kmp-java/sample-test
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : NonStandardSourceSetDependencies.kmp-java.sample-test.main
+        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample-test/NonStandardSourceSetDependencies.kmp-java.sample-test.unitTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 1
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/test/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/test/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/testDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/testDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample-test.main
+            Scope                         : Test
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest, :kmp-java:sample-test:assembleDebugUnitTest
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest, :kmp-java:sample-test:assembleDebugUnitTest, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugAndroidTestSources, :kmp-java:sample-test:compileDebugSources, :kmp-java:sample-test:compileDebugUnitTestSources
+                SOURCE_GEN                    : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugAndroidTest, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugAndroidTestSources, :kmp-java:sample-test:compileDebugSources
+                SOURCE_GEN                    : :kmp-java:sample-test:generateDebugAndroidTestSources, :kmp-java:sample-test:generateDebugSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugUnitTest
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:assembleDebugUnitTest, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugUnitTestSources
+                SOURCE_GEN                    : :kmp-java:sample-test:createMockableJar, :kmp-java:sample-test:generateDebugSources
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :kmp-java:sample-test:generateDebugSources
+                ASSEMBLE                      : :kmp-java:sample-test:assembleDebug
+                REBUILD                       : :kmp-java:sample-test:assembleDebug, :kmp-java:sample-test:clean
+                COMPILE_JAVA                  : :kmp-java:sample-test:compileDebugSources
+                SOURCE_GEN                    : :kmp-java:sample-test:generateDebugSources
+    MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.commonMain
+        ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :kmp-java:sample:commonMain
+        LinkedProjectPath             : <PROJECT>/kmp-java/sample
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.kmp-java.sample.commonMain [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.kmp-java.sample.commonMain [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample/NonStandardSourceSetDependencies.kmp-java.sample.commonMain.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.7
+            CompilerArguments
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            CompilerSettings
+                additionalArguments           : -version
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            ExternalProjectId             : :kmp-java:sample
+            IsTestModule                  : false
+            Kind                          : SOURCE_SET_HOLDER
+            LanguageLevel                 : 1.7
+            MergedCompilerArguments
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            Platform                      : JVM (1.8)/JS/Native (general)
+            UseProjectSettings            : false
+            Version                       : 5
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/commonMain
+            SourceKotlin                  : file://<PROJECT>/kmp-java/sample/src/commonMain/kotlin
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample/src/commonMain/resources [-]
+        JDK                           : <NAME_CUT> KotlinSDK
+        *isInherited                  : false
+            SdkType                       : KotlinSDK
+            HomePath                      :  [-]
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.kmp-java.sample.commonMain
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
+    MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.commonTest
+        ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :kmp-java:sample:commonTest
+        LinkedProjectPath             : <PROJECT>/kmp-java/sample
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.kmp-java.sample.commonTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.kmp-java.sample.commonTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : NonStandardSourceSetDependencies.kmp-java.sample.commonMain
+        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample/NonStandardSourceSetDependencies.kmp-java.sample.commonTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.7
+            CompilerArguments
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            CompilerSettings
+                additionalArguments           : -version
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            ExternalProjectId             : :kmp-java:sample
+            IsTestModule                  : true
+            Kind                          : SOURCE_SET_HOLDER
+            LanguageLevel                 : 1.7
+            MergedCompilerArguments
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            Platform                      : JVM (1.8)/JS/Native (general)
+            UseProjectSettings            : false
+            Version                       : 5
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/commonTest [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample/src/commonTest/resources [-]
+        JDK                           : <NAME_CUT> KotlinSDK
+        *isInherited                  : false
+            SdkType                       : KotlinSDK
+            HomePath                      :  [-]
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.commonMain
+            Scope                         : Test
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
+    MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
+        ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :kmp-java:sample:jvmMain
+        LinkedProjectPath             : <PROJECT>/kmp-java/sample
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample/NonStandardSourceSetDependencies.kmp-java.sample.jvmMain.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.7
+            CompilerArguments
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            ExternalProjectId             : :kmp-java:sample
+            IsTestModule                  : false
+            Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
+            LanguageLevel                 : 1.7
+            MergedCompilerArguments
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            Platform                      : JVM (1.8)
+            - SourceSetName               : NonStandardSourceSetDependencies.kmp-java.sample.commonMain
+            UseProjectSettings            : false
+            Version                       : 5
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/jvmMain
+            JavaSource                    : file://<PROJECT>/kmp-java/sample/src/jvmMain/kotlin
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample/src/jvmMain/java [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample/src/jvmMain/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.commonMain
+        Classes
+            -                             : file://<PROJECT>/kmp-java/sample/build/classes/kotlin/jvm/main
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
+    MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.jvmTest
+        ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :kmp-java:sample:jvmTest
+        LinkedProjectPath             : <PROJECT>/kmp-java/sample
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
+        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample/NonStandardSourceSetDependencies.kmp-java.sample.jvmTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ExternalSource                : GRADLE
+            ApiLevel                      : 1.7
+            CompilerArguments
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            ExternalProjectId             : :kmp-java:sample
+            IsTestModule                  : true
+            Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
+            LanguageLevel                 : 1.7
+            MergedCompilerArguments
+                apiVersion                    : 1.7
+                languageVersion               : 1.7
+                multiPlatform                 : true
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            Platform                      : JVM (1.8)
+            - SourceSetName               : NonStandardSourceSetDependencies.kmp-java.sample.commonTest
+            UseProjectSettings            : false
+            Version                       : 5
+        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/jvmTest [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample/src/jvmTest/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample/src/jvmTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample/src/jvmTest/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.commonMain
+            Scope                         : Test
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.commonTest
+            Scope                         : Test
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
+            Scope                         : Test
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
+            Scope                         : Runtime
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
+    MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.main
+        ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :kmp-java:sample:main
+        LinkedProjectPath             : <PROJECT>/kmp-java/sample
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.kmp-java.sample.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.kmp-java.sample.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample/NonStandardSourceSetDependencies.kmp-java.sample.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
+    MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.test
+        ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :kmp-java:sample:test
+        LinkedProjectPath             : <PROJECT>/kmp-java/sample
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.kmp-java.sample.test [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/NonStandardSourceSetDependencies.kmp-java.sample.test [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : NonStandardSourceSetDependencies.kmp-java.sample.main
+        ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample/NonStandardSourceSetDependencies.kmp-java.sample.test.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+            TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
+            TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :kmp-java:sample:assemble, :kmp-java:sample:testClasses
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean, :kmp-java:sample:testClasses
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava, :kmp-java:sample:testClasses
+            TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :kmp-java:sample:assemble
+                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
+                COMPILE_JAVA                  : :kmp-java:sample:compileJava
     MODULE                        : NonStandardSourceSetDependencies.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.lib
@@ -3418,34 +4260,34 @@ PROJECT                       : NonStandardSourceSetDependencies
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
-            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::desktop:assemble, <PROJECT>::desktop:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::common:testClasses, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assemble, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugAndroidTest, <PROJECT>::feature-b:assembleDebugUnitTest, <PROJECT>::feature-b:clean, <PROJECT>::feature-b:testClasses, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::common:compileJava, <PROJECT>::common:testClasses, <PROJECT>::desktop:compileJava, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:compileDebugAndroidTestSources, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-a:compileDebugUnitTestSources, <PROJECT>::feature-b:compileDebugAndroidTestSources, <PROJECT>::feature-b:compileDebugSources, <PROJECT>::feature-b:compileDebugUnitTestSources, <PROJECT>::feature-b:compileJava, <PROJECT>::feature-b:testClasses, <PROJECT>::javaLibrary:compileJava, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
-            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
+            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::kmp-java:sample-test:createMockableJar, <PROJECT>::kmp-java:sample-test:generateDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::desktop:assemble, <PROJECT>::desktop:testClasses, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample-test:assembleDebugAndroidTest, <PROJECT>::kmp-java:sample-test:assembleDebugUnitTest, <PROJECT>::kmp-java:sample:assemble, <PROJECT>::kmp-java:sample:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::common:testClasses, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assemble, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugAndroidTest, <PROJECT>::feature-b:assembleDebugUnitTest, <PROJECT>::feature-b:clean, <PROJECT>::feature-b:testClasses, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::javaLibrary:testClasses, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample-test:assembleDebugAndroidTest, <PROJECT>::kmp-java:sample-test:assembleDebugUnitTest, <PROJECT>::kmp-java:sample-test:clean, <PROJECT>::kmp-java:sample:assemble, <PROJECT>::kmp-java:sample:clean, <PROJECT>::kmp-java:sample:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::common:compileJava, <PROJECT>::common:testClasses, <PROJECT>::desktop:compileJava, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:compileDebugAndroidTestSources, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-a:compileDebugUnitTestSources, <PROJECT>::feature-b:compileDebugAndroidTestSources, <PROJECT>::feature-b:compileDebugSources, <PROJECT>::feature-b:compileDebugUnitTestSources, <PROJECT>::feature-b:compileJava, <PROJECT>::feature-b:testClasses, <PROJECT>::javaLibrary:compileJava, <PROJECT>::javaLibrary:testClasses, <PROJECT>::kmp-java:sample-test:compileDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:compileDebugSources, <PROJECT>::kmp-java:sample-test:compileDebugUnitTestSources, <PROJECT>::kmp-java:sample:compileJava, <PROJECT>::kmp-java:sample:testClasses, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
+            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::kmp-java:sample-test:createMockableJar, <PROJECT>::kmp-java:sample-test:generateDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Android tests
-            CLEAN                         : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::desktop:assemble, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assemble, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugAndroidTest, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::common:compileJava, <PROJECT>::desktop:compileJava, <PROJECT>::feature-a:compileDebugAndroidTestSources, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-b:compileDebugAndroidTestSources, <PROJECT>::feature-b:compileDebugSources, <PROJECT>::feature-b:compileJava, <PROJECT>::javaLibrary:compileJava, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources
-            SOURCE_GEN                    : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
+            CLEAN                         : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::kmp-java:sample-test:generateDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::desktop:assemble, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample-test:assembleDebugAndroidTest, <PROJECT>::kmp-java:sample:assemble, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assemble, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugAndroidTest, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample-test:assembleDebugAndroidTest, <PROJECT>::kmp-java:sample-test:clean, <PROJECT>::kmp-java:sample:assemble, <PROJECT>::kmp-java:sample:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::common:compileJava, <PROJECT>::desktop:compileJava, <PROJECT>::feature-a:compileDebugAndroidTestSources, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-b:compileDebugAndroidTestSources, <PROJECT>::feature-b:compileDebugSources, <PROJECT>::feature-b:compileJava, <PROJECT>::javaLibrary:compileJava, <PROJECT>::kmp-java:sample-test:compileDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:compileDebugSources, <PROJECT>::kmp-java:sample:compileJava, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources
+            SOURCE_GEN                    : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::kmp-java:sample-test:generateDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Unit tests
-            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::desktop:assemble, <PROJECT>::desktop:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::common:testClasses, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assemble, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugUnitTest, <PROJECT>::feature-b:clean, <PROJECT>::feature-b:testClasses, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::common:compileJava, <PROJECT>::common:testClasses, <PROJECT>::desktop:compileJava, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:compileDebugUnitTestSources, <PROJECT>::feature-b:compileDebugUnitTestSources, <PROJECT>::feature-b:compileJava, <PROJECT>::feature-b:testClasses, <PROJECT>::javaLibrary:compileJava, <PROJECT>::javaLibrary:testClasses, <PROJECT>::lib:compileDebugUnitTestSources
-            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
+            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::kmp-java:sample-test:createMockableJar, <PROJECT>::kmp-java:sample-test:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::desktop:assemble, <PROJECT>::desktop:testClasses, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample-test:assembleDebugUnitTest, <PROJECT>::kmp-java:sample:assemble, <PROJECT>::kmp-java:sample:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::common:testClasses, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assemble, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugUnitTest, <PROJECT>::feature-b:clean, <PROJECT>::feature-b:testClasses, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::javaLibrary:testClasses, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample-test:assembleDebugUnitTest, <PROJECT>::kmp-java:sample-test:clean, <PROJECT>::kmp-java:sample:assemble, <PROJECT>::kmp-java:sample:clean, <PROJECT>::kmp-java:sample:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::common:compileJava, <PROJECT>::common:testClasses, <PROJECT>::desktop:compileJava, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:compileDebugUnitTestSources, <PROJECT>::feature-b:compileDebugUnitTestSources, <PROJECT>::feature-b:compileJava, <PROJECT>::feature-b:testClasses, <PROJECT>::javaLibrary:compileJava, <PROJECT>::javaLibrary:testClasses, <PROJECT>::kmp-java:sample-test:compileDebugUnitTestSources, <PROJECT>::kmp-java:sample:compileJava, <PROJECT>::kmp-java:sample:testClasses, <PROJECT>::lib:compileDebugUnitTestSources
+            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::kmp-java:sample-test:createMockableJar, <PROJECT>::kmp-java:sample-test:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : None
-            CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::desktop:assemble, <PROJECT>::lib:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assemble, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::common:compileJava, <PROJECT>::desktop:compileJava, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-b:compileDebugSources, <PROJECT>::feature-b:compileJava, <PROJECT>::javaLibrary:compileJava, <PROJECT>::lib:compileDebugSources
-            SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::lib:generateDebugSources
+            CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::kmp-java:sample-test:generateDebugSources, <PROJECT>::lib:generateDebugSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::desktop:assemble, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample:assemble, <PROJECT>::lib:assembleDebug
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assemble, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample-test:clean, <PROJECT>::kmp-java:sample:assemble, <PROJECT>::kmp-java:sample:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::common:compileJava, <PROJECT>::desktop:compileJava, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-b:compileDebugSources, <PROJECT>::feature-b:compileJava, <PROJECT>::javaLibrary:compileJava, <PROJECT>::kmp-java:sample-test:compileDebugSources, <PROJECT>::kmp-java:sample:compileJava, <PROJECT>::lib:compileDebugSources
+            SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::kmp-java:sample-test:generateDebugSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
