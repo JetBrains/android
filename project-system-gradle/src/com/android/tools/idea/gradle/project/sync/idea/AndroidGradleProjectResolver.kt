@@ -527,7 +527,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     ).buildResolvedLibraryTable(ideLibraryTable)
   }
 
-  private fun buildArtifactsModuleIdMap(ideProject: DataNode<ProjectData>): Map<String, List<String>> =
+  private fun buildArtifactsModuleIdMap(ideProject: DataNode<ProjectData>): Map<String, Set<String>> =
     mergeProjectResolvedArtifacts(
       kmpArtifactToModuleIdMap = ideProject
         .getUserData(KotlinMPPGradleProjectResolver.MPP_CONFIGURATION_ARTIFACTS)
@@ -537,7 +537,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         .orEmpty()
     )
 
-  private fun resolveArtifact(artifactToModuleIdMap: Map<String, List<String>>, artifact: File) =
+  private fun resolveArtifact(artifactToModuleIdMap: Map<String, Set<String>>, artifact: File) =
     artifactToModuleIdMap[ExternalSystemApiUtil.toCanonicalPath(artifact.path)]
       ?.mapNotNull { artifactToModuleId -> myGradlePathByModuleId[artifactToModuleId] as? GradleSourceSetProjectPath }
 
@@ -1029,19 +1029,9 @@ private val COMPOSITE_BUILD_MAP = com.intellij.openapi.util.Key.create<Composite
 fun mergeProjectResolvedArtifacts(
   kmpArtifactToModuleIdMap: Map<String, List<String>>,
   artifactToModuleIdMap: Map<String, String>
-): Map<String, List<String>> =
-  (kmpArtifactToModuleIdMap.keys + artifactToModuleIdMap.keys)
-    .associateBy({ it }, {
-      val kmpIds = kmpArtifactToModuleIdMap[it]
-      val platformId = artifactToModuleIdMap[it]
-      when {
-        kmpIds != null && platformId != null -> {
-          if (platformId !in kmpIds)
-            error("Both artifact maps contains same key: $it with different values for kmp: $kmpIds and platform: $platformId")
-          kmpIds
-        }
-        kmpIds != null -> kmpIds
-        platformId != null -> listOf(platformId)
-        else -> emptyList()
-      }
-    })
+): Map<String, Set<String>> {
+  val artifactToModuleIdMapListValues = artifactToModuleIdMap.mapValues { listOf(it.value) }
+  return (kmpArtifactToModuleIdMap.asSequence() + artifactToModuleIdMapListValues.asSequence())
+    .groupBy({ it.key }, { it.value })
+    .mapValues { it.value.flatten().toSet() }
+}
