@@ -723,6 +723,25 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
+  fun testDeepNestedComposeNodes() {
+    val inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeLargeComposeTree()
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+
+    // Verify we have all 126 composables
+    for (id in -300L downTo -425L) {
+      assertThat(inspectorRule.inspectorModel[id]).isNotNull()
+    }
+  }
+
+  @Test
   fun errorShownOnConnectException() {
     InspectorClientSettings.isCapturingModeOn = true
     val banner = InspectorBanner(inspectorRule.project)

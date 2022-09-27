@@ -35,6 +35,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.protobuf.CodedInputStream
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.intellij.util.text.nullize
@@ -263,5 +264,10 @@ class ComposeLayoutInspectorClient(
 private suspend fun AppInspectorMessenger.sendCommand(initCommand: Command.Builder.() -> Unit): Response {
   val command = Command.newBuilder()
   command.initCommand()
-  return Response.parseFrom(sendRawCommand(command.build().toByteArray()))
+  val bytes = sendRawCommand(command.build().toByteArray())
+
+  // The protobuf parser has a default recursion limit of 100.
+  // Increase this limit for the compose inspector because we typically get a deep recursion response.
+  val inputStream = CodedInputStream.newInstance(bytes, 0, bytes.size).apply { setRecursionLimit(Integer.MAX_VALUE) }
+  return Response.parseFrom(inputStream)
 }
