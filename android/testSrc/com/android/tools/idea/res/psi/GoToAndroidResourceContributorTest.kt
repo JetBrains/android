@@ -47,8 +47,11 @@ import org.junit.Test
 class GoToAndroidResourceContributorTest {
   val projectRule = AndroidProjectRule.withAndroidModel(AndroidProjectBuilder()).named(this::class.simpleName)
 
-  @ClassRule
-  val disposableRule = DisposableRule()
+  companion object {
+    @ClassRule
+    @JvmField
+    val disposableRule = DisposableRule()
+  }
 
   @get:Rule
   val chain = RuleChain(projectRule, EdtRule())
