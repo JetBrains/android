@@ -20,6 +20,8 @@ package com.android.tools.idea.stats
 import com.android.AndroidProjectTypes
 import com.android.tools.idea.model.AndroidModel
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.intellij.openapi.diagnostic.getOrLogException
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
@@ -58,7 +60,7 @@ fun AndroidStudioEvent.Builder.withProjectId(project: Project?) : AndroidStudioE
     else {
       AnonymizerUtil.anonymizeUtf8(project.basePath!!)
     }
-    val appId = getApplicationId(it)
+    val appId = kotlin.runCatching { getApplicationId(it) }.getOrLogException(LOG)
     if (appId != null) {
       this.rawProjectId = appId
     }
@@ -85,3 +87,5 @@ private fun getApplicationId(project: Project): String? {
   }
   return null
 }
+
+private val LOG = logger<AndroidStudioEvent>()
