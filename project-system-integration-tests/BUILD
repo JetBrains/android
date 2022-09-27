@@ -1,6 +1,24 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
+common_data = select({
+    "@platforms//os:linux": [
+        "//tools/adt/idea/studio:android-studio.linux.zip",
+    ],
+    "@platforms//os:macos": [
+        "//tools/adt/idea/studio:android-studio.mac.zip",
+    ],
+    "@platforms//os:windows": [
+        "//tools/adt/idea/studio:android-studio.win.zip",
+    ],
+}) + [
+    ":sdkindexapp",
+    ":sdkindexproject_deps",
+    ":sdkindexsnapshot",
+    "//prebuilts/studio/sdk:build-tools/latest",
+    "//tools/base/build-system:gradle-distrib-7.3.3",
+]
+
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.projectSystem.integration.tests",
@@ -21,27 +39,42 @@ iml_module(
 )
 
 iml_test(
+    name = "PolicyIssuesPsdTest",
+    timeout = "long",
+    data = common_data,
+    module = ":intellij.android.projectSystem.integration.tests",
+    tags = [
+        "block-network",
+        # Disabled on Mac due to b/242358149
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.projectsystem.gradle.PolicyIssuesPsdTest",
+)
+
+iml_test(
     name = "SdkIndexLintTest",
     timeout = "long",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-    }) + [
-        ":sdkindexapp",
-        ":sdkindexproject_deps",
-        ":sdkindexsnapshot",
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//tools/base/build-system:gradle-distrib-7.3.3",
-    ],
+    data = common_data,
     module = ":intellij.android.projectSystem.integration.tests",
+    tags = [
+        "block-network",
+        # Disabled on Mac due to b/242358149
+        "no_mac",
+    ],
     test_class = "com.android.tools.idea.projectsystem.gradle.SdkIndexLintTest",
+)
+
+iml_test(
+    name = "SdkIndexPsdTest",
+    timeout = "long",
+    data = common_data,
+    module = ":intellij.android.projectSystem.integration.tests",
+    tags = [
+        "block-network",
+        # Disabled on Mac due to b/242358149
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.projectsystem.gradle.SdkIndexPsdTest",
 )
 
 maven_repository(

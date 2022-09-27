@@ -33,7 +33,6 @@ import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.graphics.NlConstants
-import com.android.tools.idea.uibuilder.scene.DesignSurfaceProgressIndicator
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -88,21 +87,17 @@ private fun createPreviewDesignSurfaceBuilder(
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setSceneManagerProvider { surface, model ->
+      // Compose Preview manages its own render and refresh logic, and then it should avoid
+      // some automatic renderings triggered in LayoutLibSceneManager
       LayoutlibSceneManager(
         model,
         surface,
         sceneComponentProvider,
         ComposeSceneUpdateListener(),
-        { RealTimeSessionClock() },
-        object : DesignSurfaceProgressIndicator(surface) {
-          @Synchronized
-          override fun start() {
-          }
-
-          @Synchronized
-          override fun stop() {
-          }
-        })
+      ) { RealTimeSessionClock() }.also {
+        it.setListenResourceChange(false) // don't re-render on resource changes
+        it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
+      }
     }
     .setDelegateDataProvider(dataProvider)
     .setSelectionModel(NopSelectionModel)

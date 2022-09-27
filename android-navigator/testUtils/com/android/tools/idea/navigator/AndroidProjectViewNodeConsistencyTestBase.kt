@@ -18,6 +18,7 @@ package com.android.tools.idea.navigator
 import com.android.testutils.AssumeUtil
 import com.android.tools.idea.navigator.nodes.FileGroupNode
 import com.android.tools.idea.navigator.nodes.FolderGroupNode
+import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.onEdt
@@ -28,6 +29,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.ProjectViewNode
 import com.intellij.ide.util.treeView.AbstractTreeStructure
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.guessModuleDir
 import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Rule
 import org.junit.Test
@@ -121,6 +124,7 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : GradleIntegrationTest
     when (this) {
       is FileGroupNode -> files.mapNotNull { it.virtualFile }.let(result::addAll)
       is FolderGroupNode -> folders.map { it.virtualFile }.let(result::addAll)
+      is AndroidModuleNode -> result.add((value as Module).guessModuleDir()!!)
     }
     return result
   }

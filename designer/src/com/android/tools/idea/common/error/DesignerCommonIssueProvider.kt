@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
@@ -67,6 +68,8 @@ operator fun DesignerCommonIssueProvider.Filter.plus(filter: DesignerCommonIssue
  */
 class DesignToolsIssueProvider(project: Project, private val issueFilter: DesignerCommonIssueProvider.Filter)
   : DesignerCommonIssueProvider<Any> {
+  private val mapLock = Any()
+  @GuardedBy("mapLock")
   private val sourceToIssueMap = mutableMapOf<Any, List<Issue>>()
 
   private val listeners = mutableListOf<Runnable>()
@@ -83,11 +86,13 @@ class DesignToolsIssueProvider(project: Project, private val issueFilter: Design
   init {
     Disposer.register(project, this)
     messageBusConnection.subscribe(IssueProviderListener.TOPIC, IssueProviderListener { source, issues ->
-      if (issues.isEmpty()) {
-        sourceToIssueMap.remove(source)
-      }
-      else {
-        sourceToIssueMap[source] = issues
+      synchronized(mapLock) {
+        if (issues.isEmpty()) {
+          sourceToIssueMap.remove(source)
+        }
+        else {
+          sourceToIssueMap[source] = issues
+        }
       }
       listeners.forEach { it.run() }
     })
@@ -105,10 +110,10 @@ class DesignToolsIssueProvider(project: Project, private val issueFilter: Design
     })
   }
 
-  override fun getFilteredIssues(): List<Issue> = sourceToIssueMap.toMap().values.flatten()
-    .filter(issueFilter)
-    .filter(viewOptionFilter)
-    .toList()
+  override fun getFilteredIssues(): List<Issue> {
+    val values = synchronized(mapLock) { sourceToIssueMap.values.toList() }
+    return values.flatten().filter(issueFilter).filter(viewOptionFilter)
+  }
 
   override fun registerUpdateListener(listener: Runnable) {
     listeners.add(listener)

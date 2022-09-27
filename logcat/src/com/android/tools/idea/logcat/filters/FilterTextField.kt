@@ -195,7 +195,7 @@ internal class FilterTextField(
       addDocumentListener(object : DocumentListener {
         override fun documentChanged(event: DocumentEvent) {
           filter = filterParser.parse(text)
-          isFavorite = false
+          isFavorite = filterHistory.favorites.contains(text)
           filterHistory.mostRecentlyUsed = textField.text
           notifyFilterChangedTask.reschedule(APPLY_FILTER_DELAY_MS) {
             for (listener in documentChangedListeners) {

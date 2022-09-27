@@ -329,7 +329,7 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
     // DEPENDENT_MODULES project has two modules, app and lib, app module has dependency on lib module.
-    prepareProjectForImport(DEPENDENT_MODULES, null, null, null, null);
+    prepareProjectForImport(DEPENDENT_MODULES, null, null, null, null, null);
     // Define new buildType qa in app module.
     // This causes sync issues, because app depends on lib module, but lib module doesn't have buildType qa.
     File appBuildFile = getBuildFilePath("app");
@@ -747,7 +747,7 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
   }
 
   public void testUnresolvedDependency() throws Exception {
-    prepareProjectForImport(SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY, null, null, null, null);
+    prepareProjectForImport(SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY, null, null, null, null, null);
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
 
     Project project = getProject();

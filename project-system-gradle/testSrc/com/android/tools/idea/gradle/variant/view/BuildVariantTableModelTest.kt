@@ -112,6 +112,7 @@ class BuildVariantTableModelTest {
   @Test
   fun `Given project modules with same type When create VariantTableModel Then TableRows is sorted`() {
     val projectModules = arrayOf(
+      JavaModuleModelBuilder.rootModuleBuilder,
       appModuleBuilder(":appB"),
       appModuleBuilder(":appA"),
       appModuleBuilder(":appD"),
@@ -121,7 +122,7 @@ class BuildVariantTableModelTest {
 
     val model = BuildVariantTableModel.create(projectRule.project)
 
-    expect.that(model.rows).hasSize(projectModules.size)
+    expect.that(model.rows).hasSize(4)
     // Assert modules with same type are sorted
     val expectedSortedModules = arrayOf("appA", "appB", "appC", "appD")
     expectedSortedModules.forEachIndexed { index, moduleName ->
@@ -132,6 +133,7 @@ class BuildVariantTableModelTest {
   @Test
   fun `Given project modules with different type When create VariantTableModel Then TableRows is sorted by IdeAndroidProjectType`() {
     val projectModules = arrayOf(
+      JavaModuleModelBuilder.rootModuleBuilder,
       appModuleBuilder(":xappC"),
       appModuleBuilder(":appB"),
       appModuleBuilder(":appA"),
@@ -144,7 +146,7 @@ class BuildVariantTableModelTest {
 
     val model = BuildVariantTableModel.create(projectRule.project)
 
-    expect.that(model.rows).hasSize(projectModules.size)
+    expect.that(model.rows).hasSize(7)
     // Assert modules sorted and grouped by IdeAndroidProjectType order
     val expectedSortedModules = arrayOf("appA", "appB", "xappC", "alibA", "libB", "test", "feature")
     expectedSortedModules.forEachIndexed { index, moduleName ->

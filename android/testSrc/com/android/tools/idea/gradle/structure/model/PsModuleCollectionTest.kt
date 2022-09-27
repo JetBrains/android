@@ -44,8 +44,9 @@ class PsModuleCollectionTest : DependencyTestCase() {
                                     graldePluginVersion: String?,
                                     kotlinVersion: String?,
                                     ndkVersion: String?,
+                                    compileSdk: String?,
                                     vararg localRepos: File) {
-    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, graldePluginVersion, kotlinVersion, ndkVersion, *localRepos)
+    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, graldePluginVersion, kotlinVersion, ndkVersion, compileSdk, *localRepos)
     synchronizeTempDirVfs(project.baseDir)
     patchProject?.run {
       ApplicationManager.getApplication().runWriteAction {

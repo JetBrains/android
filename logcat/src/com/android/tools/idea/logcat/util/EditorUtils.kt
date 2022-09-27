@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.util
 
 import com.android.annotations.concurrency.UiThread
+import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.openapi.command.undo.UndoUtil
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
@@ -46,6 +47,7 @@ fun createLogcatEditor(project: Project): EditorEx {
   editorSettings.isCaretRowShown = false
   editorSettings.isShowingSpecialChars = false
   editor.gutterComponentEx.isPaintBackground = false
+  editor.colorsScheme = ConsoleViewUtil.updateConsoleColorScheme(editor.colorsScheme)
 
   return editor
 }

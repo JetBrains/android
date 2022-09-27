@@ -47,7 +47,6 @@ import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.RestartLogcatAction
 import com.android.tools.idea.logcat.actions.ToggleFilterAction
 import com.android.tools.idea.logcat.devices.Device
-import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatFilter.Companion.MY_PACKAGE
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
@@ -78,6 +77,7 @@ import com.android.tools.idea.logcat.util.LOGGER
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
 import com.android.tools.idea.logcat.util.createLogcatEditor
+import com.android.tools.idea.logcat.util.getDefaultFilter
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.isScrollAtBottom
 import com.android.tools.idea.logcat.util.toggleFilterTerm
@@ -135,6 +135,7 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
 import java.time.ZoneId
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.BorderFactory
 import javax.swing.GroupLayout
@@ -490,6 +491,7 @@ internal class LogcatMainPanel(
 
   private fun isLogsMissing(): Boolean {
     return document.immutableCharSequence.isEmpty()
+           && messageBacklog.get().messages.isNotEmpty()
            && !isMissingApplicationIds()
            && headerPanel.filter.isNotEmpty()
   }
@@ -498,18 +500,14 @@ internal class LogcatMainPanel(
   override fun reloadMessages() {
     document.setText("")
     coroutineScope.launch(workerThread) {
-      val filteredMessages = messageProcessor.appendMessages(messageBacklog.get().messages)
+      messageProcessor.appendMessages(messageBacklog.get().messages)
       withContext(uiThread) {
-        noLogsBanner.isVisible = filteredMessages.isEmpty()
+        noLogsBanner.isVisible = isLogsMissing()
       }
     }
   }
 
   override fun getConnectedDevice() = connectedDevice.get()
-
-  override fun selectDevice(serialNumber: String) {
-    headerPanel.selectDevice(serialNumber)
-  }
 
   override fun countFilterMatches(filter: String): Int {
     return LogcatMasterFilter(logcatFilterParser.parse(filter)).filter(messageBacklog.get().messages).size
@@ -564,8 +562,9 @@ internal class LogcatMainPanel(
   override fun clearMessageView() {
     coroutineScope.launch(workerThread) {
       val device = connectedDevice.get()
+      val systemMessages = mutableListOf<LogcatMessage>()
       if (device != null) {
-        if (device.sdk != 26) {
+        if (device.sdk == 26) {
           // See http://b/issues/37109298#comment9.
           // TL/DR:
           // On API 26, "logcat -c" will hand for a couple of seconds and then crash any running logcat processes.
@@ -573,19 +572,23 @@ internal class LogcatMainPanel(
           // Theoretically, we could stop the running logcat here before sending "logcat -c" to the device but this is not trivial. And we
           // have to do this for all active Logcat panels listening on this device, not only in the current project but across all projects.
           // A much easier and safer workaround is to not send a "logcat -c" command on this particular API level.
-          logcatService.clearLogcat(device)
-
+          systemMessages.add(LogcatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.clear.skipped")))
+        }
+        else {
+          try {
+            logcatService.clearLogcat(device)
+          }
+          catch (e: TimeoutException) {
+            LOGGER.warn("Timed out executing logcat -c")
+            systemMessages.add(LogcatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.clear.timeout")))
+          }
         }
       }
       messageBacklog.set(MessageBacklog(logcatSettings.bufferSize))
       withContext(uiThread) {
         document.setText("")
         noLogsBanner.isVisible = isLogsMissing()
-        if (connectedDevice.get()?.sdk == 26) {
-          processMessages(listOf(LogcatMessage(
-            SYSTEM_HEADER,
-            "WARNING: Logcat was not cleared on the device itself because of a bug in Android 8.0 (Oreo).")))
-        }
+        processMessages(systemMessages)
       }
     }
   }
@@ -755,15 +758,6 @@ private fun FormattingConfig?.toUsageTracking(): LogcatFormatConfiguration {
 }
 
 private fun FormattingOptions.Style.toUsageTracking() = if (this == FormattingOptions.Style.STANDARD) STANDARD else COMPACT
-
-private fun getDefaultFilter(project: Project, androidProjectDetector: AndroidProjectDetector): String {
-  val logcatSettings = AndroidLogcatSettings.getInstance()
-  val filter = when {
-    logcatSettings.mostRecentlyUsedFilterIsDefault -> AndroidLogcatFilterHistory.getInstance().mostRecentlyUsed
-    else -> logcatSettings.defaultFilter
-  }
-  return if (!androidProjectDetector.isAndroidProject(project) && filter.contains("package:mine")) "" else filter
-}
 
 private fun AnAction.withText(text: String): AnAction {
   templatePresentation.text = text

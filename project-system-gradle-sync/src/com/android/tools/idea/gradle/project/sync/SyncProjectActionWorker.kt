@@ -141,8 +141,9 @@ internal class SyncProjectActionWorker(
     actionRunner.runActions(variants.entries.map { (module, result) ->
       ActionToRun(fun(controller: BuildController) {
         result.map {
-          module.kotlinGradleModel = controller.findKotlinGradleModelForAndroidProject(module.findModelRoot, it.ideVariant.name)
-          module.kaptGradleModel = controller.findKaptGradleModelForAndroidProject(module.findModelRoot, it.ideVariant.name)
+          val allKotlinModels = controller.findKotlinModelsForAndroidProject(module.findModelRoot, it.ideVariant.name)
+          module.kotlinGradleModel = allKotlinModels.kotlinModel
+          module.kaptGradleModel = allKotlinModels.kaptModel
         }
       }, fetchesKotlinModels = true)
     })
@@ -240,10 +241,9 @@ internal class SyncProjectActionWorker(
       actionRunner.runActions(preModuleDependencies.mapNotNull { syncResult ->
         ActionToRun(fun(controller: BuildController) {
           if (syncResult == null) return
-          syncResult.module.kotlinGradleModel =
-            controller.findKotlinGradleModelForAndroidProject(syncResult.module.findModelRoot, syncResult.ideVariant.name)
-          syncResult.module.kaptGradleModel =
-            controller.findKaptGradleModelForAndroidProject(syncResult.module.findModelRoot, syncResult.ideVariant.name)
+          val allKotlinModels = controller.findKotlinModelsForAndroidProject(syncResult.module.findModelRoot, syncResult.ideVariant.name)
+          syncResult.module.kotlinGradleModel = allKotlinModels.kotlinModel
+          syncResult.module.kaptGradleModel = allKotlinModels.kaptModel
         }, fetchesKotlinModels = true)
       }
       )

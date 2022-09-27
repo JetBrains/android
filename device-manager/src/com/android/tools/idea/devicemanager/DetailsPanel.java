@@ -65,7 +65,7 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
   protected final @NotNull List<@NotNull Component> myInfoSections;
   protected final @NotNull Container myInfoSectionPanel;
   private final @NotNull Component myScrollPane;
-  protected @Nullable Component myPairedDevicesPanel;
+  protected @Nullable PairedDevicesPanel myPairedDevicesPanel;
   private @Nullable JBTabbedPane myTabbedPane;
 
   private final @NotNull Supplier<@NotNull Toolkit> myGetDefaultToolkit;
@@ -245,6 +245,10 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
   @VisibleForTesting
   public final @NotNull Container getInfoSectionPanel() {
     return myInfoSectionPanel;
+  }
+
+  final @NotNull Optional<@NotNull PairedDevicesPanel> getPairedDevicesPanel() {
+    return Optional.ofNullable(myPairedDevicesPanel);
   }
 
   final @NotNull Optional<@NotNull JTabbedPane> getTabbedPane() {

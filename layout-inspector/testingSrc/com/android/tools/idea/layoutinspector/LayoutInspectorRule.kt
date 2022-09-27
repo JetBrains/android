@@ -130,8 +130,7 @@ fun LegacyClientProvider(
  * call [TestProcessDiscovery.fireConnected] (with a process that has a preferred process name) or
  * [ProcessesModel.selectedProcess] directly, to trigger a new client to get created.
  *
- * @param projectRule A rule providing access to a test project. This shouldn't be annotated with `@Rule` by the caller,
- *     as this class will handle it.
+ * @param projectRule A rule providing access to a test project.
  *
  * @param isPreferredProcess Optionally provide a process selector that, when connected via [TestProcessDiscovery],
  *     will be automatically attached to. This simulates the experience when the user presses the "Run" button for example.
@@ -139,7 +138,7 @@ fun LegacyClientProvider(
  */
 class LayoutInspectorRule(
   private val clientProviders: List<InspectorClientProvider>,
-  val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk(),
+  private val projectRule: AndroidProjectRule,
   isPreferredProcess: (ProcessDescriptor) -> Boolean = { false }
 ) : TestRule {
 
@@ -274,7 +273,7 @@ class LayoutInspectorRule(
 
   override fun apply(base: Statement, description: Description): Statement {
     // List of rules that will be applied in order, with this rule being last
-    val innerRules = listOf(adbService, adbRule, projectRule)
+    val innerRules = listOf(adbService, adbRule)
     val coreStatement = object : Statement() {
       override fun evaluate() {
         before()

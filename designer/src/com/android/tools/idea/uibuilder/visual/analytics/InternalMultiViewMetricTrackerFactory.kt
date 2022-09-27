@@ -30,7 +30,15 @@ import java.util.function.Consumer
  * Internal multi view usage tracker.
  */
 internal interface InternalMultiViewMetricTracker {
-  fun track(eventType: MultiViewEvent.MultiViewEventType) = Unit
+  /**
+   * Track the changes of category in Layout Validation Tool.
+   */
+  fun trackSetCategory(eventType: MultiViewEvent.MultiViewEventType)
+
+  /**
+   * Track open and close issue panel from Layout Validation Tool.
+   */
+  fun trackToggleIssuePanel(event: MultiViewEvent.ToggleIssuePanel)
 }
 
 /**
@@ -73,7 +81,7 @@ private class MultiViewMetricTrackerImpl internal constructor(
       else -> MultiViewEvent.AssociatedSplitEditorMode.UNKNOWN_MODE
   }
 
-  override fun track(eventType: MultiViewEvent.MultiViewEventType) {
+  override fun trackSetCategory(eventType: MultiViewEvent.MultiViewEventType) {
     try {
       myExecutor.execute {
         val event = AndroidStudioEvent.newBuilder()
@@ -91,9 +99,32 @@ private class MultiViewMetricTrackerImpl internal constructor(
       // We are hitting the throttling limit
     }
   }
+
+  override fun trackToggleIssuePanel(event: MultiViewEvent.ToggleIssuePanel) {
+    try {
+      myExecutor.execute {
+        val event = AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.MULTI_VIEW_EVENT)
+          .setMultiViewEvent(MultiViewEvent.newBuilder()
+                               .setAssociatedSplitEditorMode(getAssociatedEditorMode())
+                               .setToggleIssuePanel(event)
+                               .build())
+        surface?.model?.let { event.setApplicationId(surface.model!!.facet) }
+
+        myConsumer.accept(event)
+      }
+    }
+    catch (e: RejectedExecutionException) {
+      // We are hitting the throttling limit
+    }
+  }
 }
 
 /**
  * NO-op impl for when user opts out or for tests.
  */
-object MultiViewNopTracker : InternalMultiViewMetricTracker
+object MultiViewNopTracker : InternalMultiViewMetricTracker {
+  override fun trackSetCategory(eventType: MultiViewEvent.MultiViewEventType) = Unit
+
+  override fun trackToggleIssuePanel(event: MultiViewEvent.ToggleIssuePanel) = Unit
+}

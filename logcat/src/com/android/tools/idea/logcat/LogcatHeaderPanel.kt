@@ -96,10 +96,6 @@ internal class LogcatHeaderPanel(
       filterComponent.text = value
     }
 
-  fun selectDevice(serialNumber: String) {
-    deviceComboBox.selectDevice(serialNumber)
-  }
-
   fun getSelectedDevice(): Device? = deviceComboBox.selectedItem as? Device
 
   private fun createWideLayout(): LayoutManager {

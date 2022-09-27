@@ -22,6 +22,6 @@ import java.io.File
 class PsdGuiTestRule : GuiTestRule() {
   override fun updateGradleVersions(projectPath: File) {
     val testRepositoryPath = getMasterProjectDirPath("psdSampleRepo")
-    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, null, null, null, null, testRepositoryPath)
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, null, null, null, null, null, testRepositoryPath)
   }
 }

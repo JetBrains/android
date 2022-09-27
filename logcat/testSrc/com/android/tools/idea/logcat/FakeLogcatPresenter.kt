@@ -94,10 +94,6 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     TODO("Not yet implemented")
   }
 
-  override fun selectDevice(serialNumber: String) {
-    TODO()
-  }
-
   override fun countFilterMatches(filter: String): Int {
     return filterMatchesCount[filter] ?: 0
   }

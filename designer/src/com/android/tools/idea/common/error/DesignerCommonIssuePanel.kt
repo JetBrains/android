@@ -40,7 +40,6 @@ import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.border.CustomLineBorder
 import com.intellij.ui.tree.AsyncTreeModel
 import com.intellij.ui.tree.RestoreSelectionListener
-import com.intellij.ui.tree.TreePathUtil
 import com.intellij.ui.tree.TreeVisitor
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.EditSourceOnDoubleClickHandler
@@ -173,6 +172,15 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
           surface.revalidateScrollArea()
           surface.repaint()
         }
+      }
+    }
+
+    // Listener for metric
+    tree.addTreeSelectionListener {
+      val newSelection = it?.newLeadSelectionPath?.lastPathComponent
+      val oldSelection = it?.oldLeadSelectionPath?.lastPathComponent
+      if (newSelection !is IssueNode && newSelection != oldSelection) {
+        DesignerCommonIssuePanelUsageTracker.getInstance().trackSelectingIssue(project)
       }
     }
 

@@ -24,13 +24,9 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths
-import com.android.tools.idea.testing.nameToPath
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
@@ -56,9 +52,7 @@ import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.NewVirtualFile
-import com.intellij.platform.DirectoryProjectConfigurator
 import com.intellij.task.ProjectTaskManager
-import com.intellij.util.application
 import org.jetbrains.annotations.SystemIndependent
 import org.junit.Rule
 import org.junit.Test
@@ -66,7 +60,7 @@ import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-class PlatformIntegrationTest : GradleIntegrationTest {
+class PlatformIntegrationTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
@@ -76,9 +70,9 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testModelBuildServiceInCompositeBuilds() {
-    val compositeBuildRoot = prepareGradleProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD, "project")
+    val compositeBuild = projectRule.prepareTestProject(TestProject.COMPOSITE_BUILD, "project")
     CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
-    openPreparedProject("project") { project ->
+    compositeBuild.open { project ->
       for (module in ModuleManager.getInstance(project).modules) {
         if (ExternalSystemApiUtil.getExternalModuleType(module) == "sourceSet") continue
 
@@ -88,7 +82,7 @@ class PlatformIntegrationTest : GradleIntegrationTest {
         val gradleParameterizedTestModel: TestParameterizedGradleModel? =
           CapturePlatformModelsProjectResolverExtension.getTestParameterizedGradleModel(module)
         // TODO(b/202448739): Remove `if` when support for parameterized models in included builds is fixed in the IntelliJ platform.
-        if (module.getGradleProjectPath()?.buildRoot == toSystemIndependentName(compositeBuildRoot.absolutePath)) {
+        if (module.getGradleProjectPath()?.buildRoot == toSystemIndependentName(compositeBuild.root.absolutePath)) {
           expect.that(gradleParameterizedTestModel).named("TestParameterizedGradleModel($module)").isNotNull()
           if (gradleParameterizedTestModel != null) {
             expect.that(gradleParameterizedTestModel.message).named("TestParameterizedGradleModel($module).message")
@@ -109,9 +103,10 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun `importing an already built project does not add all files to the VFS - existing idea project`() {
-    val root = prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+    val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
+    val root = simpleApplication.root
 
-    openPreparedProject("project") { project ->
+    simpleApplication.open { project ->
       expect.that(root.resolve("app/build").exists())
       expect.that(root.resolveVirtualIfCached("app/build")).isNull()
       ProjectTaskManager.getInstance(project).rebuildAllModules().blockingGet(1, TimeUnit.MINUTES)
@@ -122,7 +117,7 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
     val copy = root.parentFile.resolve("copy")
     FileUtil.copyDir(root, copy)
-    openPreparedProject("copy") { project ->
+    projectRule.openPreparedProject("copy") { project ->
       expect.that(copy.resolve("app/build/intermediates/dex/debug").exists())
       expect.that(copy.resolveVirtualIfCached("app/build")).isNotNull()
       expect.that(copy.resolveVirtualIfCached("app/build/intermediates/dex/debug")).isNull()
@@ -131,9 +126,10 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun `importing an already built project does not add all files to the VFS - new idea project`() {
-    val root = prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+    val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
+    val root = simpleApplication.root
 
-    openPreparedProject("project") { project ->
+    simpleApplication.open { project ->
       expect.that(root.resolve("app/build").exists())
       expect.that(root.resolveVirtualIfCached("app/build")).isNull()
       ProjectTaskManager.getInstance(project).rebuildAllModules().blockingGet(1, TimeUnit.MINUTES)
@@ -145,7 +141,7 @@ class PlatformIntegrationTest : GradleIntegrationTest {
     val copy = root.parentFile.resolve("copy")
     FileUtil.copyDir(root, copy)
     FileUtil.delete(copy.resolve(".idea"))
-    openPreparedProject("copy") { project ->
+    projectRule.openPreparedProject("copy") { project ->
       expect.that(copy.resolve("app/build/intermediates/dex/debug").exists())
       expect.that(copy.resolveVirtualIfCached("app/build")).isNotNull()
       expect.that(copy.resolveVirtualIfCached("app/build/intermediates/dex/debug")).isNull()
@@ -154,8 +150,10 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testBuildOutputFoldersAreRefreshed() {
-    val root = prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
-    openPreparedProject("project") {project ->
+    val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
+    val root = simpleApplication.root
+
+    simpleApplication.open {project ->
       val expectedOutputDir = root.resolve("app/build/intermediates/javac/debug")
       assertThat(expectedOutputDir.exists()).isFalse()  // Verify test assumptions.
       ProjectTaskManager.getInstance(project).buildAllModules().blockingGet(1, TimeUnit.MINUTES)
@@ -170,8 +168,8 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testCorrectSyncEventsPublished_successfulSync() {
-    prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
-    val log = openProjectWithEventLogging("project") { project ->
+    val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
+    val log = simpleApplication.openProjectWithEventLogging { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
     }
 
@@ -184,12 +182,12 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testCorrectSyncEventsPublished_reopen() {
-    prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+    val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
 
-    openPreparedProject("project") { project ->
+    simpleApplication.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
     }
-    val log = openProjectWithEventLogging("project") { project ->
+    val log = simpleApplication.openProjectWithEventLogging { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
     }
 
@@ -203,10 +201,10 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testCorrectSyncEventsPublished_badConfig() {
-    val path = prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
-    path.resolve("settings.gradle").writeText("***BAD FILE***")
+    val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
+    simpleApplication.root.resolve("settings.gradle").writeText("***BAD FILE***")
 
-    val log = openProjectWithEventLogging("project") { project ->
+    val log = simpleApplication.openProjectWithEventLogging { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
     }
 
@@ -242,9 +240,9 @@ class PlatformIntegrationTest : GradleIntegrationTest {
     (ApplicationManager.getApplication().extensionArea as ExtensionsAreaImpl)
       .getExtensionPoint(ProjectDataService.EP_NAME)
       .registerExtension(FailingService(), projectRule.testRootDisposable)
-    prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+    val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
 
-    val log = openProjectWithEventLogging("project") { project ->
+    val log = simpleApplication.openProjectWithEventLogging { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
     }
 
@@ -260,9 +258,9 @@ class PlatformIntegrationTest : GradleIntegrationTest {
   @Test
   @Suppress("UnstableApiUsage")
   fun testCorrectSyncEventsPublished_dataImporterCrashesAfterSuccessfulOpen() {
-    prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+    val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
 
-    val log = openProjectWithEventLogging("project") { project ->
+    val log = simpleApplication.openProjectWithEventLogging { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
 
       (ApplicationManager.getApplication().extensionArea as ExtensionsAreaImpl)
@@ -289,10 +287,11 @@ class PlatformIntegrationTest : GradleIntegrationTest {
   @Test
   @Suppress("UnstableApiUsage")
   fun testCorrectSyncEventsPublished_gradleCancelled() {
-    val path = prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
-    path.resolve("settings.gradle").writeText("Thread.sleep(200); println('waiting!'); Thread.sleep(30_000)")
+    val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
+    val root = simpleApplication.root
+    root.resolve("settings.gradle").writeText("Thread.sleep(200); println('waiting!'); Thread.sleep(30_000)")
 
-    val log = openProjectWithEventLogging("project", outputHandler = { output ->
+    val log = simpleApplication.openProjectWithEventLogging(outputHandler = { output ->
       if (output.contains("waiting!")) {
         CoreProgressManager.getCurrentIndicators()
           .single { it.text.contains("Gradle:") }
@@ -320,9 +319,10 @@ class PlatformIntegrationTest : GradleIntegrationTest {
   @Test
   @Suppress("UnstableApiUsage")
   fun testCorrectSyncEventsPublished_gradleCancelledAfterSuccessfulOpen() {
-    val path = prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+    val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
+    val root = simpleApplication.root
 
-    val log = openProjectWithEventLogging("project", outputHandler = { output ->
+    val log = simpleApplication.openProjectWithEventLogging(outputHandler = { output ->
       if (output.contains("waiting!")) {
         CoreProgressManager.getCurrentIndicators()
           .single { it.text.contains("Gradle:") }
@@ -330,7 +330,7 @@ class PlatformIntegrationTest : GradleIntegrationTest {
       }
     }) { project ->
 
-      path.resolve("settings.gradle").writeText("Thread.sleep(200); println('waiting!'); Thread.sleep(30_000)")
+      root.resolve("settings.gradle").writeText("Thread.sleep(200); println('waiting!'); Thread.sleep(30_000)")
       project.requestSyncAndWait()
 
       // Cancelling sync does not change the current state.
@@ -377,9 +377,9 @@ class PlatformIntegrationTest : GradleIntegrationTest {
     (ApplicationManager.getApplication().extensionArea as ExtensionsAreaImpl)
       .getExtensionPoint(ProjectDataService.EP_NAME)
       .registerExtension(CancellingService(), projectRule.testRootDisposable)
-    prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+    val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
 
-    val log = openProjectWithEventLogging("project") { project ->
+    val log = simpleApplication.openProjectWithEventLogging { project ->
       expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isTrue()
       // Cancelling initial sync results in FAILURE to avoid blocking the UI waiting for UNKNOWN state to be gone.
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
@@ -397,9 +397,9 @@ class PlatformIntegrationTest : GradleIntegrationTest {
   @Suppress("UnstableApiUsage")
   @Test
   fun testCorrectSyncEventsPublished_dataImporterCancelledAfterSuccessfulOpen() {
-    prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+    val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
 
-    val log = openProjectWithEventLogging("project") { project ->
+    val log = simpleApplication.openProjectWithEventLogging { project ->
       expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
 
@@ -428,8 +428,8 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testSimpleApplicationNotAtRoot() {
-    val preparedProject = prepareTestProject(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT)
-    val log = openProjectWithEventLogging(preparedProject) {project ->
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT)
+    val log = preparedProject.openProjectWithEventLogging { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
     }
 
@@ -442,8 +442,8 @@ class PlatformIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testSimpleApplicationMultipleRoots() {
-    val preparedProject = prepareTestProject(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS)
-    val log = openProjectWithEventLogging(preparedProject) {project ->
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS)
+    val log = preparedProject.openProjectWithEventLogging { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
     }
 
@@ -457,37 +457,17 @@ class PlatformIntegrationTest : GradleIntegrationTest {
       """.trimMargin())
   }
 
-  private fun openProjectWithEventLogging(
-    name: String,
+  private fun PreparedTestProject.openProjectWithEventLogging(
     outputHandler: (Project.(String) -> Unit)? = null,
     body: (Project) -> Unit = {}
   ): String {
-    return openProjectWithEventLogging(
-      object: PreparedTestProject{
-        override val root: File = nameToPath(name)
-
-        override fun <T> open(options: OpenPreparedProjectOptions, body: (Project) -> T): T {
-          return openPreparedProject(name, options, body)
-        }
-
-      },
-      outputHandler,
-      body
-    )
-  }
-
-  private fun openProjectWithEventLogging(
-    preparedProject: PreparedTestProject,
-    outputHandler: (Project.(String) -> Unit)? = null,
-    body: (Project) -> Unit = {}
-  ): String {
-    val root = preparedProject.root
+    val root = root
 
     fun String.toLocalPath(): String = File(this).relativeToOrSelf(root).path.takeUnless { it.isEmpty() } ?: "."
 
     val completedChanged = CountDownLatch(1)
     val log = buildString {
-      preparedProject.open(
+      open(
         options = OpenPreparedProjectOptions(
           verifyOpened = { /* do nothing */ },
           outputHandler = outputHandler,
@@ -530,10 +510,6 @@ class PlatformIntegrationTest : GradleIntegrationTest {
     }.trim()
     return log
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
-  override fun getAdditionalRepos(): Collection<File> = emptyList()
 }
 
 fun CountDownLatch.awaitSecondsOrThrow(seconds: Long): Boolean {
