@@ -532,22 +532,21 @@ class DeviceViewPanelWithFullInspectorTest {
     )
     val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
     val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
-
     assertThat(loadingPane.isLoading).isFalse()
     assertThat(contentPanel.showEmptyText).isTrue()
 
-    // Start connecting, loading should show and empty text should not be visible
+    // Start connecting, loading should show
     inspectorRule.startLaunch(2)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
 
-    waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading && !contentPanel.showEmptyText }
+    waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
+    waitForCondition(1, TimeUnit.SECONDS) { !contentPanel.showEmptyText }
 
-    // Release the response from the agent and wait for connection.
-    // The loading should stop and the empty text should not be visible, because now we are connected and showing views on screen
+    // Release the response from the agent and wait for connection. The loading should stop.
     latch.countDown()
     inspectorRule.awaitLaunch()
 
-    waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading && !contentPanel.showEmptyText }
+    waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading && contentPanel.showEmptyText }
   }
 
   @Test
@@ -1414,9 +1413,8 @@ class DeviceViewPanelWithNoClientsTest {
   fun testNotDebuggablePane() {
     inspectorRule.startLaunch(4)
     inspectorRule.launchSynchronously = false
-    val deviceModel = DeviceModel(inspectorRule.processes)
     val panel = DeviceViewPanel(
-      deviceModel,
+      DeviceModel(inspectorRule.processes),
       inspectorRule.processes,
       {},
       {},
@@ -1430,9 +1428,6 @@ class DeviceViewPanelWithNoClientsTest {
 
     // false by default
     assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isFalse()
-
-    // connect device
-    deviceModel.selectedDevice = MODERN_DEVICE
 
     panel.onNewForegroundProcess(ForegroundProcess(1, "random"))
 

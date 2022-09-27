@@ -150,19 +150,7 @@ class DeviceViewContentPanelTest {
     settings.scalePercent = 30
     settings.drawLabel = false
 
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     assertEquals(Dimension(130, 160), panel.preferredSize)
     panel.renderModel.rotate(1.0, 0.0)
     assertEquals(Dimension(376, 395), panel.preferredSize)
@@ -197,20 +185,7 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(120, 200)
 
     paint(panel, generatedImage)
@@ -325,20 +300,7 @@ class DeviceViewContentPanelTest {
     treeSettings.hideSystemNodes = false
     val client = mock<InspectorClient>()
     whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { client },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { client }, mock(), null, disposable.disposable)
     panel.setSize(130, 250)
 
     panel.paint(graphics)
@@ -402,20 +364,7 @@ class DeviceViewContentPanelTest {
     val settings = FakeRenderSettings()
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(40, 60)
 
     panel.paint(graphics)
@@ -457,20 +406,7 @@ class DeviceViewContentPanelTest {
     model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = FakeRenderSettings(),
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeRenderSettings(), { mock() }, mock(), null, disposable.disposable)
     panel.setSize(10, 15)
     panel.renderModel.rotate(-1.0, -1.0)
 
@@ -499,20 +435,7 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(1000, 1500)
 
     panel.renderModel.overlay = ImageIO.read(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
@@ -544,20 +467,7 @@ class DeviceViewContentPanelTest {
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val client: InspectorClient = mock()
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { client },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { client }, mock(), null, disposable.disposable)
     whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
     val layoutInspector: LayoutInspector = mock()
     whenever(layoutInspector.currentClient).thenReturn(client)
@@ -604,20 +514,7 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(100, 200)
     val fakeUi = FakeUi(panel)
     assertThat(model.selection).isNull()
@@ -650,20 +547,7 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(100, 200)
     val fakeUi = FakeUi(panel)
     assertThat(model.hoveredNode).isNull()
@@ -697,20 +581,7 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(100, 200)
     val fakeUi = FakeUi(panel)
     assertThat(model.selection).isNull()
@@ -745,20 +616,8 @@ class DeviceViewContentPanelTest {
     val selectProcessAction = mock<SelectProcessAction>()
     whenever(selectProcessAction.templatePresentation).thenReturn(mock())
     val dropDownActionWithButton = DropDownActionWithButton(selectProcessAction) { null }
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { client },
-      pannable = mock(),
-      selectTargetAction = dropDownActionWithButton,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { client }, mock(), dropDownActionWithButton,
+                                       disposable.disposable)
     panel.setSize(200, 200)
     val fakeUi = FakeUi(panel)
     val hand = Cursor.getPredefinedCursor(HAND_CURSOR)
@@ -809,20 +668,7 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(200, 300)
 
     panel.paint(graphics)
@@ -866,20 +712,7 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(200, 300)
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
@@ -920,20 +753,7 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(350, 450)
 
     panel.paint(graphics)
@@ -1012,20 +832,7 @@ class DeviceViewContentPanelTest {
 
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = FakeRenderSettings(),
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeRenderSettings(), { mock() }, mock(), null, disposable.disposable)
     panel.setSize(120, 140)
 
     panel.paint(graphics)
@@ -1068,20 +875,7 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(350, 450)
 
     panel.paint(graphics)
@@ -1127,20 +921,7 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(400, 600)
 
     panel.paint(graphics)
@@ -1202,20 +983,7 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(200, 200)
 
     panel.paint(graphics)
@@ -1244,20 +1012,7 @@ class DeviceViewContentPanelTest {
     val view1 = model[VIEW1]
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = FakeRenderSettings(),
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeRenderSettings(), { mock() }, mock(), null, disposable.disposable)
     val scrollPane = JBScrollPane(panel)
     panel.setBounds(0, 0, 1000, 1000)
     scrollPane.setBounds(0, 0, 200, 200)
@@ -1332,20 +1087,7 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(350, 450)
 
     panel.paint(graphics)
@@ -1370,20 +1112,7 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(90, 70)
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithChildrenOutsideParent.png"), generatedImage,
@@ -1413,20 +1142,7 @@ class DeviceViewContentPanelTest {
     settings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = settings,
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = null,
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
     panel.setSize(70, 70)
 
     panel.renderModel.layerSpacing = 30
@@ -1467,20 +1183,8 @@ class DeviceViewContentPanelWithScaledFontTest {
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val model = model {}
-
-    val panel = DeviceViewContentPanel(
-      inspectorModel = model,
-      deviceModel = null,
-      treeSettings = treeSettings,
-      renderSettings = FakeRenderSettings(),
-      currentClient = { mock() },
-      pannable = mock(),
-      selectTargetAction = mock(),
-      disposableParent =  disposable.disposable,
-      isLoading = { false },
-      isCurrentForegroundProcessDebuggable = { false }
-    )
-
+    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeRenderSettings(), { mock() }, mock(), mock(),
+                                       disposable.disposable)
     panel.setSize(800, 400)
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(panel.width, panel.height, TYPE_INT_ARGB)
