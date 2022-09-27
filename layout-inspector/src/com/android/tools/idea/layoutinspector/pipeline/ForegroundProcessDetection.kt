@@ -139,11 +139,7 @@ class DeviceModel(private val processesModel: ProcessesModel) {
    */
   var selectedDevice: DeviceDescriptor? = null
     @VisibleForTesting
-    set(value) {
-      // each time the selected device changes, the selected process should be reset
-      processesModel.selectedProcess = null
-      field = value
-    }
+    set
 
   /**
    * The set of connected devices that support foreground process detection.
