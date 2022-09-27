@@ -606,6 +606,12 @@ android_studio(
     files_linux = {
         "safemode/linux/studio_safe.sh": "bin/studio_safe.sh",
     },
+    files_mac = {
+        "safemode/mac/studio_safe.sh": "bin/studio_safe.sh",
+    },
+    files_mac_arm = {
+        "safemode/mac/studio_safe.sh": "bin/studio_safe.sh",
+    },
     files_win = {
         "safemode/win/studio_safe.bat": "bin/studio_safe.bat",
     },

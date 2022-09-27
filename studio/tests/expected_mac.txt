@@ -55,6 +55,7 @@ Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_utils.py
 Android Studio Preview.app/Contents/bin/ltedit.sh
 Android Studio Preview.app/Contents/bin/printenv
 Android Studio Preview.app/Contents/bin/profiler.sh
+Android Studio Preview.app/Contents/bin/studio_safe.sh
 Android Studio Preview.app/Contents/bin/remote-dev-server.sh
 Android Studio Preview.app/Contents/bin/restarter
 Android Studio Preview.app/Contents/bin/studio.svg
