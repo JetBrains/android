@@ -23,6 +23,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 android {
+    namespace "com.example.android.databinding.basicsample"
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.example.android.databinding.basicsample"

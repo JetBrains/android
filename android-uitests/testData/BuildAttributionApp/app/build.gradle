@@ -26,6 +26,7 @@ class SamplePlugin implements Plugin<Project> {
 }
 
 android {
+    namespace "com.example.buildattributionapp"
     compileSdkVersion 31
     buildToolsVersion "30.0.2"
 

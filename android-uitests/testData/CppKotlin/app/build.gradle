@@ -4,6 +4,7 @@ plugins {
 }
 
 android {
+    namespace "android.com"
     compileSdk 33
 
     defaultConfig {
