@@ -81,7 +81,7 @@ private:
   JObject ToJava(const ARect& rect) const;
 
   static JClass surface_control_class_;
-  static jmethodID get_physical_display_token_method_;
+  static jmethodID get_internal_display_token_method_;
   static jmethodID close_transaction_method_;
   static jmethodID open_transaction_method_;
   static jmethodID create_display_method_;

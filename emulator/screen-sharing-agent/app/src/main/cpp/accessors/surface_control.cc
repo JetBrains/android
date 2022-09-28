@@ -57,14 +57,18 @@ void SurfaceControl::InitializeStatics(Jni jni) {
 }
 
 JObject SurfaceControl::GetInternalDisplayToken() const {
+  int api_level = android_get_device_api_level();
   {
     scoped_lock lock(static_initialization_mutex);
-    if (get_physical_display_token_method_ == nullptr) {
-      get_physical_display_token_method_ =
-          surface_control_class_.GetStaticMethodId(jni_, "getInternalDisplayToken", "()Landroid/os/IBinder;");
+    if (get_internal_display_token_method_ == nullptr) {
+      get_internal_display_token_method_ = api_level >= 29 ?
+          surface_control_class_.GetStaticMethodId(jni_, "getInternalDisplayToken", "()Landroid/os/IBinder;") :
+          surface_control_class_.GetStaticMethodId(jni_, "getBuiltInDisplay", "(I)Landroid/os/IBinder;");
     }
   }
-  return surface_control_class_.CallStaticObjectMethod(jni_, get_physical_display_token_method_);
+  return api_level >= 29 ?
+      surface_control_class_.CallStaticObjectMethod(jni_, get_internal_display_token_method_) :
+      surface_control_class_.CallStaticObjectMethod(jni_, get_internal_display_token_method_, 0);
 }
 
 void SurfaceControl::OpenTransaction() const {
@@ -124,7 +128,7 @@ JObject SurfaceControl::ToJava(const ARect& rect) const {
 }
 
 JClass SurfaceControl::surface_control_class_;
-jmethodID SurfaceControl::get_physical_display_token_method_ = nullptr;
+jmethodID SurfaceControl::get_internal_display_token_method_ = nullptr;
 jmethodID SurfaceControl::close_transaction_method_ = nullptr;
 jmethodID SurfaceControl::open_transaction_method_ = nullptr;
 jmethodID SurfaceControl::create_display_method_ = nullptr;
