@@ -17,6 +17,7 @@ package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
 import com.android.utils.PathUtils;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +25,9 @@ import java.io.UncheckedIOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.function.Consumer;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -40,7 +43,9 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   private final Display display;
   private final AndroidSdk sdk;
   private AndroidStudioInstallation install;
-  private String emulator;
+  // Currently running emulators
+  private List<Emulator> emulators;
+  private int nextPort = 8554;
 
   private static boolean applied = false;
 
@@ -50,7 +55,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     this.sdk = sdk;
     this.env = new HashMap<>();
     this.install = null;
-    this.emulator = null;
+    this.emulators = new ArrayList();
   }
 
   @Override
@@ -169,12 +174,12 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   }
 
   public Emulator runEmulator() throws IOException, InterruptedException {
-    if (emulator == null) {
-      emulator = "emu";
-      Path workspaceRoot = TestUtils.getWorkspaceRoot("system_image_android-29_default_x86_64");
-      Emulator.createEmulator(fileSystem, emulator, workspaceRoot);
-    }
-    return Emulator.start(fileSystem, sdk, display, emulator);
+    String curEmulatorName = String.format("emu%d", emulators.size());
+    Path workspaceRoot = TestUtils.getWorkspaceRoot("system_image_android-29_default_x86_64");
+    Emulator.createEmulator(fileSystem, curEmulatorName, workspaceRoot);
+    // Increase grpc port by one after spawning an emulator to avoid conflict
+    emulators.add(Emulator.start(fileSystem, sdk, display, curEmulatorName, nextPort++));
+    return Iterables.getLast(emulators, null);
   }
 
   public void runEmulator(Consumer<Emulator> callback) throws IOException, InterruptedException {

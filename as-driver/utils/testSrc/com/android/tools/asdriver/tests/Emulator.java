@@ -76,15 +76,14 @@ public class Emulator implements AutoCloseable {
     }
   }
 
-  public static Emulator start(TestFileSystem fileSystem, AndroidSdk sdk, Display display, String name) throws IOException, InterruptedException {
+  public static Emulator start(TestFileSystem fileSystem, AndroidSdk sdk, Display display, String name, int grpcPort) throws IOException, InterruptedException {
     Path logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "emulator_logs");
 
     ProcessBuilder pb = new ProcessBuilder(
       sdk.getSourceDir().resolve(SdkConstants.FD_EMULATOR).resolve("emulator").toString(),
       "@" + name,
-      // This port value is hardcoded in the emulator bazel rule (//tools/base/bazel/avd/emulator_launcher.sh.template).
-      // It can be changed in the future if we need the flexibility.
-      "-grpc", Integer.toString(8554),
+      // This port value needs to be unique for each emulator
+      "-grpc", Integer.toString(grpcPort),
       "-no-snapshot",
       "-delay-adb",
       "-verbose");
