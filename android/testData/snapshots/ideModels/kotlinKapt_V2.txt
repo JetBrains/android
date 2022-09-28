@@ -40,7 +40,6 @@ MODULE                        : MainActivity
                     _agp_internal_javaPreCompileRemoteReleaseUnitTest_kaptClasspath       : <empty>
                     _agp_internal_javaPreCompileRemoteRelease_kaptClasspath     : <empty>
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestApi                : <empty>
@@ -703,7 +702,6 @@ MODULE                        : MainActivity
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestApi                : <empty>

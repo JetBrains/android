@@ -38,7 +38,6 @@ MODULE                        : MultiFlavor
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestCompileOnly        : <empty>

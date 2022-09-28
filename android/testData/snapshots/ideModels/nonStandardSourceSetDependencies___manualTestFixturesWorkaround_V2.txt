@@ -37,7 +37,6 @@ MODULE                        : NonStandardSourceSetDependencies
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestApi                : <empty>
@@ -476,7 +475,6 @@ MODULE                        : NonStandardSourceSetDependencies
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestApi                : <empty>
@@ -775,7 +773,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidDebugUnitTestRuntimeClasspath    : <empty>
                     androidDebugUnitTestRuntimeOnly         : <empty>
                     androidDebugUnitTestRuntimeOnlyDependenciesMetadata         : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidMainApi                : <empty>
                     androidMainApiDependenciesMetadata      : <empty>
@@ -1491,7 +1488,6 @@ MODULE                        : NonStandardSourceSetDependencies
                 - artifacts                   : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestApi                : <empty>

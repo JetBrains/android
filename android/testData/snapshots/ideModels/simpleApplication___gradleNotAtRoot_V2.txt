@@ -22,7 +22,6 @@ MODULE                        : gradle_project
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestCompileOnly        : <empty>

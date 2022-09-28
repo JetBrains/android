@@ -26,7 +26,6 @@ MODULE                        : kotlinMultiPlatform
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestApi                : <empty>
@@ -320,7 +319,6 @@ MODULE                        : kotlinMultiPlatform
                     androidDebugUnitTestRuntimeClasspath    : <empty>
                     androidDebugUnitTestRuntimeOnly         : <empty>
                     androidDebugUnitTestRuntimeOnlyDependenciesMetadata         : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidMainApi                : <empty>
                     androidMainApiDependenciesMetadata      : <empty>

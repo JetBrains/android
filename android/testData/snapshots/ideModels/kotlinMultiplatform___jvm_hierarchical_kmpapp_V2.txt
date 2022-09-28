@@ -104,7 +104,6 @@ MODULE                        : kotlinMultiPlatform
                     androidDebugUnitTestRuntimeClasspath    : <empty>
                     androidDebugUnitTestRuntimeOnly         : <empty>
                     androidDebugUnitTestRuntimeOnlyDependenciesMetadata         : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidMainApi                : <empty>
                     androidMainApiDependenciesMetadata      : <empty>
@@ -451,7 +450,6 @@ MODULE                        : kotlinMultiPlatform
                     androidDebugUnitTestRuntimeClasspath    : <empty>
                     androidDebugUnitTestRuntimeOnly         : <empty>
                     androidDebugUnitTestRuntimeOnlyDependenciesMetadata         : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidMainApi                : <empty>
                     androidMainApiDependenciesMetadata      : <empty>

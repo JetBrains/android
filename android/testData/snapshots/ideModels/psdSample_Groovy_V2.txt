@@ -46,7 +46,6 @@ MODULE                        : project
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestBarAnnotationProcessor       : <empty>
@@ -596,7 +595,6 @@ MODULE                        : project
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestCompileOnly        : <empty>
@@ -785,7 +783,6 @@ MODULE                        : project
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestCompileOnly        : <empty>
@@ -904,7 +901,6 @@ MODULE                        : project
                         externalSystemId              : GRADLE
                         artifactsByConfiguration
                             androidApis                   : <empty>
-                            androidJacocoAnt              : <empty>
                             androidJdkImage               : <empty>
                             androidTestAnnotationProcessor          : <empty>
                             androidTestCompileOnly        : <empty>
@@ -1008,7 +1004,6 @@ MODULE                        : project
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestCompileOnly        : <empty>
@@ -1127,7 +1122,6 @@ MODULE                        : project
                         externalSystemId              : GRADLE
                         artifactsByConfiguration
                             androidApis                   : <empty>
-                            androidJacocoAnt              : <empty>
                             androidJdkImage               : <empty>
                             androidTestAnnotationProcessor          : <empty>
                             androidTestCompileOnly        : <empty>
@@ -1244,7 +1238,6 @@ MODULE                        : project
                                 externalSystemId              : GRADLE
                                 artifactsByConfiguration
                                     androidApis                   : <empty>
-                                    androidJacocoAnt              : <empty>
                                     androidJdkImage               : <empty>
                                     androidTestAnnotationProcessor          : <empty>
                                     androidTestCompileOnly        : <empty>
@@ -1356,7 +1349,6 @@ MODULE                        : project
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestBasicAnnotationProcessor     : <empty>

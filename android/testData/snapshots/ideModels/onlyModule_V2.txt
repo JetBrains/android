@@ -26,7 +26,6 @@ MODULE                        : project
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestCompileOnly        : <empty>
@@ -136,7 +135,6 @@ MODULE                        : project
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestUtil               : <empty>
                     annotationProcessor           : <empty>
@@ -174,7 +172,6 @@ MODULE                        : project
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestUtil               : <empty>
                     annotationProcessor           : <empty>
