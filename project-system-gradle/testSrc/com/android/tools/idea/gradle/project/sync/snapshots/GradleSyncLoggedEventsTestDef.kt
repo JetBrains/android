@@ -33,20 +33,20 @@ data class GradleSyncLoggedEventsTestDef(
   override val testProject: TestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
   val verify: GradleSyncLoggedEventsTestDef.(events: List<LoggedUsage>) -> Unit = {}
-) : SyncedProjectTest.TestDef {
+) : SyncedProjectTestDef {
 
   override val name: String
     get() = "$namePrefix - ${testProject.projectName}"
 
   override fun toString(): String = name
 
-  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTest.TestDef {
+  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTestDef {
     return copy(agpVersion = agpVersion)
   }
 
   private val testUsageTracker = TestUsageTracker(VirtualTimeScheduler())
 
-  override fun setup(root: File) {
+  override fun setup() {
     UsageTracker.setWriterForTest(testUsageTracker)
   }
 

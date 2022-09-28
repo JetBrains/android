@@ -101,6 +101,18 @@ enum class ModelVersion {
   }
 }
 
+class SnapshotContext(
+  projectName: String,
+  agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
+  override val snapshotDirectoryWorkspaceRelativePath: String,
+) : SnapshotComparisonTest {
+
+  private val name: String =
+    "$projectName${agpVersion.agpSuffix()}${agpVersion.gradleSuffix()}${agpVersion.modelVersion}"
+
+  override fun getName(): String = name
+}
+
 interface AgpIntegrationTestDefinition {
   val name: String
   val agpVersion: AgpVersionSoftwareEnvironmentDescriptor
@@ -131,4 +143,26 @@ fun applicableAgpVersions() = AgpVersionSoftwareEnvironmentDescriptor.values()
  */
 fun IntegrationTestEnvironment.outputCurrentlyRunningTest(testDefinition: AgpIntegrationTestDefinition) {
   println("Testing: ${this.javaClass.simpleName}[${testDefinition.displayName()}]")
+}
+
+private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_80 -> "_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_31 -> "_Agp_3.1_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1 -> "_Agp_3.3_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_33 -> "_Agp_3.3_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_35_JDK_8 -> "_Agp_3.5_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_35 -> "_Agp_3.5_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_40 -> "_Agp_4.0_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_41 -> "_Agp_4.1_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_42 -> "_Agp_4.2_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_70 -> "_Agp_7.0_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_71 -> "_Agp_7.1_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_72_V1 -> "_Agp_7.2_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_72 -> "_Agp_7.2_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_73 -> "_Agp_7.3_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_74 -> "_Agp_7.4_"
+}
+
+private fun AgpVersionSoftwareEnvironmentDescriptor.gradleSuffix(): String {
+  return gradleVersion?.let { "Gradle_${it}_" }.orEmpty()
 }

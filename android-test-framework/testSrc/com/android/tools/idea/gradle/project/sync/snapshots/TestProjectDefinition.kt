@@ -28,6 +28,9 @@ import java.io.File
  * A test project definition that can be used in integration tests involving projects set up by Gradle.
  */
 interface TestProjectDefinition {
+  /**
+   * A predicate which returns whether this test project is compatible with a given AGP software environment.
+   */
   val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean
 
   /**

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest
+import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.findAppModule
@@ -31,7 +31,7 @@ data class GradleModuleHierarchyProviderTest(
   override val testProject: TestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
   val test: (Project) -> Unit
-) : SyncedProjectTest.TestDef {
+) : SyncedProjectTestDef {
 
   companion object {
     val tests: List<GradleModuleHierarchyProviderTest> = listOf(
@@ -72,7 +72,7 @@ data class GradleModuleHierarchyProviderTest(
     )
   }
 
-  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTest.TestDef {
+  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTestDef {
     return copy(agpVersion = agpVersion)
   }
 

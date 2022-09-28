@@ -15,22 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.GradleModuleSystemIntegrationTest
-import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.navigator.AndroidProjectViewSnapshotComparisonTestDef
 import com.android.tools.idea.navigator.SourceProvidersTestDef
 import com.android.tools.idea.projectsystem.gradle.GradleModuleHierarchyProviderTest
-import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.EdtAndroidProjectRule
-import com.android.tools.idea.testing.ModelVersion
-import com.android.tools.idea.testing.onEdt
-import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -40,15 +32,9 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.CoreIconManager
 import com.intellij.ui.IconManager
-import org.junit.Assume
 import org.junit.Ignore
-import org.junit.Rule
 import org.junit.Test
-import org.junit.runners.model.MultipleFailureException
 import java.io.File
-import java.lang.reflect.InvocationTargetException
-import kotlin.reflect.full.declaredMemberFunctions
-import kotlin.reflect.full.hasAnnotation
 
 /**
  * An entry point to all tests asserting certain properties of synced projects.  See: [SyncedProjectTest.Companion.getTests] for the exact
@@ -59,18 +45,9 @@ import kotlin.reflect.full.hasAnnotation
  */
 @RunsInEdt
 abstract class SyncedProjectTest(
-  val selfTest: Boolean = false,
-  val agpVersion: AgpVersionSoftwareEnvironmentDescriptor
-) {
-
-  interface TestDef : AgpIntegrationTestDefinition {
-    val testProject: TestProject
-    override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): TestDef
-    fun setup(root: File) = Unit
-    fun runTest(root: File, project: Project, expect: Expect) = runTest(root, project)
-    fun runTest(root: File, project: Project)
-    fun verifyAfterClosing(root: File) = Unit
-  }
+  selfTest: Boolean = false,
+  agpVersion: AgpVersionSoftwareEnvironmentDescriptor
+) : SyncedProjectTestBase<TestProject>(agpVersion, selfTest) {
 
   companion object {
     val tests = (
@@ -84,12 +61,6 @@ abstract class SyncedProjectTest(
         selfChecks()
       ).groupBy { it.testProject }
   }
-
-  @get:Rule
-  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
-
-  @get:Rule
-  val expectRule: Expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun testSimpleApplication() = testProject(TestProject.SIMPLE_APPLICATION)
@@ -263,71 +234,12 @@ abstract class SyncedProjectTest(
   @Test
   fun testPrivacySandboxSdkProject() = testProject(TestProject.PRIVACY_SANDBOX_SDK)
 
-  private fun testProject(testProject: TestProject) {
-    if (selfTest) throw ReportUsedProjectException(testProject)
-
-    val testDefinitions =
-      tests[testProject].orEmpty()
-        .map(::transformTest)
-        .filter { it.isCompatible() }
-        .groupBy { it.agpVersion }
-    if (testDefinitions.keys.size > 1) error("Only one software environment is supposed to be tested at a time")
-    val agpVersion = testDefinitions.keys.singleOrNull()
-      ?: skipTest("No tests to run!")
-    if (!testProject.isCompatibleWith(agpVersion)) skipTest("Project ${testProject.name} is incompatible with $agpVersion")
-    val tests = testDefinitions.entries.singleOrNull()?.value.orEmpty()
-
-    CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
-    if (agpVersion.modelVersion == ModelVersion.V1) {
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
-    }
-    try {
-      val preparedProject = projectRule.prepareTestProject(
-        testProject,
-        agpVersion = agpVersion
-      )
-
-      fun setup(): List<Throwable> {
-        return tests.mapNotNull {
-          kotlin.runCatching { it.setup(preparedProject.root) }.exceptionOrNull()
-        }
-      }
-
-      fun run(): List<Throwable> {
-        return preparedProject.open(
-          updateOptions = {
-            it.copy(
-              disableKtsRelatedIndexing = true
-            )
-          }
-        ) { project ->
-          tests.mapNotNull {
-            println("${it::class.java.simpleName}(${testProject.projectName})\n    $preparedProject.root")
-            kotlin.runCatching { it.runTest(preparedProject.root, project, expectRule) }.exceptionOrNull()
-          }
-        }
-      }
-
-      fun verify(): List<Throwable> {
-        return tests.mapNotNull {
-          kotlin.runCatching { it.verifyAfterClosing(preparedProject.root) }.exceptionOrNull()
-        }
-      }
-
-      val exceptions = setup() + run() + verify()
-
-      when {
-        exceptions.isEmpty() -> Unit
-        exceptions.size == 1 -> throw exceptions.single()
-        else -> throw MultipleFailureException(exceptions)
-      }
-    } finally {
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
-    }
+  override fun getTestDefs(testProject: TestProject): List<SyncedProjectTestDef> {
+    return tests[testProject].orEmpty()
   }
 
-  private fun transformTest(testProject: TestDef): TestDef {
-    return testProject.withAgpVersion(agpVersion)
+  override fun setupAdditionalEnvironment() {
+    CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
   }
 
   init {
@@ -341,39 +253,20 @@ abstract class SyncedProjectTest(
   }
 }
 
-private fun skipTest(message: String): Nothing {
-  Assume.assumeTrue(message, false)
-  error(message)
-}
-
 @Ignore
 @Suppress("UnconstructableJUnitTestCase")
 private class AllTestsForSelfChecks : SyncedProjectTest(selfTest = true, AGP_CURRENT)
 
-private class ReportUsedProjectException(val testProject: TestProject) : Throwable()
-
 /**
  * A test case that ensures all test projects defined in [TestProject] are added to [SyncedProjectTest] test methods.
  */
-class SelfCheck {
-  @Test
-  fun `all test projects are tested`() {
-    val testCase = AllTestsForSelfChecks()
-    val testMethods = SyncedProjectTest::class.declaredMemberFunctions.filter { it.hasAnnotation<Test>() }
-    val testedProjects = testMethods
-      .mapNotNull {
-        val result = kotlin.runCatching { it.call(testCase) }
-        val exception = result.exceptionOrNull() ?: return@mapNotNull null
-        val targetException = (exception as? InvocationTargetException)?.targetException ?: return@mapNotNull null
-        val testProject = (targetException as? ReportUsedProjectException)?.testProject ?: return@mapNotNull null
-        testProject
-      }.toSet()
-    val notTestedProjects = TestProject.values().filter { it !in testedProjects }
-    assertThat(notTestedProjects).isEmpty()
-  }
-}
+class SyncedProjectTestSelfCheck : SyncedProjectTestSelfCheckBase<SyncedProjectTest>(
+  syncedProjectTestCase = SyncedProjectTest::class,
+  instance = AllTestsForSelfChecks(),
+  allProjects = TestProject.values().toList()
+)
 
-private fun selfChecks(): List<SyncedProjectTest.TestDef> {
+private fun selfChecks(): List<SyncedProjectTestDef> {
   return listOf(
     KotlinScriptIndexingDisabled(AGP_CURRENT)
   )
@@ -382,7 +275,7 @@ private fun selfChecks(): List<SyncedProjectTest.TestDef> {
 /**
  * Verifies that classes normally contributed to the project scope by Gradle Kotlin scripting support are not indexed in tests.
  */
-data class KotlinScriptIndexingDisabled(override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor) : SyncedProjectTest.TestDef {
+data class KotlinScriptIndexingDisabled(override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor) : SyncedProjectTestDef {
   override val testProject: TestProject
     get() = TestProject.KOTLIN_GRADLE_DSL
 
@@ -390,7 +283,7 @@ data class KotlinScriptIndexingDisabled(override val agpVersion: AgpVersionSoftw
     return agpVersion >= AGP_70
   }
 
-  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTest.TestDef {
+  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTestDef {
     return copy(agpVersion = agpVersion)
   }
 

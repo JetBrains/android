@@ -125,12 +125,12 @@ private fun SnapshotComparisonTest.getExpectedTextFor(project: String): String =
       candidateFiles
         .firstOrNull { it.exists() }
         ?.let {
-          println("Comparing with: ${it.relativeTo(File(AndroidTestBase.getTestDataPath()))}")
+          println("Comparing with: ${it.relativeTo(resolveWorkspacePath("").toFile())}")
           it.readText().trimIndent()
         }
       ?: candidateFiles
         .joinToString(separator = "\n", prefix = "No snapshot files found. Candidates considered:\n\n") {
-          it.relativeTo(File(AndroidTestBase.getTestDataPath())).toString()
+          it.relativeTo(resolveWorkspacePath("").toFile()).toString()
         }
     }
 

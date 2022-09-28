@@ -16,14 +16,14 @@
 package com.android.tools.idea.navigator
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.gradle.project.sync.snapshots.SnapshotContext
-import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest.TestDef
+import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.SnapshotComparisonTest
+import com.android.tools.idea.testing.SnapshotContext
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.dumpSourceProviders
@@ -48,12 +48,12 @@ import java.io.File
 data class SourceProvidersTestDef(
   override val testProject: TestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
-) : TestDef {
+) : SyncedProjectTestDef {
   override val name: String = testProject.projectName
 
   override fun toString(): String = testProject.projectName
 
-  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): TestDef {
+  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTestDef {
     return copy(agpVersion = agpVersion)
   }
 

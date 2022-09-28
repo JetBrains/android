@@ -18,8 +18,7 @@
 package com.android.tools.idea.navigator
 
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
-import com.android.tools.idea.gradle.project.sync.snapshots.SnapshotContext
-import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest
+import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectOther
@@ -32,6 +31,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.android.tools.idea.testing.ProjectViewSettings
 import com.android.tools.idea.testing.SnapshotComparisonTest
+import com.android.tools.idea.testing.SnapshotContext
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.dumpAndroidProjectView
@@ -64,12 +64,12 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
   val compatibleWith: Set<AgpVersionSoftwareEnvironmentDescriptor> = setOf(AGP_CURRENT),
   private val projectViewSettings: ProjectViewSettings = ProjectViewSettings()
-) : SyncedProjectTest.TestDef {
+) : SyncedProjectTestDef {
   override val name: String = testProject.projectName
 
   override fun toString(): String = testProject.projectName
 
-  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTest.TestDef {
+  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTestDef {
     return copy(agpVersion = agpVersion)
   }
 

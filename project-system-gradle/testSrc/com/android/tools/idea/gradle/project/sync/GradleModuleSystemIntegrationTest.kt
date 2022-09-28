@@ -19,7 +19,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest
+import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.DependencyScopeType.ANDROID_TEST
@@ -38,7 +38,7 @@ data class GradleModuleSystemIntegrationTest(
   override val testProject: TestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
   val body: (project: Project, expect: Expect) -> Unit
-) : SyncedProjectTest.TestDef {
+) : SyncedProjectTestDef {
 
   companion object {
     val tests =
@@ -185,7 +185,7 @@ data class GradleModuleSystemIntegrationTest(
       )
   }
 
-  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTest.TestDef {
+  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTestDef {
     return copy(agpVersion = agpVersion)
   }
 

@@ -27,6 +27,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.SnapshotComparisonTest
+import com.android.tools.idea.testing.SnapshotContext
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.LIGHT_SYNC_REFERENCE
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.getAndMaybeUpdateSnapshot
@@ -60,13 +61,13 @@ data class ProjectStructureSnapshotTestDef(
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
   private val roots: Map<String, File> = emptyMap(),
   private val compatibleWith: Set<AgpVersionSoftwareEnvironmentDescriptor> = setOf(AGP_CURRENT)
-) : SyncedProjectTest.TestDef {
+) : SyncedProjectTestDef {
 
   override val name: String = testProject.projectName
 
   override fun toString(): String = testProject.projectName
 
-  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTest.TestDef {
+  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTestDef {
     return copy(agpVersion = agpVersion)
   }
 
