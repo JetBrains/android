@@ -84,6 +84,17 @@ class SplittingTabsToolWindowFactoryTest {
   }
 
   @Test
+  fun createToolWindowContent_noState_shouldNotCreateNewTabWhenEmpty_doesNotCreateNewTab() {
+    val component = JLabel("TabContents")
+    val splittingTabsToolWindowFactory =
+      TestSplittingTabsToolWindowFactory({ "TabName" }, { component }, shouldCreateNewTabWhenEmpty = false)
+
+    splittingTabsToolWindowFactory.createToolWindowContent(projectRule.project, toolWindow)
+
+    assertThat(toolWindow.contentManager.contents).isEmpty()
+  }
+
+  @Test
   fun toolWindowShown_empty_createsNewTab() {
     val component = JLabel("TabContents")
     val splittingTabsToolWindowFactory = TestSplittingTabsToolWindowFactory({ "TabName" }, { component })
@@ -93,6 +104,19 @@ class SplittingTabsToolWindowFactoryTest {
     projectRule.project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).toolWindowShown(toolWindow)
 
     assertThat(toolWindow.contentManager.contents.map { it.displayName }).containsExactly("TabName")
+  }
+
+  @Test
+  fun toolWindowShown_empty_shouldNotCreateNewTabWhenEmpty_doesNotCreateNewTab() {
+    val component = JLabel("TabContents")
+    val splittingTabsToolWindowFactory =
+      TestSplittingTabsToolWindowFactory({ "TabName" }, { component }, shouldCreateNewTabWhenEmpty = false)
+    splittingTabsToolWindowFactory.createToolWindowContent(projectRule.project, toolWindow)
+    toolWindow.contentManager.removeAllContents(true)
+
+    projectRule.project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).toolWindowShown(toolWindow)
+
+    assertThat(toolWindow.contentManager.contents).isEmpty()
   }
 
   @Test
@@ -178,12 +202,16 @@ class SplittingTabsToolWindowFactoryTest {
 
   private class TestSplittingTabsToolWindowFactory(
     val generateName: () -> String = { "" },
-    val generateChild: (String?) -> JComponent = ::JLabel
+    val generateChild: (String?) -> JComponent = ::JLabel,
+    val shouldCreateNewTabWhenEmpty: Boolean = true
   ) : SplittingTabsToolWindowFactory() {
+
     override fun generateTabName(tabNames: Set<String>): String = generateName()
 
     override fun createChildComponent(project: Project, popupActionGroup: ActionGroup, clientState: String?): JComponent =
       generateChild(clientState)
+
+    override fun shouldCreateNewTabWhenEmpty() = shouldCreateNewTabWhenEmpty
   }
 
   private class FakeToolWindow(project: Project, val toolWindowId: String) : MockToolWindow(project) {
