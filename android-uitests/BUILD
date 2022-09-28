@@ -850,6 +850,8 @@ java_test(
 
 java_test(
     name = "CreateNewAppModuleWithDefaultsTest",
+    size = "enormous",
+    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
