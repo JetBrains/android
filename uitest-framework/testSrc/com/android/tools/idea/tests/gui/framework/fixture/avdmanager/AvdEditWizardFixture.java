@@ -60,4 +60,10 @@ public class AvdEditWizardFixture extends AbstractWizardFixture<AvdEditWizardFix
     super.clickFinish(Wait.seconds(30));
     return this;
   }
+
+  @NotNull
+  public AvdEditWizardFixture clickCancel() {
+    super.clickCancel();
+    return this;
+  }
 }

@@ -151,7 +151,7 @@ public class AgpUpgradeTest {
 
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
-  public void testAgpUpgradeUsingGradleBuildFie() {
+  public void testAgpUpgradeUsingGradleBuildFile() {
 
     /**
      * Verifies automatic update of gradle version

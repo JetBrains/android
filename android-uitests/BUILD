@@ -566,6 +566,33 @@ java_test(
 )
 
 java_test(
+    name = "DeviceConfigurationDialogTest",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/SimpleApplication/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.avdmanager.DeviceConfigurationDialogTest"],
+    tags = COMMON_TAGS + [
+        "qa_fast",
+        "block-network",
+        "no-remote",
+        "no_mac",
+        "no_windows",
+        "qa_unreliable",  # b/77635374
+        "requires-fakeroot",
+        "requires_emulator",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "AltEnterSuggestionsTest",
     size = "large",
     data = COMMON_DATA + [
