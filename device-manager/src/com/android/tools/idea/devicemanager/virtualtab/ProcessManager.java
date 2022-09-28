@@ -59,22 +59,6 @@ final class ProcessManager implements IDeviceChangeListener {
   }
 
   @UiThread
-  @VisibleForTesting
-  static @NotNull FutureCallback<@NotNull Map<@NotNull Key, @NotNull State>> newSetKeyToStateMapFutureCallback(@NotNull ProcessManager manager) {
-    return new DeviceManagerFutureCallback<>(ProcessManager.class, manager::setKeyToStateMap);
-  }
-
-  @UiThread
-  private void setKeyToStateMap(@NotNull Map<@NotNull Key, @NotNull State> keyToStateMap) {
-    myKeyToStateMap = keyToStateMap;
-
-    EventListenerLists.fire(myListeners,
-                            ProcessManagerListener::allStatesChanged,
-                            ProcessManagerListener.class,
-                            () -> new ProcessManagerEvent(this));
-  }
-
-  @UiThread
   void addProcessManagerListener(@NotNull ProcessManagerListener listener) {
     myListeners.add(ProcessManagerListener.class, listener);
   }
@@ -97,6 +81,22 @@ final class ProcessManager implements IDeviceChangeListener {
   private static @NotNull Map<@NotNull Key, @NotNull State> collectKeyToStateMap(@NotNull AvdManagerConnection connection) {
     return connection.getAvds(true).stream()
       .collect(Collectors.toMap(avd -> new VirtualDevicePath(avd.getId()), avd -> State.valueOf(connection.isAvdRunning(avd))));
+  }
+
+  @UiThread
+  @VisibleForTesting
+  static @NotNull FutureCallback<@NotNull Map<@NotNull Key, @NotNull State>> newSetKeyToStateMapFutureCallback(@NotNull ProcessManager manager) {
+    return new DeviceManagerFutureCallback<>(ProcessManager.class, manager::setKeyToStateMap);
+  }
+
+  @UiThread
+  private void setKeyToStateMap(@NotNull Map<@NotNull Key, @NotNull State> keyToStateMap) {
+    myKeyToStateMap = keyToStateMap;
+
+    EventListenerLists.fire(myListeners,
+                            ProcessManagerListener::allStatesChanged,
+                            ProcessManagerListener.class,
+                            () -> new ProcessManagerEvent(this));
   }
 
   @VisibleForTesting
