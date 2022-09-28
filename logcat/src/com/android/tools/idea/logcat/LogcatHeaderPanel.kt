@@ -77,6 +77,7 @@ internal class LogcatHeaderPanel(
         layout = if (width > JBUI.scale(500)) createWideLayout() else createNarrowLayout()
       }
     })
+    layout = createWideLayout()
 
     helpIcon.let {
       toolTipText = LogcatBundle.message("logcat.help.tooltip")
