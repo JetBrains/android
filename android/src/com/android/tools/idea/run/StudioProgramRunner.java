@@ -97,13 +97,13 @@ public abstract class StudioProgramRunner extends AndroidProgramRunner {
     Executor executor = env.getExecutor();
     String executorId = executor.getId();
 
-    boolean showRunContent = env.getRunProfile() instanceof AndroidTestRunConfiguration;
-    RunnerAndConfigurationSettings runnerAndConfigurationSettings = env.getRunnerAndConfigurationSettings();
+    boolean isTestConfig = env.getRunProfile() instanceof AndroidTestRunConfiguration;
+    RunnerAndConfigurationSettings settings = env.getRunnerAndConfigurationSettings();
 
     SwapInfo swapInfo = env.getUserData(SwapInfo.SWAP_INFO_KEY);
 
-    if (runnerAndConfigurationSettings != null && swapInfo == null) {
-      runnerAndConfigurationSettings.setActivateToolWindowBeforeRun(showRunContent);
+    if (settings != null && swapInfo == null) {
+      settings.setActivateToolWindowBeforeRun(isTestConfig || settings.isActivateToolWindowBeforeRun());
     }
 
     FileDocumentManager.getInstance().saveAllDocuments();
