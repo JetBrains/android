@@ -603,7 +603,7 @@ public final class AndroidStudioSystemHealthMonitor {
       }
 
       // if exception should not be shown in the errors UI then report it as handled.
-      boolean showUI = isIdeErrorsDialogReportableCrash(t);
+      boolean showUI = isIdeErrorsDialogReportableCrash(t) || ApplicationManager.getApplication().isInternal();
       return !showUI;
     } catch (Throwable throwable) {
       LOG.warn("Exception while handling exception event", throwable);
