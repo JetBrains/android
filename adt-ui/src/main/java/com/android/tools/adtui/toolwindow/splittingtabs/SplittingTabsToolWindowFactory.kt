@@ -45,7 +45,9 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
 
     val toolWindowState = stateManager.getToolWindowState(toolWindow.id)
     if (toolWindowState.tabStates.isEmpty()) {
-      createNewTab(project, contentManager)
+      if (shouldCreateNewTabWhenEmpty()) {
+        createNewTab(project, contentManager)
+      }
     }
     else {
       restoreTabs(project, contentManager, toolWindowState)
@@ -55,13 +57,15 @@ abstract class SplittingTabsToolWindowFactory : ToolWindowFactory {
       ToolWindowManagerListener.TOPIC,
       object : ToolWindowManagerListener {
         override fun toolWindowShown(shownToolWindow: ToolWindow) {
-          if (toolWindow === shownToolWindow && toolWindow.isVisible && contentManager.isEmpty) {
-            // open a new session if all tabs were closed manually
+          // open a new session if all tabs were closed manually
+          if (shouldCreateNewTabWhenEmpty() && toolWindow === shownToolWindow && toolWindow.isVisible && contentManager.isEmpty) {
             createNewTab(project, contentManager)
           }
         }
       })
   }
+
+  open fun shouldCreateNewTabWhenEmpty() : Boolean = true
 
   abstract fun generateTabName(tabNames: Set<String>): String
 
