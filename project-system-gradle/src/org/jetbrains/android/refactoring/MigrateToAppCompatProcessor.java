@@ -135,7 +135,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   private final BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> myAppCompatStyleMigrationFactory;
 
   /**
-   * Keep track of files that may need {@link android.app.Activity} to be imported
+   * Keep track of files that may need {@code android.app.Activity} to be imported
    * during a refactor because findUsages() found either
    * a. A method accepting Activity as a parameter e.g. onAttach(Context)
    * or
@@ -608,7 +608,6 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
    * The reason this is done is to ensure that any import migration due to a method parameter or
    * a return type does not affect the compilationUnit.
    *
-   * @param psiMigration    PsiMigration instance for looking up the Class.
    * @param classMigrations List of {@link ClassMigrationUsageInfo}'s to be processed.
    */
   private void postProcessClassMigrations(@NonNull List<ClassMigrationUsageInfo> classMigrations) {
