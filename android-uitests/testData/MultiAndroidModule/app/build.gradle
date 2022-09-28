@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace "com.android.multimodule"
     compileSdkVersion 33
 
     defaultConfig {

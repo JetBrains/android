@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 
 android {
+    namespace "com.example.ddrone.nothemeslibrary"
     compileSdkVersion 33
 
     defaultConfig {

@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace "google.simpleapplication"
     compileSdkVersion 33
     buildToolsVersion "30.0.3"
     useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
         applicationId "google.simpleapplication"
-        namespace "google.simpleapplication"
         minSdkVersion 21
         targetSdkVersion 32
         versionCode 1
