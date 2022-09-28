@@ -28,6 +28,89 @@ import perfetto.protos.PerfettoTrace
 class SystemTraceCpuCaptureBuilderTest {
 
   @Test
+  fun `buildThreadStateData - termination state present`() {
+    val sleepingThread = ThreadModel(1, 1, "ENDS_WITH_SLEEPING_STATE_THREAD",
+                                     listOf(),
+                                     listOf(SchedulingEventModel(ThreadState.SLEEPING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)))
+    val runningThread = ThreadModel(2, 2, "ENDS_WITH_RUNNING_STATE_THREAD",
+                                    listOf(),
+                                    listOf(SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)))
+    val waitingThread = ThreadModel(3, 3, "ENDS_WITH_WAITING_STATE_THREAD",
+                                    listOf(),
+                                    listOf(SchedulingEventModel(ThreadState.WAITING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)))
+    val deadThread = ThreadModel(4, 4, "ENDS_WITH_DEAD_STATE_THREAD",
+                                    listOf(),
+                                    listOf(SchedulingEventModel(ThreadState.DEAD_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)))
+    val unknownThread = ThreadModel(5, 5, "ENDS_WITH_UNKNOWN_STATE_THREAD",
+                                 listOf(),
+                                 listOf(SchedulingEventModel(ThreadState.UNKNOWN, 0L, 5L, 5L, 5L, 1, 1, 1)))
+
+    val processes = mapOf(1 to ProcessModel(
+      1, "Process",
+      mapOf(1 to sleepingThread, 2 to runningThread, 3 to waitingThread, 4 to deadThread, 5 to unknownThread),
+      mapOf()
+    ))
+
+    val model = TestModel(processes, mapOf(), listOf())
+    val capture = SystemTraceCpuCaptureBuilder(model).build(0L, 1, Range(0.0, 5.0))
+    val systemTraceData = capture.systemTraceData
+
+    // Check if the fake/termination NO_ACTIVITY thread status is added successfully
+    // and that it uses the original last thread status' end timestamp as its start.
+    assertThat(systemTraceData.getThreadStatesForThread(1).size).isEqualTo(2)
+    assertThat(systemTraceData.getThreadStatesForThread(1).last().value).isEqualTo(ThreadState.NO_ACTIVITY)
+    assertThat(systemTraceData.getThreadStatesForThread(1).last().x).isEqualTo(5)
+
+    assertThat(systemTraceData.getThreadStatesForThread(2).size).isEqualTo(2)
+    assertThat(systemTraceData.getThreadStatesForThread(2).last().value).isEqualTo(ThreadState.NO_ACTIVITY)
+    assertThat(systemTraceData.getThreadStatesForThread(2).last().x).isEqualTo(5)
+
+    assertThat(systemTraceData.getThreadStatesForThread(3).size).isEqualTo(2)
+    assertThat(systemTraceData.getThreadStatesForThread(3).last().value).isEqualTo(ThreadState.NO_ACTIVITY)
+    assertThat(systemTraceData.getThreadStatesForThread(3).last().x).isEqualTo(5)
+
+    assertThat(systemTraceData.getThreadStatesForThread(4).size).isEqualTo(2)
+    assertThat(systemTraceData.getThreadStatesForThread(4).last().value).isEqualTo(ThreadState.NO_ACTIVITY)
+    assertThat(systemTraceData.getThreadStatesForThread(4).last().x).isEqualTo(5)
+
+    assertThat(systemTraceData.getThreadStatesForThread(5).size).isEqualTo(2)
+    assertThat(systemTraceData.getThreadStatesForThread(5).last().value).isEqualTo(ThreadState.NO_ACTIVITY)
+    assertThat(systemTraceData.getThreadStatesForThread(5).last().x).isEqualTo(5)
+  }
+
+  @Test
+  fun `buildThreadStateData - termination state not present`() {
+    val noActivityThread = ThreadModel(1, 1, "ENDS_WITH_NO_ACTIVITY_STATE_THREAD",
+                                    listOf(),
+                                    listOf(
+                                      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1),
+                                      SchedulingEventModel(ThreadState.NO_ACTIVITY, 0L, 5L, 5L, 5L, 1, 1, 1),
+                                    ))
+    val emptyThread = ThreadModel(2, 2, "NO_STATE_THREAD",
+                                  listOf(),
+                                  listOf())
+
+    val processes = mapOf(1 to ProcessModel(
+      1, "Process",
+      mapOf(1 to noActivityThread, 2 to emptyThread),
+      mapOf()
+    ))
+
+    val model = TestModel(processes, mapOf(), listOf())
+    val capture = SystemTraceCpuCaptureBuilder(model).build(0L, 1, Range(0.0, 5.0))
+    val systemTraceData = capture.systemTraceData
+
+    // Check if the fake/termination NO_ACTIVITY thread state is not added
+    // when actual last state was NO_ACTIVITY.
+    assertThat(systemTraceData.getThreadStatesForThread(1).size).isEqualTo(2)
+    assertThat(systemTraceData.getThreadStatesForThread(1).last().value).isEqualTo(ThreadState.NO_ACTIVITY)
+
+    // Make sure fake/termination NO_ACTIVITY thread state is not added
+    // when there is no states in the thread to begin with.
+    assertThat(systemTraceData.getThreadStatesForThread(2).size).isEqualTo(0)
+  }
+
+  @Test
   fun `buildCpuStateData - thread states`() {
     val processes = mapOf(
       1 to ProcessModel(
