@@ -29,12 +29,15 @@ import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.adapters.StringToDoubleAdapterProperty;
 import com.android.tools.idea.observable.adapters.StringToIntAdapterProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.CollectionComboBoxModel;
@@ -43,7 +46,9 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.BrowserLink;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.File;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -98,8 +103,29 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, "Configure this hardware profile");
+
+    initSkinComboBox();
   }
 
+  private void initSkinComboBox() {
+    OptionalProperty<File> optionalSkin = getModel().getDeviceData().customSkinFile();
+    File skin = optionalSkin.getValueOrNull();
+
+    FutureCallback<List<File>> callback = new LoadSkinsFutureCallback(myCustomSkinPath, skin) {
+      @Override
+      public void onSuccess(@NotNull List<@NotNull File> skins) {
+        super.onSuccess(skins);
+
+        if (skin != null) {
+          optionalSkin.setValue(skin);
+        }
+
+        myCustomSkinPath.setEnabled(true);
+      }
+    };
+
+    Futures.addCallback(myCustomSkinPath.loadSkins(), callback, EdtExecutorService.getInstance());
+  }
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {

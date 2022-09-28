@@ -47,6 +47,7 @@ import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.SettableValue;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
@@ -61,6 +62,8 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
@@ -85,6 +88,7 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.util.Consumer;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import icons.StudioIcons;
@@ -312,6 +316,23 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   }
 
   private void initSkinComboBox(@NotNull SkinChooser skinComboBox) {
+    OptionalProperty<File> optionalSkin = myModel.getAvdDeviceData().customSkinFile();
+    File skin = optionalSkin.getValueOrNull();
+
+    FutureCallback<List<File>> callback = new LoadSkinsFutureCallback(skinComboBox, skin) {
+      @Override
+      public void onSuccess(@NotNull List<@NotNull File> skins) {
+        super.onSuccess(skins);
+
+        if (skin != null) {
+          optionalSkin.setValue(skin);
+        }
+
+        skinComboBox.setEnabled(true);
+      }
+    };
+
+    Futures.addCallback(skinComboBox.loadSkins(), callback, EdtExecutorService.getInstance());
     mySkinComboBox = skinComboBox;
 
     GridConstraints constraints = new GridConstraints();
