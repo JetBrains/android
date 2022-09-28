@@ -18,16 +18,16 @@ package com.android.build.attribution.ui.view
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressManager
 
-class ClearBuildResultsAction : AnAction("Clear Build Results") {
+class ClearBuildResultsAction(private val callback: () -> Unit) : AnAction("Clear Build Results") {
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project
     if(project != null) {
       val runnable = Runnable {
         BuildAnalyzerStorageManager.getInstance(project).clearBuildResultsStored()
+        callback()
       }
       ProgressManager.getInstance()
         .runProcessWithProgressSynchronously(runnable, "Clear build analyzer results", false, project)

@@ -21,6 +21,7 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.data.BuildRequestHolder
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.observable.properties.AtomicProperty
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.getProjectDataPath
@@ -43,6 +44,9 @@ class BuildAnalyzerStorageManagerImpl(
   private val inMemoryResults = ConcurrentHashMap<String, BuildAnalysisResults>()
 
   private val workingWithDiskLock = ReentrantLock()
+
+  private val storageDescriptor = BuildAnalyzerStorageDescriptor(fileManager.totalFilesSize,
+                                                                 AtomicProperty(getNumberOfBuildResultsStored()))
 
   init {
     onSettingsChange()
@@ -113,6 +117,7 @@ class BuildAnalyzerStorageManagerImpl(
       descriptors.add(BuildDescriptorImpl(buildResults.getBuildSessionID(),
                                           buildResults.getBuildFinishedTimestamp(),
                                           buildResults.getTotalBuildTimeMs()))
+      updateDescriptor()
       inMemoryResults[buildResults.getBuildSessionID()] = buildResults
       val onBackground: () -> BuildAnalysisResults = {
         workingWithDiskLock.withLock {
@@ -173,6 +178,8 @@ class BuildAnalyzerStorageManagerImpl(
   override fun getNumberOfBuildResultsStored(): Int =
     descriptors.size
 
+  override fun getStorageDescriptor(): BuildAnalyzerStorageDescriptor = storageDescriptor
+
   override fun onSettingsChange() =
     deleteOldRecords()
 
@@ -185,6 +192,7 @@ class BuildAnalyzerStorageManagerImpl(
   fun deleteHistoricBuildResultByID(buildID: String) {
     getListOfHistoricBuildDescriptors().firstOrNull { it.buildSessionID == buildID }?.let { result ->
       descriptors.remove(result)
+      updateDescriptor()
       inMemoryResults.remove(buildID)
       fileManager.deleteHistoricBuildResultByID(buildID)
     }
@@ -208,6 +216,10 @@ class BuildAnalyzerStorageManagerImpl(
 
   override fun hasData(): Boolean {
     return buildResults != null
+  }
+
+  private fun updateDescriptor() {
+    storageDescriptor.numberOfBuildResultsStored.set(getNumberOfBuildResultsStored())
   }
 
   /**
