@@ -21,20 +21,26 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
+import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.CountDownLatch
 import javax.swing.JComponent
 import javax.swing.JPanel
 import junit.framework.Assert.assertTrue
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -75,13 +81,20 @@ class ComposePreviewRepresentationTest {
   private val fixture
     get() = projectRule.fixture
 
+  @Before
+  fun setup() {
+    val testProjectSystem = TestProjectSystem(project)
+    runInEdtAndWait { testProjectSystem.useInTests() }
+  }
+
   @Test
-  fun testPreviewInitialization() = invokeLaterIfNeeded {
-    val composeTest =
-      fixture.addFileToProjectAndInvalidate(
-        "Test.kt",
-        // language=kotlin
-        """
+  fun testPreviewInitialization() =
+    runBlocking(workerThread) {
+      val composeTest = runWriteActionAndWait {
+        fixture.addFileToProjectAndInvalidate(
+          "Test.kt",
+          // language=kotlin
+          """
         import androidx.compose.ui.tooling.preview.Devices
         import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.runtime.Composable
@@ -96,55 +109,60 @@ class ComposePreviewRepresentationTest {
         fun Preview2() {
         }
       """.trimIndent()
-      )
+        )
+      }
 
-    val pinnedSurface =
-      NlDesignSurface.builder(project, fixture.testRootDisposable)
-        .setNavigationHandler(ComposePreviewNavigationHandler())
-        .build()
-    val mainSurface =
-      NlDesignSurface.builder(project, fixture.testRootDisposable)
-        .setNavigationHandler(ComposePreviewNavigationHandler())
-        .build()
-    val modelRenderedLatch = CountDownLatch(2)
+      val pinnedSurface =
+        NlDesignSurface.builder(project, fixture.testRootDisposable)
+          .setNavigationHandler(ComposePreviewNavigationHandler())
+          .build()
+      val mainSurface =
+        NlDesignSurface.builder(project, fixture.testRootDisposable)
+          .setNavigationHandler(ComposePreviewNavigationHandler())
+          .build()
+      val modelRenderedLatch = CountDownLatch(2)
 
-    mainSurface.addListener(
-      object : DesignSurfaceListener {
-        override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
-          (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener {
-            modelRenderedLatch.countDown()
+      mainSurface.addListener(
+        object : DesignSurfaceListener {
+          override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
+            (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener {
+              modelRenderedLatch.countDown()
+            }
           }
         }
+      )
+
+      val composeView = TestComposePreviewView(listOf(pinnedSurface), mainSurface)
+      val preview =
+        ComposePreviewRepresentation(
+          composeTest,
+          object : PreviewElementProvider<ComposePreviewElement> {
+            override suspend fun previewElements(): Sequence<ComposePreviewElement> =
+              AnnotationFilePreviewElementFinder.findPreviewMethods(
+                  project,
+                  composeTest.virtualFile
+                )
+                .asSequence()
+          },
+          PreferredVisibility.SPLIT
+        ) { _, _, _, _, _, _, _, _, _ -> composeView }
+      Disposer.register(fixture.testRootDisposable, preview)
+      launch(workerThread) {
+        ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
+        preview.onActivate()
       }
-    )
 
-    val composeView = TestComposePreviewView(listOf(pinnedSurface), mainSurface)
-    val preview =
-      ComposePreviewRepresentation(
-        composeTest,
-        object : PreviewElementProvider<ComposePreviewElement> {
-          override suspend fun previewElements(): Sequence<ComposePreviewElement> =
-            AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
-              .asSequence()
-        },
-        PreferredVisibility.SPLIT
-      ) { _, _, _, _, _, _, _, _, _ -> composeView }
-    Disposer.register(fixture.testRootDisposable, preview)
-    ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
+      modelRenderedLatch.await()
 
-    preview.onActivate()
-
-    modelRenderedLatch.await()
-
-    assertArrayEquals(
-      arrayOf("groupA"),
-      preview.availableGroups.map { it.displayName }.toTypedArray()
-    )
-    assertTrue(
-      !preview.status().hasErrors &&
-        !preview.status().hasRuntimeErrors &&
-        !preview.status().isOutOfDate
-    )
-    preview.onDeactivate()
-  }
+      assertArrayEquals(
+        arrayOf("groupA"),
+        preview.availableGroups.map { it.displayName }.toTypedArray()
+      )
+      assertTrue(
+        !preview.status().hasErrors &&
+          !preview.status().hasRuntimeErrors &&
+          !preview.status().isOutOfDate
+      )
+      preview.onDeactivate()
+    }
 }
