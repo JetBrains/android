@@ -26,7 +26,7 @@ class SystemUiModeActionTest : AndroidTestCase() {
     val file = myFixture.copyFileToProject("configurations/layout1.xml", "res/layout/layout1.xml")
     val manager = ConfigurationManager.getOrCreateInstance(myModule)
     val configuration = manager.getConfiguration(file)
-    val systemUiModeAction = SystemUiModeAction({ configuration }, "", "")
+    val systemUiModeAction = SystemUiModeAction { configuration }
 
     val wallpaperActions = systemUiModeAction.getWallpaperActions()
     val wallpapers = enumValues<Wallpaper>()

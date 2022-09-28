@@ -110,9 +110,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
     group.addSeparator();
     if (StudioFlags.NELE_DYNAMIC_THEMING_ACTION.get()) {
-      SystemUiModeAction systemUiModeAction = new SystemUiModeAction(mySurface::getConfiguration,
-                                                                     "Wallpaper",
-                                                                     "Preview for dynamic theming");
+      SystemUiModeAction systemUiModeAction = new SystemUiModeAction(mySurface::getConfiguration);
       appendShortcutText(systemUiModeAction, ToggleDeviceNightModeAction.getInstance());
       group.add(systemUiModeAction);
     }

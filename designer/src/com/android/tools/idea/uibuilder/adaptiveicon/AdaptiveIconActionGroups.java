@@ -44,9 +44,7 @@ public class AdaptiveIconActionGroups extends ToolbarActionGroups {
     group.add(new ShapeMenuAction(mySurface::getConfiguration));
     group.add(new ThemeMenuAction(mySurface::getConfiguration));
     if (NELE_DYNAMIC_THEMING_ACTION.get()) {
-      group.add(new SystemUiModeAction(mySurface::getConfiguration,
-                                       "Themed Icon",
-                                       "Preview for themed icon"));
+      group.add(new SystemUiModeAction(mySurface::getConfiguration));
     }
     return group;
   }
