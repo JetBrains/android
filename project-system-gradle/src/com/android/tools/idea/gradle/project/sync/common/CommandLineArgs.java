@@ -31,6 +31,7 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.common.AndroidSupportVersionUtilKt;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.ui.GuiTestingService;
@@ -77,6 +78,8 @@ public class CommandLineArgs {
         project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, null);
         Collections.addAll(args, extraOptions);
       }
+      var buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+      Collections.addAll(args, buildConfiguration.getCommandLineOptions());
     }
 
     // Always add the --stacktrace option to aid in the debugging of any issues in sync.

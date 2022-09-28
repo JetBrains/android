@@ -33,6 +33,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
@@ -82,6 +83,17 @@ public class CommandLineArgsTest extends HeavyPlatformTestCase {
     List<String> args = myArgs.get(getProject());
     check(args);
     assertThat(args).contains("-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks");
+  }
+
+  public void testGetBuildConfigurationCommandlineOptions() {
+    Project project = getProject();
+    AndroidGradleBuildConfiguration configuration = project.getService(AndroidGradleBuildConfiguration.class);
+    configuration.COMMAND_LINE_OPTIONS = "-Doption1=true -Doption2=true -Poption3=true";
+    List<String> args = myArgs.get(project);
+    check(args);
+    assertThat(args).contains("-Doption1=true");
+    assertThat(args).contains("-Doption2=true");
+    assertThat(args).contains("-Poption3=true");
   }
 
   public void testGetWithIdeNotAndroidStudio() {
