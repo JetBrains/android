@@ -41,6 +41,10 @@ import java.awt.event.MouseListener
 import java.awt.image.BufferedImage
 import java.util.Timer
 import java.util.TimerTask
+import kotlin.math.ceil
+import kotlin.math.log2
+import kotlin.math.max
+import kotlin.math.roundToInt
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
@@ -295,7 +299,63 @@ class DeviceMirroringBenchmarkerTest {
       taskCaptor.value.run()
       UIUtil.pump() // Wait for dispatched event to be processed.
       testTimeSource += it.seconds  // Each touch will take 1s longer than the last.
-      view.notifyFrame(mousePressedLocations.last().toBufferedImage(WIDTH, HEIGHT, latencyMs))
+      view.notifyFrame(mousePressedLocations.last().toBufferedImage(WIDTH, HEIGHT, latencyMs = latencyMs))
+    }
+    assertThat(mousePressedLocations).hasSize(numTouchablePixels)
+    assertThat(allPointsBenchmarker.isDone()).isTrue()
+    val expectedRawResults = (0 until numTouchablePixels).associate { mousePressedLocations[it] to (it.seconds - latencyMs.milliseconds) }
+    assertThat(benchmarkResults[0].raw).containsExactlyEntriesIn(expectedRawResults)
+    // This distribution just increases linearly, so each percentile is a relative fraction of the max.
+    val maxDurationMillis = (numTouchablePixels - 1).seconds.toDouble(DurationUnit.MILLISECONDS)
+    benchmarkResults[0].percentiles.forEach { (k, v) ->
+      assertThat(v).isWithin(0.00000001).of(maxDurationMillis * k / 100 - latencyMs)
+    }
+  }
+
+  @Test
+  fun computesResultsCorrectly_monochrome() {
+    val allPointsBenchmarker = createBenchmarker(bitsPerChannel = 0, maxTouches = Int.MAX_VALUE)
+    allPointsBenchmarker.start()
+    view.notifyFrame(ALL_TOUCHABLE_FRAME)
+    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
+    assertThat(mousePressedLocations).isEmpty()
+
+    val latencyMs = 15
+    val numTouchablePixels = WIDTH * HEIGHT
+    repeat(numTouchablePixels) {
+      taskCaptor.value.run()
+      UIUtil.pump() // Wait for dispatched event to be processed.
+      testTimeSource += it.seconds  // Each touch will take 1s longer than the last.
+      view.notifyFrame(mousePressedLocations.last().toBufferedImage(WIDTH, HEIGHT, bitsPerChannel = 0, latencyMs = latencyMs))
+    }
+    assertThat(mousePressedLocations).hasSize(numTouchablePixels)
+    assertThat(allPointsBenchmarker.isDone()).isTrue()
+    val expectedRawResults = (0 until numTouchablePixels).associate { mousePressedLocations[it] to (it.seconds - latencyMs.milliseconds) }
+    assertThat(benchmarkResults[0].raw).containsExactlyEntriesIn(expectedRawResults)
+    // This distribution just increases linearly, so each percentile is a relative fraction of the max.
+    val maxDurationMillis = (numTouchablePixels - 1).seconds.toDouble(DurationUnit.MILLISECONDS)
+    benchmarkResults[0].percentiles.forEach { (k, v) ->
+      assertThat(v).isWithin(0.00000001).of(maxDurationMillis * k / 100 - latencyMs)
+    }
+  }
+
+  @Test
+  fun computesResultsCorrectly_lowerBitsPerChannel() {
+    val allPointsBenchmarker = createBenchmarker(bitsPerChannel = 1, maxTouches = Int.MAX_VALUE)
+    allPointsBenchmarker.start()
+    view.notifyFrame(ALL_TOUCHABLE_FRAME)
+    val taskCaptor: ArgumentCaptor<TimerTask> = argumentCaptor()
+    verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
+    assertThat(mousePressedLocations).isEmpty()
+
+    val latencyMs = 15
+    val numTouchablePixels = WIDTH * HEIGHT
+    repeat(numTouchablePixels) {
+      taskCaptor.value.run()
+      UIUtil.pump() // Wait for dispatched event to be processed.
+      testTimeSource += it.seconds  // Each touch will take 1s longer than the last.
+      view.notifyFrame(mousePressedLocations.last().toBufferedImage(WIDTH, HEIGHT, bitsPerChannel = 1, latencyMs = latencyMs))
     }
     assertThat(mousePressedLocations).hasSize(numTouchablePixels)
     assertThat(allPointsBenchmarker.isDone()).isTrue()
@@ -339,9 +399,16 @@ class DeviceMirroringBenchmarkerTest {
     }
   }
 
-  private fun createBenchmarker(maxTouches: Int = MAX_TOUCHES, step: Int = 1, spikiness: Int = 1) : DeviceMirroringBenchmarker {
+  private fun createBenchmarker(
+    maxTouches: Int = MAX_TOUCHES,
+    step: Int = 1, spikiness: Int = 1,
+    bitsPerChannel: Int = 4,
+    latencyBits: Int = 6,
+  ) : DeviceMirroringBenchmarker {
     return DeviceMirroringBenchmarker(
       abstractDisplayView = view,
+      bitsPerChannel = bitsPerChannel,
+      latencyBits = latencyBits,
       touchRateHz = TOUCH_RATE_HZ,
       maxTouches = maxTouches,
       step = step,
@@ -380,36 +447,73 @@ class DeviceMirroringBenchmarkerTest {
 
   companion object {
     private const val BITS_PER_CHANNEL = 4
-    private const val LATENCY_BITS_PER_CHANNEL = 2
     private const val MAX_TOUCHES = 10
     private const val TOUCH_RATE_HZ = 5
-    private const val WIDTH = 5
-    private const val HEIGHT = 10
+    private const val WIDTH = 50
+    private const val HEIGHT = 100
+    private const val LATENCY_MAX_BITS = 6
+    private val MAX_BITS = ceil(log2(max(WIDTH, HEIGHT).toDouble())).roundToInt()
     private val ALL_TOUCHABLE_FRAME = bufferedImage(WIDTH, HEIGHT) {_, _ -> Color.GREEN}
     private val NONE_TOUCHABLE_FRAME = bufferedImage(WIDTH, HEIGHT) {_, _ -> Color.RED}
     private val TOUCHABLE_AREA_FRAME = bufferedImage(WIDTH, HEIGHT) {i, j ->
         if ((i in 1 until WIDTH - 1) && (j in 1 until HEIGHT - 1)) Color.GREEN else Color.RED
     }
 
-    private fun Int.toColor(bitsPerChannel: Int = BITS_PER_CHANNEL) : Color {
-      val bitmask = (1 shl bitsPerChannel) - 1
-      val emptyBits = 8 - bitsPerChannel
-      val r = ((this shr (bitsPerChannel * 2)) and bitmask) shl emptyBits
-      val g = ((this shr bitsPerChannel) and bitmask) shl emptyBits
-      val b = (this and bitmask) shl emptyBits
-      return Color(r, g, b)
+    private fun Int.bits(maxBits: Int = MAX_BITS) : String = toUInt().toString(2).padStart(maxBits, '0')
+
+    private fun List<String>.toColor() : Color {
+      require(!isEmpty()) { "Must provide at least one value." }
+      return when(size) {
+        1 -> Color(get(0).toColorChannel(), 0, 0)
+        2 -> Color(get(0).toColorChannel(), get(1).toColorChannel(), 0)
+        else ->  Color(get(0).toColorChannel(), get(1).toColorChannel(), get(2).toColorChannel())
+      }
     }
 
-    private fun Point.toBufferedImage(width: Int, height: Int, latencyMs: Int = 0): BufferedImage {
-      val xColor = x.toColor()
-      val yColor = y.toColor()
-      val latencyColor = latencyMs.toColor(LATENCY_BITS_PER_CHANNEL)
+    private fun String.toColorChannel() : Int {
+      require(length in 1..8) { "Cannot fit $length bits in a color channel." }
+      return (toInt(2) * (255 / ((1 shl length) - 1).toDouble())).roundToInt().coerceIn(0, 255)
+    }
+
+    private fun Int.toColors(maxBits: Int = MAX_BITS, bitsPerChannel: Int = BITS_PER_CHANNEL): List<Color> {
+      require(this >= 0) { "Cannot encode a negative integer" }
+      require(bitsPerChannel in 0..8) { "Can only use 1 to 8 bits per color channel." }
+      if (bitsPerChannel == 0) return bits(maxBits).map { if (it == '1') Color.WHITE else Color.BLACK }
+      return bits(maxBits).chunked(bitsPerChannel).chunked(3) { it.toColor() }
+    }
+
+    /**
+     * Gets the item out of the list that is the same proportion of the way through the list as [value] is
+     * through [min, max].
+     */
+    private fun <T> List<T>.getFractional(min: Int, max: Int, value: Int): T {
+      val index = (size * (value - min) / (max - min).toDouble()).toInt().coerceIn(indices)
+      return get(index)
+    }
+
+    private fun Point.toBufferedImage(
+      width: Int, height: Int,
+      maxBits: Int = MAX_BITS,
+      bitsPerChannel: Int = BITS_PER_CHANNEL,
+      latencyMaxBits: Int = LATENCY_MAX_BITS,
+      latencyMs: Int = 0,
+    ): BufferedImage {
+      val xColors = x.toColors(maxBits, bitsPerChannel)
+      val yColors = y.toColors(maxBits, bitsPerChannel)
+      val latencyColors = latencyMs.toColors(latencyMaxBits, bitsPerChannel)
       return bufferedImage(width, height) { i, j ->
         if (j <= height / 2) {
-          if (i < width / 2) xColor else yColor
+          if (i < width / 2) {
+            xColors.getFractional(0, height / 2, j)
+          } else {
+            yColors.getFractional(0, height / 2, j)
+          }
+        }
+        else if (j in (height * 17 / 20) until height) {
+          latencyColors.getFractional(height * 17 / 20, height, j)
         }
         else {
-          latencyColor
+          Color.BLACK
         }
       }
     }

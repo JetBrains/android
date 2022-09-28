@@ -34,6 +34,9 @@ import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.util.Timer
 import kotlin.concurrent.scheduleAtFixedRate
+import kotlin.math.ceil
+import kotlin.math.log2
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
@@ -47,10 +50,39 @@ import kotlin.time.TimeSource
 
 typealias ProgressCallback = (Double, Double) -> Unit
 
+/** Computes values in between [start] and [end] at regular intervals representing the centers of [numValues] equal ranges. */
+private fun IntRange.sampleValues(numValues: Int) : List<Int> {
+  val spacing = ((endInclusive - start) / numValues.toDouble())
+  return List(numValues) { start + (spacing * (it + 0.5)).roundToInt() }
+}
+
+private fun Rectangle.fractionalX(fraction: Double) : Int = (x + width * fraction).roundToInt().coerceIn(x until x + width)
+
+private fun Rectangle.fractionalY(fraction: Double) : Int = (y + height * fraction).roundToInt().coerceIn(y until y + height)
+
+/** Gets the range of Y values within the [Rectangle] in which we encode frame latency. */
+private fun Rectangle.latencyEncodingYRange(): IntRange = fractionalY(0.85) until bottom
+
+/** Gets the center of the range of X values within the [Rectangle] in which we encode frame latency. */
+private fun Rectangle.latencyEncodingX(): Int = fractionalX(0.9)
+
+/** Gets the center of the range of Y values within the [Rectangle] in which we encode the first integer. */
+private fun Rectangle.integer1EncodingX(): Int = fractionalX(0.25)
+
+/** Gets the center of the range of Y values within the [Rectangle] in which we encode the second integer. */
+private fun Rectangle.integer2EncodingX(): Int = fractionalX(0.75)
+
+/** Gets the range of Y values within the [Rectangle] in which we encode integer values. */
+private fun Rectangle.integerEncodingYRange(): IntRange = y..fractionalY(0.5)
+
+private fun Color.channels(): List<Int> = listOf(red, green, blue)
+
 /** Class that conducts a generic benchmarking operation for device mirroring. */
 @OptIn(ExperimentalTime::class)
 class DeviceMirroringBenchmarker(
     private val abstractDisplayView: AbstractDisplayView,
+    private val bitsPerChannel: Int = 0,
+    private val latencyBits: Int = 6,
     touchRateHz: Int = 60,
     maxTouches: Int = 10_000,
     step: Int = 1,
@@ -61,12 +93,9 @@ class DeviceMirroringBenchmarker(
 
   private val frameDurationMillis: Long = (1000 / touchRateHz.toDouble()).roundToLong()
   private val deviceDisplaySize: Dimension by abstractDisplayView::deviceDisplaySize
-
-  init {
-    require(maxTouches > 0) { "Must specify a positive value for maxTouches!" }
-    require(step > 0) { "Must specify a positive value for step!" }
-    require(spikiness >= 0) { "Must specify a non-negative value for spikiness!" }
-  }
+  private val maxBits: Int = ceil(log2(max(deviceDisplaySize.width, deviceDisplaySize.height).toDouble())).roundToInt()
+  private val numRegionsPerCoordinate = if (bitsPerChannel == 0) maxBits else (maxBits - 1) / (bitsPerChannel * 3) + 1
+  private val numLatencyRegions = if (bitsPerChannel == 0) latencyBits else (latencyBits - 1) / (bitsPerChannel * 3) + 1
 
   // ┌───────┐  ┌───────┐  ┌───────┐  ┌───────┐  ┌────────┐
   // │INITIAL├─►│FINDING├─►│SENDING├─►│WAITING├─►│COMPLETE│
@@ -81,6 +110,7 @@ class DeviceMirroringBenchmarker(
     State.FINDING_TOUCHABLE_AREA {
       transitionsTo(State.SENDING_TOUCHES, State.STOPPED)
       onEnter {
+        keyConfigIntoApp()
         abstractDisplayView.addFrameListener(this@DeviceMirroringBenchmarker)
         abstractDisplayView.repaint() // Make sure get the first frame.
       }
@@ -114,6 +144,7 @@ class DeviceMirroringBenchmarker(
   private val onCompleteCallbacks: MutableList<(BenchmarkResults) -> Unit> = mutableListOf()
   private val onStoppedCallbacks: MutableList<() -> Unit> = mutableListOf()
 
+  @Volatile private lateinit var touchableImageArea: Rectangle
   @Volatile private lateinit var touchableArea: Rectangle
   private val pointsToTouch: Iterator<Point> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     touchableArea.scribble(maxTouches, step, spikiness).iterator()
@@ -124,6 +155,13 @@ class DeviceMirroringBenchmarker(
   private val outstandingTouches: MutableMap<Point, TimeMark> = LinkedHashMap()
   private val touchRoundTrips: MutableMap<Point, Duration> = mutableMapOf()
   private var lastPressed: Point? = null
+
+  init {
+    require(maxTouches > 0) { "Must specify a positive value for maxTouches!" }
+    require(step > 0) { "Must specify a positive value for step!" }
+    require(spikiness >= 0) { "Must specify a non-negative value for spikiness!" }
+    require(bitsPerChannel in 0..8) { "Cannot extract $bitsPerChannel bits from a channel! Must be in [0,8]" }
+  }
 
   @Synchronized
   fun addOnStoppedCallback(callback: () -> Unit) {
@@ -143,7 +181,17 @@ class DeviceMirroringBenchmarker(
   @Synchronized
   fun start() {
     state = State.FINDING_TOUCHABLE_AREA
+  }
+
+  @Synchronized
+  private fun keyConfigIntoApp() {
     press(KeyEvent.VK_UP)
+    typeNumber(maxBits)
+    type(KeyEvent.VK_COMMA, ',')
+    typeNumber(latencyBits)
+    type(KeyEvent.VK_COMMA, ',')
+    typeNumber(bitsPerChannel)
+    press(KeyEvent.VK_ENTER)
   }
 
   @Synchronized
@@ -179,11 +227,22 @@ class DeviceMirroringBenchmarker(
     }
   }
 
-  private fun press(keyCode: Int, keyChar: Char = KeyEvent.CHAR_UNDEFINED) {
+  private fun press(keyCode: Int) {
+    keyInput(keyCode, KeyEvent.CHAR_UNDEFINED, KeyEvent.KEY_PRESSED)
+  }
+
+  private fun type(keyCode: Int, keyChar: Char) {
+    keyInput(keyCode, keyChar, KeyEvent.KEY_TYPED)
+  }
+
+  private fun keyInput(keyCode: Int, keyChar: Char, id: Int) {
     UIUtil.invokeLaterIfNeeded {
-      abstractDisplayView.dispatchEvent(
-        KeyEvent(abstractDisplayView, KeyEvent.KEY_PRESSED, System.currentTimeMillis(),0, keyCode, keyChar))
+      abstractDisplayView.dispatchEvent(KeyEvent(abstractDisplayView, id, System.currentTimeMillis(), 0, keyCode, keyChar))
     }
+  }
+
+  private fun typeNumber(n: Int) {
+    n.toString().forEach { type(KeyEvent.VK_0 + it.digitToInt(), it) }
   }
 
   @Synchronized
@@ -193,8 +252,9 @@ class DeviceMirroringBenchmarker(
   override fun frameRendered(frameNumber: Int, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage) {
     when (state) {
       State.FINDING_TOUCHABLE_AREA -> {
-        displayImage.findTouchableAreaInDisplayViewCoordinates()?.let {
-          touchableArea = it
+        displayImage.findTouchableAreas()?.let {
+          touchableImageArea = it.first
+          touchableArea = it.second
           state = State.SENDING_TOUCHES
           return
         }
@@ -252,23 +312,22 @@ class DeviceMirroringBenchmarker(
   /** Extracts the [Color] of the pixel at ([x], [y]) in the image. */
   private fun BufferedImage.extract(x: Int, y: Int): Color = Color(getRGB(x,y))
 
-  private fun BufferedImage.findTouchableAreaInDisplayViewCoordinates(): Rectangle? {
+  /** Returns the touchable area of the device in both image and display view coordinates. */
+  private fun BufferedImage.findTouchableAreas(): Pair<Rectangle, Rectangle>? {
     val imageRectangle = findTouchableArea() ?: return null
     // Start with a nonexistent Rectangle.
     val displayViewRectangle = Rectangle(0, 0, -1, -1)
     // Get two opposite corners of the image rectangle.
     listOf(imageRectangle.location, Point(imageRectangle.right, imageRectangle.bottom))
       // Scale them to device coordinates.
-      .map { it.scaledUnbiased(size, abstractDisplayView.deviceDisplaySize) }
+      .map { it.scaledUnbiased(Dimension(width, height), abstractDisplayView.deviceDisplaySize) }
       // Now transform them to the display view coordinates, if possible.
       .map { it.toDisplayViewCoordinates() ?: return null }
       // Now add each of these opposite points to the newly created Rectangle.
       .forEach(displayViewRectangle::add)
-    return displayViewRectangle.also { LOG.info("Converted touchable area to AbstractDisplayView coordinates: $it")}
+    LOG.info("Found touchable area in image: $imageRectangle. Converted to AbstractDisplayView coordinates: $displayViewRectangle")
+    return imageRectangle to displayViewRectangle
   }
-
-  private val BufferedImage.size: Dimension
-    get() = Dimension(width, height)
 
   /**
    * Finds a [Rectangle] of touchable area of the screen, which should be colored green.
@@ -292,28 +351,36 @@ class DeviceMirroringBenchmarker(
     return Rectangle(left, top, width, height).also { LOG.info("Found touchable area: $it") }
   }
 
-  /** Decode the pixel at ([x],[y]) to an [Int] value. */
-  private fun BufferedImage.decode(x: Int, y: Int, bitsPerChannel: Int = BITS_PER_CHANNEL): Int {
-    val c = extract(x, y)
-    val ignoredBits = 8 - bitsPerChannel
-    // Need to round the lower "ignored" bits. I.e. 0b10001111 -> 0b10010000 -> 0b1001
-    val roundingFactor = (1 shl ignoredBits).toDouble()
-    val r = (c.red / roundingFactor).roundToInt()
-    val g = (c.green / roundingFactor).roundToInt()
-    val b = (c.blue / roundingFactor).roundToInt()
-    return (((r shl bitsPerChannel) or g) shl bitsPerChannel) or b
-  }
-
   /** Decode the frame to a [Point]. */
   private fun BufferedImage.decodeToPoint(): Point {
-    val sampleY = height / 4
-    val sampleX1 = width / 4
-    val sampleX2 = width * 3 / 4
-    return Point(decode(sampleX1, sampleY), decode(sampleX2, sampleY))
+    val yRange = touchableImageArea.integerEncodingYRange()
+    val x = readIntegerEncodedAt(touchableImageArea.integer1EncodingX(), yRange, numRegionsPerCoordinate, maxBits)
+    val y = readIntegerEncodedAt(touchableImageArea.integer2EncodingX(), yRange, numRegionsPerCoordinate, maxBits)
+    return Point(x, y)
   }
 
+  /**
+   * Reads an integer that is encoded as [numRegions] contiguous blocks of color. The blocks are located at
+   * x coordinate [sampleX] and distributed across [yRange]. Only the most significant [totalBits] are used to
+   * construct the integer.
+   */
+  private fun BufferedImage.readIntegerEncodedAt(sampleX: Int, yRange: IntRange, numRegions: Int, totalBits: Int) : Int =
+    yRange.sampleValues(numRegions).joinToString("") { extract(sampleX, it).decodeToBinaryString() }.take(totalBits).toInt(2)
+
   /** Get the latency associated with generating this frame. */
-  private fun BufferedImage.decodeLatency(): Int = decode(width * 9 / 10, height * 19 / 20, LATENCY_BITS_PER_CHANNEL)
+  private fun BufferedImage.decodeLatency(): Int = readIntegerEncodedAt(
+    touchableImageArea.latencyEncodingX(), touchableImageArea.latencyEncodingYRange(), numLatencyRegions, latencyBits)
+
+  /** Turns this [Color] into a [String] of `1` and `0` characters by reading [bitsPerChannel] bits from each color channel. */
+  private fun Color.decodeToBinaryString() : String {
+    return when (bitsPerChannel) {
+      0 -> if (red + green + blue > 382) "1" else "0"
+      1 -> channels().joinToString("") { if (it > 127) "1" else "0" }
+      else -> channels().joinToString("") { channel ->
+        (channel * ((1 shl bitsPerChannel) - 1).toDouble() / 255).roundToInt().toString(2).padStart(bitsPerChannel, '0')
+      }
+    }
+  }
 
   private fun Point.toDisplayViewCoordinates(): Point? {
     val displayRectangle = abstractDisplayView.displayRectangle ?: return null
@@ -355,8 +422,6 @@ class DeviceMirroringBenchmarker(
 
   companion object {
     private val LOG = Logger.getInstance(DeviceMirroringBenchmarker::class.java)
-    private const val BITS_PER_CHANNEL = 4
-    private const val LATENCY_BITS_PER_CHANNEL = 2
     private val MAX_DURATION_FIND_TOUCHABLE_AREA = 1.seconds
 
     /**

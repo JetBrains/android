@@ -63,6 +63,8 @@ class DeviceMirroringBenchmarkDialog(private val deviceName: String, private val
   private var maxTouches = 10_000
   private var step = 1
   private var spikiness = 3
+  private var bitsPerChannel = 2
+  private var latencyBits = 6
 
   private fun createPanel() = panel {
     panel {
@@ -80,6 +82,13 @@ class DeviceMirroringBenchmarkDialog(private val deviceName: String, private val
       row("Spikiness") {
         intTextField(0..100, 1).bindIntText(::spikiness)
         text("oscillations/row")
+      }
+      row("Bits per channel") {
+        intTextField(0..8, 1).bindIntText(::bitsPerChannel)
+        text("use 0 for monochrome")
+      }
+      row("Frame latency bits") {
+        intTextField(1..16).bindIntText(::latencyBits)
       }
     }.enabledIf(isRunning.not())
     panel {
@@ -123,7 +132,7 @@ class DeviceMirroringBenchmarkDialog(private val deviceName: String, private val
 
     override fun actionPerformed(e: ActionEvent?) {
       dialogPanel.apply()
-      benchmarker = DeviceMirroringBenchmarker(view, touchRateHz, maxTouches, step, spikiness).apply {
+      benchmarker = DeviceMirroringBenchmarker(view, bitsPerChannel, latencyBits, touchRateHz, maxTouches, step, spikiness).apply {
         addOnProgressCallback { dispatchedProgress, receivedProgress ->
           dispatchedProgressBar.updateProgress(dispatchedProgress)
           receivedProgressBar.updateProgress(receivedProgress)
