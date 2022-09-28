@@ -51,6 +51,7 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellEditor<D exten
 
       assert project != null;
       openAndShowDeviceLater();
+      fireEditingCanceled();
     });
   }
 

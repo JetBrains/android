@@ -43,6 +43,8 @@ final class EditButtonTableCellEditor extends IconButtonTableCellEditor {
       if (AvdWizardUtils.createAvdWizard(table, panel.getProject(), myDevice.getAvdInfo()).showAndGet()) {
         table.reloadDevice(myDevice.getKey());
       }
+
+      fireEditingCanceled();
     });
   }
 
