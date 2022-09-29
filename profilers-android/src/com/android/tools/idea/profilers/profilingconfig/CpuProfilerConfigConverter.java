@@ -39,8 +39,7 @@ public class CpuProfilerConfigConverter {
     Cpu.CpuTraceConfiguration.UserOptions.Builder protoBuilder = Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
       .setName(config.getName())
       .setBufferSizeInMb(config.getBufferSizeMb())
-      .setSamplingIntervalUs(config.getSamplingIntervalUs())
-      .setDisableLiveAllocation(config.isDisableLiveAllocation());
+      .setSamplingIntervalUs(config.getSamplingIntervalUs());
 
     switch (config.getTechnology()) {
       case SAMPLED_JAVA:
@@ -75,8 +74,7 @@ public class CpuProfilerConfigConverter {
     CpuProfilerConfig config = new CpuProfilerConfig()
       .setName(proto.getName())
       .setSamplingIntervalUs(proto.getSamplingIntervalUs())
-      .setBufferSizeMb(proto.getBufferSizeInMb())
-      .setDisableLiveAllocation(proto.getDisableLiveAllocation());
+      .setBufferSizeMb(proto.getBufferSizeInMb());
 
     switch (proto.getTraceType()) {
       case ART:

@@ -110,7 +110,6 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
     return buildUserOptions()
       .setName(getName())
       .setTraceType(getTraceType())
-      .setDisableLiveAllocation(true)
       .build();
   }
 

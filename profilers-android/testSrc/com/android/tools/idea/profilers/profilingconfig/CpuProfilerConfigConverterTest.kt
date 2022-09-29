@@ -32,7 +32,6 @@ class CpuProfilerConfigConverterTest {
       .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
       .setSamplingIntervalUs(1234)
       .setBufferSizeInMb(12)
-      .setDisableLiveAllocation(true)
       .build()
 
     val config = CpuProfilerConfigConverter.fromProto(proto)
@@ -40,7 +39,6 @@ class CpuProfilerConfigConverterTest {
     assertThat(config.technology).isEqualTo(CpuProfilerConfig.Technology.SAMPLED_JAVA)
     assertThat(config.samplingIntervalUs).isEqualTo(1234)
     assertThat(config.bufferSizeMb).isEqualTo(12)
-    assertThat(config.isDisableLiveAllocation).isTrue()
   }
 
   @Test
@@ -92,7 +90,6 @@ class CpuProfilerConfigConverterTest {
     val config = CpuProfilerConfig("MySampledJava", CpuProfilerConfig.Technology.SAMPLED_JAVA).apply {
       samplingIntervalUs = 1234
       bufferSizeMb = 12
-      isDisableLiveAllocation = true
     }
 
     val proto = CpuProfilerConfigConverter.toProto(config, AndroidVersion.VersionCodes.N)
@@ -101,7 +98,6 @@ class CpuProfilerConfigConverterTest {
     assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.SAMPLED)
     assertThat(proto.samplingIntervalUs).isEqualTo(1234)
     assertThat(proto.bufferSizeInMb).isEqualTo(12)
-    assertThat(proto.disableLiveAllocation).isTrue()
   }
 
   @Test

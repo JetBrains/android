@@ -27,7 +27,6 @@ public class CpuProfilerConfig {
   @NotNull private Technology myTechnology;
   private int mySamplingIntervalUs = 1000;
   private int myBufferSizeMb = DEFAULT_BUFFER_SIZE_MB;
-  private boolean myDisableLiveAllocation = true;
 
   /**
    * Default constructor to be used by {@link CpuProfilerConfigsState}.
@@ -90,16 +89,6 @@ public class CpuProfilerConfig {
     return this;
   }
 
-  public boolean isDisableLiveAllocation() {
-    return myDisableLiveAllocation;
-  }
-
-  @NotNull
-  public CpuProfilerConfig setDisableLiveAllocation(boolean disableLiveAllocation) {
-    myDisableLiveAllocation = disableLiveAllocation;
-    return this;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -108,13 +97,12 @@ public class CpuProfilerConfig {
     return mySamplingIntervalUs == config.mySamplingIntervalUs &&
            myBufferSizeMb == config.myBufferSizeMb &&
            Objects.equals(myName, config.myName) &&
-           myTechnology == config.myTechnology &&
-           myDisableLiveAllocation == config.myDisableLiveAllocation;
+           myTechnology == config.myTechnology;
   }
 
   @Override
   public int hashCode() {
-    return HashCodes.mix(myName.hashCode(), myTechnology.hashCode(), mySamplingIntervalUs, myBufferSizeMb, Boolean.hashCode(myDisableLiveAllocation));
+    return HashCodes.mix(myName.hashCode(), myTechnology.hashCode(), mySamplingIntervalUs, myBufferSizeMb);
   }
 
   public enum Technology {
