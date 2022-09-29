@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement;
+import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.settings.DependencyResolutionManagementDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.PluginManagementDslElement;
@@ -42,6 +43,7 @@ public class GradleSettingsFile extends GradleScriptFile {
   public static final ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"dependencyResolutionManagement", DependencyResolutionManagementDslElement.DEPENDENCY_RESOLUTION_MANAGEMENT},
     {"pluginManagement", PluginManagementDslElement.PLUGIN_MANAGEMENT_DSL_ELEMENT},
+    {"plugins", PluginsDslElement.PLUGINS},
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   @NotNull

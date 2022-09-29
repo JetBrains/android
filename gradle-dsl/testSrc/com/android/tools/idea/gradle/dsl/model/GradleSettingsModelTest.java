@@ -467,6 +467,34 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testParsePluginsBlockInSettings() throws IOException {
+    writeToSettingsFile(TestFile.PARSE_PLUGINS_BLOCK);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    PluginsModel pluginsModel = settingsModel.plugins();
+    assertEquals("com.android.settings", pluginsModel.plugins().get(0).name().forceString());
+    assertEquals("7.4.0", pluginsModel.plugins().get(0).version().forceString());
+  }
+
+  @Test
+  public void testAddPluginsBlock() throws IOException {
+    writeToSettingsFile(TestFile.PARSE_DEPENDENCY_RESOLUTION_MANAGEMENT);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    settingsModel.plugins().applyPlugin("com.android.settings", "7.4.0");
+    applyChanges(settingsModel);
+    verifyFileContents(mySettingsFile, TestFile.ADD_PLUGINS_BLOCK_EXPECTED);
+
+  }
+
+  @Test
+  public void testAddPluginsBlockWithPluginManagement() throws IOException {
+    writeToSettingsFile(TestFile.EDIT_AND_APPLY_PLUGIN_MANAGEMENT);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    settingsModel.plugins().applyPlugin("com.android.settings", "7.4.0");
+    applyChanges(settingsModel);
+    verifyFileContents(mySettingsFile, TestFile.ADD_PLUGINS_BLOCK_WITH_PLUGIN_MANAGEMENT_EXPECTED);
+  }
+
+  @Test
   public void testParseVersionCatalogs() throws IOException {
     writeToSettingsFile(TestFile.PARSE_VERSION_CATALOGS);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
@@ -574,6 +602,9 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     EDIT_AND_APPLY_PLUGIN_MANAGEMENT("editAndApplyPluginManagement"),
     EDIT_AND_APPLY_PLUGIN_MANAGEMENT_EXPECTED("editAndApplyPluginManagementExpected"),
     EDIT_AND_APPLY_PLUGIN_MANAGEMENT_THREE_ARGUMENTS_EXPECTED("editAndApplyPluginManagementThreeArgumentsExpected"),
+    PARSE_PLUGINS_BLOCK("parsePluginsBlock"),
+    ADD_PLUGINS_BLOCK_EXPECTED("addPluginsBlockExpected"),
+    ADD_PLUGINS_BLOCK_WITH_PLUGIN_MANAGEMENT_EXPECTED("addPluginsBlockWithPluginManagementExpected"),
     PARSE_VERSION_CATALOGS("parseVersionCatalogs"),
     ADD_VERSION_CATALOGS("addVersionCatalogs"),
     ADD_VERSION_CATALOGS_EXPECTED("addVersionCatalogsExpected"),

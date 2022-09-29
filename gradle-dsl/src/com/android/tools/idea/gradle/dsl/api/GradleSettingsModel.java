@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginManagementModel;
+import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel;
+import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Set;
@@ -79,4 +81,6 @@ public interface GradleSettingsModel extends GradleFileModel {
 
   @NotNull
   PluginManagementModel pluginManagement();
+
+  @NotNull PluginsBlockModel plugins();
 }
