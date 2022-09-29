@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.device.dialogs
 
-import com.android.tools.idea.device.DeviceMirroringBenchmarker
+import com.android.tools.idea.device.benchmark.DeviceMirroringBenchmarker
 import com.intellij.CommonBundle
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper

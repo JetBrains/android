@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.device.dialogs
 
-import com.android.tools.idea.device.DeviceMirroringBenchmarker
+import com.android.tools.idea.device.benchmark.DeviceMirroringBenchmarker
 import com.android.tools.idea.emulator.AbstractDisplayView
 import com.intellij.CommonBundle
 import com.intellij.notification.NotificationGroupManager
