@@ -377,6 +377,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
 
   private fun setNewReportData(exampleResult: BuildAnalysisResults) {
     Mockito.`when`(buildAnalyzerStorageMock.getLatestBuildAnalysisResults()).thenReturn(exampleResult)
+    Mockito.`when`(buildAnalyzerStorageMock.hasData()).thenReturn(true)
     buildAttributionUiManager.showNewReport()
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }

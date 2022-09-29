@@ -179,10 +179,9 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
     verifyNotificationShownForSessions(emptyList())
   }
 
-  private fun setNewReportData(
-    analysisResults: BuildAnalysisResults
-  ) {
+  private fun setNewReportData(analysisResults: BuildAnalysisResults) {
     Mockito.`when`(buildAnalyzerStorageMock.getLatestBuildAnalysisResults()).thenReturn(analysisResults)
+    Mockito.`when`(buildAnalyzerStorageMock.hasData()).thenReturn(true)
     buildAttributionUiManager.showNewReport()
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }

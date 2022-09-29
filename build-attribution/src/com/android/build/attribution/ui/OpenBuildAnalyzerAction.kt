@@ -15,6 +15,7 @@
  */
 
 package com.android.build.attribution.ui
+import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -26,7 +27,7 @@ class OpenBuildAnalyzerAction : AnAction("Analyze Build Performance") {
       e.presentation.isEnabledAndVisible = false
     }
     else {
-      e.presentation.isEnabled = BuildAttributionUiManager.getInstance(project).hasDataToShow()
+      e.presentation.isEnabled = BuildAnalyzerStorageManager.getInstance(project).hasData()
     }
   }
 
