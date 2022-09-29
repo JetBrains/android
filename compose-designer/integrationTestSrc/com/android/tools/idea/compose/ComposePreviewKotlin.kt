@@ -64,8 +64,8 @@ class ComposePreviewKotlin {
       val matcher =
         system.installation.ideaLog.waitForMatchingLine(
           ".*Render completed (.*)",
-          30,
-          TimeUnit.SECONDS
+          2,
+          TimeUnit.MINUTES
         )
       println("Render took ${matcher.group()}")
     }
