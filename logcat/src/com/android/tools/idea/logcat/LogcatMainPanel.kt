@@ -537,8 +537,8 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   override fun getConnectedDevice() = connectedDevice.get()
 
-  override fun countFilterMatches(filter: String): Int {
-    return LogcatMasterFilter(logcatFilterParser.parse(filter)).filter(messageBacklog.get().messages).size
+  override fun countFilterMatches(filter: LogcatFilter?): Int {
+    return LogcatMasterFilter(filter).filter(messageBacklog.get().messages).size
   }
 
   override fun getTags(): Set<String> = tags

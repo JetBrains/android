@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat
 
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.filters.LogcatFilter
+import com.android.tools.idea.logcat.filters.LogcatMasterFilter
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TextAccumulator
@@ -44,7 +45,6 @@ internal class FakeLogcatPresenter : LogcatPresenter {
 
   val messageBatches = mutableListOf<List<LogcatMessage>>()
   val lineBatches = mutableListOf<List<String>>()
-  val filterMatchesCount = mutableMapOf<String, Int>()
 
   override var formattingOptions: FormattingOptions = FormattingOptions()
 
@@ -93,9 +93,7 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     TODO("Not yet implemented")
   }
 
-  override fun countFilterMatches(filter: String): Int {
-    return filterMatchesCount[filter] ?: 0
-  }
+  override fun countFilterMatches(filter: LogcatFilter?): Int = LogcatMasterFilter(filter).filter(messageBatches.flatten()).size
 
   override fun foldImmediately() {
     TODO("Not yet implemented")

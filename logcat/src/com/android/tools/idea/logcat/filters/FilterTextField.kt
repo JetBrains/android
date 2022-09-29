@@ -380,6 +380,7 @@ internal class FilterTextField(
    * rendering from the JBList (HistoryList) directly.
    */
   @VisibleForTesting
+  @UiThread
   internal inner class HistoryList(
     parentDisposable: Disposable,
     coroutineContext: CoroutineContext = EmptyCoroutineContext,
@@ -396,6 +397,8 @@ internal class FilterTextField(
         }
         addAll(filterHistory.nonFavorites.map { Item(filter = it, isFavorite = false, count = null, filterParser) })
       }
+      // Parse all the filters here while we're still in the EDT
+      val filters = items.map { if (it is Item) filterParser.parse(it.filter) else null }
       model = listModel
       listModel.addAll(0, items)
       addKeyListener(object : KeyAdapter() {
@@ -414,7 +417,7 @@ internal class FilterTextField(
         listModel.items.forEachIndexed { index, item ->
           if (item is Item) {
             launch {
-              val count = application.runReadAction<Int> { logcatPresenter.countFilterMatches(item.filter) }
+              val count = application.runReadAction<Int> { logcatPresenter.countFilterMatches(filters[index]) }
               // Replacing an item in the model will remove the selection. Save the selected index, so we can restore it after.
               withContext(uiThread) {
                 val selected = selectedIndex

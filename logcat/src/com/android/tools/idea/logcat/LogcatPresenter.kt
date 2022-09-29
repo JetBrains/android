@@ -74,7 +74,7 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Process
 
   fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings)
 
-  fun countFilterMatches(filter: String): Int
+  fun countFilterMatches(filter: LogcatFilter?): Int
 
   fun foldImmediately()
 

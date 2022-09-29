@@ -29,6 +29,7 @@ import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
 import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Item
 import com.android.tools.idea.logcat.filters.FilterTextField.HistoryList
+import com.android.tools.idea.logcat.logcatMessage
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.logcatEvents
 import com.google.common.truth.Truth.assertThat
@@ -235,10 +236,12 @@ class FilterTextFieldTest {
   fun historyList_render() = runBlockingTest {
     filterHistory.add("foo", isFavorite = true)
     filterHistory.add("bar", isFavorite = false)
-    fakeLogcatPresenter.filterMatchesCount["foo"] = 1
-    fakeLogcatPresenter.filterMatchesCount["bar"] = 2
+    fakeLogcatPresenter.processMessages(listOf(
+      logcatMessage(tag = "foobar"),
+      logcatMessage(tag = "bar"),
+    ))
     val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    historyList.waitForCounts(fakeLogcatPresenter)
+    historyList.waitForCounts()
 
     assertThat(historyList.renderToStrings()).containsExactly(
       "*: foo ( 1 )",
@@ -253,10 +256,12 @@ class FilterTextFieldTest {
   fun historyList_renderOnlyFavorites() = runBlockingTest {
     filterHistory.add("foo", isFavorite = true)
     filterHistory.add("bar", isFavorite = true)
-    fakeLogcatPresenter.filterMatchesCount["foo"] = 1
-    fakeLogcatPresenter.filterMatchesCount["bar"] = 2
+    fakeLogcatPresenter.processMessages(listOf(
+      logcatMessage(tag = "foobar"),
+      logcatMessage(tag = "bar"),
+    ))
     val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    historyList.waitForCounts(fakeLogcatPresenter)
+    historyList.waitForCounts()
 
     assertThat(historyList.renderToStrings()).containsExactly(
       "*: bar ( 2 )",
@@ -270,10 +275,12 @@ class FilterTextFieldTest {
   fun historyList_renderNoFavorites() = runBlockingTest {
     filterHistory.add("foo", isFavorite = false)
     filterHistory.add("bar", isFavorite = false)
-    fakeLogcatPresenter.filterMatchesCount["foo"] = 1
-    fakeLogcatPresenter.filterMatchesCount["bar"] = 2
+    fakeLogcatPresenter.processMessages(listOf(
+      logcatMessage(tag = "foobar"),
+      logcatMessage(tag = "bar"),
+    ))
     val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    historyList.waitForCounts(fakeLogcatPresenter)
+    historyList.waitForCounts()
 
     assertThat(historyList.renderToStrings()).containsExactly(
       " : bar ( 2 )",
@@ -286,9 +293,9 @@ class FilterTextFieldTest {
   @RunsInEdt
   fun historyList_renderNamedFilter() = runBlockingTest {
     filterHistory.add("name:Foo tag:Foo", isFavorite = false)
-    fakeLogcatPresenter.filterMatchesCount["name:Foo tag:Foo"] = 1
+    fakeLogcatPresenter.processMessages(listOf(logcatMessage(tag = "Foo")))
     val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    historyList.waitForCounts(fakeLogcatPresenter)
+    historyList.waitForCounts()
 
     assertThat(historyList.renderToStrings()).containsExactly(
       " : Foo ( 1 )",
@@ -301,14 +308,17 @@ class FilterTextFieldTest {
   fun historyList_renderNamedFilterWithSameName() = runBlockingTest {
     filterHistory.add("name:Foo tag:Foo", isFavorite = false)
     filterHistory.add("name:Foo tag:Foobar", isFavorite = false)
-    fakeLogcatPresenter.filterMatchesCount["name:Foo tag:Foo"] = 1
-    fakeLogcatPresenter.filterMatchesCount["name:Foo tag:Foobar"] = 2
+    fakeLogcatPresenter.processMessages(listOf(
+      logcatMessage(tag = "Foo"),
+      logcatMessage(tag = "FooBar"),
+    ))
+    fakeLogcatPresenter.processMessages(listOf())
     val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    historyList.waitForCounts(fakeLogcatPresenter)
+    historyList.waitForCounts()
 
     assertThat(historyList.renderToStrings()).containsExactly(
-      " : Foo: tag:Foobar ( 2 )",
-      " : Foo: tag:Foo ( 1 )",
+      " : Foo: tag:Foobar ( 1 )",
+      " : Foo: tag:Foo ( 2 )",
     ).inOrder() // Order is reverse of the order added
   }
 
@@ -434,6 +444,13 @@ class FilterTextFieldTest {
 
   private fun getHistoryNonFavorites(): List<String> = filterHistory.nonFavorites
   private fun getHistoryFavorites(): List<String> = filterHistory.favorites
+
+  private fun HistoryList.waitForCounts() {
+    waitForCondition(2, SECONDS) {
+      val counts = model.asSequence().filterIsInstance<Item>().count { it.count != null }
+      counts == filterHistory.items.size
+    }
+  }
 }
 
 private fun FilterTextField.getButtonWithIcon(icon: Icon) =
@@ -457,12 +474,5 @@ private fun JPanel.renderToString(): String {
       "$favorite: $text ($count)"
     }
     else -> throw IllegalStateException("Unexpected component")
-  }
-}
-
-private fun HistoryList.waitForCounts(fakeLogcatPresenter: FakeLogcatPresenter) {
-  waitForCondition(2, SECONDS) {
-    val counts = model.asSequence().filterIsInstance<Item>().associateBy({ it.filter }, { it.count })
-    counts == fakeLogcatPresenter.filterMatchesCount
   }
 }
