@@ -84,7 +84,6 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase.assertEquals
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -305,7 +304,6 @@ class DeviceViewContentPanelTest {
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_highlight5.png"), generatedImage, DIFF_THRESHOLD_TEXT)
   }
 
-  @Ignore("b/243580544")
   @Test
   fun testPaintWithFold() {
     val model = model {
