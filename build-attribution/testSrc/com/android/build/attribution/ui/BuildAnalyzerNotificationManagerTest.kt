@@ -15,32 +15,35 @@
  */
 package com.android.build.attribution.ui
 
+import com.android.build.attribution.BuildAnalysisResults
 import com.android.build.attribution.BuildAnalyzerSettings
+import com.android.build.attribution.BuildAnalyzerStorageManager
+import com.android.build.attribution.analyzers.AlwaysRunTasksAnalyzer
 import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
 import com.android.build.attribution.analyzers.JetifierCanBeRemoved
-import com.android.build.attribution.analyzers.JetifierNotUsed
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
+import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
-import com.android.build.attribution.ui.data.AnnotationProcessorUiData
-import com.android.build.attribution.ui.data.AnnotationProcessorsReport
-import com.android.build.attribution.ui.data.BuildAttributionReportUiData
-import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
+import com.android.build.attribution.data.AlwaysRunTaskData
+import com.android.build.attribution.data.PluginData
+import com.android.build.attribution.data.TaskData
+import com.android.testutils.MockitoKt
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.Projects
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildContentManagerImpl
-import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.wm.ToolWindowBalloonShowOptions
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.impl.ContentImpl
 import org.jetbrains.android.AndroidTestCase
+import org.mockito.Mockito
 import java.util.UUID
 import javax.swing.JPanel
 
@@ -56,6 +59,7 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
   private var notificationCounter = 0
 
   private lateinit var buildAttributionUiManager: BuildAttributionUiManagerImpl
+  private val buildAnalyzerStorageMock = MockitoKt.mock<BuildAnalyzerStorageManager>()
 
   override fun setUp() {
     super.setUp()
@@ -67,6 +71,7 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
     }
     registerProjectService(ToolWindowManager::class.java, windowManager)
     registerProjectService(BuildContentManager::class.java, BuildContentManagerImpl(project))
+    registerProjectService(BuildAnalyzerStorageManager::class.java, buildAnalyzerStorageMock)
 
     // Add a fake build tab
     project.getService(BuildContentManager::class.java).addContent(
@@ -83,12 +88,12 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
 
   fun testBalloonShownOnReportWithWarning() {
     val buildSessionId = UUID.randomUUID().toString()
-    val taskWithWarning = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
-      issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-    }
-    // Data has task warning, annotation processors and jetifier warning.
-    val reportUiData = MockUiData(tasksList = listOf(taskWithWarning))
-    setNewReportData(reportUiData, buildSessionId)
+    val plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "compiler.plugin")
+    val task = TaskData("compile", ":app", plugin, 0, 2000, TaskData.TaskExecutionMode.FULL, emptyList())
+    val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
+      alwaysRunTasksAnalyzerResult = AlwaysRunTasksAnalyzer.Result(listOf(AlwaysRunTaskData(task, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)))
+    )
+    setNewReportData(result)
 
     verifyNotificationShownForSessions(listOf(buildSessionId))
   }
@@ -97,12 +102,12 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
     BuildAnalyzerSettings.getInstance(project).settingsState.notifyAboutWarnings = false
 
     val buildSessionId = UUID.randomUUID().toString()
-    val taskWithWarning = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
-      issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-    }
-    // Data has task warning, annotation processors and jetifier warning.
-    val reportUiData = MockUiData(tasksList = listOf(taskWithWarning))
-    setNewReportData(reportUiData, buildSessionId)
+    val plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "compiler.plugin")
+    val task = TaskData("compile", ":app", plugin, 0, 2000, TaskData.TaskExecutionMode.FULL, emptyList())
+    val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
+      alwaysRunTasksAnalyzerResult = AlwaysRunTasksAnalyzer.Result(listOf(AlwaysRunTaskData(task, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)))
+    )
+    setNewReportData(result)
 
     verifyNotificationShownForSessions(emptyList())
   }
@@ -110,13 +115,17 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
   fun testBalloonNotShownOnSecondReportWithSameWarning() {
     val buildSessionId1 = UUID.randomUUID().toString()
     val buildSessionId2 = UUID.randomUUID().toString()
-    val taskWithWarning = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
-      issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-    }
-    // Data has task warning, annotation processors and jetifier warning.
-    val reportUiData = MockUiData(tasksList = listOf(taskWithWarning))
-    setNewReportData(reportUiData, buildSessionId1)
-    setNewReportData(reportUiData, buildSessionId2)
+    val plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "compiler.plugin")
+    val task = TaskData("compile", ":app", plugin, 0, 2000, TaskData.TaskExecutionMode.FULL, emptyList())
+
+    val result1 = constructEmptyBuildResultsObject(buildSessionId1, Projects.getBaseDirPath(project)).copy(
+      alwaysRunTasksAnalyzerResult = AlwaysRunTasksAnalyzer.Result(listOf(AlwaysRunTaskData(task, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)))
+    )
+    setNewReportData(result1)
+    val result2 = constructEmptyBuildResultsObject(buildSessionId2, Projects.getBaseDirPath(project)).copy(
+      alwaysRunTasksAnalyzerResult = AlwaysRunTasksAnalyzer.Result(listOf(AlwaysRunTaskData(task, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)))
+    )
+    setNewReportData(result2)
 
     verifyNotificationShownForSessions(listOf(buildSessionId1))
   }
@@ -124,55 +133,57 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
   fun testBalloonShownOnSecondReportWithDifferentWarningType() {
     val buildSessionId1 = UUID.randomUUID().toString()
     val buildSessionId2 = UUID.randomUUID().toString()
-    val taskWithWarning = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
-      issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-    }
-    // First data has annotation processors and jetifier warning.
-    val reportUiData1 = MockUiData()
-    // Adding task warning to second data.
-    val reportUiData2 = MockUiData(tasksList = listOf(taskWithWarning))
-    setNewReportData(reportUiData1, buildSessionId1)
-    setNewReportData(reportUiData2, buildSessionId2)
+    val plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "compiler.plugin")
+    val task = TaskData("compile", ":app", plugin, 0, 2000, TaskData.TaskExecutionMode.FULL, emptyList())
+
+    val result1 = constructEmptyBuildResultsObject(buildSessionId1, Projects.getBaseDirPath(project)).copy(
+      jetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierUsedCheckRequired)
+    )
+    setNewReportData(result1)
+    val result2 = constructEmptyBuildResultsObject(buildSessionId2, Projects.getBaseDirPath(project)).copy(
+      alwaysRunTasksAnalyzerResult = AlwaysRunTasksAnalyzer.Result(listOf(AlwaysRunTaskData(task, AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS))),
+      jetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierUsedCheckRequired)
+    )
+    setNewReportData(result2)
 
     verifyNotificationShownForSessions(listOf(buildSessionId1, buildSessionId2))
   }
 
   fun testBalloonNotShownOnReportWithConfigCacheWarningOnly() {
     val buildSessionId = UUID.randomUUID().toString()
-    val reportUiData = MockUiData().apply {
-      confCachingData = NoIncompatiblePlugins(emptyList())
-      jetifierData = JetifierUsageAnalyzerResult(JetifierNotUsed)
-      annotationProcessors = object : AnnotationProcessorsReport{
-        override val nonIncrementalProcessors: List<AnnotationProcessorUiData> = emptyList()
-      }
-    }
-    setNewReportData(reportUiData, buildSessionId)
+    val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
+      configurationCachingCompatibilityAnalyzerResult = NoIncompatiblePlugins(emptyList())
+    )
+    setNewReportData(result)
 
     verifyNotificationShownForSessions(emptyList())
   }
 
   fun testBalloonNotShownOnConfigCacheTrialBuild() {
     val buildSessionId = UUID.randomUUID().toString()
-    val reportUiData = MockUiData().apply {
-      confCachingData = ConfigurationCacheCompatibilityTestFlow
-    }
-    setNewReportData(reportUiData, buildSessionId)
+    val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
+      configurationCachingCompatibilityAnalyzerResult = ConfigurationCacheCompatibilityTestFlow
+    )
+    setNewReportData(result)
 
     verifyNotificationShownForSessions(emptyList())
   }
 
   fun testBalloonNotShownOnJetifierCheckBuild() {
     val buildSessionId = UUID.randomUUID().toString()
-    val reportUiData = MockUiData().apply {
-      jetifierData = JetifierUsageAnalyzerResult(JetifierCanBeRemoved, buildSummary.buildFinishedTimestamp, checkJetifierBuild = true)
-    }
-    setNewReportData(reportUiData, buildSessionId)
+    val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
+      jetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierCanBeRemoved, 123456789, checkJetifierBuild = true)
+    )
+    setNewReportData(result)
 
     verifyNotificationShownForSessions(emptyList())
   }
 
-  private fun setNewReportData(reportUiData: BuildAttributionReportUiData, buildSessionId: String) {
-    buildAttributionUiManager.showNewReport(reportUiData, buildSessionId)
+  private fun setNewReportData(
+    analysisResults: BuildAnalysisResults
+  ) {
+    Mockito.`when`(buildAnalyzerStorageMock.getLatestBuildAnalysisResults()).thenReturn(analysisResults)
+    buildAttributionUiManager.showNewReport()
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 

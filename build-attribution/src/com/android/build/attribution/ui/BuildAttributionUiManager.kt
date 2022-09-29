@@ -147,8 +147,7 @@ class BuildAttributionUiManagerImpl(
     }
   }
 
-  @VisibleForTesting
-  fun showNewReport(reportUiData: BuildAttributionReportUiData, buildSessionId: String) {
+  private fun showNewReport(reportUiData: BuildAttributionReportUiData, buildSessionId: String) {
     this.reportUiData = reportUiData
     invokeLaterIfNotDisposed {
       uiAnalytics.newReportSessionId(buildSessionId)
