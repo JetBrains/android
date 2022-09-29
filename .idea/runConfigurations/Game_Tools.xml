@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Game Tools" type="Application" factoryName="Application">
-    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+    <option name="ALTERNATIVE_JRE_PATH" value="jbr-17" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <envs>
       <env name="ANDROID_SDK_ROOT" value="../../../prebuilts/studio/sdk/linux" />
