@@ -17,7 +17,6 @@ package com.android.tools.idea.device.settings
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.emulator.DeviceMirroringSettings
-import com.intellij.codeInspection.javaDoc.JavadocUIUtil.bindCheckbox
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
@@ -25,6 +24,7 @@ import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.bindIntText
+import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.layout.and
 import com.intellij.ui.layout.selected
@@ -50,13 +50,13 @@ class DeviceMirroringSettingsUi : SearchableConfigurable, Configurable.NoScroll 
         checkBox("Enable mirroring of physical Android devices")
           .comment("Causes displays of connected Android devices to be mirrored in the&nbsp;Running&nbsp;Devices tool window. " +
                    "<a href='https://d.android.com/r/studio-ui/device-mirroring/help'>Learn&nbsp;more</a>")
-          .bindCheckbox(state::deviceMirroringEnabled)
+          .bindSelected(state::deviceMirroringEnabled)
           .component
     }
     row {
       synchronizeClipboardCheckBox =
         checkBox("Enable clipboard sharing")
-          .bindCheckbox(state::synchronizeClipboard)
+          .bindSelected(state::synchronizeClipboard)
           .component
     }.topGap(TopGap.SMALL).enabledIf(deviceMirroringEnabledCheckBox.selected)
     indent {
@@ -70,7 +70,7 @@ class DeviceMirroringSettingsUi : SearchableConfigurable, Configurable.NoScroll 
     row {
       turnOffDisplayWhileMirroringCheckBox =
         checkBox("Turn off device display while mirroring")
-          .bindCheckbox(state::turnOffDisplayWhileMirroring)
+          .bindSelected(state::turnOffDisplayWhileMirroring)
           .component
     }.topGap(TopGap.SMALL).enabledIf(deviceMirroringEnabledCheckBox.selected)
   }
