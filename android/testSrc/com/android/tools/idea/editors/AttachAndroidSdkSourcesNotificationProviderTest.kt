@@ -118,16 +118,6 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   }
 
   @Test
-  fun createNotificationPanel_virtualFileHasRequiredSourcesKeyButIsEmpty_nullReturned() {
-    val javaFile = myAndroidProjectRule.fixture.createFile("somefile.java", "file contents")
-    whenever(myAttachAndroidSdkSourcesCallback.missingSourceVersions).thenReturn(listOf())
-    javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, myAttachAndroidSdkSourcesCallback)
-
-    val panel = invokeCreateNotificationPanel(javaFile)
-    assertThat(panel).isNull()
-  }
-
-  @Test
   fun createNotificationPanel_flagOff_panelHasCorrectLabel() {
     StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.override(false)
 
@@ -140,7 +130,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   fun createNotificationPanel_panelHasCorrectLabel() {
     val panel = invokeCreateNotificationPanel(androidSdkClassWithoutSources)
     assertThat(panel).isNotNull()
-    assertThat(panel!!.text).isEqualTo("Android SDK sources not found.")
+    assertThat(panel!!.text).isEqualTo("Android SDK sources for API level 33 not found.")
   }
 
   @Test
@@ -156,7 +146,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   fun createNotificationPanel_panelHasDownloadLink() {
     val panel = invokeCreateNotificationPanel(androidSdkClassWithoutSources)
     val links: Map<String, Runnable> = panel!!.links
-    assertThat(links.keys).containsExactly("Download SDK Sources")
+    assertThat(links.keys).containsExactly("Download")
   }
 
   @Test
@@ -185,7 +175,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
     assertThat(rootProvider.getFiles(OrderRootType.SOURCES)).hasLength(0)
 
     // Invoke the "Download" link, which is first in the components.
-    ApplicationManager.getApplication().invokeAndWait { panel!!.links["Download SDK Sources"]!!.run() }
+    ApplicationManager.getApplication().invokeAndWait { panel!!.links["Download"]!!.run() }
 
     // Check that the link requested the correct paths, and that then sources became available.
     assertThat(myProvider.requestedPaths).isNotNull()
@@ -195,30 +185,30 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Test
   fun createNotificationPanel_virtualFileHasRequiredSourcesKey_downloadLinkHasRequestedSources() {
-    whenever(myAttachAndroidSdkSourcesCallback.missingSourceVersions).thenReturn(listOf(AndroidVersion(30)))
+    whenever(myAttachAndroidSdkSourcesCallback.missingSourceVersion).thenReturn(AndroidVersion(30))
 
     val javaFile = myAndroidProjectRule.fixture.createFile("somefile.java", "file contents")
     javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, myAttachAndroidSdkSourcesCallback)
 
     val panel = invokeCreateNotificationPanel(javaFile)
-    ApplicationManager.getApplication().invokeAndWait { panel!!.links["Download SDK Sources"]!!.run() }
+    ApplicationManager.getApplication().invokeAndWait { panel!!.links["Download"]!!.run() }
 
     verify(myAttachAndroidSdkSourcesCallback).refreshAfterDownload()
   }
 
   @Test
   fun createNotificationPanel_virtualFileHasRequiredSourcesKey_refreshInvokedAfterDownload() {
-    whenever(myAttachAndroidSdkSourcesCallback.missingSourceVersions).thenReturn(listOf(30, 31).map { AndroidVersion(it) })
+    whenever(myAttachAndroidSdkSourcesCallback.missingSourceVersion).thenReturn(AndroidVersion(30))
 
     val javaFile = myAndroidProjectRule.fixture.createFile("somefile.java", "file contents")
     javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, myAttachAndroidSdkSourcesCallback)
 
     val panel = invokeCreateNotificationPanel(javaFile)
-    ApplicationManager.getApplication().invokeAndWait { panel!!.links["Download SDK Sources"]!!.run() }
+    ApplicationManager.getApplication().invokeAndWait { panel!!.links["Download"]!!.run() }
 
     // Check that the link requested the correct paths, and that then sources became available.
     assertThat(myProvider.requestedPaths).isNotNull()
-    assertThat(myProvider.requestedPaths).containsExactly("sources;android-30", "sources;android-31")
+    assertThat(myProvider.requestedPaths).containsExactly("sources;android-30")
   }
 
   @Test

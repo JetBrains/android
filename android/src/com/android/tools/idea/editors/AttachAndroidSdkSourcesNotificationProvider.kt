@@ -60,11 +60,7 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
     // AndroidPositionManager is responsible for detecting that a specific SDK is needed during a debugging session, and will set the
     // REQUIRED_SOURCES_KEY when necessary.
     val missingDebugSourcesInfo = file.getUserData(REQUIRED_SOURCES_KEY) ?: return null
-
-    val requiredSources = missingDebugSourcesInfo.missingSourceVersions
-    if (requiredSources.isNullOrEmpty()) return null
-
-    return createPanel(fileEditor, requiredSources, missingDebugSourcesInfo::refreshAfterDownload)
+    return createPanel(fileEditor, missingDebugSourcesInfo.missingSourceVersion, missingDebugSourcesInfo::refreshAfterDownload)
   }
 
   private fun createNotificationPanelForClassFiles(file: VirtualFile, fileEditor: FileEditor): EditorNotificationPanel? {
@@ -84,7 +80,7 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
     val refresh = Runnable { AndroidSdkUtils.updateSdkSourceRoot(sdk) }
 
     return if (StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.get()) {
-      createPanel(fileEditor, ImmutableList.of(apiVersion), refresh)
+      createPanel(fileEditor, apiVersion, refresh)
     }
     else {
       val title = "Sources for '${jdkOrderEntry.jdkName}' not found."
@@ -94,14 +90,14 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
 
   private fun createPanel(
     fileEditor: FileEditor,
-    requestedSourceVersions: List<AndroidVersion>,
+    requestedSourceVersion: AndroidVersion,
     refreshAfterDownload: Runnable
   ): MyEditorNotificationPanel {
     val panel = MyEditorNotificationPanel(fileEditor)
-    panel.text = "Android SDK sources not found."
-    panel.createAndAddLink("Download SDK Sources") {
-      val sourcesPaths = requestedSourceVersions.map { DetailsTypes.getSourcesPath(it) }
-      if (createSdkDownloadDialog(sourcesPaths)?.showAndGet() == true) {
+    panel.text = "Android SDK sources for API level ${requestedSourceVersion.apiLevel} not found."
+    panel.createAndAddLink("Download") {
+      val sourcesPath = DetailsTypes.getSourcesPath(requestedSourceVersion)
+      if (createSdkDownloadDialog(listOf(sourcesPath))?.showAndGet() == true) {
         refreshAfterDownload.run()
       }
     }
@@ -166,7 +162,7 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
    * AttachAndroidSdkSourcesNotificationProvider} to display and refresh without having to know anything about the debug session itself.
    */
   interface AttachAndroidSdkSourcesCallback {
-    val missingSourceVersions: List<AndroidVersion>
+    val missingSourceVersion: AndroidVersion
 
     @UiThread
     fun refreshAfterDownload()

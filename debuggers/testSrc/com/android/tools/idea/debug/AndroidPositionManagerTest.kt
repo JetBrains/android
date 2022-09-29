@@ -365,7 +365,7 @@ class Foo {
     assertThat(file.name).isEqualTo("Unavailable Source")
 
     val callback = file.virtualFile.getUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY)!!
-    assertThat(callback.missingSourceVersions).containsExactly(targetDeviceAndroidVersion)
+    assertThat(callback.missingSourceVersion).isEqualTo(targetDeviceAndroidVersion)
   }
 
   @Test

@@ -184,7 +184,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
     }
 
     // Add data indicating that we want to put up a banner offering to download sources.
-    val attachSourcesCallback = AttachSourcesCallback(listOf(myAndroidVersion))
+    val attachSourcesCallback = AttachSourcesCallback(myAndroidVersion)
     generatedVirtualFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, attachSourcesCallback)
 
     return generatedPsiFile
@@ -277,7 +277,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
       if (endsWith(SdkConstants.DOT_CLASS)) substring(0, length - SdkConstants.DOT_CLASS.length) + SdkConstants.DOT_JAVA else this
   }
 
-  inner class AttachSourcesCallback(override val missingSourceVersions: List<AndroidVersion>) :
+  inner class AttachSourcesCallback(override val missingSourceVersion: AndroidVersion) :
     AttachAndroidSdkSourcesNotificationProvider.AttachAndroidSdkSourcesCallback {
 
     @UiThread
