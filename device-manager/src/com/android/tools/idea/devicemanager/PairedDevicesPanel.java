@@ -22,6 +22,7 @@ import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingStatusChangedListener;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
+import com.android.tools.idea.wearpairing.WearPairingManagerKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
@@ -42,8 +43,6 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
 import javax.swing.JTable;
-import kotlinx.coroutines.BuildersKt;
-import kotlinx.coroutines.GlobalScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -108,27 +107,20 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
 
   @UiThread
   private void remove() {
-    try {
-      PhoneWearPair pair = myTable.getSelectedPairing().orElseThrow(AssertionError::new).getPair();
-      Object wearOs = pair.getWear();
-      Object phone = pair.getPhone();
+    PhoneWearPair pair = myTable.getSelectedPairing().orElseThrow(AssertionError::new).getPair();
+    Object wearOs = pair.getWear();
+    Object phone = pair.getPhone();
 
-      String message = "This will disconnect " + wearOs + " from " + phone + ". To completely unpair the two devices, remove " + wearOs +
-                       " from the list of devices in the Wear OS app on " + phone + " and wipe data from " + wearOs + '.';
+    String message = "This will disconnect " + wearOs + " from " + phone + ". To completely unpair the two devices, remove " + wearOs +
+                     " from the list of devices in the Wear OS app on " + phone + " and wipe data from " + wearOs + '.';
 
-      boolean disconnect = MessageDialogBuilder.okCancel("Disconnect " + wearOs + " from " + phone + '?', message)
-        .asWarning()
-        .yesText("Disconnect")
-        .ask(this);
+    boolean disconnect = MessageDialogBuilder.okCancel("Disconnect " + wearOs + " from " + phone + '?', message)
+      .asWarning()
+      .yesText("Disconnect")
+      .ask(this);
 
-      if (disconnect) {
-        BuildersKt.runBlocking(GlobalScope.INSTANCE.getCoroutineContext(),
-                               (scope, completion) -> myManager.removePairedDevices(pair, true, completion));
-      }
-    }
-    catch (InterruptedException exception) {
-      Thread.currentThread().interrupt();
-      Logger.getInstance(PairedDevicesPanel.class).warn(exception);
+    if (disconnect) {
+      WearPairingManagerKt.removePairedDevicesAsync(myManager, pair, true);
     }
   }
 
