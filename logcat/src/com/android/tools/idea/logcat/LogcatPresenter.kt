@@ -46,7 +46,6 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Process
   /**
    * Clears the message view
    */
-  @UiThread
   fun clearMessageView()
 
   @UiThread

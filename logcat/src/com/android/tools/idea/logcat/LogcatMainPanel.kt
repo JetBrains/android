@@ -119,6 +119,7 @@ import com.intellij.tools.SimpleActionGroup
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI.Borders
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -361,8 +362,10 @@ internal class LogcatMainPanel @TestOnly constructor(
       })
       messageBus.connect(this).subscribe(PROJECT_APPLICATION_IDS_CHANGED_TOPIC, ProjectApplicationIdsListener {
         if (getFilter().contains(MY_PACKAGE)) {
-          noApplicationIdsBanner.isVisible = isMissingApplicationIds()
-          reloadMessages()
+          UIUtil.invokeLaterIfNeeded {
+            noApplicationIdsBanner.isVisible = isMissingApplicationIds()
+            reloadMessages()
+          }
         }
       })
     }
@@ -586,7 +589,6 @@ internal class LogcatMainPanel @TestOnly constructor(
     }
   }
 
-  @UiThread
   override fun clearMessageView() {
     coroutineScope.launch(workerThread) {
       val device = connectedDevice.get()
