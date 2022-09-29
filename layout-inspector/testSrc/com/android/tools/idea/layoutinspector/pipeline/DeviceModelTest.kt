@@ -16,57 +16,36 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
-import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
 import org.junit.Test
 
 class DeviceModelTest {
 
-  private lateinit var processModel: ProcessesModel
-  private lateinit var deviceModel: DeviceModel
-
-  private val fakeProcess = object : ProcessDescriptor {
-    override val device = FakeTransportService.FAKE_DEVICE.toDeviceDescriptor()
-    override val abiCpuArch = "fake_arch"
-    override val name = "fake_process"
-    override val packageName = name
-    override val isRunning = true
-    override val pid = 1
-    override val streamId = 1L
-  }
-
-  @Before
-  fun setUp() {
-    val testProcessDiscovery = TestProcessDiscovery()
-    testProcessDiscovery.addDevice(FakeTransportService.FAKE_DEVICE.toDeviceDescriptor())
-    processModel = ProcessesModel(testProcessDiscovery)
-    deviceModel = DeviceModel(processModel)
-  }
-
   @Test
   fun testSettingSelectedDeviceResetsSelectedProcess() {
+    val testProcessDiscovery = TestProcessDiscovery()
+    testProcessDiscovery.addDevice(FakeTransportService.FAKE_DEVICE.toDeviceDescriptor())
+    val processModel = ProcessesModel(testProcessDiscovery)
+    val deviceModel = DeviceModel(processModel)
+
+    val fakeProcess = object : ProcessDescriptor {
+      override val device = FakeTransportService.FAKE_DEVICE.toDeviceDescriptor()
+      override val abiCpuArch = "fake_arch"
+      override val name = "fake_process"
+      override val packageName = name
+      override val isRunning = true
+      override val pid = 1
+      override val streamId = 1L
+    }
+
     processModel.selectedProcess = fakeProcess
 
     deviceModel.selectedDevice = FakeTransportService.FAKE_DEVICE.toDeviceDescriptor()
 
     assertThat(processModel.selectedProcess).isNull()
-  }
-
-  @Test
-  fun testListenersAreInvokedWhenSelectedDeviceChanges() {
-    var newDevice: DeviceDescriptor? = null
-
-    deviceModel.newSelectedDeviceListeners.add {
-      newDevice = it
-    }
-
-    deviceModel.selectedDevice = FakeTransportService.FAKE_DEVICE.toDeviceDescriptor()
-
-    assertThat(newDevice).isEqualTo(FakeTransportService.FAKE_DEVICE.toDeviceDescriptor())
   }
 }
