@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="adb_proxy_proto">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/base/adb-proxy/proto/adb_proxy_studio_proto.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

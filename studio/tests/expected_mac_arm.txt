@@ -2540,7 +2540,7 @@ Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/dat
 Android Studio Preview.app/Contents/plugins/dev/lib/dev.jar
 Android Studio Preview.app/Contents/plugins/devkit/lib/devkit-jps.jar
 Android Studio Preview.app/Contents/plugins/devkit/lib/devkit.jar
-Android Studio Preview.app/Contents/plugins/directaccess/lib/directaccess-client.jar
+Android Studio Preview.app/Contents/plugins/directaccess/lib/adb_proxy_studio_proto.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/directaccess.jar
 Android Studio Preview.app/Contents/plugins/directaccess/lib/ftl_client_java_proto.jar
 Android Studio Preview.app/Contents/plugins/directaccess/resources/reverse_daemon.dex

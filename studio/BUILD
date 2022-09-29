@@ -409,13 +409,17 @@ studio_plugin(
     directory = "directaccess",
     libs = [
         "//tools/adt/idea/.idea/libraries:directaccess_client_proto",
+        "//tools/adt/idea/.idea/libraries:adb_proxy_proto",
     ],
     modules = {
-        "directaccess.jar": ["//tools/studio/google/cloud/testing/directaccess:directaccess"],
-        "directaccess-client.jar": ["//tools/vendor/google/directaccess-client:directaccess-client"],
+        "directaccess.jar": [
+            "//tools/base/adb-proxy:studio.adb-proxy",
+            "//tools/studio/google/cloud/testing/directaccess:directaccess",
+            "//tools/vendor/google/directaccess-client:directaccess-client",
+        ],
     },
     resources = {
-        "resources": ["//tools/vendor/google/directaccess-client/reverse-daemon:daemon"],
+        "resources": ["//tools/base/adb-proxy/reverse-daemon:daemon"],
     },
     visibility = ["//visibility:public"],
     deps = [

@@ -404,8 +404,9 @@ filegroup(
 filegroup(
     name = "directaccess-artifacts",
     srcs = [
+        "//tools/adt/idea/.idea/libraries:adb_proxy_proto",
         "//tools/adt/idea/.idea/libraries:directaccess_client_proto",
-        "//tools/vendor/google/directaccess-client/reverse-daemon:daemon",
+        "//tools/base/adb-proxy/reverse-daemon:daemon",
     ],
 )
 

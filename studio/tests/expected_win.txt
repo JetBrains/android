@@ -2030,7 +2030,7 @@ android-studio/plugins/design-tools/resources/layoutlib/data/win/lib64/libicuuc_
 android-studio/plugins/dev/lib/dev.jar
 android-studio/plugins/devkit/lib/devkit-jps.jar
 android-studio/plugins/devkit/lib/devkit.jar
-android-studio/plugins/directaccess/lib/directaccess-client.jar
+android-studio/plugins/directaccess/lib/adb_proxy_studio_proto.jar
 android-studio/plugins/directaccess/lib/directaccess.jar
 android-studio/plugins/directaccess/lib/ftl_client_java_proto.jar
 android-studio/plugins/directaccess/resources/reverse_daemon.dex
