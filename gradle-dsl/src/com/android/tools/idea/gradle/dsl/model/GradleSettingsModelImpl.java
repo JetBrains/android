@@ -31,9 +31,11 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginManagementModel;
+import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.settings.DependencyResolutionManagementModelImpl;
 import com.android.tools.idea.gradle.dsl.model.settings.PluginManagementModelImpl;
+import com.android.tools.idea.gradle.dsl.model.settings.PluginsBlockModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
@@ -41,6 +43,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement;
+import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.DependencyResolutionManagementDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.PluginManagementDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
@@ -349,5 +352,15 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     PluginManagementDslElement pluginManagementDslElement =
       myGradleDslFile.ensurePropertyElementAt(PluginManagementDslElement.PLUGIN_MANAGEMENT_DSL_ELEMENT, 0);
     return new PluginManagementModelImpl(pluginManagementDslElement);
+  }
+
+  @Override
+  public @NotNull PluginsBlockModel plugins() {
+    PluginManagementDslElement pluginManagementDslElement =
+      myGradleDslFile.getPropertyElement(PluginManagementDslElement.PLUGIN_MANAGEMENT_DSL_ELEMENT);
+    // pluginManagement must come first, but plugins must be immediately after if so.
+    Integer at = pluginManagementDslElement == null ? 0 : 1;
+    PluginsDslElement pluginsDslElement = myGradleDslFile.ensurePropertyElementAt(PluginsDslElement.PLUGINS, at);
+    return new PluginsBlockModelImpl(pluginsDslElement);
   }
 }
