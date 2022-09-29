@@ -16,21 +16,21 @@
 package com.android.tools.idea.emulator.dialogs
 
 import com.android.tools.adtui.util.getHumanizedSize
+import com.android.tools.idea.emulator.CloseDialogAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.dialog
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.panel
 import java.awt.Component
-import java.awt.event.ActionEvent
-import javax.swing.AbstractAction
 
 /**
  * Dialog asking for confirmation before deletion of incompatible emulator snapshots.
  */
 internal class IncompatibleSnapshotsDeletionConfirmationDialog(
   private val incompatibleSnapshotsCount: Int,
-  private val incompatibleSnapshotsSize: Long
+  private val incompatibleSnapshotsSize: Long,
 ) {
 
   var doNotAskAgain: Boolean = false
@@ -49,7 +49,8 @@ internal class IncompatibleSnapshotsDeletionConfirmationDialog(
 |             """.trimMargin())
       }
       row {
-        checkBox("Do this from now on without asking", ::doNotAskAgain)
+        checkBox("Do this from now on without asking")
+          .bindSelected(::doNotAskAgain)
       }
     }
   }
@@ -67,21 +68,10 @@ internal class IncompatibleSnapshotsDeletionConfirmationDialog(
       parent = parent,
       createActions = {
         listOf(
-          DialogAction(dialogPanel, "Delete", DELETE_EXIT_CODE).apply {
-            putValue(DialogWrapper.DEFAULT_ACTION, true)
-          },
-          DialogAction(dialogPanel, "Keep", KEEP_EXIT_CODE)
+          CloseDialogAction(dialogPanel, "Delete", DELETE_EXIT_CODE, isDefault = true),
+          CloseDialogAction(dialogPanel, "Keep", KEEP_EXIT_CODE)
         )
       })
-  }
-
-  private class DialogAction(private val dialogPanel: DialogPanel, name: String, private val exitCode: Int) : AbstractAction(name) {
-
-    override fun actionPerformed(event: ActionEvent) {
-      val wrapper = DialogWrapper.findInstance(event.source as? Component)
-      dialogPanel.apply()
-      wrapper?.close(exitCode)
-    }
   }
 
   companion object {
