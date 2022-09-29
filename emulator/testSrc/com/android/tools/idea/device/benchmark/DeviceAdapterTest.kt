@@ -21,6 +21,7 @@ import com.android.tools.idea.emulator.AbstractDisplayView
 import com.android.tools.idea.emulator.location
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import org.junit.Rule
 import org.junit.Test
@@ -46,6 +47,9 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.TestTimeSource
 import kotlin.time.TimeMark
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.TestCoroutineScope
+import org.junit.Before
 
 /** Tests the [DeviceAdapter] class. */
 @OptIn(ExperimentalTime::class)
@@ -55,7 +59,6 @@ class DeviceAdapterTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   private val deviceDisplaySize = Dimension(WIDTH, HEIGHT)
-  private val view = TestDisplayView(deviceDisplaySize)
   private val displayRectangle = Rectangle(deviceDisplaySize)
   private val mousePressedLocations: MutableList<Point> = mutableListOf()
   private val mouseReleasedLocations: MutableList<Point> = mutableListOf()
@@ -70,10 +73,36 @@ class DeviceAdapterTest {
     override fun onReady() { onReadyCalls++ }
     override fun onFailedToBecomeReady(msg: String) { errors.add(msg) }
   }
-  private val adapter = createAdapter()
-
+  private val fakeInstaller = object : MirroringBenchmarkerAppInstaller {
+    override suspend fun installBenchmarkingApp(): Boolean {
+      installCalls++
+      return installSuccess
+    }
+    override suspend fun launchBenchmarkingApp(): Boolean {
+      launchCalls++
+      return launchSuccess
+    }
+    override suspend fun uninstallBenchmarkingApp(): Boolean {
+      uninstallCalls++
+      return true
+    }
+  }
+  private var installCalls = 0
+  private var installSuccess = true
+  private var launchCalls = 0
+  private var launchSuccess = true
+  private var uninstallCalls = 0
   private var onReadyCalls = 0
   private var frameNumber = 0
+
+  private lateinit var view: TestDisplayView
+  private lateinit var adapter: DeviceAdapter
+
+  @Before
+  fun setUp() {
+    view = TestDisplayView(deviceDisplaySize)
+    adapter = createAdapter()
+  }
 
   @Test
   fun zeroMaxTouches_throwsIllegalArgumentException() {
@@ -130,13 +159,44 @@ class DeviceAdapterTest {
   }
 
   @Test
-  fun tearDown_unregistersFrameListener() {
-    adapter.ready()
-    view.notifyFrame(ALL_TOUCHABLE_FRAME)
-    adapter.tearDown()
-    repeat(10) { view.notifyFrame(p.toBufferedImage()) }
+  fun ready_installsApp() {
+    assertThat(installCalls).isEqualTo(0)
 
-    assertThat(returnedInputs).isEmpty()
+    adapter.ready()
+
+    assertThat(installCalls).isEqualTo(1)
+  }
+
+  @Test
+  fun ready_launchesApp() {
+    assertThat(launchCalls).isEqualTo(0)
+
+    adapter.ready()
+
+    assertThat(launchCalls).isEqualTo(1)
+  }
+
+  @Test
+  fun ready_onlyLaunchesIfInstallSucceeds() {
+    installSuccess = false
+
+    adapter.ready()
+
+    assertThat(installCalls).isEqualTo(1)
+    assertThat(launchCalls).isEqualTo(0)
+    assertThat(errors).hasSize(1)
+    assertThat(errors[0]).isEqualTo("Could not install benchmarking app.")
+  }
+
+  @Test
+  fun ready_failsIfLaunchFails() {
+    launchSuccess = false
+
+    adapter.ready()
+    assertThat(installCalls).isEqualTo(1)
+    assertThat(launchCalls).isEqualTo(1)
+    assertThat(errors).hasSize(1)
+    assertThat(errors[0]).isEqualTo("Could not launch benchmarking app.")
   }
 
   @Test
@@ -150,6 +210,25 @@ class DeviceAdapterTest {
     UIUtil.pump()
     assertThat(typedKeys).isEqualTo(listOf(MAX_BITS, LATENCY_MAX_BITS, BITS_PER_CHANNEL).joinToString(",").toList())
     assertThat(pressedKeys).containsExactly(KeyEvent.VK_UP, KeyEvent.VK_ENTER)
+  }
+
+  @Test
+  fun cleanUp_unregistersFrameListener() {
+    adapter.ready()
+    view.notifyFrame(ALL_TOUCHABLE_FRAME)
+    adapter.cleanUp()
+    repeat(10) { view.notifyFrame(p.toBufferedImage()) }
+
+    assertThat(returnedInputs).isEmpty()
+  }
+
+  @Test
+  fun cleanUp_uninstallsApp() {
+    assertThat(uninstallCalls).isEqualTo(0)
+
+    adapter.cleanUp()
+
+    assertThat(uninstallCalls).isEqualTo(1)
   }
 
   @Test
@@ -233,18 +312,23 @@ class DeviceAdapterTest {
 
   private fun createAdapter(
     maxTouches: Int = MAX_TOUCHES,
-    step: Int = 1, spikiness: Int = 1,
+    step: Int = 1,
+    spikiness: Int = 1,
     bitsPerChannel: Int = 4,
     latencyBits: Int = 6,
   ) : DeviceAdapter {
     return DeviceAdapter(
+      projectRule.project,
       target = DeviceMirroringBenchmarkTarget("Device Name", "12345", view),
       bitsPerChannel = bitsPerChannel,
       latencyBits = latencyBits,
       maxTouches = maxTouches,
       step = step,
       spikiness = spikiness,
-      timeSource = testTimeSource).apply { setCallbacks(callbacks) }
+      timeSource = testTimeSource,
+      installer = fakeInstaller,
+      coroutineScope = TestCoroutineScope(TestCoroutineDispatcher()),
+      ).apply { setCallbacks(callbacks) }
   }
 
   inner class TestDisplayView(override val deviceDisplaySize: Dimension) : AbstractDisplayView(0) {
@@ -264,6 +348,7 @@ class DeviceAdapterTest {
         override fun keyReleased(e: KeyEvent) {}
       }
       addKeyListener(keyListener)
+      Disposer.register(projectRule.testRootDisposable, this)
     }
     override val displayOrientationQuadrants = 0
     override fun canZoom() = false

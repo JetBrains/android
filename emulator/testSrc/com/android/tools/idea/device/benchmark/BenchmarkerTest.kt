@@ -58,14 +58,14 @@ class BenchmarkerTest {
     override fun setCallbacks(callbacks: Adapter.Callbacks<Int>) { adapterCallbacks = callbacks }
     override fun ready() { readyCalls++ }
     override fun finalizeInputs() { finalizeInputsCalls++ }
-    override fun tearDown() { tearDownCalls++ }
+    override fun cleanUp() { cleanUpCalls++ }
   }
   private val benchmarker = createBenchmarker()
 
   private val progressValues: MutableList<Pair<Double, Double>> = mutableListOf()
 
   private var readyCalls: Int = 0
-  private var tearDownCalls: Int = 0
+  private var cleanUpCalls: Int = 0
   private var finalizeInputsCalls: Int = 0
   private var stopCallbackCalled = false
   private var completeCallbackCalled = false
@@ -96,11 +96,11 @@ class BenchmarkerTest {
     adapter.adapterCallbacks.onReady()
     verify(mockTimer).scheduleAtFixedRate(any(), anyLong(), anyLong())
 
-    assertThat(tearDownCalls).isEqualTo(0)
+    assertThat(cleanUpCalls).isEqualTo(0)
 
     benchmarker.stop()
 
-    assertThat(tearDownCalls).isEqualTo(1)
+    assertThat(cleanUpCalls).isEqualTo(1)
     verify(mockTimer).cancel()
     verifyNoMoreInteractions(mockTimer)
     assertThat(stopCallbackCalled).isTrue()

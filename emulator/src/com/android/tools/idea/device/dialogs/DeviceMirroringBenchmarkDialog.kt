@@ -90,7 +90,7 @@ class DeviceMirroringBenchmarkDialog(private val target: DeviceMirroringBenchmar
         text("use 0 for monochrome")
       }
       row("Frame latency bits") {
-        intTextField(1..16).bindIntText(::latencyBits)
+        intTextField(1..16, 1).bindIntText(::latencyBits)
       }
     }.enabledIf(isRunning.not())
     panel {
@@ -133,8 +133,9 @@ class DeviceMirroringBenchmarkDialog(private val target: DeviceMirroringBenchmar
     }
 
     override fun actionPerformed(e: ActionEvent?) {
+      if (project == null) return
       dialogPanel.apply()
-      val deviceAdapter = DeviceAdapter(target, bitsPerChannel, latencyBits, maxTouches, step, spikiness)
+      val deviceAdapter = DeviceAdapter(project, target, bitsPerChannel, latencyBits, maxTouches, step, spikiness)
       benchmarker = Benchmarker(deviceAdapter, touchRateHz).apply {
         addOnProgressCallback { dispatchedProgress, receivedProgress ->
           dispatchedProgressBar.updateProgress(dispatchedProgress)
@@ -142,7 +143,7 @@ class DeviceMirroringBenchmarkDialog(private val target: DeviceMirroringBenchmar
         }
         addOnStoppedCallback {
           if (!isDone()) {
-            ApplicationManager.getApplication().invokeLater { showErrorNotification() }
+            ApplicationManager.getApplication().invokeLater { showErrorNotification(failureMsg) }
           }
           benchmarker = null
         }
@@ -155,9 +156,9 @@ class DeviceMirroringBenchmarkDialog(private val target: DeviceMirroringBenchmar
       }
     }
 
-    private fun showErrorNotification() {
+    private fun showErrorNotification(msg: String) {
       NotificationGroupManager.getInstance().getNotificationGroup("DeviceMirrorBenchmarking")
-        .createNotification(ERROR_TITLE, ERROR_MSG, NotificationType.ERROR).notify(project)
+        .createNotification(ERROR_TITLE, msg, NotificationType.ERROR).notify(project)
     }
   }
 
@@ -177,7 +178,5 @@ class DeviceMirroringBenchmarkDialog(private val target: DeviceMirroringBenchmar
 
   companion object {
     private const val ERROR_TITLE = "Benchmarking failed"
-    private const val ERROR_MSG = "Check that you have the Mirroring Benchmarker app " +
-                                  "installed and active on the device you want to benchmark."
   }
 }

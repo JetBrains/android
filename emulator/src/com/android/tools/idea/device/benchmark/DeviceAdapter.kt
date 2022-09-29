@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device.benchmark
 
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.device.benchmark.Benchmarker.Adapter
 import com.android.tools.idea.emulator.AbstractDisplayView
 import com.android.tools.idea.emulator.bottom
@@ -23,7 +24,10 @@ import com.android.tools.idea.emulator.rotatedByQuadrants
 import com.android.tools.idea.emulator.scaled
 import com.android.tools.idea.emulator.scaledUnbiased
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Point
@@ -140,6 +144,7 @@ private fun Rectangle.scribble(numPoints: Int, step: Int, spikiness: Int): Seque
 
 @OptIn(ExperimentalTime::class)
 internal class DeviceAdapter (
+  private val project: Project,
   private val target: DeviceMirroringBenchmarkTarget,
   private val bitsPerChannel: Int = 0,
   private val latencyBits: Int = 6,
@@ -147,6 +152,8 @@ internal class DeviceAdapter (
   private val step: Int = 1,
   private val spikiness: Int = 1,
   private val timeSource: TimeSource = TimeSource.Monotonic,
+  private val installer: MirroringBenchmarkerAppInstaller = MirroringBenchmarkerAppInstaller(project, target.serialNumber),
+  private val coroutineScope: CoroutineScope = AndroidCoroutineScope(target.view),
   ) : Adapter<Point>, AbstractDisplayView.FrameListener {
 
   private val deviceDisplaySize: Dimension by target.view::deviceDisplaySize
@@ -211,18 +218,29 @@ internal class DeviceAdapter (
   }
 
   override fun ready() {
-    keyConfigIntoApp()
-    startedGettingReady = timeSource.markNow()
-    target.view.addFrameListener(this)
-    target.view.repaint()
+    coroutineScope.launch {
+      if (!installer.installBenchmarkingApp()) {
+        adapterCallbacks.onFailedToBecomeReady("Could not install benchmarking app.")
+        return@launch
+      }
+      if (!installer.launchBenchmarkingApp()) {
+        adapterCallbacks.onFailedToBecomeReady("Could not launch benchmarking app.")
+        return@launch
+      }
+      keyConfigIntoApp()
+      startedGettingReady = timeSource.markNow()
+      target.view.addFrameListener(this@DeviceAdapter)
+      target.view.repaint()
+    }
   }
 
   override fun finalizeInputs() {
     lastPressed?.let { target.view.click(it, MouseEvent.MOUSE_RELEASED) }
   }
 
-  override fun tearDown() {
+  override fun cleanUp() {
     target.view.removeFrameListener(this)
+    coroutineScope.launch { installer.uninstallBenchmarkingApp() }
   }
 
   @Synchronized

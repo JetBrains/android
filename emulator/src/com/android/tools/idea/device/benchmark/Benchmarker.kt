@@ -36,6 +36,9 @@ class Benchmarker<InputType>(
   protected val timeSource: TimeSource = TimeSource.Monotonic,
   timer: Timer = Timer(),
 ) {
+  var failureMsg: String = "Benchmarking terminated unexpectedly"
+    private set
+
   private val frameDurationMillis: Long = (1000 / inputRateHz.toDouble()).roundToLong()
 
   // ┌───────┐  ┌───────┐  ┌───────┐  ┌───────┐  ┌────────┐
@@ -68,11 +71,11 @@ class Benchmarker<InputType>(
     }
     State.WAITING_FOR_OUTSTANDING_INPUTS.transitionsTo(State.STOPPED, State.COMPLETE)
     State.STOPPED.onEnter {
-      adapter.tearDown()
+      adapter.cleanUp()
       onStoppedCallbacks.forEach { it() }
     }
     State.COMPLETE.onEnter {
-      adapter.tearDown()
+      adapter.cleanUp()
       onStoppedCallbacks.forEach { it() }
       onCompleteCallbacks.forEach { it(Results(inputRoundTrips)) }
     }
@@ -97,6 +100,7 @@ class Benchmarker<InputType>(
 
       override fun onFailedToBecomeReady(msg: String) {
         LOG.warn(msg)
+        failureMsg = msg
         state = State.STOPPED
       }
     }
@@ -148,6 +152,7 @@ class Benchmarker<InputType>(
 
   @Synchronized
   fun stop() {
+    failureMsg = "Benchmarking was canceled."
     state = State.STOPPED
   }
 
@@ -196,7 +201,7 @@ class Benchmarker<InputType>(
     fun finalizeInputs()
 
     /** Indicates that benchmarking is over. */
-    fun tearDown()
+    fun cleanUp()
 
     /** Callbacks to return data to the [Benchmarker] during benchmarking. */
     interface Callbacks<InputType> {
