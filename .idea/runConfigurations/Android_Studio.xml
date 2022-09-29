@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Android Studio" type="Application" factoryName="Application">
-    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+    <option name="ALTERNATIVE_JRE_PATH" value="jbr-17" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <log_file alias="idea.log" path="$USER_HOME$/.cache/Google/AndroidStudioDev/log/idea.log" />
     <log_file alias="idea.log" path="$USER_HOME$/Library/Logs/Google/AndroidStudioDev/idea.log" />
