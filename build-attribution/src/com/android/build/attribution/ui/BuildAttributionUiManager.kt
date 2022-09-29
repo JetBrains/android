@@ -20,25 +20,14 @@ import com.android.build.attribution.BuildAnalyzerNotificationManager
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAnalyzerStorageManager.Listener
 import com.android.build.attribution.BuildAttributionWarningsFilter
-import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
-import com.android.build.attribution.analyzers.DownloadsAnalyzer
-import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.BuildAnalyzerViewController
 import com.android.build.attribution.ui.controllers.TaskIssueReporter
 import com.android.build.attribution.ui.controllers.TaskIssueReporterImpl
-import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
-import com.android.build.attribution.ui.data.BuildSummary
-import com.android.build.attribution.ui.data.ConfigurationUiData
-import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
-import com.android.build.attribution.ui.data.CriticalPathTaskCategoriesUiData
-import com.android.build.attribution.ui.data.CriticalPathTasksUiData
-import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.view.BuildAnalyzerComboBoxView
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
 import com.intellij.ide.ui.LafManagerListener
@@ -87,9 +76,19 @@ class BuildAnalyzerStorageManagerListenerImpl(val project: Project) : Listener {
 class BuildAttributionUiManagerImpl(
   private val project: Project
 ) : BuildAttributionUiManager {
+
+  // We are holding reference to view to:
+  // 1) dispose it when replaced with a new one
+  // 2) get component size for analytics
+  // 3) to reinit (re-add) ui components on theme change
   @VisibleForTesting
   var buildAttributionView: ComponentContainer? = null
 
+  // We are holding reference to content to:
+  // 1) check tab state
+  // 2) track in analytics for tab open/closed
+  // 3) to reinit (re-add) ui components on theme change
+  // 4) request to open it when asked
   @VisibleForTesting
   var buildContent: Content? = null
 
@@ -124,6 +123,13 @@ class BuildAttributionUiManagerImpl(
       .subscribe(LafManagerListener.TOPIC, LafManagerListener { reInitReportUI() })
   }
 
+  override fun showBuildAnalysisReportById(buildID: String) {
+    val buildResults = BuildAnalyzerStorageManager.getInstance(project).getHistoricBuildResultByID(buildID)
+    val reportFile = BuildReportFile(buildResults, project)
+    val fileDescriptor = OpenFileDescriptor(project, reportFile)
+    FileEditorManager.getInstance(project).openEditor(fileDescriptor, true)
+  }
+
   override fun showNewReport() {
     invokeLaterIfNotDisposed {
       val buildResults = BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults()
@@ -131,7 +137,24 @@ class BuildAttributionUiManagerImpl(
       val buildSessionId = buildResults.getBuildSessionID()
       latestBuildSuccessful = true
       uiAnalytics.newReportSessionId(buildSessionId)
-      updateReportUI(reportUiData)
+
+      val content = buildContent
+      createAndRegisterNewView {
+        val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
+        NewViewComponentContainer(reportUiData, project, issueReporter, uiAnalytics)
+      }
+      if (content != null && content.isValid) {
+        // Tab is open, replace UI for both successful and failed builds.
+        content.replaceContentView()
+      }
+      else {
+        createNewTab()
+      }
+
+      if (reportUiData.shouldAutoOpenTab()) {
+        openTab(BuildAttributionUiAnalytics.TabOpenEventSource.AUTO_OPEN)
+      }
+
       notificationManager.showToolWindowBalloonIfNeeded(reportUiData) {
         openTab(BuildAttributionUiAnalytics.TabOpenEventSource.BALLOON_LINK)
         (buildAttributionView as? NewViewComponentContainer)?.let {
@@ -141,65 +164,17 @@ class BuildAttributionUiManagerImpl(
     }
   }
 
-  override fun showBuildAnalysisReportById(buildID: String) {
-    val buildResults = BuildAnalyzerStorageManager.getInstance(project).getHistoricBuildResultByID(buildID)
-    val reportFile = BuildReportFile(buildResults, project)
-    val fileDescriptor = OpenFileDescriptor(project, reportFile)
-    FileEditorManager.getInstance(project).openEditor(fileDescriptor, true)
-  }
-
   override fun onBuildFailure(buildSessionId: String) {
     invokeLaterIfNotDisposed {
       latestBuildSuccessful = false
       uiAnalytics.newReportSessionId(buildSessionId)
-      updateReportUI(failedBuildReportData())
-    }
-  }
 
-  private fun failedBuildReportData(): BuildAttributionReportUiData {
-    return object : BuildAttributionReportUiData {
-      override val successfulBuild: Boolean
-        get() = false
-      override val buildRequestData: GradleBuildInvoker.Request.RequestData
-        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
-      override val buildSummary: BuildSummary
-        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
-      override val criticalPathTasks: CriticalPathTasksUiData
-        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
-      override val criticalPathPlugins: CriticalPathPluginsUiData
-        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
-      override val criticalPathTaskCategories: CriticalPathTaskCategoriesUiData
-        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
-      override val issues: List<TaskIssuesGroup>
-        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
-      override val configurationTime: ConfigurationUiData
-        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
-      override val annotationProcessors: AnnotationProcessorsReport
-        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
-      override val confCachingData: ConfigurationCachingCompatibilityProjectResult
-        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
-      override val jetifierData: JetifierUsageAnalyzerResult
-        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
-      override val downloadsData: DownloadsAnalyzer.Result
-        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
-    }
-  }
-
-  @UiThread
-  private fun updateReportUI(reportUiData: BuildAttributionReportUiData) {
-    val content = buildContent
-    if (content != null && content.isValid) {
-      // Tab is open, replace UI for both successful and failed builds.
-      createNewView(reportUiData)
-      content.replaceContentView()
-    }
-    else if (latestBuildSuccessful) {
-      // Tab is closed, create new tab only in successful build case.
-      createNewView(reportUiData)
-      createNewTab()
-    }
-    if (reportUiData.shouldAutoOpenTab()) {
-      openTab(BuildAttributionUiAnalytics.TabOpenEventSource.AUTO_OPEN)
+      val content = buildContent
+      if (content != null && content.isValid) {
+        // Tab is open, replace UI for both successful and failed builds.
+        createAndRegisterNewView { BuildFailureViewComponentContainer() }
+        content.replaceContentView()
+      }
     }
   }
 
@@ -215,15 +190,9 @@ class BuildAttributionUiManagerImpl(
     }
   }
 
-  private fun createNewView(reportUiData: BuildAttributionReportUiData) {
+  private fun createAndRegisterNewView(viewFactory: () -> ComponentContainer) {
     buildAttributionView?.let { existingView -> Disposer.dispose(existingView) }
-    if (latestBuildSuccessful) {
-      val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
-      buildAttributionView = NewViewComponentContainer(reportUiData, project, issueReporter, uiAnalytics)
-    }
-    else {
-      buildAttributionView = BuildFailureViewComponentContainer()
-    }
+    buildAttributionView = viewFactory()
   }
 
   private fun Content.replaceContentView() {
@@ -268,16 +237,19 @@ class BuildAttributionUiManagerImpl(
       invokeLaterIfNotDisposed {
         if (buildContent?.isValid != true) {
           // If tab is closed, we need to retrieve the latest data from the storage and recreate the view.
-          val reportUiData = if (latestBuildSuccessful) {
+          if (latestBuildSuccessful) {
             // If latest build was successful, get data from storage and recreate the normal view.
             val buildResults = BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults()
-            BuildAttributionReportBuilder(buildResults).build()
+            val reportUiData = BuildAttributionReportBuilder(buildResults).build()
+            createAndRegisterNewView {
+              val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
+              NewViewComponentContainer(reportUiData, project, issueReporter, uiAnalytics)
+            }
           }
           else {
             // If last build failed, we should stick with this empty error view, not change to previous success.
-            failedBuildReportData()
+            createAndRegisterNewView { BuildFailureViewComponentContainer() }
           }
-          createNewView(reportUiData)
           createNewTab()
         }
         uiAnalytics.registerOpenEventSource(eventSource)
@@ -339,6 +311,6 @@ private class BuildFailureViewComponentContainer : ComponentContainer {
 }
 
 private fun BuildAttributionReportUiData.shouldAutoOpenTab() : Boolean = when {
-  successfulBuild && jetifierData.checkJetifierBuild -> true
+  jetifierData.checkJetifierBuild -> true
   else -> false
 }

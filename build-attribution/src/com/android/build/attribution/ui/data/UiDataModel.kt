@@ -35,7 +35,6 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
  */
 
 interface BuildAttributionReportUiData {
-  val successfulBuild: Boolean
   val buildRequestData: GradleBuildInvoker.Request.RequestData
   val buildSummary: BuildSummary
   val criticalPathTasks: CriticalPathTasksUiData

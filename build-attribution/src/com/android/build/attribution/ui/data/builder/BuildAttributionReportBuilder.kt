@@ -57,7 +57,6 @@ class BuildAttributionReportBuilder(
     val pluginConfigurationTimeReport = ConfigurationTimesUiDataBuilder(buildAnalysisResult).build()
     val buildSummary = createBuildSummary(pluginConfigurationTimeReport)
     return object : BuildAttributionReportUiData {
-      override val successfulBuild: Boolean = true
       override val buildRequestData: GradleBuildInvoker.Request.RequestData =
         this@BuildAttributionReportBuilder.buildAnalysisResult.getBuildRequestData()
       override val buildSummary: BuildSummary = buildSummary
