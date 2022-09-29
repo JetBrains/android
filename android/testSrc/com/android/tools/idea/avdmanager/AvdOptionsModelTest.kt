@@ -25,6 +25,7 @@ import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.devices.Storage
+import com.android.sdklib.devices.Storage.Unit
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
@@ -138,25 +139,25 @@ class AvdOptionsModelTest : AndroidTestCase() {
     var optionsModel = AvdOptionsModel(myGooglePlayAvdInfo)
     var theDevice = optionsModel.device()
     theDevice.setNullableValue(myGooglePlayDevice)
-    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(100, Storage.Unit.MiB))
+    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(100, Unit.MiB))
 
     // Non-Google Play (Google Play image, non-Play device)
     optionsModel = AvdOptionsModel(myGooglePlayAvdInfo)
     theDevice = optionsModel.device()
     theDevice.setNullableValue(myNonPlayDevice)
-    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(10, Storage.Unit.MiB))
+    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(10, Unit.MiB))
 
     // Non-Google Play (non-Play image, Google-Play device)
     optionsModel = AvdOptionsModel(myNonPlayAvdInfo)
     theDevice = optionsModel.device()
     theDevice.setNullableValue(myGooglePlayDevice)
-    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(10, Storage.Unit.MiB))
+    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(10, Unit.MiB))
 
     // Non-Google Play (non-Play image, non-Play device)
     optionsModel = AvdOptionsModel(myNonPlayAvdInfo)
     theDevice = optionsModel.device()
     theDevice.setNullableValue(myNonPlayDevice)
-    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(10, Storage.Unit.MiB))
+    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(10, Unit.MiB))
 
 
     // For the device without Sdcard
@@ -167,25 +168,25 @@ class AvdOptionsModelTest : AndroidTestCase() {
     optionsModel = AvdOptionsModel(myGooglePlayAvdInfo)
     theDevice = optionsModel.device()
     theDevice.setNullableValue(myGooglePlayDevice)
-    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(0, Storage.Unit.MiB))
+    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(0, Unit.MiB))
 
     // Non-Google Play (Google Play image, non-Play device)
     optionsModel = AvdOptionsModel(myGooglePlayAvdInfo)
     theDevice = optionsModel.device()
     theDevice.setNullableValue(myNonPlayDevice)
-    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(0, Storage.Unit.MiB))
+    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(0, Unit.MiB))
 
     // Non-Google Play (non-Play image, Google-Play device)
     optionsModel = AvdOptionsModel(myNonPlayAvdInfo)
     theDevice = optionsModel.device()
     theDevice.setNullableValue(myGooglePlayDevice)
-    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(0, Storage.Unit.MiB))
+    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(0, Unit.MiB))
 
     // Non-Google Play (non-Play image, non-Play device)
     optionsModel = AvdOptionsModel(myNonPlayAvdInfo)
     theDevice = optionsModel.device()
     theDevice.setNullableValue(myNonPlayDevice)
-    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(0, Storage.Unit.MiB))
+    assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(0, Unit.MiB))
   }
 
   @Throws(Exception::class)
@@ -196,25 +197,25 @@ class AvdOptionsModelTest : AndroidTestCase() {
     var optionsModel = AvdOptionsModel(myGooglePlayAvdInfo)
     var theDevice = optionsModel.device()
     theDevice.setNullableValue(myGooglePlayDevice)
-    assertThat(optionsModel.minInternalMemSize()).isEqualTo(Storage(2, Storage.Unit.GiB))
+    assertThat(optionsModel.minInternalMemSize()).isEqualTo(Storage(2, Unit.GiB))
 
     // Non-Google Play (Google Play image, non-Play device)
     optionsModel = AvdOptionsModel(myGooglePlayAvdInfo)
     theDevice = optionsModel.device()
     theDevice.setNullableValue(myNonPlayDevice)
-    assertThat(optionsModel.minInternalMemSize()).isEqualTo(Storage(200, Storage.Unit.MiB))
+    assertThat(optionsModel.minInternalMemSize()).isEqualTo(Storage(2, Unit.GiB))
 
     // Non-Google Play (non-Play image, Google-Play device)
     optionsModel = AvdOptionsModel(myNonPlayAvdInfo)
     theDevice = optionsModel.device()
     theDevice.setNullableValue(myGooglePlayDevice)
-    assertThat(optionsModel.minInternalMemSize()).isEqualTo(Storage(200, Storage.Unit.MiB))
+    assertThat(optionsModel.minInternalMemSize()).isEqualTo(Storage(2, Unit.GiB))
 
     // Non-Google Play (non-Play image, non-Play device)
     optionsModel = AvdOptionsModel(myNonPlayAvdInfo)
     theDevice = optionsModel.device()
     theDevice.setNullableValue(myNonPlayDevice)
-    assertThat(optionsModel.minInternalMemSize()).isEqualTo(Storage(200, Storage.Unit.MiB))
+    assertThat(optionsModel.minInternalMemSize()).isEqualTo(Storage(2, Unit.GiB))
   }
 
   @Throws(Exception::class)
@@ -225,33 +226,33 @@ class AvdOptionsModelTest : AndroidTestCase() {
     var optionsModel = AvdOptionsModel(myGooglePlayAvdInfo)
     var theDevice = optionsModel.device()
     theDevice.setNullableValue(myGooglePlayDevice)
-    optionsModel.sdCardStorage().setNullableValue(Storage(90, Storage.Unit.MiB))
-    optionsModel.internalStorage().set(Storage(3, Storage.Unit.GiB))
+    optionsModel.sdCardStorage().setNullableValue(Storage(90, Unit.MiB))
+    optionsModel.internalStorage().set(Storage(3, Unit.GiB))
     optionsModel.ensureMinimumMemory()
-    assertThat(optionsModel.sdCardStorage().value).isEqualTo(Storage(100, Storage.Unit.MiB))
-    assertThat(optionsModel.internalStorage().get()).isEqualTo(Storage(3, Storage.Unit.GiB))
+    assertThat(optionsModel.sdCardStorage().value).isEqualTo(Storage(100, Unit.MiB))
+    assertThat(optionsModel.internalStorage().get()).isEqualTo(Storage(3, Unit.GiB))
 
-    optionsModel.sdCardStorage().setNullableValue(Storage(123, Storage.Unit.MiB))
-    optionsModel.internalStorage().set(Storage(1, Storage.Unit.GiB))
+    optionsModel.sdCardStorage().setNullableValue(Storage(123, Unit.MiB))
+    optionsModel.internalStorage().set(Storage(1, Unit.GiB))
     optionsModel.ensureMinimumMemory()
-    assertThat(optionsModel.sdCardStorage().value).isEqualTo(Storage(123, Storage.Unit.MiB))
-    assertThat(optionsModel.internalStorage().get()).isEqualTo(Storage(2, Storage.Unit.GiB))
+    assertThat(optionsModel.sdCardStorage().value).isEqualTo(Storage(123, Unit.MiB))
+    assertThat(optionsModel.internalStorage().get()).isEqualTo(Storage(2, Unit.GiB))
 
     // Non-Google Play
     optionsModel = AvdOptionsModel(myNonPlayAvdInfo)
     theDevice = optionsModel.device()
     theDevice.setNullableValue(myNonPlayDevice)
-    optionsModel.sdCardStorage().setNullableValue(Storage(9, Storage.Unit.MiB))
-    optionsModel.internalStorage().set(Storage(234, Storage.Unit.MiB))
+    optionsModel.sdCardStorage().setNullableValue(Storage(9, Unit.MiB))
+    optionsModel.internalStorage().set(Storage(3, Unit.GiB))
     optionsModel.ensureMinimumMemory()
-    assertThat(optionsModel.sdCardStorage().value).isEqualTo(Storage(10, Storage.Unit.MiB))
-    assertThat(optionsModel.internalStorage().get()).isEqualTo(Storage(234, Storage.Unit.MiB))
+    assertThat(optionsModel.sdCardStorage().value).isEqualTo(Storage(10, Unit.MiB))
+    assertThat(optionsModel.internalStorage().get()).isEqualTo(Storage(3, Unit.GiB))
 
-    optionsModel.sdCardStorage().setNullableValue(Storage(12, Storage.Unit.MiB))
-    optionsModel.internalStorage().set(Storage(190, Storage.Unit.MiB))
+    optionsModel.sdCardStorage().setNullableValue(Storage(12, Unit.MiB))
+    optionsModel.internalStorage().set(Storage(1, Unit.GiB))
     optionsModel.ensureMinimumMemory()
-    assertThat(optionsModel.sdCardStorage().value).isEqualTo(Storage(12, Storage.Unit.MiB))
-    assertThat(optionsModel.internalStorage().get()).isEqualTo(Storage(200, Storage.Unit.MiB))
+    assertThat(optionsModel.sdCardStorage().value).isEqualTo(Storage(12, Unit.MiB))
+    assertThat(optionsModel.internalStorage().get()).isEqualTo(Storage(2, Unit.GiB))
   }
 
   fun testAvdOptionsModelEnableDeviceFrameCheckboxIsntSelected() {
