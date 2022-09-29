@@ -390,7 +390,10 @@ studio_plugin(
 studio_plugin(
     name = "com.google.services.firebase",
     directory = "firebase",
-    libs = ["//tools/vendor/google/firebase:google-api-services-mobilesdk-v1"],
+    libs = [
+        "//tools/vendor/google/firebase:google-api-services-mobilesdk-v1",
+        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0",
+    ],
     licenses = [
         "//tools/vendor/google/firebase:licenses",
     ],

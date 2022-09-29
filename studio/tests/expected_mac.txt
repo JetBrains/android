@@ -2558,6 +2558,7 @@ Android Studio Preview.app/Contents/plugins/firebase-testing/lib/google-api-serv
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/jsch-0.1.55.jar
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/tightvnc.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.jar
+Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-mobilesdk-v1.jar
 Android Studio Preview.app/Contents/plugins/git4idea/lib/git4idea-rt.jar
 Android Studio Preview.app/Contents/plugins/git4idea/lib/git4idea.jar

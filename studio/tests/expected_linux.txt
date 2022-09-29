@@ -2544,6 +2544,7 @@ android-studio/plugins/firebase-testing/lib/google-api-services-toolresults-v1be
 android-studio/plugins/firebase-testing/lib/jsch-0.1.55.jar
 android-studio/plugins/firebase-testing/lib/tightvnc.jar
 android-studio/plugins/firebase/lib/firebase.jar
+android-studio/plugins/firebase/lib/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar
 android-studio/plugins/firebase/lib/google-api-services-mobilesdk-v1.jar
 android-studio/plugins/git4idea/lib/git4idea-rt.jar
 android-studio/plugins/git4idea/lib/git4idea.jar
