@@ -177,28 +177,31 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   message("android.wizard.module.new.dynamic.module") -> TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
   message("android.wizard.module.new.wear") -> TemplateRenderer.ANDROID_WEAR_MODULE
 
-  "Basic Activity" -> TemplateRenderer.BASIC_ACTIVITIY
+  "Basic Views Activity" -> TemplateRenderer.BASIC_ACTIVITIY
   "Basic Activity (Material3)" -> TemplateRenderer.BASIC_ACTIVITIY
-  "Empty Activity" -> TemplateRenderer.EMPTY_ACTIVITY
+  "Empty View Activity" -> TemplateRenderer.EMPTY_ACTIVITY
   "Blank Activity" -> if (formFactor == FormFactor.Wear) TemplateRenderer.BLANK_WEAR_ACTIVITY else TemplateRenderer.BLANK_ACTIVITY
-  "Login Activity" -> TemplateRenderer.LOGIN_ACTIVITY
-  "Tabbed Activity" -> TemplateRenderer.TABBED_ACTIVITY
-  "Scrolling Activity" -> TemplateRenderer.SCROLLING_ACTIVITY
-  "Google AdMob Ads Activity" -> TemplateRenderer.GOOGLE_ADMOBS_ADS_ACTIVITY
+  "Login View Activity" -> TemplateRenderer.LOGIN_ACTIVITY
+  "Tabbed View Activity" -> TemplateRenderer.TABBED_ACTIVITY
+  "Scrolling View Activity" -> TemplateRenderer.SCROLLING_ACTIVITY
+  "Google AdMob Ads View Activity" -> TemplateRenderer.GOOGLE_ADMOBS_ADS_ACTIVITY
   "Always On Wear Activity" -> TemplateRenderer.ALWAYS_ON_WEAR_ACTIVITY
   "Android TV Blank Activity" -> TemplateRenderer.ANDROID_TV_ACTIVITY
-  "Fullscreen Activity" -> TemplateRenderer.FULLSCREEN_ACTIVITY
-  "Empty Compose Activity" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
+  "Android TV Blank View Activity" -> TemplateRenderer.ANDROID_TV_ACTIVITY
+  "Fullscreen View Activity" -> TemplateRenderer.FULLSCREEN_ACTIVITY
+  "Empty Activity" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
   "Empty Compose Activity (Material3)" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
-  "Google Maps Activity" -> TemplateRenderer.GOOGLE_MAPS_ACTIVITY
+  "Google Maps View Activity" -> TemplateRenderer.GOOGLE_MAPS_ACTIVITY
   "Navigation Drawer Activity" -> TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
-  "Settings Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
+  "Settings View Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
   "Responsive Activity" ->  TemplateRenderer.RESPONSIVE_ACTIVITY
-  "Primary/Detail Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
-  "Android Things E6mpty Activity" -> TemplateRenderer.THINGS_ACTIVITY
+  "Primary/Detail View Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
+  "Android Things Empty Activity" -> TemplateRenderer.THINGS_ACTIVITY
   "Messaging Service" -> TemplateRenderer.AUTOMOTIVE_MESSAGING_SERVICE
   "Media Service" -> TemplateRenderer.AUTOMOTIVE_MEDIA_SERVICE
-  "Google Pay Activity" -> TemplateRenderer.GOOGLE_PAY_ACTIVITY
+  "Google Pay View Activity" -> TemplateRenderer.GOOGLE_PAY_ACTIVITY
+  "Watch Face" -> TemplateRenderer.WATCH_FACE
+  "Empty Wear OS Compose Activity" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
   "Google Wallet Activity" -> TemplateRenderer.GOOGLE_WALLET_ACTIVITY
   "Basic Wear App",
   "Basic Wear App Without Associated Tile And Complication" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
@@ -239,7 +242,7 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.CUSTOM_TEMPLATE_RENDERER -> when (title) {
       "Slice Provider" -> TemplateType.SLICE_PROVIDER
       "Fragment + ViewModel" -> TemplateType.VIEW_MODEL_ACTIVITY
-      "Bottom Navigation Activity" -> TemplateType.BOTTOM_NAVIGATION_ACTIVITY
+      "Bottom Navigation View Activity" -> TemplateType.BOTTOM_NAVIGATION_ACTIVITY
       "Native C++" -> TemplateType.CPP_EMPTY_ACTIVITY
       "Game Activity (C++)" -> TemplateType.CPP_GAME_ACTIVITY
       "AIDL Folder" -> TemplateType.AIDL_FOLDER

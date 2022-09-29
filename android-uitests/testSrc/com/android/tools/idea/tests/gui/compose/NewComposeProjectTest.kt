@@ -56,11 +56,11 @@ class NewComposeProjectTest {
    */
   @Test
   fun newComposeProject() {
-    WizardUtils.createNewProject(guiTest, "Empty Compose Activity", null)
+    WizardUtils.createNewProject(guiTest, "Empty Activity", null)
 
     guiTest.getProjectFileText("app/build.gradle").run {
       assertThat(this).contains("implementation \"androidx.compose.ui:ui:")
-      assertThat(this).contains("implementation 'androidx.compose.material:material:")
+      assertThat(this).contains("implementation 'androidx.compose.material3:material3:")
       assertThat(this).contains("implementation \"androidx.compose.ui:ui-tooling-preview:")
       assertThat(this).contains("debugImplementation \"androidx.compose.ui:ui-tooling:")
     }
@@ -76,8 +76,8 @@ class NewComposeProjectTest {
       .clickPath("app")
 
     // Check if we can add another Compose Activity (will need to de-duplicate compose function names)
-    NewActivityWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "Compose", "Empty Compose Activity"))
-      .getConfigureActivityStep("Empty Compose Activity")
+    NewActivityWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "Compose", "Empty Activity"))
+      .getConfigureActivityStep("Empty Activity")
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
 

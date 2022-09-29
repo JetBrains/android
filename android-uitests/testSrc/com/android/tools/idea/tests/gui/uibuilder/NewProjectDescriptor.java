@@ -27,6 +27,7 @@ class NewProjectDescriptor {
   private int myMinSdkApi = SdkVersionInfo.LOWEST_ACTIVE_API;
   private String myName = "TestProject";
   // TODO(qumeric): consider adding "save location"
+  private String myActivity = "Empty View Activity";
 
   protected NewProjectDescriptor(@NotNull String name) {
     withName(name);
@@ -57,6 +58,23 @@ class NewProjectDescriptor {
   }
 
   /**
+   * Sets the activity template to use when creating the project.
+   */
+  NewProjectDescriptor withActivity(String activity) {
+    myActivity = activity;
+    return this;
+  }
+
+  /**
+   * Sets the activity template to use when creating the project.
+   */
+  NewProjectDescriptor withDefaultComposeActivity() {
+    myActivity = "Empty Activity";
+    myMinSdkApi = 21;
+    return this;
+  }
+
+  /**
    * Picks brief names in order to make the test execute faster (less slow typing in name text fields)
    */
   NewProjectDescriptor withBriefNames() {
@@ -72,10 +90,13 @@ class NewProjectDescriptor {
     guiTest
       .welcomeFrame()
       .createNewProject()
+      .getChooseAndroidProjectStep()
+      .chooseActivity(myActivity)
+      .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
       .enterName(myName)
-      .setSourceLanguage(Java)
+      .setSourceLanguage(null)
       .enterPackageName(myPkg)
       .selectMinimumSdkApi(myMinSdkApi)
       .wizard()

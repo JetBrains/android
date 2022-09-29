@@ -165,25 +165,13 @@ class TemplateTest {
   //--- Activity templates ---
   @TemplateCheck
   @Test
-  fun testNewBasicActivity() {
-    checkCreateTemplate("Basic Activity")
-  }
-
-  @TemplateCheck
-  @Test
-  fun testNewBasicActivityWithKotlin() {
-    checkCreateTemplate("Basic Activity", withKotlin, avoidModifiedModuleName = true)
-  }
-
-  @TemplateCheck
-  @Test
   fun testNewBasicActivityMaterial3() {
     StudioFlags.NPW_MATERIAL3_ENABLED.override(true)
     try {
       val withMaterial3: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, _: ProjectTemplateDataBuilder ->
         moduleData.isMaterial3 = true
       }
-      checkCreateTemplate("Basic Activity (Material3)", withKotlin, withMaterial3)
+      checkCreateTemplate("Basic Views Activity", withKotlin, withMaterial3)
     } finally {
       StudioFlags.NPW_MATERIAL3_ENABLED.clearOverride()
     }
@@ -191,14 +179,14 @@ class TemplateTest {
 
   @TemplateCheck
   @Test
-  fun testNewEmptyActivity() {
-    checkCreateTemplate("Empty Activity")
+  fun testNewEmptyViewActivity() {
+    checkCreateTemplate("Empty View Activity")
   }
 
   @TemplateCheck
   @Test
-  fun testNewEmptyActivityWithKotlin() {
-    checkCreateTemplate("Empty Activity", withKotlin)
+  fun testNewEmptyViewActivityWithKotlin() {
+    checkCreateTemplate("Empty View Activity", withKotlin)
   }
 
   @TemplateCheck
@@ -216,13 +204,13 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewTabbedActivity() {
-    checkCreateTemplate("Tabbed Activity")
+    checkCreateTemplate("Tabbed View Activity")
   }
 
   @TemplateCheck
   @Test
   fun testNewTabbedActivityWithKotlin() {
-    checkCreateTemplate("Tabbed Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Tabbed View Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -240,38 +228,38 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewPrimaryDetailFlow() {
-    checkCreateTemplate("Primary/Detail Flow")
+    checkCreateTemplate("Primary/Detail View Flow")
   }
 
   @TemplateCheck
   @Test
   fun testNewPrimaryDetailFlowWithKotlin() {
-    checkCreateTemplate("Primary/Detail Flow", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Primary/Detail View Flow", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testNewFullscreenActivity() {
-    checkCreateTemplate("Fullscreen Activity")
+    checkCreateTemplate("Fullscreen View Activity")
   }
 
   @TemplateCheck
   @Test
   fun testNewFullscreenActivityWithKotlin() {
-    checkCreateTemplate("Fullscreen Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Fullscreen View Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testNewFullscreenActivity_activityNotInRootPackage() {
-    checkCreateTemplate("Fullscreen Activity", templateStateCustomizer = withNewPackage("com.mycompany.myapp.subpackage"))
+    checkCreateTemplate("Fullscreen View Activity", templateStateCustomizer = withNewPackage("com.mycompany.myapp.subpackage"))
   }
 
   @TemplateCheck
   @Test
   fun testNewFullscreenActivityWithKotlin_activityNotInRootPackage() {
     checkCreateTemplate(
-      "Fullscreen Activity",
+      "Fullscreen View Activity",
       withKotlin,
       avoidModifiedModuleName = true,
       templateStateCustomizer = withNewPackage("com.mycompany.myapp.subpackage"))
@@ -280,85 +268,85 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewLoginActivity() {
-    checkCreateTemplate("Login Activity")
+    checkCreateTemplate("Login View Activity")
   }
 
   @TemplateCheck
   @Test
   fun testNewLoginActivityWithKotlin() {
-    checkCreateTemplate("Login Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Login View Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testNewScrollingActivity() {
-    checkCreateTemplate("Scrolling Activity")
+    checkCreateTemplate("Scrolling View Activity")
   }
 
   @TemplateCheck
   @Test
   fun testNewScrollingActivityWithKotlin() {
-    checkCreateTemplate("Scrolling Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Scrolling View Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testNewSettingsActivity() {
-    checkCreateTemplate("Settings Activity")
+    checkCreateTemplate("Settings View Activity")
   }
 
   @TemplateCheck
   @Test
   fun testNewSettingsActivityWithKotlin() {
-    checkCreateTemplate("Settings Activity", withKotlin)
+    checkCreateTemplate("Settings View Activity", withKotlin)
   }
 
   @TemplateCheck
   @Test
   fun testBottomNavigationActivity() {
-    checkCreateTemplate("Bottom Navigation Activity")
+    checkCreateTemplate("Bottom Navigation View Activity")
   }
 
   @TemplateCheck
   @Test
   fun testBottomNavigationActivityWithKotlin() {
-    checkCreateTemplate("Bottom Navigation Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Bottom Navigation View Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testGoogleAdMobAdsActivity() {
-    checkCreateTemplate("Google AdMob Ads Activity")
+    checkCreateTemplate("Google AdMob Ads View Activity")
   }
 
   @TemplateCheck
   @Test
   fun testGoogleAdMobAdsActivityWithKotlin() {
-    checkCreateTemplate("Google AdMob Ads Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Google AdMob Ads View Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testGoogleMapsActivity() {
-    checkCreateTemplate("Google Maps Activity")
+    checkCreateTemplate("Google Maps View Activity")
   }
 
   @TemplateCheck
   @Test
   fun testGoogleMapsActivityWithKotlin() {
-    checkCreateTemplate("Google Maps Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Google Maps View Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testGooglePayActivity() {
-    checkCreateTemplate("Google Pay Activity")
+    checkCreateTemplate("Google Pay View Activity")
   }
 
   @TemplateCheck
   @Test
   fun testGooglePayActivityWithKotlin() {
-    checkCreateTemplate("Google Pay Activity", withKotlin)
+    checkCreateTemplate("Google Pay View Activity", withKotlin)
   }
 
   @TemplateCheck
@@ -387,16 +375,6 @@ class TemplateTest {
 
   @TemplateCheck
   @Test
-  fun testComposeActivity() {
-    val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-      projectData.language = Language.Kotlin
-      projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
-    }
-    checkCreateTemplate("Empty Compose Activity", withSpecificKotlin) // Compose is always Kotlin
-  }
-
-  @TemplateCheck
-  @Test
   fun testComposeActivityMaterial3() {
     StudioFlags.NPW_MATERIAL3_ENABLED.override(true)
     try {
@@ -404,7 +382,7 @@ class TemplateTest {
         projectData.language = Language.Kotlin
         projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = true)
       }
-      checkCreateTemplate("Empty Compose Activity (Material3)", withSpecificKotlin) // Compose is always Kotlin
+      checkCreateTemplate("Empty Activity", withSpecificKotlin) // Compose is always Kotlin
     } finally {
       StudioFlags.NPW_MATERIAL3_ENABLED.clearOverride()
     }
@@ -445,13 +423,13 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewTvActivity() {
-    checkCreateTemplate("Android TV Blank Activity")
+    checkCreateTemplate("Android TV Blank View Activity")
   }
 
   @TemplateCheck
   @Test
   fun testNewTvActivityWithKotlin() {
-    checkCreateTemplate("Android TV Blank Activity", withKotlin)
+    checkCreateTemplate("Android TV Blank View Activity", withKotlin)
   }
 
   @TemplateCheck

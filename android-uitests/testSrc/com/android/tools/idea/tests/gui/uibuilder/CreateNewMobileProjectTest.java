@@ -56,7 +56,7 @@ public class CreateNewMobileProjectTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void createNewMobileProject() {
-    IdeFrameFixture ideFrame = newProject("Test Application").create(guiTest);
+    IdeFrameFixture ideFrame = newProject("Test Application").withDefaultComposeActivity().create(guiTest);
     assertThat(ideFrame.getModuleNames()).containsExactly("Test_Application", "Test_Application.app", "Test_Application.app.main",
                                                           "Test_Application.app.unitTest", "Test_Application.app.androidTest");
 
