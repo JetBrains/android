@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.Inv
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.Loading
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.NoStepsSelected
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.ProjectFilesNotCleanWarning
+import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.ProjectUsesVersionCatalogs
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.ReadyToRun
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.RunningSync
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.RunningUpgrade
@@ -998,7 +999,8 @@ class ContentManagerImplTest {
       AllDone, Blocked,
       is CaughtException,
       is InvalidVersionError,
-      Loading, NoStepsSelected, ProjectFilesNotCleanWarning, ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync,
+      Loading, NoStepsSelected, ProjectFilesNotCleanWarning, ProjectUsesVersionCatalogs,
+      ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync,
       is UpgradeSyncFailed,
       UpgradeSyncSucceeded ->
         this.hashCode()
@@ -1008,7 +1010,7 @@ class ContentManagerImplTest {
       AllDone, Blocked,
       CaughtException("one"), CaughtException("two"),
       InvalidVersionError(StatusMessage(Severity.ERROR, "one")), InvalidVersionError(StatusMessage(Severity.ERROR, "two")),
-      Loading, ProjectFilesNotCleanWarning, ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync,
+      Loading, ProjectFilesNotCleanWarning, ProjectUsesVersionCatalogs, ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync,
       UpgradeSyncFailed("one"), UpgradeSyncFailed("two"),
       UpgradeSyncSucceeded
     )

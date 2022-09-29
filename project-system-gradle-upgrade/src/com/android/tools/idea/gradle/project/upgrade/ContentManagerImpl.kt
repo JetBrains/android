@@ -32,6 +32,7 @@ import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
@@ -229,6 +230,14 @@ class ToolWindowModel(
       override val runTooltip = "There are uncommitted changes in project build files.  Before upgrading, " +
                                  "you should commit or revert changes to the build files so that changes from the upgrade process " +
                                  "can be handled separately."
+    }
+    object ProjectUsesVersionCatalogs : UIState() {
+      override val controlsEnabledState = ControlsEnabledState.BOTH
+      override val layoutState = LayoutState.READY
+      override val loadingText = ""
+      override val statusMessage = StatusMessage(Severity.WARNING, "Project uses Gradle Version Catalogs.")
+      override val runTooltip = "This project uses Gradle Version Catalogs in its build definition.  Some AGP Upgrade Assistant " +
+                                "functionality may not work as expected."
     }
     class InvalidVersionError(
       override val statusMessage: StatusMessage
@@ -461,14 +470,15 @@ class ToolWindowModel(
     val application = ApplicationManager.getApplication()
     newProcessor.ensureParsedModels()
     val projectFilesClean = isCleanEnoughProject(project)
+    val versionCatalogs = GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject
     if (application.isUnitTestMode) {
-      setEnabled(newProcessor, projectFilesClean)
+      setEnabled(newProcessor, projectFilesClean, versionCatalogs)
     } else {
-      invokeLater(ModalityState.NON_MODAL) { setEnabled(newProcessor, projectFilesClean) }
+      invokeLater(ModalityState.NON_MODAL) { setEnabled(newProcessor, projectFilesClean, versionCatalogs) }
     }
   }
 
-  private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean) {
+  private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean, versionCatalogs: Boolean) {
     refreshTree(newProcessor)
     processor = newProcessor
     if (processorsForCheckedPresentations().any { it.isBlocked }) {
@@ -484,6 +494,9 @@ class ToolWindowModel(
     }
     else if ((treeModel.root as? CheckedTreeNode)?.childCount == 0) {
       uiState.set(UIState.AllDone)
+    }
+    else if (versionCatalogs) {
+      uiState.set(UIState.ProjectUsesVersionCatalogs)
     }
     else {
       uiState.set(UIState.ReadyToRun)
