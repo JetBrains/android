@@ -61,7 +61,7 @@ class DeviceMirroringBenchmarkerTest {
   private val view = TestDisplayView(Dimension(WIDTH, HEIGHT))
   private val mousePressedLocations: MutableList<Point> = mutableListOf()
   private val mouseReleasedLocations: MutableList<Point> = mutableListOf()
-  private val benchmarkResults: MutableList<DeviceMirroringBenchmarker.BenchmarkResults> = mutableListOf()
+  private val results: MutableList<Benchmarker.Results<Point>> = mutableListOf()
   private val testTimeSource = TestTimeSource()
   private val mockTimer: Timer = mock()
   private val benchmarker = createBenchmarker()
@@ -276,10 +276,10 @@ class DeviceMirroringBenchmarkerTest {
     assertThat(stopCallbackCalled).isTrue()
     assertThat(completeCallbackCalled).isTrue()
     verify(mockTimer).cancel()
-    assertThat(benchmarkResults).hasSize(1)
-    assertThat(benchmarkResults[0].raw).hasSize(MAX_TOUCHES)
-    assertThat(benchmarkResults[0].raw.values.toSet()).containsExactly(Duration.ZERO)
-    benchmarkResults[0].percentiles.values.forEach {
+    assertThat(results).hasSize(1)
+    assertThat(results[0].raw).hasSize(MAX_TOUCHES)
+    assertThat(results[0].raw.values.toSet()).containsExactly(Duration.ZERO)
+    results[0].percentiles.values.forEach {
       assertThat(it).isWithin(0.0000000001).of(0.0)
     }
   }
@@ -304,10 +304,10 @@ class DeviceMirroringBenchmarkerTest {
     assertThat(mousePressedLocations).hasSize(numTouchablePixels)
     assertThat(allPointsBenchmarker.isDone()).isTrue()
     val expectedRawResults = (0 until numTouchablePixels).associate { mousePressedLocations[it] to (it.seconds - latencyMs.milliseconds) }
-    assertThat(benchmarkResults[0].raw).containsExactlyEntriesIn(expectedRawResults)
+    assertThat(results[0].raw).containsExactlyEntriesIn(expectedRawResults)
     // This distribution just increases linearly, so each percentile is a relative fraction of the max.
     val maxDurationMillis = (numTouchablePixels - 1).seconds.toDouble(DurationUnit.MILLISECONDS)
-    benchmarkResults[0].percentiles.forEach { (k, v) ->
+    results[0].percentiles.forEach { (k, v) ->
       assertThat(v).isWithin(0.00000001).of(maxDurationMillis * k / 100 - latencyMs)
     }
   }
@@ -332,10 +332,10 @@ class DeviceMirroringBenchmarkerTest {
     assertThat(mousePressedLocations).hasSize(numTouchablePixels)
     assertThat(allPointsBenchmarker.isDone()).isTrue()
     val expectedRawResults = (0 until numTouchablePixels).associate { mousePressedLocations[it] to (it.seconds - latencyMs.milliseconds) }
-    assertThat(benchmarkResults[0].raw).containsExactlyEntriesIn(expectedRawResults)
+    assertThat(results[0].raw).containsExactlyEntriesIn(expectedRawResults)
     // This distribution just increases linearly, so each percentile is a relative fraction of the max.
     val maxDurationMillis = (numTouchablePixels - 1).seconds.toDouble(DurationUnit.MILLISECONDS)
-    benchmarkResults[0].percentiles.forEach { (k, v) ->
+    results[0].percentiles.forEach { (k, v) ->
       assertThat(v).isWithin(0.00000001).of(maxDurationMillis * k / 100 - latencyMs)
     }
   }
@@ -360,10 +360,10 @@ class DeviceMirroringBenchmarkerTest {
     assertThat(mousePressedLocations).hasSize(numTouchablePixels)
     assertThat(allPointsBenchmarker.isDone()).isTrue()
     val expectedRawResults = (0 until numTouchablePixels).associate { mousePressedLocations[it] to (it.seconds - latencyMs.milliseconds) }
-    assertThat(benchmarkResults[0].raw).containsExactlyEntriesIn(expectedRawResults)
+    assertThat(results[0].raw).containsExactlyEntriesIn(expectedRawResults)
     // This distribution just increases linearly, so each percentile is a relative fraction of the max.
     val maxDurationMillis = (numTouchablePixels - 1).seconds.toDouble(DurationUnit.MILLISECONDS)
-    benchmarkResults[0].percentiles.forEach { (k, v) ->
+    results[0].percentiles.forEach { (k, v) ->
       assertThat(v).isWithin(0.00000001).of(maxDurationMillis * k / 100 - latencyMs)
     }
   }
@@ -418,7 +418,7 @@ class DeviceMirroringBenchmarkerTest {
       .apply {
         addOnStoppedCallback { stopCallbackCalled = true }
         addOnCompleteCallback {
-          benchmarkResults.add(it)
+          results.add(it)
           completeCallbackCalled = true
         }
       }

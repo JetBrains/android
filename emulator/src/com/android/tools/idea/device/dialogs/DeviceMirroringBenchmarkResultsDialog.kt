@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.device.dialogs
 
-import com.android.tools.idea.device.benchmark.DeviceMirroringBenchmarker
+import com.android.tools.idea.device.benchmark.Benchmarker
 import com.intellij.CommonBundle
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
@@ -34,12 +34,13 @@ import com.intellij.ui.components.dialog
 import com.intellij.ui.dsl.builder.panel
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.Point
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.SwingConstants
 
 /** Dialog to display results for device mirroring benchmarking. */
-class DeviceMirroringBenchmarkResultsDialog(private val deviceName: String, private val results: DeviceMirroringBenchmarker.BenchmarkResults) {
+class DeviceMirroringBenchmarkResultsDialog(private val deviceName: String, private val results: Benchmarker.Results<Point>) {
   init {
     require(results.percentiles.values.isNotEmpty()) { "Must provide some values!" }
   }
