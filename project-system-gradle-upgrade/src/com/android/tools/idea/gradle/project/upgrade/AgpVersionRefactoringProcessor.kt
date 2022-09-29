@@ -171,7 +171,10 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
       // Examine plugins for plugin Dsl declarations.
       model.plugins().forEach(::addUsagesFor)
     }
-    projectBuildModel.projectSettingsModel?.pluginManagement()?.plugins()?.plugins()?.forEach(::addUsagesFor)
+    projectBuildModel.projectSettingsModel?.let {
+      it.pluginManagement()?.plugins()?.plugins()?.forEach(::addUsagesFor)
+      it.plugins()?.plugins()?.forEach(::addUsagesFor)
+    }
     return usages.toTypedArray()
   }
 
