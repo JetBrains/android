@@ -41,10 +41,10 @@ class ObjectLayoutAssumptionTest {
     val disposerClass = Disposer::class
     val objectTreeInstance =
       disposerClass.members.first { c -> c.name == "ourTree" }.apply { isAccessible = true }.call()!!
-    val myObject2NodeMapField = objectTreeInstance.javaClass.getDeclaredField("myObject2ParentNode").apply { isAccessible = true }
+    val myObject2NodeMapField = objectTreeInstance.javaClass.getDeclaredField("myObject2NodeMap").apply { isAccessible = true }
     val map = myObject2NodeMapField.get(objectTreeInstance)
 
-    // ObjectTree.myObject2ParentNode validation
+    // ObjectTree.myObject2NodeMap validation
     assertEquals("it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap", map.javaClass.canonicalName)
   }
 }
