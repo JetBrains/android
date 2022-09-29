@@ -138,21 +138,21 @@ class BuildAttributionUiManagerImpl(
       latestBuildSuccessful = true
       uiAnalytics.newReportSessionId(buildSessionId)
 
-      val content = buildContent
-      createAndRegisterNewView {
+      val viewFactory = {
         val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
         NewViewComponentContainer(reportUiData, project, issueReporter, uiAnalytics)
       }
+      val content = buildContent
       if (content != null && content.isValid) {
-        // Tab is open, replace UI for both successful and failed builds.
-        content.replaceContentView()
+        placeNewViewInExistingTab(content, viewFactory)
       }
       else {
-        createNewTab()
+        createTabWithNewView(viewFactory)
       }
 
       if (reportUiData.shouldAutoOpenTab()) {
-        openTab(BuildAttributionUiAnalytics.TabOpenEventSource.AUTO_OPEN)
+        // At this point tab is surely created.
+        makeExistingTabSelected(buildContent!!, BuildAttributionUiAnalytics.TabOpenEventSource.AUTO_OPEN)
       }
 
       notificationManager.showToolWindowBalloonIfNeeded(reportUiData) {
@@ -172,22 +172,56 @@ class BuildAttributionUiManagerImpl(
       val content = buildContent
       if (content != null && content.isValid) {
         // Tab is open, replace UI for both successful and failed builds.
-        createAndRegisterNewView { BuildFailureViewComponentContainer() }
-        content.replaceContentView()
+        placeNewViewInExistingTab(content) { BuildFailureViewComponentContainer() }
       }
     }
   }
 
-  @UiThread
-  private fun reInitReportUI() {
-    val content = buildContent
-    if (content != null && content.isValid) {
-      buildAttributionView?.let { view ->
-        (view as? NewViewComponentContainer)?.reInitUi()
-        content.component.removeAll()
-        content.component.add(view.component, BorderLayout.CENTER)
+  override fun openTab(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource) {
+    if (BuildAnalyzerStorageManager.getInstance(project).hasData()) {
+      invokeLaterIfNotDisposed {
+        if (buildContent?.isValid != true) {
+          // If tab is closed, we need to retrieve the latest data from the storage and recreate the view.
+          val viewFactory = getViewFactoryFromLatestResult()
+          createTabWithNewView(viewFactory)
+        }
+
+        // At this point tab is surely created.
+        makeExistingTabSelected(buildContent!!, eventSource)
       }
     }
+  }
+
+  private fun getViewFactoryFromLatestResult(): () -> ComponentContainer {
+    if (latestBuildSuccessful) {
+      // If latest build was successful, get data from storage and recreate the normal view.
+      val buildResults = BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults()
+      val reportUiData = BuildAttributionReportBuilder(buildResults).build();
+      return {
+        val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
+        NewViewComponentContainer(reportUiData, project, issueReporter, uiAnalytics)
+      }
+    }
+    else {
+      // If last build failed, we should stick with this empty error view, not change to previous success.
+      return { BuildFailureViewComponentContainer() }
+    }
+  }
+
+  private fun createTabWithNewView(viewFactory: () -> ComponentContainer) {
+    createAndRegisterNewView(viewFactory)
+    createNewTab()
+  }
+
+  private fun placeNewViewInExistingTab(content: Content, viewFactory: () -> ComponentContainer) {
+    createAndRegisterNewView(viewFactory)
+    content.replaceContentView()
+  }
+
+  private fun makeExistingTabSelected(content: Content, eventSource: BuildAttributionUiAnalytics.TabOpenEventSource) {
+    uiAnalytics.registerOpenEventSource(eventSource)
+    content.manager?.setSelectedContent(content, true, true)
+    BuildContentManager.getInstance(project).getOrCreateToolWindow().show {}
   }
 
   private fun createAndRegisterNewView(viewFactory: () -> ComponentContainer) {
@@ -220,6 +254,18 @@ class BuildAttributionUiManagerImpl(
     }
   }
 
+  @UiThread
+  private fun reInitReportUI() {
+    val content = buildContent
+    if (content != null && content.isValid) {
+      buildAttributionView?.let { view ->
+        (view as? NewViewComponentContainer)?.reInitUi()
+        content.component.removeAll()
+        content.component.add(view.component, BorderLayout.CENTER)
+      }
+    }
+  }
+
   private fun onContentClosed() {
     uiAnalytics.tabClosed()
     cleanUp()
@@ -230,33 +276,6 @@ class BuildAttributionUiManagerImpl(
     contentManager = null
     buildAttributionView = null
     buildContent = null
-  }
-
-  override fun openTab(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource) {
-    if (BuildAnalyzerStorageManager.getInstance(project).hasData()) {
-      invokeLaterIfNotDisposed {
-        if (buildContent?.isValid != true) {
-          // If tab is closed, we need to retrieve the latest data from the storage and recreate the view.
-          if (latestBuildSuccessful) {
-            // If latest build was successful, get data from storage and recreate the normal view.
-            val buildResults = BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults()
-            val reportUiData = BuildAttributionReportBuilder(buildResults).build()
-            createAndRegisterNewView {
-              val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
-              NewViewComponentContainer(reportUiData, project, issueReporter, uiAnalytics)
-            }
-          }
-          else {
-            // If last build failed, we should stick with this empty error view, not change to previous success.
-            createAndRegisterNewView { BuildFailureViewComponentContainer() }
-          }
-          createNewTab()
-        }
-        uiAnalytics.registerOpenEventSource(eventSource)
-        contentManager!!.setSelectedContent(buildContent!!, true, true)
-        BuildContentManager.getInstance(project).getOrCreateToolWindow().show {}
-      }
-    }
   }
 
   override fun dispose() = cleanUp()
