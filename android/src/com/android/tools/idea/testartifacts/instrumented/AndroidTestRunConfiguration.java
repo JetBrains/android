@@ -38,10 +38,12 @@ import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.AndroidTestExtraParam;
+import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -470,7 +472,14 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public String getExtraInstrumentationOptions(@Nullable AndroidFacet facet) {
     Collection<AndroidTestExtraParam> extraParams;
 
-    extraParams = SequencesKt.toList(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS));
+    if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
+      // Extra options defined in build.gradle are always included in AGP, adding them here would duplicate them.
+      extraParams = SequencesKt.toList(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS));
+
+    } else {
+      extraParams = AndroidTestExtraParamKt.merge(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS),
+                                                  AndroidTestExtraParamKt.getAndroidTestExtraParams(facet));
+    }
 
     return extraParams.stream()
       .map(param -> "-e " + param.getNAME() + " " + param.getVALUE())
