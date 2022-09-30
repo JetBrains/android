@@ -21,6 +21,7 @@ import com.android.tools.property.ptable.PTableModel
 import com.android.tools.property.panel.api.TableLineModel
 import com.android.tools.property.panel.api.TableUIProvider
 import com.google.common.truth.Truth
+import kotlin.properties.Delegates
 
 class FakeTableLineModel(
   override val tableModel: PTableModel,
@@ -32,7 +33,7 @@ class FakeTableLineModel(
 
   override val itemCount = tableModel.items.size
 
-  override var filter: String = ""
+  override var filter by Delegates.observable("") { _, _, _ -> fireValueChanged() }
 
   override fun requestFocus(item: PTableItem) {
     selectedItem = item

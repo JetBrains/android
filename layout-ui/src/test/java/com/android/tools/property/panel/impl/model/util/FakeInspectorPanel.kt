@@ -82,37 +82,43 @@ class FakeInspectorPanel : InspectorPanel {
     child.parent = group
   }
 
-  fun checkTitle(line: Int, title: String) {
+  fun checkTitle(line: Int, title: String): FakeInspectorLineModel {
     Truth.assertThat(line).isLessThan(lines.size)
-    Truth.assertThat(lines[line].type).isEqualTo(FakeLineType.TITLE)
-    Truth.assertThat(lines[line].title).isEqualTo(title)
+    val model = lines[line]
+    Truth.assertThat(model.type).isEqualTo(FakeLineType.TITLE)
+    Truth.assertThat(model.title).isEqualTo(title)
+    return model
   }
 
   fun checkTitle(line: Int, title: String, expandable: Boolean): FakeInspectorLineModel {
     Truth.assertThat(line).isLessThan(lines.size)
-    Truth.assertThat(lines[line].type).isEqualTo(FakeLineType.TITLE)
-    Truth.assertThat(lines[line].title).isEqualTo(title)
-    Truth.assertThat(lines[line].expandable).isEqualTo(expandable)
-    return lines[line]
+    val model = lines[line]
+    Truth.assertThat(model.type).isEqualTo(FakeLineType.TITLE)
+    Truth.assertThat(model.title).isEqualTo(title)
+    Truth.assertThat(model.expandable).isEqualTo(expandable)
+    return model
   }
 
   fun checkEditor(line: Int, namespace: String, name: String) {
     Truth.assertThat(line).isLessThan(lines.size)
-    Truth.assertThat(lines[line].type).isEqualTo(FakeLineType.PROPERTY)
-    Truth.assertThat(lines[line].editorModel?.property?.name).isEqualTo(name)
-    Truth.assertThat(lines[line].editorModel?.property?.namespace).isEqualTo(namespace)
+    val model = lines[line]
+    Truth.assertThat(model.type).isEqualTo(FakeLineType.PROPERTY)
+    Truth.assertThat(model.editorModel?.property?.name).isEqualTo(name)
+    Truth.assertThat(model.editorModel?.property?.namespace).isEqualTo(namespace)
   }
 
   fun checkTable(line: Int): FakeTableLineModel {
     Truth.assertThat(line).isLessThan(lines.size)
-    Truth.assertThat(lines[line].type).isEqualTo(FakeLineType.TABLE)
-    return lines[line] as FakeTableLineModel
+    val model = lines[line]
+    Truth.assertThat(model.type).isEqualTo(FakeLineType.TABLE)
+    return model as FakeTableLineModel
   }
 
   fun performAction(line: Int, action: Int, icon: Icon) {
     Truth.assertThat(line).isLessThan(lines.size)
-    Truth.assertThat(action).isLessThan(lines[line].actions.size)
-    val anAction = lines[line].actions[action]
+    val model = lines[line]
+    Truth.assertThat(action).isLessThan(model.actions.size)
+    val anAction = model.actions[action]
     Truth.assertThat(anAction.templatePresentation.icon).isEqualTo(icon)
 
     anAction.actionPerformed(mock())
