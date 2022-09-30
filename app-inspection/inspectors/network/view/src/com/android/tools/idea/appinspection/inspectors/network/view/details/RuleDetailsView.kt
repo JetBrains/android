@@ -121,25 +121,14 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
     val statusCodeData = rule.statusCodeRuleData
 
     val findCodeWarningLabel = createWarningLabel("Status code should be an integer", "findCodeWarningLabel")
-    val findCodeTextField = createTextField(statusCodeData.findCode, "200", "findCodeTextField") {
-      if(!validateIntegerInput(it, !statusCodeData.isActive)) {
-        findCodeWarningLabel.isVisible = true
-        return@createTextField
-      }
-      if (statusCodeData.findCode != it) {
-        statusCodeData.findCode = it
-        usageTracker.trackRuleUpdated(InterceptionCriteria.FIND_CODE)
-      }
-    }
-    (findCodeTextField.document as AbstractDocument).documentFilter = ClearWarningLabelDocumentFilter(findCodeWarningLabel)
-    val findCodePanel = createPanelWithTextFieldAndWarningLabel(findCodeTextField, findCodeWarningLabel)
-
     val newCodeWarningLabel = createWarningLabel("Status code should be an integer", "newCodeWarningLabel")
     val newCodeTextField = createTextField(statusCodeData.newCode, "500", "newCodeTextField") {
       if (isEnabled && !validateIntegerInput(it, false)) {
         newCodeWarningLabel.isVisible = true
+        statusCodeData.isActive = false
         return@createTextField
       }
+      statusCodeData.isActive = !findCodeWarningLabel.isVisible
       if (statusCodeData.newCode != it) {
         statusCodeData.newCode = it
         usageTracker.trackRuleUpdated(InterceptionCriteria.FIND_REPLACE_CODE)
@@ -148,14 +137,30 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
     (newCodeTextField.document as AbstractDocument).documentFilter = ClearWarningLabelDocumentFilter(newCodeWarningLabel)
     val newCodePanel = createPanelWithTextFieldAndWarningLabel(newCodeTextField, newCodeWarningLabel)
 
+    val findCodeTextField = createTextField(statusCodeData.findCode, "200", "findCodeTextField") {
+      // newCodeTextField is enabled only when the isActiveCheckBox is checked. Use that as a marker to check if empty input is acceptable
+      if(!validateIntegerInput(it, !newCodeTextField.isEnabled)) {
+        findCodeWarningLabel.isVisible = true
+        statusCodeData.isActive = false
+        return@createTextField
+      }
+      statusCodeData.isActive = newCodeTextField.isEnabled && !newCodeWarningLabel.isVisible
+      if (statusCodeData.findCode != it) {
+        statusCodeData.findCode = it
+        usageTracker.trackRuleUpdated(InterceptionCriteria.FIND_CODE)
+      }
+    }
+    (findCodeTextField.document as AbstractDocument).documentFilter = ClearWarningLabelDocumentFilter(findCodeWarningLabel)
+    val findCodePanel = createPanelWithTextFieldAndWarningLabel(findCodeTextField, findCodeWarningLabel)
+
     val isActiveCheckBox = JBCheckBox("Replace with status code:").apply {
       isSelected = statusCodeData.isActive
       newCodeTextField.isEnabled = isSelected
       addActionListener {
-        statusCodeData.isActive = isSelected
         newCodeTextField.isEnabled = isSelected
         newCodeWarningLabel.isVisible = isSelected && !validateIntegerInput(newCodeTextField.text, false)
         findCodeWarningLabel.isVisible = !validateIntegerInput(findCodeTextField.text, !isSelected)
+        statusCodeData.isActive = !newCodeWarningLabel.isVisible && !findCodeWarningLabel.isVisible
       }
     }
     return JPanel(VerticalLayout(6)).apply {

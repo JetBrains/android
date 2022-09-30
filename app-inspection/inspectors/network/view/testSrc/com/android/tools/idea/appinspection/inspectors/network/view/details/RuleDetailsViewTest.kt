@@ -937,6 +937,57 @@ class RuleDetailsViewTest {
     }
   }
 
+  @Test
+  fun statusCodeInactiveWhenAnyStatusCodeInvalid() {
+    val rule = addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val findCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
+    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val newCodeWarningLabel = findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
+    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+
+    findCodeTextField.text = "ABC"
+    findCodeTextField.onFocusLost()
+
+    assert(findCodeWarningLabel.isVisible)
+    assert(!rule.statusCodeRuleData.isActive)
+
+    isActiveCheckBox.doClick()
+
+    assert(newCodeWarningLabel.isVisible)
+    assert(!rule.statusCodeRuleData.isActive)
+
+    newCodeTextField.text = "DEF"
+    newCodeTextField.onFocusLost()
+
+    assert(newCodeWarningLabel.isVisible)
+    assert(!rule.statusCodeRuleData.isActive)
+
+    // Valid new code. Rule should not update since find code is still invalid
+    newCodeTextField.text = "123"
+    newCodeTextField.onFocusLost()
+
+    assert(!newCodeWarningLabel.isVisible)
+    assert(!rule.statusCodeRuleData.isActive)
+
+    // Valid find code. Invalid new code. Rule should not update
+    newCodeTextField.text = "DEF"
+    findCodeTextField.text =  "123"
+    newCodeTextField.onFocusLost()
+    findCodeTextField.onFocusLost()
+
+    assert(newCodeWarningLabel.isVisible)
+    assert(!findCodeWarningLabel.isVisible)
+    assert(!rule.statusCodeRuleData.isActive)
+
+    newCodeTextField.text = "456"
+    newCodeTextField.onFocusLost()
+
+    assert(!newCodeWarningLabel.isVisible)
+    assert(rule.statusCodeRuleData.isActive)
+  }
+
   private fun addNewRule(): RuleData {
     val rulesView = inspectorView.rulesView
     val addAction = findAction(rulesView.component, "Add")
