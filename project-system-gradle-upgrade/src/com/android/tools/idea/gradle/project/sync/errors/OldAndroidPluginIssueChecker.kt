@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
@@ -41,8 +42,8 @@ class OldAndroidPluginIssueChecker: GradleIssueChecker {
   companion object {
     private val UNSUPPORTED_GRADLE_VERSION_PATTERN = Pattern.compile(
       "Support for builds using Gradle versions older than (.*?) .* You are currently using Gradle version (.*?). .*", Pattern.DOTALL)
-    val MINIMUM_AGP_VERSION_JDK_8 = GradleVersion(3, 1, 0)
-    val MINIMUM_AGP_VERSION_JDK_11 = GradleVersion(3, 2, 0)
+    val MINIMUM_AGP_VERSION_JDK_8 = AgpVersion(3, 1, 0)
+    val MINIMUM_AGP_VERSION_JDK_11 = AgpVersion(3, 2, 0)
     val MINIMUM_GRADLE_VERSION = GradleVersion.parse(SdkConstants.GRADLE_MINIMUM_VERSION)
   }
 
@@ -71,7 +72,11 @@ class OldAndroidPluginIssueChecker: GradleIssueChecker {
       val minAgpToUse = if (isJdk8OrOlder) MINIMUM_AGP_VERSION_JDK_8 else MINIMUM_AGP_VERSION_JDK_11
       composer.addQuickFix(UpgradeGradleVersionsQuickFix(getCompatibleGradleVersion(minAgpToUse).version, minAgpToUse, "minimum"))
     }
-    composer.addQuickFix(UpgradeGradleVersionsQuickFix(GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION), GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()), "latest"))
+    composer.run {
+      val latestGradleVersion = GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)
+      val latestAgpVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+      addQuickFix(UpgradeGradleVersionsQuickFix(latestGradleVersion, latestAgpVersion, "latest"))
+    }
     composer.addQuickFix("Open build file", OpenPluginBuildFileQuickFix())
     return composer.composeBuildIssue()
   }
@@ -80,7 +85,7 @@ class OldAndroidPluginIssueChecker: GradleIssueChecker {
     // Try to prevent updates to versions lower than 4.10 since they are not supported by AS Flamingo+
     val matcher = UNSUPPORTED_GRADLE_VERSION_PATTERN.matcher(message)
     if (matcher.matches()) {
-      val minimumVersion = GradleVersion.parse(matcher.group (1))
+      val minimumVersion = GradleVersion.parse(matcher.group(1))
       val usedVersion = GradleVersion.parse(matcher.group(2))
       if (minimumVersion <= MINIMUM_GRADLE_VERSION) {
         return "This version of Android Studio requires projects to use Gradle $MINIMUM_GRADLE_VERSION or newer. This project is using Gradle $usedVersion."

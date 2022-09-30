@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.util.ui.UIUtil
@@ -24,9 +24,7 @@ import javax.swing.JEditorPane
 
 class AgpUpgradeRefactoringProcessorCannotUpgradeDialogTest : HeavyPlatformTestCase() {
 
-  private val latestKnown by lazy {
-    GradleVersion.parseAndroidGradlePluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get())
-  }
+  private val latestKnown by lazy { AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()) }
 
   override fun tearDown() {
     super.tearDown()
@@ -35,7 +33,7 @@ class AgpUpgradeRefactoringProcessorCannotUpgradeDialogTest : HeavyPlatformTestC
 
   @Test
   fun testCannotUpgradeDialogNoBuildFile() {
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), latestKnown)
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.1.0"), latestKnown)
     assertTrue(processor.blockProcessorExecution())
     val dialog = registerDialogDisposable(AgpUpgradeRefactoringProcessorCannotUpgradeDialog(processor))
     val editorPanes = UIUtil.findComponentsOfType(dialog.createCenterPanel(), JEditorPane::class.java)

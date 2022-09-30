@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.IRRELEVANT_PAST
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
@@ -69,7 +69,7 @@ class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : He
         false -> assertTrue(p.commandName, p !is CompileRuntimeConfigurationRefactoringProcessor)
       }
     }
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("4.2.0"))
     processor.componentRefactoringProcessors.forEach { checkInitialConsistency(it) }
     registerDialogDisposable(AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor, processor.getCompileRuntimeProcessor()))
     processor.componentRefactoringProcessors.forEach { checkFinalConsistency(it) }
@@ -77,7 +77,7 @@ class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : He
 
   @Test
   fun testOKActionIsNotPreview() {
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("4.2.0"))
     processor.setCompileRuntimeIsAlwaysNoOpForProject(false)
     val compileRuntimeProcessor = processor.getCompileRuntimeProcessor()
     val dialog = AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor, compileRuntimeProcessor)
@@ -88,7 +88,7 @@ class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : He
 
   @Test
   fun testCancelActionIsNotPreview() {
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("4.2.0"))
     processor.setCompileRuntimeIsAlwaysNoOpForProject(false)
     val compileRuntimeProcessor = processor.getCompileRuntimeProcessor()
     val dialog = AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor, compileRuntimeProcessor)
@@ -99,7 +99,7 @@ class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : He
 
   @Test
   fun testPreviewActionIsPreview() {
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("4.2.0"))
     processor.setCompileRuntimeIsAlwaysNoOpForProject(false)
     val compileRuntimeProcessor = processor.getCompileRuntimeProcessor()
     val dialog = AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor, compileRuntimeProcessor)
@@ -111,7 +111,7 @@ class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : He
 
   @Test
   fun testOneArgumentConstructor() {
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("4.2.0"))
     val dialog = registerDialogDisposable(AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor))
     val field = AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog::class.java.getDeclaredField("myCompileRuntimeProcessor")
     field.isAccessible = true

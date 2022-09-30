@@ -17,6 +17,7 @@ package org.jetbrains.android.refactoring.namespaces
 
 import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
@@ -110,7 +111,7 @@ class MigrateToNonTransitiveRClassesHandler : RefactoringActionHandler {
     val pluginInfo = AndroidPluginInfo.find(project)
 
     // If for some reason Android Gradle Plugin version cannot be found, assume users have the correct version for the refactoring ie. 7.0.0
-    val pluginVersion = pluginInfo?.pluginVersion ?: GradleVersion(7,0,0)
+    val pluginVersion = pluginInfo?.pluginVersion ?: AgpVersion(7, 0, 0)
 
     // Android Gradle Plugin version less than 4.2.0 is not supported.
     if (!pluginVersion.isAtLeast(4, 2, 0,"alpha", 0, true)) {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel
 import com.android.tools.adtui.common.primaryContentBackground
@@ -110,17 +111,17 @@ private val LOG = Logger.getInstance(LOG_CATEGORY)
 // "Model" here loosely in the sense of Model-View-Controller
 class ToolWindowModel(
   val project: Project,
-  val currentVersionProvider: () -> GradleVersion?,
-  val recommended: GradleVersion? = null,
-  val knownVersionsRequester: () -> Set<GradleVersion> = { IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle") }
+  val currentVersionProvider: () -> AgpVersion?,
+  val recommended: AgpVersion? = null,
+  val knownVersionsRequester: () -> Set<AgpVersion> = { IdeGoogleMavenRepository.getAgpVersions() }
 ) : GradleSyncListener, Disposable {
 
-  val latestKnownVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  val latestKnownVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
 
-  var current: GradleVersion? = currentVersionProvider()
+  var current: AgpVersion? = currentVersionProvider()
     private set
-  private var _selectedVersion: GradleVersion? = recommended ?: latestKnownVersion
-  val selectedVersion: GradleVersion?
+  private var _selectedVersion: AgpVersion? = recommended ?: latestKnownVersion
+  val selectedVersion: AgpVersion?
     get() = _selectedVersion
   var processor: AgpUpgradeRefactoringProcessor? = null
   var beforeUpgradeFilesStateLabel: Label? = null
@@ -285,8 +286,8 @@ class ToolWindowModel(
     }
   }
 
-  val knownVersions = OptionalValueProperty<Set<GradleVersion>>()
-  val suggestedVersions = OptionalValueProperty<List<GradleVersion>>()
+  val knownVersions = OptionalValueProperty<Set<AgpVersion>>()
+  val suggestedVersions = OptionalValueProperty<List<AgpVersion>>()
 
   val treeModel = DefaultTreeModel(CheckedTreeNode(null))
 
@@ -377,7 +378,7 @@ class ToolWindowModel(
   }
 
   fun editingValidation(value: String?): Pair<EditingErrorCategory, String> {
-    val parsed = value?.let { GradleVersion.tryParseAndroidGradlePluginVersion(it) }
+    val parsed = value?.let { AgpVersion.tryParse(it) }
     val current = current
     return when {
       current == null -> Pair(EditingErrorCategory.ERROR, "Unknown current AGP version.")
@@ -400,12 +401,12 @@ class ToolWindowModel(
       null
     }
     else {
-      GradleVersion.tryParseAndroidGradlePluginVersion(newVersionString)
+      AgpVersion.tryParse(newVersionString)
     }
     refresh()
   }
 
-  fun suggestedVersionsList(gMavenVersions: Set<GradleVersion>): List<GradleVersion> = gMavenVersions
+  fun suggestedVersionsList(gMavenVersions: Set<AgpVersion>): List<AgpVersion> = gMavenVersions
     // Make sure the current (if known), recommended, and latest known versions are present, whether published or not
     .union(listOfNotNull(current, recommended, latestKnownVersion))
     // Keep only versions that are later than or equal to current
@@ -680,7 +681,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
     }
   }
 
-  override fun showContent(recommended: GradleVersion?) {
+  override fun showContent(recommended: AgpVersion?) {
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
     toolWindow.contentManager.removeAllContents(true)
     val model = ToolWindowModel(
@@ -736,9 +737,9 @@ class ContentManagerImpl(val project: Project): ContentManager {
 
     val upgradeLabel = JBLabel(model.current.upgradeLabelText()).also { it.border = JBUI.Borders.empty(0, 6) }
 
-    val versionTextField = CommonComboBox<GradleVersion, CommonComboBoxModel<GradleVersion>>(
+    val versionTextField = CommonComboBox<AgpVersion, CommonComboBoxModel<AgpVersion>>(
       // TODO this model needs to be enhanced to know when to commit value, instead of doing it in document listener below.
-      object : DefaultCommonComboBoxModel<GradleVersion>(
+      object : DefaultCommonComboBoxModel<AgpVersion>(
         model.selectedVersion?.toString() ?: "",
         model.suggestedVersions.valueOrNull ?: emptyList()
       ) {
@@ -1220,12 +1221,12 @@ fun AgpUpgradeComponentNecessity.description() = when (this) {
   }
 }
 
-fun GradleVersion?.upgradeLabelText() = when (this) {
+fun AgpVersion?.upgradeLabelText() = when (this) {
   null -> "Upgrade Android Gradle Plugin from unknown version to"
   else -> "Upgrade Android Gradle Plugin from version $this to"
 }
 
-fun GradleVersion?.contentDisplayName() = when (this) {
+fun AgpVersion?.contentDisplayName() = when (this) {
   null -> "Upgrade project from unknown AGP"
   else -> "Upgrade project from AGP $this"
 }

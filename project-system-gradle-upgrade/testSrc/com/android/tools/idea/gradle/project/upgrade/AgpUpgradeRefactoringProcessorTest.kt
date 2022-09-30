@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
@@ -44,7 +44,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   private fun everythingDisabledNoEffectOn(filename: String) {
     writeToBuildFile(TestFileName(filename))
     val latestKnownVersion = ANDROID_GRADLE_PLUGIN_VERSION
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("1.0.0"), GradleVersion.parse(latestKnownVersion))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), AgpVersion.parse(latestKnownVersion))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
     processor.run()
     verifyFileContents(buildFile, TestFileName(filename))
@@ -53,7 +53,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   private fun everythingEnabledNoEffectOn(filename: String) {
     writeToBuildFile(TestFileName(filename))
     val latestKnownVersion = ANDROID_GRADLE_PLUGIN_VERSION
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("1.0.0"), GradleVersion.parse(latestKnownVersion))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), AgpVersion.parse(latestKnownVersion))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = true }
     processor.run()
     verifyFileContents(buildFile, TestFileName(filename))
@@ -64,7 +64,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   private fun everythingButJava8EnabledNoEffectOn(filename: String) {
     writeToBuildFile(TestFileName(filename))
     val latestKnownVersion = ANDROID_GRADLE_PLUGIN_VERSION
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("1.0.0"), GradleVersion.parse(latestKnownVersion))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), AgpVersion.parse(latestKnownVersion))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it !is Java8DefaultRefactoringProcessor }
     processor.run()
     verifyFileContents(buildFile, TestFileName(filename))
@@ -113,7 +113,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testEnabledEffectOnAgpVersion() {
     writeToBuildFile(TestFileName("AgpVersion/VersionInLiteral"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it is AgpVersionRefactoringProcessor }
     processor.run()
     verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInLiteralExpected"))
@@ -122,7 +122,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testEnabledAgpVersionHasTarget() {
     writeToBuildFile(TestFileName("AgpVersion/VersionInLiteral"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it is AgpVersionRefactoringProcessor }
     processor.run()
     assertThat(processor.targets).isNotEmpty()
@@ -131,7 +131,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testDisabledHasNoEffectOnAgpVersion() {
     writeToBuildFile(TestFileName("AgpVersion/VersionInLiteral"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
     processor.run()
     verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInLiteral"))
@@ -140,7 +140,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testDisabledAgpVersionStillHasTarget() {
     writeToBuildFile(TestFileName("AgpVersion/VersionInLiteral"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
     processor.run()
     assertThat(processor.targets).isNotEmpty()
@@ -149,7 +149,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testEnabledEffectOnJava8Default() {
     writeToBuildFile(TestFileName("Java8Default/SimpleApplicationNoLanguageLevel"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.1.2"), AgpVersion.parse("4.2.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it is Java8DefaultRefactoringProcessor }
     processor.run()
     verifyFileContents(buildFile, TestFileName("Java8Default/SimpleApplicationNoLanguageLevelExpected"))
@@ -158,7 +158,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testEnabledEffectOnCompileRuntimeConfiguration() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleApplication"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("5.0.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it is CompileRuntimeConfigurationRefactoringProcessor }
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleApplicationExpected"))
@@ -167,7 +167,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testEnabledEffectOnGMavenRepository() {
     writeToBuildFile(TestFileName("GMavenRepository/AGP2Project"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("2.3.2"), GradleVersion.parse("4.2.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("2.3.2"), AgpVersion.parse("4.2.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it is GMavenRepositoryRefactoringProcessor }
     processor.run()
     verifyFileContents(buildFile, TestFileName("GMavenRepository/AGP2ProjectExpected"))
@@ -179,7 +179,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
       this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == MIGRATE_TO_BUILD_FEATURES_INFO
 
     writeToBuildFile(TestFileName("MigrateToBuildFeatures/ViewBindingEnabledLiteral"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.6.0"), GradleVersion.parse("7.0.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("3.6.0"), AgpVersion.parse("7.0.0"))
     assumeTrue(processor.componentRefactoringProcessors.any { it.isMigrateBuildFeaturesRefactoringProcessor() }) // b/175097233
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isMigrateBuildFeaturesRefactoringProcessor() }
     processor.run()
@@ -192,7 +192,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
       this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == REMOVE_SOURCE_SET_JNI_INFO
 
     writeToBuildFile(TestFileName("RemoveSourceSetJni/SingleBlock"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("8.0.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isRemoveSourceSetJni() }
     processor.run()
     verifyFileContents(buildFile, TestFileName("RemoveSourceSetJni/SingleBlockExpected"))
@@ -204,7 +204,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
       this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES
 
     writeToBuildFile(TestFileName("MigrateAaptOptionsToAndroidResources/AaptOptionsToAndroidResources"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("8.0.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isMigrateAaptResources() }
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateAaptOptionsToAndroidResources/AaptOptionsToAndroidResourcesExpected"))
@@ -216,7 +216,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
       this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == REMOVE_BUILD_TYPE_USE_PROGUARD_INFO
 
     writeToBuildFile(TestFileName("RemoveBuildTypeUseProguard/TwoBuildTypes"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isRemoveUseProguard() }
     processor.run()
     verifyFileContents(buildFile, TestFileName("RemoveBuildTypeUseProguard/TwoBuildTypesExpected"))
@@ -225,7 +225,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Ignore("gradle-wrapper.properties is not a build file") // TODO(b/152854665)
   fun testEnabledEffectOnGradleVersion() {
     writeToBuildFile(TestFileName("GradleVersion/OldGradleVersion"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it is GradleVersionRefactoringProcessor }
     processor.run()
     verifyFileContents(buildFile, TestFileName("GradleVersion/OldGradleVersion410Expected"))
@@ -234,7 +234,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testEnabledEffectOnGradlePlugins() {
     writeToBuildFile(TestFileName("GradlePlugins/KotlinPluginVersionInLiteral"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("3.4.0"), AgpVersion.parse("4.1.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it is GradlePluginsRefactoringProcessor }
     processor.run()
     verifyFileContents(buildFile, TestFileName("GradlePlugins/KotlinPluginVersionInLiteralExpected"))
@@ -246,7 +246,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
       this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == MIGRATE_ADB_OPTIONS_TO_INSTALLATION
 
     writeToBuildFile(TestFileName("MigrateAdbOptionsToInstallation/AdbOptionsToInstallation"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("8.0.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isMigrateAdbOptions() }
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateAdbOptionsToInstallation/AdbOptionsToInstallationExpected"))
@@ -258,7 +258,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
       this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS
 
     writeToBuildFile(TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshots"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("8.0.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isMigrateFailureRetention() }
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshotsExpected"))
@@ -270,7 +270,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
       this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == MIGRATE_JACOCO_TO_TEST_COVERAGE
 
     writeToBuildFile(TestFileName("MigrateJacocoToTestCoverage/JacocoToTestCoverage"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("8.0.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isMigrateJacoco() }
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateJacocoToTestCoverage/JacocoToTestCoverageExpected"))
@@ -279,7 +279,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testEnabledEffectOnMigratePackagingOptions() {
     writeToBuildFile(TestFileName("MigratePackagingOptions/MultipleLiteralProperties"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("8.0.0"))
     processor.componentRefactoringProcessors.forEach {
       it.isEnabled = it is MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor
     }
@@ -293,7 +293,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
       this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == MIGRATE_LINT_OPTIONS_TO_LINT
 
     writeToBuildFile(TestFileName("MigrateLintOptionsToLint/LintOptionsToLint"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("8.0.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isMigrateLintOptions() }
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateLintOptionsToLint/LintOptionsToLintExpected"))
@@ -305,7 +305,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
       this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == REWRITE_DEPRECATED_OPERATORS
 
     writeToBuildFile(TestFileName("RewriteDeprecatedOperators/ResConfigs"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("8.0.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isRewriteDeprecatedOperators() }
     processor.run()
     verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/ResConfigsExpected"))

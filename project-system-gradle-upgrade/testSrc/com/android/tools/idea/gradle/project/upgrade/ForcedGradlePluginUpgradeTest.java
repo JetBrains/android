@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.testing.TestMessagesDialog;
 import com.intellij.mock.MockDumbService;
@@ -38,7 +38,7 @@ import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
 
 /**
- * Tests for {@link GradlePluginUpgrade#performForcedPluginUpgrade(Project, GradleVersion, GradleVersion)}}.
+ * Tests for {@link GradlePluginUpgrade#performForcedPluginUpgrade(Project, AgpVersion, AgpVersion)}}.
  */
 public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
   @Mock private RefactoringProcessorInstantiator myRefactoringProcessorInstantiator;
@@ -73,9 +73,9 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
   }
 
   public void testNewerThanLatestKnown() {
-    GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
+    AgpVersion latestPluginVersion = AgpVersion.parse("2.0.0");
 
-    boolean incompatible = GradlePluginUpgrade.versionsAreIncompatible(GradleVersion.parse("3.0.0"), latestPluginVersion);
+    boolean incompatible = GradlePluginUpgrade.versionsAreIncompatible(AgpVersion.parse("3.0.0"), latestPluginVersion);
     assertTrue(incompatible);
     // Can't "upgrade" down from a newer version.
     verifyNoInteractions(myRefactoringProcessorInstantiator);
@@ -84,8 +84,8 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
   }
 
   public void testUpgradeAccepted() {
-    GradleVersion alphaPluginVersion = GradleVersion.parse("2.0.0-alpha9");
-    GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
+    AgpVersion alphaPluginVersion = AgpVersion.parse("2.0.0-alpha9");
+    AgpVersion latestPluginVersion = AgpVersion.parse("2.0.0");
 
     // Simulate user accepting the upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
@@ -97,8 +97,8 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
   }
 
   public void testUpgradeAcceptedThenCancelled() {
-    GradleVersion alphaPluginVersion = GradleVersion.parse("2.0.0-alpha9");
-    GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
+    AgpVersion alphaPluginVersion = AgpVersion.parse("2.0.0-alpha9");
+    AgpVersion latestPluginVersion = AgpVersion.parse("2.0.0");
     // Simulate user accepting then cancelling the upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
     when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any())).thenReturn(false);
@@ -109,8 +109,8 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
 
   // See https://code.google.com/p/android/issues/detail?id=227927
   public void testUpgradeDeclined() {
-    GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
-    GradleVersion currentPluginVersion = GradleVersion.parse("2.0.0-alpha9");
+    AgpVersion latestPluginVersion = AgpVersion.parse("2.0.0");
+    AgpVersion currentPluginVersion = AgpVersion.parse("2.0.0-alpha9");
 
     // Simulate user canceling upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(Messages.CANCEL));

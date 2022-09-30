@@ -19,6 +19,7 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSy
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.google.common.annotations.VisibleForTesting;
@@ -174,22 +175,22 @@ public class ProjectStructure {
   }
 
   public static class AndroidPluginVersionsInProject {
-    @NotNull private final Set<GradleVersion> myAgpVersions = new HashSet<>();
+    @NotNull private final Set<AgpVersion> myAgpVersions = new HashSet<>();
 
     private void add(@NotNull AndroidModuleModel androidModel) {
-      GradleVersion modelVersion = androidModel.getAgpVersion();
+      AgpVersion modelVersion = androidModel.getAgpVersion();
       if (modelVersion != null) {
         add(modelVersion);
       }
     }
 
     @VisibleForTesting
-    private void add(@NotNull GradleVersion modelVersion) {
+    private void add(@NotNull AgpVersion modelVersion) {
       myAgpVersions.add(modelVersion);
     }
 
     @NotNull
-    public List<GradleVersion> getAllVersions() {
+    public List<AgpVersion> getAllVersions() {
       return new ArrayList<>(myAgpVersions);
     }
   }

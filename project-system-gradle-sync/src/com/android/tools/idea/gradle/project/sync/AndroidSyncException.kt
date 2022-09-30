@@ -19,6 +19,7 @@ import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
 import com.android.Version
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import java.util.regex.Pattern
 
 /**
@@ -57,11 +58,11 @@ class AgpVersionIncompatible(agpVersion: GradleVersion) : AndroidSyncException(g
     private const val PREVIEW = "preview "
     private val C = "version is AGP $ANDROID_GRADLE_PLUGIN_VERSION."
     private fun generateMessage(agpVersion: GradleVersion): String {
-      val latestKnown = GradleVersion.parseAndroidGradlePluginVersion(ANDROID_GRADLE_PLUGIN_VERSION)
+      val latestKnown = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
       return "$A$agpVersion$B${if (latestKnown.isPreview) PREVIEW else ""}$C"
     }
 
-    val PATTERN: Pattern = GradleVersion.parseAndroidGradlePluginVersion(ANDROID_GRADLE_PLUGIN_VERSION).let { latestKnown ->
+    val PATTERN: Pattern = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION).let { latestKnown ->
       Pattern.compile(
         "${Pattern.quote(A)}(.+)${Pattern.quote(B)}${if (latestKnown.isPreview) Pattern.quote(PREVIEW) else ""}${Pattern.quote(C)}")
     }

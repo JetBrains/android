@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -41,8 +41,8 @@ class AgpUpgradeRefactoringProcessorShowUsagesTest {
 
   val project by lazy { projectRule.project }
 
-  val currentAgpVersion = GradleVersion.parse("4.1.0")
-  val latestKnown by lazy { GradleVersion.parseAndroidGradlePluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get()) }
+  val currentAgpVersion = AgpVersion.parse("4.1.0")
+  val latestKnown by lazy { AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()) }
 
   @Test
   fun testShowUsageViewNoBuildFiles() {

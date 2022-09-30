@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  * AndroidProject/ModuleSystem APIs. Those callers needing Gradle specific features should, for now, depend on gradle-project-system.
  */
 public interface AndroidModuleModel extends AndroidModel {
-  @NotNull GradleVersion getAgpVersion();
+  @NotNull AgpVersion getAgpVersion();
 
   @Nullable
   static AndroidModuleModel get(@NotNull Module module) {

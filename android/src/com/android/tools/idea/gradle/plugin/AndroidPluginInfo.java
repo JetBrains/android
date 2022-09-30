@@ -21,7 +21,7 @@ import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
@@ -50,7 +50,7 @@ public class AndroidPluginInfo {
   public static final String GROUP_ID = "com.android.tools.build";
 
   @NotNull private final Module myModule;
-  @Nullable private final GradleVersion myPluginVersion; // May not be present if plugin dependency can not be located
+  @Nullable private final AgpVersion myPluginVersion; // May not be present if plugin dependency can not be located
   @Nullable private final VirtualFile myPluginBuildFile; // May not be present if plugin dependency can not be located
 
   /**
@@ -108,7 +108,7 @@ public class AndroidPluginInfo {
       fileAppModule = findModuleForFile(result.appVirtualFile, project);
     }
     if (fileAppModule != null || appModule != null) {
-      GradleVersion pluginVersion = isNotEmpty(result.pluginVersion) ? GradleVersion.tryParse(result.pluginVersion) : null;
+      AgpVersion pluginVersion = isNotEmpty(result.pluginVersion) ? AgpVersion.tryParse(result.pluginVersion) : null;
       return new AndroidPluginInfo(fileAppModule == null ? appModule : fileAppModule, pluginVersion, result.pluginVirtualFile);
     }
     return null;
@@ -181,9 +181,7 @@ public class AndroidPluginInfo {
   }
 
   @VisibleForTesting
-  public AndroidPluginInfo(@NotNull Module module,
-                           @Nullable GradleVersion pluginVersion,
-                           @Nullable VirtualFile pluginBuildFile) {
+  public AndroidPluginInfo(@NotNull Module module, @Nullable AgpVersion pluginVersion, @Nullable VirtualFile pluginBuildFile) {
     myModule = module;
     myPluginVersion = pluginVersion;
     myPluginBuildFile = pluginBuildFile;
@@ -201,7 +199,7 @@ public class AndroidPluginInfo {
   }
 
   @Nullable
-  public GradleVersion getPluginVersion() {
+  public AgpVersion getPluginVersion() {
     return myPluginVersion;
   }
 

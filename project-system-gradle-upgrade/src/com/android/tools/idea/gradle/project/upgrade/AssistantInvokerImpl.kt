@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.annotations.concurrency.Slow
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
@@ -37,7 +37,7 @@ private val LOG = Logger.getInstance(LOG_CATEGORY)
 class AssistantInvokerImpl : AssistantInvoker {
   @Slow
   override fun performDeprecatedConfigurationsUpgrade(project: Project, element: PsiElement) {
-    val recommended = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val recommended = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
     val current = AndroidPluginInfo.find(project)?.pluginVersion ?: recommended
     val processor = AgpUpgradeRefactoringProcessor(project, current, recommended)
     val runProcessor = showAndGetDeprecatedConfigurationsUpgradeDialog(
@@ -72,9 +72,9 @@ class AssistantInvokerImpl : AssistantInvoker {
 
   override fun maybeRecommendPluginUpgrade(project: Project, info: AndroidPluginInfo) {
     info.pluginVersion?.let { currentAgpVersion ->
-      val latestKnown = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+      val latestKnown = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
       executeOnPooledThread {
-        val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+        val published = IdeGoogleMavenRepository.getAgpVersions()
         val recommendation = shouldRecommendPluginUpgrade(project, currentAgpVersion, latestKnown, published)
         if (recommendation.upgrade) recommendPluginUpgrade(project, currentAgpVersion, recommendation.strongly)
       }

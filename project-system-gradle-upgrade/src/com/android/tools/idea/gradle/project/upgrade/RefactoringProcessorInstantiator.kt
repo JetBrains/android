@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.annotations.concurrency.Slow
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -85,7 +85,7 @@ class RefactoringProcessorInstantiator {
   /**
    * Create a refactoring processor for upgrading from AGP version [current] to [new].
    */
-  fun createProcessor(project: Project, current: GradleVersion, new: GradleVersion) =
+  fun createProcessor(project: Project, current: AgpVersion, new: AgpVersion) =
     AgpUpgradeRefactoringProcessor(project, current, new)
 
 }

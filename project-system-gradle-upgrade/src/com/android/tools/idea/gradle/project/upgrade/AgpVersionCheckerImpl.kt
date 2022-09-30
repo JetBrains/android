@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 
 class AgpVersionCheckerImpl : AgpVersionChecker {
 
-  override fun versionsAreIncompatible(current: GradleVersion, latestKnown: GradleVersion): Boolean =
+  override fun versionsAreIncompatible(current: AgpVersion, latestKnown: AgpVersion): Boolean =
     com.android.tools.idea.gradle.project.upgrade.versionsAreIncompatible(current, latestKnown)
 }

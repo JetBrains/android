@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
@@ -50,7 +50,7 @@ class ProcessorTrackerTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testVersionInLiteralUsageTracker() {
     writeToBuildFile(TestFileName("AgpVersion/VersionInLiteral"))
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it is AgpVersionRefactoringProcessor }
     processor.run()
 

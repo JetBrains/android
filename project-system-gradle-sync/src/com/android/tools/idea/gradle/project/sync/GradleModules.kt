@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.ProjectSyncIssues
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.LegacyApplicationIdModel
@@ -90,7 +90,7 @@ class JavaModule(
  */
 @VisibleForTesting
 sealed class AndroidModule constructor(
-  val agpVersion: GradleVersion?,
+  val agpVersion: AgpVersion?,
   val buildName: String,
   val buildNameMap: Map<String, BuildId>,
   val buildIdMap: Map<BuildId, String>,
@@ -141,7 +141,7 @@ sealed class AndroidModule constructor(
   }
 
   class V1(
-    agpVersion: GradleVersion?,
+    agpVersion: AgpVersion?,
     buildName: String,
     buildNameMap: Map<String, BuildId>,
     buildIdMap: Map<BuildId, String>,
@@ -192,7 +192,7 @@ sealed class AndroidModule constructor(
   }
 
   class V2(
-    agpVersion: GradleVersion?,
+    agpVersion: AgpVersion?,
     buildName: String,
     buildNameMap: Map<String, BuildId>,
     buildIdMap: Map<BuildId, String>,

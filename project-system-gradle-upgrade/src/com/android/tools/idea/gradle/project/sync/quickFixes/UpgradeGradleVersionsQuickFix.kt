@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.quickFixes
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
@@ -32,7 +33,7 @@ import com.intellij.openapi.project.Project
 import java.util.concurrent.CompletableFuture
 
 class UpgradeGradleVersionsQuickFix(val gradleVersion: GradleVersion,
-                                    val agpVersion: GradleVersion,
+                                    val agpVersion: AgpVersion,
                                     suffix: String): DescribedBuildIssueQuickFix {
   override val description: String = "Change to $suffix versions (plugin $agpVersion, Gradle $gradleVersion) and sync project"
   override val id: String = "upgrade.version.$suffix"

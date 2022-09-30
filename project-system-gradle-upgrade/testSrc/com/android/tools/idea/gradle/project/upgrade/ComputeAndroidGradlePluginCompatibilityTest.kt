@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.AFTER_MAXIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
@@ -90,11 +90,11 @@ class ComputeAndroidGradlePluginCompatibilityTest(private val info: TestInfo) {
   }
 
   data class TestInfo(
-    val projectVersion: GradleVersion,
-    val studioVersion: GradleVersion,
+    val projectVersion: AgpVersion,
+    val studioVersion: AgpVersion,
     val expectedCompatibility: AndroidGradlePluginCompatibility,
   ) {
     constructor(projectVersion: String, studioVersion: String, expectedCompatibility: AndroidGradlePluginCompatibility):
-      this(GradleVersion.parse(projectVersion), GradleVersion.parse(studioVersion), expectedCompatibility)
+      this(AgpVersion.parse(projectVersion), AgpVersion.parse(studioVersion), expectedCompatibility)
   }
 }

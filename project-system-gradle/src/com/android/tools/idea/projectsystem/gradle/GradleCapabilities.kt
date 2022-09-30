@@ -15,24 +15,24 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.CapabilityUpgradeRequired
 import com.intellij.openapi.module.Module
 
-val MIN_PNG_GENERATION_VERSION = GradleVersion(1, 4, 0)
+val MIN_PNG_GENERATION_VERSION = AgpVersion(1, 4, 0)
 
 /**
  * Returns the gradle plugin version for the given module or null if the model is unknown
  */
-fun Module.getGradleVersion(): GradleVersion? {
-  return GradleAndroidModel.get(this)?.let { GradleVersion.parse(it.androidProject.agpVersion) }
+fun Module.getGradlePluginVersion(): AgpVersion? {
+  return GradleAndroidModel.get(this)?.let { AgpVersion.parse(it.androidProject.agpVersion) }
 }
 
-fun Module.isGradleVersionAtLeast(version: GradleVersion, default: Boolean, ignoreQualifier: Boolean = true): Boolean {
-  val gradleVersion = getGradleVersion()
+fun Module.isGradlePluginVersionAtLeast(version: AgpVersion, default: Boolean, ignoreQualifier: Boolean = true): Boolean {
+  val gradleVersion = getGradlePluginVersion()
   return when {
     gradleVersion == null -> default
     ignoreQualifier -> gradleVersion.compareIgnoringQualifiers(version) >= 0
@@ -44,7 +44,7 @@ fun Module.isGradleVersionAtLeast(version: GradleVersion, default: Boolean, igno
  * @return whether the gradle plugin used by this module supports PNG generation
  */
 fun supportsPngGeneration(module: Module): CapabilityStatus {
-  return if (module.isGradleVersionAtLeast(MIN_PNG_GENERATION_VERSION, true))
+  return if (module.isGradlePluginVersionAtLeast(MIN_PNG_GENERATION_VERSION, true))
     CapabilitySupported()
   else
     CapabilityUpgradeRequired(

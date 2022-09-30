@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.InternedModels
@@ -55,7 +55,7 @@ class EncodingValidationStrategyTest : AndroidGradleTestCase() {
   fun testValidate() {
     val modelEncoding = "UTF-8"
     val androidModel = mock(GradleAndroidModel::class.java)
-    whenever(androidModel.agpVersion).thenReturn(GradleVersion.parse("1.2.0"))
+    whenever(androidModel.agpVersion).thenReturn(AgpVersion.parse("1.2.0"))
     val ideAndroidProject = AndroidProjectBuilder()
       .build()
       .invoke(

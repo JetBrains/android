@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardPointNecessity
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
@@ -23,10 +23,10 @@ import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.AndroidTestCase
 
 class AgpUpgradeComponentNecessityTest : AndroidTestCase() {
-  val one = GradleVersion(1, 0, 0)
-  val two = GradleVersion(2, 0, 0)
-  val three = GradleVersion(3, 0, 0)
-  val four = GradleVersion(4, 0, 0)
+  val one = AgpVersion(1, 0, 0)
+  val two = AgpVersion(2, 0, 0)
+  val three = AgpVersion(3, 0, 0)
+  val four = AgpVersion(4, 0, 0)
 
   fun testStandardPointNecessityReturns() {
     assertEquals(IRRELEVANT_PAST, standardPointNecessity(one, one, one))

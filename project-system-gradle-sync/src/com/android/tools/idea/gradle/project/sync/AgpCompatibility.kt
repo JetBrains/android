@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.Version
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility
 import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginCompatibility
 
 internal fun checkAgpVersionCompatibility(agpVersionString: String, syncOptions: SyncActionOptions) {
-  val agpVersion = GradleVersion.parse(agpVersionString)
-  val latestKnown = GradleVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION)
+  val agpVersion = AgpVersion.parse(agpVersionString)
+  val latestKnown = AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION)
   return when (computeAndroidGradlePluginCompatibility(agpVersion, latestKnown)) {
     // We want to report to the user that they are using an AGP version that is below the minimum supported version for Android Studio,
     // and this is regardless of whether we want to trigger the upgrade assistant or not. Sync should always fail here.

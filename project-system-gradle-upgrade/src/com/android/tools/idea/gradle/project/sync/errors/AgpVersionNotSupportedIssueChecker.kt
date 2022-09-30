@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.gradle.project.sync.AgpVersionIncompatible
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooNew
@@ -59,7 +60,7 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
       tooNewMatcher.find() -> Triple(tooNewMatcher, tooNewMatcher.group(0), TOO_NEW_URL)
       else -> return null
     }
-    val version = GradleVersion.tryParseAndroidGradlePluginVersion(matcher.group(1)) ?: return null
+    val version = AgpVersion.tryParse(matcher.group(1)) ?: return null
 
     logMetrics(issueData.projectPath)
 
@@ -119,7 +120,7 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
  * Hyperlink that triggers the showing of the [ForcedPluginPreviewVersionUpgradeDialog] letting the user
  * upgrade their Android Gradle plugin and Gradle versions.
  */
-class AgpUpgradeQuickFix(val currentAgpVersion: GradleVersion) : DescribedBuildIssueQuickFix {
+class AgpUpgradeQuickFix(val currentAgpVersion: AgpVersion) : DescribedBuildIssueQuickFix {
   override val id: String = "android.gradle.plugin.forced.update"
   override val description: String = "Upgrade to the latest version"
 
@@ -133,7 +134,7 @@ class AgpUpgradeQuickFix(val currentAgpVersion: GradleVersion) : DescribedBuildI
 /**
  * Helper method to trigger the forced upgrade prompt and then request a sync if it was successful.
  */
-private fun updateAndRequestSync(project: Project, currentAgpVersion: GradleVersion, future: CompletableFuture<Unit>? = null) {
+private fun updateAndRequestSync(project: Project, currentAgpVersion: AgpVersion, future: CompletableFuture<Unit>? = null) {
   AndroidExecutors.getInstance().diskIoThreadExecutor.execute {
     performForcedPluginUpgrade(project, currentAgpVersion)
     future?.complete(Unit)

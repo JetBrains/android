@@ -22,7 +22,7 @@ import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.STRONGLY_RECOMMEND;
 import static org.junit.Assert.assertEquals;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -205,22 +205,22 @@ public class ComputeGradlePluginUpgradeStateTest {
     "8.0.0", "8.0.1", "8.1.0-rc02"
   );
 
-  private final GradleVersion current;
-  private final GradleVersion latestKnown;
-  private final Set<GradleVersion> published;
+  private final AgpVersion current;
+  private final AgpVersion latestKnown;
+  private final Set<AgpVersion> published;
   private final GradlePluginUpgradeState.Importance importance;
-  private final GradleVersion expectedTarget;
+  private final AgpVersion expectedTarget;
 
   public ComputeGradlePluginUpgradeStateTest(@NotNull String current,
                                              @NotNull String latestKnown,
                                              @NotNull List<String> published,
                                              @NotNull GradlePluginUpgradeState.Importance importance,
                                              @NotNull String expectedTarget) {
-    this.current = GradleVersion.parse(current);
-    this.latestKnown = GradleVersion.parse(latestKnown);
-    this.published = published.stream().map(GradleVersion::parse).collect(Collectors.toSet());
+    this.current = AgpVersion.parse(current);
+    this.latestKnown = AgpVersion.parse(latestKnown);
+    this.published = published.stream().map(AgpVersion::parse).collect(Collectors.toSet());
     this.importance = importance;
-    this.expectedTarget = GradleVersion.parse(expectedTarget);
+    this.expectedTarget = AgpVersion.parse(expectedTarget);
   }
 
   @Test

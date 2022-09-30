@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.TreeWalker
@@ -68,8 +69,8 @@ import org.junit.Test
 
 @RunsInEdt
 class ContentManagerImplTest {
-  val currentAgpVersion by lazy { GradleVersion.parse("4.1.0") }
-  val latestAgpVersion by lazy { GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()) }
+  val currentAgpVersion by lazy { AgpVersion.parse("4.1.0") }
+  val latestAgpVersion by lazy { AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()) }
 
   @get:Rule
   val projectRule = AndroidProjectRule.withSdk().onEdt()
@@ -456,7 +457,7 @@ class ContentManagerImplTest {
     )
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
-    val model = ToolWindowModel(project, { GradleVersion.parse("7.3.0") }, GradleVersion.parse("8.0.0"))
+    val model = ToolWindowModel(project, { AgpVersion.parse("7.3.0") }, AgpVersion.parse("8.0.0"))
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     val r8FullModeProcessorPath = view.tree.getPathForRow(1)
     view.tree.selectionPath = r8FullModeProcessorPath
@@ -626,7 +627,7 @@ class ContentManagerImplTest {
     """.trimIndent())
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
-    val model = ToolWindowModel(project, { currentAgpVersion }, GradleVersion.parse("4.2.0") )
+    val model = ToolWindowModel(project, { currentAgpVersion }, AgpVersion.parse("4.2.0") )
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     val mandatoryCodependentNode = view.tree.getPathForRow(0).lastPathComponent as CheckedTreeNode
     assertThat(mandatoryCodependentNode.userObject).isEqualTo(MANDATORY_CODEPENDENT)
@@ -683,7 +684,7 @@ class ContentManagerImplTest {
   fun testToolWindowDropdownInitializedWithCurrentAndLatest() {
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
-    val model = ToolWindowModel(project, { currentAgpVersion }) { setOf<GradleVersion>() }
+    val model = ToolWindowModel(project, { currentAgpVersion }) { setOf<AgpVersion>() }
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     assertThat(view.versionTextField.model.selectedItem).isEqualTo(latestAgpVersion)
     assertThat(view.versionTextField.model.size).isEqualTo(2)
@@ -857,20 +858,20 @@ class ContentManagerImplTest {
 
   @Test
   fun testUpgradeLabelText() {
-    assertThat((null as GradleVersion?).upgradeLabelText()).contains("unknown version")
-    assertThat(GradleVersion.parse("4.1.0").upgradeLabelText()).contains("version 4.1.0")
+    assertThat((null as AgpVersion?).upgradeLabelText()).contains("unknown version")
+    assertThat(AgpVersion.parse("4.1.0").upgradeLabelText()).contains("version 4.1.0")
   }
 
   @Test
   fun testContentDisplayName() {
-    assertThat((null as GradleVersion?).contentDisplayName()).contains("unknown AGP")
-    assertThat(GradleVersion.parse("4.1.0").contentDisplayName()).contains("AGP 4.1.0")
+    assertThat((null as AgpVersion?).contentDisplayName()).contains("unknown AGP")
+    assertThat(AgpVersion.parse("4.1.0").contentDisplayName()).contains("AGP 4.1.0")
   }
 
   @Test
   fun testSuggestedVersions() {
     val toolWindowModel = ToolWindowModel(project, { currentAgpVersion })
-    val knownVersions = listOf("4.1.0", "20000.1.0").map { GradleVersion.parse(it) }.toSet()
+    val knownVersions = listOf("4.1.0", "20000.1.0").map { AgpVersion.parse(it) }.toSet()
     val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
     assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion, currentAgpVersion))
   }
@@ -878,7 +879,7 @@ class ContentManagerImplTest {
   @Test
   fun testSuggestedVersionsLatestExplicitlyKnown() {
     val toolWindowModel = ToolWindowModel(project, { currentAgpVersion })
-    val knownVersions = listOf("4.1.0", "20000.1.0").map { GradleVersion.parse(it) }.toSet().union(setOf(latestAgpVersion))
+    val knownVersions = listOf("4.1.0", "20000.1.0").map { AgpVersion.parse(it) }.toSet().union(setOf(latestAgpVersion))
     val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
     assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion, currentAgpVersion))
   }
@@ -886,7 +887,7 @@ class ContentManagerImplTest {
   @Test
   fun testSuggestedVersionsAlreadyAtLatestVersionExplicitlyKnown() {
     val toolWindowModel = ToolWindowModel(project, { latestAgpVersion })
-    val knownVersions = listOf("4.1.0", "20000.1.0").map { GradleVersion.parse(it) }.toSet().union(setOf(latestAgpVersion))
+    val knownVersions = listOf("4.1.0", "20000.1.0").map { AgpVersion.parse(it) }.toSet().union(setOf(latestAgpVersion))
     val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
     assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion))
   }
@@ -894,7 +895,7 @@ class ContentManagerImplTest {
   @Test
   fun testSuggestedVersionsAlreadyAtLatestVersionExplicitlyUnknown() {
     val toolWindowModel = ToolWindowModel(project, { latestAgpVersion })
-    val knownVersions = listOf("4.1.0", "20000.1.0").map { GradleVersion.parse(it) }.toSet()
+    val knownVersions = listOf("4.1.0", "20000.1.0").map { AgpVersion.parse(it) }.toSet()
     val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
     assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion))
   }
@@ -902,7 +903,7 @@ class ContentManagerImplTest {
   @Test
   fun testSuggestedVersionsEmptyWhenCurrentUnknown() {
     val toolWindowModel = ToolWindowModel(project, { null })
-    val knownVersions = listOf("4.1.0", "20000.1.0").map { GradleVersion.parse(it) }.toSet().union(setOf(latestAgpVersion))
+    val knownVersions = listOf("4.1.0", "20000.1.0").map { AgpVersion.parse(it) }.toSet().union(setOf(latestAgpVersion))
     val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
     assertThat(suggestedVersions).isEqualTo(listOf<GradleVersion>())
   }
@@ -910,10 +911,10 @@ class ContentManagerImplTest {
   @Test
   fun testSuggestedVersionsDoesNotIncludeForcedUpgrades() {
     val toolWindowModel = ToolWindowModel(project, { currentAgpVersion })
-    val knownVersions = listOf("4.1.0", "4.2.0-dev", "4.2.0").map { GradleVersion.parse(it) }.toSet()
+    val knownVersions = listOf("4.1.0", "4.2.0-dev", "4.2.0").map { AgpVersion.parse(it) }.toSet()
     val suggestedVersions  = toolWindowModel.suggestedVersionsList(knownVersions)
     assertThat(suggestedVersions)
-      .isEqualTo(setOf(latestAgpVersion, GradleVersion.parse("4.2.0"), currentAgpVersion).toList().sortedDescending())
+      .isEqualTo(setOf(latestAgpVersion, AgpVersion.parse("4.2.0"), currentAgpVersion).toList().sortedDescending())
   }
 
   @Test
@@ -928,17 +929,17 @@ class ContentManagerImplTest {
     assertThat(model.editingValidation(currentAgpVersion.toString()).first).isEqualTo(EditingErrorCategory.NONE)
     assertThat(model.editingValidation(latestAgpVersion.toString()).first).isEqualTo(EditingErrorCategory.NONE)
     latestAgpVersion.run {
-      val newMajorVersion = GradleVersion(major+1, minor, micro)
+      val newMajorVersion = AgpVersion(major+1, minor, micro)
       assertThat(model.editingValidation(newMajorVersion.toString()).first).isEqualTo(EditingErrorCategory.ERROR)
       assertThat(model.editingValidation(newMajorVersion.toString()).second).isEqualTo("Target AGP version is unsupported.")
     }
     latestAgpVersion.run {
-      val newMinorVersion = GradleVersion(major, minor+1, micro)
+      val newMinorVersion = AgpVersion(major, minor+1, micro)
       assertThat(model.editingValidation(newMinorVersion.toString()).first).isEqualTo(EditingErrorCategory.WARNING)
       assertThat(model.editingValidation(newMinorVersion.toString()).second).isEqualTo("Upgrade to target AGP version is unverified.")
     }
     latestAgpVersion.run {
-      val newPointVersion = GradleVersion(major, minor, micro+1)
+      val newPointVersion = AgpVersion(major, minor, micro+1)
       assertThat(model.editingValidation(newPointVersion.toString()).first).isEqualTo(EditingErrorCategory.WARNING)
       assertThat(model.editingValidation(newPointVersion.toString()).second).isEqualTo("Upgrade to target AGP version is unverified.")
     }

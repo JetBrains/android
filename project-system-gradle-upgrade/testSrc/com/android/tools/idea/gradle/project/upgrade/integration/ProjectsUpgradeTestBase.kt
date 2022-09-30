@@ -31,7 +31,7 @@
 package com.android.tools.idea.gradle.project.upgrade.integration
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.testutils.junit4.OldAgpSuite
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvokerImpl
@@ -215,7 +215,7 @@ open class ProjectsUpgradeTestBase {
   }
 
   private fun AUATestProjectState.agpVersion() = version.agpVersion ?: BuildEnvironment.getInstance().gradlePluginVersion
-  private fun AUATestProjectState.agpGradleVersion() = GradleVersion.parse(agpVersion())
+  private fun AUATestProjectState.agpGradleVersion() = AgpVersion.parse(agpVersion())
   private fun AUATestProjectState.gradleVersion() = CompatibleGradleVersion.getCompatibleGradleVersion(
     agpGradleVersion()
   ).version.toString()

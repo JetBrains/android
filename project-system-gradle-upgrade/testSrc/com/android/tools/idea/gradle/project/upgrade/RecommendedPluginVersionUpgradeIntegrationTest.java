@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.project.DumbService;
@@ -63,7 +63,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     ServiceContainerUtil.replaceService(project, DumbService.class, new MockDumbService(project), project);
     when(myUpgradeDialogFactory.create(same(project), any(), any())).thenReturn(myUpgradeDialog);
     when(myPluginInfo.getModule()).thenReturn(getModule());
-    when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("4.0.0"));
+    when(myPluginInfo.getPluginVersion()).thenReturn(AgpVersion.parse("4.0.0"));
   }
 
   public void testCheckUpgradeWhenUpgradeReminderIsNotDue() {
@@ -78,15 +78,15 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
   public void testCheckUpgradeWhenCurrentVersionIsEqualToRecommended() {
     simulateUpgradeReminderIsDue();
 
-    GradleVersion pluginVersion = GradleVersion.parse("2.2.0");
+    AgpVersion pluginVersion = AgpVersion.parse("2.2.0");
     assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), pluginVersion, pluginVersion).getUpgrade());
   }
 
   public void testCheckUpgradeWhenCurrentVersionIsGreaterRecommended() {
     simulateUpgradeReminderIsDue();
 
-    GradleVersion current = GradleVersion.parse("2.3.0");
-    GradleVersion recommended = GradleVersion.parse("2.2.0");
+    AgpVersion current = AgpVersion.parse("2.3.0");
+    AgpVersion recommended = AgpVersion.parse("2.2.0");
     assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), current, recommended).getUpgrade());
   }
 
@@ -94,9 +94,9 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     simulateUpgradeReminderIsDue();
 
     // Current version is a preview
-    GradleVersion current = GradleVersion.parse("2.3.0-alpha1");
+    AgpVersion current = AgpVersion.parse("2.3.0-alpha1");
     // Recommended version is same major version, but "snapshot"
-    GradleVersion recommended = GradleVersion.parse("2.3.0-dev");
+    AgpVersion recommended = AgpVersion.parse("2.3.0-dev");
     // For this combination of plugin versions, the IDE should not ask for upgrade.
     assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), current, recommended).getUpgrade());
   }
@@ -105,8 +105,8 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     simulateUpgradeReminderIsDue();
 
     // Simulate project's plugin version is lower than latest.
-    GradleVersion current = GradleVersion.parse("4.0.0");
-    GradleVersion recommended = GradleVersion.parse("4.1.0");
+    AgpVersion current = AgpVersion.parse("4.0.0");
+    AgpVersion recommended = AgpVersion.parse("4.1.0");
 
     // Simulate user declined upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(false);
@@ -124,8 +124,8 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
   public void testInvokeUpgradeAssistantWhenUserAcceptsUpgrade() {
     simulateUpgradeReminderIsDue();
 
-    GradleVersion current = GradleVersion.parse("4.0.0");
-    GradleVersion recommended = GradleVersion.parse("4.1.0");
+    AgpVersion current = AgpVersion.parse("4.0.0");
+    AgpVersion recommended = AgpVersion.parse("4.1.0");
 
     // Simulate user accepted upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(true);

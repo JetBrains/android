@@ -33,7 +33,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
@@ -291,7 +291,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                       @Nullable String ndkVersion,
                                       File... localRepos) throws IOException {
     AndroidGradleTests.defaultPatchPreparedProject(projectRoot, agpVersion, ndkVersion, localRepos);
-    GradleVersion agpVersionParsed = GradleVersion.tryParseAndroidGradlePluginVersion(agpVersion.getAgpVersion());
+    AgpVersion agpVersionParsed = AgpVersion.tryParse(agpVersion.getAgpVersion());
     if (agpVersionParsed != null && agpVersionParsed.isAtLeastIncludingPreviews(8, 0, 0)) {
       migratePackageAttribute(projectRoot);
     }

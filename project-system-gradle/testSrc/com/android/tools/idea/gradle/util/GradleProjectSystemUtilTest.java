@@ -17,16 +17,16 @@ package com.android.tools.idea.gradle.util;
 
 import static org.junit.Assert.*;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import org.junit.Test;
 
 public class GradleProjectSystemUtilTest {
   @Test
   public void useCompatibilityConfigurationNames() {
-    assertTrue(GradleProjectSystemUtil.useCompatibilityConfigurationNames(GradleVersion.parse("2.3.2")));
-    assertFalse(GradleProjectSystemUtil.useCompatibilityConfigurationNames((GradleVersion)null));
-    assertFalse(GradleProjectSystemUtil.useCompatibilityConfigurationNames(GradleVersion.parse("3.0.0-alpha1")));
-    assertFalse(GradleProjectSystemUtil.useCompatibilityConfigurationNames(GradleVersion.parse("3.0.0")));
-    assertFalse(GradleProjectSystemUtil.useCompatibilityConfigurationNames(GradleVersion.parse("4.0.0")));
+    assertTrue(GradleProjectSystemUtil.useCompatibilityConfigurationNames(AgpVersion.parse("2.3.2")));
+    assertFalse(GradleProjectSystemUtil.useCompatibilityConfigurationNames((AgpVersion)null));
+    assertFalse(GradleProjectSystemUtil.useCompatibilityConfigurationNames(AgpVersion.parse("3.0.0-alpha1")));
+    assertFalse(GradleProjectSystemUtil.useCompatibilityConfigurationNames(AgpVersion.parse("3.0.0")));
+    assertFalse(GradleProjectSystemUtil.useCompatibilityConfigurationNames(AgpVersion.parse("4.0.0")));
   }
 }

@@ -22,6 +22,7 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSy
 import static com.google.common.collect.Iterables.getOnlyElement;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
@@ -137,11 +138,11 @@ public class GradleProjectSystemUtil {
    * Returns true if we should use compatibility configuration names (such as "compile") instead
    * of the modern configuration names (such as "api" or "implementation") for the given Gradle version
    *
-   * @param gradleVersion the Gradle plugin version to check
+   * @param agpVersion the Gradle plugin version to check
    * @return true if we should use compatibility configuration names
    */
-  public static boolean useCompatibilityConfigurationNames(@Nullable GradleVersion gradleVersion) {
-    return gradleVersion != null && gradleVersion.getMajor() < 3;
+  public static boolean useCompatibilityConfigurationNames(@Nullable AgpVersion agpVersion) {
+    return agpVersion != null && agpVersion.getMajor() < 3;
   }
 
   /**
@@ -149,7 +150,7 @@ public class GradleProjectSystemUtil {
    * modules in the project or if the last sync has failed.
    */
   @Nullable
-  public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Project project) {
+  public static AgpVersion getAndroidGradleModelVersionInUse(@NotNull Project project) {
     Set<String> foundInLibraries = Sets.newHashSet();
     Set<String> foundInApps = Sets.newHashSet();
     for (Module module : ModuleManager.getInstance(project).getModules()) {
@@ -177,15 +178,15 @@ public class GradleProjectSystemUtil {
       found = getOnlyElement(foundInLibraries);
     }
 
-    return found != null ? GradleVersion.tryParseAndroidGradlePluginVersion(found) : null;
+    return found != null ? AgpVersion.tryParse(found) : null;
   }
 
   @Nullable
-  public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Module module) {
+  public static AgpVersion getAndroidGradleModelVersionInUse(@NotNull Module module) {
     GradleAndroidModel androidModel = GradleAndroidModel.get(module);
     if (androidModel != null) {
       IdeAndroidProject androidProject = androidModel.getAndroidProject();
-      return GradleVersion.tryParse(androidProject.getAgpVersion());
+      return AgpVersion.tryParse(androidProject.getAgpVersion());
     }
 
     return null;

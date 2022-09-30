@@ -18,15 +18,13 @@
 package com.android.tools.idea.gradle.project.build.attribution
 
 import com.android.SdkConstants.DOT_GRADLE
-import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.flags.StudioFlags
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.utils.FileUtils
 import com.intellij.openapi.project.Project
 import java.io.File
 
-private val minimumSupportedAgpVersion = GradleVersion.tryParseAndroidGradlePluginVersion("4.0.0-beta05")!!
+private val minimumSupportedAgpVersion = AgpVersion.tryParse("4.0.0-beta05")!!
 
 fun isBuildAttributionEnabledForProject(project: Project): Boolean {
   return isAgpVersionHigherOrEqualToMinimal(project)
@@ -36,7 +34,7 @@ fun isAgpVersionHigherOrEqualToMinimal(project: Project): Boolean {
   return ProjectStructure.getInstance(project).androidPluginVersions.allVersions.all { it.higherOrEqualToMinimal() }
 }
 
-private fun GradleVersion.higherOrEqualToMinimal() = compareTo(minimumSupportedAgpVersion) >= 0
+private fun AgpVersion.higherOrEqualToMinimal() = compareTo(minimumSupportedAgpVersion) >= 0
 
 fun buildOutputLine(): String = BuildAttributionOutputLinkFilter.INSIGHTS_AVAILABLE_LINE
 

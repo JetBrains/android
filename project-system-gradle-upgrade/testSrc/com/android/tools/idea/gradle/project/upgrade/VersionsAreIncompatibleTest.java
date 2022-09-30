@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +29,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests for {@link GradlePluginUpgrade#versionsAreIncompatible(GradleVersion, GradleVersion)}.
+ * Tests for {@link GradlePluginUpgrade#versionsAreIncompatible(AgpVersion, AgpVersion)}.
  */
 @RunWith(Parameterized.class)
 public class VersionsAreIncompatibleTest {
@@ -37,7 +37,7 @@ public class VersionsAreIncompatibleTest {
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
       {"3.3.0-alpha9", "3.3.0-alpha9", false},
-      {"3.3.0-alpha9", "3.3.0-alpha9-1", true},
+      {"3.3.0-alpha9", "3.3.0-alpha91", true},
       // Note: alpha9 is later in this algebra than alpha10.
       {"3.3.0-alpha9", "3.3.0-alpha10", true},
       {"3.3.9-alpha09", "3.3.0-alpha10", true},
@@ -99,16 +99,16 @@ public class VersionsAreIncompatibleTest {
     });
   }
 
-  @NotNull private final GradleVersion myCurrent;
-  @NotNull private final GradleVersion myRecommended;
+  @NotNull private final AgpVersion myCurrent;
+  @NotNull private final AgpVersion myRecommended;
 
   private final boolean myForceUpgrade;
 
-  private static final GradleVersion unsupportedVersion = GradleVersion.parse("3.1.0");
+  private static final AgpVersion unsupportedVersion = AgpVersion.parse("3.1.0");
 
   public VersionsAreIncompatibleTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
-    myCurrent = GradleVersion.parse(current);
-    myRecommended = GradleVersion.parse(recommended);
+    myCurrent = AgpVersion.parse(current);
+    myRecommended = AgpVersion.parse(recommended);
     myForceUpgrade = forceUpgrade;
   }
 

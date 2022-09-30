@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.intellij.openapi.actionSystem.DataContext
@@ -42,9 +43,9 @@ class AgpUpgradeActionHandler: RefactoringActionHandler {
 
   fun invoke(project: Project) {
     val current = project.findPluginInfo()?.pluginVersion ?: return
-    val latestKnown = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val latestKnown = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
     ApplicationManager.getApplication().executeOnPooledThread {
-      val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+      val published = IdeGoogleMavenRepository.getAgpVersions()
       val state = computeGradlePluginUpgradeState(current, latestKnown, published)
       invokeLater(ModalityState.NON_MODAL) {
         showAndInvokeAgpUpgradeRefactoringProcessor(project, current, state.target)

@@ -19,7 +19,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.annotations.concurrency.Immutable;
 import com.android.annotations.concurrency.Slow;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.ManifestMerger2;
 import com.android.manifmerger.MergingReport;

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 
 interface AgpVersionChecker {
   /**
    * Compute whether the [current] version of the Android Gradle plugin as specified by the project is incompatible with the version of
-   * Studio corresponding to the given [latestKnown] version of Gradle.
+   * Studio corresponding to the given [latestKnown] version of AGP.
    */
-  fun versionsAreIncompatible(current: GradleVersion, latestKnown: GradleVersion): Boolean
+  fun versionsAreIncompatible(current: AgpVersion, latestKnown: AgpVersion): Boolean
 }

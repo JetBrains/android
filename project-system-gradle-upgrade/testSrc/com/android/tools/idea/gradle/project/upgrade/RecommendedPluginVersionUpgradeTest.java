@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class RecommendedPluginVersionUpgradeTest {
     return Arrays.asList(new Object[][]{
       // Test for old AGP versions, which should all force rather than recommend.
       {"2.0.0-alpha9", "2.0.0-alpha9", false},
-      {"1.1", "2.0.0", false},
+      {"1.1.0", "2.0.0", false},
       {"2.0.0-alpha9", "2.0.0-beta1", false},
       {"2.0.0-alpha9", "2.0.0", false},
       {"1.5.0-beta1", "2.0.0-alpha10", false},
@@ -105,14 +105,14 @@ public class RecommendedPluginVersionUpgradeTest {
     });
   }
 
-  @NotNull private final GradleVersion myCurrent;
-  @NotNull private final GradleVersion myRecommended;
+  @NotNull private final AgpVersion myCurrent;
+  @NotNull private final AgpVersion myRecommended;
 
   private final boolean myRecommendUpgrade;
 
   public RecommendedPluginVersionUpgradeTest(@NotNull String current, @NotNull String recommended, boolean recommendUpgrade) {
-    myCurrent = GradleVersion.parse(current);
-    myRecommended = GradleVersion.parse(recommended);
+    myCurrent = AgpVersion.parse(current);
+    myRecommended = AgpVersion.parse(recommended);
     myRecommendUpgrade = recommendUpgrade;
   }
 

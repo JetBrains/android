@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.AFTER_MAXIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
@@ -64,11 +65,11 @@ enum class AndroidGradlePluginCompatibility {
  * previous COMPATIBLE class in two: something is DEPRECATED if current is earlier than GRADLE_PLUGIN_NEXT_MINIMUM_VERSION and
  * latestKnown is after, the second of which conditions will always hold in production).
  */
-fun computeAndroidGradlePluginCompatibility(current: GradleVersion, latestKnown: GradleVersion): AndroidGradlePluginCompatibility =
+fun computeAndroidGradlePluginCompatibility(current: AgpVersion, latestKnown: AgpVersion): AndroidGradlePluginCompatibility =
   run {
     val compatibleOrDeprecated = when {
-      latestKnown < GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION) -> COMPATIBLE
-      current < GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION) -> DEPRECATED
+      latestKnown < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION) -> COMPATIBLE
+      current < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION) -> DEPRECATED
       else -> COMPATIBLE
     }
     when {
@@ -77,21 +78,21 @@ fun computeAndroidGradlePluginCompatibility(current: GradleVersion, latestKnown:
       current == latestKnown -> compatibleOrDeprecated // actually always compatible
       // If the current is lower than our minimum supported version, incompatible.
       // e.g. current = 3.1.0, latestKnown = 7.1.0-alpha09
-      current < GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION) -> BEFORE_MINIMUM
+      current < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION) -> BEFORE_MINIMUM
       // If the current/latestKnown are RC or releases, and of the same major/minor series, compatible. (2)
       // e.g. current = 7.1.0-rc01, latestKnown = 7.1.0
       //      current = 7.1.0, latestKnown = 7.1.0-rc01
       (!latestKnown.isPreview || latestKnown.previewType == "rc") && (!current.isPreview || current.previewType == "rc") &&
-      GradleVersion(latestKnown.major, latestKnown.minor) == GradleVersion(current.major, current.minor) ->
+      AgpVersion(latestKnown.major, latestKnown.minor) == AgpVersion(current.major, current.minor) ->
         compatibleOrDeprecated// in practice presumably always compatible
       // If the current is a snapshot and latestKnown is RC or release of the same major/minor series, incompatible. (1)
       // e.g. current = 7.1.0-dev, latestKnown = 7.1.0-rc01
       current.isSnapshot && (!latestKnown.isPreview || latestKnown.previewType == "rc") &&
-      GradleVersion(latestKnown.major, latestKnown.minor) == GradleVersion(current.major, current.minor) -> DIFFERENT_PREVIEW
+      AgpVersion(latestKnown.major, latestKnown.minor) == AgpVersion(current.major, current.minor) -> DIFFERENT_PREVIEW
       // If the current is a snapshot and latestKnown is alpha/beta of the same major/minor series, compatible. (1)
       // e.g. current = 7.1.0-dev, latestKnown = 7.1.0-alpha01
       current.isSnapshot && (latestKnown.previewType == "alpha" || latestKnown.previewType == "beta") &&
-      GradleVersion(latestKnown.major, latestKnown.minor) == GradleVersion(current.major, current.minor) ->
+      AgpVersion(latestKnown.major, latestKnown.minor) == AgpVersion(current.major, current.minor) ->
         compatibleOrDeprecated// in practice presumably always compatible
       // If the current is later than latestKnown, incompatible. (11)
       // e.g. current = 7.1.0-dev, latestKnown = 7.0.0-rc01

@@ -21,6 +21,7 @@ import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.ARTIFACT_ID
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID
@@ -93,17 +94,17 @@ data class Recommendation(val upgrade: Boolean, val strongly: Boolean)
 fun shouldRecommendPluginUpgrade(project: Project): Recommendation {
   // If we don't know the current plugin version then we don't upgrade.
   val current = project.findPluginInfo()?.pluginVersion ?: return Recommendation(false, false)
-  val latestKnown = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-  val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+  val latestKnown = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  val published = IdeGoogleMavenRepository.getAgpVersions()
   return shouldRecommendPluginUpgrade(project, current, latestKnown, published)
 }
 
 @JvmOverloads
 fun shouldRecommendPluginUpgrade(
   project: Project,
-  current: GradleVersion,
-  latestKnown: GradleVersion,
-  published: Set<GradleVersion> = setOf()
+  current: AgpVersion,
+  latestKnown: AgpVersion,
+  published: Set<AgpVersion> = setOf()
 ): Recommendation {
   // Needed internally for development of Android support lib.
   if (SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false)) return Recommendation(false, false)
@@ -160,15 +161,15 @@ fun recommendPluginUpgrade(project: Project, current: GradleVersion, strongly: B
 @JvmOverloads
 fun performRecommendedPluginUpgrade(
   project: Project,
-  currentVersion: GradleVersion? = project.findPluginInfo()?.pluginVersion,
-  latestKnown: GradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()),
+  currentVersion: AgpVersion? = project.findPluginInfo()?.pluginVersion,
+  latestKnown: AgpVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()),
   dialogFactory: RecommendedPluginVersionUpgradeDialog.Factory = RecommendedPluginVersionUpgradeDialog.Factory()
 ) : Boolean {
   if (currentVersion == null) return false
 
   LOG.info("Gradle model version: $currentVersion, latest known version for IDE: $latestKnown")
 
-  val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+  val published = IdeGoogleMavenRepository.getAgpVersions()
   val state = computeGradlePluginUpgradeState(currentVersion, latestKnown, published)
 
   LOG.info("Gradle upgrade state: $state")
@@ -206,7 +207,7 @@ internal fun isCleanEnoughProject(project: Project): Boolean {
 
 @VisibleForTesting
 @JvmOverloads
-fun shouldRecommendUpgrade(current: GradleVersion, latestKnown: GradleVersion, published: Set<GradleVersion> = setOf()) : Recommendation {
+fun shouldRecommendUpgrade(current: AgpVersion, latestKnown: AgpVersion, published: Set<AgpVersion> = setOf()) : Recommendation {
   computeGradlePluginUpgradeState(current, latestKnown, published).importance.let { importance ->
     return Recommendation(setOf(RECOMMEND, STRONGLY_RECOMMEND).contains(importance), importance == STRONGLY_RECOMMEND)
   }
@@ -224,8 +225,8 @@ fun shouldRecommendUpgrade(current: GradleVersion, latestKnown: GradleVersion, p
  * for action to get the project to a working state.
  */
 fun versionsAreIncompatible(
-  current: GradleVersion,
-  latestKnown: GradleVersion
+  current: AgpVersion,
+  latestKnown: AgpVersion
 ) : Boolean {
   return !setOf(COMPATIBLE, DEPRECATED).contains(computeAndroidGradlePluginCompatibility(current, latestKnown))
 }
@@ -240,11 +241,11 @@ fun versionsAreIncompatible(
 @Slow
 fun performForcedPluginUpgrade(
   project: Project,
-  currentPluginVersion: GradleVersion,
-  newPluginVersion: GradleVersion = computeGradlePluginUpgradeState(
+  currentPluginVersion: AgpVersion,
+  newPluginVersion: AgpVersion = computeGradlePluginUpgradeState(
     currentPluginVersion,
-    GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()),
-    IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+    AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()),
+    IdeGoogleMavenRepository.getAgpVersions()
   ).target
 ) {
   val upgradeAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
@@ -271,7 +272,7 @@ fun performForcedPluginUpgrade(
 
 data class GradlePluginUpgradeState(
   val importance: Importance,
-  val target: GradleVersion,
+  val target: AgpVersion,
 ) {
   enum class Importance {
     NO_UPGRADE,
@@ -282,9 +283,9 @@ data class GradlePluginUpgradeState(
 }
 
 fun computeGradlePluginUpgradeState(
-  current: GradleVersion,
-  latestKnown: GradleVersion,
-  published: Set<GradleVersion>
+  current: AgpVersion,
+  latestKnown: AgpVersion,
+  published: Set<AgpVersion>
 ): GradlePluginUpgradeState {
   val compatibility = computeAndroidGradlePluginCompatibility(current, latestKnown)
   when (compatibility) {

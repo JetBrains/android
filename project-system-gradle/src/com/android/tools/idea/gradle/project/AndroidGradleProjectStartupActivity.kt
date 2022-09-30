@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
@@ -273,7 +274,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
 
     fun GradleAndroidModelData.validate() =
       shouldDisableForceUpgrades() ||
-        GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()).let { latestKnown ->
+      AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()).let { latestKnown ->
           !ApplicationManager.getApplication().getService(AgpVersionChecker::class.java).versionsAreIncompatible(agpVersion, latestKnown)
         }
 

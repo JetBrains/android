@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -41,7 +41,7 @@ class RefactoringProcessorInstantiatorTest {
       }
     """.trimIndent())
     val refactoringProcessorInstantiator = RefactoringProcessorInstantiator()
-    val processor = refactoringProcessorInstantiator.createProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    val processor = refactoringProcessorInstantiator.createProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     val cannotUpgradeDialog = mock(AgpUpgradeRefactoringProcessorCannotUpgradeDialog::class.java)
     val upgradeDialog = mock(AgpUpgradeRefactoringProcessorDialog::class.java)
     whenever(upgradeDialog.showAndGet()).thenReturn(true)
@@ -61,7 +61,7 @@ class RefactoringProcessorInstantiatorTest {
       }
     """.trimIndent())
     val refactoringProcessorInstantiator = RefactoringProcessorInstantiator()
-    val processor = refactoringProcessorInstantiator.createProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    val processor = refactoringProcessorInstantiator.createProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     val cannotUpgradeDialog = mock(AgpUpgradeRefactoringProcessorCannotUpgradeDialog::class.java)
     val upgradeDialog = mock(AgpUpgradeRefactoringProcessorDialog::class.java)
     whenever(upgradeDialog.showAndGet()).thenReturn(false)
@@ -74,7 +74,7 @@ class RefactoringProcessorInstantiatorTest {
   @Test
   fun testShowAndGetAgpUpgradeDialogNoFiles() {
     val refactoringProcessorInstantiator = RefactoringProcessorInstantiator()
-    val processor = refactoringProcessorInstantiator.createProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    val processor = refactoringProcessorInstantiator.createProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     val cannotUpgradeDialog = mock(AgpUpgradeRefactoringProcessorCannotUpgradeDialog::class.java)
     val upgradeDialog = mock(AgpUpgradeRefactoringProcessorDialog::class.java)
     refactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(processor, { cannotUpgradeDialog }, { _, _ -> upgradeDialog })

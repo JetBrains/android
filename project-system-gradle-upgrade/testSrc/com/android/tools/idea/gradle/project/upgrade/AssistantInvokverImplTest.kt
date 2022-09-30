@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -41,7 +41,7 @@ class AssistantInvokerImplTest {
     val assistantInvoker = AssistantInvokerImpl()
     val dialog = mock(AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog::class.java)
     val element = mock(PsiElement::class.java)
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("8.0.0"))
     whenever(dialog.showAndGet()).thenReturn(true)
     val run = assistantInvoker.showAndGetDeprecatedConfigurationsUpgradeDialog(processor, element, { dialog })
     assertThat(run).isTrue()
@@ -58,7 +58,7 @@ class AssistantInvokerImplTest {
     val assistantInvoker = AssistantInvokerImpl()
     val dialog = mock(AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog::class.java)
     val element = mock(PsiElement::class.java)
-    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("8.0.0"))
     whenever(dialog.showAndGet()).thenReturn(false)
     val run = assistantInvoker.showAndGetDeprecatedConfigurationsUpgradeDialog(processor, element, { dialog })
     assertThat(run).isFalse()

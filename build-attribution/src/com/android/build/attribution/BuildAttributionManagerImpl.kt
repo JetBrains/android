@@ -30,7 +30,7 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
 import com.android.build.attribution.ui.invokeLaterIfNotDisposed
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.build.attribution.BasicBuildAttributionInfo
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.gradle.project.build.attribution.getAgpAttributionFileDir
@@ -73,14 +73,14 @@ class BuildAttributionManagerImpl(
     val buildSessionId = UUID.randomUUID().toString()
     val buildRequestHolder = BuildRequestHolder(request)
     val attributionFileDir = getAgpAttributionFileDir(request.data)
-    var agpVersion: GradleVersion? = null
+    var agpVersion: AgpVersion? = null
 
     BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
       analyticsManager.runLoggingPerformanceStats(
         buildFinishedTimestamp - analyzersProxy.criticalPathAnalyzer.result.buildFinishedTimestamp) {
         try {
           val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
-          agpVersion = attributionData?.buildInfo?.agpVersion?.let { GradleVersion.tryParseAndroidGradlePluginVersion(it) }
+          agpVersion = attributionData?.buildInfo?.agpVersion?.let { AgpVersion.tryParse(it) }
           val pluginsData = ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).gradlePluginsData
           val studioProvidedInfo = StudioProvidedInfo.fromProject(project, buildRequestHolder, myCurrentBuildInvocationType)
           // If there was an error in events processing already there is no need to continue.

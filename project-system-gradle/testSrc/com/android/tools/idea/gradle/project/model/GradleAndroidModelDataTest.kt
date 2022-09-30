@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.fasterxml.jackson.module.kotlin.isKotlinClass
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.fail
@@ -138,7 +138,7 @@ private fun validate(klass: KClass<*>, asInterface: Boolean = false) {
             kl == File::class -> Unit
             kl == Int::class -> Unit
             kl == Boolean::class -> Unit
-            kl == GradleVersion::class && asInterface -> Unit
+            kl == AgpVersion::class && asInterface -> Unit
             propertyType.isEnum -> Unit
             !propertyType.isKotlinClass() -> unexpected("Non-kotlin class is not allowed: $propertyKType")
             !asInterface && !kl.isFinal -> unexpected("Final class is required: $propertyKType")

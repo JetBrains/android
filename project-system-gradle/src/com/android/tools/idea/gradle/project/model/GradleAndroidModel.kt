@@ -15,7 +15,7 @@
 */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.projectmodel.DynamicResourceValue
 import com.android.resources.ResourceType
 import com.android.sdklib.AndroidVersion
@@ -60,8 +60,7 @@ class GradleAndroidModel constructor(
   private val ideLibraryModelResolver: IdeLibraryModelResolver
 ) : AndroidModuleModel {
 
-  private val agpVersion: GradleVersion =
-    GradleVersion.parseAndroidGradlePluginVersion(androidProject.agpVersion) // Fail sync if the reported version cannot be parsed.
+  private val agpVersion: AgpVersion = AgpVersion.parse(androidProject.agpVersion) // Fail sync if the reported version cannot be parsed.
 
   private val myBuildTypesByName: Map<String, IdeBuildTypeContainer> = androidProject.buildTypes.associateBy { it.buildType.name }
   private val myProductFlavorsByName: Map<String, IdeProductFlavorContainer> =
@@ -123,7 +122,7 @@ class GradleAndroidModel constructor(
 
   fun getJavaLanguageLevel(): LanguageLevel? = data.getJavaLanguageLevel()
 
-  override fun getAgpVersion(): GradleVersion = agpVersion
+  override fun getAgpVersion(): AgpVersion = agpVersion
 
   /**
    * Returns the current application ID.
