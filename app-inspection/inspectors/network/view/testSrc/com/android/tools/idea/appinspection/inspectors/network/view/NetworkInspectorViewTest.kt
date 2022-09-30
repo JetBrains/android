@@ -34,6 +34,7 @@ import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -80,6 +81,9 @@ class NetworkInspectorViewTest {
   @get:Rule
   val disposableRule = DisposableRule()
 
+  @get:Rule
+  val projectRule = ProjectRule()
+
   @Before
   fun setUp() {
     val codeNavigationProvider = FakeCodeNavigationProvider()
@@ -110,7 +114,7 @@ class NetworkInspectorViewTest {
     val component = TooltipLayeredPane(splitter)
     val stagePanel = JPanel(BorderLayout())
     parentPanel.add(stagePanel, BorderLayout.CENTER)
-    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, services, scope)
+    inspectorView = NetworkInspectorView(projectRule.project, model, FakeUiComponentsProvider(), component, services, scope)
     stagePanel.add(inspectorView.component)
     component.size = Dimension(1000, 800)
     fakeUi = FakeUi(component)

@@ -32,6 +32,7 @@ import com.android.tools.idea.appinspection.inspectors.network.view.constants.H4
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLBAR_HEIGHT
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ThreeComponentsSplitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.IconLoader
@@ -63,11 +64,12 @@ private val SHORTCUT_MODIFIER_MASK_NUMBER = if (SystemInfo.isMac) META_DOWN_MASK
 
 
 class NetworkInspectorTab(
+  project: Project,
   private val componentsProvider: UiComponentsProvider,
   private val dataSource: NetworkInspectorDataSource,
   private val services: NetworkInspectorServices,
   scope: CoroutineScope,
-  parentDisposable: Disposable,
+  parentDisposable: Disposable
 ) : AspectObserver(), Disposable {
 
   @VisibleForTesting
@@ -106,7 +108,7 @@ class NetworkInspectorTab(
         parentPanel.add(stagePanel, BorderLayout.CENTER)
 
         model = NetworkInspectorModel(services, dataSource, scope, startTimeStampNs = deviceTime)
-        view = NetworkInspectorView(model, componentsProvider, component, services, scope)
+        view = NetworkInspectorView(project, model, componentsProvider, component, services, scope)
         stagePanel.add(view.component)
 
         actionsToolBar = JPanel(GridBagLayout())

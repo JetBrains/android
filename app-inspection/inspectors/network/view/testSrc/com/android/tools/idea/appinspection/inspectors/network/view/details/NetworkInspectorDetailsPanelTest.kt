@@ -90,7 +90,7 @@ class NetworkInspectorDetailsPanelTest {
     })
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
-    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, services, scope)
+    inspectorView = NetworkInspectorView(projectRule.project, model, FakeUiComponentsProvider(), component, services, scope)
     parentPanel.add(inspectorView.component)
     detailsPanel = inspectorView.detailsPanel
     disposable = Disposer.newDisposable()

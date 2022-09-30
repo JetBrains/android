@@ -67,11 +67,12 @@ class NetworkInspectorTabTest {
       )
     )
     val tab = NetworkInspectorTab(
+      projectRule.project,
       FakeUiComponentsProvider(),
       FakeNetworkInspectorDataSource(),
       services,
       scope,
-      projectRule.fixture.testRootDisposable,
+      projectRule.fixture.testRootDisposable
     )
 
     tab.launchJob.join()

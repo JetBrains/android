@@ -21,8 +21,11 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleDataListener
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesPersistentStateComponent
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesTableModel
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NetworkInspectorBundle
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.TableUtil
@@ -30,6 +33,7 @@ import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.table.TableView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 import studio.network.inspection.NetworkInspectorProtocol
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -38,17 +42,23 @@ import javax.swing.ListSelectionModel
 import javax.swing.event.TableModelEvent
 
 class RulesTableView(
+  project: Project,
   private val client: NetworkInspectorClient,
   private val scope: CoroutineScope,
   model: NetworkInspectorModel,
   usageTracker: NetworkInspectorTracker
 ) {
+
+  @VisibleForTesting
+  val persistentStateComponent: RulesPersistentStateComponent = project.service()
+
   val component: JComponent
 
   val tableModel = RulesTableModel()
   val table = TableView(tableModel)
 
   init {
+    initPersistentRules()
     val decorator = ToolbarDecorator.createDecorator(table).setAddAction {
       val id = RuleData.newId()
       val ruleData = createRuleDataWithListener(id)
@@ -124,29 +134,9 @@ class RulesTableView(
     }
   }
 
-  private fun createRuleDataWithListener(id: Int): RuleData {
-    return RuleData(id, "New Rule", true, object : RuleDataListener {
-      override fun onRuleDataChanged(ruleData: RuleData) {
-        if (ruleData.isActive) {
-          scope.launch {
-            client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
-              interceptRuleUpdatedBuilder.apply {
-                ruleId = id
-                rule = ruleData.toProto()
-              }
-            }.build())
-          }
-        }
-      }
-
-      override fun onRuleNameChanged(ruleData: RuleData) {
-        val index = tableModel.indexOf(ruleData)
-        if (index != -1) {
-          tableModel.fireTableCellUpdated(index, 1)
-        }
-      }
-
-      override fun onRuleIsActiveChanged(ruleData: RuleData) {
+  private fun createNewRuleDataListener() = object : RuleDataListener {
+    override fun onRuleDataChanged(ruleData: RuleData) {
+      if (ruleData.isActive) {
         scope.launch {
           client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
             interceptRuleUpdatedBuilder.apply {
@@ -156,14 +146,50 @@ class RulesTableView(
           }.build())
         }
       }
-    })
+    }
+
+    override fun onRuleNameChanged(ruleData: RuleData) {
+      val index = tableModel.indexOf(ruleData)
+      if (index != -1) {
+        tableModel.fireTableCellUpdated(index, 1)
+      }
+    }
+
+    override fun onRuleIsActiveChanged(ruleData: RuleData) {
+      scope.launch {
+        client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
+          interceptRuleUpdatedBuilder.apply {
+            ruleId = ruleData.id
+            rule = ruleData.toProto()
+          }
+        }.build())
+      }
+    }
   }
+
+  private fun createRuleDataWithListener(id: Int) = RuleData(id, "New Rule", true, createNewRuleDataListener())
 
   private fun reorderRules() {
     scope.launch {
       client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
         reorderInterceptRulesBuilder.addAllRuleId(tableModel.items.map { it.id })
       }.build())
+    }
+  }
+
+  private fun initPersistentRules() {
+    tableModel.items = persistentStateComponent.myRuleDataState.rulesList
+    persistentStateComponent.myRuleDataState.rulesList.forEach { ruleData ->
+      ruleData.ruleDataListener = createNewRuleDataListener()
+      scope.launch {
+        client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
+          interceptRuleAddedBuilder.apply {
+            ruleId = ruleData.id
+            rule = ruleData.toProto()
+          }
+        }.build()
+        )
+      }
     }
   }
 }

@@ -28,13 +28,13 @@ import studio.network.inspection.NetworkInspectorProtocol.InterceptRule
 import studio.network.inspection.NetworkInspectorProtocol.MatchingText.Type
 import studio.network.inspection.NetworkInspectorProtocol.Transformation
 import javax.swing.JTable
-import kotlin.reflect.KProperty
+import kotlin.properties.Delegates
 
 class RuleData(
   val id: Int,
   name: String,
   isActive: Boolean,
-  val ruleDataListener: RuleDataListener = RuleDataAdapter()
+  var ruleDataListener: RuleDataListener = RuleDataAdapter()
 ) {
   companion object {
     private var count = 0
@@ -48,22 +48,7 @@ class RuleData(
     fun getLatestId() = count
   }
 
-  /**
-   * An inner Delegate class to help define variables that need to notify
-   * [ruleDataListener] with value changes.
-   */
-  inner class Delegate<T>(private var value: T, private val onSet: (RuleData) -> Unit) {
-    operator fun getValue(thisRef: Any, property: KProperty<*>): T {
-      return value
-    }
-
-    operator fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
-      if (this.value != value) {
-        this.value = value
-        onSet(this@RuleData)
-      }
-    }
-  }
+  private fun <T> delegate(initialValue: T) = Delegates.observable(initialValue) { _, _, _ -> ruleDataListener.onRuleDataChanged(this)}
 
   inner class CriteriaData(
     protocol: Protocol = Protocol.HTTPS,
@@ -73,12 +58,12 @@ class RuleData(
     query: String = "",
     method: Method = Method.GET
   ) {
-    var protocol: Protocol by Delegate(protocol, ruleDataListener::onRuleDataChanged)
-    var host: String by Delegate(host, ruleDataListener::onRuleDataChanged)
-    var port: String by Delegate(port, ruleDataListener::onRuleDataChanged)
-    var path: String by Delegate(path, ruleDataListener::onRuleDataChanged)
-    var query: String by Delegate(query, ruleDataListener::onRuleDataChanged)
-    var method: Method by Delegate(method, ruleDataListener::onRuleDataChanged)
+    var protocol: Protocol by delegate(protocol)
+    var host: String by delegate(host)
+    var port: String by delegate(port)
+    var path: String by delegate(path)
+    var query: String by delegate(query)
+    var method: Method by delegate(method)
 
     val url: String
       get() = "$protocol://${host.ifBlank { "*" }}${port.withPrefixIfNotEmpty(':')}$path${query.withPrefixIfNotEmpty('?')}"
@@ -100,9 +85,9 @@ class RuleData(
   }
 
   inner class StatusCodeRuleData(findCode: String, isActive: Boolean, newCode: String) : TransformationRuleData {
-    var findCode: String by Delegate(findCode, ruleDataListener::onRuleDataChanged)
-    var isActive: Boolean by Delegate(isActive, ruleDataListener::onRuleDataChanged)
-    var newCode: String by Delegate(newCode, ruleDataListener::onRuleDataChanged)
+    var findCode: String by delegate(findCode)
+    var newCode: String by delegate(newCode)
+    var isActive: Boolean by delegate(isActive)
 
     override fun toProto(): Transformation = Transformation.newBuilder().apply {
       statusCodeReplacedBuilder.apply {
@@ -255,8 +240,8 @@ class RuleData(
     }
   }
 
-  var name: String by Delegate(name, ruleDataListener::onRuleNameChanged)
-  var isActive: Boolean by Delegate(isActive, ruleDataListener::onRuleIsActiveChanged)
+  var name: String by Delegates.observable(name) { _, _, _ -> ruleDataListener.onRuleNameChanged(this)}
+  var isActive: Boolean by Delegates.observable(isActive) { _, _, _ -> ruleDataListener.onRuleIsActiveChanged(this)}
 
   val criteria = CriteriaData()
   val statusCodeRuleData = StatusCodeRuleData("", false, "")

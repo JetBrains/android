@@ -133,7 +133,7 @@ class ConnectionDetailsViewTest {
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
 
-    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, services, scope)
+    inspectorView = NetworkInspectorView(projectRule.project, model, FakeUiComponentsProvider(), component, services, scope)
     parentPanel.add(inspectorView.component)
     detailsView = inspectorView.detailsPanel.connectionDetailsView
   }

@@ -66,6 +66,7 @@ import com.android.tools.idea.appinspection.inspectors.network.view.constants.Y_
 import com.android.tools.idea.appinspection.inspectors.network.view.details.NetworkInspectorDetailsPanel
 import com.android.tools.idea.appinspection.inspectors.network.view.rules.RulesTableView
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.project.Project
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBPanel
@@ -99,6 +100,7 @@ private const val CARD_INFO = "Info"
  * The main view of network inspector.
  */
 class NetworkInspectorView(
+  project: Project,
   val model: NetworkInspectorModel,
   val componentsProvider: UiComponentsProvider,
   private val parentPane: TooltipLayeredPane,
@@ -126,7 +128,7 @@ class NetworkInspectorView(
   @VisibleForTesting
   val connectionsView = ConnectionsView(model, parentPane)
 
-  val rulesView = RulesTableView(inspectorServices.client, scope, model, inspectorServices.usageTracker)
+  val rulesView = RulesTableView(project, inspectorServices.client, scope, model, inspectorServices.usageTracker)
 
   @VisibleForTesting
   val detailsPanel = NetworkInspectorDetailsPanel(this, inspectorServices.usageTracker).apply { isVisible = false }

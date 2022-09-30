@@ -82,7 +82,7 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
         AndroidDispatchers.uiThread,
         IdeNetworkInspectorTracker(project)
       )
-      private val networkInspectorTab = NetworkInspectorTab(componentsProvider, dataSource, services, scope, parentDisposable)
+      private val networkInspectorTab = NetworkInspectorTab(project, componentsProvider, dataSource, services, scope, parentDisposable)
       override val component = networkInspectorTab.component
 
       init {
