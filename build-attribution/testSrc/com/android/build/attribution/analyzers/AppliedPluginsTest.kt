@@ -15,51 +15,42 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.SdkConstants
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.getSuccessfulResult
-import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.TestProjectPaths
-import com.android.utils.FileUtils
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.util.io.FileUtil
-import kotlinx.collections.immutable.toImmutableMap
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 class AppliedPluginsTest {
 
   @get:Rule
-  val myProjectRule = AndroidGradleProjectRule()
-
-  private fun setUpProject() {
-    myProjectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
-
-    FileUtil.appendToFile(FileUtils.join(File(myProjectRule.project.basePath!!), "app", SdkConstants.FN_BUILD_GRADLE), """
-      class SamplePlugin implements Plugin<Project> {
-          void apply(Project project) {
-          }
-      }
-
-      apply plugin: SamplePlugin
-    """.trimIndent())
-  }
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
   @Test
   fun testAppliedPlugins() {
-    setUpProject()
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BUILD_ANALYZER_CHECK_ANALYZERS)
 
-    myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
+    preparedProject.runTest {
+      invokeTasks(":app:preBuild")
 
-    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
+    val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
     val results = buildAnalyzerStorageManager.getSuccessfulResult()
 
-    assertThat(results.getAppliedPlugins()).hasSize(2)
-    val appliedPluginsForAppProject =
-      results.getAppliedPlugins().toImmutableMap()[":app"]!!.map { it.displayNames().first() }
-    assertThat(appliedPluginsForAppProject).containsAllIn(
-      listOf("SamplePlugin", "com.android.application", "org.gradle.api.plugins.JavaBasePlugin")
-    )
+      assertThat(results.getAppliedPlugins()).hasSize(3)
+      val appliedPluginsForAppProject = results.getAppliedPlugins()[":app"]!!.map { it.displayNames().first() }
+      assertThat(appliedPluginsForAppProject).containsAllIn(
+        listOf(
+          "AlwaysRunTasksPlugin",
+          "AlwaysRunningBuildSrcPlugin",
+          "com.android.application",
+          "org.gradle.api.plugins.JavaBasePlugin",
+        )
+      )
+    }
   }
 }

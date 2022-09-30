@@ -1,0 +1,13 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+
+android {
+  namespace "google.simplelibrary"
+  compileSdkVersion 33
+}
+
+dependencies {
+  implementation 'com.google.auto.value:auto-value-annotations:1.6.2'
+  annotationProcessor 'com.google.auto.value:auto-value:1.6.2'
+}

@@ -19,24 +19,26 @@ import com.android.SdkConstants
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.getSuccessfulResult
-import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 class NoncacheableTasksAnalyzerTest {
   @get:Rule
-  val myProjectRule = AndroidGradleProjectRule()
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
-  private fun setUpProject() {
-    myProjectRule.load(SIMPLE_APPLICATION)
+  private fun runTest(testAction: TestContext.() -> Unit) {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BUILD_ANALYZER_CHECK_ANALYZERS)
 
-    FileUtil.appendToFile(FileUtils.join(File(myProjectRule.project.basePath!!), "app", SdkConstants.FN_BUILD_GRADLE), """
+    FileUtil.appendToFile(FileUtils.join(preparedProject.root, "app", SdkConstants.FN_BUILD_GRADLE), """
       task sample {
           doLast {
               // do nothing
@@ -50,39 +52,43 @@ class NoncacheableTasksAnalyzerTest {
           }
       }
     """.trimIndent())
+
+    preparedProject.runTest {
+      testAction()
+    }
   }
 
   @Test
   @Ignore("b/144419681")
   fun testNoncacheableTasksAnalyzer() {
-    setUpProject()
+    runTest {
+      invokeTasks("assembleDebug")
 
-    myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
+      val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
+      val results = buildAnalyzerStorageManager.getSuccessfulResult()
 
-    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getSuccessfulResult()
+      assertThat(results.getNonCacheableTasks().size == 1)
+      val noncacheableTask = results.getNonCacheableTasks()[0]
 
-    assertThat(results.getNonCacheableTasks().size == 1)
-    val noncacheableTask = results.getNonCacheableTasks()[0]
-
-    assertThat(noncacheableTask.getTaskPath()).isEqualTo(":app:sample")
-    assertThat(noncacheableTask.taskType).isEqualTo("org.gradle.api.DefaultTask")
-    assertThat(noncacheableTask.originPlugin.toString()).isEqualTo("script :app:build.gradle")
+      assertThat(noncacheableTask.getTaskPath()).isEqualTo(":app:sample")
+      assertThat(noncacheableTask.taskType).isEqualTo("org.gradle.api.DefaultTask")
+      assertThat(noncacheableTask.originPlugin.toString()).isEqualTo("script :app:build.gradle")
+    }
   }
 
   @Test
   @Ignore("b/144419681, b/179137380")
   fun testNoncacheableTasksAnalyzerWithSuppressedWarning() {
-    setUpProject()
+    runTest {
+      BuildAttributionWarningsFilter.getInstance(project).suppressNoncacheableTaskWarning("org.gradle.api.DefaultTask",
+                                                                                          ":app:build.gradle")
 
-    BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressNoncacheableTaskWarning("org.gradle.api.DefaultTask",
-                                                                                                      ":app:build.gradle")
+      invokeTasks("assembleDebug")
 
-    myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
+      val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
+      val results = buildAnalyzerStorageManager.getSuccessfulResult()
 
-    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getSuccessfulResult()
-
-    assertThat(results.getNonCacheableTasks()).isEmpty()
+      assertThat(results.getNonCacheableTasks()).isEmpty()
+    }
   }
 }

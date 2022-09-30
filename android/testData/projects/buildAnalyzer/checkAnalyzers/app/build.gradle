@@ -1,0 +1,102 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+    buildToolsVersion "28.0.2"
+
+
+    useLibrary 'org.apache.http.legacy'
+
+    defaultConfig {
+        applicationId "google.simpleapplication"
+        minSdkVersion 19
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    lintOptions {
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation project(":lib")
+    implementation 'com.google.auto.value:auto-value-annotations:1.6.2'
+    annotationProcessor 'com.google.auto.value:auto-value:1.6.2'
+
+    api fileTree(dir: 'libs', include: ['*.jar'])
+    api 'com.android.support:appcompat-v7:+'
+    api 'com.google.guava:guava:19.0'
+    api 'com.android.support.constraint:constraint-layout:1.0.2'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:+'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:+'
+}
+
+class AlwaysRunTask extends DefaultTask {
+  @TaskAction
+  def run() {
+  }
+}
+
+class AlwaysRunTasksPlugin implements Plugin<Project> {
+  void apply(Project project) {
+    project.android.applicationVariants.all { variant ->
+      if (variant.name == "debug") {
+        AlwaysRunTask sample = project.tasks.create("alwaysRunningTask", AlwaysRunTask)
+
+        AlwaysRunTask sample2 = project.tasks.create("alwaysRunningTask2", AlwaysRunTask)
+        variant.mergeResourcesProvider.configure {
+          dependsOn(sample2)
+        }
+        sample2.dependsOn sample
+        sample2.outputs.upToDateWhen { false }
+      }
+    }
+  }
+}
+
+apply plugin: AlwaysRunTasksPlugin
+apply plugin: 'AlwaysRunningBuildSrcPlugin'
+
+afterEvaluate { project ->
+  android.applicationVariants.all { variant ->
+    def mergeResourcesTask = tasks.getByPath("merge${variant.name.capitalize()}Resources")
+    mergeResourcesTask.dependsOn 'alwaysRunningBuildSrcTask'
+  }
+}
+
+task sampleDelete(type: Delete) { }
+
+abstract class OverlappingOutputTask extends DefaultTask {
+  @OutputDirectory
+  abstract DirectoryProperty getOutputDir()
+
+  @TaskAction
+  def run() {
+    // do nothing
+  }
+}
+
+task overlappingOutputTask1(type: OverlappingOutputTask) {
+  outputDir = file("$buildDir/outputs/shared_output")
+}
+
+task overlappingOutputTask2(type: OverlappingOutputTask) {
+  outputDir = file("$buildDir/outputs/shared_output")
+}
+
+afterEvaluate { project ->
+  android.applicationVariants.all { variant ->
+    def prebuildTask = tasks.getByPath("preBuild")
+    prebuildTask.dependsOn overlappingOutputTask1
+    prebuildTask.dependsOn overlappingOutputTask2
+  }
+  overlappingOutputTask2.dependsOn overlappingOutputTask1
+}

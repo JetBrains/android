@@ -15,77 +15,45 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.SdkConstants
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.getSuccessfulResult
-import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.TestProjectPaths
-import com.android.utils.FileUtils
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.util.io.FileUtil
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 class TasksConfigurationIssuesAnalyzerTest {
   @get:Rule
-  val myProjectRule = AndroidGradleProjectRule()
-
-  private fun setUpProject() {
-    myProjectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
-
-    FileUtil.appendToFile(FileUtils.join(File(myProjectRule.project.basePath!!), "app", SdkConstants.FN_BUILD_GRADLE), """
-      abstract class SampleTask extends DefaultTask {
-          @OutputDirectory
-          abstract DirectoryProperty getOutputDir()
-
-          @TaskAction
-          def run() {
-              // do nothing
-          }
-      }
-
-      task sample1(type: SampleTask) {
-          outputDir = file("${"$"}buildDir/outputs/shared_output")
-      }
-
-      task sample2(type: SampleTask) {
-          outputDir = file("${"$"}buildDir/outputs/shared_output")
-      }
-
-      afterEvaluate { project ->
-          android.applicationVariants.all { variant ->
-              def mergeResourcesTask = tasks.getByPath("merge${"$"}{variant.name.capitalize()}Resources")
-              mergeResourcesTask.dependsOn sample1
-              mergeResourcesTask.dependsOn sample2
-          }
-          sample2.dependsOn sample1
-      }
-    """.trimIndent())
-  }
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
   @Test
   fun testTasksConfigurationIssuesAnalyzer() {
-    setUpProject()
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BUILD_ANALYZER_CHECK_ANALYZERS)
 
-    myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
+    preparedProject.runTest {
+      invokeTasks("preBuild")
 
-    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getSuccessfulResult()
+      val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
+      val results = buildAnalyzerStorageManager.getSuccessfulResult()
 
-    assertThat(results.getTasksSharingOutput()).hasSize(1)
-    val tasksSharingOutput = results.getTasksSharingOutput()[0]
+      assertThat(results.getTasksSharingOutput()).hasSize(1)
+      val tasksSharingOutput = results.getTasksSharingOutput()[0]
 
 
-    assertThat(tasksSharingOutput.outputFilePath).endsWith("app/build/outputs/shared_output")
-    assertThat(tasksSharingOutput.taskList).hasSize(2)
+      assertThat(tasksSharingOutput.outputFilePath).endsWith("app/build/outputs/shared_output")
+      assertThat(tasksSharingOutput.taskList).hasSize(2)
 
-    assertThat(tasksSharingOutput.taskList[0].getTaskPath()).isEqualTo(":app:sample1")
-    assertThat(tasksSharingOutput.taskList[0].taskType).isEqualTo("SampleTask")
-    assertThat(tasksSharingOutput.taskList[0].originPlugin.toString()).isEqualTo("script :app:build.gradle")
+      assertThat(tasksSharingOutput.taskList[0].getTaskPath()).isEqualTo(":app:overlappingOutputTask1")
+      assertThat(tasksSharingOutput.taskList[0].taskType).isEqualTo("OverlappingOutputTask")
+      assertThat(tasksSharingOutput.taskList[0].originPlugin.toString()).isEqualTo("script :app:build.gradle")
 
-    assertThat(tasksSharingOutput.taskList[1].getTaskPath()).isEqualTo(":app:sample2")
-    assertThat(tasksSharingOutput.taskList[1].taskType).isEqualTo("SampleTask")
-    assertThat(tasksSharingOutput.taskList[1].originPlugin.toString()).isEqualTo("script :app:build.gradle")
+      assertThat(tasksSharingOutput.taskList[1].getTaskPath()).isEqualTo(":app:overlappingOutputTask2")
+      assertThat(tasksSharingOutput.taskList[1].taskType).isEqualTo("OverlappingOutputTask")
+      assertThat(tasksSharingOutput.taskList[1].originPlugin.toString()).isEqualTo("script :app:build.gradle")
+    }
   }
 }

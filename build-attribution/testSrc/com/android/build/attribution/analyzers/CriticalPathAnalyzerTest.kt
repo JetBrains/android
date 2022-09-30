@@ -24,8 +24,11 @@ import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.getSuccessfulResult
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import org.junit.Before
@@ -36,7 +39,7 @@ import org.mockito.Mockito
 class CriticalPathAnalyzerTest {
 
   @get:Rule
-  val myProjectRule = AndroidGradleProjectRule()
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
   private lateinit var studioProvidedInfo: StudioProvidedInfo
 
@@ -187,13 +190,15 @@ class CriticalPathAnalyzerTest {
 
   @Test
   fun testCriticalPathAnalyzerOnNoOpBuild() {
-    myProjectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
-    myProjectRule.invokeTasksRethrowingErrors("assembleDebug").also { assertThat(it.isBuildSuccessful).isTrue() }
-    myProjectRule.invokeTasksRethrowingErrors("assembleDebug").also { assertThat(it.isBuildSuccessful).isTrue() }
-    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getSuccessfulResult()
-    assertThat(results.getTasksDeterminingBuildDuration().isEmpty())
-    assertThat(results.getPluginsDeterminingBuildDuration().isEmpty())
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BUILD_ANALYZER_CHECK_ANALYZERS)
 
+    preparedProject.runTest {
+      invokeTasks("assembleDebug").also { assertThat(it.isBuildSuccessful).isTrue() }
+      invokeTasks("assembleDebug").also { assertThat(it.isBuildSuccessful).isTrue() }
+      val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
+      val results = buildAnalyzerStorageManager.getSuccessfulResult()
+      assertThat(results.getTasksDeterminingBuildDuration().isEmpty())
+      assertThat(results.getPluginsDeterminingBuildDuration().isEmpty())
+    }
   }
 }

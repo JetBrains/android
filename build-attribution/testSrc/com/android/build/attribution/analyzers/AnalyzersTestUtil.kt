@@ -16,8 +16,12 @@
 package com.android.build.attribution.analyzers
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.buildAndWait
+import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationDescriptor
@@ -34,6 +38,7 @@ import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.task.TaskSuccessResult
 import org.gradle.tooling.model.ProjectIdentifier
 import org.mockito.Mockito
+import java.io.File
 
 fun createBinaryPluginIdentifierStub(displayName: String, className: String): BinaryPluginIdentifier {
   val pluginIdentifier = Mockito.mock(BinaryPluginIdentifier::class.java)
@@ -149,4 +154,29 @@ fun AndroidGradleProjectRule.invokeTasksRethrowingErrors(vararg tasks: String): 
   val invocationResult = invokeTasks(tasks = tasks)
   invocationResult.buildError?.let { throw it }
   return invocationResult
+}
+
+interface TestContext {
+  val project: Project
+  val projectDir: File
+  fun invokeTasks(vararg tasks: String): GradleInvocationResult
+}
+
+fun PreparedTestProject.runTest(testAction: TestContext.() -> Unit) {
+  val projectDir = root
+  open { project ->
+    testAction(
+      object : TestContext {
+        override val project: Project = project
+        override val projectDir: File = projectDir
+        override fun invokeTasks(vararg tasks: String): GradleInvocationResult {
+          val invocationResult = project.buildAndWait {
+            it.executeTasks(GradleBuildInvoker.Request.builder(project, projectDir, *tasks).build())
+          }
+          invocationResult.buildError?.let { throw it }
+          return invocationResult
+        }
+      }
+    )
+  }
 }
