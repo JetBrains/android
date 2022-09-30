@@ -110,8 +110,8 @@ class BuildAnalyzerStorageManagerImpl(
     return buildResults
   }
 
-  override fun recordNewFailure(buildID: String) {
-    this.buildResults = FailureResult(buildID)
+  override fun recordNewFailure(buildID: String, failureType: FailureResult.Type) {
+    this.buildResults = FailureResult(buildID, failureType)
     notifyDataListeners()
   }
 

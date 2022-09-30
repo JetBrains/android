@@ -30,7 +30,7 @@ interface BuildAnalyzerStorageManager {
    */
   fun getLatestBuildAnalysisResults() : AbstractBuildAnalysisResult
   fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID: String, requestHolder: BuildRequestHolder): BuildAnalysisResults
-  fun recordNewFailure(buildID: String)
+  fun recordNewFailure(buildID: String, failureType: FailureResult.Type)
   fun hasData() : Boolean
   /**
    * Returns the analysis results from the build specified in the form of a BuildAnalysisResults object. There are no arguments.

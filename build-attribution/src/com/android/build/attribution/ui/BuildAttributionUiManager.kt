@@ -135,7 +135,7 @@ class BuildAttributionUiManagerImpl(
       val buildAnalysisResult = BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults()
       uiAnalytics.newReportSessionId(buildAnalysisResult.getBuildSessionID())
       when (buildAnalysisResult) {
-        is FailureResult -> doShowNewFailureReport()
+        is FailureResult -> doShowNewFailureReport(buildAnalysisResult.failureType)
         is BuildAnalysisResults -> doShowNewSuccessReport(buildAnalysisResult)
       }
     }
@@ -171,10 +171,10 @@ class BuildAttributionUiManagerImpl(
   }
 
   @UiThread
-  private fun doShowNewFailureReport() {
+  private fun doShowNewFailureReport(failureType: FailureResult.Type) {
     val content = buildContent
     if (content != null && content.isValid) {
-      placeNewViewInExistingTab(content) { BuildFailureViewComponentContainer() }
+      placeNewViewInExistingTab(content) { BuildFailureViewComponentContainer(failureType) }
     }
   }
 
@@ -205,7 +205,7 @@ class BuildAttributionUiManagerImpl(
           NewViewComponentContainer(reportUiData, project, issueReporter, uiAnalytics)
         }
       }
-      is FailureResult -> return { BuildFailureViewComponentContainer() }
+      is FailureResult -> return { BuildFailureViewComponentContainer(buildAnalysisResult.failureType) }
     }
   }
 
@@ -312,7 +312,18 @@ class NewViewComponentContainer(
   override fun dispose() = Unit
 }
 
-private class BuildFailureViewComponentContainer : ComponentContainer {
+private class BuildFailureViewComponentContainer(failureType: FailureResult.Type) : ComponentContainer {
+
+  private val errorMessage: String = when (failureType) {
+    FailureResult.Type.BUILD_FAILURE -> """
+      The Build Analyzer isn't able to analyze your build as the most recent build failed.<br>
+      Please address any warnings in the Build Output window and rebuild your project.<br>
+    """.trimIndent()
+    FailureResult.Type.ANALYSIS_FAILURE -> """
+      There was an internal failure in Build Analyzer while running analysis of this build.<br>
+      Please help us fix it by reporting the problem using Help > Submit Feedback action.<br>
+    """.trimIndent()
+  }
 
   override fun getPreferredFocusableComponent(): JComponent = component
 
@@ -321,10 +332,7 @@ private class BuildFailureViewComponentContainer : ComponentContainer {
     name = "Build failure empty view"
     border = JBUI.Borders.empty(20)
     add(JLabel(warningIcon()).apply { verticalAlignment = SwingConstants.TOP }, BorderLayout.WEST)
-    add(htmlTextLabelWithFixedLines("""
-      The Build Analyzer isn't able to analyze your build as the most recent build failed.<br>
-      Please address any warnings in the Build Output window and rebuild your project.<br>
-    """.trimIndent()), BorderLayout.CENTER)
+    add(htmlTextLabelWithFixedLines(errorMessage), BorderLayout.CENTER)
   }
 
   override fun dispose() = Unit

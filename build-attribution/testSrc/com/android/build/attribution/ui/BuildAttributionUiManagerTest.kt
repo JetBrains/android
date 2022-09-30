@@ -26,6 +26,7 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.Projects
@@ -47,9 +48,11 @@ import com.intellij.testFramework.registerComponentInstance
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.impl.ContentImpl
 import com.intellij.util.text.DateFormatUtil
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 import java.util.UUID
+import javax.swing.JEditorPane
 import javax.swing.JPanel
 
 
@@ -126,7 +129,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
   }
 
   fun testOnBuildFailureWhenTabClosed() {
-    setNewReportData(FailureResult(buildSessionId))
+    setNewReportData(FailureResult(buildSessionId, FailureResult.Type.BUILD_FAILURE))
 
     verifyBuildAnalyzerTabNotExist()
 
@@ -232,7 +235,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     val buildSessionId2 = UUID.randomUUID().toString()
 
     setNewReportData(constructEmptyBuildResultsObject(buildSessionId1, Projects.getBaseDirPath(project)))
-    setNewReportData(FailureResult(buildSessionId2))
+    setNewReportData(FailureResult(buildSessionId2, FailureResult.Type.BUILD_FAILURE))
 
     verifyBuildAnalyzerTabExist()
 
@@ -325,6 +328,46 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     Truth.assertThat(buildAttributionUiManager.buildAttributionView).isNotNull()
     Truth.assertThat(Disposer.isDisposed(buildAttributionUiManager.buildAttributionView!!)).isFalse()
     Truth.assertThat(buildAttributionUiManager.buildContent).isNotNull()
+  }
+
+  fun testContentOnBuildFailure() {
+    setNewReportData(FailureResult(buildSessionId, FailureResult.Type.BUILD_FAILURE))
+
+    openBuildAnalyzerTabFromAction()
+
+    verifyBuildAnalyzerTabSelected()
+
+    val page = contentManager().findContent("Build Analyzer").component
+    val pane = TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single()
+    val text = UIUtil.getHtmlBody(pane.text)
+      .trimIndent()
+      .replace("\n","")
+      .replace("<br>","\n")
+      .trim()
+    Truth.assertThat(text).isEqualTo("""
+      The Build Analyzer isn't able to analyze your build as the most recent build failed.
+      Please address any warnings in the Build Output window and rebuild your project.
+    """.trimIndent())
+  }
+
+  fun testContentOnAnalysisFailure() {
+    setNewReportData(FailureResult(buildSessionId, FailureResult.Type.ANALYSIS_FAILURE))
+
+    openBuildAnalyzerTabFromAction()
+
+    verifyBuildAnalyzerTabSelected()
+
+    val page = contentManager().findContent("Build Analyzer").component
+    val pane = TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single()
+    val text = UIUtil.getHtmlBody(pane.text)
+      .trimIndent()
+      .replace("\n","")
+      .replace("<br>","\n")
+      .trim()
+    Truth.assertThat(text).isEqualTo("""
+      There was an internal failure in Build Analyzer while running analysis of this build.
+      Please help us fix it by reporting the problem using Help &gt; Submit Feedback action.
+    """.trimIndent())
   }
 
   fun testProjectCloseBeforeAnyBuildFinished() {

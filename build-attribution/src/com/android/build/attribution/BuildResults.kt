@@ -205,7 +205,10 @@ data class BuildAnalysisResults(
 }
 
 data class FailureResult(
-  private val buildSessionID: String
+  private val buildSessionID: String,
+  val failureType: Type
 ) : AbstractBuildAnalysisResult {
   override fun getBuildSessionID(): String = buildSessionID
+
+  enum class Type { BUILD_FAILURE, ANALYSIS_FAILURE }
 }

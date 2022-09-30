@@ -93,14 +93,13 @@ class BuildAttributionManagerImpl(
           }
           else {
             analyticsManager.logAnalysisFailure(myCurrentBuildInvocationType)
-            //TODO (b/184273397): currently show general failure state, same as for failed build. Adjust in further refactorings.
-            BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId)
+            BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId, FailureResult.Type.ANALYSIS_FAILURE)
           }
         }
         catch (t: Throwable) {
           log.error("Error during post-build analysis", t)
           analyticsManager.logAnalysisFailure(myCurrentBuildInvocationType)
-          BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId)
+          BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId, FailureResult.Type.ANALYSIS_FAILURE)
         }
         finally {
           cleanup(attributionFileDir)
@@ -118,7 +117,7 @@ class BuildAttributionManagerImpl(
       BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
         analyticsManager.logBuildFailure(myCurrentBuildInvocationType)
         analyzersWrapper.onBuildFailure()
-        BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId)
+        BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId, FailureResult.Type.BUILD_FAILURE)
       }
     }
   }
