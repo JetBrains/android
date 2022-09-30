@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.utils.HtmlBuilder
 
 private const val BOTTOM_NAVIGATION_CLASS_NAME = "com.google.android.material.bottomnavigation.BottomNavigationView"
+private const val NAVIGATION_RAIL_CLASS_NAME = "com.google.android.material.navigationrail.NavigationRailView"
 private const val NAVIGATION_RAIL_URL = "https://material.io/components/navigation-rail/android"
 private const val NAVIGATION_DRAWER_URL = "https://material.io/components/navigation-drawer/android"
 
@@ -41,21 +42,23 @@ object BottomNavAnalyzer : VisualLintAnalyzer() {
   override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
+    val configuration = model.configuration
+    val orientation = configuration.deviceState?.orientation ?: return issues
+    val dimension = configuration.device?.getScreenSize(orientation) ?: return issues
+    val deviceWidthInDp = Coordinates.pxToDp(model, dimension.width)
     while (viewsToAnalyze.isNotEmpty()) {
       val view = viewsToAnalyze.removeLast()
       view.children.forEach { viewsToAnalyze.addLast(it) }
-      if (view.className == BOTTOM_NAVIGATION_CLASS_NAME) {
-        /* This is needed, as visual lint analysis need to run outside the context of scene. */
-        val widthInDp = Coordinates.pxToDp(model, view.right - view.left)
-        if (widthInDp > 600) {
-          issues.add(createIssueContent(view))
-        }
+      if (view.className == BOTTOM_NAVIGATION_CLASS_NAME && deviceWidthInDp >= 600) {
+        issues.add(createIssueContentForBottomNavigation(view))
+      } else if (view.className == NAVIGATION_RAIL_CLASS_NAME && deviceWidthInDp >= 1240) {
+        issues.add(createIssueContentForNavigationRail(view))
       }
     }
     return issues
   }
 
-  private fun createIssueContent(view: ViewInfo): VisualLintIssueContent {
+  private fun createIssueContentForBottomNavigation(view: ViewInfo): VisualLintIssueContent {
     val content = { count: Int ->
       HtmlBuilder()
         .add("Bottom navigation bar is not recommended for breakpoints >= 600dp, ")
@@ -68,6 +71,19 @@ object BottomNavAnalyzer : VisualLintAnalyzer() {
         .add(" for breakpoints >= 600dp.")
     }
     return VisualLintIssueContent(view, "Bottom navigation bar is not recommended for breakpoints over 600dp", content)
+  }
+
+  private fun createIssueContentForNavigationRail(view: ViewInfo): VisualLintIssueContent {
+    val content = { count: Int ->
+      HtmlBuilder()
+        .add("Navigation rail is not recommended for breakpoints >= 1240dp, ")
+        .add("which affects ${previewConfigurations(count)}.")
+        .newline()
+        .add("Material Design recommends replacing navigation rail with ")
+        .addLink("navigation drawer", NAVIGATION_DRAWER_URL)
+        .add(" for breakpoints >= 1240dp.")
+    }
+    return VisualLintIssueContent(view, "Navigation rail is not recommended for breakpoints over 1240dp", content)
   }
 }
 
