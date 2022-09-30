@@ -20,6 +20,7 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -152,16 +153,15 @@ class DeviceViewContentPanel(
   }
 
   init {
-    processNotDebuggableText.appendLine("Application not inspectable.")
-    processNotDebuggableText.appendLine("Switch to a debuggable application on your device to inspect.")
+    processNotDebuggableText.appendLine(LayoutInspectorBundle.message("application.not.inspectable"))
+    processNotDebuggableText.appendLine(LayoutInspectorBundle.message("switch.to.debuggable.application"))
 
-    navigateToDebuggableProcessText.appendLine("Navigate to a debuggable app on your device to begin inspection.")
+    navigateToDebuggableProcessText.appendLine(LayoutInspectorBundle.message("navigate.to.debuggable.application"))
 
     selectTargetAction?.let { selectTargetAction ->
-      emptyText.appendLine("No process connected")
+      emptyText.appendLine(LayoutInspectorBundle.message("no.process.connected"))
 
       emptyText.appendLine("Deploy your app or ")
-
       @Suppress("DialogTitleCapitalization")
       val text = if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()) {
         "select a device"
