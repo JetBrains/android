@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.device.dialogs
 
+import com.android.tools.idea.device.benchmark.Benchmarker
+import com.android.tools.idea.device.benchmark.DeviceAdapter
 import com.android.tools.idea.device.benchmark.DeviceMirroringBenchmarkTarget
-import com.android.tools.idea.device.benchmark.DeviceMirroringBenchmarker
-import com.android.tools.idea.emulator.AbstractDisplayView
 import com.intellij.CommonBundle
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -32,6 +32,7 @@ import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.ui.layout.ComponentPredicate
 import com.intellij.ui.layout.not
 import java.awt.Component
+import java.awt.Point
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.DefaultBoundedRangeModel
@@ -57,7 +58,7 @@ class DeviceMirroringBenchmarkDialog(private val target: DeviceMirroringBenchmar
   private val dispatchedProgressBar = JProgressBar(DefaultBoundedRangeModel(0, 0, 0, 100))
   private val receivedProgressBar = JProgressBar(DefaultBoundedRangeModel(0, 0, 0, 100))
 
-  private var benchmarker: DeviceMirroringBenchmarker? by Delegates.observable(null) { _, _, newValue ->
+  private var benchmarker: Benchmarker<Point>? by Delegates.observable(null) { _, _, newValue ->
     isRunningListeners.forEach { it(newValue != null) }
   }
   private var touchRateHz = 60
@@ -133,7 +134,8 @@ class DeviceMirroringBenchmarkDialog(private val target: DeviceMirroringBenchmar
 
     override fun actionPerformed(e: ActionEvent?) {
       dialogPanel.apply()
-      benchmarker = DeviceMirroringBenchmarker(target, bitsPerChannel, latencyBits, touchRateHz, maxTouches, step, spikiness).apply {
+      val deviceAdapter = DeviceAdapter(target, bitsPerChannel, latencyBits, maxTouches, step, spikiness)
+      benchmarker = Benchmarker(deviceAdapter, touchRateHz).apply {
         addOnProgressCallback { dispatchedProgress, receivedProgress ->
           dispatchedProgressBar.updateProgress(dispatchedProgress)
           receivedProgressBar.updateProgress(receivedProgress)

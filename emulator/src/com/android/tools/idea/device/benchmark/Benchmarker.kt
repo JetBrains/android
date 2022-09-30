@@ -30,10 +30,9 @@ typealias ProgressCallback = (Double, Double) -> Unit
 
 /** Class that conducts a generic benchmarking operation. */
 @OptIn(ExperimentalTime::class)
-sealed class Benchmarker<InputType>(
+class Benchmarker<InputType>(
   private val adapter: Adapter<InputType>,
   inputRateHz: Int = 60,
-  maxInputs: Int = 10_000,
   protected val timeSource: TimeSource = TimeSource.Monotonic,
   timer: Timer = Timer(),
 ) {
@@ -89,7 +88,6 @@ sealed class Benchmarker<InputType>(
   private val inputRoundTrips: MutableMap<InputType, Duration> = mutableMapOf()
 
   init {
-    require(maxInputs > 0) { "Must specify a positive value for maxInputs!" }
     val callbacks = object : Adapter.Callbacks<InputType> {
       override fun inputReturned(input: InputType, effectiveDispatchTime: TimeMark) {
         this@Benchmarker.inputReturned(input, effectiveDispatchTime)

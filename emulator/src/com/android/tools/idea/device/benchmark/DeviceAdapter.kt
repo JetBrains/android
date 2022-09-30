@@ -81,7 +81,7 @@ private fun AbstractDisplayView.press(keyCode: Int) {
 }
 
 private fun AbstractDisplayView.type(keyCode: Int, keyChar: Char) {
-  keyInput(keyCode, keyChar, KeyEvent.KEY_TYPED)
+  keyInput(KeyEvent.VK_UNDEFINED, keyChar, KeyEvent.KEY_TYPED)
 }
 
 private fun AbstractDisplayView.keyInput(keyCode: Int, keyChar:Char, id: Int) {
@@ -141,12 +141,12 @@ private fun Rectangle.scribble(numPoints: Int, step: Int, spikiness: Int): Seque
 @OptIn(ExperimentalTime::class)
 internal class DeviceAdapter (
   private val target: DeviceMirroringBenchmarkTarget,
-  private val timeSource: TimeSource,
   private val bitsPerChannel: Int = 0,
   private val latencyBits: Int = 6,
   private val maxTouches: Int = 10_000,
   private val step: Int = 1,
   private val spikiness: Int = 1,
+  private val timeSource: TimeSource = TimeSource.Monotonic,
   ) : Adapter<Point>, AbstractDisplayView.FrameListener {
 
   private val deviceDisplaySize: Dimension by target.view::deviceDisplaySize
@@ -174,6 +174,7 @@ internal class DeviceAdapter (
   private var ready = AtomicBoolean()
 
   init {
+    require(maxTouches > 0) { "Must specify a positive value for maxTouches!" }
     require(step > 0) { "Must specify a positive value for step!" }
     require(spikiness >= 0) { "Must specify a non-negative value for spikiness!" }
     require(bitsPerChannel in 0..8) { "Cannot extract $bitsPerChannel bits from a channel! Must be in [0,8]" }
@@ -348,3 +349,5 @@ internal class DeviceAdapter (
     return viewCoordinates
   }
 }
+
+data class DeviceMirroringBenchmarkTarget(val name: String, val serialNumber: String, val view: AbstractDisplayView)
