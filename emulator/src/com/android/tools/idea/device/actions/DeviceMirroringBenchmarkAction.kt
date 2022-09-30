@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device.actions
 
+import com.android.tools.idea.device.benchmark.DeviceMirroringBenchmarkTarget
 import com.android.tools.idea.device.dialogs.DeviceMirroringBenchmarkDialog
 import com.android.tools.idea.emulator.AbstractDisplayView
 import com.android.tools.idea.emulator.RUNNING_DEVICES_TOOL_WINDOW_ID
@@ -28,22 +29,23 @@ import com.intellij.openapi.wm.ToolWindowManager
 /** Action to bring up a dialog that controls device mirroring benchmarking. */
 class DeviceMirroringBenchmarkAction : AnAction() {
   override fun update(event: AnActionEvent) {
-    event.presentation.isEnabled = getDeviceView(event.project) != null
+    event.presentation.isEnabled = getTarget(event.project) != null
   }
 
   override fun actionPerformed(event: AnActionEvent) {
-    val (title, view) = getDeviceView(event.project) ?: return
-    DeviceMirroringBenchmarkDialog(title, view).createWrapper(event.project).show()
+    getTarget(event.project)?.let {
+      DeviceMirroringBenchmarkDialog(it).createWrapper(event.project).show()
+    }
   }
 
-  private fun getDeviceView(project: Project?): Pair<String, AbstractDisplayView>? {
+  private fun getTarget(project: Project?): DeviceMirroringBenchmarkTarget? {
     val panel = project
                   ?.getEmulatorToolWindow()
                   ?.contentManager
                   ?.selectedContent
                   ?.component as? RunningDevicePanel ?: return null
     val view = panel.preferredFocusableComponent as? AbstractDisplayView ?: return null
-    return panel.title to view
+    return DeviceMirroringBenchmarkTarget(panel.title, panel.id.serialNumber, view)
   }
 
   private fun Project.getEmulatorToolWindow(): ToolWindow? =

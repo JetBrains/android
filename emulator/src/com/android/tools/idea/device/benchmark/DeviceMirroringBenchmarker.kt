@@ -21,10 +21,12 @@ import java.util.Timer
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 
+data class DeviceMirroringBenchmarkTarget(val name: String, val serialNumber: String, val view: AbstractDisplayView)
+
 /** A class to conduct benchmarking of device mirroring. */
 @OptIn(ExperimentalTime::class)
 class DeviceMirroringBenchmarker(
-  abstractDisplayView: AbstractDisplayView,
+  target: DeviceMirroringBenchmarkTarget,
   bitsPerChannel: Int = 0,
   latencyBits: Int = 6,
   touchRateHz: Int = 60,
@@ -34,7 +36,7 @@ class DeviceMirroringBenchmarker(
   timeSource: TimeSource = TimeSource.Monotonic,
   timer: Timer = Timer(),
 ) : Benchmarker<Point>(
-  DeviceAdapter(abstractDisplayView, timeSource, bitsPerChannel, latencyBits, maxTouches, step, spikiness),
+  DeviceAdapter(target, timeSource, bitsPerChannel, latencyBits, maxTouches, step, spikiness),
   touchRateHz,
   maxTouches,
   timeSource,

@@ -140,7 +140,7 @@ private fun Rectangle.scribble(numPoints: Int, step: Int, spikiness: Int): Seque
 
 @OptIn(ExperimentalTime::class)
 internal class DeviceAdapter (
-  private val abstractDisplayView: AbstractDisplayView,
+  private val target: DeviceMirroringBenchmarkTarget,
   private val timeSource: TimeSource,
   private val bitsPerChannel: Int = 0,
   private val latencyBits: Int = 6,
@@ -149,7 +149,7 @@ internal class DeviceAdapter (
   private val spikiness: Int = 1,
   ) : Adapter<Point>, AbstractDisplayView.FrameListener {
 
-  private val deviceDisplaySize: Dimension by abstractDisplayView::deviceDisplaySize
+  private val deviceDisplaySize: Dimension by target.view::deviceDisplaySize
   private val maxBits: Int = ceil(log2(max(deviceDisplaySize.width, deviceDisplaySize.height).toDouble())).roundToInt()
   private val numRegionsPerCoordinate = if (bitsPerChannel == 0) maxBits else (maxBits - 1) / (bitsPerChannel * 3) + 1
   private val numLatencyRegions = if (bitsPerChannel == 0) latencyBits else (latencyBits - 1) / (bitsPerChannel * 3) + 1
@@ -206,27 +206,27 @@ internal class DeviceAdapter (
 
   override fun dispatch(input: Point) {
     lastPressed = input
-    abstractDisplayView.click(input)
+    target.view.click(input)
   }
 
   override fun ready() {
     keyConfigIntoApp()
     startedGettingReady = timeSource.markNow()
-    abstractDisplayView.addFrameListener(this)
-    abstractDisplayView.repaint()
+    target.view.addFrameListener(this)
+    target.view.repaint()
   }
 
   override fun finalizeInputs() {
-    lastPressed?.let { abstractDisplayView.click(it, MouseEvent.MOUSE_RELEASED) }
+    lastPressed?.let { target.view.click(it, MouseEvent.MOUSE_RELEASED) }
   }
 
   override fun tearDown() {
-    abstractDisplayView.removeFrameListener(this)
+    target.view.removeFrameListener(this)
   }
 
   @Synchronized
   private fun keyConfigIntoApp() {
-    with(abstractDisplayView) {
+    with(target.view) {
       press(KeyEvent.VK_UP)
       typeNumber(maxBits)
       type(KeyEvent.VK_COMMA, ',')
@@ -253,7 +253,7 @@ internal class DeviceAdapter (
     // Get two opposite corners of the image rectangle.
     listOf(imageRectangle.location, Point(imageRectangle.right, imageRectangle.bottom))
       // Scale them to device coordinates.
-      .map { it.scaledUnbiased(Dimension(width, height), abstractDisplayView.deviceDisplaySize) }
+      .map { it.scaledUnbiased(Dimension(width, height), target.view.deviceDisplaySize) }
       // Now transform them to the display view coordinates, if possible.
       .map { it.toDisplayViewCoordinates() ?: return null }
       // Now add each of these opposite points to the newly created Rectangle.
@@ -319,12 +319,12 @@ internal class DeviceAdapter (
   }
 
   private fun Point.toDisplayViewCoordinates(): Point? {
-    val displayRectangle = abstractDisplayView.displayRectangle ?: return null
-    val imageSize = displayRectangle.size.rotatedByQuadrants(abstractDisplayView.displayOrientationQuadrants)
+    val displayRectangle = target.view.displayRectangle ?: return null
+    val imageSize = displayRectangle.size.rotatedByQuadrants(target.view.displayOrientationQuadrants)
     val p2 = scaledUnbiased(deviceDisplaySize, imageSize)
-    val inverseScreenScale = 1.0 / abstractDisplayView.screenScalingFactor
+    val inverseScreenScale = 1.0 / target.view.screenScalingFactor
     val viewCoordinates = Point()
-    when (abstractDisplayView.displayOrientationQuadrants) {
+    when (target.view.displayOrientationQuadrants) {
       0 -> {
         viewCoordinates.x = (p2.x + displayRectangle.x).scaled(inverseScreenScale)
         viewCoordinates.y = (p2.y + displayRectangle.y).scaled(inverseScreenScale)

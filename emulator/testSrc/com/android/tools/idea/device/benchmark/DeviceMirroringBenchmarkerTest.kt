@@ -406,7 +406,7 @@ class DeviceMirroringBenchmarkerTest {
     latencyBits: Int = 6,
   ) : DeviceMirroringBenchmarker {
     return DeviceMirroringBenchmarker(
-      abstractDisplayView = view,
+      target = DeviceMirroringBenchmarkTarget("Device Name", "12345", view),
       bitsPerChannel = bitsPerChannel,
       latencyBits = latencyBits,
       touchRateHz = TOUCH_RATE_HZ,

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device.dialogs
 
+import com.android.tools.idea.device.benchmark.DeviceMirroringBenchmarkTarget
 import com.android.tools.idea.device.benchmark.DeviceMirroringBenchmarker
 import com.android.tools.idea.emulator.AbstractDisplayView
 import com.intellij.CommonBundle
@@ -44,7 +45,7 @@ import kotlin.properties.Delegates
  * The dialog shows options for benchmarking and also shows progress while the benchmarking is underway.
  * When benchmarking finishes, a dialog displaying results is popped up.
  */
-class DeviceMirroringBenchmarkDialog(private val deviceName: String, private val view: AbstractDisplayView) {
+class DeviceMirroringBenchmarkDialog(private val target: DeviceMirroringBenchmarkTarget) {
   private val isRunningListeners: MutableList<(Boolean) -> Unit> = mutableListOf()
   private val isRunning = object : ComponentPredicate() {
       override fun invoke(): Boolean = benchmarker != null
@@ -117,7 +118,7 @@ class DeviceMirroringBenchmarkDialog(private val deviceName: String, private val
     val startAction = StartBenchmarkAction(project, dialogPanel)
     isRunning.addListener { startAction.isEnabled = !it }
     return dialog(
-      title = "Benchmark $deviceName Mirroring",
+      title = "Benchmark ${target.name} Mirroring",
       resizable = true,
       panel = dialogPanel,
       project = project,
@@ -132,7 +133,7 @@ class DeviceMirroringBenchmarkDialog(private val deviceName: String, private val
 
     override fun actionPerformed(e: ActionEvent?) {
       dialogPanel.apply()
-      benchmarker = DeviceMirroringBenchmarker(view, bitsPerChannel, latencyBits, touchRateHz, maxTouches, step, spikiness).apply {
+      benchmarker = DeviceMirroringBenchmarker(target, bitsPerChannel, latencyBits, touchRateHz, maxTouches, step, spikiness).apply {
         addOnProgressCallback { dispatchedProgress, receivedProgress ->
           dispatchedProgressBar.updateProgress(dispatchedProgress)
           receivedProgressBar.updateProgress(receivedProgress)
@@ -145,7 +146,7 @@ class DeviceMirroringBenchmarkDialog(private val deviceName: String, private val
         }
         addOnCompleteCallback {
           ApplicationManager.getApplication().invokeLater {
-            DeviceMirroringBenchmarkResultsDialog(deviceName, it).createWrapper(project).show()
+            DeviceMirroringBenchmarkResultsDialog(target.name, it).createWrapper(project).show()
           }
         }
         start()
