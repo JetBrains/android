@@ -29,6 +29,7 @@ import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.N
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState.WARNING_ICON
 import com.android.build.attribution.ui.view.chart.ChartValueProvider
 import com.android.build.attribution.ui.warningsCountString
+import com.android.ide.common.attribution.IssueSeverity
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.Color
@@ -263,7 +264,9 @@ private class TasksTreeStructure(
       val filteredTasksForEntry = entryUiData.criticalPathTasks.filter { filter.acceptTask(it) }
       if (filteredTasksForEntry.isNotEmpty()) {
         val entryNode = treeNode(EntryDetailsNodeDescriptor(entryUiData, filteredTasksForEntry, filteredEntryTimesDistribution))
-        if (entryUiData is CriticalPathTaskCategoryUiData) treeStats.visibleWarnings += entryUiData.taskCategoryWarnings.size
+        if (entryUiData is CriticalPathTaskCategoryUiData) {
+          treeStats.visibleWarnings += entryUiData.getTaskCategoryIssues(IssueSeverity.WARNING, forWarningsPage = false).size
+        }
         filteredTasksForEntry.forEach {
           if (it.hasWarning) treeStats.visibleWarnings++
           entryNode.add(
@@ -377,8 +380,12 @@ class EntryDetailsNodeDescriptor(
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = entryData.name,
-      suffix = if (entryData is CriticalPathTaskCategoryUiData) warningsCountString(filteredWarningCount + entryData.taskCategoryWarnings.size)
-        else warningsCountString(filteredWarningCount),
+      suffix = if (entryData is CriticalPathTaskCategoryUiData) {
+        warningsCountString(filteredWarningCount + entryData.getTaskCategoryIssues(IssueSeverity.WARNING, forWarningsPage = false).size)
+      }
+      else {
+        warningsCountString(filteredWarningCount)
+      },
       rightAlignedSuffix = filteredEntryTime.toRightAlignedNodeDurationText()
     )
   override val relativeWeight: Double

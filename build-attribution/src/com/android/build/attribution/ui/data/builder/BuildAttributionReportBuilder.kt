@@ -170,11 +170,21 @@ class BuildAttributionReportBuilder(
     override val infoCount = issues.sumBy { it.infoCount }
     override val taskCategoryDescription: String
       get() = taskCategoryCriticalPathBuildData.taskCategory.description
-    override val taskCategoryWarnings = buildAnalyzerTaskCategoryIssues.filter{ it.severity == IssueSeverity.WARNING }.map{
-      BuildAnalyzerTaskCategoryIssueUiData (it, it.getWarningMessage(nonIncrementalAnnotationProcessors), it.getLink())
-    }
-    override val taskCategoryInfos = buildAnalyzerTaskCategoryIssues.filter{ it.severity == IssueSeverity.INFO }.map{
-      BuildAnalyzerTaskCategoryIssueUiData (it, it.getWarningMessage(nonIncrementalAnnotationProcessors), it.getLink())
+
+    override fun getTaskCategoryIssues(severity: IssueSeverity, forWarningsPage: Boolean): List<BuildAnalyzerTaskCategoryIssueUiData> {
+      return buildAnalyzerTaskCategoryIssues.filter {
+        if (forWarningsPage) {
+          // Leave out Java non-incremental annotation processors task category warnings as warnings are already shown for that
+          return@filter it.severity == severity && it != BuildAnalyzerTaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR
+        }
+        return@filter it.severity == severity
+      }.map { issue ->
+        BuildAnalyzerTaskCategoryIssueUiData(
+          issue,
+          issue.getWarningMessage(nonIncrementalAnnotationProcessors),
+          issue.getLink()
+        )
+      }
     }
   }
 }

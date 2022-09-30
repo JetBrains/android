@@ -30,6 +30,7 @@ import com.android.build.attribution.ui.panels.taskDetailsPage
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warnIconHtml
 import com.android.build.attribution.ui.withPluralization
+import com.android.ide.common.attribution.IssueSeverity
 import com.android.utils.HtmlBuilder
 import java.awt.BorderLayout
 import javax.swing.BoxLayout
@@ -101,16 +102,19 @@ class TaskViewDetailPagesFactory(
       newline()
 
       if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
-        val taskCategoryInfos = descriptor.entryData.taskCategoryInfos
-        if (taskCategoryInfos.isNotEmpty()) {
-          createTaskCategoryIssueMessage(taskCategoryInfos, linksHandler, actionHandlers)
+        val taskCategoryInfo = descriptor.entryData.getTaskCategoryIssues(IssueSeverity.INFO, forWarningsPage = false)
+        if (taskCategoryInfo.isNotEmpty()) {
+          createTaskCategoryIssueMessage(taskCategoryInfo, linksHandler, actionHandlers)
           newline()
         }
       }
 
       addBold("Warnings").newline()
       var warningCount = filteredTasksWithWarnings.size
-      if (descriptor.entryData is CriticalPathTaskCategoryUiData) warningCount += descriptor.entryData.taskCategoryWarnings.size
+      val taskCategoryWarnings = if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
+        descriptor.entryData.getTaskCategoryIssues(IssueSeverity.WARNING, forWarningsPage = false)
+      } else emptyList()
+      if (descriptor.entryData is CriticalPathTaskCategoryUiData) warningCount += taskCategoryWarnings.size
       if (warningCount == 0) {
         //TODO (b/240926892): same here, these are filtered, need to make it clear on UI
         if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
@@ -128,9 +132,9 @@ class TaskViewDetailPagesFactory(
           add("Top 10 warnings shown below, you can find the full list in the tree on the left.").newline()
         }
         if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
-          if (descriptor.entryData.taskCategoryWarnings.isNotEmpty()) {
-            createTaskCategoryIssueMessage(descriptor.entryData.taskCategoryWarnings, linksHandler, actionHandlers)
-            warningCount -= descriptor.entryData.taskCategoryWarnings.size
+          if (taskCategoryWarnings.isNotEmpty()) {
+            createTaskCategoryIssueMessage(taskCategoryWarnings, linksHandler, actionHandlers)
+            warningCount -= taskCategoryWarnings.size
           }
         }
         filteredTasksWithWarnings.take(minOf(warningCount, 10)).forEach { task ->

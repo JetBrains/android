@@ -20,6 +20,7 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
+import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.BuildAnalyzerTaskCategoryIssueUiData
@@ -38,10 +39,12 @@ import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.ide.common.attribution.BuildAnalyzerTaskCategoryIssue
+import com.android.ide.common.attribution.IssueSeverity
 import com.android.ide.common.attribution.TaskCategory
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import org.mockito.Mockito
+import java.time.Duration
 import java.util.Calendar
 
 const val defaultTotalBuildDurationMs: Long = 20000L
@@ -136,12 +139,27 @@ class MockUiData(
     override val infoCount = tasks.count { it.hasInfo }
     override val taskCategoryDescription: String
       get() = taskCategory.description
-    override val taskCategoryWarnings: List<BuildAnalyzerTaskCategoryIssueUiData>
-      get() = if (createTaskCategoryWarning)
-        listOf(BuildAnalyzerTaskCategoryIssueUiData(BuildAnalyzerTaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED, "test", BuildAnalyzerBrowserLinks.NON_TRANSITIVE_R_CLASS))
-        else emptyList()
-    override val taskCategoryInfos: List<BuildAnalyzerTaskCategoryIssueUiData>
-      get() = emptyList()
+
+    override fun getTaskCategoryIssues(severity: IssueSeverity, forWarningsPage: Boolean): List<BuildAnalyzerTaskCategoryIssueUiData> {
+      return if (createTaskCategoryWarning && severity == IssueSeverity.WARNING) {
+        listOfNotNull(
+          BuildAnalyzerTaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED.takeIf { taskCategory == TaskCategory.ANDROID_RESOURCES },
+          BuildAnalyzerTaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR.takeIf {
+            !forWarningsPage && taskCategory == TaskCategory.JAVA
+          }
+        ).map {
+          BuildAnalyzerTaskCategoryIssueUiData(
+            it,
+            it.getWarningMessage(annotationProcessors.nonIncrementalProcessors.map {
+              AnnotationProcessorData(it.className, Duration.ofMillis(it.compilationTimeMs))
+            }),
+            it.getLink()
+          )
+        }
+      } else {
+        emptyList()
+      }
+    }
   }
 
   fun createPluginData(name: String, tasks: List<TaskUiData>) = object : CriticalPathPluginUiData {

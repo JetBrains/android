@@ -18,10 +18,10 @@ package com.android.build.attribution.ui.data
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
-import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.ide.common.attribution.BuildAnalyzerTaskCategoryIssue
+import com.android.ide.common.attribution.IssueSeverity
 import com.android.ide.common.attribution.TaskCategory
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 
@@ -134,8 +134,12 @@ interface CriticalPathTaskCategoryUiData : CriticalPathEntryUiData {
   val taskCategoryDescription: String
   override val modelGrouping: TasksDataPageModel.Grouping
     get() = TasksDataPageModel.Grouping.BY_TASK_CATEGORY
-  val taskCategoryWarnings: List<BuildAnalyzerTaskCategoryIssueUiData>
-  val taskCategoryInfos: List<BuildAnalyzerTaskCategoryIssueUiData>
+
+  /**
+   * Compiles a list of task categories issues to report. [forWarningsPage] filters out some issues that will be displayed on the warnings
+   * page anyways, (e.g. non-incremental annotation processors).
+   */
+  fun getTaskCategoryIssues(severity: IssueSeverity, forWarningsPage: Boolean): List<BuildAnalyzerTaskCategoryIssueUiData>
 }
 
 // Model UI object that represents a plugin / task label
