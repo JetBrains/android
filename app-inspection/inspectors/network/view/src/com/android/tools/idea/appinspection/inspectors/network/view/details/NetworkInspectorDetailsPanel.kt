@@ -70,6 +70,7 @@ class NetworkInspectorDetailsPanel(
     model.aspect.addDependency(aspectObserver).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {
       usageTracker.trackConnectionDetailsSelected()
       model.selectedConnection?.let { setHttpData(it) }
+      repaint()
     }
     model.aspect.addDependency(aspectObserver).onChange(NetworkInspectorAspect.SELECTED_RULE) {
       model.selectedRule?.let { setRule(it) }
