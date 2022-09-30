@@ -283,7 +283,7 @@ class BuildAnalyzerStorageMetricsTest {
     //      results.getTaskMap()
     //    )
     //println(TextFormat.printer().printToString(resultsMessage))
-    BuildAnalyzerStorageManagerImpl(projectRule.project).storeBuildResultsInFile(results)
-    return projectRule.project.guessProjectDir()?.toIoFile()?.resolve("build-analyzer-history-data")?.resolve(results.getBuildSessionID())!!
+    BuildAnalyzerStorageManagerImpl(projectRule.project).fileManager.storeBuildResultsInFile(results)
+    return BuildAnalyzerStorageManagerImpl(projectRule.project).fileManager.getFileFromBuildID(results.getBuildSessionID())
   }
 }

@@ -50,8 +50,8 @@ class BuildDescriptorStorageServiceTest {
   }
 
   private fun addToStorage(descriptor: BuildDescriptor) {
-    BuildDescriptorStorageService.getInstance(projectRule.project).add(descriptor.buildSessionID,
-                                                                       descriptor.buildFinishedTimestamp,
-                                                                       descriptor.totalBuildTimeMs)
+    BuildDescriptorStorageService.getInstance(projectRule.project).state.descriptors.add(BuildDescriptorImpl(descriptor.buildSessionID,
+                                                                                                             descriptor.buildFinishedTimestamp,
+                                                                                                             descriptor.totalBuildTimeMs))
   }
 }
