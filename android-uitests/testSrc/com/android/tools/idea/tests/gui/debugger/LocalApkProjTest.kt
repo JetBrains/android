@@ -103,7 +103,7 @@ class LocalApkProjTest {
     // need to wait since the editor doesn't open the java file immediately
     waitForJavaFileToShow(editor)
 
-    val debugSymbols = File(projectRoot, "app/build/intermediates/cmake/debug/obj/x86/libsanangeles.so")
+    val debugSymbols = File(projectRoot, "app/build/intermediates/merged_native_libs/debug/out/lib/x86/libsanangeles.so")
     editor.open("lib/x86/libsanangeles.so")
       .librarySymbolsFixture
       .addDebugSymbols(debugSymbols)
