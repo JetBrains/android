@@ -22,6 +22,8 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.EmptyAction;
+import com.intellij.openapi.util.registry.Registry;
+import org.jetbrains.plugins.gradle.service.project.CommonGradleProjectResolverExtension;
 
 /**
  * Tests for {@link GradleSpecificInitializer}
@@ -52,5 +54,9 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
 
     AnAction buildResourcesAction = ActionManager.getInstance().getAction("Groovy.CheckResources.Make");
     assertThat(buildResourcesAction).isInstanceOf(EmptyAction.class);
+  }
+
+  public void testJetBrainsVersionCatalogIsActivated() {
+    assertTrue(Registry.get(CommonGradleProjectResolverExtension.GRADLE_VERSION_CATALOGS_DYNAMIC_SUPPORT).asBoolean());
   }
 }
