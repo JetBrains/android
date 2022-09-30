@@ -48,6 +48,7 @@ import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.actions.ToggleToolbarAction
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -72,6 +73,7 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import org.apache.commons.lang.WordUtils
 import java.awt.EventQueue
 import java.text.Collator
 import java.time.Duration
@@ -425,42 +427,6 @@ internal class EmulatorToolWindowManager private constructor(
     }
   }
 
-  @AnyThread
-  private fun physicalDeviceConnected(deviceSerialNumber: String, deviceProperties: Map<String, String>) {
-    try {
-      var title = (deviceProperties[RO_BOOT_QEMU_AVD_NAME] ?: deviceProperties[RO_KERNEL_QEMU_AVD_NAME])?.replace('_', ' ')
-      if (title == null) {
-        title = deviceProperties[RO_PRODUCT_MODEL] ?: deviceSerialNumber
-        val manufacturer = deviceProperties[RO_PRODUCT_MANUFACTURER]
-        if (!manufacturer.isNullOrBlank() && manufacturer != "unknown") {
-          title = "$manufacturer $title"
-        }
-      }
-      val deviceAbi = deviceProperties[RO_PRODUCT_CPU_ABI]
-      if (deviceAbi == null) {
-        thisLogger().warn("Unable to determine ABI of $title")
-        return
-      }
-
-      UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
-        addPhysicalDevicePanel(deviceSerialNumber, deviceAbi, title, deviceProperties)
-      }
-    }
-    catch (e: CancellationException) {
-      throw e
-    }
-    catch (e: Exception) {
-      thisLogger().warn(e)
-    }
-  }
-
-  @AnyThread
-  private fun physicalDeviceDisconnected(deviceSerialNumber: String) {
-    UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
-      removePhysicalDevicePanel(deviceSerialNumber)
-    }
-  }
-
   private fun findPanelByDeviceId(deviceId: DeviceId): RunningDevicePanel? {
     return panels.firstOrNull { it.id == deviceId }
   }
@@ -556,6 +522,8 @@ internal class EmulatorToolWindowManager private constructor(
     override fun setSelected(event: AnActionEvent, state: Boolean) {
       deviceFrameVisible = state
     }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
   }
 
   private inner class ToggleZoomToolbarAction : ToggleAction("Show Zoom Controls"), DumbAware {
@@ -567,6 +535,8 @@ internal class EmulatorToolWindowManager private constructor(
     override fun setSelected(event: AnActionEvent, state: Boolean) {
       zoomToolbarIsVisible = state
     }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
   }
 
   companion object {
@@ -634,7 +604,7 @@ internal class EmulatorToolWindowManager private constructor(
         if (!mirroredDevices.contains(deviceSerialNumber)) {
           coroutineScope.launch {
             val deviceProperties = getMirrorableDeviceProperties(deviceSerialNumber, adbSession)
-            if (deviceProperties != null && mirroredDevices.add(deviceSerialNumber)) {
+            if (deviceProperties != null) {
               physicalDeviceConnected(deviceSerialNumber, deviceProperties)
             }
           }
@@ -674,6 +644,42 @@ internal class EmulatorToolWindowManager private constructor(
       catch (e: Exception) {
         thisLogger().warn(e)
         return null
+      }
+    }
+
+    @AnyThread
+    private fun physicalDeviceConnected(deviceSerialNumber: String, deviceProperties: Map<String, String>) {
+      UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
+        if (!mirroredDevices.contains(deviceSerialNumber)) {
+          val deviceName = getDeviceName(deviceProperties, deviceSerialNumber)
+          val deviceAbi = deviceProperties[RO_PRODUCT_CPU_ABI]
+          if (deviceAbi == null) {
+            thisLogger().warn("Unable to determine ABI of $deviceName")
+          }
+          else {
+            mirroredDevices.add(deviceSerialNumber)
+            addPhysicalDevicePanel(deviceSerialNumber, deviceAbi, deviceName, deviceProperties)
+          }
+        }
+      }
+    }
+
+    private fun getDeviceName(deviceProperties: Map<String, String>, deviceSerialNumber: String): String {
+      var name = (deviceProperties[RO_BOOT_QEMU_AVD_NAME] ?: deviceProperties[RO_KERNEL_QEMU_AVD_NAME])?.replace('_', ' ')
+      if (name == null) {
+        name = deviceProperties[RO_PRODUCT_MODEL] ?: deviceSerialNumber
+        val manufacturer = deviceProperties[RO_PRODUCT_MANUFACTURER]
+        if (!manufacturer.isNullOrBlank() && manufacturer != "unknown") {
+          name = "${WordUtils.capitalize(manufacturer)} $name"
+        }
+      }
+      return name
+    }
+
+    @AnyThread
+    private fun physicalDeviceDisconnected(deviceSerialNumber: String) {
+      UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
+        removePhysicalDevicePanel(deviceSerialNumber)
       }
     }
 
