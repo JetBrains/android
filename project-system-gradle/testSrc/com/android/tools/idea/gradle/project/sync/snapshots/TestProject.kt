@@ -305,7 +305,8 @@ enum class TestProject(
   PRIVACY_SANDBOX_SDK(
     TestProjectToSnapshotPaths.PRIVACY_SANDBOX_SDK,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
-  )
+  ),
+  APP_WITH_BUILD_FEATURES_ENABLED(TestProjectToSnapshotPaths.APP_WITH_BUILD_FEATURES_ENABLED),
   ;
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"

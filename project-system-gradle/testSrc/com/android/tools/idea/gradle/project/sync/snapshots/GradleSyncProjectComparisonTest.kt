@@ -128,6 +128,7 @@ data class ProjectStructureSnapshotTestDef(
       ),
       ProjectStructureSnapshotTestDef(TestProject.BUILDSRC_WITH_COMPOSITE, compatibleWith = setOf(AGP_42, AGP_CURRENT)),
       ProjectStructureSnapshotTestDef(TestProject.PRIVACY_SANDBOX_SDK),
+      ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
     )
   }
 }

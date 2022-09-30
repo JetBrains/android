@@ -2,6 +2,7 @@ package com.android.tools.idea.testing;
 
 public final class TestProjectToSnapshotPaths {
   public static final String API_DEPENDENCY = "projects/apiDependency";
+  public static final String APP_WITH_BUILD_FEATURES_ENABLED = "projects/appWithBuildFeaturesEnabled";
   public static final String APP_WITH_BUILDSRC = "projects/appWithBuildSrc";
   public static final String APP_WITH_ML_MODELS = "projects/appWithMlModels";
   public static final String BASIC = "projects/basic";

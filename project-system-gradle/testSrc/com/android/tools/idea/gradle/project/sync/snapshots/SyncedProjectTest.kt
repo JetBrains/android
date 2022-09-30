@@ -234,6 +234,9 @@ abstract class SyncedProjectTest(
   @Test
   fun testPrivacySandboxSdkProject() = testProject(TestProject.PRIVACY_SANDBOX_SDK)
 
+  @Test
+  fun testAppWithBuildFeaturesEnabled() = testProject(TestProject.APP_WITH_BUILD_FEATURES_ENABLED)
+
   override fun getTestDefs(testProject: TestProject): List<SyncedProjectTestDef> {
     return tests[testProject].orEmpty()
   }

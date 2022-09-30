@@ -86,6 +86,7 @@ data class SourceProvidersTestDef(
       SourceProvidersTestDef(TestProject.KOTLIN_MULTIPLATFORM),
       SourceProvidersTestDef(TestProject.NAVIGATOR_PACKAGEVIEW_COMMONROOTS),
       SourceProvidersTestDef(TestProject.NAVIGATOR_PACKAGEVIEW_SIMPLE),
+      SourceProvidersTestDef(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
     )
   }
 }
