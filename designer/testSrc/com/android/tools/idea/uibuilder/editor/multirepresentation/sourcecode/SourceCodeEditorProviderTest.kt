@@ -140,16 +140,15 @@ class SourceCodeEditorProviderTest {
              TestPreviewRepresentationProvider("Representation2", true, representationWithState))
     )
     val editor = invokeAndWaitIfNeeded {
-      val editor = serializationProvider.createEditor(file.project, file.virtualFile)
-      // Editor are not selected in unit testing. Force the preview activation so it loads the state.
-      (editor as TextEditorWithMultiRepresentationPreview<*>).preview.onActivate()
-      return@invokeAndWaitIfNeeded editor
-    }
+      return@invokeAndWaitIfNeeded serializationProvider.createEditor(file.project, file.virtualFile)
+    } as TextEditorWithMultiRepresentationPreview<*>
     runBlocking {
-      // Wait for the initializations after onActivate to complete
-      editor.preview.awaitForRepresentationsUpdated()
+      // Wait for the initializations
+      editor.preview.onInit()
     }
     invokeAndWaitIfNeeded {
+      // Editor are not selected in unit testing. Force the preview activation so it loads the state.
+      editor.preview.onActivate()
       try {
         val rootElement = Element("root")
         serializationProvider.writeState(editor.getState(FileEditorStateLevel.FULL), fixture.project, rootElement)
