@@ -20,6 +20,7 @@ import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.BuildInvocationType
 import com.android.build.attribution.data.StudioProvidedInfo
+import com.android.build.attribution.getSuccessfulResult
 import com.android.build.attribution.ui.controllers.createCheckJetifierTaskRequest
 import com.android.builder.model.PROPERTY_CHECK_JETIFIER_RESULT_FILE
 import com.android.ide.common.attribution.CheckJetifierResult
@@ -70,7 +71,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     Truth.assertThat(result.isBuildSuccessful).isTrue()
 
     val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results = buildAnalyzerStorageManager.getSuccessfulResult()
     val jetifierUsageResult = results.getJetifierUsageResult()
     Truth.assertThat(jetifierUsageResult).isEqualTo(JetifierUsageAnalyzerResult(JetifierNotUsed))
   }
@@ -84,7 +85,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     Truth.assertThat(result.isBuildSuccessful).isTrue()
 
     val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results = buildAnalyzerStorageManager.getSuccessfulResult()
     val jetifierUsageResult = results.getJetifierUsageResult()
     Truth.assertThat(jetifierUsageResult).isEqualTo(JetifierUsageAnalyzerResult(AnalyzerNotRun))
   }
@@ -102,7 +103,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     Truth.assertThat(result.isBuildSuccessful).isTrue()
 
     val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results = buildAnalyzerStorageManager.getSuccessfulResult()
     val jetifierUsageResult = results.getJetifierUsageResult()
     Truth.assertThat(jetifierUsageResult).isEqualTo(expectedResult)
   }
@@ -162,7 +163,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     Truth.assertThat(result.isBuildSuccessful).isTrue()
 
     val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results = buildAnalyzerStorageManager.getSuccessfulResult()
     val jetifierUsageResult = results.getJetifierUsageResult()
     Truth.assertThat(jetifierUsageResult.projectStatus).isEqualTo(expectedProjectStatus)
     Truth.assertThat(jetifierUsageResult.checkJetifierBuild).isEqualTo(true)
@@ -173,7 +174,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     val result2 = invokeGradleTasks(project, "assembleDebug")
     Truth.assertThat(result2.isBuildSuccessful).isTrue()
 
-    val results2 = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results2 = buildAnalyzerStorageManager.getSuccessfulResult()
     val jetifierUsageResult2 = results2.getJetifierUsageResult()
     Truth.assertThat(jetifierUsageResult2.projectStatus).isEqualTo(expectedProjectStatus)
     Truth.assertThat(jetifierUsageResult2.checkJetifierBuild).isEqualTo(false)

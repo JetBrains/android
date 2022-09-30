@@ -19,6 +19,7 @@ import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.getSuccessfulResult
 import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.gradle.dsl.utils.FN_SETTINGS_GRADLE
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Request.Companion.builder
@@ -125,7 +126,8 @@ class AnnotationProcessorsAnalyzerTest {
     runTest {
       executeTasks(":app:compileDebugJavaWithJavac")
       val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
-      val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+      val results = buildAnalyzerStorageManager.getSuccessfulResult()
+
 
       assertThat(
         results.getAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
@@ -154,7 +156,7 @@ class AnnotationProcessorsAnalyzerTest {
       executeTasks(":app:compileDebugJavaWithJavac")
 
       val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
-      val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+      val results = buildAnalyzerStorageManager.getSuccessfulResult()
 
       assertThat(
         results.getAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
@@ -185,7 +187,7 @@ class AnnotationProcessorsAnalyzerTest {
       executeTasks(":app:compileDebugJavaWithJavac")
 
       val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
-      val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+      val results = buildAnalyzerStorageManager.getSuccessfulResult()
 
       assertThat(results.getAnnotationProcessorsData().isEmpty())
     }
@@ -217,7 +219,7 @@ class AnnotationProcessorsAnalyzerTest {
       executeTasks(":app:compileDebugJavaWithJavac")
 
       val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
-      val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+      val results = buildAnalyzerStorageManager.getSuccessfulResult()
 
       assertThat(
         results.getAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(

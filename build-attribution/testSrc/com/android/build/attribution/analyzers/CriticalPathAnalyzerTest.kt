@@ -22,6 +22,7 @@ import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
+import com.android.build.attribution.getSuccessfulResult
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
@@ -190,7 +191,7 @@ class CriticalPathAnalyzerTest {
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug").also { assertThat(it.isBuildSuccessful).isTrue() }
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug").also { assertThat(it.isBuildSuccessful).isTrue() }
     val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results = buildAnalyzerStorageManager.getSuccessfulResult()
     assertThat(results.getTasksDeterminingBuildDuration().isEmpty())
     assertThat(results.getPluginsDeterminingBuildDuration().isEmpty())
 

@@ -28,8 +28,9 @@ interface BuildAnalyzerStorageManager {
    * @return BuildAnalysisResults
    * @exception IllegalStateException
    */
-  fun getLatestBuildAnalysisResults() : BuildAnalysisResults
-  fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID: String, requestHolder: BuildRequestHolder)
+  fun getLatestBuildAnalysisResults() : AbstractBuildAnalysisResult
+  fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID: String, requestHolder: BuildRequestHolder): BuildAnalysisResults
+  fun recordNewFailure(buildID: String)
   fun hasData() : Boolean
   /**
    * Returns the analysis results from the build specified in the form of a BuildAnalysisResults object. There are no arguments.

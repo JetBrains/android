@@ -15,21 +15,13 @@
  */
 package com.android.build.attribution.ui
 
-import com.android.build.attribution.BuildAnalysisResults
+import com.android.build.attribution.AbstractBuildAnalysisResult
 import com.android.build.attribution.BuildAnalyzerStorageManager
-import com.android.build.attribution.analyzers.AlwaysRunTasksAnalyzer
-import com.android.build.attribution.analyzers.AnalyzerNotRun
-import com.android.build.attribution.analyzers.AnnotationProcessorsAnalyzer
+import com.android.build.attribution.FailureResult
 import com.android.build.attribution.analyzers.CriticalPathAnalyzer
-import com.android.build.attribution.analyzers.DownloadsAnalyzer
-import com.android.build.attribution.analyzers.GarbageCollectionAnalyzer
 import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
-import com.android.build.attribution.analyzers.NoIncompatiblePlugins
-import com.android.build.attribution.analyzers.NoncacheableTasksAnalyzer
-import com.android.build.attribution.analyzers.ProjectConfigurationAnalyzer
-import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
-import com.android.build.attribution.analyzers.TasksConfigurationIssuesAnalyzer
+import com.android.build.attribution.constructEmptyBuildResultsObject
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.mock
@@ -38,8 +30,6 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.Projects
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.util.toIoFile
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -59,7 +49,6 @@ import com.intellij.ui.content.impl.ContentImpl
 import com.intellij.util.text.DateFormatUtil
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
-import java.io.File
 import java.util.UUID
 import javax.swing.JPanel
 
@@ -137,7 +126,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
   }
 
   fun testOnBuildFailureWhenTabClosed() {
-    sendOnBuildFailure(buildSessionId)
+    setNewReportData(FailureResult(buildSessionId))
 
     verifyBuildAnalyzerTabNotExist()
 
@@ -243,7 +232,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     val buildSessionId2 = UUID.randomUUID().toString()
 
     setNewReportData(constructEmptyBuildResultsObject(buildSessionId1, Projects.getBaseDirPath(project)))
-    sendOnBuildFailure(buildSessionId2)
+    setNewReportData(FailureResult(buildSessionId2))
 
     verifyBuildAnalyzerTabExist()
 
@@ -354,7 +343,6 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
         checkJetifierBuild = true
       )
     )
-    Mockito.`when`(buildAnalyzerStorageMock.getLatestBuildAnalysisResults()).thenReturn(buildAnalysisResult)
     setNewReportData(buildAnalysisResult)
 
     verifyBuildAnalyzerTabExist()
@@ -375,15 +363,10 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 
-  private fun setNewReportData(exampleResult: BuildAnalysisResults) {
+  private fun setNewReportData(exampleResult: AbstractBuildAnalysisResult) {
     Mockito.`when`(buildAnalyzerStorageMock.getLatestBuildAnalysisResults()).thenReturn(exampleResult)
     Mockito.`when`(buildAnalyzerStorageMock.hasData()).thenReturn(true)
     buildAttributionUiManager.showNewReport()
-    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-  }
-
-  private fun sendOnBuildFailure(buildSessionId: String) {
-    buildAttributionUiManager.onBuildFailure(buildSessionId)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 
@@ -408,37 +391,4 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     Truth.assertThat(contentManager().findContent("Build Analyzer").isSelected).isFalse()
 
   private fun contentManager() = windowManager.getToolWindow(BuildContentManagerImpl.BUILD_TAB_TITLE_SUPPLIER.get())!!.contentManager
-}
-
-fun constructEmptyBuildResultsObject(buildSessionId: String, projectRoot: File): BuildAnalysisResults {
-  return BuildAnalysisResults(
-    GradleBuildInvoker.Request.RequestData(
-      BuildMode.DEFAULT_BUILD_MODE,
-      projectRoot,
-      listOf(":assembleDebug")
-    ),
-    AnnotationProcessorsAnalyzer.Result(emptyList(), emptyList()),
-    AlwaysRunTasksAnalyzer.Result(emptyList()),
-    CriticalPathAnalyzer.Result(
-      emptyList(),
-      emptyList(),
-      0,
-      0
-    ),
-    NoncacheableTasksAnalyzer.Result(emptyList()),
-    GarbageCollectionAnalyzer.Result(emptyList(), null, null),
-    ProjectConfigurationAnalyzer.Result(
-      emptyMap(),
-      emptyList(),
-      emptyMap()
-    ),
-    TasksConfigurationIssuesAnalyzer.Result(emptyList()),
-    NoIncompatiblePlugins(emptyList()),
-    JetifierUsageAnalyzerResult(AnalyzerNotRun),
-    DownloadsAnalyzer.ActiveResult(repositoryResults = emptyList()),
-    TaskCategoryWarningsAnalyzer.Result(listOf()),
-    buildSessionId,
-    emptyMap(),
-    emptyMap()
-  )
 }

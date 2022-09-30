@@ -22,6 +22,7 @@ import com.android.build.attribution.BuildAttributionManagerImpl
 import com.android.build.attribution.KnownGradlePluginsService
 import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginData
+import com.android.build.attribution.getSuccessfulResult
 import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
 import com.android.ide.common.repository.GradleVersion
 import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
@@ -311,7 +312,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results = buildAnalyzerStorageManager.getSuccessfulResult()
 
     return results.getConfigurationCachingCompatibility()
   }

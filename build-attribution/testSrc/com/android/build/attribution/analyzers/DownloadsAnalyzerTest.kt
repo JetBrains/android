@@ -18,6 +18,7 @@ package com.android.build.attribution.analyzers
 import com.android.SdkConstants
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAttributionManagerImpl
+import com.android.build.attribution.getSuccessfulResult
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -197,7 +198,7 @@ class DownloadsAnalyzerTest : AndroidGradleTestCase()  {
     // Verify analyzer result.
     val buildAttributionManager = project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
     val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results = buildAnalyzerStorageManager.getSuccessfulResult()
     val result = results.getDownloadsAnalyzerResult()
 
     val testRepositoryResult = (result as DownloadsAnalyzer.ActiveResult).repositoryResults.map { TestingRepositoryResult(it) }

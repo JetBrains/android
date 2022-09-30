@@ -17,6 +17,7 @@ package com.android.build.attribution.analyzers
 
 import com.android.SdkConstants
 import com.android.build.attribution.BuildAnalyzerStorageManager
+import com.android.build.attribution.getSuccessfulResult
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.utils.FileUtils
@@ -70,7 +71,7 @@ class TasksConfigurationIssuesAnalyzerTest {
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results = buildAnalyzerStorageManager.getSuccessfulResult()
 
     assertThat(results.getTasksSharingOutput()).hasSize(1)
     val tasksSharingOutput = results.getTasksSharingOutput()[0]

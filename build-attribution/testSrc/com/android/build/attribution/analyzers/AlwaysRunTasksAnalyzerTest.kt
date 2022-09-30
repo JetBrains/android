@@ -21,6 +21,7 @@ import com.android.build.attribution.BuildAttributionManagerImpl
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.PluginData
+import com.android.build.attribution.getSuccessfulResult
 import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -76,7 +77,7 @@ class AlwaysRunTasksAnalyzerTest {
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results = buildAnalyzerStorageManager.getSuccessfulResult()
     val alwaysRunTasks = results.getAlwaysRunTasks().sortedBy { it.taskData.taskName }
 
     assertThat(alwaysRunTasks).hasSize(2)
@@ -108,7 +109,7 @@ class AlwaysRunTasksAnalyzerTest {
     myProjectRule.invokeTasksRethrowingErrors("clean", "lintDebug")
 
     val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results = buildAnalyzerStorageManager.getSuccessfulResult()
     val alwaysRunTasks = results.getAlwaysRunTasks().sortedBy { it.taskData.taskName }
 
     // lint analysis runs on every task intentionally, it should be filtered out at this point even in a config-cached run
@@ -208,7 +209,7 @@ class AlwaysRunTasksAnalyzerTest {
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results = buildAnalyzerStorageManager.getSuccessfulResult()
     val alwaysRunTasks = results.getAlwaysRunTasks()
 
     assertThat(alwaysRunTasks).hasSize(1)
@@ -231,8 +232,8 @@ class AlwaysRunTasksAnalyzerTest {
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results = buildAnalyzerStorageManager.getSuccessfulResult()
     val alwaysRunTasks = results.getAlwaysRunTasks()
-    assertThat(alwaysRunTasks.isEmpty())
+    assertThat(alwaysRunTasks).isEmpty()
   }
 }

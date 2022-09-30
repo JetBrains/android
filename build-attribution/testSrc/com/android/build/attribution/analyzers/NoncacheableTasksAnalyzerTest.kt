@@ -18,6 +18,7 @@ package com.android.build.attribution.analyzers
 import com.android.SdkConstants
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.getSuccessfulResult
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.utils.FileUtils
@@ -59,7 +60,7 @@ class NoncacheableTasksAnalyzerTest {
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results = buildAnalyzerStorageManager.getSuccessfulResult()
 
     assertThat(results.getNonCacheableTasks().size == 1)
     val noncacheableTask = results.getNonCacheableTasks()[0]
@@ -80,7 +81,7 @@ class NoncacheableTasksAnalyzerTest {
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results = buildAnalyzerStorageManager.getSuccessfulResult()
 
     assertThat(results.getNonCacheableTasks()).isEmpty()
   }

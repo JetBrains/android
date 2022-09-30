@@ -16,10 +16,13 @@
 package com.android.build.attribution.ui
 
 import com.android.annotations.concurrency.UiThread
+import com.android.build.attribution.AbstractBuildAnalysisResult
+import com.android.build.attribution.BuildAnalysisResults
 import com.android.build.attribution.BuildAnalyzerNotificationManager
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAnalyzerStorageManager.Listener
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.FailureResult
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.BuildAnalyzerViewController
 import com.android.build.attribution.ui.controllers.TaskIssueReporter
@@ -52,7 +55,6 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 
 interface BuildAttributionUiManager : Disposable {
-  fun onBuildFailure(buildSessionId: String)
   fun openTab(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource)
   fun showNewReport()
   fun showBuildAnalysisReportById(buildID: String)
@@ -115,8 +117,6 @@ class BuildAttributionUiManagerImpl(
 
   private val notificationManager = BuildAnalyzerNotificationManager(project, uiAnalytics)
 
-  private var latestBuildSuccessful: Boolean = false
-
   init {
     Disposer.register(project, this)
     ApplicationManager.getApplication().messageBus.connect(this)
@@ -132,48 +132,49 @@ class BuildAttributionUiManagerImpl(
 
   override fun showNewReport() {
     invokeLaterIfNotDisposed {
-      val buildResults = BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults()
-      val reportUiData = BuildAttributionReportBuilder(buildResults).build()
-      val buildSessionId = buildResults.getBuildSessionID()
-      latestBuildSuccessful = true
-      uiAnalytics.newReportSessionId(buildSessionId)
-
-      val viewFactory = {
-        val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
-        NewViewComponentContainer(reportUiData, project, issueReporter, uiAnalytics)
-      }
-      val content = buildContent
-      if (content != null && content.isValid) {
-        placeNewViewInExistingTab(content, viewFactory)
-      }
-      else {
-        createTabWithNewView(viewFactory)
-      }
-
-      if (reportUiData.shouldAutoOpenTab()) {
-        // At this point tab is surely created.
-        makeExistingTabSelected(buildContent!!, BuildAttributionUiAnalytics.TabOpenEventSource.AUTO_OPEN)
-      }
-
-      notificationManager.showToolWindowBalloonIfNeeded(reportUiData) {
-        openTab(BuildAttributionUiAnalytics.TabOpenEventSource.BALLOON_LINK)
-        (buildAttributionView as? NewViewComponentContainer)?.let {
-          it.model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
-        }
+      val buildAnalysisResult = BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults()
+      uiAnalytics.newReportSessionId(buildAnalysisResult.getBuildSessionID())
+      when (buildAnalysisResult) {
+        is FailureResult -> doShowNewFailureReport()
+        is BuildAnalysisResults -> doShowNewSuccessReport(buildAnalysisResult)
       }
     }
   }
 
-  override fun onBuildFailure(buildSessionId: String) {
-    invokeLaterIfNotDisposed {
-      latestBuildSuccessful = false
-      uiAnalytics.newReportSessionId(buildSessionId)
+  @UiThread
+  private fun doShowNewSuccessReport(buildAnalysisResult: BuildAnalysisResults) {
+    val reportUiData = BuildAttributionReportBuilder(buildAnalysisResult).build()
 
-      val content = buildContent
-      if (content != null && content.isValid) {
-        // Tab is open, replace UI for both successful and failed builds.
-        placeNewViewInExistingTab(content) { BuildFailureViewComponentContainer() }
+    val viewFactory = {
+      val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
+      NewViewComponentContainer(reportUiData, project, issueReporter, uiAnalytics)
+    }
+    val content = buildContent
+    if (content != null && content.isValid) {
+      placeNewViewInExistingTab(content, viewFactory)
+    }
+    else {
+      createTabWithNewView(viewFactory)
+    }
+
+    if (reportUiData.shouldAutoOpenTab()) {
+      // At this point tab is surely created.
+      makeExistingTabSelected(buildContent!!, BuildAttributionUiAnalytics.TabOpenEventSource.AUTO_OPEN)
+    }
+
+    notificationManager.showToolWindowBalloonIfNeeded(reportUiData) {
+      openTab(BuildAttributionUiAnalytics.TabOpenEventSource.BALLOON_LINK)
+      (buildAttributionView as? NewViewComponentContainer)?.let {
+        it.model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
       }
+    }
+  }
+
+  @UiThread
+  private fun doShowNewFailureReport() {
+    val content = buildContent
+    if (content != null && content.isValid) {
+      placeNewViewInExistingTab(content) { BuildFailureViewComponentContainer() }
     }
   }
 
@@ -182,7 +183,9 @@ class BuildAttributionUiManagerImpl(
       invokeLaterIfNotDisposed {
         if (buildContent?.isValid != true) {
           // If tab is closed, we need to retrieve the latest data from the storage and recreate the view.
-          val viewFactory = getViewFactoryFromLatestResult()
+          val viewFactory = getViewFactoryFromLatestResultStatus(
+            BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults()
+          )
           createTabWithNewView(viewFactory)
         }
 
@@ -192,19 +195,17 @@ class BuildAttributionUiManagerImpl(
     }
   }
 
-  private fun getViewFactoryFromLatestResult(): () -> ComponentContainer {
-    if (latestBuildSuccessful) {
-      // If latest build was successful, get data from storage and recreate the normal view.
-      val buildResults = BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults()
-      val reportUiData = BuildAttributionReportBuilder(buildResults).build();
-      return {
-        val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
-        NewViewComponentContainer(reportUiData, project, issueReporter, uiAnalytics)
+  private fun getViewFactoryFromLatestResultStatus(buildAnalysisResult: AbstractBuildAnalysisResult): () -> ComponentContainer {
+    when (buildAnalysisResult) {
+      is BuildAnalysisResults -> {
+        // If latest build was successful, get data from storage and recreate the normal view.
+        val reportUiData = BuildAttributionReportBuilder(buildAnalysisResult).build()
+        return {
+          val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
+          NewViewComponentContainer(reportUiData, project, issueReporter, uiAnalytics)
+        }
       }
-    }
-    else {
-      // If last build failed, we should stick with this empty error view, not change to previous success.
-      return { BuildFailureViewComponentContainer() }
+      is FailureResult -> return { BuildFailureViewComponentContainer() }
     }
   }
 

@@ -42,6 +42,10 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import kotlinx.collections.immutable.toImmutableMap
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
+sealed interface AbstractBuildAnalysisResult {
+  fun getBuildSessionID(): String
+}
+
 data class BuildAnalysisResults(
   private val buildRequestData: GradleBuildInvoker.Request.RequestData,
   private val annotationProcessorAnalyzerResult: AnnotationProcessorsAnalyzer.Result,
@@ -58,7 +62,7 @@ data class BuildAnalysisResults(
   private val buildSessionID: String,
   private val taskMap: Map<String, TaskData>,
   private val pluginMap: Map<String, PluginData>
-) : BuildEventsAnalysisResult {
+) : AbstractBuildAnalysisResult, BuildEventsAnalysisResult {
 
   @Override
   override fun getBuildRequestData() : GradleBuildInvoker.Request.RequestData {
@@ -195,7 +199,13 @@ data class BuildAnalysisResults(
     return taskCategoryWarningsAnalyzerResult
   }
 
-  fun getBuildSessionID(): String {
+  override fun getBuildSessionID(): String {
     return buildSessionID
   }
+}
+
+data class FailureResult(
+  private val buildSessionID: String
+) : AbstractBuildAnalysisResult {
+  override fun getBuildSessionID(): String = buildSessionID
 }

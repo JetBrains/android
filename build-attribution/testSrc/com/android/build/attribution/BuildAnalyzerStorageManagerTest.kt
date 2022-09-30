@@ -49,7 +49,6 @@ import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -59,7 +58,6 @@ import kotlin.collections.HashMap
 import kotlin.collections.List
 import kotlin.collections.emptyList
 import kotlin.collections.listOf
-import kotlin.collections.minByOrNull
 import kotlin.collections.mutableListOf
 import kotlin.collections.mutableMapOf
 import kotlin.collections.set
@@ -94,7 +92,7 @@ class BuildAnalyzerStorageManagerTest {
                             buildAnalyzerResultData.buildRequestHolder)
     Truth.assertThat(
       BuildAnalyzerStorageManager
-        .getInstance(projectRule.project).getLatestBuildAnalysisResults().getBuildSessionID()
+        .getInstance(projectRule.project).getSuccessfulResult().getBuildSessionID()
     ).isEqualTo("some buildID")
     Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildDescriptors()).isEqualTo(
       setOf(BuildDescriptor("some buildID", buildFinishedTimestamp, buildDuration))

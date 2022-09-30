@@ -86,21 +86,21 @@ class BuildAttributionManagerImpl(
           // If there was an error in events processing already there is no need to continue.
           if (!eventsProcessingFailedFlag) {
             analyzersWrapper.onBuildSuccess(attributionData, pluginsData, analyzersProxy, studioProvidedInfo)
-            BuildAnalyzerStorageManager.getInstance(project)
+            val analysisResults = BuildAnalyzerStorageManager.getInstance(project)
               .storeNewBuildResults(analyzersProxy, buildSessionId, BuildRequestHolder(currentBuildRequest))
-            analyticsManager.logAnalyzersData(BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults())
+            analyticsManager.logAnalyzersData(analysisResults)
             analyticsManager.logBuildSuccess(myCurrentBuildInvocationType)
           }
           else {
             analyticsManager.logAnalysisFailure(myCurrentBuildInvocationType)
             //TODO (b/184273397): currently show general failure state, same as for failed build. Adjust in further refactorings.
-            BuildAttributionUiManager.getInstance(project).onBuildFailure(buildSessionId)
+            BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId)
           }
         }
         catch (t: Throwable) {
           log.error("Error during post-build analysis", t)
           analyticsManager.logAnalysisFailure(myCurrentBuildInvocationType)
-          BuildAttributionUiManager.getInstance(project).onBuildFailure(buildSessionId)
+          BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId)
         }
         finally {
           cleanup(attributionFileDir)
@@ -118,7 +118,7 @@ class BuildAttributionManagerImpl(
       BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
         analyticsManager.logBuildFailure(myCurrentBuildInvocationType)
         analyzersWrapper.onBuildFailure()
-        BuildAttributionUiManager.getInstance(project).onBuildFailure(buildSessionId)
+        BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId)
       }
     }
   }

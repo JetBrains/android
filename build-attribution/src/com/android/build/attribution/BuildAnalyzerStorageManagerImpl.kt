@@ -34,15 +34,14 @@ import java.io.IOException
 class BuildAnalyzerStorageManagerImpl(
   val project: Project
 ) : BuildAnalyzerStorageManager {
-  private var buildResults: BuildAnalysisResults? = null
+  private var buildResults: AbstractBuildAnalysisResult? = null
   private var historicBuildResults: MutableMap<String, BuildAnalysisResults> = mutableMapOf()
   private val dataFolder = project.guessProjectDir()?.toIoFile()?.resolve("build-analyzer-history-data")
   private val log: Logger get() = Logger.getInstance("Build Analyzer")
 
 
   private fun notifyDataListeners() {
-    var publisher = project.messageBus.syncPublisher(BuildAnalyzerStorageManager.DATA_IS_READY_TOPIC);
-    publisher.newDataAvailable()
+    project.messageBus.syncPublisher(BuildAnalyzerStorageManager.DATA_IS_READY_TOPIC).newDataAvailable()
   }
 
   private fun createBuildResultsObject(
@@ -77,7 +76,7 @@ class BuildAnalyzerStorageManagerImpl(
    * @return BuildAnalysisResults
    * @exception IllegalStateException
    */
-  override fun getLatestBuildAnalysisResults(): BuildAnalysisResults {
+  override fun getLatestBuildAnalysisResults(): AbstractBuildAnalysisResult {
     if (hasData()) return buildResults!!
     else throw IllegalStateException("Storage Manager does not have data to return.")
   }
@@ -100,7 +99,7 @@ class BuildAnalyzerStorageManagerImpl(
     }
   }
 
-  override fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID: String, requestHolder: BuildRequestHolder) {
+  override fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID: String, requestHolder: BuildRequestHolder): BuildAnalysisResults {
     val buildResults = createBuildResultsObject(analyzersProxy, buildID, requestHolder)
     this.buildResults = buildResults
     notifyDataListeners()
@@ -108,6 +107,12 @@ class BuildAnalyzerStorageManagerImpl(
       historicBuildResults[buildID] = buildResults
       storeBuildResultsInFile(buildResults)
     }
+    return buildResults
+  }
+
+  override fun recordNewFailure(buildID: String) {
+    this.buildResults = FailureResult(buildID)
+    notifyDataListeners()
   }
 
   /**
