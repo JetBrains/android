@@ -31,6 +31,9 @@ import org.jetbrains.annotations.VisibleForTesting
 import java.awt.event.ItemEvent
 import java.awt.event.ItemEvent.ITEM_STATE_CHANGED
 import javax.swing.JPanel
+import javax.swing.text.AbstractDocument
+import javax.swing.text.AttributeSet
+import javax.swing.text.DocumentFilter
 
 /**
  * A dialog box that allows adding and editing header rules.
@@ -41,7 +44,9 @@ class HeaderRuleDialog(
 ) : DialogWrapper(false) {
 
   @VisibleForTesting
-  val newAddedNameLabel: JBTextField = createTextField(null, "Access-Control-Allow-Origin")
+  val newAddedNameLabel: JBTextField = createTextField(null, "Access-Control-Allow-Origin").apply {
+    (document as AbstractDocument).documentFilter = EmptyFieldDocumentFilter(::updateOkAction)
+  }
 
   @VisibleForTesting
   val newAddedValueLabel: JBTextField = createTextField(null, "https://www.google.com")
@@ -96,10 +101,16 @@ class HeaderRuleDialog(
   private fun updateOkAction() {
     @Suppress("SENSELESS_COMPARISON") // tabs will be null during initialization
     if (tabs == null) return
-    okAction.isEnabled = tabs.selectedComponent == newHeaderPanel ||
+    okAction.isEnabled = (tabs.selectedComponent == newHeaderPanel && newAddedNameLabel.text.isNotBlank()) || // Blank value is fine
                          ((findNameCheckBox.isSelected || findValueCheckBox.isSelected)
                           && (replaceNameCheckBox.isSelected || replaceValueCheckBox.isSelected))
-    setOKButtonTooltip(if (okAction.isEnabled) null else "Select something")
+    setOKButtonTooltip(if (okAction.isEnabled) null else {
+      if (tabs.selectedComponent == newHeaderPanel) {
+        "Please provide a non-empty header name"
+      } else {
+        "Please select a header name or value to replace"
+      }
+    })
   }
 
   @VisibleForTesting
@@ -207,3 +218,20 @@ class HeaderRuleDialog(
       }, TabularLayout.Constraint(0, 4))
   }
 }
+
+class EmptyFieldDocumentFilter(var updateOkAction: () -> Unit): DocumentFilter() {
+  override fun remove(fb: FilterBypass?, offset: Int, length: Int) {
+    super.remove(fb, offset, length)
+    if (isDocumentEmpty(fb)) updateOkAction()
+  }
+
+  override fun replace(fb: FilterBypass?, offset: Int, length: Int, text: String?, attrs: AttributeSet?) {
+    super.replace(fb, offset, length, text, attrs)
+    if (!isDocumentEmpty(fb)) updateOkAction()
+  }
+
+  private fun isDocumentEmpty(fb: FilterBypass?): Boolean {
+    return fb?.document?.getText(0, fb.document.length)?.isEmpty() == true
+  }
+}
+
