@@ -27,12 +27,11 @@ enum class ThreadState(val displayName: String, val isCaptured: Boolean = false)
   DEAD_CAPTURED("Dead", true),
   WAITING("Waiting"),
   WAITING_CAPTURED("Waiting", true),
-  // The two values below are used by imported trace captures to indicate which
-  // slices of the thread contain method trace activity and which ones don't.
-  HAS_ACTIVITY("Thread activity", true),
-  NO_ACTIVITY("No thread activity", true),
+
   // These values are captured from Atrace as such we only have a captured state.
+  NO_ACTIVITY("No thread activity", true),  // Perfetto's empty state.
   RUNNABLE_CAPTURED("Runnable", true),
   WAITING_IO_CAPTURED("Waiting on IO", true),
+
   UNKNOWN("Unknown");
 }

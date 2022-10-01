@@ -115,9 +115,6 @@ public class ProfilerColors {
       .add(ThreadState.DEAD_CAPTURED,
            Gray.TRANSPARENT,
            Gray.TRANSPARENT)
-      .add(ThreadState.HAS_ACTIVITY,
-           CPU_USAGE,
-           new JBColor(0x159482, 0x73D7BA))
       .add(ThreadState.NO_ACTIVITY,
            Gray.TRANSPARENT,
            Gray.TRANSPARENT)
