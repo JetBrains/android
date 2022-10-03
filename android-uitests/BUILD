@@ -106,6 +106,8 @@ iml_module(
         "//tools/adt/idea/android-navigator:intellij.android.navigator[module, test]",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
+        "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module]",
     ],
 )
 

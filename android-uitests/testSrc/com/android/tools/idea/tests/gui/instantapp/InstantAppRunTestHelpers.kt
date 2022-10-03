@@ -15,87 +15,118 @@
  */
 package com.android.tools.idea.tests.gui.instantapp
 
-import com.android.ddmlib.CollectingOutputReceiver
-import com.android.ddmlib.IDevice
+import com.android.adblib.AdbSession
+import com.android.adblib.ConnectedDevice
+import com.android.adblib.DeviceState
+import com.android.adblib.ShellCommandOutputElement
+import com.android.adblib.connectedDevicesTracker
+import com.android.adblib.deviceProperties
+import com.android.adblib.shellCommand
+import com.android.adblib.withLineCollector
 import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbDeviceCapabilities
 import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbFileOperations
-import kotlinx.coroutines.CoroutineScope
+import com.android.tools.idea.file.explorer.toolwindow.adbimpl.selector
+import java.io.File
+import java.time.Duration
+import java.util.concurrent.Executors
+import java.util.regex.Pattern
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.withTimeout
 import org.fest.swing.timing.Wait
-import java.io.File
-import java.time.Duration
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.regex.Pattern
 
 internal fun prepareAdbInstall(adbPath: String, vararg apkFiles: File) =
-  ProcessBuilder(listOf(adbPath, "install-multiple", "-t", "-r", "--ephemeral") + apkFiles.map { it.absolutePath })
+  ProcessBuilder(
+    listOf(adbPath, "install-multiple", "-t", "-r", "--ephemeral") +
+      apkFiles.map { it.absolutePath }
+  )
 
-internal fun waitForAppInstalled(device: IDevice, appId: String) {
+internal fun waitForAppInstalled(device: ConnectedDevice, appId: String) {
   val exec = Executors.newSingleThreadExecutor()
   val dispatcher = exec.asCoroutineDispatcher()
   runBlocking {
-    val adbOps = AdbFileOperations(device, AdbDeviceCapabilities(this + dispatcher, device), dispatcher)
+    val adbOps =
+      AdbFileOperations(
+        device,
+        AdbDeviceCapabilities(this + dispatcher, "test device", device),
+        dispatcher
+      )
     try {
-      Wait.seconds(10)
-        .expecting("instant app to be listed from `pm packages list`")
-        .until {
-          try {
-            runBlocking {
-              withTimeout(Duration.ofSeconds(10))  {
-                adbOps.listPackages().any { appId == it }
-              }
-            }
+      Wait.seconds(10).expecting("instant app to be listed from `pm packages list`").until {
+        try {
+          runBlocking {
+            withTimeout(Duration.ofSeconds(10)) { adbOps.listPackages().any { appId == it } }
           }
-          catch (interrupt: InterruptedException) {
-            Thread.currentThread().interrupt()
-            false
-          }
-          catch (otherExceptions: Exception) {
-            false
-          }
+        } catch (interrupt: InterruptedException) {
+          Thread.currentThread().interrupt()
+          false
+        } catch (otherExceptions: Exception) {
+          false
         }
-    }
-    finally {
+      }
+    } finally {
       exec.shutdown()
     }
   }
 }
 
 // Intent.FLAG_ACTIVITY_MATCH_EXTERNAL is required to launch in P+; ignored in pre-O.
-internal fun prepareAdbInstantAppLaunchIntent(adbPath: String) = ProcessBuilder(
-  listOf(adbPath, "shell", "am", "start", "-f", "0x00000800", "-n", "com.google.samples.apps.topeka/.activity.SignInActivity"))
+internal fun prepareAdbInstantAppLaunchIntent(adbPath: String) =
+  ProcessBuilder(
+    listOf(
+      adbPath,
+      "shell",
+      "am",
+      "start",
+      "-f",
+      "0x00000800",
+      "-n",
+      "com.google.samples.apps.topeka/.activity.SignInActivity"
+    )
+  )
 
-internal fun isActivityWindowOnTop(dev: IDevice, activityComponentName: String): Boolean {
+internal fun firstDevice(session: AdbSession): ConnectedDevice? =
+  session.connectedDevicesTracker.connectedDevices.value.firstOrNull()
+
+internal fun isOnline(device: ConnectedDevice) = runBlocking {
+  device.deviceInfoFlow.value.deviceState == DeviceState.ONLINE &&
+    device.deviceProperties().all().any { it.name == "dev.bootcomplete" }
+}
+
+internal fun isActivityWindowOnTop(dev: ConnectedDevice, activityComponentName: String): Boolean {
   val expectedComp = Component.fromString(activityComponentName)
-
-  val receiver = CollectingOutputReceiver()
-  try {
-    dev.executeShellCommand("dumpsys activity activities", receiver, 30, TimeUnit.SECONDS)
-  }
-  catch (cmdFailed: Exception) {
-    return false
-  }
-
-  val lines = receiver.output.split('\n').dropLastWhile { it.isEmpty() }.toTypedArray()
 
   // The line containing "mResumedActivity" has information on the top activity
   val resumedActivityMatcher = Pattern.compile("^mResumedActivity")
 
-  return lines.map(String::trim).any {  line ->
+  fun isMatchingActivity(line: String): Boolean {
     val m = resumedActivityMatcher.matcher(line)
-    if (m.find() && m.end() < line.length) {
-      // Slice the string apart to extract the application ID and activity's full name
-      val componentNameStr = parseComponentNameFromResumedActivityLine(line)
-      val parsedComp = Component.fromString(componentNameStr)
+    return when {
+      m.find() && m.end() < line.length -> {
+        // Slice the string apart to extract the application ID and activity's full name
+        val componentNameStr = parseComponentNameFromResumedActivityLine(line)
+        val parsedComp = Component.fromString(componentNameStr)
 
-      expectedComp == parsedComp
-    } else {
-      false
+        expectedComp == parsedComp
+      }
+      else -> false
     }
+  }
+
+  return runBlocking {
+    dev.session.deviceServices
+      .shellCommand(dev.selector, "dumpsys activity activities")
+      .withLineCollector()
+      .withCommandTimeout(Duration.ofSeconds(30))
+      .execute()
+      .firstOrNull {
+        when (it) {
+          is ShellCommandOutputElement.StdoutLine -> isMatchingActivity(it.contents)
+          else -> false
+        }
+      } != null
   }
 }
 

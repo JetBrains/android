@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
+import static com.android.tools.idea.tests.gui.instantapp.InstantAppRunTestHelpersKt.firstDevice;
 import static com.android.tools.idea.tests.gui.instantapp.InstantAppRunTestHelpersKt.isActivityWindowOnTop;
+import static com.android.tools.idea.tests.gui.instantapp.InstantAppRunTestHelpersKt.isOnline;
 import static com.android.tools.idea.tests.gui.instantapp.InstantAppRunTestHelpersKt.prepareAdbInstall;
 import static com.android.tools.idea.tests.gui.instantapp.InstantAppRunTestHelpersKt.prepareAdbInstantAppLaunchIntent;
 import static com.android.tools.idea.tests.gui.instantapp.InstantAppRunTestHelpersKt.waitForAppInstalled;
 
 import com.android.SdkConstants;
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
+import com.android.adblib.AdbSession;
+import com.android.adblib.ConnectedDevice;
+import com.android.adblib.tools.AdbLibSessionFactoryKt;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -108,23 +111,24 @@ public class InstantAppRunFromCmdLineTest {
     String adbBinary = sdkHandler.getLocation().resolve(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER).resolve(SdkConstants.FN_ADB).toString();
     File prebuiltApks = new File(guiTest.ideFrame().getProjectPath(), "prebuilt");
 
-    AndroidDebugBridge adb = AndroidDebugBridge.createBridge(adbBinary, false);
+    AdbSession session = AdbLibSessionFactoryKt.createStandaloneSession();
+
     Wait.seconds(120)
       .expecting("emulator to start")
-      .until(() -> adb.getDevices().length > 0);
+      .until(() -> firstDevice(session) != null);
 
-    IDevice[] devices = adb.getDevices();
+    ConnectedDevice device = firstDevice(session);
 
     Wait.seconds(120)
       .expecting("emulator to finish booting")
-      .until(() -> devices[0].isOnline() && devices[0].getProperty("dev.bootcomplete") != null);
+      .until(() -> isOnline(device));
 
     ProcessBuilder installCommand = prepareAdbInstall(adbBinary, prebuiltApks.listFiles());
     installCommand.inheritIO();
     installCommand.start().waitFor(10, TimeUnit.SECONDS);
 
     String expectedAppId = "com.google.samples.apps.topeka";
-    waitForAppInstalled(devices[0], expectedAppId);
+    waitForAppInstalled(device, expectedAppId);
 
     ProcessBuilder launchCommand = prepareAdbInstantAppLaunchIntent(adbBinary);
     launchCommand.inheritIO();
@@ -134,7 +138,7 @@ public class InstantAppRunFromCmdLineTest {
       .expecting("instant app activity to be launched and shown")
       .until(() ->
                isActivityWindowOnTop(
-                 devices[0],
+                 device,
                  expectedAppId + "/.activity.SignInActivity")
       );
   }
