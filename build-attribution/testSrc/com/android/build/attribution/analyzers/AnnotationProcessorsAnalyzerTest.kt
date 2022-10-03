@@ -19,6 +19,7 @@ import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.getSuccessfulResult
+import com.android.ide.common.attribution.BuildAnalyzerTaskCategoryIssue
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -56,6 +57,9 @@ class AnnotationProcessorsAnalyzerTest {
           "com.google.auto.value.extension.memoized.processor.MemoizedValidator"
         )
       )
+      assertThat(results.getTaskCategoryWarningsAnalyzerResult().buildAnalyzerTaskCategoryIssues).contains(
+        BuildAnalyzerTaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR
+      )
 
       val appBuildFile = FileUtils.join(projectDir, "app", FN_BUILD_GRADLE)
 
@@ -71,6 +75,9 @@ class AnnotationProcessorsAnalyzerTest {
       results = buildAnalyzerStorageManager.getSuccessfulResult()
 
       assertThat(results.getAnnotationProcessorsData()).isEmpty()
+      assertThat(results.getTaskCategoryWarningsAnalyzerResult().buildAnalyzerTaskCategoryIssues).doesNotContain(
+        BuildAnalyzerTaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR
+      )
     }
   }
 

@@ -15,27 +15,49 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.data.TaskContainer
-import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
-import com.android.ide.common.attribution.TaskCategory
+import com.android.build.attribution.BuildAnalyzerStorageManager
+import com.android.build.attribution.getSuccessfulResult
 import com.android.ide.common.attribution.BuildAnalyzerTaskCategoryIssue
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 class TaskCategoryWarningsAnalyzerTest {
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
-  private val data = AndroidGradlePluginAttributionData(
-    buildAnalyzerTaskCategoryIssues = listOf(BuildAnalyzerTaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED)
-  )
+  @Before
+  fun setUp() {
+    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.override(true)
+  }
+
+  @After
+  fun tearDown() {
+    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.clearOverride()
+  }
 
   @Test
-  fun resultsFromAGPDataIsCorrect() {
-    val taskContainer = TaskContainer()
-    val analyzer = TaskCategoryWarningsAnalyzer(taskContainer)
-    analyzer.receiveBuildAttributionReport(data)
-    analyzer.ensureResultCalculated()
-    val taskCategoryWarningResult = listOf(BuildAnalyzerTaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED)
-    assertThat(analyzer.result.buildAnalyzerTaskCategoryIssues).containsExactlyElementsIn(taskCategoryWarningResult)
+  fun testExpectedWarnings() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BUILD_ANALYZER_CHECK_ANALYZERS)
+
+    preparedProject.runTest {
+      invokeTasks("preBuild")
+      val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
+      val results = buildAnalyzerStorageManager.getSuccessfulResult()
+      assertThat(results.getTaskCategoryWarningsAnalyzerResult().buildAnalyzerTaskCategoryIssues).containsExactly(
+        BuildAnalyzerTaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
+        BuildAnalyzerTaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED,
+        BuildAnalyzerTaskCategoryIssue.TEST_SHARDING_DISABLED,
+        BuildAnalyzerTaskCategoryIssue.RESOURCE_VALIDATION_ENABLED,
+      )
+    }
   }
 }
