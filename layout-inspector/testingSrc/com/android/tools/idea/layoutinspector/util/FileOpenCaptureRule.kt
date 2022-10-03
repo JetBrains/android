@@ -52,14 +52,19 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
     fileManager = null
   }
 
-  fun checkEditor(fileName: String, lineNumber: Int, text: String) {
-    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
-    Mockito.verify(fileManager!!, timeout(TIMEOUT)).openEditor(file.capture(), ArgumentMatchers.eq(true))
-    val descriptor = file.value
+  fun checkEditor(fileName: String, lineNumber: Int, text: String, ) {
+    val descriptor = checkEditorOpened(fileName, focusEditor = true)
     val line = findLineAtOffset(descriptor.file, descriptor.offset)
-    Truth.assertThat(descriptor.file.name).isEqualTo(fileName)
     Truth.assertThat(line.second).isEqualTo(text)
     Truth.assertThat(line.first.line + 1).isEqualTo(lineNumber)
+  }
+
+  fun checkEditorOpened(fileName: String, focusEditor: Boolean): OpenFileDescriptor {
+    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
+    Mockito.verify(fileManager!!, timeout(TIMEOUT)).openEditor(file.capture(), ArgumentMatchers.eq(focusEditor))
+    val descriptor = file.value
+    Truth.assertThat(descriptor.file.name).isEqualTo(fileName)
+    return descriptor
   }
 
   fun checkNoNavigation() {

@@ -23,9 +23,12 @@ import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VfsUtil
+import org.jetbrains.kotlin.idea.util.application.invokeLater
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -39,6 +42,7 @@ object CaptureSnapshotAction: AnAction(AllIcons.ToolbarDecorator.Export), Toolti
 
   override fun actionPerformed(event: AnActionEvent) {
     val inspector = event.getData(LAYOUT_INSPECTOR_DATA_KEY) ?: return
+    val project = inspector.layoutInspectorModel.project
     val outputDir = VfsUtil.getUserHomeDir()
 
     // Configure title, description and extension
@@ -46,7 +50,7 @@ object CaptureSnapshotAction: AnAction(AllIcons.ToolbarDecorator.Export), Toolti
 
     // Open the Dialog which returns a VirtualFileWrapper when closed
     val saveFileDialog: FileSaverDialog =
-      FileChooserFactory.getInstance().createSaveFileDialog(descriptor, inspector.layoutInspectorModel.project)
+      FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
 
     var fileName: String = inspector.currentClient.process.name + "_" +
                            SimpleDateFormat("yyyy.MM.dd_HH.mm", Locale.US).format(Date())
@@ -54,9 +58,12 @@ object CaptureSnapshotAction: AnAction(AllIcons.ToolbarDecorator.Export), Toolti
     // Append extension manually to file name on MacOS because FileSaverDialog does not do it automatically.
     fileName += if (SystemInfo.isMac) DOT_EXT_LAYOUT_INSPECTOR else ""
     val result = saveFileDialog.save(outputDir, fileName) ?: return
-
-    val path = result.getVirtualFile(true)?.toNioPath() ?: return
-    ProgressManager.getInstance().runProcessWithProgressSynchronously(
-      { inspector.currentClient.saveSnapshot(path) }, "Saving snapshot", true, event.project)
+    val vFile = result.getVirtualFile(true)
+    val path = vFile?.toNioPath() ?: return
+    val saveAndOpenSnapshot = Runnable {
+      inspector.currentClient.saveSnapshot(path)
+      invokeLater { FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, vFile), false) }
+    }
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(saveAndOpenSnapshot, "Saving snapshot", true, project)
   }
 }
