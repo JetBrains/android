@@ -24,10 +24,12 @@ class AndroidGradleProjectResolverTest {
   fun `Given sample app project When merge artifactsToModuleMaps Then expect same provided artifacts`() {
     val mergedArtifactsModuleIdMap = mergeProjectResolvedArtifacts(
       kmpArtifactToModuleIdMap = mutableMapOf(),
-      artifactToModuleIdMap = mutableMapOf(
+      platformArtifactToModuleIdMap = mutableMapOf(
         "app/build/classes/java/main" to ":app:main",
         "app/build/classes/java/test" to ":app:test",
-      )
+      ),
+      project = null,
+      rootProjectPath = "/"
     )
 
     assertEquals(
@@ -45,7 +47,9 @@ class AndroidGradleProjectResolverTest {
       kmpArtifactToModuleIdMap = mutableMapOf(
         "desktop/build/libs/desktop-jvm.jar" to listOf(":desktop:jvmMain", ":desktop:commonMain")
       ),
-      artifactToModuleIdMap = mutableMapOf()
+      platformArtifactToModuleIdMap = mutableMapOf(),
+      project = null,
+      rootProjectPath = "/"
     )
 
     assertEquals(
@@ -62,12 +66,14 @@ class AndroidGradleProjectResolverTest {
       kmpArtifactToModuleIdMap = mutableMapOf(
         "desktop/build/libs/desktop-jvm.jar" to listOf(":desktop:jvmMain", ":desktop:commonMain")
       ),
-      artifactToModuleIdMap = mutableMapOf(
+      platformArtifactToModuleIdMap = mutableMapOf(
         "desktop/build/classes/java/main" to ":desktop:main",
         "desktop/build/classes/java/test" to ":desktop:test",
         "desktop/build/libs/desktop-jvm.jar" to ":desktop:jvmMain",
         "desktop/build/libs/desktop-jvm.jar-MPP" to ":desktop:commonMain"
-      )
+      ),
+      project = null,
+      rootProjectPath = "/"
     )
 
     assertEquals(
@@ -87,10 +93,12 @@ class AndroidGradleProjectResolverTest {
       kmpArtifactToModuleIdMap = mutableMapOf(
         "common/build/libs/common-jvm.jar" to listOf(":common:jvmMain", ":common:commonMain")
       ),
-      artifactToModuleIdMap = mutableMapOf(
+      platformArtifactToModuleIdMap = mutableMapOf(
         "common/build/classes/java/main" to ":common:main",
         "common/build/classes/java/test" to ":common:test",
-      )
+      ),
+      project = null,
+      rootProjectPath = "/"
     )
 
     assertEquals(
@@ -109,9 +117,11 @@ class AndroidGradleProjectResolverTest {
       kmpArtifactToModuleIdMap = mutableMapOf(
         "desktop/build/libs/desktop-jvm.jar" to listOf(":desktop:jvmMain", ":desktop:commonMain")
       ),
-      artifactToModuleIdMap = mutableMapOf(
+      platformArtifactToModuleIdMap = mutableMapOf(
         "desktop/build/libs/desktop-jvm.jar" to ":desktop:main",
-      )
+      ),
+      project = null,
+      rootProjectPath = "/"
     )
 
     assertEquals(

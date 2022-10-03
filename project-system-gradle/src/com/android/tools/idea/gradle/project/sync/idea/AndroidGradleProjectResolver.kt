@@ -40,6 +40,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl.Co
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
+import com.android.tools.idea.gradle.project.sync.GradleSyncEventLogger
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidNativeVariantsModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
@@ -71,7 +72,11 @@ import com.android.utils.appendCapitalized
 import com.android.utils.findGradleSettingsFile
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncIssueType
+import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.execution.configurations.SimpleJavaParameters
 import com.intellij.externalSystem.JavaModuleData
 import com.intellij.notification.Notification
@@ -106,6 +111,7 @@ import com.intellij.util.SystemProperties
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
+import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.android.configure.patchFromMppModel
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
@@ -532,9 +538,11 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       kmpArtifactToModuleIdMap = ideProject
         .getUserData(KotlinMPPGradleProjectResolver.MPP_CONFIGURATION_ARTIFACTS)
         .orEmpty(),
-      artifactToModuleIdMap = ideProject
+      platformArtifactToModuleIdMap = ideProject
         .getUserData(GradleProjectResolver.CONFIGURATION_ARTIFACTS)
-        .orEmpty()
+        .orEmpty(),
+      project = project,
+      rootProjectPath = ideProject.data.linkedExternalProjectPath
     )
 
   private fun resolveArtifact(artifactToModuleIdMap: Map<String, Set<String>>, artifact: File) =
@@ -691,11 +699,10 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         // Project is using an old version of Gradle (and most likely an old version of the plug-in.)
         if (isUsingUnsupportedGradleVersion(msg)) {
           val event = AndroidStudioEvent.newBuilder()
-          // @formatter:off
-                    event.setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-    .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS).gradleSyncFailure = GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION
-                              // @formatter:on;
-          event.withProjectId(project)
+            .setCategory(EventCategory.GRADLE_SYNC)
+            .setKind(EventKind.GRADLE_SYNC_FAILURE_DETAILS)
+            .setGradleSyncFailure(GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION)
+            .withProjectId(project)
           log(event)
           return ExternalSystemException("The project is using an unsupported version of Gradle.")
         }
@@ -1028,10 +1035,42 @@ private val COMPOSITE_BUILD_MAP = com.intellij.openapi.util.Key.create<Composite
 @VisibleForTesting
 fun mergeProjectResolvedArtifacts(
   kmpArtifactToModuleIdMap: Map<String, List<String>>,
-  artifactToModuleIdMap: Map<String, String>
-): Map<String, Set<String>> {
-  val artifactToModuleIdMapListValues = artifactToModuleIdMap.mapValues { listOf(it.value) }
-  return (kmpArtifactToModuleIdMap.asSequence() + artifactToModuleIdMapListValues.asSequence())
-    .groupBy({ it.key }, { it.value })
-    .mapValues { it.value.flatten().toSet() }
+  platformArtifactToModuleIdMap: Map<String, String>,
+  project: Project?,
+  rootProjectPath: @SystemIndependent String
+): Map<String, Set<String>> =
+  (kmpArtifactToModuleIdMap.keys + platformArtifactToModuleIdMap.keys)
+    .associateBy({ it }, {
+      val kmpModuleIds = kmpArtifactToModuleIdMap[it]?.toSet()
+      val platformModuleId = platformArtifactToModuleIdMap[it]
+      when {
+        kmpModuleIds != null && platformModuleId != null -> {
+          if (platformModuleId !in kmpModuleIds) {
+            // TODO (b/250368030)
+            // error("Both artifact maps contains same key: $it with different values for kmp: $kmpIds and platform: $platformId")
+            project?.let {
+              logKmpIncorrectSourceSetsIssue(project, rootProjectPath)
+            }
+            kmpModuleIds + platformModuleId
+          } else {
+            kmpModuleIds
+          }
+        }
+        kmpModuleIds != null -> kmpModuleIds
+        platformModuleId != null -> setOf(platformModuleId)
+        else -> emptySet()
+      }
+    })
+
+private fun logKmpIncorrectSourceSetsIssue(
+  project: Project,
+  rootProjectPath: @SystemIndependent String
+) {
+  val issue = GradleSyncIssue.newBuilder()
+    .setType(GradleSyncIssueType.TYPE_KMP_INCORRECT_PLATFORM_SOURCE_SET)
+    .build()
+  val event = GradleSyncEventLogger()
+    .generateSyncEvent(project, rootProjectPath, EventKind.GRADLE_SYNC_ISSUES)
+    .addGradleSyncIssues(issue)
+  log(event)
 }
