@@ -282,7 +282,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     addToEventLog(SYNC_NOTIFICATION_GROUP, resultMessage, MessageType.INFO, null)
     LOG.info(resultMessage)
 
-    // TODO(b/239800883): logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_CANCELLED)
+    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_CANCELLED, rootProjectPath)
 
     // If the initial sync has been cancelled we do not have any models, but we cannot stay in the unknown state forever as it blocks
     // various UI features.
