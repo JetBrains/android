@@ -45,7 +45,9 @@ public class DoNotUseLegacyJavaFacetRemover extends AbstractModuleDataService<Mo
                          @NotNull IdeModifiableModelsProvider modelsProvider) {
     toImport.forEach((moduleDataNode) -> {
       Module ideModule = modelsProvider.findIdeModule(moduleDataNode.getData());
-      Facets.removeAllFacets(modelsProvider.getModifiableFacetModel(ideModule), DoNotUseLegacyJavaFacet.TYPE_ID);
+      if (ideModule != null) {
+        Facets.removeAllFacets(modelsProvider.getModifiableFacetModel(ideModule), DoNotUseLegacyJavaFacet.TYPE_ID);
+      }
     });
   }
 }
