@@ -282,8 +282,8 @@ internal class DeviceViewTest {
 
     fakeUi.mouse.release()
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
-      MotionEventMessage(listOf(MotionEventMessage.Pointer(437, 917, 0), MotionEventMessage.Pointer(643, 1363, 1)),
-                         MotionEventMessage.ACTION_UP, 0))
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(437, 917, 0), MotionEventMessage.Pointer(643, 1363, 1)),
+                           MotionEventMessage.ACTION_UP, 0))
 
     fakeUi.keyboard.release(VK_CONTROL)
     assertAppearance("MultiTouch4")
