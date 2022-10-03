@@ -408,7 +408,6 @@ Android Studio Preview.app/Contents/jbr/Contents/Home/lib/tzdb.dat
 Android Studio Preview.app/Contents/jbr/Contents/Home/release
 Android Studio Preview.app/Contents/jbr/Contents/Info.plist
 Android Studio Preview.app/Contents/jbr/Contents/MacOS/libjli.dylib
-Android Studio Preview.app/Contents/jbr/release
 Android Studio Preview.app/Contents/lib/3rd-party-rt.jar
 Android Studio Preview.app/Contents/lib/annotations-java5.jar
 Android Studio Preview.app/Contents/lib/annotations.jar
