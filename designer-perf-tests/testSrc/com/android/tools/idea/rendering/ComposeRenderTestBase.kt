@@ -37,7 +37,7 @@ open class ComposeRenderTestBase {
     RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
     val baseTestPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
     projectRule.fixture.testDataPath = baseTestPath
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin("1.7.10"))
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin("1.7.20"))
     projectRule.requestSyncAndWait()
 
     projectRule.invokeTasks("compileDebugSources").apply {

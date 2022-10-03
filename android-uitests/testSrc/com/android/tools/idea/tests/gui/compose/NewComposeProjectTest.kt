@@ -67,7 +67,7 @@ class NewComposeProjectTest {
     guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/MainActivity.kt").run {
       assertThat(this).contains("@Composable")
       assertThat(this).contains("@Preview")
-      assertThat(this).contains("fun DefaultPreview(")
+      assertThat(this).contains("fun GreetingPreview(")
       assertThat(this).contains("fun Greeting(")
     }
 
@@ -82,7 +82,7 @@ class NewComposeProjectTest {
       .clickFinishAndWaitForSyncToFinish()
 
     guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/MainActivity2.kt").run {
-      assertThat(this).contains("fun DefaultPreview2(")
+      assertThat(this).contains("fun GreetingPreview2(")
       assertThat(this).contains("fun Greeting2(")
     }
   }
