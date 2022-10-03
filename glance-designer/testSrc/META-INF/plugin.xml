@@ -20,4 +20,5 @@
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/adt-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/designer.xml" xpointer="xpointer(/idea-plugin/*)"/> <!-- For ViewHandlerManager -->
 </idea-plugin>

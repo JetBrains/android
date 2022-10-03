@@ -40,7 +40,6 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -124,7 +123,7 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
             else -> null
           }
         }
-        .setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false),
+        .setScreenViewProvider(GLANCE_SCREEN_VIEW_PROVIDER, false),
       this
     )
   }
