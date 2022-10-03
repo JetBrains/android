@@ -18,7 +18,6 @@ package org.jetbrains.android.dom;
 import static com.android.SdkConstants.CLASS_DRAWABLE;
 
 import com.android.sdklib.SdkVersionInfo;
-import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
@@ -31,7 +30,6 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.impl.dom.DomElementXmlDescriptor;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import java.util.HashMap;
 import java.util.Map;
@@ -151,8 +149,12 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
       Ref<Icon> iconRef = ourViewTagName2Icon.get(keyName);
 
       if (iconRef == null) {
-        // Find icons from StudioIcons.LayoutEditor.Palette first, then AndroidIcons.Views.
-        Icon icon = IconLoader.getReflectiveIcon("StudioIcons.LayoutEditor.Palette." + convertToPaletteIconName(keyName), StudioIcons.class.getClassLoader());
+        Icon icon;
+        try {
+          icon = (Icon)StudioIcons.LayoutEditor.Palette.class.getField(convertToPaletteIconName(keyName)).get(null);
+        } catch (Exception ex) {
+          icon = null;
+        }
         iconRef = Ref.create(icon);
         ourViewTagName2Icon.put(keyName, iconRef);
       }
