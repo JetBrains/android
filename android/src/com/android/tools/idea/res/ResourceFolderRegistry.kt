@@ -43,6 +43,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
 import org.jetbrains.annotations.VisibleForTesting
 import java.io.IOException
+import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.concurrent.Future
@@ -69,13 +70,9 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   operator fun get(facet: AndroidFacet, dir: VirtualFile): ResourceFolderRepository {
     // ResourceFolderRepository.create may require the IDE read lock. To avoid deadlocks it is
     // always obtained first, before the caches locks.
-    return ReadAction.compute<ResourceFolderRepository, RuntimeException> {
-      get(
-        facet,
-        dir,
-        ResourceRepositoryManager.getInstance(facet).namespace
-      )
-    }
+    return ReadAction.nonBlocking(Callable {
+      get(facet, dir, ResourceRepositoryManager.getInstance(facet).namespace)
+    }).executeSynchronously()
   }
 
   @VisibleForTesting
