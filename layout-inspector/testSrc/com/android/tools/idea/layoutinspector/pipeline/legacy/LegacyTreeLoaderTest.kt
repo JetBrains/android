@@ -16,13 +16,11 @@
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.ddmlib.ByteBufferUtil
+import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
 import com.android.ddmlib.DebugViewDumpHandler.CHUNK_VULW
-import com.android.ddmlib.DebugViewDumpHandler.CHUNK_VURT
 import com.android.ddmlib.FakeClientBuilder
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.ClientImpl
-import com.android.ddmlib.internal.DebugViewChunkHandler
 import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.ImageDiffUtil
@@ -59,7 +57,6 @@ import org.junit.rules.RuleChain
 import org.mockito.ArgumentMatcher
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyBoolean
-import org.mockito.ArgumentMatchers.argThat
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.ArgumentMatchers.isNull
 import org.mockito.Mockito.verify
@@ -216,21 +213,17 @@ DONE.
     val resourceLookup = mock<ResourceLookup>()
     val legacyClient = createMockLegacyClient()
     val device = mock<IDevice>()
-    val client = mock<ClientImpl>()
+    val client = mock<Client>()
     whenever(lookup.resourceLookup).thenReturn(resourceLookup)
     whenever(device.density).thenReturn(560)
     whenever(client.device).thenReturn(device)
-    whenever(client.send(argThat { argument ->
-      argument?.payload?.int == CHUNK_VURT &&
-      argument.payload.getInt(8) == 1 /* VURT_DUMP_HIERARCHY */
-    }, any())).thenAnswer { invocation ->
+    whenever(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
+                                    any(DebugViewDumpHandler::class.java))).thenAnswer { invocation ->
       verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_REQUESTED)
       invocation
-        .getArgument(1, DebugViewChunkHandler::class.java)
-        .handleChunk(client, CHUNK_VURT, ByteBuffer.wrap(treeSample.toByteArray(Charsets.UTF_8)), true, 1)
+        .getArgument<DebugViewDumpHandler>(4)
+        .handleChunkData(ByteBuffer.wrap(treeSample.toByteArray(Charsets.UTF_8)))
     }
-    whenever(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
-                                    any(DebugViewDumpHandler::class.java))).thenCallRealMethod()
     whenever(client.captureView(eq("window1"), any(), any())).thenAnswer { invocation ->
       verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_REQUESTED)
       invocation
@@ -281,24 +274,20 @@ DONE.
     val resourceLookup = mock<ResourceLookup>()
     val legacyClient = createMockLegacyClient()
     val device = mock<IDevice>()
-    val client = mock<ClientImpl>()
+    val client = mock<Client>()
     whenever(client.device).thenReturn(device)
     whenever(lookup.resourceLookup).thenReturn(resourceLookup)
-    whenever(client.send(argThat { argument ->
-      argument?.payload?.int == CHUNK_VURT &&
-      argument.payload.getInt(8) == 1 /* VURT_DUMP_HIERARCHY */
-    }, any())).thenAnswer { invocation ->
+    whenever(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
+                                    any(DebugViewDumpHandler::class.java))).thenAnswer { invocation ->
       invocation
-        .getArgument(1, DebugViewChunkHandler::class.java)
-        .handleChunk(client, CHUNK_VURT, ByteBuffer.wrap("""
+        .getArgument<DebugViewDumpHandler>(4)
+        .handleChunkData(ByteBuffer.wrap("""
           com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1920 layout:getWidth()=4,1080
            android.widget.LinearLayout@8dc1681 mID=5,NO_ID layout:getHeight()=4,1794 layout:getWidth()=4,1080
           DONE.
 
-        """.trimIndent().toByteArray(Charsets.UTF_8)), true, 1)
+        """.trimIndent().toByteArray(Charsets.UTF_8)))
     }
-    whenever(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
-                                    any(DebugViewDumpHandler::class.java))).thenCallRealMethod()
     whenever(client.captureView(eq("window1"), any(), any())).thenAnswer { invocation ->
       invocation
         .getArgument<DebugViewDumpHandler>(2)
