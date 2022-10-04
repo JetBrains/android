@@ -20,6 +20,15 @@ import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
+import java.awt.BorderLayout
+import java.awt.Font
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JSeparator
 
 internal abstract class PsiPropertiesInspectorBuilder : InspectorBuilder<PsiPropertyItem> {
   protected abstract val editorProvider: EditorProvider<PsiPropertyItem>
@@ -39,5 +48,35 @@ internal abstract class PsiPropertiesInspectorBuilder : InspectorBuilder<PsiProp
       modelEditor.second.preferredSize = modelEditor.second.preferredSize
       this.addEditor(modelEditor)
     }
+  }
+
+  /** Add a section label. Note: Should only be used in overridden [attachToInspector]. */
+  protected fun InspectorPanel.addSectionLabel(display: String) {
+    // labelPanel component displays:
+    //    display       line filling remaining space.
+    //    ⬇            ⬇
+    //   [ Header ---------------------- ]
+    val separatorPanel =
+      JPanel(GridBagLayout()).apply {
+        val gbc =
+          GridBagConstraints().apply {
+            gridwidth = GridBagConstraints.REMAINDER
+            fill = GridBagConstraints.HORIZONTAL
+            weightx = 1.0
+          }
+        isOpaque = false
+        add(JSeparator(), gbc)
+      }
+    val labelPanel =
+      JPanel().apply {
+        layout = BorderLayout()
+        isOpaque = false
+        val label = JLabel(display)
+        label.border = JBUI.Borders.empty(8)
+        label.font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL).deriveFont(Font.BOLD)
+        add(label, BorderLayout.WEST)
+        add(separatorPanel)
+      }
+    addComponent(labelPanel)
   }
 }

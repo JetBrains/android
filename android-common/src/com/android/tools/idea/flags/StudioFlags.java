@@ -1250,6 +1250,11 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE = Flag.create(
+    COMPOSE, "preview.animation.animate.as.state", "Enable animate*AsState support",
+    "If enabled, the animate*AsState Compose API support will be available in Animation Preview.",
+    true);
+
   public static final Flag<Boolean> COMPOSE_FAST_PREVIEW = Flag.create(
     COMPOSE, "preview.fast.reload.enabled", "Enable the Compose fast-reload preview",
     "If enabled, the preview enabled the fast-reload feature.",

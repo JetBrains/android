@@ -37,6 +37,21 @@ class ComposeUnitTest {
   }
 
   @Test
+  fun parseIntUnit() {
+    val parsed = ComposeUnit.IntUnit(1).parseUnit { "2" }!!
+    assertEquals(listOf(2), parsed.components)
+  }
+
+  @Test
+  fun parseInvalidIntUnit() {
+    assertNull(ComposeUnit.IntUnit(1).parseUnit { "2.3" })
+    assertNull(ComposeUnit.IntUnit(1).parseUnit { "hello" })
+    assertNull(ComposeUnit.IntUnit(1).parseUnit { "true" })
+    assertNull(ComposeUnit.IntUnit(1).parseUnit { "2." })
+    assertNull(ComposeUnit.IntUnit(1).parseUnit { "2f" })
+  }
+
+  @Test
   fun parseDouble() {
     val composeUnit = ComposeUnit.parse(ComposeAnimatedProperty("", 1.2345))
     assertNotNull(composeUnit)
@@ -46,6 +61,19 @@ class ComposeUnitTest {
     assertEquals("1.2345", composeUnit.toString(0))
     assertEquals("1.2345", composeUnit.toString())
     assertFalse { composeUnit is ComposeUnit.Unit2D<*> }
+  }
+
+  @Test
+  fun parseDoubleUnit() {
+    val parsed = ComposeUnit.DoubleUnit(1.0).parseUnit { "2" }!!
+    assertEquals(listOf(2.0), parsed.components)
+  }
+
+  @Test
+  fun parseInvalidDoubleUnit() {
+    assertNull(ComposeUnit.DoubleUnit(1.0).parseUnit { "2L" })
+    assertNull(ComposeUnit.DoubleUnit(1.0).parseUnit { "hello" })
+    assertNull(ComposeUnit.DoubleUnit(1.0).parseUnit { "true" })
   }
 
   @Test
@@ -61,6 +89,19 @@ class ComposeUnitTest {
   }
 
   @Test
+  fun parseFloatUnit() {
+    val parsed = ComposeUnit.FloatUnit(1f).parseUnit { "2" }!!
+    assertEquals(listOf(2f), parsed.components)
+  }
+
+  @Test
+  fun parseInvalidFloatUnit() {
+    assertNull(ComposeUnit.FloatUnit(1f).parseUnit { "2L" })
+    assertNull(ComposeUnit.FloatUnit(1f).parseUnit { "hello" })
+    assertNull(ComposeUnit.FloatUnit(1f).parseUnit { "true" })
+  }
+
+  @Test
   fun parseDp() {
     @Suppress("unused") // Methods are called via reflection by tests.
     class Dp {
@@ -73,6 +114,19 @@ class ComposeUnitTest {
     assertEquals("1.2345dp", composeUnit.toString(0))
     assertEquals("1.2345dp", composeUnit.toString())
     assertEquals(listOf(1.2345f), composeUnit.components)
+  }
+
+  @Test
+  fun parseDpUnit() {
+    val parsed = ComposeUnit.Dp(1f).parseUnit { "2" }!!
+    assertEquals(listOf(2f), parsed.components)
+  }
+
+  @Test
+  fun parseInvalidDpUnit() {
+    assertNull(ComposeUnit.Dp(1f).parseUnit { "2L" })
+    assertNull(ComposeUnit.Dp(1f).parseUnit { "hello" })
+    assertNull(ComposeUnit.Dp(1f).parseUnit { "true" })
   }
 
   @Suppress("unused") // Methods are called via reflection by tests.
@@ -98,6 +152,28 @@ class ComposeUnitTest {
     assertEquals(listOf(1, 2), composeUnit.components)
   }
 
+  @Test
+  fun parseIntOffsetUnit() {
+    val getValue: (Int) -> String = {
+      when (it) {
+        0 -> "23"
+        1 -> "-23"
+        else -> "-100"
+      }
+    }
+    val parsed = ComposeUnit.IntOffset(1, 1).parseUnit(getValue)!!
+    assertEquals(listOf(23, -23), parsed.components)
+  }
+
+  @Test
+  fun parseInvalidIntOffsetUnit() {
+    assertNull(ComposeUnit.IntOffset(1, 1).parseUnit { "2.3" })
+    assertNull(ComposeUnit.IntOffset(1, 1).parseUnit { "hello" })
+    assertNull(ComposeUnit.IntOffset(1, 1).parseUnit { "true" })
+    assertNull(ComposeUnit.IntOffset(1, 1).parseUnit { "2." })
+    assertNull(ComposeUnit.IntOffset(1, 1).parseUnit { "2f" })
+  }
+
   @Suppress("unused") // Methods are called via reflection by tests.
   class ValidIntSize {
     fun `unbox-impl`() = 0L
@@ -119,6 +195,28 @@ class ComposeUnitTest {
     assertEquals("height ( _ , 2 )", composeUnit.toString(1))
     assertEquals("( 1 , 2 )", composeUnit.toString())
     assertEquals(listOf(1, 2), composeUnit.components)
+  }
+
+  @Test
+  fun parseIntSizeUnit() {
+    val getValue: (Int) -> String = {
+      when (it) {
+        0 -> "23"
+        1 -> "-23"
+        else -> "-100"
+      }
+    }
+    val parsed = ComposeUnit.IntSize(1, 1).parseUnit(getValue)!!
+    assertEquals(listOf(23, -23), parsed.components)
+  }
+
+  @Test
+  fun parseInvalidIntSizeUnit() {
+    assertNull(ComposeUnit.IntSize(1, 1).parseUnit { "2.3" })
+    assertNull(ComposeUnit.IntSize(1, 1).parseUnit { "hello" })
+    assertNull(ComposeUnit.IntSize(1, 1).parseUnit { "true" })
+    assertNull(ComposeUnit.IntSize(1, 1).parseUnit { "2." })
+    assertNull(ComposeUnit.IntSize(1, 1).parseUnit { "2f" })
   }
 
   @Suppress("unused") // Methods are called via reflection by tests.
@@ -144,6 +242,26 @@ class ComposeUnitTest {
     assertEquals(listOf(1.1f, 2.2f), composeUnit.components)
   }
 
+  @Test
+  fun parseSizeUnit() {
+    val getValue: (Int) -> String = {
+      when (it) {
+        0 -> "2.3f"
+        1 -> "-2.34"
+        else -> "-100"
+      }
+    }
+    val parsed = ComposeUnit.Size(1f, 1f).parseUnit(getValue)!!
+    assertEquals(listOf(2.3f, -2.34f), parsed.components)
+  }
+
+  @Test
+  fun parseInvalidSizeUnit() {
+    assertNull(ComposeUnit.Size(1f, 1f).parseUnit { "2L" })
+    assertNull(ComposeUnit.Size(1f, 1f).parseUnit { "hello" })
+    assertNull(ComposeUnit.Size(1f, 1f).parseUnit { "true" })
+  }
+
   @Suppress("unused") // Methods are called via reflection by tests.
   class ValidOffset {
     fun `unbox-impl`() = 0L
@@ -165,6 +283,26 @@ class ComposeUnitTest {
     assertEquals("y ( _ , 2.2 )", composeUnit.toString(1))
     assertEquals("( 1.1 , 2.2 )", composeUnit.toString())
     assertEquals(listOf(1.1f, 2.2f), composeUnit.components)
+  }
+
+  @Test
+  fun parseOffsetUnit() {
+    val getValue: (Int) -> String = {
+      when (it) {
+        0 -> "2.3f"
+        1 -> "-2.34"
+        else -> "-100"
+      }
+    }
+    val parsed = ComposeUnit.Offset(1f, 1f).parseUnit(getValue)!!
+    assertEquals(listOf(2.3f, -2.34f), parsed.components)
+  }
+
+  @Test
+  fun parseInvalidOffsetUnit() {
+    assertNull(ComposeUnit.Offset(1f, 1f).parseUnit { "2L" })
+    assertNull(ComposeUnit.Offset(1f, 1f).parseUnit { "hello" })
+    assertNull(ComposeUnit.Offset(1f, 1f).parseUnit { "true" })
   }
 
   @Suppress("unused") // Methods are called via reflection by tests.
@@ -197,6 +335,32 @@ class ComposeUnitTest {
     assertEquals("( 0.1 , 0.2 , 0.3 , 0.4 )", composeUnit.toString())
     assertEquals(listOf(0.1f, 0.2f, 0.3f, 0.4f), composeUnit.components)
     assertNotNull(composeUnit.color)
+  }
+
+  @Test
+  fun parseColorUnit() {
+    val getValue: (Int) -> String = {
+      when (it) {
+        0 -> "0.1"
+        1 -> ".2"
+        2 -> "0.3f"
+        3 -> "1.f"
+        else -> "-100"
+      }
+    }
+
+    val parsed = ComposeUnit.Color(1f, 1f, 1f, 1f).parseUnit(getValue)!!
+    assertEquals(listOf(0.1f, 0.2f, 0.3f, 1f), parsed.components)
+  }
+
+  @Test
+  fun parseInvalidColorUnit() {
+    assertNull(ComposeUnit.Color(1f, 1f, 1f, 1f).parseUnit { "2L" })
+    assertNull(ComposeUnit.Color(1f, 1f, 1f, 1f).parseUnit { "-0.1f" })
+    assertNull(ComposeUnit.Color(1f, 1f, 1f, 1f).parseUnit { "hello" })
+    assertNull(ComposeUnit.Color(1f, 1f, 1f, 1f).parseUnit { "true" })
+    assertNull(ComposeUnit.Color(1f, 1f, 1f, 1f).parseUnit { "2." })
+    assertNull(ComposeUnit.Color(1f, 1f, 1f, 1f).parseUnit { "2f" })
   }
 
   @Test
@@ -240,6 +404,28 @@ class ComposeUnitTest {
     assertEquals("bottom ( _ , _ , _ , 4.222 )", composeUnit.toString(3))
     assertEquals("( 1.222 , 2.222 , 3.222 , 4.222 )", composeUnit.toString())
     assertEquals(listOf(1.222f, 2.222f, 3.222f, 4.222f), composeUnit.components)
+  }
+
+  @Test
+  fun parseRectUnit() {
+    val getValue: (Int) -> String = {
+      when (it) {
+        0 -> "0.1"
+        1 -> "-0.1"
+        2 -> "2f"
+        3 -> "-3.34f"
+        else -> "-100"
+      }
+    }
+    val parsed = ComposeUnit.Rect(1f, 1f, 1f, 1f).parseUnit(getValue)!!
+    assertEquals(listOf(0.1f, -0.1f, 2f, -3.34f), parsed.components)
+  }
+
+  @Test
+  fun parseInvalidRectUnit() {
+    assertNull(ComposeUnit.Rect(1f, 1f, 1f, 1f).parseUnit { "2L" })
+    assertNull(ComposeUnit.Rect(1f, 1f, 1f, 1f).parseUnit { "hello" })
+    assertNull(ComposeUnit.Rect(1f, 1f, 1f, 1f).parseUnit { "true" })
   }
 
   @Test
@@ -317,6 +503,18 @@ class ComposeUnitTest {
     assertEquals("Unknown", composeUnit.toString())
     assertEquals("Unknown", composeUnit.toString(1))
     assertEquals(1, composeUnit.components.size)
+  }
+
+  @Test
+  fun parseString() {
+    assertNull(ComposeUnit.UnitUnknown("hello").parseUnit { "summer" })
+  }
+
+  @Test
+  fun parseInvalidBooleanUnit() {
+    assertNull(ComposeUnit.UnitUnknown(true).parseUnit { "true" })
+    assertNull(ComposeUnit.UnitUnknown(true).parseUnit { "1.0" })
+    assertNull(ComposeUnit.UnitUnknown(true).parseUnit { "hey" })
   }
 
   @Test

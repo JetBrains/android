@@ -46,15 +46,6 @@ import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
-import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
-import java.awt.BorderLayout
-import java.awt.Font
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JSeparator
 
 /**
  * [PsiPropertiesInspectorBuilder] for the Preview annotation.
@@ -107,31 +98,6 @@ internal class PreviewPropertiesInspectorBuilder(
     inspector.addSectionLabel("Display")
     inspector.addEditorsForProperties(remainingProperties)
   }
-}
-
-private fun InspectorPanel.addSectionLabel(display: String) {
-  val separatorPanel =
-    JPanel(GridBagLayout()).apply {
-      val gbc =
-        GridBagConstraints().apply {
-          gridwidth = GridBagConstraints.REMAINDER
-          fill = GridBagConstraints.HORIZONTAL
-          weightx = 1.0
-        }
-      isOpaque = false
-      add(JSeparator(), gbc)
-    }
-  val labelPanel =
-    JPanel().apply {
-      layout = BorderLayout()
-      isOpaque = false
-      val label = JLabel(display)
-      label.border = JBUI.Borders.empty(8)
-      label.font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL).deriveFont(Font.BOLD)
-      add(label, BorderLayout.WEST)
-      add(separatorPanel)
-    }
-  addComponent(labelPanel)
 }
 
 /** [PsiPropertyItemControlTypeProvider] for properties of the Preview annotation. */

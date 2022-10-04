@@ -30,6 +30,7 @@ import com.android.tools.idea.compose.preview.animation.TestUtils.findLabel
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.compose.preview.animation.managers.AnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnimationManager
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE
 import com.android.tools.idea.rendering.classloading.NopClassLocator
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
@@ -119,11 +120,13 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     }
     surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()
     surface.addModelWithoutRender(model)
+    COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.override(true)
   }
 
   @After
   fun tearDown() {
     ComposePreviewAnimationManager.closeCurrentInspector()
+    COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.clearOverride()
   }
 
   @Test
@@ -525,7 +528,10 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
       assertInstanceOf<AnimationCard>(cards[0])
       assertInstanceOf<LabelCard>(cards[1])
       assertInstanceOf<AnimationCard>(cards[2])
-      for (i in 3 until ComposeAnimationType.values().size) assertInstanceOf<LabelCard>(cards[i])
+      assertInstanceOf<LabelCard>(cards[3])
+      assertInstanceOf<LabelCard>(cards[4])
+      assertInstanceOf<AnimationCard>(cards[5])
+      for (i in 6 until ComposeAnimationType.values().size) assertInstanceOf<LabelCard>(cards[i])
       assertEquals(11, timeline.sliderUI.elements.size)
       // Only coordination tab is opened.
       assertEquals(1, inspector.tabbedPane.tabCount)
@@ -541,7 +547,10 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     assertInstanceOf<AnimationManager>(inspector.animations[0])
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[1])
     assertInstanceOf<AnimationManager>(inspector.animations[2])
-    for (i in 3 until ComposeAnimationType.values().size) assertInstanceOf<
+    assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[3])
+    assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[4])
+    assertInstanceOf<AnimationManager>(inspector.animations[5])
+    for (i in 6 until ComposeAnimationType.values().size) assertInstanceOf<
       UnsupportedAnimationManager>(inspector.animations[i])
   }
   @Test

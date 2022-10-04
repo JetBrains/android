@@ -30,6 +30,7 @@ import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnim
 import com.android.tools.idea.compose.preview.animation.state.AnimationState
 import com.android.tools.idea.compose.preview.animation.state.EmptyState
 import com.android.tools.idea.compose.preview.animation.state.FromToState
+import com.android.tools.idea.compose.preview.animation.state.PickerState
 import com.android.tools.idea.compose.preview.animation.state.SingleState
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
@@ -37,6 +38,7 @@ import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineLine
 import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
@@ -339,9 +341,11 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
         ComposeAnimationType.ANIMATED_VALUE ->
           UnsupportedAnimationManager(animation, tabNames.createName(animation))
         ComposeAnimationType.ANIMATED_VISIBILITY -> AnimatedVisibilityAnimationManager(animation)
+        ComposeAnimationType.ANIMATE_X_AS_STATE ->
+          if (COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.get()) AnimateXAsStateManager(animation)
+          else UnsupportedAnimationManager(animation, tabNames.createName(animation))
         ComposeAnimationType.ANIMATABLE,
         ComposeAnimationType.ANIMATE_CONTENT_SIZE,
-        ComposeAnimationType.ANIMATE_X_AS_STATE,
         ComposeAnimationType.ANIMATED_CONTENT,
         ComposeAnimationType.DECAY_ANIMATION,
         ComposeAnimationType.INFINITE_TRANSITION,
@@ -475,6 +479,35 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
       }
   }
 
+  private inner class AnimateXAsStateManager(animation: ComposeAnimation) :
+    SupportedAnimationManager(animation) {
+
+    /**
+     * Updates the `initial` and `target` state combo boxes to display the states of the given
+     * animation, and resets the timeline. Invokes a given callback once everything is populated.
+     */
+    override fun setup(callback: () -> Unit) {
+      stateComboBox.updateStates(animation.states)
+      // Call updateAnimationStartAndEndStates directly here to set the initial animation states in
+      // PreviewAnimationClock
+      updateAnimationStatesExecutor.execute {
+        // Use a longer timeout the first time we're updating the start and end states. Since we're
+        // running off EDT, the UI will not freeze.
+        // This is necessary here because it's the first time the animation mutable states will be
+        // written, when setting the clock, and
+        // read, when getting its duration. These operations take longer than the default 30ms
+        // timeout the first time they're executed.
+        updateAnimationStartAndEndStates(longTimeout = true)
+        loadTransitionFromCacheOrLib(longTimeout = true)
+        loadProperties()
+        // Set up the state listeners so further changes to the selected state will trigger a
+        // call to updateAnimationStartAndEndStates.
+        stateComboBox.callbackEnabled = true
+        callback.invoke()
+      }
+    }
+  }
+
   private inner class AnimatedVisibilityAnimationManager(animation: ComposeAnimation) :
     SupportedAnimationManager(animation) {
 
@@ -597,10 +630,17 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
             loadTransitionFromCacheOrLib()
             loadProperties()
           }
+        ComposeAnimationType.ANIMATE_X_AS_STATE ->
+          if (COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.get())
+            PickerState(tracker) {
+              updateAnimationStartAndEndStates()
+              loadTransitionFromCacheOrLib()
+              loadProperties()
+            }
+          else EmptyState()
         ComposeAnimationType.ANIMATED_VALUE,
         ComposeAnimationType.ANIMATABLE,
         ComposeAnimationType.ANIMATE_CONTENT_SIZE,
-        ComposeAnimationType.ANIMATE_X_AS_STATE,
         ComposeAnimationType.ANIMATED_CONTENT,
         ComposeAnimationType.DECAY_ANIMATION,
         ComposeAnimationType.INFINITE_TRANSITION,

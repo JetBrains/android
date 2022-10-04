@@ -53,8 +53,14 @@ internal object PsiPickerManager {
    * @param displayTitle Title displayed at the top of the Picker popup
    * @param model model used to drive the picker, defines how properties are edited and how the UI
    * is built
+   * @param balloonPosition position of the picker
    */
-  fun show(location: Point, displayTitle: String, model: PsiPropertiesModel) {
+  fun show(
+    location: Point,
+    displayTitle: String,
+    model: PsiPropertiesModel,
+    balloonPosition: Balloon.Position = Balloon.Position.below
+  ) {
     val tracker = model.tracker
     val disposable = Disposer.newDisposable()
     var popup: LightCalloutPopup? = null
@@ -75,7 +81,7 @@ internal object PsiPickerManager {
       content = pickerPanel,
       parentComponent = null,
       location = location,
-      position = Balloon.Position.below,
+      position = balloonPosition,
       hideOnOutsideClick = false
     )
   }
