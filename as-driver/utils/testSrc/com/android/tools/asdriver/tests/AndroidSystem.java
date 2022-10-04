@@ -17,7 +17,6 @@ package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
 import com.android.utils.PathUtils;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.io.IOException;
@@ -46,6 +45,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   // Currently running emulators
   private List<Emulator> emulators;
   private int nextPort = 8554;
+  private String emulatorImagePath = "system_image_android-29_default_x86_64";
 
   private static boolean applied = false;
 
@@ -175,17 +175,23 @@ public class AndroidSystem implements AutoCloseable, TestRule {
 
   public Emulator runEmulator() throws IOException, InterruptedException {
     String curEmulatorName = String.format("emu%d", emulators.size());
-    Path workspaceRoot = TestUtils.getWorkspaceRoot("system_image_android-29_default_x86_64");
+    Path workspaceRoot = TestUtils.getWorkspaceRoot(emulatorImagePath);
     Emulator.createEmulator(fileSystem, curEmulatorName, workspaceRoot);
     // Increase grpc port by one after spawning an emulator to avoid conflict
-    emulators.add(Emulator.start(fileSystem, sdk, display, curEmulatorName, nextPort++));
-    return Iterables.getLast(emulators, null);
+    Emulator emulator = Emulator.start(fileSystem, sdk, display, curEmulatorName, nextPort++);
+    emulators.add(emulator);
+    return emulator;
   }
 
   public void runEmulator(Consumer<Emulator> callback) throws IOException, InterruptedException {
     try (Emulator emulator = runEmulator()) {
       callback.accept(emulator);
     }
+  }
+
+  public AndroidSystem setEmulatorImagePath(String systemImagePath) {
+    this.emulatorImagePath = systemImagePath;
+    return this;
   }
 
   public Adb runAdb() throws IOException {
