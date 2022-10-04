@@ -19,12 +19,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:custom="http://schemas.android.com/apk/res-auto"
-    android:background="@drawable/touchable_area_delimiter"
+    android:background="@drawable/initialized"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:keepScreenOn="true"
     tools:context=".InputEventRenderingActivity">
+  <TextView
+      android:id="@+id/entered_text"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:background="@drawable/speech_bubble"
+      android:layout_gravity="bottom|center_horizontal"
+      android:padding="3dp"
+      android:visibility="invisible"
+      tools:text="12,6,2" />
   <androidx.constraintlayout.widget.ConstraintLayout
       android:layout_width="match_parent"
       android:layout_height="match_parent">

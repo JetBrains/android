@@ -27,14 +27,17 @@ import android.util.Log
 import android.util.Size
 import android.view.KeyEvent
 import android.view.MotionEvent
-import android.view.View
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import android.view.ViewGroup.MarginLayoutParams
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import android.widget.Toast.makeText
+import androidx.annotation.MainThread
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -50,6 +53,9 @@ import kotlin.math.roundToInt
 
 private const val TAG = "DMBench.Render"
 private const val NOISE_BITMAP_SIZE = 10
+private const val DEFAULT_MAX_BITS = 12
+private const val DEFAULT_BITS_PER_CHANNEL = 2
+private const val DEFAULT_LATENCY_BITS = 6
 private val NUMERIC_KEYCODES = KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9
 
 /**
@@ -68,14 +74,14 @@ private fun Point.scale(src: Size, dst: Size): Point {
  * way to the device and for the resulting video from the device to make it back to Studio.
  */
 class InputEventRenderingActivity : AppCompatActivity() {
-  private val benchmarkUiVisible = AtomicBoolean()
   private val textVisible = AtomicBoolean()
   private val visibilityHandler = Handler(Looper.getMainLooper())
   private val makeTextVisible = Runnable { setTextVisible(true) }
 
-  private var stringBuilder = StringBuilder()
+  private var state = State.INITIALIZED
   private var lastToast: Toast? = null
   private lateinit var binding: ActivityFullscreenBinding
+  private lateinit var enteredText: TextView
   private lateinit var objectTrackingView: FrameLayout
   private lateinit var rick: ImageView
   private lateinit var x: EncodedIntegerView
@@ -94,6 +100,7 @@ class InputEventRenderingActivity : AppCompatActivity() {
 
     supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+    enteredText = binding.enteredText
     noiseBitmapView = binding.noiseBitmap
     x = binding.x
     y = binding.y
@@ -110,7 +117,7 @@ class InputEventRenderingActivity : AppCompatActivity() {
 
   private fun setTextVisible(visibility: Boolean) {
     if (textVisible.compareAndSet(!visibility, visibility)) {
-      val targetVisibility = if (visibility) View.VISIBLE else View.INVISIBLE
+      val targetVisibility = if (visibility) VISIBLE else INVISIBLE
       positionCoordinates()
       coordinates.visibility = targetVisibility
       frameLatencyText.visibility = targetVisibility
@@ -145,18 +152,29 @@ class InputEventRenderingActivity : AppCompatActivity() {
     return true
   }
 
+  @MainThread
   private fun processKey(keyCode: Int): Boolean {
     when (keyCode) {
+      KeyEvent.KEYCODE_DEL -> enteredText.text = enteredText.text.dropLast(1)
       KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_DPAD_UP -> {
-        stringBuilder.clear()
-        showTouchableArea()
+        enteredText.text = ""
+        when(state) {
+          State.BENCHMARKING -> showTouchableArea()
+          State.SHOWING_TOUCHABLE_AREA -> reset()
+          State.INITIALIZED -> {}
+        }
       }
       KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_DPAD_DOWN -> manuallyDecrementBitsPerChannel()
-      in NUMERIC_KEYCODES -> stringBuilder.append(NUMERIC_KEYCODES.indexOf(keyCode))
-      KeyEvent.KEYCODE_COMMA -> stringBuilder.append(',')
-      KeyEvent.KEYCODE_ENTER -> if (setBitConfigFromStringBuilder()) showTouchableArea()
+      in NUMERIC_KEYCODES -> enteredText.append(NUMERIC_KEYCODES.indexOf(keyCode).toString())
+      KeyEvent.KEYCODE_COMMA -> enteredText.append(",")
+      KeyEvent.KEYCODE_ENTER -> if (setBitConfigFromEnteredText()) showTouchableArea()
       else -> return false
     }
+
+    if (state == State.INITIALIZED) {
+      enteredText.visibility = if (enteredText.text.isNullOrEmpty()) INVISIBLE else VISIBLE
+    }
+
     return true
   }
 
@@ -191,11 +209,12 @@ class InputEventRenderingActivity : AppCompatActivity() {
     frameLatency.maxBits = maxLatencyBits
   }
 
-  private fun setBitConfigFromStringBuilder(): Boolean {
+  private fun setBitConfigFromEnteredText(): Boolean {
     var succeeded = false
+    val stringFromEnteredText = enteredText.text
     try {
-      Log.d(TAG, "Setting bit config from string: $stringBuilder")
-      val numbers = stringBuilder.split(',').map(String::toInt)
+      Log.d(TAG, "Setting bit config from string: $stringFromEnteredText")
+      val numbers = stringFromEnteredText.split(',').map(String::toInt)
       if (numbers.size == 3 && numbers[0] > 0 && numbers[1] > 0 && numbers[2] >= 0) {
         val (maxBits, maxLatencyBits, bitsPerChannel) = numbers
         setMaxBits(maxBits)
@@ -207,22 +226,43 @@ class InputEventRenderingActivity : AppCompatActivity() {
     } catch (e: NumberFormatException) {
       Log.e(TAG, "Failed to parse number", e)
     }
-    stringBuilder.clear()
+    enteredText.text = ""
+    enteredText.visibility = INVISIBLE
     return succeeded
   }
 
-  private fun showTouchableArea() {
-    if (benchmarkUiVisible.compareAndSet(true, false)) {
-      Log.d(TAG, "Showing touchable area for benchmarking.")
-      binding.root.descendants.forEach { it.visibility = View.INVISIBLE }
+  @MainThread
+  private fun reset() {
+    if (state != State.INITIALIZED) {
+      state = State.INITIALIZED
+      Log.d(TAG, "Resetting to initial state.")
+      binding.root.background = ResourcesCompat.getDrawable(resources, R.drawable.initialized, /* theme = */ null)
+      binding.root.descendants.forEach { it.visibility = INVISIBLE }
+      setMaxBits(DEFAULT_MAX_BITS)
+      setBitsPerChannel(DEFAULT_BITS_PER_CHANNEL)
+      setMaxLatencyBits(DEFAULT_LATENCY_BITS)
+      binding.root.invalidate()
     }
   }
 
+  @MainThread
+  private fun showTouchableArea() {
+    if (state != State.SHOWING_TOUCHABLE_AREA) {
+      state = State.SHOWING_TOUCHABLE_AREA
+      Log.d(TAG, "Showing touchable area for benchmarking.")
+      binding.root.background = ResourcesCompat.getDrawable(resources, R.drawable.touchable_area_delimiter, /* theme = */ null)
+      binding.root.descendants.forEach { it.visibility = INVISIBLE }
+      binding.root.invalidate()
+    }
+  }
+
+  @MainThread
   private fun makeBenchmarkUiVisible() {
-    if (benchmarkUiVisible.compareAndSet(false, true)) {
+    if (state != State.BENCHMARKING) {
+      state = State.BENCHMARKING
       Log.d(TAG, "Showing benchmarking UI to begin benchmarking.")
       binding.root.descendants.forEach {
-        if (it !== coordinates && it !== frameLatencyText) it.visibility = View.VISIBLE
+        if (it !== coordinates && it !== frameLatencyText) it.visibility = VISIBLE
       }
     }
   }
@@ -231,7 +271,7 @@ class InputEventRenderingActivity : AppCompatActivity() {
   private fun moveRickTo(p: Point) {
     val layoutParams: MarginLayoutParams = rick.layoutParams as MarginLayoutParams
     layoutParams.updateMargins(left = p.x - rick.width / 2, top = p.y - rick.height / 2)
-    rick.visibility = View.VISIBLE
+    rick.visibility = VISIBLE
     rick.layoutParams = layoutParams
     rick.invalidate()
   }
@@ -287,5 +327,11 @@ class InputEventRenderingActivity : AppCompatActivity() {
       // Hide both the status bar and the navigation bar
       it.hide(WindowInsetsCompat.Type.systemBars())
     }
+  }
+
+  private enum class State {
+    INITIALIZED,
+    SHOWING_TOUCHABLE_AREA,
+    BENCHMARKING,
   }
 }
