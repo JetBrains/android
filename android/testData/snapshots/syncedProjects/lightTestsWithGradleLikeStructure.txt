@@ -1,6 +1,6 @@
 PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
-    PROJECT_JDK                   : jbr-<JAVA_VERSION>
-        Version                       : JetBrains Runtime version <JDK_VERSION>
+    PROJECT_JDK                   : <JDK_NAME>
+        Version                       : <JDK_VERSION>
     MODULE                        : LightSyncBasedTestsWithGradleLikeStructureTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : LightSyncBasedTestsWithGradleLikeStructureTest
@@ -45,7 +45,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -143,7 +143,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : LightSyncBasedTestsWithGradleLikeStructureTest.main
             Scope                         : Test
@@ -243,7 +243,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -333,7 +333,7 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : LightSyncBasedTestsWithGradleLikeStructureTest.main
             Scope                         : Test

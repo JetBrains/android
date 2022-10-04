@@ -1,6 +1,6 @@
 PROJECT                       : project
-    PROJECT_JDK                   : jbr-<JAVA_VERSION>
-        Version                       : JetBrains Runtime version <JDK_VERSION>
+    PROJECT_JDK                   : <JDK_NAME>
+        Version                       : <JDK_VERSION>
     MODULE                        : project
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
@@ -101,7 +101,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -195,7 +195,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.3.0 [=]
             Scope                         : Test
@@ -291,7 +291,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.3.0 [=]
         Classes
@@ -380,7 +380,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.3.0 [=]
             Scope                         : Test
@@ -459,7 +459,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -542,7 +542,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -664,7 +664,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
             Scope                         : Test
@@ -880,7 +880,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.1.0@aar [=]
@@ -1032,7 +1032,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
             Scope                         : Test
@@ -1228,7 +1228,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
             Scope                         : Test
@@ -1444,7 +1444,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.1.0@aar [=]
@@ -1596,7 +1596,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
             Scope                         : Test
@@ -1753,7 +1753,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1871,7 +1871,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.1.0@aar [=]
             Scope                         : Test
@@ -2049,7 +2049,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.1.0@aar [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.3.0 [=]
@@ -2176,7 +2176,7 @@ PROJECT                       : project
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.1.0@aar [=]
             Scope                         : Test

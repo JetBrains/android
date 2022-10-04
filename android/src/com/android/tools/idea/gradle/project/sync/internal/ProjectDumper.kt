@@ -253,12 +253,23 @@ class ProjectDumper(
       this.replace(it.value, "<VERSION>")
     } ?: this
 
-  fun String.replaceSourceAndTargetCompatibility(): String = projectJdk?.let {
-    replace(JavaSdk.getInstance().getVersion(it)!!.maxLanguageLevel.toJavaVersion().toFeatureString(), "<PROJECT_JDK_FEATURE_LEVEL>")
-  } ?: this
-  fun String.replaceJavaVersion(): String? = replace(Regex("17|11|1\\.8"), "<JAVA_VERSION>")
-  fun String.replaceJdkVersion(): String? = replace(Regex("1\\.8\\.0_[0-9]+|11\\.0\\.[0-9]+|17\\.0\\.[0-9]+"), "<JDK_VERSION>")
-    .replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")
+  fun String.replaceSourceAndTargetCompatibility(): String {
+    return projectJdk
+      ?.let {
+        replace(JavaSdk.getInstance().getVersion(it)!!.maxLanguageLevel.toJavaVersion().toFeatureString(), "<PROJECT_JDK_FEATURE_LEVEL>")
+      }
+      ?: this
+  }
+
+  private val javaVersionRegex = Regex("(jbr|corretto)-(17|11|1\\.8)")
+  fun String.replaceJdkName(): String = replaceJavaVersionLikeMatch(javaVersionRegex, 2, "JDK_NAME")
+
+  private val jdkVersionRegex = Regex("(JetBrains Runtime|Amazon Corretto) version (1\\.8|1[17])\\.0\\.[0-9]+")
+  fun String.replaceJdkVersion(): String {
+    return replaceJavaVersionLikeMatch(jdkVersionRegex, 2, "JDK_VERSION")
+      .replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")
+  }
+
   fun String.replaceMatchingVersion(version: String?): String =
     if (version != null) this.replace("-$version", "-<VERSION>") else this
 
@@ -276,6 +287,17 @@ class ProjectDumper(
 
   override fun toString(): String = output.toString().trimIndent()
 }
+
+private fun String.replaceJavaVersionLikeMatch(regex: Regex, regexVersionGroupIndex: Int, placeholderName: String) =
+  replace(regex) {
+    val defaultVersion = IdeSdks.DEFAULT_JDK_VERSION.maxLanguageLevel.toJavaVersion().toFeatureString()
+    val actualVersion = it.groupValues[regexVersionGroupIndex]
+    val versionSuffix = when {
+      actualVersion != defaultVersion -> "-$actualVersion"
+      else -> ""
+    }
+    "<$placeholderName$versionSuffix>"
+  }
 
 fun ProjectDumper.prop(name: String, value: () -> String?) {
   value()?.let {

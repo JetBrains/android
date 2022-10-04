@@ -1,6 +1,6 @@
 PROJECT                       : NonStandardSourceSetDependencies
-    PROJECT_JDK                   : jbr-<JAVA_VERSION>
-        Version                       : JetBrains Runtime version <JDK_VERSION>
+    PROJECT_JDK                   : <JDK_NAME>
+        Version                       : <JDK_VERSION>
     MODULE                        : NonStandardSourceSetDependencies
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
@@ -101,7 +101,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -223,7 +223,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: <PROJECT>/jarWrapperLib/JarWrappedLib.jar [=]
             Scope                         : Test
@@ -369,7 +369,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: <PROJECT>/jarWrapperLib/JarWrappedLib.jar [=]
         LIBRARY                       : Gradle: __wrapped_aars__::aarWrapperLib:unspecified@aar [=]
@@ -496,7 +496,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: <PROJECT>/jarWrapperLib/JarWrappedLib.jar [=]
             Scope                         : Test
@@ -1175,7 +1175,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1289,7 +1289,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar [=]
             Scope                         : Test
@@ -1469,7 +1469,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.0.0@aar [=]
@@ -1610,7 +1610,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar [=]
             Scope                         : Test
@@ -1753,7 +1753,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1893,7 +1893,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -2221,7 +2221,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
@@ -2376,7 +2376,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -2848,7 +2848,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -2942,7 +2942,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample-test.main
             Scope                         : Test
@@ -3036,7 +3036,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         Classes
             -                             : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes
@@ -3124,7 +3124,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample-test.main
             Scope                         : Test
@@ -3610,7 +3610,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -3724,7 +3724,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
             Scope                         : Test
@@ -3882,7 +3882,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: com.example:with-runtime:1.0@aar [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
@@ -3996,7 +3996,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: com.example:with-runtime:1.0@aar [=]
             Scope                         : Test
