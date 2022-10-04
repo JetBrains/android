@@ -325,6 +325,7 @@ final class MergedManifestInfo {
       manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.DISABLE_STRIP_LIBRARY_TARGET_SDK);
     manifestMergerInvoker.addFlavorAndBuildTypeManifests(VfsUtilCore.virtualToIoFiles(flavorAndBuildTypeManifests).toArray(new File[0]));
     manifestMergerInvoker.addNavigationFiles(VfsUtilCore.virtualToIoFiles(navigationFiles));
+    manifestMergerInvoker.withProcessCancellationChecker(ProgressManager::checkCanceled);
 
     List<Pair<String, File>> libraryManifests = new ArrayList<>();
     for (VirtualFile file : libManifests) {
