@@ -56,12 +56,11 @@ import javax.swing.JPanel
 /**
  * UI test to cover functionality of the Resource Explorer. For both the Resource Manager and the Resource Picker.
  */
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner::class)
 class ResourceExplorerTest {
   @Rule
   @JvmField
-  val guiTest: GuiTestRule = GuiTestRule()
+  val guiTest: GuiTestRule = GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
 
   @Before
   fun setUp() {
@@ -75,6 +74,11 @@ class ResourceExplorerTest {
 
   /**
    * This test covers several interactions with the IDE and the Resource Explorer:
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 578e2691-b25d-4241-8717-3165c19b3c70
+   * <p>
    *
    * 1. On a resource file, press "ctrl + shift + t" to open and select the resource in the resource manager.
    * 2. Add a Drawable resource through the VectorAsset action.
@@ -82,7 +86,6 @@ class ResourceExplorerTest {
    * 4. Invoke the Resource Picker to set SampleData for the previously created ImageView.
    * 5. Switch the Layout Editor to Text mode, and drag a string resource into the text attribute value of an existing TextView.
    *
-   * TODO(b/144576310): Cover multi-module search.
    *  Searching in the search bar should show an option to change module if there are resources in it.
    * TODO(b/144576310): Cover filter usage. Eg: Look for a framework resource by enabling its filter.
    * TODO(b/144576310): Cover usage of the Import dialog (DesignAssetImporter).
@@ -102,8 +105,8 @@ class ResourceExplorerTest {
       .selectTab("Drawable")
       .clickAddButton()
 
+    guiTest.robot().waitForIdle()
     ide.openFromContextualMenu({ AssetStudioWizardFixture.find(it) }, "Vector Asset")
-      .switchToClipArt()
       .chooseIcon()
       .filterByNameAndSelect("android")
       .clickOk()
@@ -112,7 +115,7 @@ class ResourceExplorerTest {
       .clickFinish()
 
     // 3. Drag the created Drawable in to the Layout Editor, should create a new ImageView component.
-    layoutEditor.findResourceExplorer().dragResourceToLayoutEditor("ic_baseline_android_24")
+    layoutEditor.findResourceExplorer().dragResourceToLayoutEditor("baseline_android_24")
     ide.closeResourceManager()
 
     // 4. Invoke the Resource Picker to set SampleData for the previously created ImageView.
@@ -141,7 +144,7 @@ class ResourceExplorerTest {
 
     // 6. Switch to Design mode, add and select a new resource through the ResourcePicker
     ide.closeResourceManager().editor.selectEditorTab(EditorFixture.Tab.DESIGN)
-    layoutEditor.findView("TextView", 0).sceneComponent!!.click()
+    layoutEditor.findView("TextView", 0).sceneComponent!!.rightClick()
     layoutEditor.attributesPanel.waitForId("text").findSectionByName("Declared Attributes")!!.apply {
       title!!.expand()
       invokeButtonInAttribute("text")
