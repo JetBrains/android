@@ -29,6 +29,22 @@ fun interpolate(start: Color, end: Color, fraction: Double): Color {
 }
 
 /**
+ * Interpolates between multiple colors as with a gradient.
+ */
+fun interpolate(colors: List<Color>, fraction: Double): Color {
+  require(colors.isNotEmpty()) { "Must supply at least one color!" }
+  return when {
+    colors.size == 1 || fraction <= 0 -> colors.first()
+    fraction >= 1 -> colors.last()
+    else -> {
+      val scaledFraction = fraction * (colors.size - 1)
+      val i = scaledFraction.toInt()
+      interpolate(colors[i], colors[i + 1], scaledFraction - i)
+    }
+  }
+}
+
+/**
  * Interpolates between two integers.
  */
 private fun interpolate(start: Int, end: Int, fraction: Double): Int {

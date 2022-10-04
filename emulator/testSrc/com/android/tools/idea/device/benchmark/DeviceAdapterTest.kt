@@ -18,6 +18,7 @@ package com.android.tools.idea.device.benchmark
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.emulator.AbstractDisplayView
+import com.android.tools.idea.emulator.interpolate
 import com.android.tools.idea.emulator.location
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -146,12 +147,14 @@ class DeviceAdapterTest {
 
   @Test
   fun ready_registersFrameListener() {
+    view.notifyFrame(INITIALIZED_FRAME)
     view.notifyFrame(ALL_TOUCHABLE_FRAME)
     view.notifyFrame(p.toBufferedImage())
 
     assertThat(returnedInputs).isEmpty()
 
     adapter.ready()
+    view.notifyFrame(INITIALIZED_FRAME)
     view.notifyFrame(ALL_TOUCHABLE_FRAME)
     view.notifyFrame(p.toBufferedImage())
 
@@ -206,6 +209,7 @@ class DeviceAdapterTest {
     FakeKeyboardFocusManager(projectRule.testRootDisposable).focusOwner = view
 
     adapter.ready()
+    view.notifyFrame(INITIALIZED_FRAME)
 
     UIUtil.pump()
     assertThat(typedKeys).isEqualTo(listOf(MAX_BITS, LATENCY_MAX_BITS, BITS_PER_CHANNEL).joinToString(",").toList())
@@ -215,6 +219,7 @@ class DeviceAdapterTest {
   @Test
   fun cleanUp_unregistersFrameListener() {
     adapter.ready()
+    view.notifyFrame(INITIALIZED_FRAME)
     view.notifyFrame(ALL_TOUCHABLE_FRAME)
     adapter.cleanUp()
     repeat(10) { view.notifyFrame(p.toBufferedImage()) }
@@ -232,8 +237,26 @@ class DeviceAdapterTest {
   }
 
   @Test
+  fun failedToDetectInitializedApp() {
+    adapter.ready()
+    adapter.frameRendered(ALL_TOUCHABLE_FRAME)
+    assertThat(errors).isEmpty()
+    // This should be plenty of time to hit the limit
+    testTimeSource += 1.hours
+
+    // Need a frame to trigger this
+    adapter.frameRendered(ALL_TOUCHABLE_FRAME)
+
+    assertThat(onReadyCalls).isEqualTo(0)
+    assertThat(errors).hasSize(1)
+    assertThat(errors[0]).startsWith("Failed to detect initialized app")
+  }
+
+  @Test
   fun failedToFindTouchableArea() {
     adapter.ready()
+    adapter.frameRendered(INITIALIZED_FRAME)
+
     repeat(10) {
       adapter.frameRendered(NONE_TOUCHABLE_FRAME)
     }
@@ -254,7 +277,7 @@ class DeviceAdapterTest {
   fun onlyTouchableAreaReturned() {
     val allPointsAdapter = createAdapter(maxTouches = Int.MAX_VALUE)
     allPointsAdapter.ready()
-
+    allPointsAdapter.frameRendered(INITIALIZED_FRAME)
     allPointsAdapter.frameRendered(TOUCHABLE_AREA_FRAME)
 
     assertThat(onReadyCalls).isEqualTo(1)
@@ -276,6 +299,7 @@ class DeviceAdapterTest {
     // First a normal adapter
     val oneStepAdapter = createAdapter(maxTouches = step * MAX_TOUCHES)
     oneStepAdapter.ready()
+    oneStepAdapter.frameRendered(INITIALIZED_FRAME)
     oneStepAdapter.frameRendered(TOUCHABLE_AREA_FRAME)
 
     assertThat(oneStepAdapter.numInputs()).isEqualTo(step * MAX_TOUCHES)
@@ -283,6 +307,7 @@ class DeviceAdapterTest {
     // Now one that uses a step
     val multiStepAdapter = createAdapter(maxTouches = MAX_TOUCHES, step = step)
     multiStepAdapter.ready()
+    multiStepAdapter.frameRendered(INITIALIZED_FRAME)
     multiStepAdapter.frameRendered(TOUCHABLE_AREA_FRAME)
 
     assertThat(multiStepAdapter.numInputs()).isEqualTo(MAX_TOUCHES)
@@ -298,6 +323,7 @@ class DeviceAdapterTest {
       val point = Point(25 - bitsPerChannel, 50 + bitsPerChannel)
       val customAdapter = createAdapter(bitsPerChannel = bitsPerChannel)
       customAdapter.ready()
+      customAdapter.frameRendered(INITIALIZED_FRAME)
       customAdapter.frameRendered(ALL_TOUCHABLE_FRAME)
       assertThat(onReadyCalls).isEqualTo(bitsPerChannel + 1)
       assertThat(errors).isEmpty()
@@ -371,6 +397,8 @@ class DeviceAdapterTest {
     private val TOUCHABLE_AREA_FRAME = bufferedImage {i, j ->
       if ((i in 1 until WIDTH - 1) && (j in 1 until HEIGHT - 1)) Color.GREEN else Color.RED
     }
+    private val INITIALIZED_GRADIENT = listOf(Color.RED, Color.GREEN, Color.BLUE)
+    private val INITIALIZED_FRAME = bufferedImage { i, _ -> interpolate(INITIALIZED_GRADIENT, i / WIDTH.toDouble()) }
 
     private fun Int.bits(maxBits: Int = MAX_BITS) : String = toUInt().toString(2).padStart(maxBits, '0')
 

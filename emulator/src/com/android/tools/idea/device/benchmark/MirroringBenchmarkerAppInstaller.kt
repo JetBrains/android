@@ -100,12 +100,9 @@ internal class MirroringBenchmarkerAppInstallerImpl(
     return true
   }
 
-  @OptIn(ExperimentalTime::class)
   override suspend fun launchBenchmarkingApp(): Boolean {
     logger.debug("Launching benchmarking app")
     val output = adb.shellCommand(deviceSelector, START_COMMAND).withCollector(TextShellV2Collector()).execute().first()
-    // TODO(b/250874751): The app should be able to signal when it is ready somehow.
-    delay(500.milliseconds)  // Give the app a chance to actually get ready for input.
     return output.exitCode == 0
   }
 

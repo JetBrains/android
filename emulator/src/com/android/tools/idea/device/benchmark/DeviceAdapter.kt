@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device.benchmark
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.device.benchmark.Benchmarker.Adapter
 import com.android.tools.idea.emulator.AbstractDisplayView
@@ -35,7 +36,7 @@ import java.awt.Rectangle
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
-import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.log2
 import kotlin.math.max
@@ -48,7 +49,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
-private val MAX_DURATION_FIND_TOUCHABLE_AREA = 1.seconds
+private val MAX_BECOME_READY_DURATION = 2.seconds
 private val LOG = Logger.getInstance(DeviceAdapter::class.java)
 
 private fun Int.isEven() = this % 2 == 0
@@ -79,6 +80,14 @@ private fun Rectangle.integer2EncodingX(): Int = fractionalX(0.75)
 private fun Rectangle.integerEncodingYRange(): IntRange = y..fractionalY(0.5)
 
 private fun Color.channels(): List<Int> = listOf(red, green, blue)
+
+private fun Color.distanceFrom(other: Color) = channels().zip(other.channels()).sumOf { abs(it.first - it.second) }
+
+fun Color.isReddish() = red > 0xE0 && green < 0x1F && blue < 0x1F
+
+fun Color.isGreenish() = red < 0x1F && green > 0xE0 && blue < 0x1F
+
+fun Color.isBluish() = red < 0x1F && green < 0x1F && blue > 0xE0
 
 private fun AbstractDisplayView.press(keyCode: Int) {
   keyInput(keyCode, KeyEvent.CHAR_UNDEFINED, KeyEvent.KEY_PRESSED)
@@ -115,6 +124,49 @@ private fun AbstractDisplayView.click(location: Point, mouseEventType: Int = Mou
 
 /** Extracts the [Color] of the pixel at ([x], [y]) in the image. */
 private fun BufferedImage.extract(x: Int, y: Int): Color = Color(getRGB(x,y))
+
+/** Determines whether the image holds the initialization frame pattern, a gradient from red to green to blue. */
+private fun BufferedImage.isInitializationFrame(): Boolean {
+  val center = Point(width / 2, height / 2)
+
+  val extremesCorrect = extract(0, center.y).isReddish() &&
+                        extract(center.x, center.y).isGreenish() &&
+                        extract(width - 1, center.y).isBluish()
+
+  // Use a local function so we don't bother with this if the first part fails. This just tells us
+  // if a sampling of pixels are the right (color) distance from one another.
+  fun smooth() : Boolean {
+    val expectedTotalDistance = 255 * 4
+    val samplePoints = width / 10
+    val expectedAverageDistance = expectedTotalDistance / (samplePoints + 1).toDouble()
+
+    return (1 until width).sampleValues(samplePoints).windowed(2).all {
+      extract(it[0], center.y).distanceFrom(extract(it[1], center.y)) < 2 * expectedAverageDistance
+    }
+  }
+
+  return extremesCorrect && smooth()
+}
+
+/**
+ * Finds a [Rectangle] of touchable area of the screen, which should be colored green, or `null` if no such
+ * touchable area can be found.
+ *
+ * This method assumes that the marked touchable area overlaps the center of the screen. This method also
+ * returns the [Rectangle] in image coordinates.
+ */
+private fun BufferedImage.findTouchableArea(): Rectangle? {
+  val center = Point(width / 2, height / 2)
+
+  val left = (0 until width).find { extract(it, center.y).isGreenish() } ?: return null
+  val right = (0 until width).reversed().find { extract(it, center.y).isGreenish() } ?: return null
+  val top = (0 until height).find { extract(center.x, it).isGreenish() } ?: return null
+  val bottom = (0 until height).reversed().find { extract(center.x, it).isGreenish() } ?: return null
+
+  val width = right - left + 1
+  val height = bottom - top + 1
+  return Rectangle(left, top, width, height).also { LOG.info("Found touchable area: $it") }
+}
 
 /**
  * Returns a [Sequence] of [Point]s scribbling sinusoidally back and forth across the [Rectangle].
@@ -161,6 +213,9 @@ internal class DeviceAdapter (
   private val numRegionsPerCoordinate = if (bitsPerChannel == 0) maxBits else (maxBits - 1) / (bitsPerChannel * 3) + 1
   private val numLatencyRegions = if (bitsPerChannel == 0) latencyBits else (latencyBits - 1) / (bitsPerChannel * 3) + 1
 
+  @GuardedBy("this")
+  private var appState = AppState.INITIALIZING
+
   @Volatile
   private lateinit var touchableArea: Rectangle
   @Volatile
@@ -178,7 +233,6 @@ internal class DeviceAdapter (
   }
 
   private var lastPressed: Point? = null
-  private var ready = AtomicBoolean()
 
   init {
     require(maxTouches > 0) { "Must specify a positive value for maxTouches!" }
@@ -189,19 +243,34 @@ internal class DeviceAdapter (
 
   @Synchronized
   override fun frameRendered(frameNumber: Int, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage) {
-    if (!ready.get()) {
-      if (startedGettingReady.elapsedNow() > MAX_DURATION_FIND_TOUCHABLE_AREA) {
-        adapterCallbacks.onFailedToBecomeReady("Failed to find touchable area within $MAX_DURATION_FIND_TOUCHABLE_AREA")
-        return
+    when (appState) {
+      AppState.INITIALIZING -> {
+        if (startedGettingReady.elapsedNow() > MAX_BECOME_READY_DURATION) {
+          adapterCallbacks.onFailedToBecomeReady("Failed to detect initialized app within $MAX_BECOME_READY_DURATION")
+          return
+        }
+        if (displayImage.isInitializationFrame()) {
+          keyConfigIntoApp()
+          appState = AppState.DISPLAYING_TOUCHABLE_AREA
+        }
       }
-      displayImage.findTouchableAreas()?.let {
-        touchableImageArea = it.first
-        touchableArea = it.second
-        if (ready.compareAndSet(false, true)) adapterCallbacks.onReady()
+
+      AppState.DISPLAYING_TOUCHABLE_AREA -> {
+        if (displayImage.isInitializationFrame()) return
+        if (startedGettingReady.elapsedNow() > MAX_BECOME_READY_DURATION) {
+          adapterCallbacks.onFailedToBecomeReady("Failed to find touchable area within $MAX_BECOME_READY_DURATION")
+          return
+        }
+        displayImage.findTouchableAreas()?.let {
+          touchableImageArea = it.first
+          touchableArea = it.second
+          appState = AppState.READY
+          adapterCallbacks.onReady()
+        }
       }
-      return
+
+      AppState.READY -> processFrame(displayImage)
     }
-    processFrame(displayImage)
   }
 
   override fun setCallbacks(callbacks: Adapter.Callbacks<Point>) {
@@ -227,7 +296,6 @@ internal class DeviceAdapter (
         adapterCallbacks.onFailedToBecomeReady("Could not launch benchmarking app.")
         return@launch
       }
-      keyConfigIntoApp()
       startedGettingReady = timeSource.markNow()
       target.view.addFrameListener(this@DeviceAdapter)
       target.view.repaint()
@@ -280,29 +348,6 @@ internal class DeviceAdapter (
     LOG.info("Found touchable area in image: $imageRectangle. Converted to AbstractDisplayView coordinates: $displayViewRectangle")
     return imageRectangle to displayViewRectangle
   }
-
-  /**
-   * Finds a [Rectangle] of touchable area of the screen, which should be colored green.
-   *
-   * This method assumes that the marked touchable area overlaps the center of the screen. This method also
-   * returns the [Rectangle] in image coordinates.
-   */
-  private fun BufferedImage.findTouchableArea(): Rectangle? {
-    val threshold = 0x1F
-    val center = Point(width / 2, height / 2)
-
-    fun Color.isGreenish() = red < threshold && green > 0xFF - threshold && blue < threshold
-
-    val left = (0 until width).find { extract(it, center.y).isGreenish() } ?: return null
-    val right = (0 until width).reversed().find { extract(it, center.y).isGreenish() } ?: return null
-    val top = (0 until height).find { extract(center.x, it).isGreenish() } ?: return null
-    val bottom = (0 until height).reversed().find { extract(center.x, it).isGreenish() } ?: return null
-
-    val width = right - left + 1
-    val height = bottom - top + 1
-    return Rectangle(left, top, width, height).also { LOG.info("Found touchable area: $it") }
-  }
-
 
   /** Decode the frame to a [Point]. */
   private fun BufferedImage.decodeToPoint(): Point {
@@ -365,6 +410,12 @@ internal class DeviceAdapter (
       }
     }
     return viewCoordinates
+  }
+
+  private enum class AppState {
+    INITIALIZING,
+    DISPLAYING_TOUCHABLE_AREA,
+    READY,
   }
 }
 
