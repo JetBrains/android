@@ -181,7 +181,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
   private fun createNameExpression(originalElement: PsiElement): KtSimpleNameExpression {
     val originalFile = originalElement.containingFile as KtFile
 
-    val file = KtPsiFactory(originalFile.project).createAnalyzableFile("temp.kt", "val x = $COMPOSE_MODIFIER_FQN.call", originalFile)
+    val file = KtPsiFactory.contextual(originalFile).createFile("temp.kt", "val x = $COMPOSE_MODIFIER_FQN.call")
     return file.getChildOfType<KtProperty>()!!.getChildOfType<KtDotQualifiedExpression>()!!.lastChild as KtSimpleNameExpression
   }
 

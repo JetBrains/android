@@ -53,7 +53,7 @@ class KotlinAndroidViewConstructorFix(element: KtSuperTypeEntry) : KotlinQuickFi
         val element = element ?: return
         val ktClass = element.containingClass() ?: return
 
-        val factory = KtPsiFactory(element)
+        val psiFactory = KtPsiFactory(project)
 
         val bindingContext = ktClass.analyze(BodyResolveMode.PARTIAL)
 
@@ -76,13 +76,13 @@ class KotlinAndroidViewConstructorFix(element: KtSuperTypeEntry) : KotlinQuickFi
           context: android.content.Context, attrs: android.util.AttributeSet? = null
           )""".trimIndent() to "(context, attrs)"
         }
-        val newPrimaryConstructor = factory.createPrimaryConstructor(constructorSignature)
+        val newPrimaryConstructor = psiFactory.createPrimaryConstructor(constructorSignature)
 
         val primaryConstructor = ktClass.createPrimaryConstructorIfAbsent().replaced(newPrimaryConstructor)
         primaryConstructor.valueParameterList?.let { ShortenReferencesFacility.getInstance().shorten(it) }
         primaryConstructor.addAnnotation(fqNameAnnotation)
 
-        element.replace(factory.createSuperTypeCallEntry(element.text + superCallSignature))
+        element.replace(psiFactory.createSuperTypeCallEntry(element.text + superCallSignature))
     }
 
     companion object Factory : KotlinSingleIntentionActionFactory() {

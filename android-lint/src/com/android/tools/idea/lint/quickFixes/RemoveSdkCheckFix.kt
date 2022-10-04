@@ -53,12 +53,16 @@ class RemoveSdkCheckFix(private var removeThen: Boolean) :
         applyToIfExpression(ifExpression)
     ) {
       return
-    } else if (removeThen) {
-      // Replace with true
-      condition.replace(KtPsiFactory(condition).createExpression("true"))
-    } else {
-      // Replace with false
-      condition.replace(KtPsiFactory(condition).createExpression("false"))
+    }
+    else {
+      val psiFactory = KtPsiFactory(condition.project)
+      if (removeThen) {
+        // Replace with true
+          condition.replace(psiFactory.createExpression("true"))
+      } else {
+        // Replace with false
+        condition.replace(psiFactory.createExpression("false"))
+      }
     }
   }
 
