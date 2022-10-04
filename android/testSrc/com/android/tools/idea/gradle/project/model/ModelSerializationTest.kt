@@ -317,12 +317,6 @@ class ModelSerializationTest : AndroidGradleTestCase() {
     Truth.assertThat(IdeSourceProviderContainerImpl::class.java).isAssignableTo(Serializable::class.java)
   }
 
-  @Test
-  fun testGradleVersion() = assertSerializable {
-    GradleVersion.parse("4.1.10")
-  }
-
-
   /*
    * END OTHER SHARED (IDE + LINT) MODELS
    * BEGIN MISC TESTS
