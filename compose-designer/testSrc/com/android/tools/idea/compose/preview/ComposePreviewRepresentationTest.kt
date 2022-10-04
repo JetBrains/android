@@ -37,6 +37,7 @@ import java.util.concurrent.CountDownLatch
 import javax.swing.JComponent
 import javax.swing.JPanel
 import junit.framework.Assert.assertTrue
+import kotlin.test.assertContains
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
@@ -112,13 +113,14 @@ class ComposePreviewRepresentationTest {
         )
       }
 
+      val navigationHandler = ComposePreviewNavigationHandler()
       val pinnedSurface =
         NlDesignSurface.builder(project, fixture.testRootDisposable)
-          .setNavigationHandler(ComposePreviewNavigationHandler())
+          .setNavigationHandler(navigationHandler)
           .build()
       val mainSurface =
         NlDesignSurface.builder(project, fixture.testRootDisposable)
-          .setNavigationHandler(ComposePreviewNavigationHandler())
+          .setNavigationHandler(navigationHandler)
           .build()
       val modelRenderedLatch = CountDownLatch(2)
 
@@ -153,6 +155,8 @@ class ComposePreviewRepresentationTest {
       }
 
       modelRenderedLatch.await()
+
+      mainSurface.models.forEach { assertContains(navigationHandler.defaultNavigationMap, it) }
 
       assertArrayEquals(
         arrayOf("groupA"),

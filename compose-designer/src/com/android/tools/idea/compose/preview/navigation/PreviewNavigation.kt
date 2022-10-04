@@ -24,8 +24,8 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigation.LOG
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.preview.PreviewNavigationHandler
 import com.android.tools.idea.uibuilder.model.viewInfo
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.application.runReadAction
@@ -132,18 +132,10 @@ fun findNavigatableComponentHit(
   return hits.mapNotNull { runReadAction { it.toNavigatable(module) } }.firstOrNull()
 }
 
-/**
- * Interface that allows to specify location in a [PsiFile] of the element corresponding to the
- * [NlModel].
- */
-interface PreviewNavigationHandler : NlDesignSurface.NavigationHandler {
-  fun setDefaultLocation(model: NlModel, psiFile: PsiFile, offset: Int)
-}
-
 /** Handles navigation for compose preview when NlDesignSurface preview is clicked. */
 class ComposePreviewNavigationHandler : PreviewNavigationHandler {
   // Default location to use when components are not found
-  private val defaultNavigationMap = WeakHashMap<NlModel, Pair<String, Navigatable>>()
+  @VisibleForTesting val defaultNavigationMap = WeakHashMap<NlModel, Pair<String, Navigatable>>()
 
   /** Add default navigation location for model. */
   override fun setDefaultLocation(model: NlModel, psiFile: PsiFile, offset: Int) {
