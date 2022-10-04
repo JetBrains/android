@@ -178,7 +178,7 @@ public class EmbeddedDistributionPaths {
       }
 
       // Development build.
-      String embeddedJdkPath = System.getProperty("embedded.jdk.path", "prebuilts/studio/jdk/jdk11").trim();
+      String embeddedJdkPath = System.getProperty("embedded.jdk.path", "prebuilts/studio/jdk/jdk17").trim();
       Path jdkDir = getJdkRootPathFromSourcesRoot(embeddedJdkPath);
 
       // Resolve real path
