@@ -16,28 +16,27 @@
 package com.android.tools.idea.gradle.project.model;
 
 import static com.android.tools.idea.gradle.project.model.IdeModelTestUtils.*;
-import static com.google.common.truth.Truth.assertThat;
 
 import com.android.builder.model.TestOptions;
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl;
-import com.android.tools.idea.gradle.model.stubs.TestOptionsStub;
-import java.io.Serializable;
 import org.junit.Test;
 
 public class IdeTestOptionsTest {
 
     @Test
-    public void serializable() {
-        assertThat(IdeTestOptionsImpl.class).isAssignableTo(Serializable.class);
-    }
-
-    @Test
     public void constructor() throws Throwable {
-        TestOptions original = new TestOptionsStub();
-        IdeTestOptionsImpl copy = new IdeTestOptionsImpl(
-          original.getAnimationsDisabled(),
-          null
-        );
+        TestOptions original = new TestOptions() {
+            @Override
+            public boolean getAnimationsDisabled() {
+                return false;
+            }
+
+            @Override
+            public Execution getExecution() {
+                return null;
+            }
+        };
+        IdeTestOptionsImpl copy = new IdeTestOptionsImpl(false,null);
         assertEqualsOrSimilar(original, copy);
         verifyUsageOfImmutableCollections(copy);
     }

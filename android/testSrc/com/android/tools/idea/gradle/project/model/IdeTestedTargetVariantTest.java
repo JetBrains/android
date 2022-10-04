@@ -16,26 +16,31 @@
 package com.android.tools.idea.gradle.project.model;
 
 import static com.android.tools.idea.gradle.project.model.IdeModelTestUtils.*;
-import static com.google.common.truth.Truth.assertThat;
 
 import com.android.builder.model.TestedTargetVariant;
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl;
-import com.android.tools.idea.gradle.model.stubs.TestedTargetVariantStub;
-import java.io.Serializable;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 /** Tests for {@link IdeTestedTargetVariantImpl}. */
 public class IdeTestedTargetVariantTest {
 
     @Test
-    public void serializable() {
-        assertThat(IdeTestedTargetVariantImpl.class).isAssignableTo(Serializable.class);
-    }
-
-    @Test
     public void constructor() throws Throwable {
-        TestedTargetVariant original = new TestedTargetVariantStub();
-        IdeTestedTargetVariantImpl copy = new IdeTestedTargetVariantImpl(original.getTargetProjectPath(), original.getTargetVariant());
+        TestedTargetVariant original = new TestedTargetVariant() {
+          @NotNull
+          @Override
+          public String getTargetProjectPath() {
+            return "targetProjectPath";
+          }
+
+          @NotNull
+          @Override
+          public String getTargetVariant() {
+            return "targetVariant";
+          }
+        };
+        IdeTestedTargetVariantImpl copy = new IdeTestedTargetVariantImpl("targetProjectPath", "targetVariant");
         assertEqualsOrSimilar(original, copy);
         verifyUsageOfImmutableCollections(copy);
     }

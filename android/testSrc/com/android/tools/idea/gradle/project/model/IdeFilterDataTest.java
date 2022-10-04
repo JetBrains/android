@@ -17,25 +17,31 @@ package com.android.tools.idea.gradle.project.model;
 
 import static com.android.tools.idea.gradle.project.model.IdeModelTestUtils.assertEqualsOrSimilar;
 import static com.android.tools.idea.gradle.project.model.IdeModelTestUtils.verifyUsageOfImmutableCollections;
-import static com.google.common.truth.Truth.assertThat;
 
+import com.android.build.FilterData;
 import com.android.tools.idea.gradle.model.impl.IdeFilterDataImpl;
-import com.android.tools.idea.gradle.model.stubs.FilterDataStub;
-import java.io.Serializable;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 /** Tests for {@link IdeFilterDataImpl}. */
 public class IdeFilterDataTest {
 
     @Test
-    public void serializable() {
-        assertThat(IdeFilterDataImpl.class).isAssignableTo(Serializable.class);
-    }
-
-    @Test
     public void constructor() throws Throwable {
-        FilterDataStub original = new FilterDataStub();
-        IdeFilterDataImpl copy = new IdeFilterDataImpl(original.getIdentifier(), original.getFilterType());
+        FilterData original = new FilterData() {
+          @NotNull
+          @Override
+          public String getIdentifier() {
+            return "identifier";
+          }
+
+          @NotNull
+          @Override
+          public String getFilterType() {
+            return "filterType";
+          }
+        };
+        IdeFilterDataImpl copy = new IdeFilterDataImpl("identifier", "filterType");
         assertEqualsOrSimilar(original, copy);
         verifyUsageOfImmutableCollections(copy);
     }

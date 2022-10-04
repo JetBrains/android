@@ -20,23 +20,40 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.builder.model.JavaCompileOptions;
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl;
-import com.android.tools.idea.gradle.model.stubs.JavaCompileOptionsStub;
-import java.io.Serializable;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 /** Tests for {@link IdeJavaCompileOptionsImpl}. */
 public class IdeJavaCompileOptionsTest {
 
     @Test
-    public void serializable() {
-        assertThat(IdeJavaCompileOptionsImpl.class).isAssignableTo(Serializable.class);
-    }
-
-    @Test
     public void constructor() throws Throwable {
-        JavaCompileOptions original = new JavaCompileOptionsStub();
+        JavaCompileOptions original = new JavaCompileOptions() {
+            @NotNull
+            @Override
+            public String getEncoding() {
+                return "encoding";
+            }
+
+            @NotNull
+            @Override
+            public String getSourceCompatibility() {
+                return "sourceCompatibility";
+            }
+
+            @NotNull
+            @Override
+            public String getTargetCompatibility() {
+                return "targetCompatibility";
+            }
+
+            @Override
+            public boolean isCoreLibraryDesugaringEnabled() {
+                return false;
+            }
+        };
         IdeJavaCompileOptionsImpl copy = new IdeJavaCompileOptionsImpl(
-          original.getEncoding(), original.getSourceCompatibility(), original.getTargetCompatibility(), false);
+            "encoding", "sourceCompatibility", "targetCompatibility", false);
         assertEqualsOrSimilar(original, copy);
         verifyUsageOfImmutableCollections(copy);
     }

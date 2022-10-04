@@ -15,26 +15,36 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl;
-import com.android.tools.idea.gradle.model.stubs.ApiVersionStub;
-import java.io.Serializable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 /** Tests for {@link IdeApiVersionImpl}. */
 public class IdeApiVersionTest {
 
     @Test
-    public void serializable() {
-        assertThat(IdeApiVersionImpl.class).isAssignableTo(Serializable.class);
-    }
-
-    @Test
     public void constructor() throws Throwable {
-        ApiVersion original = new ApiVersionStub();
-        IdeApiVersionImpl copy = new IdeApiVersionImpl(original.getApiLevel(), original.getCodename(), original.getApiString());
+        ApiVersion original = new ApiVersion() {
+          @Override
+          public int getApiLevel() {
+            return 1;
+          }
+
+          @Nullable
+          @Override
+          public String getCodename() {
+            return "codename";
+          }
+
+          @NotNull
+          @Override
+          public String getApiString() {
+            return "apiString";
+          }
+        };
+        IdeApiVersionImpl copy = new IdeApiVersionImpl(1, "codename", "apiString");
         IdeModelTestUtils.assertEqualsOrSimilar(original, copy);
         IdeModelTestUtils.verifyUsageOfImmutableCollections(copy);
     }
