@@ -184,7 +184,7 @@ class LogcatToolWindowFactoryTest {
     fakeAdbSession.deviceServices.setupCommandsForDevice(device)
     fakeAdbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber("device1"), "logcat -v long -v epoch", "")
 
-    project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat("device1", null)
+    project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat("device1", "com.test")
 
     waitForCondition { toolWindow.contentManager.contentCount == 1 }
 
@@ -193,7 +193,9 @@ class LogcatToolWindowFactoryTest {
     waitForCondition {
       logcatMainPanel.headerPanel.getSelectedDevice() != null
     }
+    assertThat(content.tabName).isEqualTo("com.test (device1)")
     assertThat(logcatMainPanel.headerPanel.getSelectedDevice()?.deviceId).isEqualTo("device1")
+    assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:com.test")
   }
 
   private fun logcatToolWindowFactory(

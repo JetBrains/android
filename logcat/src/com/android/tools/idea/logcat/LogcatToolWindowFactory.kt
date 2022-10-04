@@ -16,7 +16,6 @@
 package com.android.tools.idea.logcat
 
 import com.android.adblib.AdbSession
-import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.adblib.AdbLibService
@@ -26,6 +25,7 @@ import com.android.tools.idea.isAndroidEnvironment
 import com.android.tools.idea.logcat.LogcatExperimentalSettings.Companion.getInstance
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
+import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.devices.DeviceFactory
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
@@ -38,6 +38,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.options.colors.ColorSettingsPages
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ex.ToolWindowEx
@@ -70,7 +71,9 @@ internal class LogcatToolWindowFactory(
     super.init(toolWindow)
     val project = (toolWindow as ToolWindowEx).project
     project.messageBus.connect(toolWindow.disposable)
-      .subscribe(ShowLogcatListener.TOPIC, ShowLogcatListener { serialNumber, _ -> showLogcat(toolWindow, serialNumber) })
+      .subscribe(ShowLogcatListener.TOPIC, ShowLogcatListener { serialNumber, applicationId ->
+        showLogcat(toolWindow, serialNumber, applicationId)
+      })
 
     ProcessNameMonitor.getInstance(project).start()
   }
@@ -80,36 +83,46 @@ internal class LogcatToolWindowFactory(
     toolWindow.isAvailable = true
   }
 
-  private fun showLogcat(toolWindow: ToolWindowEx, serialNumber: String) {
+  private fun showLogcat(toolWindow: ToolWindowEx, serialNumber: String, applicationId: String?) {
+
     AndroidCoroutineScope(toolWindow.disposable).launch {
-      val device = DeviceFactory(adbSessionFactory(toolWindow.project)).createDevice(serialNumber)
+      val name = if (applicationId == null) serialNumber else "$applicationId ($serialNumber)"
+
+      val device = kotlin.runCatching { DeviceFactory(adbSessionFactory(toolWindow.project)).createDevice(serialNumber) }.getOrNull()
       withContext(uiThread) {
         insideShowLogcatListener = true
-        toolWindow.activate {
-          try {
-            val contentManager = toolWindow.contentManager
-            val count = contentManager.contentCount
-            for (i in 0 until count) {
-              val content = contentManager.getContent(i)
-              content?.findLogcatPresenters()?.forEach {
-                if (it.getConnectedDevice()?.serialNumber == serialNumber) {
-                  contentManager.setSelectedContent(content, true)
-                  return@activate
-                }
-              }
+        try {
+          val content = toolWindow.findTab(name)
+          when {
+            content != null -> {
+              toolWindow.contentManager.setSelectedContent(content)
+              toolWindow.activate(null)
             }
-            val config = LogcatPanelConfig(
-              device,
-              getDefaultFormattingConfig(),
-              getDefaultFilter(toolWindow.project, AndroidProjectDetectorImpl()),
-              isSoftWrap = false)
-            createNewTab(toolWindow, serialNumber, LogcatPanelConfig.toJson(config))
-          } finally {
-            insideShowLogcatListener = false
+
+            device != null -> {
+              toolWindow.createLogcatTab(name, device, applicationId)
+              toolWindow.activate(null)
+            }
+
+            else ->
+              @Suppress("UnstableApiUsage")
+              MessageDialogBuilder.Message("Error", "Device $serialNumber is not connected").buttons("Ok").asWarning().show()
           }
+        }
+        finally {
+          insideShowLogcatListener = false
         }
       }
     }
+  }
+
+  private fun ToolWindowEx.createLogcatTab(name: String, device: Device, applicationId: String?) {
+    val filter = when (applicationId) {
+      null -> getDefaultFilter(project, AndroidProjectDetectorImpl())
+      else -> "package:$applicationId"
+    }
+    val config = LogcatPanelConfig(device, getDefaultFormattingConfig(), filter, isSoftWrap = false)
+    createNewTab(this, name, LogcatPanelConfig.toJson(config))
   }
 
   override fun shouldCreateNewTabWhenEmpty() = !insideShowLogcatListener
@@ -133,9 +146,18 @@ internal class LogcatToolWindowFactory(
 
 }
 
-private fun isLogcatV2Enabled() = getInstance().logcatV2Enabled
+private fun ToolWindowEx.findTab(name: String): Content? {
+  val count = contentManager.contentCount
+  for (i in 0 until count) {
+    val content = contentManager.getContent(i)
+    if (content?.tabName == name) {
+      return content
+    }
+  }
+  return null
+}
 
-private fun Content.findLogcatPresenters(): List<LogcatPresenter> = TreeWalker(component).descendants().filterIsInstance<LogcatPresenter>()
+private fun isLogcatV2Enabled() = getInstance().logcatV2Enabled
 
 private fun getDefaultFormattingConfig(): LogcatPanelConfig.FormattingConfig {
   val formattingOptions = AndroidLogcatFormattingOptions.getDefaultOptions()

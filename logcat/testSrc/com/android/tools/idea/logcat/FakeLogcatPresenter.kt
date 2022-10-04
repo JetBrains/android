@@ -77,6 +77,10 @@ internal class FakeLogcatPresenter : LogcatPresenter {
 
   override fun getConnectedDevice() = attachedDevice
 
+  override fun getSelectedDevice() : Device? {
+    TODO("Not yet implemented")
+  }
+
   override fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings) {
     TODO("Not yet implemented")
   }

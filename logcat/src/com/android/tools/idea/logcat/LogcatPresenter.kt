@@ -71,6 +71,8 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Process
    */
   fun getConnectedDevice(): Device?
 
+  fun getSelectedDevice(): Device?
+
   fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings)
 
   fun countFilterMatches(filter: LogcatFilter?): Int

@@ -540,6 +540,8 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   override fun getConnectedDevice() = connectedDevice.get()
 
+  override fun getSelectedDevice() = headerPanel.getSelectedDevice()
+
   override fun countFilterMatches(filter: LogcatFilter?): Int {
     return LogcatMasterFilter(filter).filter(messageBacklog.get().messages).size
   }
