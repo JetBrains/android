@@ -261,6 +261,21 @@ public class AndroidStudio implements AutoCloseable {
     openFile(project, file, null, null);
   }
 
+  public void editFile(String file, String searchRegex, String replacement) {
+    ASDriver.EditFileRequest rq =
+      ASDriver.EditFileRequest.newBuilder().setFile(file).setSearchRegex(searchRegex).setReplacement(replacement).build();
+    ASDriver.EditFileResponse response = androidStudio.editFile(rq);
+    switch (response.getResult()) {
+      case OK:
+        return;
+      case ERROR:
+        throw new IllegalStateException(String.format("Could not edit file \"%s\" with searchRegex %s and replacement %s. Check the " +
+                                                      "Android Studio stderr log for the cause.", file, searchRegex, replacement));
+      default:
+        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+    }
+  }
+
   public void waitForComponent(String componentText) {
     ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
     builder.addComponentTextMatch(componentText);

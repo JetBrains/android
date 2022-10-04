@@ -19,6 +19,8 @@ service AndroidStudio {
 
   rpc OpenFile(OpenFileRequest) returns (OpenFileResponse) {}
 
+  rpc EditFile(EditFileRequest) returns (EditFileResponse) {}
+
   rpc WaitForComponent(WaitForComponentRequest) returns (WaitForComponentResponse) {}
 }
 
@@ -112,6 +114,20 @@ message OpenFileResponse {
     ERROR = 1;
   }
   OpenFileResponse.Result result = 1;
+}
+
+message EditFileRequest {
+  string file = 1;
+  string searchRegex = 2;
+  string replacement = 3;
+}
+
+message EditFileResponse {
+  enum Result {
+    OK = 0;
+    ERROR = 1;
+  }
+  EditFileResponse.Result result = 1;
 }
 
 message WaitForComponentRequest {
