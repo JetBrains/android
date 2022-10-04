@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.device.benchmark
 
-import com.android.adblib.DeviceSelector
-import com.android.adblib.testing.FakeAdbDeviceServices
-import com.android.adblib.testing.FakeAdbSession
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.util.StudioPathManager
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
@@ -27,6 +27,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Mockito.verify
 
 private const val SERIAL_NUMBER = "abc123"
 
@@ -36,8 +37,7 @@ private const val SERIAL_NUMBER = "abc123"
 class MirroringBenchmarkerAppInstallerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.onDisk()
-  private val adb: FakeAdbDeviceServices = FakeAdbSession().deviceServices
-  private val deviceSelector = DeviceSelector.fromSerialNumber(SERIAL_NUMBER)
+  private val adb: MirroringBenchmarkerAppInstaller.AdbWrapper = mock()
 
   lateinit var installer: MirroringBenchmarkerAppInstaller
   @Before
@@ -46,48 +46,48 @@ class MirroringBenchmarkerAppInstallerTest {
   }
 
   @Test
-  fun installationFails() = runBlockingTest {
-    // We don't have a way to configure the directory for the project, so we can't test the case
-    // where we currently have the benchmarking app open in Studio :(
+  fun installationFromPrebuilts_success() = runBlockingTest {
+    val prebuiltPath = StudioPathManager.resolvePathFromSourcesRoot(
+      "prebuilts/tools/common/mirroring-benchmarker/mirroring-benchmarker.apk")
+    whenever(adb.install(SERIAL_NUMBER, prebuiltPath)).thenReturn(true)
+    assertThat(installer.installBenchmarkingApp()).isTrue()
+
+    verify(adb).install(SERIAL_NUMBER, prebuiltPath)
+  }
+
+  @Test
+  fun installationFromPrebuilts_failure() = runBlockingTest {
+    val prebuiltPath = StudioPathManager.resolvePathFromSourcesRoot(
+      "prebuilts/tools/common/mirroring-benchmarker/mirroring-benchmarker.apk")
+    whenever(adb.install(SERIAL_NUMBER, prebuiltPath)).thenReturn(false)
+
     assertThat(installer.installBenchmarkingApp()).isFalse()
+
+    verify(adb).install(SERIAL_NUMBER, prebuiltPath)
   }
 
   @Test
   fun launchBenchmarkingApp_success() = runBlockingTest {
     val command = "am start -n com.android.tools.screensharing.benchmark/.InputEventRenderingActivity -f 65536"
-    adb.configureShellCommand(
-      deviceSelector,
-      command = command,
-      stdout = "",
-      exitCode = 0)
+    whenever(adb.shellCommand(SERIAL_NUMBER, command)).thenReturn(true)
+
     assertThat(installer.launchBenchmarkingApp()).isTrue()
-    assertThat(adb.shellV2Requests).hasSize(1)
-    assertThat(adb.shellV2Requests.first.deviceSelector).isEqualTo(deviceSelector.toString())
-    assertThat(adb.shellV2Requests.first.command).isEqualTo(command)
+    verify(adb).shellCommand(SERIAL_NUMBER, command)
   }
 
   @Test
   fun launchBenchmarkingApp_failure() = runBlockingTest {
     val command = "am start -n com.android.tools.screensharing.benchmark/.InputEventRenderingActivity -f 65536"
-    adb.configureShellCommand(
-      deviceSelector,
-      command = command,
-      stdout = "",
-      exitCode = 42)
+    whenever(adb.shellCommand(SERIAL_NUMBER, command)).thenReturn(false)
+
     assertThat(installer.launchBenchmarkingApp()).isFalse()
-    assertThat(adb.shellV2Requests).hasSize(1)
-    assertThat(adb.shellV2Requests.first.deviceSelector).isEqualTo(deviceSelector.toString())
-    assertThat(adb.shellV2Requests.first.command).isEqualTo(command)
+    verify(adb).shellCommand(SERIAL_NUMBER, command)
   }
 
   @Test
   fun uninstallBenchmarkingApp() = runBlockingTest {
-    val options = "" // Necessary because this is what AdbDeviceServices.uninstall does - there's an extra space.
-    val command =  "pm uninstall $options com.android.tools.screensharing.benchmark"
-    adb.configureShellCommand(deviceSelector, command = command, stdout = "")
     installer.uninstallBenchmarkingApp()
-    assertThat(adb.shellRequests).hasSize(1)
-    assertThat(adb.shellRequests.first.deviceSelector).isEqualTo(deviceSelector.toString())
-    assertThat(adb.shellRequests.first.command).isEqualTo(command)
+
+    verify(adb).uninstall(SERIAL_NUMBER)
   }
 }

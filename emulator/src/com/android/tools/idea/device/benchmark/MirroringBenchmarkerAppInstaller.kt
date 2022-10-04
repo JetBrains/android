@@ -27,15 +27,13 @@ import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import java.nio.file.Path
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.ExperimentalTime
 
 private const val MIRRORING_BENCHMARKER_SOURCE_PATH = "tools/adt/idea/emulator/mirroring-benchmarker"
+private const val MIRRORING_BENCHMARKER_PREBUILT_PATH = "prebuilts/tools/common/mirroring-benchmarker/mirroring-benchmarker.apk"
 private const val APP_PKG = "com.android.tools.screensharing.benchmark"
 private const val ACTIVITY = "InputEventRenderingActivity"
 private const val NO_ANIMATIONS = 65536 // Intent.FLAG_ACTIVITY_NO_ANIMATION
@@ -54,19 +52,44 @@ interface MirroringBenchmarkerAppInstaller {
     operator fun invoke(
       project: Project,
       deviceSerialNumber: String,
-      adb: AdbDeviceServices = AdbLibService.getSession(project).deviceServices,
+      adb: AdbWrapper = AdbWrapper.around(AdbLibService.getSession(project).deviceServices),
     ) : MirroringBenchmarkerAppInstaller = MirroringBenchmarkerAppInstallerImpl(project, deviceSerialNumber, adb)
+  }
+
+  /** Wrapper to make testing interactions with ADB possible. Without this, testing is very heavy-weight. */
+  interface AdbWrapper {
+    suspend fun install(serialNumber: String, path: Path) : Boolean
+    suspend fun shellCommand(serialNumber: String, command: String) : Boolean
+    suspend fun uninstall(serialNumber: String) : Boolean
+
+    companion object {
+      fun around(adb: AdbDeviceServices) : AdbWrapper = object: AdbWrapper {
+        override suspend fun install(serialNumber: String, path: Path): Boolean {
+          return try {
+            adb.install(DeviceSelector.fromSerialNumber(serialNumber), listOf(path))
+            true
+          }
+          catch (e: Exception) {
+            false
+          }
+        }
+        override suspend fun shellCommand(serialNumber: String, command: String): Boolean =
+          adb.shellCommand(DeviceSelector.fromSerialNumber(serialNumber), command).withCollector(TextShellV2Collector())
+            .execute().first().exitCode == 0
+        override suspend fun uninstall(serialNumber: String): Boolean =
+          adb.uninstall(DeviceSelector.fromSerialNumber(serialNumber), APP_PKG).status == UninstallResult.Status.SUCCESS
+      }
+    }
   }
 }
 
 /** Implementation of [MirroringBenchmarkerAppInstaller]. */
 internal class MirroringBenchmarkerAppInstallerImpl(
   private val project: Project,
-  deviceSerialNumber: String,
-  private val adb: AdbDeviceServices
+  private val deviceSerialNumber: String,
+  private val adb: MirroringBenchmarkerAppInstaller.AdbWrapper
 ) : MirroringBenchmarkerAppInstaller {
   private val logger = thisLogger()
-  private val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
 
   override suspend fun installBenchmarkingApp(): Boolean {
     logger.debug("Attempting to install benchmarking app")
@@ -74,20 +97,18 @@ internal class MirroringBenchmarkerAppInstallerImpl(
     if (StudioPathManager.isRunningFromSources()) {
       // Development environment.
       val projectDir = project.guessProjectDir()?.toNioPath()
-      if (projectDir != null && projectDir.endsWith(MIRRORING_BENCHMARKER_SOURCE_PATH)) {
+      apkFile = if (projectDir != null && projectDir.endsWith(MIRRORING_BENCHMARKER_SOURCE_PATH)) {
         // Development environment for the screen sharing agent.
         // Use the agent built by running "Build > Make Project" in Studio.
         logger.debug("App project open, building and installing from here.")
         val facet = project.allModules().firstNotNullOfOrNull { AndroidFacet.getInstance(it) }
         val buildVariant = facet?.properties?.SELECTED_BUILD_VARIANT ?: "debug"
         val apkName = if (buildVariant == "debug") "app-debug.apk" else "app-release-unsigned.apk"
-        apkFile = projectDir.resolve("app/build/outputs/apk/$buildVariant/$apkName")
+        projectDir.resolve("app/build/outputs/apk/$buildVariant/$apkName")
       }
       else {
-        // TODO(b/250874751): Implement this use case
         // Development environment for Studio.
-        logger.warn("Development environment not supported!")
-        return false
+        StudioPathManager.resolvePathFromSourcesRoot(MIRRORING_BENCHMARKER_PREBUILT_PATH)
       }
     }
     else {
@@ -96,15 +117,13 @@ internal class MirroringBenchmarkerAppInstallerImpl(
       logger.warn("Installed Studio not supported!")
       return false
     }
-    adb.install(deviceSelector, listOf(apkFile))
-    return true
+    return adb.install(deviceSerialNumber, apkFile)
   }
 
   override suspend fun launchBenchmarkingApp(): Boolean {
     logger.debug("Launching benchmarking app")
-    val output = adb.shellCommand(deviceSelector, START_COMMAND).withCollector(TextShellV2Collector()).execute().first()
-    return output.exitCode == 0
+    return adb.shellCommand(deviceSerialNumber, START_COMMAND)
   }
 
-  override suspend fun uninstallBenchmarkingApp(): Boolean = adb.uninstall(deviceSelector, APP_PKG).status == UninstallResult.Status.SUCCESS
+  override suspend fun uninstallBenchmarkingApp(): Boolean = adb.uninstall(deviceSerialNumber)
 }
