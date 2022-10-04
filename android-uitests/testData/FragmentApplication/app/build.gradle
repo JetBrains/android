@@ -4,6 +4,7 @@ android {
     compileSdkVersion 23
     buildToolsVersion "23.0.0"
     useLibrary 'org.apache.http.legacy'
+    namespace "com.android.statelist.application"
 
     defaultConfig {
         applicationId "com.android.statelist.application"

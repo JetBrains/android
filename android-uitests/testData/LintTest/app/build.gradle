@@ -11,6 +11,7 @@ android {
     }
     compileSdkVersion 27
     buildToolsVersion "26.0.0"
+    namespace "com.example.nishanthkumarg.myapplication"
     defaultConfig {
         applicationId "com.example.nishanthkumarg.myapplication"
         minSdkVersion 21

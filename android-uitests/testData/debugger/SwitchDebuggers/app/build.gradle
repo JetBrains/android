@@ -3,6 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 27
     buildToolsVersion "26.0.1"
+    namespace "com.example.switchdebuggers"
     defaultConfig {
         applicationId "com.example.switchdebuggers"
         minSdkVersion 15

@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
+    namespace "com.google.test.hprofeditor"
     defaultConfig {
         applicationId "com.google.test.hprofeditor"
         minSdkVersion 15

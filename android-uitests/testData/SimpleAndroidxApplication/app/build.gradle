@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
+  namespace "com.example.google.androidx"
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.example.google.androidx"

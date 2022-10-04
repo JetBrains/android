@@ -19,6 +19,7 @@ android {
     compileSdkVersion 27
     buildToolsVersion "27.0.1"
     useLibrary 'org.apache.http.legacy'
+    namespace "google.simpleapplication"
 
     defaultConfig {
         applicationId "google.simpleapplication"
