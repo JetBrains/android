@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.Locale
+import java.util.TreeMap
 
 private const val FIELD_CONTENT_TYPE = "content-type"
 const val FIELD_CONTENT_LENGTH = "content-length"
@@ -37,7 +38,7 @@ sealed class HttpHeader {
    */
   @VisibleForTesting
   fun getField(key: String): String {
-    return fields.getOrDefault(key.lowercase(Locale.getDefault()), "")
+    return fields.getOrDefault(key, "")
   }
 
   val contentType: HttpData.ContentType
@@ -59,7 +60,7 @@ private fun parseHeaderFields(fields: String): Map<String, String> {
     .map { line ->
       val keyAndValue = line.split('=', limit = 2)
       assert(keyAndValue.size == 2) { "Unexpected http header field ($line)" }
-      keyAndValue[0].trim { it <= ' ' }.lowercase(Locale.getDefault()) to keyAndValue[1].trim { it <= ' ' }.trimEnd(';')
+      keyAndValue[0].trim { it <= ' ' } to keyAndValue[1].trim { it <= ' ' }.trimEnd(';')
     }
     .groupingBy { it.first }
     .aggregate { _, accumulator: String?, element, first ->
@@ -73,7 +74,7 @@ private fun parseHeaderFields(fields: String): Map<String, String> {
 }
 
 class ResponseHeader(@VisibleForTesting val fieldsString: String) : HttpHeader() {
-  override val fields = mutableMapOf<String, String>()
+  override val fields = TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER)
   var statusCode = NO_STATUS_CODE
 
 
@@ -97,7 +98,7 @@ class ResponseHeader(@VisibleForTesting val fieldsString: String) : HttpHeader()
         }
       }
       val fieldsMap = parseHeaderFields(processedFields).filter { entry ->
-        if (entry.key == STATUS_CODE_NAME) {
+        if (entry.key.equals(STATUS_CODE_NAME, ignoreCase = true)) {
           this.statusCode = entry.value.toInt()
           false
         }
@@ -110,5 +111,7 @@ class ResponseHeader(@VisibleForTesting val fieldsString: String) : HttpHeader()
 }
 
 class RequestHeader(@VisibleForTesting val rawFields: String) : HttpHeader() {
-  override val fields = parseHeaderFields(rawFields)
+  override val fields = TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER).apply {
+    putAll(parseHeaderFields(rawFields))
+  }
 }

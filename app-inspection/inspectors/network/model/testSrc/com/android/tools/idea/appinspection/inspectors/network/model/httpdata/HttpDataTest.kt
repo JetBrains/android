@@ -215,4 +215,14 @@ class HttpDataTest {
                                   responsePayload = ByteString.copyFrom(malformedBytes))
     assertThat(data.responsePayload.toByteArray()).isEqualTo(malformedBytes)
   }
+
+  @Test
+  fun keyInMapEntriesIsStoredAsIs() {
+    val header = "RESPONSE-status-CoDe"
+    val data = createFakeHttpData(1, responseFields = "$header = 200")
+    assertThat(data.responseHeader.fields.keys.size).isEqualTo(1)
+    assertThat(data.responseHeader.fields.firstKey()).isEqualTo(header)
+    assertThat(data.responseHeader.fields.firstKey()).isNotEqualTo(header.lowercase())
+    assertThat(data.responseHeader.fields[header.lowercase()]).isEqualTo("200")
+  }
 }
