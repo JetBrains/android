@@ -77,21 +77,23 @@ class DeviceMirroringBenchmarkDialog(private val target: DeviceMirroringBenchmar
       row("Max input events") {
         intTextField(1..Int.MAX_VALUE, 100).bindIntText(::maxTouches)
       }
-      row("Drag speed") {
-        intTextField(1 .. 10, 1).bindIntText(::step)
-        text("px/frame")
-      }
-      row("Spikiness") {
-        intTextField(0..100, 1).bindIntText(::spikiness)
-        text("oscillations/row")
-      }
-      row("Bits per channel") {
-        intTextField(0..8, 1).bindIntText(::bitsPerChannel)
-        text("use 0 for monochrome")
-      }
-      row("Frame latency bits") {
-        intTextField(1..16, 1).bindIntText(::latencyBits)
-      }
+      collapsibleGroup("Advanced Options") {
+        row("Drag speed") {
+          intTextField(1..10, 1).bindIntText(::step)
+          text("px/frame")
+        }
+        row("Spikiness") {
+          intTextField(0..100, 1).bindIntText(::spikiness)
+          text("oscillations/row")
+        }
+        row("Bits per channel") {
+          intTextField(0..8, 1).bindIntText(::bitsPerChannel)
+          text("use 0 for monochrome")
+        }
+        row("Frame latency bits") {
+          intTextField(1..16, 1).bindIntText(::latencyBits)
+        }
+      }.apply { expanded = false }
     }.enabledIf(isRunning.not())
     panel {
       separator("Note")
@@ -142,6 +144,8 @@ class DeviceMirroringBenchmarkDialog(private val target: DeviceMirroringBenchmar
           receivedProgressBar.updateProgress(receivedProgress)
         }
         addOnStoppedCallback {
+          dispatchedProgressBar.updateProgress(0.0)
+          receivedProgressBar.updateProgress(0.0)
           if (!isDone()) {
             ApplicationManager.getApplication().invokeLater { showErrorNotification(failureMsg) }
           }
