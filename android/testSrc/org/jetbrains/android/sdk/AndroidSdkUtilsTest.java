@@ -20,28 +20,21 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static org.mockito.Mockito.when;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.EnvironmentUtil;
 import java.io.File;
-import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidBuildCommonUtils;
-import org.jetbrains.annotations.NotNull;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -69,6 +62,7 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
     for (Sdk sdk : table.getAllJdks()) {
       table.removeJdk(sdk);
     }
+    AndroidSdkPathStore.getInstance().setAndroidSdkPath(null);
   }
 
   public void DISABLEDtestCreateNewAndroidPlatformWithPathOfModernSdkOnly() {
