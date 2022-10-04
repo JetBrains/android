@@ -120,13 +120,13 @@ import org.jetbrains.annotations.TestOnly;
  * JDKs for different purposes.
  */
 public class IdeSdks {
+  private static final JavaSdkVersion MIN_JDK_VERSION = JDK_1_8;
+  private static final JavaSdkVersion MAX_JDK_VERSION = JDK_17;
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "Contents/Home";
-  @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = JDK_11;
+  @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = MAX_JDK_VERSION;
   @NotNull public static final String JDK_LOCATION_ENV_VARIABLE_NAME = "STUDIO_GRADLE_JDK";
   @NotNull public static final String ANDROID_STUDIO_DEFAULT_JDK_NAME = "Android Studio default JDK";
   @NotNull private static final Logger LOG = Logger.getInstance(IdeSdks.class);
-  private static final JavaSdkVersion MIN_JDK_VERSION = JDK_1_8;
-  private static final JavaSdkVersion MAX_JDK_VERSION = JDK_17;
 
   @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final Jdks myJdks;
