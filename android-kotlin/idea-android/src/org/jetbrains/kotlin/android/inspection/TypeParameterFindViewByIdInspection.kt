@@ -78,7 +78,7 @@ class TypeParameterFindViewByIdInspection : AbstractKotlinInspection(), CleanupL
             val call = cast.left as? KtCallExpression ?: return
 
             val newCall = call.copy() as KtCallExpression
-            val typeArgument = KtPsiFactory(call).createTypeArgument(typeText)
+            val typeArgument = KtPsiFactory(project).createTypeArgument(typeText)
             newCall.addTypeArgument(typeArgument)
 
             cast.replace(newCall)
