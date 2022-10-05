@@ -53,7 +53,7 @@ import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
@@ -126,7 +126,7 @@ import kotlin.concurrent.withLock
 // NOTE: The implementation is structured as a collection of nested functions to ensure no recursive dependencies are possible between
 //       models unless explicitly handled by nesting. The same structure expressed as classes allows recursive data structures and thus we
 //       cannot validate the structure at compile time.
-internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLock, agpVersion: GradleVersion): ModelCache.V2 {
+internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLock, agpVersion: AgpVersion): ModelCache.V2 {
   fun String.deduplicate() = internedModels.intern(this)
   fun List<String>.deduplicateStrings(): List<String> = this.map { it.deduplicate() }
   fun Map<String, String>.deduplicateStrings(): Map<String, String> = map { (k, v) -> k.deduplicate() to v.deduplicate() }.toMap()
@@ -1294,7 +1294,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
 }
 
 private fun getApplicationIdFromArtifact(
-  agpVersion: GradleVersion,
+  agpVersion: AgpVersion,
   artifact: AndroidArtifact,
   name: IdeArtifactName,
   legacyApplicationIdModel: LegacyApplicationIdModel?,

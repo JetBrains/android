@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import org.jetbrains.annotations.Nullable;
 
 public class NdkModelFeatures {
@@ -25,7 +25,7 @@ public class NdkModelFeatures {
   private final boolean myBuildSystemNameSupported;
   private final boolean mySingleVariantSyncSupported;
 
-  public NdkModelFeatures(@Nullable GradleVersion modelVersion) {
+  public NdkModelFeatures(@Nullable AgpVersion modelVersion) {
     boolean isAtLeastTwoDotTwo = modelVersion != null && modelVersion.compareIgnoringQualifiers("2.0.0") >= 0;
     myWorkingDirectorySupported = isAtLeastTwoDotTwo;
     myGroupNameSupported = isAtLeastTwoDotTwo;

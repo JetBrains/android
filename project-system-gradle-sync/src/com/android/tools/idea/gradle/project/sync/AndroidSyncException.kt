@@ -30,34 +30,34 @@ open class AndroidSyncException : RuntimeException {
   constructor() : super()
 }
 
-class AgpVersionTooOld(agpVersion: GradleVersion) : AndroidSyncException(generateMessage(agpVersion)) {
+class AgpVersionTooOld(agpVersion: AgpVersion) : AndroidSyncException(generateMessage(agpVersion)) {
   companion object {
     private const val LEFT = "The project is using an incompatible version (AGP "
     private const val RIGHT = ") of the Android Gradle plugin. Minimum supported version is AGP $GRADLE_PLUGIN_MINIMUM_VERSION."
-    private fun generateMessage(agpVersion: GradleVersion) = "$LEFT$agpVersion$RIGHT"
+    private fun generateMessage(agpVersion: AgpVersion) = "$LEFT$agpVersion$RIGHT"
     val PATTERN: Pattern = Pattern.compile("${Pattern.quote(LEFT)}(.+)${Pattern.quote(RIGHT)}")
     val ALWAYS_PRESENT_STRINGS = listOf(LEFT, RIGHT)
   }
 }
 
-class AgpVersionTooNew(agpVersion: GradleVersion) : AndroidSyncException(generateMessage(agpVersion)) {
+class AgpVersionTooNew(agpVersion: AgpVersion) : AndroidSyncException(generateMessage(agpVersion)) {
   companion object {
     private const val LEFT = "The project is using an incompatible version (AGP "
     private const val RIGHT = ") of the Android Gradle plugin. Latest supported version is AGP "
-    private fun generateMessage(agpVersion: GradleVersion) = "$LEFT$agpVersion$RIGHT$ANDROID_GRADLE_PLUGIN_VERSION"
+    private fun generateMessage(agpVersion: AgpVersion) = "$LEFT$agpVersion$RIGHT$ANDROID_GRADLE_PLUGIN_VERSION"
     val PATTERN: Pattern =
       Pattern.compile("${Pattern.quote(LEFT)}(.+)${Pattern.quote(RIGHT)}${Pattern.quote(ANDROID_GRADLE_PLUGIN_VERSION)}")
     val ALWAYS_PRESENT_STRINGS = listOf(LEFT, RIGHT)
   }
 }
 
-class AgpVersionIncompatible(agpVersion: GradleVersion) : AndroidSyncException(generateMessage(agpVersion)) {
+class AgpVersionIncompatible(agpVersion: AgpVersion) : AndroidSyncException(generateMessage(agpVersion)) {
   companion object {
     private const val A = "The project is using an incompatible preview version (AGP "
     private const val B = ") of the Android Gradle plugin. Current compatible "
     private const val PREVIEW = "preview "
     private val C = "version is AGP $ANDROID_GRADLE_PLUGIN_VERSION."
-    private fun generateMessage(agpVersion: GradleVersion): String {
+    private fun generateMessage(agpVersion: AgpVersion): String {
       val latestKnown = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
       return "$A$agpVersion$B${if (latestKnown.isPreview) PREVIEW else ""}$C"
     }

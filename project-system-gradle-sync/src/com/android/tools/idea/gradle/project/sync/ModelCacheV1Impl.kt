@@ -61,7 +61,7 @@ import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
@@ -722,7 +722,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
 
   fun androidArtifactFrom(
     artifact: AndroidArtifact,
-    agpVersion: GradleVersion?,
+    agpVersion: AgpVersion?,
     variantName: String?,
     variantNameForDependencies: String?,
     androidModuleId: ModuleId?,
@@ -844,7 +844,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     androidProject: IdeAndroidProjectImpl,
     variant: Variant,
     legacyApplicationIdModel: LegacyApplicationIdModel?,
-    modelVersion: GradleVersion?,
+    modelVersion: AgpVersion?,
     androidModuleId: ModuleId
   ): IdeVariantWithPostProcessor {
     val mergedFlavor = copyModel(variant.mergedFlavor, ::productFlavorFrom)
@@ -1041,7 +1041,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     )
   }
 
-  fun lintOptionsFrom(options: LintOptions, modelVersion: GradleVersion?): IdeLintOptionsImpl = IdeLintOptionsImpl(
+  fun lintOptionsFrom(options: LintOptions, modelVersion: AgpVersion?): IdeLintOptionsImpl = IdeLintOptionsImpl(
     baselineFile = if (modelVersion != null)
       options.baselineFile
     else
@@ -1117,7 +1117,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
 
   fun createVariantBuildInformation(
     project: AndroidProject,
-    agpVersion: GradleVersion?
+    agpVersion: AgpVersion?
   ): Collection<IdeVariantBuildInformationImpl> {
     return if (agpVersion != null && agpVersion.compareIgnoringQualifiers("4.1.0") >= 0) {
       // make deep copy of VariantBuildInformation.
@@ -1174,7 +1174,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     else -> error("Unknown Android project type: $this")
   }
 
-  fun getProjectType(project: AndroidProject, modelVersion: GradleVersion?): IdeAndroidProjectType {
+  fun getProjectType(project: AndroidProject, modelVersion: AgpVersion?): IdeAndroidProjectType {
     if (modelVersion != null) {
       return project.projectType.toIdeAndroidProjectType()
     }
@@ -1199,7 +1199,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     legacyApplicationIdModel: LegacyApplicationIdModel?
   ): IdeAndroidProjectImpl {
     // Old plugin versions do not return model version.
-    val parsedModelVersion = GradleVersion.tryParse(project.modelVersion)
+    val parsedModelVersion = AgpVersion.tryParse(project.modelVersion)
 
     val projectFlags = copyNewProperty(project::getFlags)
     val mlModelBindingEnabled = projectFlags?.booleanFlagMap?.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING)
@@ -1289,7 +1289,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       androidProject: IdeAndroidProjectImpl,
       variant: Variant,
       legacyApplicationIdModel: LegacyApplicationIdModel?,
-      modelVersion: GradleVersion?,
+      modelVersion: AgpVersion?,
       androidModuleId: ModuleId
     ): IdeVariantWithPostProcessor =
       lock.withLock { variantFrom(androidProject, variant, legacyApplicationIdModel, modelVersion, androidModuleId) }
@@ -1319,7 +1319,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   }
 }
 
-val MODEL_VERSION_3_2_0 = GradleVersion.parse("3.2.0")
+val MODEL_VERSION_3_2_0 = AgpVersion.parse("3.2.0")
 
 internal inline fun <T> safeGet(original: () -> T, default: T): T = try {
   original()
