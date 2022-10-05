@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;

@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidModelFeatures {
-  @Nullable private final GradleVersion myModelVersion;
+  @Nullable private final AgpVersion myModelVersion;
   private final boolean myBuildOutputFileSupported;
   private final boolean myPostBuildSyncSupported;
-  public AndroidModelFeatures(@Nullable GradleVersion modelVersion) {
+  public AndroidModelFeatures(@Nullable AgpVersion modelVersion) {
     myModelVersion = modelVersion;
     myBuildOutputFileSupported = modelVersionIsAtLeast("4.1.0");
 

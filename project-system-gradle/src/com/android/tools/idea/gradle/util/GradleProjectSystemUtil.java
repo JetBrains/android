@@ -21,7 +21,6 @@ import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.google.common.collect.Iterables.getOnlyElement;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;

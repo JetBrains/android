@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -50,7 +50,7 @@ class ProjectStructureTest : PlatformTestCase() {
     val agpPluginVersions = projectStructure.androidPluginVersions
     // Verify that the AGP versions were recorded correctly.
     val allVersions = agpPluginVersions.allVersions
-    Truth.assertThat(allVersions).containsExactly(GradleVersion.parse("3.0"), GradleVersion.parse("3.1"),  GradleVersion.parse("2.3.1"))
+    Truth.assertThat(allVersions).containsExactly(AgpVersion.parse("3.0.0"), AgpVersion.parse("3.1.0"),  AgpVersion.parse("2.3.1"))
   }
 
   fun testAndroidPluginVersionChanged() {
@@ -62,7 +62,7 @@ class ProjectStructureTest : PlatformTestCase() {
     )
 
     // Verify that the AGP versions were recorded correctly.
-    Truth.assertThat(ProjectStructure.getInstance(project).androidPluginVersions.allVersions).containsExactly(GradleVersion.parse("3.0"))
+    Truth.assertThat(ProjectStructure.getInstance(project).androidPluginVersions.allVersions).containsExactly(AgpVersion.parse("3.0.0"))
 
     updateTestProjectFromAndroidModel(
       project,
@@ -72,7 +72,7 @@ class ProjectStructureTest : PlatformTestCase() {
     )
 
     // Verify that the AGP versions were updated correctly.
-    Truth.assertThat(ProjectStructure.getInstance(project).androidPluginVersions.allVersions).containsExactly(GradleVersion.parse("7.0"))
+    Truth.assertThat(ProjectStructure.getInstance(project).androidPluginVersions.allVersions).containsExactly(AgpVersion.parse("7.0.0"))
   }
 
   fun testLeafModulesAreRecorded() {

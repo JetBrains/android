@@ -17,7 +17,7 @@ package org.jetbrains.android.refactoring
 
 import com.android.annotations.concurrency.UiThread
 import com.google.common.annotations.VisibleForTesting
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.support.MigrationParserVisitor
@@ -125,21 +125,21 @@ class MigrateToAndroidxHandler(var showWarningDialog: Boolean = true,
       true // Enable by default when we can not find out the version
     }
 
-    val gradleVersionString = moduleModels.mapNotNull { it.second }
+    val agpVersionString = moduleModels.mapNotNull { it.second }
       .map { it.buildscript().dependencies() }
       .flatMap { it.artifacts() }
       .filter { it.name().forceString() == "gradle" && it.group().forceString() == "com.android.tools.build" }
       .map { it.version().getValue(GradlePropertyModel.STRING_TYPE) }
       .firstOrNull()
-    val supportedGradleVersion = if (gradleVersionString?.startsWith('$') == false) {
-      GradleVersion.tryParse(gradleVersionString)?.isAtLeastIncludingPreviews(3, 2, 0) ?: false
+    val supportedAgpVersion = if (agpVersionString?.startsWith('$') == false) {
+      AgpVersion.tryParse(agpVersionString)?.isAtLeastIncludingPreviews(3, 2, 0) ?: false
     }
     else {
       // For now, ignore this case since the DSL parser does not seem to handle that correctly
       true
     }
 
-    if (supportedCompileSdk && supportedGradleVersion) {
+    if (supportedCompileSdk && supportedAgpVersion) {
       return true
     }
 
@@ -148,7 +148,7 @@ class MigrateToAndroidxHandler(var showWarningDialog: Boolean = true,
     }
                          else {
       ""
-    } + if (!supportedGradleVersion) {
+    } + if (!supportedAgpVersion) {
       "The gradle plugin version in your project build.gradle file needs to be set to at least com.android.tools.build:gradle:3.2.0 " +
       "in order to migrate to AndroidX."
     }

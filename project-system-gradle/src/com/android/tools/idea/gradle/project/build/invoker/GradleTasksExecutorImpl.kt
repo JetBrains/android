@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.build.invoker
 
 import com.android.builder.model.PROPERTY_ATTRIBUTION_FILE_LOCATION
 import com.android.builder.model.PROPERTY_INVOKED_FROM_IDE
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionM
 import com.android.tools.idea.gradle.project.build.attribution.getAgpAttributionFileDir
 import com.android.tools.idea.gradle.project.build.attribution.isBuildAttributionEnabledForProject
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
 import com.android.tools.idea.gradle.project.common.addAndroidSupportVersionArg
 import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink
@@ -401,7 +400,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
       if (!syncedAgpVersions.contains(buildInfo.agpVersion)) {
         val incompatibilityMessage = String.format("Project was built with Android Gradle Plugin (AGP) %s but it is synced with %s.",
                                                    buildInfo.agpVersion,
-                                                   syncedAgpVersions.joinToString(", ") { obj: GradleVersion? -> obj.toString() }
+                                                   syncedAgpVersions.joinToString(", ") { obj: AgpVersion? -> obj.toString() }
         )
         logger.warn(incompatibilityMessage)
         val quickFix = SyncProjectWithExtraCommandLineOptionsHyperlink("Sync project", "")

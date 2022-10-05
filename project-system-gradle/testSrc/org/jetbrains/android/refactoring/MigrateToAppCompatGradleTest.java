@@ -15,8 +15,7 @@
  */
 package org.jetbrains.android.refactoring;
 
-import com.android.SdkConstants;
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.gradle.adtimport.GradleImport;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -56,7 +55,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
     });
     assertFalse(ref.get().isAndroidxLibrary());
 
-    GradleVersion version = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(getProject());
+    AgpVersion version = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(getProject());
     String configName = GradleUtil.mapConfigurationName("implementation", version, false);
     assertEquals("apply plugin: 'com.android.application'\n" +
                  "\n" +

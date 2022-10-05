@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.google.common.truth.Expect;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,7 +35,7 @@ public class AndroidModelFeaturesTest {
 
   @Test
   public void withPluginVersion3_1_0() {
-    GradleVersion version = GradleVersion.parse("3.1.0");
+    AgpVersion version = AgpVersion.parse("3.1.0");
     AndroidModelFeatures features = new AndroidModelFeatures(version);
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.isBuildOutputFileSupported());
@@ -43,7 +43,7 @@ public class AndroidModelFeaturesTest {
 
   @Test
   public void withPluginVersion3_2_0() {
-    GradleVersion version = GradleVersion.parse("3.2.0");
+    AgpVersion version = AgpVersion.parse("3.2.0");
     AndroidModelFeatures features = new AndroidModelFeatures(version);
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.isBuildOutputFileSupported());
@@ -51,7 +51,7 @@ public class AndroidModelFeaturesTest {
 
   @Test
   public void withPluginVersion3_3_0() {
-    GradleVersion version = GradleVersion.parse("3.3.0");
+    AgpVersion version = AgpVersion.parse("3.3.0");
     AndroidModelFeatures features = new AndroidModelFeatures(version);
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.isBuildOutputFileSupported());
@@ -59,7 +59,7 @@ public class AndroidModelFeaturesTest {
 
   @Test
   public void withPluginVersion4_0_0() {
-    GradleVersion version = GradleVersion.parse("4.0.0");
+    AgpVersion version = AgpVersion.parse("4.0.0");
     AndroidModelFeatures features = new AndroidModelFeatures(version);
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.isBuildOutputFileSupported());
@@ -67,7 +67,7 @@ public class AndroidModelFeaturesTest {
 
   @Test
   public void withPluginVersion4_1_0() {
-    GradleVersion version = GradleVersion.parse("4.1.0");
+    AgpVersion version = AgpVersion.parse("4.1.0");
     AndroidModelFeatures features = new AndroidModelFeatures(version);
     assertFalse(features.isPostBuildSyncSupported());
     assertTrue(features.isBuildOutputFileSupported());
