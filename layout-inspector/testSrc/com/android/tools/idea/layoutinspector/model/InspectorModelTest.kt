@@ -546,6 +546,22 @@ class InspectorModelTest {
     assertThat(countdownStopped).isFalse()
   }
 
+  @Test
+  fun testClear() {
+    val model = model {
+      view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
+        view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
+          view(VIEW3, 5, 6, 7, 8, qualifiedName = "v3Type")
+        }
+        view(VIEW2, 8, 7, 6, 5, qualifiedName = "v2Type")
+      }
+    }
+
+    model.foldInfo = InspectorModel.FoldInfo(97, InspectorModel.Posture.HALF_OPEN, InspectorModel.FoldOrientation.VERTICAL)
+    model.clear()
+    assertThat(model.foldInfo).isNull()
+  }
+
   private fun children(view: ViewNode): List<ViewNode> =
     ViewNode.readAccess { view.children }
 

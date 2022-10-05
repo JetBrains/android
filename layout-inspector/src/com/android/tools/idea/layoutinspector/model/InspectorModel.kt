@@ -321,6 +321,7 @@ class InspectorModel(val project: Project, val scheduler: ScheduledExecutorServi
   }
 
   fun clear() {
+    foldInfo = null
     update(null, listOf<Nothing>(), 0)
   }
 
