@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction.DEPLOYS_TO_LOCAL_DEVICE;
+
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -22,6 +24,7 @@ import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.application.ApplicationConfiguration;
 import com.intellij.execution.configurations.LocatableConfigurationBase;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.openapi.util.UserDataHolderBase;
 import icons.StudioIcons;
 import java.util.Collection;
 import java.util.List;
@@ -112,8 +115,11 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
 
   @Override
   public boolean canRun(@NotNull RunConfiguration configuration) {
-    // LocatableConfigurationBase is parent of both BlazeCommandRunConfiguration (for ASwB) and ComposePreviewRunConfiguration (AS Gradle)
-    // Skip ApplicationConfiguration as its non-Android
-    return configuration instanceof LocatableConfigurationBase && !(configuration instanceof ApplicationConfiguration);
+    Boolean deploysToLocalDevice = false;
+    // This allows BlazeCommandRunConfiguration to run as its DEPLOY_TO_LOCAL_DEVICE is set by BlazeAndroidBinaryRunConfigurationHandler
+    if (configuration instanceof UserDataHolderBase) {
+      deploysToLocalDevice = ((UserDataHolderBase)configuration).getUserData(DEPLOYS_TO_LOCAL_DEVICE);
+    }
+    return configuration instanceof AndroidRunConfigurationBase || (deploysToLocalDevice != null && deploysToLocalDevice);
   }
 }
