@@ -16,6 +16,7 @@
 package com.android.build.attribution.data
 
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.android.ide.common.attribution.TaskCategory
 import com.android.tools.idea.flags.StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS
 import org.gradle.tooling.events.task.TaskFinishEvent
 
@@ -43,7 +44,10 @@ class TaskContainer {
       task.setTaskType(taskInfo?.className)
       if (BUILD_ANALYZER_CATEGORY_ANALYSIS.get()) {
         val taskCategoryInfo = taskInfo?.taskCategoryInfo
-        taskCategoryInfo?.let { task.setTaskCategories(it.primaryTaskCategory, it.secondaryTaskCategories) }
+        task.setTaskCategories(
+          primaryTaskCategory = taskCategoryInfo?.primaryTaskCategory ?: TaskCategory.UNKNOWN,
+          secondaryTaskCategories = taskCategoryInfo?.secondaryTaskCategories ?: emptyList()
+        )
       }
     }
   }
