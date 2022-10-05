@@ -18,7 +18,6 @@ package com.android.tools.idea.run
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.ClientImpl
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.whenever
@@ -42,9 +41,9 @@ class AndroidRemoteDebugProcessHandlerTest {
 
   @Before
   fun setUpDebugSession() {
-    client = Mockito.mock(ClientImpl::class.java)
+    client = Mockito.mock(Client::class.java)
     device = createDevice()
-    val clientData = object : ClientData(client as ClientImpl, 111) {
+    val clientData = object : ClientData(client, 111) {
       override fun getPackageName() = "MyApp"
       override fun getClientDescription() = "MyApp"
     }
