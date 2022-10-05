@@ -109,6 +109,7 @@ class ForegroundProcessDetectionInitializerTest {
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess2)
   }
 
+  @org.junit.Ignore("b/250404336")
   @Test
   fun testStartPollingOnDeviceWhenProcessIsSelectedFromOutside() {
     val transportClient = TransportClient(grpcServerRule.name)
