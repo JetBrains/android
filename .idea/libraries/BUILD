@@ -310,3 +310,10 @@ jvm_import(
     jars = ["//tools/base/adb-proxy/proto:adb_proxy_studio_proto.jar"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "gson",
+    jars = ["//prebuilts/tools/common/m2:gson_files"],
+    visibility = ["//visibility:public"],
+)
