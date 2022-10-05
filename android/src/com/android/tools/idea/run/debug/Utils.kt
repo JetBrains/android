@@ -77,8 +77,8 @@ internal fun waitForClientReadyForDebug(device: IDevice, appIds: Collection<Stri
         }
 
       }
-      Uninterruptibles.sleepUninterruptibly(1, timeUnit)
     }
+    Uninterruptibles.sleepUninterruptibly(1, timeUnit)
   }
   throw ExecutionException("Processes ${appIds.joinToString()} are not found. Aborting session.")
 }
