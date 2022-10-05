@@ -124,10 +124,8 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
   override fun createExecutorGroupWrapper(actionGroup: ActionGroup): ExecutorGroupWrapper = GroupWrapper(actionGroup)
 
   companion object {
-    private val PROFILEABLE_ICON = StudioIcons.Shell.Toolbar.PROFILER
-
-    // TODO(b/213946909): replace with real icon.
-    private val DEBUGGABLE_ICON = StudioIcons.Shell.Toolbar.PROFILER
+    private val PROFILEABLE_ICON = StudioIcons.Shell.Toolbar.PROFILER_LOW_OVERHEAD
+    private val DEBUGGABLE_ICON = StudioIcons.Shell.Toolbar.PROFILER_DETAILED
 
     @JvmStatic
     fun getInstance(): ProfileRunExecutorGroup? {
