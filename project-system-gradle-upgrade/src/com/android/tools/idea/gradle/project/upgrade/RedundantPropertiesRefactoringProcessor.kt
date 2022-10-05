@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
@@ -28,7 +29,7 @@ import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.util.AndroidBundle
 
 class RedundantPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
   override fun necessity(): AgpUpgradeComponentNecessity = MANDATORY_CODEPENDENT
@@ -51,12 +52,12 @@ class RedundantPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringPro
     return usages.toTypedArray()
   }
 
-  fun minimumBuildToolsVersion(agpVersion: GradleVersion): GradleVersion = when {
+  fun minimumBuildToolsVersion(agpVersion: AgpVersion): GradleVersion = when {
     // When upgrading to versions earlier than 7.0.0-alpha01, don't remove buildToolsVersion.  (Make that happen by returning a
     // version that will be earlier than the user's specified buildToolsVersion.
     // TODO(xof): extend this table both to the future and the past, or replace it with a more automated mechanism.
-    GradleVersion.parse("7.0.0-alpha01") > agpVersion -> GradleVersion.parse("0.0.1")
-    GradleVersion.parse("7.1.0-alpha01") > agpVersion -> GradleVersion.parse("30.0.2")
+    AgpVersion.parse("7.0.0-alpha01") > agpVersion -> GradleVersion.parse("0.0.1")
+    AgpVersion.parse("7.1.0-alpha01") > agpVersion -> GradleVersion.parse("30.0.2")
     else -> GradleVersion.parse("30.0.3")
   }
 

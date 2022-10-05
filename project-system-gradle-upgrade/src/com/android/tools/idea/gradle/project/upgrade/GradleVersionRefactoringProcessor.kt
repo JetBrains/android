@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.gradle.util.BuildFileProcessor
 import com.android.tools.idea.gradle.util.GradleWrapper
@@ -38,7 +39,7 @@ import java.io.File
 
 class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new) {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new) {
     this.compatibleGradleVersion = getCompatibleGradleVersion(new)
   }
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor) {
@@ -127,7 +128,7 @@ enum class CompatibleGradleVersion(val version: GradleVersion) {
   ;
 
   companion object {
-    fun getCompatibleGradleVersion(agpVersion: GradleVersion): CompatibleGradleVersion {
+    fun getCompatibleGradleVersion(agpVersion: AgpVersion): CompatibleGradleVersion {
       val agpVersionMajorMinor = GradleVersion(agpVersion.major, agpVersion.minor)
       val compatibleGradleVersion = when {
         GradleVersion.parse("3.1") >= agpVersionMajorMinor -> VERSION_4_4

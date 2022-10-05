@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Test
 
@@ -24,7 +24,7 @@ class RedundantPropertiesRefactoringProcessorTest: UpgradeGradleFileModelTestCas
   @Test
   fun testBuildToolsVersion41To42() {
     writeToBuildFile(TestFileName("RedundantProperties/BuildToolsVersion41"))
-    val processor = RedundantPropertiesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("4.2.0"))
+    val processor = RedundantPropertiesRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("4.2.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RedundantProperties/BuildToolsVersion41To42Expected"))
   }
@@ -32,7 +32,7 @@ class RedundantPropertiesRefactoringProcessorTest: UpgradeGradleFileModelTestCas
   @Test
   fun testBuildToolsVersion41To70() {
     writeToBuildFile(TestFileName("RedundantProperties/BuildToolsVersion41"))
-    val processor = RedundantPropertiesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.0.0"))
+    val processor = RedundantPropertiesRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RedundantProperties/BuildToolsVersion41To70Expected"))
   }
@@ -40,7 +40,7 @@ class RedundantPropertiesRefactoringProcessorTest: UpgradeGradleFileModelTestCas
   @Test
   fun testBuildToolsVersion41To71() {
     writeToBuildFile(TestFileName("RedundantProperties/BuildToolsVersion41"))
-    val processor = RedundantPropertiesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.1.0"))
+    val processor = RedundantPropertiesRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("7.1.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RedundantProperties/BuildToolsVersion41To71Expected"))
   }
@@ -48,7 +48,7 @@ class RedundantPropertiesRefactoringProcessorTest: UpgradeGradleFileModelTestCas
   @Test
   fun testBuildToolsVersion71To71() {
     writeToBuildFile(TestFileName("RedundantProperties/BuildToolsVersion71"))
-    val processor = RedundantPropertiesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.1.0"))
+    val processor = RedundantPropertiesRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("7.1.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RedundantProperties/BuildToolsVersion71To71Expected"))
   }
@@ -56,7 +56,7 @@ class RedundantPropertiesRefactoringProcessorTest: UpgradeGradleFileModelTestCas
   @Test
   fun testBuildToolsVersionVariable() {
     writeToBuildFile(TestFileName("RedundantProperties/BuildToolsVersionVariable"))
-    val processor = RedundantPropertiesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.1.0"))
+    val processor = RedundantPropertiesRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("7.1.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RedundantProperties/BuildToolsVersionVariableExpected"))
   }
@@ -64,7 +64,7 @@ class RedundantPropertiesRefactoringProcessorTest: UpgradeGradleFileModelTestCas
   @Test
   fun testBuildToolsVersionInterpolation() {
     writeToBuildFile(TestFileName("RedundantProperties/BuildToolsVersionInterpolation"))
-    val processor = RedundantPropertiesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.1.0"))
+    val processor = RedundantPropertiesRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("7.1.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RedundantProperties/BuildToolsVersionInterpolationExpected"))
   }
@@ -72,7 +72,7 @@ class RedundantPropertiesRefactoringProcessorTest: UpgradeGradleFileModelTestCas
   @Test
   fun testBuildToolsVersionUnresolvedVariable() {
     writeToBuildFile(TestFileName("RedundantProperties/BuildToolsVersionUnresolvedVariable"))
-    val processor = RedundantPropertiesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.1.0"))
+    val processor = RedundantPropertiesRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("7.1.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RedundantProperties/BuildToolsVersionUnresolvedVariableExpected"))
   }

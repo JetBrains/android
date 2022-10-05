@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +31,7 @@ public interface AndroidPluginVersionUpdater {
    * @param gradleVersion the Gradle version to update to
    * @return whether or not the update of the Android Gradle plugin OR Gradle version was successful.
    */
-  boolean updatePluginVersion(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion);
+  boolean updatePluginVersion(@NotNull AgpVersion pluginVersion, @Nullable GradleVersion gradleVersion);
 
   /**
    * Updates the plugin version and, optionally, the Gradle version used by the project.
@@ -41,9 +42,9 @@ public interface AndroidPluginVersionUpdater {
    * @return the result of the update operation.
    */
   UpdateResult updatePluginVersion(
-    @NotNull GradleVersion pluginVersion,
+    @NotNull AgpVersion pluginVersion,
     @Nullable GradleVersion gradleVersion,
-    @Nullable GradleVersion oldPluginVersion
+    @Nullable AgpVersion oldPluginVersion
   );
 
   class UpdateResult {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
@@ -28,7 +28,7 @@ class MigrateJacocoToTestCoverageRefactoringProcessorTest: UpgradeGradleFileMode
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
 
-  private fun jacocoToTestCoverageRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) =
+  private fun jacocoToTestCoverageRefactoringProcessor(project: Project, current: AgpVersion, new: AgpVersion) =
     MIGRATE_JACOCO_TO_TEST_COVERAGE.RefactoringProcessor(project, current, new)
 
   @Test
@@ -42,7 +42,7 @@ class MigrateJacocoToTestCoverageRefactoringProcessorTest: UpgradeGradleFileMode
       ("9.0.0" to "9.1.0") to IRRELEVANT_PAST
     )
     expectedNecessitiesMap.forEach { (t, u) ->
-      val processor = jacocoToTestCoverageRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
+      val processor = jacocoToTestCoverageRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
       expect.that(processor.necessity()).isEqualTo(u)
     }
   }
@@ -50,7 +50,7 @@ class MigrateJacocoToTestCoverageRefactoringProcessorTest: UpgradeGradleFileMode
   @Test
   fun testJacocoToTestCoverage() {
     writeToBuildFile(TestFileName("MigrateJacocoToTestCoverage/JacocoToTestCoverage"))
-    val processor = jacocoToTestCoverageRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("9.0.0"))
+    val processor = jacocoToTestCoverageRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateJacocoToTestCoverage/JacocoToTestCoverageExpected"))
   }

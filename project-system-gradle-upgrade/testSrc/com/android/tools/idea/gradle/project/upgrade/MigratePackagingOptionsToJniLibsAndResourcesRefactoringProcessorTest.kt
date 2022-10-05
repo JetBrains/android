@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Test
 
@@ -24,7 +24,7 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessorTest : Upg
   @Test
   fun testSingleLiteralProperties() {
     writeToBuildFile(TestFileName("MigratePackagingOptions/SingleLiteralProperties"))
-    val processor = MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("9.0.0"))
+    val processor = MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("9.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("MigratePackagingOptions/SingleLiteralPropertiesExpected"))
@@ -33,7 +33,7 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessorTest : Upg
   @Test
   fun testMultipleLiteralProperties() {
     writeToBuildFile(TestFileName("MigratePackagingOptions/MultipleLiteralProperties"))
-    val processor = MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("9.0.0"))
+    val processor = MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("9.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("MigratePackagingOptions/MultipleLiteralPropertiesExpected"))
@@ -42,7 +42,7 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessorTest : Upg
   @Test
   fun testMultipleReferenceProperties() {
     writeToBuildFile(TestFileName("MigratePackagingOptions/MultipleReferenceProperties"))
-    val processor = MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("9.0.0"))
+    val processor = MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("9.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("MigratePackagingOptions/MultipleReferencePropertiesExpected"))
@@ -51,7 +51,7 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessorTest : Upg
   @Test
   fun testMultipleUnresolvedReferenceProperties() {
     writeToBuildFile(TestFileName("MigratePackagingOptions/MultipleUnresolvedReferenceProperties"))
-    val processor = MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("9.0.0"))
+    val processor = MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("9.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("MigratePackagingOptions/MultipleUnresolvedReferencePropertiesExpected"))
@@ -60,7 +60,7 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessorTest : Upg
   @Test
   fun testGlobsToBoth() {
     writeToBuildFile(TestFileName("MigratePackagingOptions/GlobsToBoth"))
-    val processor = MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("9.0.0"))
+    val processor = MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("9.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("MigratePackagingOptions/GlobsToBothExpected"))

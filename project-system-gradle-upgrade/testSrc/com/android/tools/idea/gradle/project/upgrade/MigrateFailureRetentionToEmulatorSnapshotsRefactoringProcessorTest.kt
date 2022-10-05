@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
@@ -28,7 +28,7 @@ class MigrateFailureRetentionToEmulatorSnapshotsRefactoringProcessorTest: Upgrad
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
 
-  private fun failureRetentionToEmulatorSnapshotsRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) =
+  private fun failureRetentionToEmulatorSnapshotsRefactoringProcessor(project: Project, current: AgpVersion, new: AgpVersion) =
     MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS.RefactoringProcessor(project, current, new)
 
   @Test
@@ -42,7 +42,7 @@ class MigrateFailureRetentionToEmulatorSnapshotsRefactoringProcessorTest: Upgrad
       ("9.0.0" to "9.1.0") to IRRELEVANT_PAST
     )
     expectedNecessitiesMap.forEach { (t, u) ->
-      val processor = failureRetentionToEmulatorSnapshotsRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
+      val processor = failureRetentionToEmulatorSnapshotsRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
       expect.that(processor.necessity()).isEqualTo(u)
     }
   }
@@ -50,7 +50,7 @@ class MigrateFailureRetentionToEmulatorSnapshotsRefactoringProcessorTest: Upgrad
   @Test
   fun testFailureRetentionToEmulatorSnapshots() {
     writeToBuildFile(TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshots"))
-    val processor = failureRetentionToEmulatorSnapshotsRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("9.0.0"))
+    val processor = failureRetentionToEmulatorSnapshotsRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshotsExpected"))
   }

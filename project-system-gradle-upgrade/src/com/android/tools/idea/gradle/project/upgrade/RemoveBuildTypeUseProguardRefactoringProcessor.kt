@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind
 import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.util.AndroidBundle
@@ -27,8 +27,8 @@ val BUILD_TYPE_USE_PROGUARD_INFO = RemovePropertiesInfo(
 )
 
 val REMOVE_BUILD_TYPE_USE_PROGUARD_INFO = PropertiesOperationsRefactoringInfo(
-  optionalFromVersion = GradleVersion.parse("3.5.0"),
-  requiredFromVersion = GradleVersion.parse("7.0.0-alpha14"),
+  optionalFromVersion = AgpVersion.parse("3.5.0"),
+  requiredFromVersion = AgpVersion.parse("7.0.0-alpha14"),
   commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.removeBuildTypeUseProguardRefactoringProcessor.commandName"),
   shortDescriptionSupplier = { """
     The useProguard setting for build types is not supported in Android

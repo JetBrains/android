@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
@@ -81,7 +82,7 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
     buildIssueComposer.addDescription("Your project may be using a version of the Android Gradle plug-in that does not contain the " +
                                "method (e.g. 'testCompile' was added in 1.1.0).")
 
-    val pluginVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val pluginVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
     buildIssueComposer.addQuickFix("Upgrade plugin to version ${pluginVersion} and sync project",
                             FixAndroidGradlePluginVersionQuickFix(pluginVersion, GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)))
     buildIssueComposer.addQuickFix("Open Gradle wrapper file", GetGradleSettingsQuickFix())

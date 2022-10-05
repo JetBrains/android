@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildMainSourceProviderStub
@@ -31,13 +31,13 @@ class BuildConfigDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCas
 
   @Test // TODO(xof): fix redirect
   fun testReadMoreUrl() {
-    val processor = BuildConfigDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = BuildConfigDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     assertEquals("https://developer.android.com/r/tools/upgrade-assistant/build-config-default", processor.getReadMoreUrl())
   }
 
   @Test
   fun testEmptyProject() {
-    val processor = BuildConfigDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = BuildConfigDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     writeToBuildFile(TestFileName("BuildConfigDefault/NoBuildConfigDeclaration"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("BuildConfigDefault/NoBuildConfigDeclaration"))

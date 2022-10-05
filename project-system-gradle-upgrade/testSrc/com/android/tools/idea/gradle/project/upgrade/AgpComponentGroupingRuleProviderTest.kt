@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.usageView.UsageInfo
@@ -46,8 +46,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
         }
       }
       """.trimIndent())
-    val processor = AgpVersionRefactoringProcessor(myFixture.project, GradleVersion.parse("3.6.0"),
-                                                   GradleVersion.parse("4.0.0"))
+    val processor = AgpVersionRefactoringProcessor(myFixture.project, AgpVersion.parse("3.6.0"), AgpVersion.parse("4.0.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
@@ -59,7 +58,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     myFixture.addFileToProject("gradle/wrapper/gradle-wrapper.properties", """
       distributionUrl=https\://services.gradle.org/distributions/gradle-6.4-bin.zip
     """.trimIndent())
-    val processor = GradleVersionRefactoringProcessor(myFixture.project, GradleVersion.parse("3.6.0"), GradleVersion.parse("4.1.0"))
+    val processor = GradleVersionRefactoringProcessor(myFixture.project, AgpVersion.parse("3.6.0"), AgpVersion.parse("4.1.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
@@ -77,7 +76,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
           jcenter()
         }
     """.trimIndent())
-    val processor = GMavenRepositoryRefactoringProcessor(myFixture.project, GradleVersion.parse("2.3.0"), GradleVersion.parse("4.1.0"))
+    val processor = GMavenRepositoryRefactoringProcessor(myFixture.project, AgpVersion.parse("2.3.0"), AgpVersion.parse("4.1.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
@@ -96,7 +95,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
         }
       }
     """.trimIndent())
-    val processor = Java8DefaultRefactoringProcessor(myFixture.project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val processor = Java8DefaultRefactoringProcessor(myFixture.project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
     assertTrue(processor.isEnabled)
     processor.noLanguageLevelAction = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
     val usages = processor.findUsages()
@@ -116,7 +115,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
         }
       }
     """.trimIndent())
-    val processor = Java8DefaultRefactoringProcessor(myFixture.project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val processor = Java8DefaultRefactoringProcessor(myFixture.project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
     assertTrue(processor.isEnabled)
     processor.noLanguageLevelAction = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
     val usages = processor.findUsages()
@@ -137,8 +136,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
         androidTestCompile 'org.junit:junit:4.11'
       }
     """.trimIndent())
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(myFixture.project,
-                                                                    GradleVersion.parse("4.0.0"), GradleVersion.parse("5.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(myFixture.project, AgpVersion.parse("4.0.0"), AgpVersion.parse("5.0.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(2)
@@ -154,7 +152,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
         }
       }
     """.trimIndent())
-    val processor = FabricCrashlyticsRefactoringProcessor(myFixture.project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.2.0"))
+    val processor = FabricCrashlyticsRefactoringProcessor(myFixture.project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.2.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(3)
@@ -171,7 +169,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
       }
     """.trimIndent())
     val processor = MIGRATE_TO_BUILD_FEATURES_INFO.RefactoringProcessor(myFixture.project,
-                                                                        GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+                                                                        AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
@@ -192,8 +190,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
       }
     """.trimIndent())
 
-    val processor = REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(myFixture.project,
-                                                                    GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    val processor = REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(myFixture.project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)

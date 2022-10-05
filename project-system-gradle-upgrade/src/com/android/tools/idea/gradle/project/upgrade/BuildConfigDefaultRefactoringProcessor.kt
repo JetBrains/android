@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -37,10 +37,10 @@ import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.util.AndroidBundle
 
 class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = standardPointNecessity(current, new, GradleVersion.parse("8.0.0-beta01"))
+  override fun necessity() = standardPointNecessity(current, new, AgpVersion.parse("8.0.0-beta01"))
 
   class SourcesNotGenerated(moduleNames: List<String>) : BlockReason(
     shortDescription = "Generated BuildConfig sources are missing",

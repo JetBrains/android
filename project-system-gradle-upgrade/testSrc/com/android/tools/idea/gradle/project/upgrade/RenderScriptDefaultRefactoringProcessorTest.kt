@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildMainSourceProviderStub
@@ -32,14 +32,14 @@ class RenderScriptDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCa
 
   @Test
   fun testReadMoreUrl() {
-    val processor = RenderScriptDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = RenderScriptDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     assertEquals("https://developer.android.com/r/tools/upgrade-assistant/render-script-default", processor.getReadMoreUrl())
   }
 
   @Test
   fun testNoRenderScriptDirectory() {
     writeToBuildFile(TestFileName("RenderScriptDefault/NoRenderScriptDeclaration"))
-    val processor = RenderScriptDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = RenderScriptDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RenderScriptDefault/NoRenderScriptDeclaration"))
   }
@@ -50,7 +50,7 @@ class RenderScriptDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCa
     runWriteAction {
       projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/rs")
     }
-    val processor = RenderScriptDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = RenderScriptDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RenderScriptDefault/NoRenderScriptDeclaration"))
   }
@@ -62,7 +62,7 @@ class RenderScriptDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCa
       projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/rs")
       projectRule.fixture.tempDirFixture.createFile("src/main/rs/script.rs", "#pragma version(1)\n")
     }
-    val processor = RenderScriptDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = RenderScriptDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RenderScriptDefault/RenderScriptDeclarationAdded"))
   }
@@ -74,7 +74,7 @@ class RenderScriptDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCa
       projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/rs")
       projectRule.fixture.tempDirFixture.createFile("src/main/rs/script.rs", "#pragma version(1)\n")
     }
-    val processor = RenderScriptDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = RenderScriptDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RenderScriptDefault/RenderScriptFalse"))
   }
@@ -86,7 +86,7 @@ class RenderScriptDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCa
       projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/rs")
       projectRule.fixture.tempDirFixture.createFile("src/main/rs/script.rs", "#pragma version(1)\n")
     }
-    val processor = RenderScriptDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = RenderScriptDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RenderScriptDefault/RenderScriptTrue"))
   }
@@ -99,7 +99,7 @@ class RenderScriptDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCa
       projectRule.fixture.tempDirFixture.createFile("src/main/rs/script.rs", "#pragma version(1)\n")
       projectRule.fixture.tempDirFixture.createFile("gradle.properties", "android.defaults.buildfeatures.renderscript=FaLsE")
     }
-    val processor = RenderScriptDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = RenderScriptDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RenderScriptDefault/NoRenderScriptDeclaration"))
   }
@@ -112,7 +112,7 @@ class RenderScriptDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCa
       projectRule.fixture.tempDirFixture.createFile("src/main/rs/script.rs", "#pragma version(1)\n")
       projectRule.fixture.tempDirFixture.createFile("gradle.properties", "android.defaults.buildfeatures.renderscript=TrUe")
     }
-    val processor = RenderScriptDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = RenderScriptDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RenderScriptDefault/NoRenderScriptDeclaration"))
   }

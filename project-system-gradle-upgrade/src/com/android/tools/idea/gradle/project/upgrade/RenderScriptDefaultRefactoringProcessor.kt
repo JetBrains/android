@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
@@ -31,13 +30,12 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.util.AndroidBundle
-import java.util.Locale
 
 class RenderScriptDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = AgpUpgradeComponentNecessity.standardPointNecessity(current, new, GradleVersion.parse("8.0.0-alpha02"))
+  override fun necessity() = AgpUpgradeComponentNecessity.standardPointNecessity(current, new, AgpVersion.parse("8.0.0-alpha02"))
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()

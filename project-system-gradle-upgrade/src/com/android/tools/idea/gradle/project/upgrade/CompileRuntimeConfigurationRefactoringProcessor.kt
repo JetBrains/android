@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
@@ -33,7 +33,7 @@ import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.util.AndroidBundle
 
 class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
   override fun necessity() = standardRegionNecessity(current, new, IMPLEMENTATION_API_INTRODUCED, COMPILE_REMOVED)
@@ -153,8 +153,8 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.commandName")
 
   companion object {
-    val IMPLEMENTATION_API_INTRODUCED = GradleVersion.parse("3.1.0")
-    val COMPILE_REMOVED = GradleVersion.parse("7.0.0-alpha03")
+    val IMPLEMENTATION_API_INTRODUCED = AgpVersion.parse("3.1.0")
+    val COMPILE_REMOVED = AgpVersion.parse("7.0.0-alpha03")
 
     val RENAME_CONFIGURATION_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.renameConfigurationUsageType"))
     val CHANGE_DEPENDENCY_CONFIGURATION_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.changeDependencyConfigurationUsageType"))

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -27,13 +27,13 @@ import org.junit.Test
 class GMavenRepositoryRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testIsEnabledForOldAGP() {
-    val processor = GMavenRepositoryRefactoringProcessor(project, GradleVersion.parse("2.2.0"), GradleVersion.parse("4.0.0"))
+    val processor = GMavenRepositoryRefactoringProcessor(project, AgpVersion.parse("2.2.0"), AgpVersion.parse("4.0.0"))
     assertTrue(processor.isEnabled)
   }
 
   @Test
   fun testIsDisabledForNewerAGP() {
-    val processor = GMavenRepositoryRefactoringProcessor(project, GradleVersion.parse("3.2.0"), GradleVersion.parse("4.0.0"))
+    val processor = GMavenRepositoryRefactoringProcessor(project, AgpVersion.parse("3.2.0"), AgpVersion.parse("4.0.0"))
     assertFalse(processor.isEnabled)
   }
 
@@ -45,7 +45,7 @@ class GMavenRepositoryRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
       ("3.0.0" to "3.1.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST
     )
     expectedNecessitiesMap.forEach { (t, u) ->
-      val processor = GMavenRepositoryRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
+      val processor = GMavenRepositoryRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
       assertEquals("${t.first} to ${t.second}", u, processor.necessity())
     }
   }
@@ -53,7 +53,7 @@ class GMavenRepositoryRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
   @Test
   fun testAGP2Project() {
     writeToBuildFile(TestFileName("GMavenRepository/AGP2Project"))
-    val processor = GMavenRepositoryRefactoringProcessor(project, GradleVersion.parse("2.3.2"), GradleVersion.parse("4.2.0"))
+    val processor = GMavenRepositoryRefactoringProcessor(project, AgpVersion.parse("2.3.2"), AgpVersion.parse("4.2.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("GMavenRepository/AGP2ProjectExpected"))
   }
@@ -61,7 +61,7 @@ class GMavenRepositoryRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
   @Test
   fun testAGP2ProjectWithGMaven() {
     writeToBuildFile(TestFileName("GMavenRepository/AGP2ProjectWithGMaven"))
-    val processor = GMavenRepositoryRefactoringProcessor(project, GradleVersion.parse("2.3.2"), GradleVersion.parse("4.2.0"))
+    val processor = GMavenRepositoryRefactoringProcessor(project, AgpVersion.parse("2.3.2"), AgpVersion.parse("4.2.0"))
     processor.run()
     // if we already have a gmaven declaration, it won't be added again.
     verifyFileContents(buildFile, TestFileName("GMavenRepository/AGP2ProjectWithGMaven"))
@@ -70,7 +70,7 @@ class GMavenRepositoryRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
   @Test
   fun testAGP3Project() {
     writeToBuildFile(TestFileName("GMavenRepository/AGP3Project"))
-    val processor = GMavenRepositoryRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.2.0"))
+    val processor = GMavenRepositoryRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.2.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("GMavenRepository/AGP3Project"))
   }
@@ -78,7 +78,7 @@ class GMavenRepositoryRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
   @Test
   fun testAGP3ProjectOverrideIsEnabled() {
     writeToBuildFile(TestFileName("GMavenRepository/AGP3Project"))
-    val processor = GMavenRepositoryRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.2.0"))
+    val processor = GMavenRepositoryRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.2.0"))
     assertFalse(processor.isEnabled)
     processor.isEnabled = true
     processor.run()
@@ -88,7 +88,7 @@ class GMavenRepositoryRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
   @Test
   fun testAGP2ProjectTooltipsNotNull() {
     writeToBuildFile(TestFileName("GMavenRepository/AGP2Project"))
-    val processor = GMavenRepositoryRefactoringProcessor(project, GradleVersion.parse("2.3.2"), GradleVersion.parse("4.2.0"))
+    val processor = GMavenRepositoryRefactoringProcessor(project, AgpVersion.parse("2.3.2"), AgpVersion.parse("4.2.0"))
     val usages = processor.findUsages()
     assertTrue(usages.isNotEmpty())
     usages.forEach { assertNotNull(it.tooltipText) }

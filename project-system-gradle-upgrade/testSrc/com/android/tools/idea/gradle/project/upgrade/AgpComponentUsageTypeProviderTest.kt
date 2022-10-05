@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
 import com.google.common.truth.Truth.assertThat
@@ -36,7 +36,7 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
         }
       }
       """.trimIndent())
-    val processor = AgpVersionRefactoringProcessor(myFixture.project, GradleVersion.parse("3.6.0"), GradleVersion.parse("4.0.0"))
+    val processor = AgpVersionRefactoringProcessor(myFixture.project, AgpVersion.parse("3.6.0"), AgpVersion.parse("4.0.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
@@ -45,11 +45,11 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
     assertThat(usageType.toString()).isEqualTo("Update version string")
   }
 
-  fun testAgpGradleVersionRefactoringProcessor() {
+  fun testGradleVersionRefactoringProcessor() {
     myFixture.addFileToProject("gradle/wrapper/gradle-wrapper.properties", """
       distributionUrl=https\://services.gradle.org/distributions/gradle-6.4-bin.zip
     """.trimIndent())
-    val processor = GradleVersionRefactoringProcessor(myFixture.project, GradleVersion.parse("3.6.0"), GradleVersion.parse("4.1.0"))
+    val processor = GradleVersionRefactoringProcessor(myFixture.project, AgpVersion.parse("3.6.0"), AgpVersion.parse("4.1.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
@@ -68,7 +68,7 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
           jcenter()
         }
     """.trimIndent())
-    val processor = GMavenRepositoryRefactoringProcessor(myFixture.project, GradleVersion.parse("2.3.0"), GradleVersion.parse("4.1.0"))
+    val processor = GMavenRepositoryRefactoringProcessor(myFixture.project, AgpVersion.parse("2.3.0"), AgpVersion.parse("4.1.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
@@ -88,7 +88,7 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
         }
       }
     """.trimIndent())
-    val processor = Java8DefaultRefactoringProcessor(myFixture.project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val processor = Java8DefaultRefactoringProcessor(myFixture.project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
     assertTrue(processor.isEnabled)
     processor.noLanguageLevelAction = INSERT_OLD_DEFAULT
     val usages = processor.findUsages()
@@ -108,7 +108,7 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
         }
       }
     """.trimIndent())
-    val processor = Java8DefaultRefactoringProcessor(myFixture.project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val processor = Java8DefaultRefactoringProcessor(myFixture.project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
     assertTrue(processor.isEnabled)
     processor.noLanguageLevelAction = ACCEPT_NEW_DEFAULT
     val usages = processor.findUsages()
@@ -129,7 +129,7 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
         androidTestCompile 'org.junit:junit:4.11'
       }
     """.trimIndent())
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(myFixture.project, GradleVersion.parse("4.0.0"), GradleVersion.parse("5.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(myFixture.project, AgpVersion.parse("4.0.0"), AgpVersion.parse("5.0.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(2)

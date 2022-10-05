@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.PluginModel
@@ -83,7 +84,7 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
     val resolvedPropertyModel = mock(ResolvedPropertyModel::class.java)
 
     val usageInfos = listOf(
-      AgpVersionUsageInfo(wrappedPsiElement, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.1.0"), gradlePropertyModel),
+      AgpVersionUsageInfo(wrappedPsiElement, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.1.0"), gradlePropertyModel),
       RepositoriesNoGMavenUsageInfo(wrappedPsiElement, repositoriesModel),
       GradleVersionUsageInfo(wrappedPsiElement, GradleVersion.parse("6.1.1"), "https://services.gradle.org/distributions/gradle-6.1.1-bin.zip"),
       WellKnownGradlePluginDependencyUsageInfo(wrappedPsiElement, artifactDependencyModel, gradlePropertyModel, "1.3.72"),

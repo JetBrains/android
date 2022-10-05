@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuild
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
@@ -52,16 +53,16 @@ public class AndroidPluginVersionUpdaterImpl implements AndroidPluginVersionUpda
   }
 
   @Override
-  public boolean updatePluginVersion(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
+  public boolean updatePluginVersion(AgpVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
     UpdateResult result = updatePluginVersion(pluginVersion, gradleVersion, null);
     return result.isPluginVersionUpdated() || result.isGradleVersionUpdated();
   }
 
   @Override
   public UpdateResult updatePluginVersion(
-    @NotNull GradleVersion pluginVersion,
+    @NotNull AgpVersion pluginVersion,
     @Nullable GradleVersion gradleVersion,
-    @Nullable GradleVersion oldPluginVersion
+    @Nullable AgpVersion oldPluginVersion
   ) {
     UpdateResult result = new UpdateResult();
 
@@ -118,15 +119,15 @@ public class AndroidPluginVersionUpdaterImpl implements AndroidPluginVersionUpda
 
   // TODO(xof): this, as it stands, needs to be run on the EDT for running the refactoring processors.
   private void updatePluginVersionWithResult(
-    @NotNull GradleVersion pluginVersion,
+    @NotNull AgpVersion pluginVersion,
     @Nullable GradleVersion gradleVersion,
-    @Nullable GradleVersion oldPluginVersion,
+    @Nullable AgpVersion oldPluginVersion,
     UpdateResult result
   ) {
     if (oldPluginVersion == null) {
       // if we don't know the version we're upgrading from, assume an early one.
       // FIXME(xof): we should always know what we're upgrading from.  Find callers and fix them.
-      oldPluginVersion = new GradleVersion(1, 0, 0);
+      oldPluginVersion = new AgpVersion(1, 0, 0);
     }
 
     AgpVersionRefactoringProcessor rp1 = new AgpVersionRefactoringProcessor(myProject, oldPluginVersion, pluginVersion);

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -39,11 +39,11 @@ import org.jetbrains.android.util.AndroidBundle
 import java.io.File
 
 class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
   override fun necessity() =
-    standardRegionNecessity(current, new, GradleVersion.parse("7.0.0-alpha05"), GradleVersion.parse("8.0.0-alpha03"))
+    standardRegionNecessity(current, new, AgpVersion.parse("7.0.0-alpha05"), AgpVersion.parse("8.0.0-alpha03"))
 
   data class Namespaces(val namespace: String?, val testNamespace: String?)
 

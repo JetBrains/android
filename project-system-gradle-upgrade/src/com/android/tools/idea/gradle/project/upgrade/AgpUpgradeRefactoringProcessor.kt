@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
@@ -715,7 +714,7 @@ enum class AgpUpgradeComponentNecessity {
   ;
 
   companion object {
-    fun standardPointNecessity(current: GradleVersion, new: GradleVersion, change: GradleVersion) = when {
+    fun standardPointNecessity(current: AgpVersion, new: AgpVersion, change: AgpVersion) = when {
       current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
       current >= change && new >= change -> IRRELEVANT_PAST
       current < change && new >= change -> MANDATORY_CODEPENDENT
@@ -725,10 +724,10 @@ enum class AgpUpgradeComponentNecessity {
 
     /** [replacementAvailable] must be less than [originalRemoved]. */
     fun standardRegionNecessity(
-      current: GradleVersion,
-      new: GradleVersion,
-      replacementAvailable: GradleVersion,
-      originalRemoved: GradleVersion
+      current: AgpVersion,
+      new: AgpVersion,
+      replacementAvailable: AgpVersion,
+      originalRemoved: AgpVersion
     ): AgpUpgradeComponentNecessity {
       return when {
         current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
@@ -751,8 +750,8 @@ enum class AgpUpgradeComponentNecessity {
 // for findUsages (and implicitly for performing the refactoring, implemented as methods on the UsageInfos).  However, there may be
 // a need for chained upgrades in the future, where each individual refactoring processor would run independently.
 abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactoringProcessor {
-  val current: GradleVersion
-  val new: GradleVersion
+  val current: AgpVersion
+  val new: AgpVersion
   val uuid: String
   val hasParentProcessor: Boolean
   private var _isEnabled: Boolean? = null
@@ -810,7 +809,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   val isBlocked: Boolean
     get() = blockProcessorReasons().isNotEmpty()
 
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project) {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project) {
     this.current = current
     this.new = new
     this.uuid = UUID.randomUUID().toString()
@@ -900,8 +899,8 @@ interface PropertiesOperationInfo {
 }
 
 data class PropertiesOperationsRefactoringInfo(
-  val optionalFromVersion: GradleVersion,
-  val requiredFromVersion: GradleVersion,
+  val optionalFromVersion: AgpVersion,
+  val requiredFromVersion: AgpVersion,
   val commandNameSupplier: Supplier<String>,
   val shortDescriptionSupplier: Supplier<String>,
   val processedElementsHeaderSupplier: Supplier<String>,
@@ -910,7 +909,7 @@ data class PropertiesOperationsRefactoringInfo(
 ) {
 
   inner class RefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-    constructor(project: Project, current: GradleVersion, new: GradleVersion) : super(project, current, new)
+    constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
     constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
     override fun necessity() = standardRegionNecessity(current, new, optionalFromVersion, requiredFromVersion)
@@ -1078,7 +1077,7 @@ class AgpComponentUsageTypeProvider : UsageTypeProvider {
   override fun getUsageType(element: PsiElement): UsageType? = (element as? WrappedPsiElement)?.usageType
 }
 
-internal fun isUpdatablePluginDependency(toVersion: GradleVersion, model: ArtifactDependencyModel): ThreeState {
+internal fun isUpdatablePluginDependency(toVersion: AgpVersion, model: ArtifactDependencyModel): ThreeState {
   val artifactId = model.name().forceString()
   val groupId = model.group().toString()
   if (!AndroidPluginInfo.isAndroidPlugin(artifactId, groupId)) {
@@ -1088,7 +1087,7 @@ internal fun isUpdatablePluginDependency(toVersion: GradleVersion, model: Artifa
   return if (StringUtil.isEmpty(versionValue) || toVersion.compareTo(versionValue) != 0) ThreeState.YES else ThreeState.NO
 }
 
-internal fun isUpdatablePluginRelatedDependency(toVersion: GradleVersion, model: ArtifactDependencyModel): ThreeState {
+internal fun isUpdatablePluginRelatedDependency(toVersion: AgpVersion, model: ArtifactDependencyModel): ThreeState {
   val artifactId = model.name().forceString()
   val groupId = model.group().toString()
   if (!AndroidPluginInfo.isAndroidPluginOrApi(artifactId, groupId)) {

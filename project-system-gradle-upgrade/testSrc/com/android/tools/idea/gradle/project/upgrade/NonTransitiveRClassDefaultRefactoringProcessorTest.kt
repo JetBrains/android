@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Assert
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -41,37 +40,37 @@ class NonTransitiveRClassDefaultRefactoringProcessorTest : UpgradeGradleFileMode
 
   @Test
   fun testReadMoreUrl() {
-    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("7.4.0"))
+    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("7.4.0"))
     assertEquals("https://developer.android.com/r/tools/upgrade-assistant/non-transitive-r-class-default", processor.getReadMoreUrl())
   }
 
   @Test
   fun testIsDisabledFor740() {
-    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("7.4.0"))
+    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("7.4.0"))
     assertFalse(processor.isEnabled)
   }
 
   @Test
   fun testIsEnabledFor800Beta01() {
-    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0-beta01"))
+    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0-beta01"))
     assertTrue(processor.isEnabled)
   }
 
   @Test
   fun testIsEnabledFrom740() {
-    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("7.4.0"), GradleVersion.parse("8.0.0"))
+    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, AgpVersion.parse("7.4.0"), AgpVersion.parse("8.0.0"))
     assertTrue(processor.isEnabled)
   }
 
   @Test
   fun testIsDisabledFrom800Beta01() {
-    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("8.0.0-beta01"), GradleVersion.parse("8.0.0"))
+    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0-beta01"), AgpVersion.parse("8.0.0"))
     assertFalse(processor.isEnabled)
   }
 
   @Test
   fun testIsEnabledFor800Release() {
-    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
+    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0"))
     assertTrue(processor.isEnabled)
   }
 
@@ -88,7 +87,7 @@ class NonTransitiveRClassDefaultRefactoringProcessorTest : UpgradeGradleFileMode
       ("8.0.0-rc01" to "8.0.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST
     )
     expectedNecessitiesMap.forEach { (t, u) ->
-      val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
+      val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
       assertEquals("${t.first} to ${t.second}", u, processor.necessity())
     }
   }
@@ -96,14 +95,14 @@ class NonTransitiveRClassDefaultRefactoringProcessorTest : UpgradeGradleFileMode
   @Test
   fun testEmptyProperties() {
     writeToGradlePropertiesFile(TestFileName("NonTransitiveRClassDefault/Empty"))
-    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
+    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyGradlePropertiesFileContents(gradlePropertiesFile, TestFileName("NonTransitiveRClassDefault/EmptyExpected"))
   }
   @Test
   fun testFalse() {
     writeToGradlePropertiesFile(TestFileName("NonTransitiveRClassDefault/False"))
-    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
+    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyGradlePropertiesFileContents(gradlePropertiesFile, TestFileName("NonTransitiveRClassDefault/False"))
   }
@@ -111,7 +110,7 @@ class NonTransitiveRClassDefaultRefactoringProcessorTest : UpgradeGradleFileMode
   @Test
   fun testTrue() {
     writeToGradlePropertiesFile(TestFileName("NonTransitiveRClassDefault/True"))
-    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
+    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyGradlePropertiesFileContents(gradlePropertiesFile, TestFileName("NonTransitiveRClassDefault/True"))
   }
@@ -119,7 +118,7 @@ class NonTransitiveRClassDefaultRefactoringProcessorTest : UpgradeGradleFileMode
   @Test
   fun testMissingGradleProperties() {
     runWriteAction { gradlePropertiesFile.delete(this) }
-    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
+    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     val newGradlePropertiesFile = projectRule.fixture.tempDirFixture.getFile("gradle.properties")
     assertNotNull(newGradlePropertiesFile)

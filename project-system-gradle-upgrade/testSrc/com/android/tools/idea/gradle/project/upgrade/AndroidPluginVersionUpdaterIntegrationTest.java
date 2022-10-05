@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.UpdateResult;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
@@ -58,7 +57,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
     loadProject(SYNC_MULTIPROJECT);
     setAndroidPluginVersion("1.0.0");
 
-    UpdateResult result = myVersionUpdater.updatePluginVersion(GradleVersion.parse("20.0.0"), null, null);
+    UpdateResult result = myVersionUpdater.updatePluginVersion(AgpVersion.parse("20.0.0"), null, null);
     assertTrue(result.isPluginVersionUpdated());
     assertFalse(result.isGradleVersionUpdated());
 
@@ -73,7 +72,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
 
     setAndroidPluginVersion("20.0.0");
 
-    UpdateResult result = myVersionUpdater.updatePluginVersion(GradleVersion.parse("20.0.0"), null, null);
+    UpdateResult result = myVersionUpdater.updatePluginVersion(AgpVersion.parse("20.0.0"), null, null);
     assertFalse(result.isPluginVersionUpdated());
     assertFalse(result.isGradleVersionUpdated());
 

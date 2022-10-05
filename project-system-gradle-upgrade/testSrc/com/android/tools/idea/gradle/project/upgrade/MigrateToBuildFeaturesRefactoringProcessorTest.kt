@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
@@ -28,7 +28,7 @@ class MigrateToBuildFeaturesRefactoringProcessorTest: UpgradeGradleFileModelTest
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
 
-  fun MigrateToBuildFeaturesRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) =
+  fun MigrateToBuildFeaturesRefactoringProcessor(project: Project, current: AgpVersion, new: AgpVersion) =
     MIGRATE_TO_BUILD_FEATURES_INFO.RefactoringProcessor(project, current, new)
 
   @Test
@@ -42,7 +42,7 @@ class MigrateToBuildFeaturesRefactoringProcessorTest: UpgradeGradleFileModelTest
       ("7.0.0" to "7.1.0") to IRRELEVANT_PAST
     )
     expectedNecessitiesMap.forEach { (t, u) ->
-      val processor = MigrateToBuildFeaturesRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
+      val processor = MigrateToBuildFeaturesRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
       expect.that(processor.necessity()).isEqualTo(u)
     }
   }
@@ -50,7 +50,7 @@ class MigrateToBuildFeaturesRefactoringProcessorTest: UpgradeGradleFileModelTest
   @Test
   fun testViewBindingEnabledLiteral() {
     writeToBuildFile(TestFileName("MigrateToBuildFeatures/ViewBindingEnabledLiteral"))
-    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.0.0"))
+    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateToBuildFeatures/ViewBindingEnabledLiteralExpected"))
   }
@@ -58,7 +58,7 @@ class MigrateToBuildFeaturesRefactoringProcessorTest: UpgradeGradleFileModelTest
   @Test
   fun testViewBindingEnabledReference() {
     writeToBuildFile(TestFileName("MigrateToBuildFeatures/ViewBindingEnabledReference"))
-    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.0.0"))
+    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateToBuildFeatures/ViewBindingEnabledReferenceExpected"))
   }
@@ -66,7 +66,7 @@ class MigrateToBuildFeaturesRefactoringProcessorTest: UpgradeGradleFileModelTest
   @Test
   fun testDataBindingEnabledLiteral() {
     writeToBuildFile(TestFileName("MigrateToBuildFeatures/DataBindingEnabledLiteral"))
-    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.0.0"))
+    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateToBuildFeatures/DataBindingEnabledLiteralExpected"))
   }
@@ -74,7 +74,7 @@ class MigrateToBuildFeaturesRefactoringProcessorTest: UpgradeGradleFileModelTest
   @Test
   fun testDataBindingEnabledReference() {
     writeToBuildFile(TestFileName("MigrateToBuildFeatures/DataBindingEnabledReference"))
-    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.0.0"))
+    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateToBuildFeatures/DataBindingEnabledReferenceExpected"))
   }
@@ -82,7 +82,7 @@ class MigrateToBuildFeaturesRefactoringProcessorTest: UpgradeGradleFileModelTest
   @Test
   fun testBothEnabledLiterals() {
     writeToBuildFile(TestFileName("MigrateToBuildFeatures/BothEnabledLiterals"))
-    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.0.0"))
+    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateToBuildFeatures/BothEnabledLiteralsExpected"))
   }
@@ -90,7 +90,7 @@ class MigrateToBuildFeaturesRefactoringProcessorTest: UpgradeGradleFileModelTest
   @Test
   fun testBothEnabledReference() {
     writeToBuildFile(TestFileName("MigrateToBuildFeatures/BothEnabledReference"))
-    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, GradleVersion.parse("4.1.0"), GradleVersion.parse("7.0.0"))
+    val processor = MigrateToBuildFeaturesRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateToBuildFeatures/BothEnabledReferenceExpected"))
   }

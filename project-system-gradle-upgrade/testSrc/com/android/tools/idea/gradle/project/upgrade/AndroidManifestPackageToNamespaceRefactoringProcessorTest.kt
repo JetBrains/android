@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.google.common.truth.Expect
 import com.intellij.openapi.application.runWriteAction
@@ -59,14 +59,14 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
       ("8.0.0" to "8.1.0") to IRRELEVANT_PAST
     )
     expectedNecessitiesMap.forEach { (t, u) ->
-      val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
+      val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
       expect.that(processor.necessity()).isEqualTo(u)
     }
   }
 
   @Test
   fun testReadMoreUrl() {
-    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("7.0.0"))
+    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("7.0.0"))
     assertEquals("https://developer.android.com/r/tools/upgrade-assistant/manifest-package-deprecated", processor.getReadMoreUrl())
   }
 
@@ -74,7 +74,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
   fun testPackageToNamespace() {
     writeToBuildFile(TestFileName("AndroidManifestPackageToNamespace/PackageToNamespace"))
     writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithPackage"))
-    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("7.0.0"))
+    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("7.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("AndroidManifestPackageToNamespace/PackageToNamespaceExpected"))
@@ -85,7 +85,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
   fun testPackageToConflictingNamespace() {
     writeToBuildFile(TestFileName("AndroidManifestPackageToNamespace/PackageToConflictingNamespace"))
     writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithPackage"))
-    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("7.0.0"))
+    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("7.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("AndroidManifestPackageToNamespace/PackageToConflictingNamespaceExpected"))
@@ -97,7 +97,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
     writeToBuildFile(TestFileName("AndroidManifestPackageToNamespace/PackageToNamespace"))
     writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithPackage"))
     writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithTestPackage"), androidTestManifestFile)
-    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("7.0.0"))
+    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("7.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("AndroidManifestPackageToNamespace/PackageToDefaultTestNamespaceExpected"))
@@ -110,7 +110,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
     writeToBuildFile(TestFileName("AndroidManifestPackageToNamespace/PackageToNamespace"))
     writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithPackage"))
     writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithDifferentTestPackage"), androidTestManifestFile)
-    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("7.0.0"))
+    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("7.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("AndroidManifestPackageToNamespace/PackageToNamespaceWithDifferentTestNamespaceExpected"))
@@ -123,7 +123,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessorTest : UpgradeGradleF
     writeToBuildFile(TestFileName("AndroidManifestPackageToNamespace/PackageToNamespace"))
     writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithPackage"))
     writeToManifestFile(TestFileName("AndroidManifestPackageToNamespace/ManifestWithPackage"), androidTestManifestFile)
-    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("7.0.0"))
+    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("7.0.0"))
     assertTrue(processor.isBlocked)
   }
 

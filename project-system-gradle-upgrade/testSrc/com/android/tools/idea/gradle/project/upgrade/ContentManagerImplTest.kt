@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.HtmlLabel
@@ -905,7 +904,7 @@ class ContentManagerImplTest {
     val toolWindowModel = ToolWindowModel(project, { null })
     val knownVersions = listOf("4.1.0", "20000.1.0").map { AgpVersion.parse(it) }.toSet().union(setOf(latestAgpVersion))
     val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
-    assertThat(suggestedVersions).isEqualTo(listOf<GradleVersion>())
+    assertThat(suggestedVersions).isEqualTo(listOf<AgpVersion>())
   }
 
   @Test

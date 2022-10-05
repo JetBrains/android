@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildMainSourceProviderStub
@@ -32,14 +32,14 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
 
   @Test
   fun testReadMoreUrl() {
-    val processor = AidlDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     assertEquals("https://developer.android.com/r/tools/upgrade-assistant/aidl-default", processor.getReadMoreUrl())
   }
 
   @Test
   fun testNoAidlDirectory() {
     writeToBuildFile(TestFileName("AidlDefault/NoAidlDeclaration"))
-    val processor = AidlDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AidlDefault/NoAidlDeclaration"))
   }
@@ -50,7 +50,7 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     runWriteAction {
       projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/aidl")
     }
-    val processor = AidlDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AidlDefault/NoAidlDeclaration"))
   }
@@ -62,7 +62,7 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
       projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/aidl")
       projectRule.fixture.tempDirFixture.createFile("src/main/aidl/foo.aidl", "foo\n")
     }
-    val processor = AidlDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AidlDefault/AidlDeclarationAdded"))
   }
@@ -74,7 +74,7 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
       projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/aidl")
       projectRule.fixture.tempDirFixture.createFile("src/main/aidl/foo.aidl", "foo\n")
     }
-    val processor = AidlDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AidlDefault/AidlFalse"))
   }
@@ -86,7 +86,7 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
       projectRule.fixture.tempDirFixture.findOrCreateDir("src/main/aidl")
       projectRule.fixture.tempDirFixture.createFile("src/main/aidl/foo.aidl", "foo\n")
     }
-    val processor = AidlDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AidlDefault/AidlTrue"))
   }
@@ -99,7 +99,7 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
       projectRule.fixture.tempDirFixture.createFile("src/main/aidl/foo.aidl", "foo\n")
       projectRule.fixture.tempDirFixture.createFile("gradle.properties", "android.defaults.buildfeatures.aidl=FaLsE")
     }
-    val processor = AidlDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AidlDefault/NoAidlDeclaration"))
   }
@@ -112,7 +112,7 @@ class AidlDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
       projectRule.fixture.tempDirFixture.createFile("src/main/aidl/foo.aidl", "foo\n")
       projectRule.fixture.tempDirFixture.createFile("gradle.properties", "android.defaults.buildfeatures.aidl=TrUe")
     }
-    val processor = AidlDefaultRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = AidlDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("AidlDefault/NoAidlDeclaration"))
   }

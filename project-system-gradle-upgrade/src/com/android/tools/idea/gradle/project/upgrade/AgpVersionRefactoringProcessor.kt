@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
@@ -41,7 +41,7 @@ import java.util.Locale
 
 class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
   override fun necessity() = AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
@@ -91,14 +91,15 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   override fun blockProcessorReasons(): List<BlockReason> =
     listOfNotNull(
       AgpVersionNotFound.takeIf { isAlwaysNoOpForProject && current != new },
-      Pre80MavenPublish.takeIf { isPre80MavenPublish && current < GradleVersion.parse("8.0.0-alpha01") && new >= GradleVersion.parse("8.0.0-alpha01") },
+      Pre80MavenPublish.takeIf { isPre80MavenPublish && current < AgpVersion.parse("8.0.0-alpha01") && new >= AgpVersion.parse("8.0.0-alpha01") },
     )
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     fun addUsagesFor(plugin: PluginModel) {
       if (plugin.name().toString().startsWith("com.android")) {
-        val version = GradleVersion.tryParse(plugin.version().toString()) ?: return
+        val versionString = plugin.version().getValue(STRING_TYPE) ?: return
+        val version = AgpVersion.tryParse(versionString) ?: return
         if (version == current && version < new)  {
           val resultModel = when (plugin.version().valueType) {
             GradlePropertyModel.ValueType.INTERPOLATED -> {
@@ -211,8 +212,8 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
 class AgpVersionUsageInfo(
   element: WrappedPsiElement,
-  val current: GradleVersion,
-  val new: GradleVersion,
+  val current: AgpVersion,
+  val new: AgpVersion,
   private val resultModel: GradlePropertyModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.agpVersionUsageInfo.tooltipText", current, new)

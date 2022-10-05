@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
@@ -31,7 +30,7 @@ import com.intellij.util.ThreeState
 import org.jetbrains.android.util.AndroidBundle
 
 class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
   override fun necessity() = AgpUpgradeComponentNecessity.standardPointNecessity(current, new, AgpVersion(3, 0, 0))

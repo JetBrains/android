@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
@@ -34,7 +35,7 @@ import org.jetbrains.android.util.AndroidBundle
 
 class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new) {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new) {
     this.compatibleGradleVersion = getCompatibleGradleVersion(new)
   }
   constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor) {

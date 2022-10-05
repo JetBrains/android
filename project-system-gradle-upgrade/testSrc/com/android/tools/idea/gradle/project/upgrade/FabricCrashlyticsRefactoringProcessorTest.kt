@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.Assert.assertNotNull
 import junit.framework.Assert.assertTrue
@@ -33,21 +33,21 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
       ("4.1.0" to "4.2.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST
     )
     expectedNecessitiesMap.forEach { (t, u) ->
-      val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
+      val processor = FabricCrashlyticsRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
       Assert.assertEquals(u, processor.necessity())
     }
   }
 
   @Test
   fun testReadMoreUrl() {
-    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
     assertEquals("https://developer.android.com/r/tools/upgrade-assistant/fabric-crashlytics", processor.getReadMoreUrl())
   }
 
   @Test
   fun testClasspathDependencies() {
     writeToBuildFile(TestFileName("FabricCrashlytics/FabricClasspathDependencies"))
-    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("FabricCrashlytics/FabricClasspathDependenciesExpected"))
   }
@@ -55,7 +55,7 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testIsAlwaysNoOpOnFabricClasspathDependenciesExpected() {
     writeToBuildFile(TestFileName("FabricCrashlytics/FabricClasspathDependenciesExpected"))
-    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
     Assert.assertTrue(processor.isAlwaysNoOpForProject)
     processor.run()
     verifyFileContents(buildFile, TestFileName("FabricCrashlytics/FabricClasspathDependenciesExpected"))
@@ -64,7 +64,7 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testFabricSdk() {
     writeToBuildFile(TestFileName("FabricCrashlytics/FabricSdk"))
-    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("FabricCrashlytics/FabricSdkExpected"))
   }
@@ -72,7 +72,7 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testIsAlwaysNoOpOnFabricSdkExpected() {
     writeToBuildFile(TestFileName("FabricCrashlytics/FabricSdkExpected"))
-    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
     Assert.assertTrue(processor.isAlwaysNoOpForProject)
     processor.run()
     verifyFileContents(buildFile, TestFileName("FabricCrashlytics/FabricSdkExpected"))
@@ -81,7 +81,7 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testFabricSdkWithNdk() {
     writeToBuildFile(TestFileName("FabricCrashlytics/FabricSdkWithNdk"))
-    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("FabricCrashlytics/FabricSdkWithNdkExpected"))
   }
@@ -89,7 +89,7 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testFabricSdkWithNdkAndFirebaseDependencies() {
     writeToBuildFile(TestFileName("FabricCrashlytics/FabricSdkWithNdkAndFirebaseDependencies"))
-    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("FabricCrashlytics/FabricSdkWithNdkAndFirebaseDependenciesExpected"))
   }
@@ -97,7 +97,7 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testIsAlwaysNoOpOnFabricSdkWithNdkExpected() {
     writeToBuildFile(TestFileName("FabricCrashlytics/FabricSdkWithNdkExpected"))
-    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
     Assert.assertTrue(processor.isAlwaysNoOpForProject)
     processor.run()
     verifyFileContents(buildFile, TestFileName("FabricCrashlytics/FabricSdkWithNdkExpected"))
@@ -106,7 +106,7 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testIsAlwaysNoOpOnNonFabric() {
     writeToBuildFile(TestFileName("FabricCrashlytics/NonFabric"))
-    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
     Assert.assertTrue(processor.isAlwaysNoOpForProject)
     processor.run()
     verifyFileContents(buildFile, TestFileName("FabricCrashlytics/NonFabric"))
@@ -115,7 +115,7 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testFabricClasspathDependenciesTooltipsNotNull() {
     writeToBuildFile(TestFileName("FabricCrashlytics/FabricClasspathDependencies"))
-    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
     val usages = processor.findUsages()
     assertTrue(usages.isNotEmpty())
     usages.forEach { assertNotNull(it.tooltipText) }
@@ -124,7 +124,7 @@ class FabricCrashlyticsRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testFabricSdkWithNdkTooltipsNotNull() {
     writeToBuildFile(TestFileName("FabricCrashlytics/FabricSdkWithNdk"))
-    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.2.0"))
     val usages = processor.findUsages()
     assertTrue(usages.isNotEmpty())
     usages.forEach { assertNotNull(it.tooltipText) }

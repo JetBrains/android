@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.ACCEPT_NEW_DEFAULT
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.INSERT_OLD_DEFAULT
@@ -45,7 +45,7 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
       field = value
     }
 
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
   override fun necessity() = AgpUpgradeComponentNecessity.standardPointNecessity(current, new, ACTIVATED_VERSION)
@@ -134,7 +134,7 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
   }
 
   companion object {
-    val ACTIVATED_VERSION = GradleVersion.parse("8.0.0-alpha01")
+    val ACTIVATED_VERSION = AgpVersion.parse("8.0.0-alpha01")
 
     val EXISTING_PROPERTY_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.r8FullModeDefaultRefactoringProcessor.existingDirectiveUsageType"))
     val ACCEPT_NEW_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.r8FullModeDefaultRefactoringProcessor.acceptNewUsageType"))

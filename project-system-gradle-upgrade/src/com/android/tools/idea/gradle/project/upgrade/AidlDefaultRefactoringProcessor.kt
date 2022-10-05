@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.projectsystem.isMainModule
@@ -32,10 +32,10 @@ import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.util.AndroidBundle
 
 class AidlDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = AgpUpgradeComponentNecessity.standardPointNecessity(current, new, GradleVersion.parse("8.0.0-alpha04"))
+  override fun necessity() = AgpUpgradeComponentNecessity.standardPointNecessity(current, new, AgpVersion.parse("8.0.0-alpha04"))
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()

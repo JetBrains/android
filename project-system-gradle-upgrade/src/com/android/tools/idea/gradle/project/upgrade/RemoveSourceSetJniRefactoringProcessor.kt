@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind
 import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.util.AndroidBundle
@@ -27,8 +27,8 @@ val SOURCE_SET_JNI_INFO = RemovePropertiesInfo(
 )
 
 val REMOVE_SOURCE_SET_JNI_INFO = PropertiesOperationsRefactoringInfo(
-  optionalFromVersion = GradleVersion.parse("7.0.0-alpha06"),
-  requiredFromVersion = GradleVersion.parse("8.0.0"),
+  optionalFromVersion = AgpVersion.parse("7.0.0-alpha06"),
+  requiredFromVersion = AgpVersion.parse("8.0.0"),
   commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.commandName"),
   shortDescriptionSupplier = { """
     The jni block in an android sourceSet does nothing, and will be removed

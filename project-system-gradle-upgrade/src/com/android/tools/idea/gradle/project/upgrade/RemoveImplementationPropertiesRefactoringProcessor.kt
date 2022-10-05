@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder
@@ -32,7 +32,7 @@ import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.util.AndroidBundle
 
 class RemoveImplementationPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
   // This cannot be expressed as a point or region necessity, because although the implementation classes backing these properties
@@ -41,8 +41,8 @@ class RemoveImplementationPropertiesRefactoringProcessor: AgpUpgradeComponentRef
   // We cannot make it required by 7.0.0-alpha, though, because users might mistakenly include those properties in Groovy files without
   // receiving errors or even deprecation notices during the 7.x series.
   override fun necessity(): AgpUpgradeComponentNecessity = when {
-    new < GradleVersion.parse("7.0.0-alpha13") -> OPTIONAL_INDEPENDENT
-    current > GradleVersion.parse("8.0.0") -> IRRELEVANT_PAST
+    new < AgpVersion.parse("7.0.0-alpha13") -> OPTIONAL_INDEPENDENT
+    current > AgpVersion.parse("8.0.0") -> IRRELEVANT_PAST
     else -> MANDATORY_INDEPENDENT
   }
 

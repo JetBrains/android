@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Test
 
@@ -24,7 +24,7 @@ class RemoveImplementationPropertiesRefactoringProcessorTest: UpgradeGradleFileM
   @Test
   fun testDynamicFeature420Template() {
     writeToBuildFile(TestFileName("RemoveImplementationProperties/DynamicFeature420Template"))
-    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("RemoveImplementationProperties/DynamicFeature420TemplateExpected"))
@@ -33,7 +33,7 @@ class RemoveImplementationPropertiesRefactoringProcessorTest: UpgradeGradleFileM
   @Test
   fun testApplicationEverything() {
     writeToBuildFile(TestFileName("RemoveImplementationProperties/ApplicationEverything"))
-    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("RemoveImplementationProperties/ApplicationEverythingExpected"))
@@ -42,7 +42,7 @@ class RemoveImplementationPropertiesRefactoringProcessorTest: UpgradeGradleFileM
   @Test
   fun testDynamicFeatureEverything() {
     writeToBuildFile(TestFileName("RemoveImplementationProperties/DynamicFeatureEverything"))
-    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("RemoveImplementationProperties/DynamicFeatureEverythingExpected"))
@@ -51,7 +51,7 @@ class RemoveImplementationPropertiesRefactoringProcessorTest: UpgradeGradleFileM
   @Test
   fun testLibraryEverything() {
     writeToBuildFile(TestFileName("RemoveImplementationProperties/LibraryEverything"))
-    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("RemoveImplementationProperties/LibraryEverythingExpected"))
@@ -60,7 +60,7 @@ class RemoveImplementationPropertiesRefactoringProcessorTest: UpgradeGradleFileM
   @Test
   fun testTestEverything() {
     writeToBuildFile(TestFileName("RemoveImplementationProperties/TestEverything"))
-    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("RemoveImplementationProperties/TestEverythingExpected"))
@@ -69,7 +69,7 @@ class RemoveImplementationPropertiesRefactoringProcessorTest: UpgradeGradleFileM
   @Test
   fun testPluginsDslRoot() {
     writeToBuildFile(TestFileName("RemoveImplementationProperties/PluginsDslRoot"))
-    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("RemoveImplementationProperties/PluginsDslRoot"))

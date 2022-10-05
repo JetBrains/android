@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind
 import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.util.AndroidBundle
 
 val MIGRATE_JACOCO_TO_TEST_COVERAGE =
   PropertiesOperationsRefactoringInfo(
-    optionalFromVersion = GradleVersion.parse("7.0.1"),
-    requiredFromVersion = GradleVersion.parse("9.0.0-alpha01"),
+    optionalFromVersion = AgpVersion.parse("7.0.1"),
+    requiredFromVersion = AgpVersion.parse("9.0.0-alpha01"),
     commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToTestCoverageRefactoringProcessor.commandName"),
     shortDescriptionSupplier = { """
       Configuration related to test coverage is now performed using

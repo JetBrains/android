@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
@@ -38,7 +38,7 @@ import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.util.AndroidBundle
 
 class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
   override fun necessity() = standardRegionNecessity(current, new, COMPATIBLE_WITH, INCOMPATIBLE_VERSION)
@@ -245,8 +245,8 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
   override val readMoreUrlRedirect = ReadMoreUrlRedirect("fabric-crashlytics")
 
   companion object {
-    val COMPATIBLE_WITH = GradleVersion.parse("3.4.0")
-    val INCOMPATIBLE_VERSION = GradleVersion.parse("4.1.0-alpha05") // see b/154302886
+    val COMPATIBLE_WITH = AgpVersion.parse("3.4.0")
+    val INCOMPATIBLE_VERSION = AgpVersion.parse("4.1.0-alpha05") // see b/154302886
 
     val REMOVE_FABRIC_REPOSITORY_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricRepositoryUsageType"))
     val ADD_GMAVEN_REPOSITORY_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addGmavenRepositoryUsageType"))

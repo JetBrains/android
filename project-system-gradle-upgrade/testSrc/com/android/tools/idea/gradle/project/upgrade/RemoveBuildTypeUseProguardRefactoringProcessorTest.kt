@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
@@ -27,7 +27,7 @@ class RemoveBuildTypeUseProguardRefactoringProcessorTest : UpgradeGradleFileMode
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
 
-  fun RemoveBuildTypeUseProguardRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) =
+  fun RemoveBuildTypeUseProguardRefactoringProcessor(project: Project, current: AgpVersion, new: AgpVersion) =
     REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(project, current, new)
 
   @Test
@@ -41,7 +41,7 @@ class RemoveBuildTypeUseProguardRefactoringProcessorTest : UpgradeGradleFileMode
       ("7.0.0" to "7.1.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST
     )
     expectedNecessitiesMap.forEach { (t, u) ->
-      val processor = RemoveBuildTypeUseProguardRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
+      val processor = RemoveBuildTypeUseProguardRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
       expect.that(processor.necessity()).isEqualTo(u)
     }
   }
@@ -49,7 +49,7 @@ class RemoveBuildTypeUseProguardRefactoringProcessorTest : UpgradeGradleFileMode
   @Test
   fun testRemoveUseProguardOneBuildType() {
     writeToBuildFile(TestFileName("RemoveBuildTypeUseProguard/OneBuildType"))
-    val processor = RemoveBuildTypeUseProguardRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    val processor = RemoveBuildTypeUseProguardRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RemoveBuildTypeUseProguard/OneBuildTypeExpected"))
   }
@@ -57,7 +57,7 @@ class RemoveBuildTypeUseProguardRefactoringProcessorTest : UpgradeGradleFileMode
   @Test
   fun testRemoveUseProguardTwoBuildTypes() {
     writeToBuildFile(TestFileName("RemoveBuildTypeUseProguard/TwoBuildTypes"))
-    val processor = RemoveBuildTypeUseProguardRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    val processor = RemoveBuildTypeUseProguardRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RemoveBuildTypeUseProguard/TwoBuildTypesExpected"))
   }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind
 import com.intellij.usages.impl.rules.UsageType
@@ -23,8 +23,8 @@ import org.jetbrains.android.util.AndroidBundle
 
 val MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS =
   PropertiesOperationsRefactoringInfo(
-    optionalFromVersion = GradleVersion.parse("7.0.0-alpha13"),
-    requiredFromVersion = GradleVersion.parse("9.0.0-alpha01"),
+    optionalFromVersion = AgpVersion.parse("7.0.0-alpha13"),
+    requiredFromVersion = AgpVersion.parse("9.0.0-alpha01"),
     commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToEmulatorSnapshotsRefactoringProcessor.commandName"),
     shortDescriptionSupplier = { """
         Configuration related to retention of snapshots from the emulator is

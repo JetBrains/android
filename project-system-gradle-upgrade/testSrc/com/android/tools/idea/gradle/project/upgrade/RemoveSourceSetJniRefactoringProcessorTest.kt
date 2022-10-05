@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
@@ -28,7 +28,7 @@ class RemoveSourceSetJniRefactoringProcessorTest: UpgradeGradleFileModelTestCase
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
 
-  fun RemoveSourceSetJniRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) =
+  fun RemoveSourceSetJniRefactoringProcessor(project: Project, current: AgpVersion, new: AgpVersion) =
     REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(project, current, new)
 
   @Test
@@ -42,7 +42,7 @@ class RemoveSourceSetJniRefactoringProcessorTest: UpgradeGradleFileModelTestCase
       ("8.0.0" to "8.1.0") to IRRELEVANT_PAST
     )
     expectedNecessitiesMap.forEach { (t, u) ->
-      val processor = RemoveSourceSetJniRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
+      val processor = RemoveSourceSetJniRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
       expect.that(processor.necessity()).isEqualTo(u)
     }
   }
@@ -50,7 +50,7 @@ class RemoveSourceSetJniRefactoringProcessorTest: UpgradeGradleFileModelTestCase
   @Test
   fun testRemoveJniSingleBlock() {
     writeToBuildFile(TestFileName("RemoveSourceSetJni/SingleBlock"))
-    val processor = RemoveSourceSetJniRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = RemoveSourceSetJniRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RemoveSourceSetJni/SingleBlockExpected"))
   }
@@ -58,7 +58,7 @@ class RemoveSourceSetJniRefactoringProcessorTest: UpgradeGradleFileModelTestCase
   @Test
   fun testRemoveJniSingleStatement() {
     writeToBuildFile(TestFileName("RemoveSourceSetJni/SingleStatement"))
-    val processor = RemoveSourceSetJniRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = RemoveSourceSetJniRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RemoveSourceSetJni/SingleStatementExpected"))
   }
@@ -66,7 +66,7 @@ class RemoveSourceSetJniRefactoringProcessorTest: UpgradeGradleFileModelTestCase
   @Test
   fun testRemoveJniBlockAndStatement() {
     writeToBuildFile(TestFileName("RemoveSourceSetJni/BlockAndStatement"))
-    val processor = RemoveSourceSetJniRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = RemoveSourceSetJniRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RemoveSourceSetJni/BlockAndStatementExpected"))
   }
@@ -74,7 +74,7 @@ class RemoveSourceSetJniRefactoringProcessorTest: UpgradeGradleFileModelTestCase
   @Test
   fun testRemoveJniStatementAndBlock() {
     writeToBuildFile(TestFileName("RemoveSourceSetJni/StatementAndBlock"))
-    val processor = RemoveSourceSetJniRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    val processor = RemoveSourceSetJniRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("RemoveSourceSetJni/StatementAndBlockExpected"))
   }
