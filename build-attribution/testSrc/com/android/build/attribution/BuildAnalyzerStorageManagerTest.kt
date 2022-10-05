@@ -25,14 +25,15 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
-import com.intellij.testFramework.UsefulTestCase.assertThrows
+import com.intellij.openapi.application.ApplicationManager
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import java.io.IOException
 import java.util.UUID
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 
 class BuildAnalyzerStorageManagerTest {
   @get:Rule
@@ -69,7 +70,7 @@ class BuildAnalyzerStorageManagerTest {
     BuildAnalyzerStorageManager.getInstance(projectRule.project)
       .storeNewBuildResults(buildAnalyzerResultData.analyzersProxy,
                             buildAnalyzerResultData.buildID,
-                            buildAnalyzerResultData.buildRequestHolder)
+                            buildAnalyzerResultData.buildRequestHolder).get()
     Truth.assertThat(
       BuildAnalyzerStorageManager
         .getInstance(projectRule.project).getSuccessfulResult().getBuildSessionID()
@@ -86,7 +87,7 @@ class BuildAnalyzerStorageManagerTest {
     BuildAnalyzerStorageManager.getInstance(projectRule.project)
       .storeNewBuildResults(buildAnalyzerResultData.analyzersProxy,
                             buildAnalyzerResultData.buildID,
-                            buildAnalyzerResultData.buildRequestHolder)
+                            buildAnalyzerResultData.buildRequestHolder).get()
     Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildDescriptors()).isEmpty()
   }
 
@@ -104,31 +105,31 @@ class BuildAnalyzerStorageManagerTest {
     BuildAnalyzerStorageManager.getInstance(projectRule.project)
       .storeNewBuildResults(buildAnalyzerResultData.analyzersProxy,
                             buildAnalyzerResultData.buildID,
-                            buildAnalyzerResultData.buildRequestHolder)
+                            buildAnalyzerResultData.buildRequestHolder).get()
     Truth.assertThat(listenerInvocationCounter).isEqualTo(1)
   }
 
   @Test
   fun testBuildResultsAreCleared() {
     StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
-    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildFilesStored()).isEqualTo(0)
+    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildResultsStored()).isEqualTo(0)
     BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
       BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
       "someID",
       BuildRequestHolder(
         GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
       )
-    )
+    ).get()
     BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
       BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
       "someID2",
       BuildRequestHolder(
         GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
       )
-    )
-    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildFilesStored()).isEqualTo(2)
-    BuildAnalyzerStorageManager.getInstance(projectRule.project).clearBuildResultsStored()
-    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildFilesStored()).isEqualTo(0)
+    ).get()
+    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildResultsStored()).isEqualTo(2)
+    BuildAnalyzerStorageManager.getInstance(projectRule.project).clearBuildResultsStored().get()
+    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildResultsStored()).isEqualTo(0)
   }
 
   @Test
@@ -145,7 +146,7 @@ class BuildAnalyzerStorageManagerTest {
       storageManager.storeNewBuildResults(
         buildAnalyzerResultData.analyzersProxy,
         buildAnalyzerResultData.buildID,
-        buildAnalyzerResultData.buildRequestHolder)
+        buildAnalyzerResultData.buildRequestHolder).get()
 
       Truth.assertThat(storageManager.getListOfHistoricBuildDescriptors().size)
         .isEqualTo(cntRecords)
@@ -154,6 +155,9 @@ class BuildAnalyzerStorageManagerTest {
       .isEqualTo(limitSizeHistory)
 
     val addAdditional = 5
+
+    val checkNotExists = mutableListOf<BuildDescriptor>()
+
     repeat(addAdditional) { countOver ->
       val oldest = storageManager.getListOfHistoricBuildDescriptors()
         .minByOrNull { descriptor -> descriptor.buildFinishedTimestamp }
@@ -170,20 +174,17 @@ class BuildAnalyzerStorageManagerTest {
       storageManager.storeNewBuildResults(
         buildAnalyzerResultData.analyzersProxy,
         buildAnalyzerResultData.buildID,
-        buildAnalyzerResultData.buildRequestHolder)
+        buildAnalyzerResultData.buildRequestHolder).get()
 
-      PathSubject.assertThat(File(oldest.buildSessionID)).doesNotExist()
-      Truth.assertThat(storageManager.descriptors.find { it.buildSessionID == oldest.buildSessionID }).isNull()
-      assertThrows(IOException::class.java) {
-        BuildAnalyzerStorageManager.getInstance(projectRule.project).getHistoricBuildResultByID(oldest.buildSessionID)
-      }
+      checkNotExists.add(oldest)
     }
 
-    // Check that all needed files are stored
-    for (recordNumber in addAdditional until totalAdded) {
-      val dataFile = storageManager.fileManager.getFileFromBuildID("$recordNumber")
-      PathSubject.assertThat(dataFile).exists()
+    for (oldest in checkNotExists) {
+      Truth.assertThat(
+        storageManager.descriptors.find { it.buildSessionID == oldest.buildSessionID }).isNull() // TODO mock and check cleanups separate
     }
+
+    Truth.assertThat(storageManager.getNumberOfBuildResultsStored()).isAtMost(limitSizeHistory)
   }
 
   @Test
@@ -198,7 +199,7 @@ class BuildAnalyzerStorageManagerTest {
       storageManager.storeNewBuildResults(
         buildAnalyzerResultData.analyzersProxy,
         buildAnalyzerResultData.buildID,
-        buildAnalyzerResultData.buildRequestHolder)
+        buildAnalyzerResultData.buildRequestHolder).get()
 
       Truth.assertThat(storageManager.getListOfHistoricBuildDescriptors().size)
         .isEqualTo(totalAdded + 1)
@@ -207,7 +208,7 @@ class BuildAnalyzerStorageManagerTest {
       .isEqualTo(limitSizeHistory)
     val newLimitSizeHistory = limitSizeHistory / 2
     BuildAnalyzerSettings.getInstance(projectRule.project).settingsState.maxNumberOfBuildsStored = newLimitSizeHistory
-    BuildAnalyzerConfigurableProvider(projectRule.project).createConfigurable().apply() // Apply settings change
+    BuildAnalyzerStorageManager.getInstance(projectRule.project).onSettingsChange().get()
     Truth.assertThat(storageManager.getListOfHistoricBuildDescriptors().size)
       .isEqualTo(newLimitSizeHistory)
 
@@ -217,15 +218,136 @@ class BuildAnalyzerStorageManagerTest {
     }
   }
 
+  @Test
+  fun `test synchronous adding`() {
+    StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
+    val limitSizeHistory = BuildAnalyzerSettings.getInstance(projectRule.project).settingsState.maxNumberOfBuildsStored
+    val operationManager = OperationManager()
+    val totalAdded = AtomicLong(0)
+    val task1: () -> Boolean = {
+      repeat(limitSizeHistory) {
+        operationManager.store(storeBuildAnalyzerResultData(buildID = "task1-$it",
+                                                            buildFinishedTimestamp = totalAdded.getAndIncrement()))
+      }
+      true
+    }
+    val task2: () -> Boolean = {
+      repeat(limitSizeHistory) {
+        operationManager.store(storeBuildAnalyzerResultData(buildID = "task2-$it",
+                                                            buildFinishedTimestamp = totalAdded.getAndIncrement()))
+      }
+      true
+    }
+    val thread1 = ApplicationManager.getApplication().executeOnPooledThread(task1)
+    val thread2 = ApplicationManager.getApplication().executeOnPooledThread(task2)
+    Truth.assertThat(thread1.get(2, TimeUnit.SECONDS)).isTrue()
+    Truth.assertThat(thread2.get(2, TimeUnit.SECONDS)).isTrue()
+    operationManager.awaitAll()
+
+    val descriptorsTimeFinished = BuildAnalyzerStorageManager.getInstance(projectRule.project)
+      .getListOfHistoricBuildDescriptors().map { it.buildFinishedTimestamp }
+    Truth.assertThat(descriptorsTimeFinished).containsExactlyElementsIn((limitSizeHistory) until totalAdded.get())
+  }
+
+  @Test
+  fun `test synchronous adding and deleting`() {
+    StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
+    val limitSizeHistory = BuildAnalyzerSettings.getInstance(projectRule.project).settingsState.maxNumberOfBuildsStored
+    val operationManager = OperationManager()
+    val totalAdded = AtomicLong(0)
+    val task1: () -> Boolean = {
+      repeat(limitSizeHistory) {
+        operationManager.store(storeBuildAnalyzerResultData(buildID = "task1-$it",
+                                                            buildFinishedTimestamp = totalAdded.getAndIncrement()))
+      }
+      (0 until limitSizeHistory).reversed().forEach {
+        (BuildAnalyzerStorageManager.getInstance(projectRule.project) as BuildAnalyzerStorageManagerImpl)
+                                 .deleteHistoricBuildResultByID("task1-$it")
+      }
+      true
+    }
+    val task2: () -> Boolean = {
+      repeat(limitSizeHistory * 2) {
+        operationManager.store(storeBuildAnalyzerResultData(buildID = "task2-$it",
+                                                            buildFinishedTimestamp = totalAdded.getAndIncrement()))
+      }
+      true
+    }
+    val thread1 = ApplicationManager.getApplication().executeOnPooledThread(task1)
+    val thread2 = ApplicationManager.getApplication().executeOnPooledThread(task2)
+    Truth.assertThat(thread1.get(2, TimeUnit.SECONDS)).isTrue()
+    Truth.assertThat(thread2.get(2, TimeUnit.SECONDS)).isTrue()
+    operationManager.awaitAll()
+    val descriptors = BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildDescriptors()
+    assertDescriptorsAreSequentiallyThatStartsWith(descriptors, "task2-", limitSizeHistory)
+  }
+
+  @Test
+  fun `test clear while adding`() {
+    StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
+    val limitSizeHistory = BuildAnalyzerSettings.getInstance(projectRule.project).settingsState.maxNumberOfBuildsStored
+    val operatorManager = OperationManager()
+    val totalAdded = AtomicLong(0)
+    val task1: () -> Boolean = {
+      repeat(2 * limitSizeHistory) {
+        operatorManager.store(storeBuildAnalyzerResultData(buildID = "task1-$it",
+                                                           buildFinishedTimestamp = totalAdded.getAndIncrement()))
+      }
+      true
+    }
+    val task2: () -> Boolean = {
+      repeat(limitSizeHistory) {
+        operatorManager.store(storeBuildAnalyzerResultData(buildID = "task2-$it",
+                                                           buildFinishedTimestamp = totalAdded.getAndIncrement()))
+      }
+      operatorManager.store(BuildAnalyzerStorageManager.getInstance(projectRule.project).clearBuildResultsStored())
+      true
+    }
+    val thread1 = ApplicationManager.getApplication().executeOnPooledThread(task1)
+    val thread2 = ApplicationManager.getApplication().executeOnPooledThread(task2)
+    Truth.assertThat(thread1.get(2, TimeUnit.SECONDS)).isTrue()
+    Truth.assertThat(thread2.get(2, TimeUnit.SECONDS)).isTrue()
+    operatorManager.awaitAll()
+    val descriptors = BuildAnalyzerStorageManager.getInstance(projectRule.project).getListOfHistoricBuildDescriptors()
+    assertDescriptorsAreSequentiallyThatStartsWith(descriptors, "task1-", limitSizeHistory)
+  }
+
+  private class OperationManager {
+    private val operations = mutableListOf<Future<*>>()
+
+    fun store(f: Future<*>) {
+      synchronized(this) {
+        operations.add(f)
+      }
+    }
+
+    fun awaitAll() {
+      synchronized(this) {
+        operations.forEach { it.get() }
+        operations.clear()
+      }
+    }
+  }
+
+  private fun assertDescriptorsAreSequentiallyThatStartsWith(descriptors: Set<BuildDescriptor>, startsWith: String, limitSizeHistory: Int) {
+    val idsStartsWith = descriptors.filter { it.buildSessionID.startsWith(startsWith) }.map { it.buildSessionID.substringAfter(startsWith).toLong() }
+
+    Truth.assertThat(descriptors.size).isAtMost(limitSizeHistory)
+    if (idsStartsWith.isNotEmpty()) { // Check that ids goes sequentially
+      val minimumId = idsStartsWith.minOf { it }
+      Truth.assertThat(idsStartsWith.sorted()).containsExactlyElementsIn((minimumId until (minimumId + idsStartsWith.size)))
+    }
+  }
+
   data class BuildAnalyzerResultData(
     val analyzersProxy: BuildEventsAnalyzersProxy,
     val buildID: String,
     val buildRequestHolder: BuildRequestHolder
   )
 
-  fun constructBuildAnalyzerResultData(buildStartedTimestamp: Long = 12345,
-                                       buildFinishedTimestamp: Long = 12345,
-                                       buildID: String = UUID.randomUUID().toString()): BuildAnalyzerResultData {
+  private fun constructBuildAnalyzerResultData(buildStartedTimestamp: Long = 12345,
+                                               buildFinishedTimestamp: Long = 12345,
+                                               buildID: String = UUID.randomUUID().toString()): BuildAnalyzerResultData {
     val taskContainer = TaskContainer()
     val pluginContainer = PluginContainer()
     val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
@@ -240,5 +362,15 @@ class BuildAnalyzerStorageManagerTest {
     val request = GradleBuildInvoker.Request
       .builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
     return BuildAnalyzerResultData(analyzersProxy, buildID, BuildRequestHolder(request))
+  }
+
+  private fun storeBuildAnalyzerResultData(buildStartedTimestamp: Long = 12345,
+                                           buildFinishedTimestamp: Long = 12345,
+                                           buildID: String = UUID.randomUUID().toString()): Future<BuildAnalysisResults> {
+    val result = constructBuildAnalyzerResultData(buildStartedTimestamp, buildFinishedTimestamp, buildID)
+    return BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
+      result.analyzersProxy,
+      result.buildID,
+      result.buildRequestHolder)
   }
 }

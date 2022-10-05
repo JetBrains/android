@@ -52,6 +52,7 @@ import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 import java.util.UUID
+import java.util.concurrent.CompletableFuture
 import javax.swing.JEditorPane
 import javax.swing.JPanel
 
@@ -118,7 +119,8 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
       criticalPathAnalyzerResult = CriticalPathAnalyzer.Result(emptyList(), emptyList(), 0, buildFinishedTimestamp)
     )
-    Mockito.`when`(buildAnalyzerStorageMock.getHistoricBuildResultByID(MockitoKt.eq(buildSessionId))).thenReturn(result)
+    Mockito.`when`(buildAnalyzerStorageMock.getHistoricBuildResultByID(MockitoKt.eq(buildSessionId))).thenReturn(
+      CompletableFuture.completedFuture(result))
 
     buildAttributionUiManager.showBuildAnalysisReportById(buildSessionId)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()

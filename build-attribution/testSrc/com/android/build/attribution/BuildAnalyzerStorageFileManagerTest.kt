@@ -49,7 +49,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.IOException
 import java.time.Duration
 import java.util.UUID
@@ -60,16 +59,6 @@ class BuildAnalyzerStorageFileManagerTest {
 
   @get:Rule
   var tmpFolder: TemporaryFolder = TemporaryFolder()
-
-  @Test
-  fun testClearAll() {
-    repeat(5) {
-      tmpFolder.newFile()
-    }
-    Truth.assertThat(FileUtils.getAllFiles(tmpFolder.root).size()).isEqualTo(5)
-    BuildAnalyzerStorageFileManager(tmpFolder.root).clearAll()
-    Truth.assertThat(FileUtils.getAllFiles(tmpFolder.root).size()).isEqualTo(0)
-  }
 
   @Test
   fun testBuildResultsAreConvertedAndStoredInFile() {
@@ -101,10 +90,10 @@ class BuildAnalyzerStorageFileManagerTest {
     val buildID1 = "build_number_1"
     val buildID2 = "build_number_2"
     fileManager.storeBuildResultsInFile(constructBuildResultsObject(buildID1))
-    Truth.assertThat(fileManager.getNumberOfBuildFilesStored()).isEqualTo(1)
+    Truth.assertThat(countOfFiles(tmpFolder.root)).isEqualTo(1)
 
     fileManager.storeBuildResultsInFile(constructBuildResultsObject(buildID2))
-    Truth.assertThat(fileManager.getNumberOfBuildFilesStored()).isEqualTo(2)
+    Truth.assertThat(countOfFiles(tmpFolder.root)).isEqualTo(2)
   }
 
   @Test
@@ -113,14 +102,14 @@ class BuildAnalyzerStorageFileManagerTest {
     val buildID1 = "build_number_1"
     val buildID2 = "build_number_2"
     fileManager.storeBuildResultsInFile(constructBuildResultsObject(buildID1))
-    Truth.assertThat(fileManager.getNumberOfBuildFilesStored()).isEqualTo(1)
+    Truth.assertThat(countOfFiles(tmpFolder.root)).isEqualTo(1)
 
     fileManager.storeBuildResultsInFile(constructBuildResultsObject(buildID2))
-    Truth.assertThat(fileManager.getNumberOfBuildFilesStored()).isEqualTo(2)
+    Truth.assertThat(countOfFiles(tmpFolder.root)).isEqualTo(2)
     fileManager.deleteHistoricBuildResultByID(buildID1)
-    Truth.assertThat(fileManager.getNumberOfBuildFilesStored()).isEqualTo(1)
+    Truth.assertThat(countOfFiles(tmpFolder.root)).isEqualTo(1)
     fileManager.deleteHistoricBuildResultByID(buildID2)
-    Truth.assertThat(fileManager.getNumberOfBuildFilesStored()).isEqualTo(0)
+    Truth.assertThat(countOfFiles(tmpFolder.root)).isEqualTo(0)
   }
 
   @Test(expected = Throwable::class)
@@ -137,11 +126,14 @@ class BuildAnalyzerStorageFileManagerTest {
     storageManager.getHistoricBuildResultByID("no-such-file")
   }
 
-  @Test(expected = FileNotFoundException::class)
-  fun `delete should throw error if file doesn't exist`() {
+  @Test
+  fun `delete should not throw error if file doesn't exist`() {
     val fileManager = BuildAnalyzerStorageFileManager(tmpFolder.root)
     fileManager.deleteHistoricBuildResultByID("no-such-file")
   }
+
+  private fun countOfFiles(dir: File) =
+    FileUtils.getAllFiles(dir).size()
 
   private fun constructBuildResultsObject(buildID: String = UUID.randomUUID().toString()): BuildAnalysisResults {
     val requestHolder = BuildRequestHolder(

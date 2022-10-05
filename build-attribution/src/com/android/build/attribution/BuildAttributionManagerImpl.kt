@@ -90,7 +90,7 @@ class BuildAttributionManagerImpl(
             analyzersWrapper.onBuildSuccess(attributionData, pluginsData, analyzersProxy, studioProvidedInfo)
             val analysisResults = BuildAnalyzerStorageManager.getInstance(project)
               .storeNewBuildResults(analyzersProxy, buildSessionId, BuildRequestHolder(currentBuildRequest))
-            analyticsManager.logAnalyzersData(analysisResults)
+            analyticsManager.logAnalyzersData(analysisResults.get())
             analyticsManager.logBuildSuccess(myCurrentBuildInvocationType)
           }
           else {

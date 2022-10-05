@@ -124,7 +124,7 @@ class BuildAttributionUiManagerImpl(
   }
 
   override fun showBuildAnalysisReportById(buildID: String) {
-    val buildResults = BuildAnalyzerStorageManager.getInstance(project).getHistoricBuildResultByID(buildID)
+    val buildResults = BuildAnalyzerStorageManager.getInstance(project).getHistoricBuildResultByID(buildID).get() // TODO
     val reportFile = BuildReportFile(buildResults, project)
     val fileDescriptor = OpenFileDescriptor(project, reportFile)
     FileEditorManager.getInstance(project).openEditor(fileDescriptor, true)
