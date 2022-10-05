@@ -27,7 +27,6 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
@@ -518,10 +517,6 @@ private class ForceCompileAndRefreshActionForNotification(private val surface: D
 
   override fun update(e: AnActionEvent) {
     val presentation = e.presentation
-    if (e.project?.let { FastPreviewManager.getInstance(it) }?.isEnabled == true) {
-      presentation.isEnabledAndVisible = false
-      return
-    }
     val isRefreshing =
       findComposePreviewManagersForContext(e.dataContext).any { it.status().isRefreshing }
     presentation.isEnabled = !isRefreshing
