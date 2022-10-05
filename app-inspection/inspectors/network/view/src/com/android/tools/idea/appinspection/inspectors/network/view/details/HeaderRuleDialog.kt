@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
@@ -113,8 +114,14 @@ class HeaderRuleDialog(
   val editHeaderPanel = JPanel(VerticalLayout(10)).apply {
     border = JBUI.Borders.empty(5, 0, 0, 0)
     add(createCategoryPanel("Find by",
-                            findNameCheckBox to findNameTextField.withRegexCheckBox(findNameRegexCheckBox),
-                            findValueCheckBox to findValueTextField.withRegexCheckBox(findValueRegexCheckBox)
+                            findNameCheckBox to findNameTextField.withRegexCheckBoxAndInfoIcon(
+                              findNameRegexCheckBox,
+                              "Header name matching is case insensitive. Regex that selects for case will have the case selection ignored"
+                            ),
+                            findValueCheckBox to findValueTextField.withRegexCheckBoxAndInfoIcon(
+                              findValueRegexCheckBox,
+                              "Header value match is case sensitive"
+                            )
     ))
     add(createCategoryPanel("Replace with",
                             replaceNameCheckBox to newReplacedNameTextField,
@@ -190,8 +197,13 @@ class HeaderRuleDialog(
     }
   }
 
-  private fun JBTextField.withRegexCheckBox(checkBox: JBCheckBox) = JPanel(TabularLayout("*,20px,Fit")).apply {
-    add(this@withRegexCheckBox, TabularLayout.Constraint(0, 0))
-    add(checkBox.withRegexLabel(), TabularLayout.Constraint(0, 2))
+  private fun JBTextField.withRegexCheckBoxAndInfoIcon(checkBox: JBCheckBox, infoIconText: String) =
+    JPanel(TabularLayout("*,20px,Fit,5px,Fit")).apply {
+      add(this@withRegexCheckBoxAndInfoIcon, TabularLayout.Constraint(0, 0))
+      add(checkBox.withRegexLabel(), TabularLayout.Constraint(0, 2))
+      add(JBLabel(AllIcons.General.Information).apply {
+        isEnabled = false
+        toolTipText = infoIconText
+      }, TabularLayout.Constraint(0, 4))
   }
 }
