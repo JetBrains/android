@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.snapshots
 
+import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
-import com.android.ddmlib.internal.ClientImpl
-import com.android.ddmlib.internal.DebugViewChunkHandler
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
@@ -156,19 +155,15 @@ DONE.
     imageFile: Path,
     legacyClient: LegacyClient
   ) {
-    val client = mock<ClientImpl>()
+    val client = mock<Client>()
     whenever(client.device).thenReturn(mock())
-    whenever(client.send(ArgumentMatchers.argThat { argument ->
-      argument?.payload?.int == DebugViewDumpHandler.CHUNK_VURT &&
-        argument.payload.getInt(8) == 1 /* VURT_DUMP_HIERARCHY */
-    }, ArgumentMatchers.any())).thenAnswer { invocation ->
-      invocation
-        .getArgument(1, DebugViewChunkHandler::class.java)
-        .handleChunk(client, DebugViewDumpHandler.CHUNK_VURT, ByteBuffer.wrap(treeSample.toByteArray(Charsets.UTF_8)), true, 1)
-    }
     whenever(client.dumpViewHierarchy(ArgumentMatchers.eq(windowName), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
                                             ArgumentMatchers.anyBoolean(),
-                                            ArgumentMatchers.any(DebugViewDumpHandler::class.java))).thenCallRealMethod()
+                                            ArgumentMatchers.any(DebugViewDumpHandler::class.java))).thenAnswer { invocation ->
+      invocation
+        .getArgument<DebugViewDumpHandler>(4)
+        .handleChunkData(ByteBuffer.wrap(treeSample.toByteArray(Charsets.UTF_8)))
+    }
     whenever(client.listViewRoots(any())).thenAnswer { invocation ->
       val bytes = ByteBuffer.allocate(windowName.length * 2 + Int.SIZE_BYTES * 2).apply {
         putInt(1)
