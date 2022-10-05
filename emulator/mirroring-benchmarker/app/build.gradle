@@ -17,8 +17,15 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            debuggable false
+            // We use the debug signing config here because we want to be able
+            // to install this anywhere but we still want all of the shrinking,
+            // etc. This app won't ever be distributed via the Play Store, so
+            // we don't need a "release" signing config.
+            signingConfig signingConfigs.debug
         }
     }
     compileOptions {
