@@ -78,7 +78,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
               projectPath = gradleHolderProjectPath,
               buildPath = holderModule
                 .compositeBuildMap()
-                .forceGradleDirectTaskInvocationSupport()  // We use build name prefixed path as display names.
+                .maybeForceGradleDirectTaskInvocationSupport()  // We use build name prefixed path as display names.
                 .translateToBuildAndRelativeProjectPath(gradleHolderProjectPath)
             )
           }
@@ -204,8 +204,13 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
   private val proguardFileType: FileType = FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")
 }
 
-private fun CompositeBuildMap.forceGradleDirectTaskInvocationSupport(): CompositeBuildMap {
-  return object: CompositeBuildMap by this@forceGradleDirectTaskInvocationSupport {
+/**
+ * Enables `gradleSupportsDirectTaskInvocation` regardless of the Gradle version used.
+ *
+ * However, translation may still return not-translated project roots if required data are not available.
+ */
+private fun CompositeBuildMap.maybeForceGradleDirectTaskInvocationSupport(): CompositeBuildMap {
+  return object: CompositeBuildMap by this@maybeForceGradleDirectTaskInvocationSupport {
     override val gradleSupportsDirectTaskInvocation: Boolean
       get() = true
   }
