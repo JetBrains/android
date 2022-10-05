@@ -17,18 +17,12 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants
-import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION
 import com.android.annotations.concurrency.Slow
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.ARTIFACT_ID
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
@@ -42,8 +36,6 @@ import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Im
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.STRONGLY_RECOMMEND
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
-import com.android.tools.idea.project.messages.MessageType.ERROR
-import com.android.tools.idea.project.messages.SyncMessage
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationListener
@@ -119,7 +111,7 @@ fun shouldRecommendPluginUpgrade(
  * If they choose to accept this recommendation [performRecommendedPluginUpgrade] will show them a dialog and the option
  * to try and update the version automatically. If accepted this method will trigger a re-sync to pick up the new version.
  */
-fun recommendPluginUpgrade(project: Project, current: GradleVersion, strongly: Boolean) {
+fun recommendPluginUpgrade(project: Project, current: AgpVersion, strongly: Boolean) {
   val existing = NotificationsManager
     .getNotificationsManager()
     .getNotificationsOfType(ProjectUpgradeNotification::class.java, project)
@@ -290,12 +282,12 @@ fun computeGradlePluginUpgradeState(
   val compatibility = computeAndroidGradlePluginCompatibility(current, latestKnown)
   when (compatibility) {
     BEFORE_MINIMUM -> {
-      val minimum = GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
+      val minimum = AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
       val earliestStable = published
         .filter { !it.isPreview }
         .filter { it >= minimum }
         .filter { it <= latestKnown }
-        .groupBy { GradleVersion(it.major, it.minor) }
+        .groupBy { AgpVersion(it.major, it.minor) }
         .minByOrNull { it.key }
         ?.value
         ?.maxOrNull()
@@ -304,7 +296,7 @@ fun computeGradlePluginUpgradeState(
     DIFFERENT_PREVIEW -> {
       val seriesAcceptableStable = published
         .filter { !it.isPreview }
-        .filter { GradleVersion(it.major, it.minor) == GradleVersion(current.major, current.minor) }
+        .filter { AgpVersion(it.major, it.minor) == AgpVersion(current.major, current.minor) }
         .filter { it <= latestKnown }
         .maxOrNull()
       // For the forced upgrade of a preview, we prefer the latest stable release in the same series as the preview, if one exists.  If
@@ -332,7 +324,7 @@ fun computeGradlePluginUpgradeState(
       .filter { it <= latestKnown }
       // We use the fact that groupBy preserves order both of keys and of entries in the list value.
       .sorted()
-      .groupBy { GradleVersion(it.major, it.minor) }
+      .groupBy { AgpVersion(it.major, it.minor) }
       .asSequence()
       .groupBy { it.key.major }
 
@@ -356,7 +348,7 @@ fun computeGradlePluginUpgradeState(
     val currentSeriesCandidates = acceptableStables[current.major]!!
     val nextSeriesCandidates = acceptableStables.keys.firstOrNull { it > current.major }?.let { acceptableStables[it]!! }
 
-    if (currentSeriesCandidates.maxOf { it.key } == GradleVersion(current.major, current.minor)) {
+    if (currentSeriesCandidates.maxOf { it.key } == AgpVersion(current.major, current.minor)) {
       // We have a version of the most recent series of our current major, though not the most up-to-date version of that.  If there's a
       // later stable series, recommend upgrading to that, otherwise recommend upgrading our point release.
       return GradlePluginUpgradeState(recommendationStrength, (nextSeriesCandidates ?: currentSeriesCandidates).last().value.last())
@@ -390,7 +382,7 @@ fun Project.findPluginInfo() : AndroidPluginInfo? {
   return pluginInfo
 }
 
-internal fun releaseNotesUrl(v: GradleVersion): String = when {
+internal fun releaseNotesUrl(v: AgpVersion): String = when {
   v.isPreview -> "https://developer.android.com/studio/preview/features#android_gradle_plugin_${v.major}${v.minor}"
   else -> "https://developer.android.com/studio/releases/gradle-plugin#${v.major}-${v.minor}-0"
 }

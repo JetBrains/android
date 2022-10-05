@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -71,8 +70,8 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
 
   public ForcedPluginPreviewVersionUpgradeDialog(
     @NotNull Project project,
-    @Nullable GradleVersion currentPluginVersion,
-    @NotNull GradleVersion newPluginVersion
+    @Nullable AgpVersion currentPluginVersion,
+    @NotNull AgpVersion newPluginVersion
   ) {
     super(project);
     myProject = project;

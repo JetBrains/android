@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.stats.withProjectId
@@ -26,8 +26,8 @@ import com.intellij.openapi.project.Project
 
 fun recordUpgradeDialogEvent(
   project: Project,
-  oldPluginVersion: GradleVersion?,
-  newPluginVersion: GradleVersion,
+  oldPluginVersion: AgpVersion?,
+  newPluginVersion: AgpVersion,
   userAction: GradlePluginUpgradeDialogStats.UserAction
 ) = recordUpgradeDialogEvent(project, oldPluginVersion.toString(), newPluginVersion.toString(), userAction)
 

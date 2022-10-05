@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.gradle.project.upgrade.RecommendedPluginVersionUpgradeDialog.RemindMeTomorrowAction;
 import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
@@ -40,7 +40,7 @@ public class RecommendedPluginVersionUpgradeDialogTest extends PlatformTestCase 
     initMocks(this);
 
     when(myUpgradeReminder.getDoNotAskForProjectPropertyString()).thenReturn("test.property");
-    myUpgradeDialog = new RecommendedPluginVersionUpgradeDialog(getProject(), GradleVersion.parse("2.2.0"), GradleVersion.parse("2.3.0"),
+    myUpgradeDialog = new RecommendedPluginVersionUpgradeDialog(getProject(), AgpVersion.parse("2.2.0"), AgpVersion.parse("2.3.0"),
                                                                 myUpgradeReminder);
     myRemindMeTomorrowAction = myUpgradeDialog.new RemindMeTomorrowAction();
   }

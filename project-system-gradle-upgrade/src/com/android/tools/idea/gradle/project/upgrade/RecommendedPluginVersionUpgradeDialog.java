@@ -28,7 +28,7 @@ import static com.intellij.util.ui.JBUI.Borders.emptyTop;
 import static javax.swing.Action.MNEMONIC_KEY;
 import static javax.swing.Action.NAME;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.gradle.project.PropertyBasedDoNotAskOption;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -55,8 +55,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
   @NotNull private final Project myProject;
-  @NotNull private final GradleVersion myCurrentPluginVersion;
-  @NotNull private final GradleVersion myRecommendedPluginVersion;
+  @NotNull private final AgpVersion myCurrentPluginVersion;
+  @NotNull private final AgpVersion myRecommendedPluginVersion;
   @NotNull private final RecommendedUpgradeReminder myUpgradeReminder;
   @NotNull private final PropertyBasedDoNotAskOption myDoNotAskOption;
 
@@ -67,16 +67,16 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
   public static class Factory {
     @NotNull
     public RecommendedPluginVersionUpgradeDialog create(@NotNull Project project,
-                                                        @NotNull GradleVersion current,
-                                                        @NotNull GradleVersion recommended) {
+                                                        @NotNull AgpVersion current,
+                                                        @NotNull AgpVersion recommended) {
       return new RecommendedPluginVersionUpgradeDialog(project, current, recommended, new RecommendedUpgradeReminder(project));
     }
   }
 
   @VisibleForTesting
   RecommendedPluginVersionUpgradeDialog(@NotNull Project project,
-                                        @NotNull GradleVersion current,
-                                        @NotNull GradleVersion recommended,
+                                        @NotNull AgpVersion current,
+                                        @NotNull AgpVersion recommended,
                                         @NotNull RecommendedUpgradeReminder upgradeReminder) {
     super(project);
     myProject = project;
