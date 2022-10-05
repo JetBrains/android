@@ -38,6 +38,14 @@ public class MacDisplay implements Display {
   private boolean forciblyDestroy = true;
 
   public MacDisplay() throws IOException {
+    // When running through IDEA, it typically means one of two things:
+    // 1. You can watch the test execution yourself, so the video would be redundant
+    // 2. You want to still use your computer, in which case you don't want ffmpeg using resources
+    if (!TestUtils.runningFromBazel()) {
+      System.out.println("MacDisplay created, but there won't be a screen recording since the test was invoked from outside of Bazel");
+      return;
+    }
+
     // We don't have an ffmpeg binary that works on ARM for macOS.
     if (CpuArch.isArm64()) {
       System.out.println("MacDisplay created, but there won't be a screen recording due to not having ffmpeg on ARM.");
