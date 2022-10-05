@@ -3008,6 +3008,7 @@ android-studio/plugins/textmate/lib/bundles/yaml/syntaxes/yaml.tmLanguage.json
 android-studio/plugins/textmate/lib/textmate.jar
 android-studio/plugins/toml/lib/toml.jar
 android-studio/plugins/url-assistant/lib/url-assistant.jar
+android-studio/plugins/url-assistant/lib/urlassistant_proto.jar
 android-studio/plugins/webp/lib/libwebp/linux/libwebp_jni.so
 android-studio/plugins/webp/lib/libwebp/linux/libwebp_jni64.so
 android-studio/plugins/webp/lib/libwebp/mac/libwebp_jni64.dylib
