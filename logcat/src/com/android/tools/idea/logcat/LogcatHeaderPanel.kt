@@ -101,16 +101,14 @@ internal class LogcatHeaderPanel(
 
   private fun createWideLayout(): LayoutManager {
     val layout = GroupLayout(this)
-    val minWidth = ComboBox<String>().minimumSize.width
-    val maxWidth = JBUI.scale(400)
 
     layout.autoCreateContainerGaps = true
     layout.autoCreateGaps = true
 
     layout.setHorizontalGroup(
       layout.createSequentialGroup()
-        .addComponent(deviceComboBox, minWidth, GroupLayout.DEFAULT_SIZE, maxWidth)
-        .addComponent(filterComponent.component)
+        .addComponent(deviceComboBox, ComboBox<String>().minimumSize.width, GroupLayout.DEFAULT_SIZE, JBUI.scale(400))
+        .addComponent(filterComponent.component, JBUI.scale(350), GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE)
         .addComponent(helpIcon)
     )
     layout.setVerticalGroup(
