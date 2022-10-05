@@ -33,14 +33,14 @@ class IssuePanelSplitter(
   init {
     Disposer.register(surface) {
       if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get() && file != null) {
-        IssuePanelService.getInstance(surface.project).unregisterSurfaceFile(file)
+        IssuePanelService.getInstance(surface.project).unregisterFile(file)
       }
     }
     firstComponent = content
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       secondComponent = null
       if (file != null) {
-        IssuePanelService.getInstance(surface.project).registerSurfaceFile(file, surface)
+        IssuePanelService.getInstance(surface.project).registerFile(file, surface.name)
       }
     }
     else {

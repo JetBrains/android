@@ -58,6 +58,7 @@ import com.intellij.ui.content.ContentManagerListener
 import com.intellij.ui.tree.TreeVisitor
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
@@ -82,7 +83,7 @@ class IssuePanelService(private val project: Project) {
 
   private var inited = false
 
-  private val fileToSurfaceMap = mutableMapOf<VirtualFile, DesignSurface<*>>()
+  private val fileToTabName = mutableMapOf<VirtualFile, String>()
 
   init {
     val manager = ToolWindowManager.getInstance(project)
@@ -327,6 +328,13 @@ class IssuePanelService(private val project: Project) {
     }
   }
 
+  @TestOnly
+  fun isSharedIssuePanelAddedToProblemsPane(): Boolean {
+    val tab = sharedIssueTab ?: return false
+    val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return false
+    return problemsViewPanel.contentManager.contents.any { it === tab }
+  }
+
   fun getSharedPanelIssues() = sharedIssuePanel?.issueProvider?.getFilteredIssues()
 
   /**
@@ -351,7 +359,7 @@ class IssuePanelService(private val project: Project) {
     }
     val file = editors[0].file ?: return DEFAULT_SHARED_ISSUE_PANEL_TAB_NAME
 
-    fileToSurfaceMap[file]?.name?.let { return it }
+    fileToTabName[file]?.let { return it }
 
     if (isComposeFile(file)) {
       return "Compose"
@@ -493,16 +501,23 @@ class IssuePanelService(private val project: Project) {
     return DataManager.getInstance().getDataContext(issuePanelComponent).getData(SELECTED_ISSUES) ?: emptyList()
   }
 
-  fun registerSurfaceFile(file: VirtualFile, surface: DesignSurface<*>) {
-    fileToSurfaceMap[file] = surface
-
-    if (FileEditorManager.getInstance(project).selectedEditor?.getDesignSurface() == surface) {
+  /**
+   * Register a file which should have the shared issue panel. [tabTitle] indicated the preferred tab name of this file.
+   */
+  fun registerFile(file: VirtualFile, tabTitle: String?) {
+    if (tabTitle != null) {
+      fileToTabName[file] = tabTitle
+    }
+    else {
+      fileToTabName.remove(file)
+    }
+    if (FileEditorManager.getInstance(project).selectedEditors.any { it.file == file }) {
       updateIssuePanelVisibility(file, false)
     }
   }
 
-  fun unregisterSurfaceFile(file: VirtualFile) {
-    fileToSurfaceMap.remove(file)
+  fun unregisterFile(file: VirtualFile) {
+    fileToTabName.remove(file)
   }
 
   /**

@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.error
 
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
@@ -36,7 +35,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.test.assertEquals
@@ -245,23 +243,26 @@ class IssuePanelServiceTest {
 
   @RunsInEdt
   @Test
-  fun testRegisteredSurface() {
+  fun testRegisterFileName() {
     val randomFile = rule.fixture.addFileToProject("src/TestFile.kt", "")
     val layoutFile = rule.fixture.addFileToProject("res/layout/my_layout.xml", "")
 
-    val surface = mock<DesignSurface<*>>()
-    `when`(surface.name).thenReturn("My Random Surface")
-    service.registerSurfaceFile(randomFile.virtualFile, surface)
+    service.registerFile(randomFile.virtualFile, "My Random Surface")
 
     FileEditorManager.getInstance(rule.project).openFile(randomFile.virtualFile, true)
     assertEquals("My Random Surface", service.getSharedIssuePanelTabTitle())
 
-    service.unregisterSurfaceFile(randomFile.virtualFile)
+    service.unregisterFile(randomFile.virtualFile)
     // No surface is found, return default name.
     assertEquals("Designer", service.getSharedIssuePanelTabTitle())
 
     FileEditorManager.getInstance(rule.project).openFile(layoutFile.virtualFile, true)
     assertEquals("Layout and Qualifiers", service.getSharedIssuePanelTabTitle())
+
+    // If the registered file has no tab title, the default name would be used.
+    service.registerFile(randomFile.virtualFile, null)
+    FileEditorManager.getInstance(rule.project).openFile(randomFile.virtualFile, true)
+    assertEquals("Designer", service.getSharedIssuePanelTabTitle())
   }
 
   @RunsInEdt
@@ -311,6 +312,20 @@ class IssuePanelServiceTest {
     service.setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
     assertTrue(window.isVisible)
     assertTrue(contentManager.selectedContent?.isTab(IssuePanelService.Tab.CURRENT_FILE) ?: false)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testRegisterFile() {
+    val file = rule.fixture.addFileToProject("/src/file.kt", "").virtualFile
+
+    service.removeSharedIssueTabFromProblemsPanel()
+    assertFalse(service.isSharedIssuePanelAddedToProblemsPane())
+
+    rule.fixture.openFileInEditor(file)
+    // The issue panel should be added back after register the file
+    service.registerFile(file, null)
+    assertTrue(service.isSharedIssuePanelAddedToProblemsPane())
   }
 }
 
