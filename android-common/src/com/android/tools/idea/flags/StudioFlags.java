@@ -470,7 +470,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
     RUNDEBUG, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
     "When running or debugging an Android process, output the logcat output of the process in the console window.",
-    true);
+    false);
 
   public static final Flag<Boolean> RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED = Flag.create(
     RUNDEBUG, "android.bundle.build.enabled", "Enable the Build Bundle action",

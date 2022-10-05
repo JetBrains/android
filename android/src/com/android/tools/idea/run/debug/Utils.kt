@@ -29,6 +29,7 @@ import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider
 import com.android.tools.idea.logcat.output.LogcatOutputSettings
 import com.android.tools.idea.run.ApplicationLogListener
 import com.android.tools.idea.run.DeploymentApplicationService
+import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask
 import com.google.common.util.concurrent.Uninterruptibles
 import com.intellij.execution.ExecutionBundle
@@ -38,11 +39,13 @@ import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.execution.runners.ExecutionUtil
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindowId
+import org.jetbrains.android.util.AndroidBundle
 import java.time.ZoneId
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -122,8 +125,12 @@ internal fun showError(project: Project, e: ExecutionException, sessionName: Str
                                      e.message, Function.identity(), null)
 }
 
-internal fun captureLogcatOutputToProcessHandler(client: Client, debugProcessHandler: ProcessHandler) {
+internal fun captureLogcatOutputToProcessHandler(client: Client, consoleView: ConsoleView, debugProcessHandler: ProcessHandler) {
   if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
+    val device = client.device
+    consoleView.printHyperlink(AndroidBundle.message("android.launch.task.show.logcat", device.name)) {
+      it.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device.serialNumber, client.clientData.clientDescription)
+    }
     return
   }
   if (!LogcatOutputSettings.getInstance().isDebugOutputEnabled) {

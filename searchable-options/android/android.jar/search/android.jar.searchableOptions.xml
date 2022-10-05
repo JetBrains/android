@@ -745,24 +745,6 @@
     <option name="libusb" hit="Use libusb backend" />
     <option name="use" hit="Use libusb backend" />
   </configurable>
-  <configurable id="project.propDebugger" configurable_name="Debugger">
-    <option name="logcat" hit="Logcat output" />
-    <option name="output" hit="Logcat output" />
-    <option name="application" hit="Show application logcat messages in Debug Console" />
-    <option name="console" hit="Show application logcat messages in Debug Console" />
-    <option name="debug" hit="Show application logcat messages in Debug Console" />
-    <option name="in" hit="Show application logcat messages in Debug Console" />
-    <option name="logcat" hit="Show application logcat messages in Debug Console" />
-    <option name="messages" hit="Show application logcat messages in Debug Console" />
-    <option name="show" hit="Show application logcat messages in Debug Console" />
-    <option name="application" hit="Show application logcat messages in Run Console" />
-    <option name="console" hit="Show application logcat messages in Run Console" />
-    <option name="in" hit="Show application logcat messages in Run Console" />
-    <option name="logcat" hit="Show application logcat messages in Run Console" />
-    <option name="messages" hit="Show application logcat messages in Run Console" />
-    <option name="run" hit="Show application logcat messages in Run Console" />
-    <option name="show" hit="Show application logcat messages in Run Console" />
-  </configurable>
   <configurable id="emulator" configurable_name="Emulator">
     <option name="ask" hit="Ask before deleting" />
     <option name="before" hit="Ask before deleting" />

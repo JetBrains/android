@@ -34,6 +34,7 @@ import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.android.tools.idea.logcat.util.getDefaultFilter
 import com.android.tools.idea.run.ShowLogcatListener
+import com.intellij.ide.IdeBundle
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.options.colors.ColorSettingsPages
 import com.intellij.openapi.project.DumbAware
@@ -104,9 +105,13 @@ internal class LogcatToolWindowFactory(
               toolWindow.activate(null)
             }
 
-            else ->
+            else -> {
+              val title = LogcatBundle.message("logcat.dialog.title")
+              val message = LogcatBundle.message("logcat.device.offline", serialNumber)
+              val button = IdeBundle.message("button.ok")
               @Suppress("UnstableApiUsage")
-              MessageDialogBuilder.Message("Error", "Device $serialNumber is not connected").buttons("Ok").asWarning().show()
+              MessageDialogBuilder.Message(title, message).buttons(button).asWarning().show()
+            }
           }
         }
         finally {

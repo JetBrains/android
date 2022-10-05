@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.LaunchContext;
 import com.android.tools.idea.run.tasks.LaunchResult;
@@ -312,6 +313,12 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       // Update the indicator progress.
       completedStepsCount.set(completedStepsCount.get() + task.getDuration());
       indicator.setFraction(completedStepsCount.get().floatValue() / totalScheduledStepsCount);
+    }
+
+    if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
+      myConsoleConsumer.accept(
+        AndroidBundle.message("android.launch.task.show.logcat", device.getName()),
+        project -> project.getMessageBus().syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device.getSerialNumber(), myApplicationId));
     }
 
     String launchType = myLaunchTasksProvider.getLaunchTypeDisplayName();

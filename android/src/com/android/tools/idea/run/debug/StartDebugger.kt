@@ -55,7 +55,7 @@ fun attachDebugger(
           val session = XDebuggerManager.getInstance(project).startSession(executionEnvironment, starter)
           val debugProcessHandler = session.debugProcess.processHandler
           debugProcessHandler.startNotify()
-          captureLogcatOutputToProcessHandler(client, debugProcessHandler)
+          captureLogcatOutputToProcessHandler(client, session.consoleView, debugProcessHandler)
           val executor = executionEnvironment.executor
           AndroidSessionInfo.create(debugProcessHandler,
                                     executionEnvironment.runProfile as? RunConfiguration,
