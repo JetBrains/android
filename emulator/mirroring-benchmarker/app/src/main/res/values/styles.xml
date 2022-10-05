@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="text_bubble">
+    <item name="android:background">@drawable/speech_bubble</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:padding">3dp</item>
+    <item name="android:textSize">16sp</item>
+  </style>
+
+  <style name="encoded_integer_view_block">
+    <item name="android:layout_height">0dp</item>
+    <item name="android:layout_weight">1.0</item>
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:textSize">16sp</item>
+  </style>
+</resources>

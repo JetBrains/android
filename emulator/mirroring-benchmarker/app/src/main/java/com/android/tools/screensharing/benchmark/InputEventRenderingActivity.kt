@@ -16,6 +16,7 @@
 package com.android.tools.screensharing.benchmark
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.Point
 import android.graphics.drawable.BitmapDrawable
@@ -73,7 +74,7 @@ private fun Point.scale(src: Size, dst: Size): Point {
  * Android Studio by tracking how long it takes an input sent from Studio to make it all the
  * way to the device and for the resulting video from the device to make it back to Studio.
  */
-class InputEventRenderingActivity : AppCompatActivity() {
+class InputEventRenderingActivity : Activity() {
   private val textVisible = AtomicBoolean()
   private val visibilityHandler = Handler(Looper.getMainLooper())
   private val makeTextVisible = Runnable { setTextVisible(true) }
@@ -96,9 +97,10 @@ class InputEventRenderingActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     hideSystemBars()
     binding = ActivityFullscreenBinding.inflate(layoutInflater)
+    binding.root.descendants.forEach { it.visibility = INVISIBLE }
     setContentView(binding.root)
 
-    supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    actionBar?.hide()
 
     enteredText = binding.enteredText
     noiseBitmapView = binding.noiseBitmap

@@ -66,7 +66,7 @@ open class EncodedIntegerView(context: Context, attrs: AttributeSet) : LinearLay
     } else {
       val prototype = getChildAt(0) as TextView
       repeat(targetNumChildren - childCount) {
-        addView(TextView(context).apply {
+        addView(TextView(context, /* attrs = */ null, /* defStyleAttr = */ 0, R.style.encoded_integer_view_block).apply {
           layoutParams = prototype.layoutParams
           gravity = prototype.gravity
         })
