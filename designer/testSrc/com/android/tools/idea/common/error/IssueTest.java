@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.SmartPsiElementPointer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
@@ -132,10 +133,10 @@ public class IssueTest {
   public void testNlLintIssueEqual() {
     LintAnnotationsModel model = new LintAnnotationsModel();
     NlComponent sameComponent = mock(NlComponent.class, Mockito.RETURNS_DEEP_STUBS);
-    PsiElement startElement = mock(PsiElement.class);
-    PsiElement endElement = mock(PsiElement.class);
-    MockIssueFactory.addLintIssue(model, HighlightDisplayLevel.ERROR, sameComponent, startElement, endElement);
-    MockIssueFactory.addLintIssue(model, HighlightDisplayLevel.ERROR, sameComponent, startElement, endElement);
+    SmartPsiElementPointer<PsiElement> startElementPointer = mock(SmartPsiElementPointer.class);
+    SmartPsiElementPointer<PsiElement> endElementPointer = mock(SmartPsiElementPointer.class);
+    MockIssueFactory.addLintIssue(model, HighlightDisplayLevel.ERROR, sameComponent, startElementPointer, endElementPointer);
+    MockIssueFactory.addLintIssue(model, HighlightDisplayLevel.ERROR, sameComponent, startElementPointer, endElementPointer);
     MockIssueFactory.addLintIssue(model, HighlightDisplayLevel.ERROR, sameComponent);
     List<LintAnnotationsModel.IssueData> issues = model.getIssues();
     Assert.assertEquals(new LintIssueProvider.LintIssueWrapper(issues.get(0)), new LintIssueProvider.LintIssueWrapper(issues.get(1)));

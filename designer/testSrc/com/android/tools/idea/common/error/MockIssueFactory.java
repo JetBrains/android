@@ -29,6 +29,8 @@ import com.android.utils.HtmlBuilder;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
@@ -50,22 +52,22 @@ class MockIssueFactory {
 
   public static void addLintIssue(LintAnnotationsModel model, HighlightDisplayLevel level, NlComponent source) {
     addLintIssue(model, level, Mockito.mock(NlComponent.class, Mockito.RETURNS_DEEP_STUBS),
-                 Mockito.mock(PsiElement.class, Mockito.RETURNS_DEEP_STUBS),
-                 Mockito.mock(PsiElement.class, Mockito.RETURNS_DEEP_STUBS));
+                 Mockito.mock(SmartPsiElementPointer.class, Mockito.RETURNS_DEEP_STUBS),
+                 Mockito.mock(SmartPsiElementPointer.class, Mockito.RETURNS_DEEP_STUBS));
   }
 
   public static void addLintIssue(LintAnnotationsModel model,
                                   HighlightDisplayLevel level,
                                   NlComponent sourceElement,
-                                  PsiElement startElement,
-                                  PsiElement endElement) {
+                                  SmartPsiElementPointer<PsiElement> startElementPointer,
+                                  SmartPsiElementPointer<PsiElement> endElementPointer) {
     Issue issue = createIssue();
     AndroidLintInspectionBase inspection = new AndroidLintInspectionBase("Mock Issue", issue) {
     };
 
     Mockito.when(sourceElement.getTagName()).thenReturn("MockTag");
     model.addIssue(sourceElement, null, issue, "",
-                   inspection, level, startElement, endElement,
+                   inspection, level, startElementPointer, endElementPointer,
                    null);
   }
 

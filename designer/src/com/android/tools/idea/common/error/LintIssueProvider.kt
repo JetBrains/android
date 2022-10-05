@@ -29,10 +29,8 @@ import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.psi.util.PsiEditorUtil
 import com.intellij.ui.BrowserHyperlinkListener
-import java.awt.Desktop
 import java.util.Objects
 import java.util.stream.Stream
-import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 import kotlin.properties.Delegates
 
@@ -107,11 +105,13 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
     override val fixes: Stream<Fix>
       get() {
         val inspection = issue.inspection
+        val startElement = issue.startElementPointer.element ?: return emptyList<Fix>().stream()
+        val endElement = issue.endElementPointer.element ?: return emptyList<Fix>().stream()
         val quickFixes = inspection.getQuickFixes(
-          issue.startElement, issue.endElement,
+          startElement, endElement,
           issue.message, issue.quickfixData
         )
-        val intentions = inspection.getIntentions(issue.startElement, issue.endElement)
+        val intentions = inspection.getIntentions(startElement, endElement)
         return quickFixes.map { createQuickFixPair(it) }.plus(intentions.map { createQuickFixPair(it) }).stream()
       }
 
@@ -121,7 +121,10 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         val project = issue.component.model.project
         val suppress = Suppress("Suppress", suppressLint.name) {
           CommandProcessor.getInstance().executeCommand(project, {
-            WriteAction.run<Throwable> { suppressLint.applyFix(issue.startElement) }
+            WriteAction.run<Throwable> {
+              val startElement = issue.startElementPointer.element ?: return@run
+              suppressLint.applyFix(startElement)
+            }
           }, EXECUTE_SUPPRESSION + suppressLint.name, null
           )
         }
@@ -137,27 +140,30 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         return false
       }
       return (super.equals(other)
-              && other.issue.startElement == this.issue.startElement
-              && other.issue.endElement == this.issue.endElement)
+              && other.issue.startElementPointer == this.issue.startElementPointer
+              && other.issue.endElementPointer == this.issue.endElementPointer)
     }
 
     override fun hashCode(): Int {
       var res = super.hashCode()
-      res += 31 * Objects.hash(issue.startElement, issue.endElement)
+      res += 31 * Objects.hash(issue.startElementPointer, issue.endElementPointer)
       return res
     }
 
     private fun createQuickFixRunnable(fix: LintIdeQuickFix): Runnable {
       return Runnable {
         val model = issue.component.model
-        val editor = PsiEditorUtil.findEditor(issue.startElement)
+        val file = issue.startElementPointer.containingFile ?: return@Runnable
+        val editor = PsiEditorUtil.findEditor(file)
         if (editor != null) {
           val project = model.project
           CommandProcessor.getInstance().executeCommand(
             project,
             {
               WriteAction.run<Throwable> {
-                fix.apply(issue.startElement, issue.endElement, AndroidQuickfixContexts.BatchContext.getInstance())
+                val startElement = issue.startElementPointer.element ?: return@run
+                val endElement = issue.endElementPointer.element ?: return@run
+                fix.apply(startElement, endElement, AndroidQuickfixContexts.BatchContext.getInstance())
               }
             },
               EXECUTE_FIX + fix.name, null
@@ -169,7 +175,8 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
     private fun createQuickFixRunnable(fix: IntentionAction): Runnable {
       return Runnable {
         val model = issue.component.model
-        val editor = PsiEditorUtil.findEditor(issue.startElement)
+        val file = issue.startElementPointer.containingFile ?: return@Runnable
+        val editor = PsiEditorUtil.findEditor(file)
         if (editor != null) {
           val project = model.project
           CommandProcessor.getInstance().executeCommand(

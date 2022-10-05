@@ -24,6 +24,8 @@ import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
@@ -46,7 +48,7 @@ public class IssueDataTest {
   HighlightDisplayLevel myHighlightLevel;
 
   @Mock
-  PsiElement myPsi;
+  SmartPsiElementPointer<PsiElement> myPsiPointer;
 
   @Before
   public void setUp() throws Exception {
@@ -87,6 +89,6 @@ public class IssueDataTest {
   }
 
   void addIssue(LintAnnotationsModel model, HighlightDisplayLevel level, int priority, Severity severity) {
-    model.addIssue(myComponent, null, createIssue(priority, severity), "", myInspection, level, myPsi, myPsi, null);
+    model.addIssue(myComponent, null, createIssue(priority, severity), "", myInspection, level, myPsiPointer, myPsiPointer, null);
   }
 }

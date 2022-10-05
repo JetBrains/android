@@ -29,6 +29,7 @@ import com.google.common.collect.ListMultimap;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.SmartPsiElementPointer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -94,8 +95,8 @@ public class LintAnnotationsModel {
                        @NotNull String message,
                        @NotNull AndroidLintInspectionBase inspection,
                        @NotNull HighlightDisplayLevel level,
-                       @NotNull PsiElement startElement,
-                       @NotNull PsiElement endElement,
+                       @NotNull SmartPsiElementPointer<PsiElement> startElement,
+                       @NotNull SmartPsiElementPointer<PsiElement> endElement,
                        @Nullable LintFix quickfixData) {
     // Constraint layout doesn't handle RTL issues yet; don't highlight these
     if (issue == RtlDetector.COMPAT) {
@@ -129,8 +130,8 @@ public class LintAnnotationsModel {
     @NotNull public final HighlightDisplayLevel level;
     @NotNull public final String message;
     @NotNull public final Issue issue;
-    @NotNull public final PsiElement endElement;
-    @NotNull public final PsiElement startElement;
+    @NotNull public final SmartPsiElementPointer<PsiElement> endElementPointer;
+    @NotNull public final SmartPsiElementPointer<PsiElement> startElementPointer;
     @NotNull public final NlComponent component;
     @NotNull public final IssueSource issueSource;
     @Nullable public final AttributeKey attribute;
@@ -142,8 +143,8 @@ public class LintAnnotationsModel {
                       @NotNull Issue issue,
                       @NotNull String message,
                       @NotNull HighlightDisplayLevel level,
-                      @NotNull PsiElement startElement,
-                      @NotNull PsiElement endElement,
+                      @NotNull SmartPsiElementPointer<PsiElement> startElementPointer,
+                      @NotNull SmartPsiElementPointer<PsiElement> endElementPointer,
                       @Nullable LintFix quickfixData) {
       this.component = component;
       this.issueSource = IssueSource.fromNlComponent(component);
@@ -152,15 +153,15 @@ public class LintAnnotationsModel {
       this.issue = issue;
       this.message = message;
       this.level = level;
-      this.startElement = startElement;
-      this.endElement = endElement;
+      this.startElementPointer = startElementPointer;
+      this.endElementPointer = endElementPointer;
       this.quickfixData = quickfixData;
     }
 
     @Nullable
     public SuppressLintQuickFix getSuppressLintQuickFix() {
       HighlightDisplayKey key = HighlightDisplayKey.find(inspection.getShortName());
-      return key == null ? null : new SuppressLintQuickFix(key.getID(), startElement);
+      return key == null ? null : new SuppressLintQuickFix(key.getID(), startElementPointer.getElement());
     }
 
     /**

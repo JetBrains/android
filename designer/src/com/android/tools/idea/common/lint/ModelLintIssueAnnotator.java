@@ -31,6 +31,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.ui.UIUtil;
 import java.lang.ref.WeakReference;
@@ -148,8 +150,13 @@ public class ModelLintIssueAnnotator {
         continue;
       }
 
+      SmartPsiElementPointer<PsiElement> startElementPointer =
+        SmartPointerManager.getInstance(model.getProject()).createSmartPsiElementPointer(startElement, xmlFile);
+      SmartPsiElementPointer<PsiElement> endElementPointer =
+        SmartPointerManager.getInstance(model.getProject()).createSmartPsiElementPointer(endElement, xmlFile);
+
       lintModel.addIssue(component, attributeKey, issue, problemData.getMessage(), inspection, level,
-                         startElement, endElement, problemData.getQuickfixData());
+                         startElementPointer, endElementPointer, problemData.getQuickfixData());
     }
 
     return lintModel;
