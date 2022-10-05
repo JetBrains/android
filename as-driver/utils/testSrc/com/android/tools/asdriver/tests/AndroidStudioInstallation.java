@@ -241,7 +241,7 @@ public class AndroidStudioInstallation {
    * @throws IOException If the file can't be created.
    */
   public void createFirstRunXml() throws IOException {
-    Path dest = workDir.resolve("config/options/androidStudioFirstRun.xml");
+    Path dest = configDir.resolve("options/androidStudioFirstRun.xml");
     System.out.println("Creating " + dest);
 
     Files.createDirectories(dest.getParent());

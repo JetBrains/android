@@ -31,9 +31,9 @@ public class MacDisplay implements Display {
   private Process recorder;
 
   /**
-   * When true, the recording process will be forcibly destroyed. This is needed for scenario where
-   * ffmpeg doesn't have Screen Recording permissions on macOS versions ≥10.15; the process won't
-   * exit even when the regular (i.e. non-forcible) destroy is called.
+   * When true, the recording process will be forcibly destroyed. This is needed for scenarios
+   * where ffmpeg doesn't have Screen Recording permissions on macOS versions ≥10.15; the process
+   * won't exit even when the regular (i.e. non-forcible) destroy is called.
    */
   private boolean forciblyDestroy = true;
 

@@ -21,7 +21,6 @@ import com.android.tools.asdriver.tests.AndroidSystem;
 import com.android.tools.asdriver.tests.MavenRepo;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 public class OpenProjectTest {
   @Rule

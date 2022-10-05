@@ -247,7 +247,8 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     Project[] projects = ProjectManager.getInstance().getOpenProjects();
     Optional<Project> foundProject = Arrays.stream(projects).filter((p) -> Objects.equal(p.getName(), projectName)).findFirst();
     if (foundProject.isEmpty()) {
-      throw new NoSuchElementException("No project found by this name: " + projectName);
+      throw new NoSuchElementException(
+        String.format("No project found by the name \"%s\". Open projects: %s", projectName, Arrays.toString(projects)));
     }
     return foundProject.get();
   }

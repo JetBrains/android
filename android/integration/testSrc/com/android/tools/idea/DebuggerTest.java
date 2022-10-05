@@ -24,14 +24,10 @@ import com.android.tools.asdriver.tests.MavenRepo;
 import java.nio.file.Path;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 public class DebuggerTest {
   @Rule
   public AndroidSystem system = AndroidSystem.standard();
-
-  @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
 
   @Test
   public void runDebuggerTest() throws Exception {

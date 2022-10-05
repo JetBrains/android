@@ -199,9 +199,9 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void invokeByIcon(String icon) {
-    ComponentMatchersBuilder updateButtonBuilder = new ComponentMatchersBuilder();
-    updateButtonBuilder.addSvgIconMatch(new ArrayList<>(List.of(icon)));
-    invokeComponent(updateButtonBuilder);
+    ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
+    builder.addSvgIconMatch(new ArrayList<>(List.of(icon)));
+    invokeComponent(builder);
   }
 
   public void invokeComponent(String componentText) {
@@ -225,6 +225,7 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void waitForIndex() {
+    System.out.println("Waiting for indexing to complete");
     ASDriver.WaitForIndexRequest rq = ASDriver.WaitForIndexRequest.newBuilder().build();
     ASDriver.WaitForIndexResponse ignore = androidStudio.waitForIndex(rq);
   }
@@ -310,6 +311,7 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void waitForBuild(long timeout, TimeUnit unit) throws IOException, InterruptedException {
+    System.out.printf("Waiting up to %d %s for Gradle build%n", timeout, unit);
     Matcher matcher = install.getIdeaLog()
       .waitForMatchingLine(".*Gradle build finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
     System.out.println("Build took " + matcher.group(1));
@@ -321,6 +323,7 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void waitForSync(long timeout, TimeUnit unit) throws IOException, InterruptedException {
+    System.out.printf("Waiting up to %d %s for Gradle sync%n", timeout, unit);
     Matcher matcher = install.getIdeaLog()
       .waitForMatchingLine(".*Gradle sync finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
     System.out.println("Sync took " + matcher.group(1));
