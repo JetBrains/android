@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering
 
 import com.android.tools.idea.rendering.classloading.FilteringClassLoader
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader
+import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.idea.rendering.classloading.loaders.NopLoader
 import org.jetbrains.android.uipreview.PseudoClassLocatorForLoader
 import org.junit.Assert.assertEquals
@@ -51,7 +52,8 @@ internal class PseudoClassLocatorForLoaderTest(classLoaderWithDescription: Class
 
   @Test
   fun `system classes are found`() {
-    val pseudoClassLocator = PseudoClassLocatorForLoader(NopLoader, parentClassLoader)
+    val parentLoader = ClassLoaderLoader(parentClassLoader)
+    val pseudoClassLocator = PseudoClassLocatorForLoader(sequenceOf(NopLoader, parentLoader), parentClassLoader)
 
     pseudoClassLocator.locatePseudoClass("java.lang.Object").let {
       assertEquals("java.lang.Object", it.name)

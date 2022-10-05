@@ -202,6 +202,7 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
       new ModuleClassLoaderImpl(
         renderContext.getModule(),
         createDefaultProjectSystemClassLoader(renderContext.getModule(), renderContext.getFileProvider()),
+        parent,
         projectTransformations,
         nonProjectTransformations,
         cache,

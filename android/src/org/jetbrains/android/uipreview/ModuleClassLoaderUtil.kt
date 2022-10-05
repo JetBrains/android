@@ -44,6 +44,7 @@ import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.containers.sequenceOfNotNull
 import com.intellij.util.io.URLUtil
 import com.intellij.util.lang.UrlClassLoader
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
@@ -70,26 +71,33 @@ fun createUrlClassLoader(paths: List<Path>, allowLock: Boolean = !SystemInfo.isW
 }
 
 /**
- * [PseudoClassLocator] that uses the given [DelegatingClassLoader.Loader] to find the `.class` file.
- * If a class is not found in the [classLoader] loader, this class will try to load it from the given [parentClassLoaderLoader] allowing
+ * [PseudoClassLocator] that uses the [Sequence] of [DelegatingClassLoader.Loader]s to find the `.class` file.
+ * If a class is not found within the [loaders], this class will try to load it from the given [fallbackClassloader] allowing
  * to load system classes from it.
  */
 @VisibleForTesting
 class PseudoClassLocatorForLoader @JvmOverloads constructor(
-  private val classLoader: DelegatingClassLoader.Loader,
-  private val parentClassLoader: ClassLoader = PseudoClassLocatorForLoader::class.java.classLoader) : PseudoClassLocator {
-  private val parentClassLoaderLoader = ClassLoaderLoader(parentClassLoader)
+  private val loaders: Sequence<DelegatingClassLoader.Loader>,
+  private val fallbackClassloader: ClassLoader?
+)  : PseudoClassLocator {
+
+  constructor(loader: DelegatingClassLoader.Loader, classLoader: ClassLoader) :
+    this(sequenceOf(loader), classLoader)
 
   override fun locatePseudoClass(classFqn: String): PseudoClass {
     if (classFqn == PseudoClass.objectPseudoClass().name) return PseudoClass.objectPseudoClass() // Avoid hitting this for this common case
-    val bytes = classLoader.loadClass(classFqn) ?: parentClassLoaderLoader.loadClass(classFqn)
+    val bytes = loaders.map { it.loadClass(classFqn) }.firstNotNullOfOrNull { it }
     if (bytes != null) return PseudoClass.fromByteArray(bytes, this)
 
-    // We fall back to loading from the class loader.
-    try {
-      return PseudoClass.fromClass(parentClassLoader.loadClass(classFqn), this)
-    }
-    catch (_: ClassNotFoundException) {
+    if (fallbackClassloader != null) {
+      try {
+        return PseudoClass.fromClass(fallbackClassloader.loadClass (classFqn), this)
+      }
+      catch (ex: ClassNotFoundException) {
+        Logger.getInstance(PseudoClassLocatorForLoader::class.java).error("Failed to load $classFqn", ex)
+      }
+    } else {
+      Logger.getInstance(PseudoClassLocatorForLoader::class.java).error("No classloader is provided to load $classFqn")
     }
     return PseudoClass.objectPseudoClass()
   }
@@ -151,11 +159,13 @@ fun Module?.isSourceModified(fqcn: String, classFile: VirtualFile): Boolean = th
  */
 internal class ModuleClassLoaderImpl(module: Module,
                                      private val projectSystemLoader: ProjectSystemClassLoader,
+                                     private val parentClassLoader: ClassLoader?,
                                      val projectTransforms: ClassTransform,
                                      val nonProjectTransforms: ClassTransform,
                                      private val binaryCache: ClassBinaryCache,
                                      private val diagnostics: ModuleClassLoaderDiagnosticsWrite) : UserDataHolderBase(), DelegatingClassLoader.Loader, Disposable {
   private val loader: DelegatingClassLoader.Loader
+  private val parentLoader = parentClassLoader?.let { ClassLoaderLoader(it) }
 
   private val onClassRewrite = { fqcn: String, timeMs: Long, size: Int -> diagnostics.classRewritten(fqcn, size, timeMs) }
 
@@ -207,12 +217,15 @@ internal class ModuleClassLoaderImpl(module: Module,
   private var overlayFirstLoadModificationCount = -1L
 
   private fun createProjectLoader(loader: DelegatingClassLoader.Loader,
+                                  dependenciesLoader: DelegatingClassLoader.Loader?,
                                   onClassRewrite: (String, Long, Int) -> Unit) = AsmTransformingLoader(
     projectTransforms,
     ListeningLoader(loader, onAfterLoad = { fqcn, _ ->
       recordFirstLoadModificationCount()
       _projectLoadedClassNames.add(fqcn) }),
-    PseudoClassLocatorForLoader(projectSystemLoader),
+    PseudoClassLocatorForLoader(
+      listOfNotNull(projectSystemLoader, dependenciesLoader, parentLoader).asSequence(),
+      parentClassLoader),
     ClassWriter.COMPUTE_FRAMES,
     onClassRewrite
   )
@@ -249,7 +262,8 @@ internal class ModuleClassLoaderImpl(module: Module,
             nonProjectTransforms,
             jarLoader,
             PseudoClassLocatorForLoader(
-              jarLoader
+              listOfNotNull(jarLoader, parentLoader).asSequence(),
+              parentClassLoader
             ),
             ClassWriter.COMPUTE_MAXS,
             onClassRewrite),
@@ -274,21 +288,21 @@ internal class ModuleClassLoaderImpl(module: Module,
   }
 
   init {
-    // Project classes loading pipeline
-    val projectLoader = if (!FastPreviewManager.getInstance(module.project).isEnabled) {
-      createProjectLoader(projectSystemLoader, onClassRewrite)
-    }
-    else {
-      MultiLoader(
-        createOptionalOverlayLoader(module, onClassRewrite),
-        createProjectLoader(projectSystemLoader, onClassRewrite)
-      )
-    }
     val nonProjectLoader = createNonProjectLoader(nonProjectTransforms,
                                                   binaryCache,
                                                   externalLibraries,
                                                   { _nonProjectLoadedClassNames.add(it) },
                                                   onClassRewrite)
+    // Project classes loading pipeline
+    val projectLoader = if (!FastPreviewManager.getInstance(module.project).isEnabled) {
+      createProjectLoader(projectSystemLoader, nonProjectLoader, onClassRewrite)
+    }
+    else {
+      MultiLoader(
+        createOptionalOverlayLoader(module, onClassRewrite),
+        createProjectLoader(projectSystemLoader, nonProjectLoader, onClassRewrite)
+      )
+    }
     val allLoaders = listOfNotNull(
       projectLoader,
       nonProjectLoader,
@@ -310,7 +324,7 @@ internal class ModuleClassLoaderImpl(module: Module,
   private fun createOptionalOverlayLoader(module: Module, onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
     return createProjectLoader(ListeningLoader(OverlayLoader(overlayManager), onAfterLoad = { fqcn, _ ->
       recordOverlayLoadedClass(fqcn)
-    }), onClassRewrite)
+    }), null, onClassRewrite)
   }
 
   override fun loadClass(fqcn: String): ByteArray? {

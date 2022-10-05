@@ -290,7 +290,10 @@ public class RenderClassLoaderTest {
                                           nonProjectLoadedClasses.add(fqcn);
                                           return Unit.INSTANCE;
                                         }),
-                                        new PseudoClassLocatorForLoader(new ClassLoaderLoader(urlClassLoader))),
+                                        new PseudoClassLocatorForLoader(
+                                          new ClassLoaderLoader(urlClassLoader),
+                                          RenderClassLoaderTest.class.getClassLoader()
+                                        )),
               transformations.getId(),
               cache));
       this.nonProjectLoadedClasses = nonProjectLoadedClasses;
