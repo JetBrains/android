@@ -21,22 +21,35 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.data.BuildRequestHolder
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.getProjectDataPath
-import java.io.IOException
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Future
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 class BuildAnalyzerStorageManagerImpl(
   val project: Project
 ) : BuildAnalyzerStorageManager {
+  // last built result, cannot be deleted(only replaced with another result)
+  @Volatile
   private var buildResults: AbstractBuildAnalysisResult? = null
   val fileManager = BuildAnalyzerStorageFileManager(project.getProjectDataPath("build-analyzer-history-data").toFile())
+
   @VisibleForTesting
   val descriptors = BuildDescriptorStorageService.getInstance(project).state.descriptors
+  private val inMemoryResults = ConcurrentHashMap<String, BuildAnalysisResults>()
+
+  private val workingWithDiskLock = ReentrantLock()
 
   init {
     onSettingsChange()
   }
 
+  @Synchronized
+  @Slow
   private fun notifyDataListeners() {
     project.messageBus.syncPublisher(BuildAnalyzerStorageManager.DATA_IS_READY_TOPIC).newDataAvailable()
   }
@@ -84,31 +97,37 @@ class BuildAnalyzerStorageManagerImpl(
    *
    * @return Boolean
    */
-  @Slow
-  override fun clearBuildResultsStored(): Boolean {
-    fileManager.clearAll()
-    descriptors.clear()
-    buildResults = null
-    return true
-  }
+  override fun clearBuildResultsStored(): Future<*> =
+    deleteFirstNRecords { descriptors.size }
 
-  @Slow
+  /**
+   * Stores new result and at some point of time count of result can be more than [BuildAnalyzerSettings.State.maxNumberOfBuildsStored], because clearing process is on the background
+   */
   override fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy,
                                     buildID: String,
-                                    requestHolder: BuildRequestHolder): BuildAnalysisResults {
+                                    requestHolder: BuildRequestHolder): Future<BuildAnalysisResults> {
     val buildResults = createBuildResultsObject(analyzersProxy, buildID, requestHolder)
     this.buildResults = buildResults
     notifyDataListeners()
     if (StudioFlags.BUILD_ANALYZER_HISTORY.get()) {
-      fileManager.storeBuildResultsInFile(buildResults)
       descriptors.add(BuildDescriptorImpl(buildResults.getBuildSessionID(),
                                           buildResults.getBuildFinishedTimestamp(),
                                           buildResults.getTotalBuildTimeMs()))
-      deleteOldRecords()
+      inMemoryResults[buildResults.getBuildSessionID()] = buildResults
+      val onBackground: () -> BuildAnalysisResults = {
+        workingWithDiskLock.withLock {
+          fileManager.storeBuildResultsInFile(buildResults)
+          inMemoryResults.remove(buildResults.getBuildSessionID())
+        }
+        deleteOldRecords().get()
+        buildResults
+      }
+      return ApplicationManager.getApplication().executeOnPooledThread(onBackground)
     }
-    return buildResults
+    return CompletableFuture.completedFuture(buildResults)
   }
 
+  @Slow
   override fun recordNewFailure(buildID: String, failureType: FailureResult.Type) {
     this.buildResults = FailureResult(buildID, failureType)
     notifyDataListeners()
@@ -121,11 +140,19 @@ class BuildAnalyzerStorageManagerImpl(
    * to the BuildAnalysisResults object then the BuildResultsProtoMessageConverter class is responsible for handling the exception.
    *
    * @return BuildAnalysisResults
-   * @exception IOException
+   * @exception java.io.IOException
    */
   @Slow
-  override fun getHistoricBuildResultByID(buildID: String): BuildAnalysisResults =
-    fileManager.getHistoricBuildResultByID(buildID)
+  override fun getHistoricBuildResultByID(buildID: String): BuildAnalysisResults {
+    inMemoryResults[buildID]?.let {
+      return it
+    }
+    val result: BuildAnalysisResults
+    workingWithDiskLock.withLock {
+      result = fileManager.getHistoricBuildResultByID(buildID)
+    }
+    return result
+  }
 
   /**
    * Does not take in input, returns the size of the build-analyzer-history-data folder in bytes.
@@ -141,37 +168,65 @@ class BuildAnalyzerStorageManagerImpl(
    * If it fails to locate the folder then 0 is returned.
    * @return Number of files in build-analyzer-history-data folder
    */
-  @Slow
-  override fun getNumberOfBuildFilesStored(): Int =
-    fileManager.getNumberOfBuildFilesStored()
+  override fun getNumberOfBuildResultsStored(): Int =
+    descriptors.size
 
-  @Slow
-  override fun onSettingsChange() {
+  override fun onSettingsChange() =
     deleteOldRecords()
+
+  override fun deleteHistoricBuildResultByID(buildID: String): Future<*> {
+    getListOfHistoricBuildDescriptors().firstOrNull { it.buildSessionID == buildID }?.let { result ->
+      descriptors.remove(result)
+      inMemoryResults.remove(buildID)
+      return ApplicationManager.getApplication().executeOnPooledThread {
+        workingWithDiskLock.withLock {
+          fileManager.deleteHistoricBuildResultByID(buildID)
+        }
+      }
+    }
+    return CompletableFuture.completedFuture(null)
   }
 
-  @Slow
-  override fun deleteHistoricBuildResultByID(buildID: String) =
-    fileManager.deleteHistoricBuildResultByID(buildID)
-
-  override fun getListOfHistoricBuildDescriptors(): Set<BuildDescriptor> = descriptors
+  override fun getListOfHistoricBuildDescriptors(): Set<BuildDescriptor> {
+    val result = mutableSetOf<BuildDescriptor>()
+    val it = descriptors.iterator()
+    while (true) {
+      val x: BuildDescriptor
+      try {
+        x = it.next()
+      }
+      catch (_: NoSuchElementException) {
+        break
+      }
+      result.add(x)
+    }
+    return result
+  }
 
   override fun hasData(): Boolean {
     return buildResults != null
   }
 
   /**
-   * Deletes old records until count of descriptors in list is more than [limitSizeHistory]
+   * Deletes old records while count of descriptors in list is more than [BuildAnalyzerSettings.State.maxNumberOfBuildsStored]
    */
-  @Slow
-  private fun deleteOldRecords() {
-    val limitSizeHistory = BuildAnalyzerSettings.getInstance(project).state.maxNumberOfBuildsStored
-    require(limitSizeHistory >= 0) { "[limitSizeHistory] should not be less than 0" }
-    while (descriptors.size > limitSizeHistory) {
-      val oldestOne = descriptors.minByOrNull { it.buildFinishedTimestamp }
-      require(oldestOne != null) { "List of descriptors is empty => 0 is more than [limitSizeHistory]" }
-      fileManager.deleteHistoricBuildResultByID(oldestOne.buildSessionID)
-      descriptors.remove(oldestOne)
+  private fun deleteOldRecords(): Future<*> =
+    deleteFirstNRecords { descriptors.size - BuildAnalyzerSettings.getInstance(project).state.maxNumberOfBuildsStored }
+
+  private val deletingLock = ReentrantLock()
+
+  /**
+   * Delete not more than n records from the head of descriptors
+   */
+  private fun deleteFirstNRecords(lazy: () -> Int): Future<*> =
+    ApplicationManager.getApplication().executeOnPooledThread {
+      deletingLock.withLock {
+        val n = lazy()
+        repeat(n) {
+          getListOfHistoricBuildDescriptors().minByOrNull { it.buildFinishedTimestamp }?.let { descriptor ->
+            deleteHistoricBuildResultByID(descriptor.buildSessionID)
+          }
+        }
+      }
     }
-  }
 }
