@@ -889,7 +889,9 @@ java_test(
         "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.CreateNewLibraryModuleWithDefaultsTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/154963251
+    tags = COMMON_TAGS + [
+        "qa_smoke",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
