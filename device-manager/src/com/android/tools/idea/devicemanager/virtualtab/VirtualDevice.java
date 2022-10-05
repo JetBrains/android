@@ -32,12 +32,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class VirtualDevice extends Device {
+  private final @Nullable Icon myIcon;
   private final @NotNull String myCpuArchitecture;
   private final long mySizeOnDisk;
   private final @NotNull State myState;
   private final @NotNull AvdInfo myAvdInfo;
 
   static final class Builder extends Device.Builder {
+    private @Nullable Icon myIcon;
     private @Nullable String myCpuArchitecture;
     private long mySizeOnDisk;
     private @NotNull State myState = State.STOPPED;
@@ -45,6 +47,11 @@ public final class VirtualDevice extends Device {
 
     @NotNull Builder setKey(@NotNull Key key) {
       myKey = key;
+      return this;
+    }
+
+    @NotNull Builder setIcon(@Nullable Icon icon) {
+      myIcon = icon;
       return this;
     }
 
@@ -184,6 +191,7 @@ public final class VirtualDevice extends Device {
 
   private VirtualDevice(@NotNull Builder builder) {
     super(builder);
+    myIcon = builder.myIcon;
 
     assert builder.myCpuArchitecture != null;
     myCpuArchitecture = builder.myCpuArchitecture;
@@ -198,6 +206,7 @@ public final class VirtualDevice extends Device {
   @NotNull VirtualDevice withState(@NotNull State state) {
     return new VirtualDevice.Builder()
       .setKey(myKey)
+      .setIcon(myIcon)
       .setType(myType)
       .setName(myName)
       .setTarget(myTarget)
@@ -215,7 +224,11 @@ public final class VirtualDevice extends Device {
 
   @Override
   public @NotNull Icon getIcon() {
-    return myType.getVirtualIcon();
+    if (myIcon == null) {
+      return myType.getVirtualIcon();
+    }
+
+    return myIcon;
   }
 
   @Override
@@ -274,6 +287,7 @@ public final class VirtualDevice extends Device {
   public int hashCode() {
     int hashCode = myKey.hashCode();
 
+    hashCode = 31 * hashCode + Objects.hashCode(myIcon);
     hashCode = 31 * hashCode + myType.hashCode();
     hashCode = 31 * hashCode + myName.hashCode();
     hashCode = 31 * hashCode + myTarget.hashCode();
@@ -299,6 +313,7 @@ public final class VirtualDevice extends Device {
     VirtualDevice device = (VirtualDevice)object;
 
     return myKey.equals(device.myKey) &&
+           Objects.equals(myIcon, device.myIcon) &&
            myType.equals(device.myType) &&
            myName.equals(device.myName) &&
            myTarget.equals(device.myTarget) &&

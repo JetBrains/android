@@ -24,6 +24,7 @@ import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Targets;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.IOException;
 import java.util.function.Supplier;
@@ -70,7 +71,7 @@ final class VirtualDeviceBuilder {
     IdDisplay tag = myDevice.getTag();
     AndroidVersion version = myDevice.getAndroidVersion();
 
-    return new VirtualDevice.Builder()
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
       .setKey(new VirtualDevicePath(myDevice.getId()))
       .setType(getType(tag))
       .setName(myDevice.getDisplayName())
@@ -79,7 +80,13 @@ final class VirtualDeviceBuilder {
       .setAndroidVersion(version)
       .setSizeOnDisk(myRecursiveSize.get())
       .setState(VirtualDevice.State.valueOf(myIsAvdRunning.get()))
-      .setAvdInfo(myDevice)
+      .setAvdInfo(myDevice);
+
+    if (AvdManagerConnection.isSystemImageDownloadProblem(myDevice.getStatus())) {
+      builder.setIcon(AllIcons.Actions.Download);
+    }
+
+    return builder
       .build();
   }
 
