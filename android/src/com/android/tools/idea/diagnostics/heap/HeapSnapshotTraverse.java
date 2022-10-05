@@ -496,11 +496,13 @@ public final class HeapSnapshotTraverse {
 
   private static native boolean canTagObjects();
 
-  private static native Object[] getClasses();
+  public static native Class<?>[] getClasses();
 
   private static native long getObjectSize(@NotNull final Object obj);
 
   static native boolean isClassInitialized(@NotNull final Class<?> classToCheck);
+
+  static native Object[] getClassStaticFieldsValues(@NotNull final Class<?> classToCheck);
 
   private static final class Node {
     private final int depth;

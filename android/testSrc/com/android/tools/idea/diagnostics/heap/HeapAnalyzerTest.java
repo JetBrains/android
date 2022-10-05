@@ -29,14 +29,17 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.LowMemoryWatcher;
 import com.intellij.testFramework.PlatformLiteFixture;
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import org.assertj.core.util.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.AssumptionViolatedException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -262,7 +265,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
     Assert.assertEquals(StatusCode.NO_ERROR,
                         traverse.walkObjects(MAX_DEPTH, List.of(new A())));
-    Assert.assertEquals(stats.maxFieldsCacheSize, 7);
+    Assert.assertEquals(stats.maxFieldsCacheSize, 2);
     Assert.assertEquals(stats.maxObjectsQueueSize, 2);
     Assert.assertEquals(stats.enumeratedGarbageCollectedObjects, 0);
     Assert.assertEquals(stats.unsuccessfulFieldAccessCounter, 0);
@@ -463,6 +466,53 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     Assert.assertEquals(1, event.getMetadata().getCollectionStartTimestampSeconds(), 0);
   }
 
+  @Test
+  public void testGetStaticFieldsNoSideEffect() throws
+                                                ClassNotFoundException {
+    if (Arrays.stream(HeapSnapshotTraverse.getClasses())
+      .anyMatch(c -> "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$H".equals(c.getName()))) {
+      throw new AssumptionViolatedException("One of the tests loaded HeapAnalyzerTest$H class");
+    }
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("diagnostics_main",
+                                                        defaultCategory,
+                                                        List.of(
+                                                          "com.android.tools.idea.diagnostics"),
+                                                        Collections.emptyList());
+    Class<?> gClass = Class.forName(G.class.getName());
+    HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(componentsSet);
+    ClassNameRecordingChildProcessor processor = new ClassNameRecordingChildProcessor(statistics);
+    Assert.assertEquals(StatusCode.NO_ERROR, new HeapSnapshotTraverse(processor, statistics).walkObjects(MAX_DEPTH, List.of(gClass)));
+    for (Class<?> aClass : HeapSnapshotTraverse.getClasses()) {
+      Assert.assertNotEquals("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$H", aClass.getName());
+    }
+
+    Assert.assertTrue(processor.visitedClassesNames.contains("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$G"));
+  }
+
+  private static class ClassNameRecordingChildProcessor extends HeapTraverseChildProcessor {
+
+    @NotNull final Set<String> visitedClassesNames;
+
+    public ClassNameRecordingChildProcessor(@NotNull HeapSnapshotStatistics statistics) {
+      super(statistics);
+      visitedClassesNames = Sets.newHashSet();
+    }
+
+    @Override
+    void processChildObjects(@Nullable final Object obj,
+                             @NotNull final BiConsumer<Object, HeapTraverseNode.RefWeight> consumer,
+                             @NotNull final FieldCache fieldCache) throws HeapSnapshotTraverseException {
+      if (obj instanceof Class) {
+        visitedClassesNames.add(((Class<?>)obj).getName());
+      }
+
+      super.processChildObjects(obj, consumer, fieldCache);
+    }
+  }
+
   private static class A {
     private B myB = new B();
     private final Integer myInt = 0;
@@ -510,5 +560,14 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
   private static class F {
     private final WeakReference<String> myWeakString = new WeakReference<>("test");
+  }
+
+  private static class G {
+    private static Integer ourInt = 0;
+    private H myH;
+  }
+
+  private static class H {
+    private int myInt = 1;
   }
 }

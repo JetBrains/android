@@ -14,6 +14,9 @@ JNIEXPORT jboolean JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnap
 
 JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getClasses(JNIEnv *, jclass);
 
+JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getClassStaticFieldsValues
+(JNIEnv *, jclass, jclass);
+
 JNIEXPORT jboolean JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_isClassInitialized
   (JNIEnv *, jclass, jclass);
 

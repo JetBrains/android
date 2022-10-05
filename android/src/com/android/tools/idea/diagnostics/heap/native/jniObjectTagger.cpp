@@ -38,13 +38,12 @@ JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshot
   }
 }
 
-#define ACC_SYNTHETIC	0x1000
+#define ACC_STATIC    0x0008
 
 JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getClasses(JNIEnv *env, jclass klass) {
   jint nclasses;
   jclass *classes;
   jint class_status;
-  jint modifiers_ptr;
 
   jvmti->GetLoadedClasses(&nclasses, &classes);
 
@@ -55,15 +54,13 @@ JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_Heap
       ((class_status & JVMTI_CLASS_STATUS_INITIALIZED) == 0) || ((class_status & JVMTI_CLASS_STATUS_ERROR) != 0)) {
       continue;
     }
-    jvmti->GetClassModifiers(classes[i], &modifiers_ptr);
-    if (modifiers_ptr & ACC_SYNTHETIC) continue;
     initialized_classes.push_back(classes[i]);
   }
   jvmti->Deallocate((unsigned char *)classes);
 
   jclass objectClass = env->FindClass("java/lang/Object");
   jobjectArray arr = env->NewObjectArray(initialized_classes.size(), objectClass, NULL);
-  for (int i=0; i < initialized_classes.size(); i++) {
+  for (size_t i=0; i < initialized_classes.size(); i++) {
     env->SetObjectArrayElement(arr, i, initialized_classes[i]);
   }
   return arr;
@@ -75,6 +72,49 @@ JNIEXPORT jboolean JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnap
   jvmti->GetClassStatus(classToCheck, &class_status);
 
   return class_status & JVMTI_CLASS_STATUS_INITIALIZED;
+}
+
+JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getClassStaticFieldsValues
+  (JNIEnv *env, jclass klass, jclass classToCheck) {
+  jvmtiError err;
+  jint fcount;
+  jfieldID *fields;
+  char *signature_ptr;
+  jint modifiers;
+
+  err = jvmti->GetClassFields(classToCheck, &fcount, &fields);
+  if (err != JVMTI_ERROR_NONE) {
+    printf("Jvmti error while obtaining fields of the class: %d\n", err);
+    return NULL;
+  }
+
+  std::vector<jfieldID> staticFieldIds;
+
+  for (int i=0; i < fcount; i++) {
+    err = jvmti->GetFieldModifiers(classToCheck, fields[i], &modifiers);
+    if (err != JVMTI_ERROR_NONE || !(modifiers & ACC_STATIC)) {
+      continue;
+    }
+    err = jvmti->GetFieldName(classToCheck, fields[i], NULL, &signature_ptr, NULL);
+
+    // Here we need to filter out all the non-reference typed fields. There is no need to return primitive type values
+    // from this method. Besides for primitive typed fields GetStaticObjectField method will fail.
+    // To filter primitive type fields out we check field signatures and process only ones starting with
+    // 'L' - reference type objects and '[' - arrays
+    // Read more about signatures: https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3.2-200
+    if (err == JVMTI_ERROR_NONE && signature_ptr != NULL && (signature_ptr[0] == 'L' || signature_ptr[0] == '[')) {
+      staticFieldIds.push_back(fields[i]);
+    }
+    jvmti->Deallocate((unsigned char *)signature_ptr);
+  }
+  jvmti->Deallocate((unsigned char *)fields);
+
+  jobjectArray arr = env->NewObjectArray(staticFieldIds.size(), env->FindClass("java/lang/Object"), NULL);
+  for (size_t i = 0; i < staticFieldIds.size(); i++) {
+      env->SetObjectArrayElement(arr, i, env->GetStaticObjectField(classToCheck, staticFieldIds[i]));
+  }
+
+  return arr;
 }
 
 JNIEXPORT jint JNICALL Agent_OnAttach(JavaVM *vm, char *options, void *reserved) {

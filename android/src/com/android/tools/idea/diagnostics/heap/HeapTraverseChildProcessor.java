@@ -98,15 +98,11 @@ public class HeapTraverseChildProcessor {
     // 3) a static field of the class is assigned,
     // 4) a non-constant static field is used;
     if (obj instanceof Class && HeapSnapshotTraverse.isClassInitialized((Class<?>)obj)) {
-      // JVMTI_HEAP_REFERENCE_STATIC_FIELD
-      for (Field field : fieldCache.getStaticFields((Class<?>)obj)) {
-        try {
-          Object value = field.get(null);
-          consumer.accept(value, HeapTraverseNode.RefWeight.STATIC_FIELD);
+      for (Object fieldValue : fieldCache.getStaticFields((Class<?>)obj)) {
+        if (fieldValue == null) {
+          continue;
         }
-        catch (IllegalAccessException ignored) {
-          myStatistics.incrementUnsuccessfulFieldAccessCounter();
-        }
+        consumer.accept(fieldValue, HeapTraverseNode.RefWeight.STATIC_FIELD);
       }
     }
 
