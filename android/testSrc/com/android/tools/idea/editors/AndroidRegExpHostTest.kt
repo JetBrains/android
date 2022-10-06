@@ -23,7 +23,9 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class AndroidRegExpHostTest {
   @Test
-  fun rightBracketIsEscaped() {
-    assertThat(AndroidRegExpHost().characterNeedsEscaping('}')).isTrue()
+  fun rightBracketNeedsEscaping() {
+    // The right bracket must be escaped when in a character class such as "[abc\\}]+", but not otherwise.
+    assertThat(AndroidRegExpHost().characterNeedsEscaping('}', true)).isFalse()
+    assertThat(AndroidRegExpHost().characterNeedsEscaping('}', false)).isTrue()
   }
 }
