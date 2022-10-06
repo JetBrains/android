@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -487,7 +488,7 @@ class DeviceView(
     /**
      * Called when the state of the device agent's connection changes.
      */
-    @UiThread
+    @AnyThread
     fun connectionStateChanged(deviceSerialNumber: String, connectionState: ConnectionState)
   }
 
