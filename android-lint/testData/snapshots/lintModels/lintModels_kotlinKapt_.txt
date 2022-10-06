@@ -4,7 +4,7 @@ MODULE                        : MainActivity.app
     ModulePath                    : :app
     Type                          : APP
     MavenName                     : MainActivity:app:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
@@ -451,7 +451,7 @@ MODULE                        : MainActivity.lib
     ModulePath                    : :lib
     Type                          : LIBRARY
     MavenName                     : MainActivity:lib:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8

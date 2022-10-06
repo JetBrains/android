@@ -4,7 +4,7 @@ MODULE                        : project.app
     ModulePath                    : :app
     Type                          : APP
     MavenName                     : project:app:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar

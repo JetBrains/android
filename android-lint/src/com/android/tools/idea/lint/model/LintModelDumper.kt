@@ -64,7 +64,7 @@ private fun ProjectDumper.dump(lintModelModule: LintModelModule) {
   prop("ModulePath") { lintModelModule.modulePath }
   prop("Type") { lintModelModule.type.toString() }
   prop("MavenName") { lintModelModule.mavenName?.toString() }
-  prop("GradleVersion") { lintModelModule.gradleVersion?.toString()?.replaceKnownPaths() }
+  prop("AGPVersion") { lintModelModule.agpVersion?.toString()?.replaceKnownPaths() }
   prop("BuildFolder") { lintModelModule.buildFolder.path.toPrintablePath() }
   lintModelModule.lintRuleJars.forEach { prop("- LintRuleJars") { it.path.toPrintablePath() } }
   prop("ResourcePrefix") { lintModelModule.resourcePrefix }

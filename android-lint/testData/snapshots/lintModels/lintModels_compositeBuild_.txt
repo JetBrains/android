@@ -4,7 +4,7 @@ MODULE                        : TestCompositeLib1.app
     ModulePath                    : :app
     Type                          : APP
     MavenName                     : com.test.composite1:app:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib1/app/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
@@ -688,7 +688,7 @@ MODULE                        : TestCompositeLib1.lib
     ModulePath                    : :lib
     Type                          : LIBRARY
     MavenName                     : com.test.composite1:lib:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
@@ -1367,7 +1367,7 @@ MODULE                        : TestCompositeLib3.app
     ModulePath                    : :app
     Type                          : APP
     MavenName                     : TestCompositeLib3:app:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib3/app/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
@@ -2039,7 +2039,7 @@ MODULE                        : TestCompositeLib3.lib
     ModulePath                    : :lib
     Type                          : LIBRARY
     MavenName                     : com.test.composite3:lib:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib3/lib/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
@@ -2665,7 +2665,7 @@ MODULE                        : project.app
     ModulePath                    : :app
     Type                          : APP
     MavenName                     : project:app:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
@@ -3355,7 +3355,7 @@ MODULE                        : project.lib
     ModulePath                    : :lib
     Type                          : LIBRARY
     MavenName                     : com.test.composite:lib:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8

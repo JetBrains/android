@@ -4,7 +4,7 @@ MODULE                        : project.app
     ModulePath                    : :app
     Type                          : APP
     MavenName                     : project:app:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
     - LintRuleJars                : <ROOT>/lint/build/libs/lint.jar [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
@@ -110,7 +110,7 @@ MODULE                        : project.library
     ModulePath                    : :library
     Type                          : LIBRARY
     MavenName                     : project:library:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/library/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
@@ -203,7 +203,7 @@ MODULE                        : project.library-remote
     ModulePath                    : :library-remote
     Type                          : LIBRARY
     MavenName                     : com.example.google:library-remote:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/library-remote/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8

@@ -33,7 +33,7 @@ import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeVariant
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
@@ -109,7 +109,7 @@ class LintModelFactory : LintModelModuleLoader {
      * of lazy lookup.
      */
     fun create(project: IdeAndroidProject, variants: Collection<IdeVariant>, dir: File, deep: Boolean = true): LintModelModule {
-        val gradleVersion = getGradleVersion(project)
+        val agpVersion = getAgpVersion(project)
 
         return if (deep) {
             val variantList = mutableListOf<LintModelVariant>()
@@ -119,7 +119,7 @@ class LintModelFactory : LintModelModuleLoader {
               modulePath = project.projectPath.projectPath,
               type = getModuleType(project.projectType),
               mavenName = getMavenName(project),
-              gradleVersion = gradleVersion,
+              agpVersion = agpVersion,
               buildFolder = project.buildFolder,
               lintOptions = getLintOptions(project),
               lintRuleJars = project.getLintRuleJarsForAnyAgpVersion(),
@@ -139,11 +139,11 @@ class LintModelFactory : LintModelModuleLoader {
             module
         } else {
             LazyLintModelModule(
-                loader = this,
-                project = project,
-                projectVariants = variants,
-                dir = dir,
-                gradleVersion = gradleVersion
+              loader = this,
+              project = project,
+              projectVariants = variants,
+              dir = dir,
+              agpVersion = agpVersion
             )
         }
     }
@@ -361,7 +361,7 @@ class LintModelFactory : LintModelModuleLoader {
           testFixturesSourceProviders = computeTestFixturesSourceProviders(project, variant),
           debuggable = buildType.isDebuggable,
           shrinkable = buildType.isMinifyEnabled,
-          buildFeatures = getBuildFeatures(project, module.gradleVersion),
+          buildFeatures = getBuildFeatures(project, module.agpVersion),
           libraryResolver = libraryResolver,
           partialResultsDir = null,
           desugaredMethodsFiles = variant.desugaredMethodsFiles
@@ -561,10 +561,10 @@ class LintModelFactory : LintModelModuleLoader {
 
     private fun getBuildFeatures(
       project: IdeAndroidProject,
-      gradleVersion: GradleVersion?
+      agpVersion: AgpVersion?
     ): LintModelBuildFeatures {
         return DefaultLintModelBuildFeatures(
-          viewBinding = usesViewBinding(project, gradleVersion),
+          viewBinding = usesViewBinding(project, agpVersion),
           coreLibraryDesugaringEnabled = project.javaCompileOptions.isCoreLibraryDesugaringEnabled,
           namespacingMode = getNamespacingMode(project)
 
@@ -573,9 +573,9 @@ class LintModelFactory : LintModelModuleLoader {
 
     private fun usesViewBinding(
       project: IdeAndroidProject,
-      gradleVersion: GradleVersion?
+      agpVersion: AgpVersion?
     ): Boolean {
-        return if (gradleVersion != null && gradleVersion.isAtLeast(3, 6, 0)) {
+        return if (agpVersion != null && agpVersion.isAtLeast(3, 6, 0)) {
             project.viewBindingOptions?.enabled == true
         } else {
             false
@@ -590,8 +590,8 @@ class LintModelFactory : LintModelModuleLoader {
         return variant.vectorDrawablesUseSupportLibrary
     }
 
-    private fun getGradleVersion(project: IdeAndroidProject): GradleVersion? {
-        return GradleVersion.tryParse(project.agpVersion)
+    private fun getAgpVersion(project: IdeAndroidProject): AgpVersion? {
+        return AgpVersion.tryParse(project.agpVersion)
     }
 
     private fun getNamespacingMode(project: IdeAndroidProject): LintModelNamespacingMode {
@@ -687,7 +687,7 @@ class LintModelFactory : LintModelModuleLoader {
       private val project: IdeAndroidProject,
       private val projectVariants: Collection<IdeVariant>,
       override val dir: File,
-      override val gradleVersion: GradleVersion?
+      override val agpVersion: AgpVersion?
     ) : LintModelModule {
         override val modulePath: String
             get() = project.projectPath.projectPath
@@ -845,7 +845,7 @@ class LintModelFactory : LintModelModuleLoader {
         private var _buildFeatures: LintModelBuildFeatures? = null
         override val buildFeatures: LintModelBuildFeatures
             get() = _buildFeatures
-                ?: getBuildFeatures(project, module.gradleVersion).also { _buildFeatures = it }
+                ?: getBuildFeatures(project, module.agpVersion).also { _buildFeatures = it }
 
         override val partialResultsDir: File?
             get() = null

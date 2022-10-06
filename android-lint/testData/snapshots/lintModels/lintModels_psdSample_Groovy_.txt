@@ -4,7 +4,7 @@ MODULE                        : project.app
     ModulePath                    : :app
     Type                          : APP
     MavenName                     : project:app:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
     - DynamicFeatures             : :dyn_feature
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
@@ -806,7 +806,7 @@ MODULE                        : project.dyn_feature
     ModulePath                    : :dyn_feature
     Type                          : DYNAMIC_FEATURE
     MavenName                     : project:dyn_feature:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/dyn_feature/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
@@ -903,7 +903,7 @@ MODULE                        : project.lib
     ModulePath                    : :lib
     Type                          : LIBRARY
     MavenName                     : project:lib:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
@@ -1516,7 +1516,7 @@ MODULE                        : project.nested1
     ModulePath                    : :nested1
     Type                          : LIBRARY
     MavenName                     : project:nested1:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested1/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
@@ -1609,7 +1609,7 @@ MODULE                        : project.nested1.deep
     ModulePath                    : :nested1:deep
     Type                          : LIBRARY
     MavenName                     : project.nested1:nested1:deep:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested1/deep/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
@@ -1708,7 +1708,7 @@ MODULE                        : project.nested2
     ModulePath                    : :nested2
     Type                          : LIBRARY
     MavenName                     : project:nested2:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested2/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
@@ -1821,7 +1821,7 @@ MODULE                        : project.nested2.deep
     ModulePath                    : :nested2:deep
     Type                          : LIBRARY
     MavenName                     : project.nested2:nested2:deep:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested2/deep/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
@@ -1918,7 +1918,7 @@ MODULE                        : project.nested2.trans.deep2
     ModulePath                    : :nested2:trans:deep2
     Type                          : LIBRARY
     MavenName                     : project.nested2.trans:nested2:trans:deep2:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested2/trans/deep2/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8

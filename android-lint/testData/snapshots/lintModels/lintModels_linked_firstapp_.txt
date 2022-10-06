@@ -4,7 +4,7 @@ MODULE                        : My_First_App.app
     ModulePath                    : :app
     Type                          : APP
     MavenName                     : My First App:app:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/firstapp/app/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
@@ -672,7 +672,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
     ModulePath                    : :app:mysharedlibrary
     Type                          : LIBRARY
     MavenName                     : My First App.app:app:mysharedlibrary:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/shared/mysharedlibrary/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
