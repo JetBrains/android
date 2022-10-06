@@ -70,6 +70,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.INCOMPATIBLE_LIBRARY_MESSAGE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.PROGUARDED_LIBRARY_MESSAGE
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.VERSION_MISSING_MESSAGE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanel
@@ -562,6 +563,17 @@ class AppInspectionInspectorClientTest {
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
     assertThat(banner.text.text).isEqualTo(PROGUARDED_LIBRARY_MESSAGE)
+  }
+
+  @Test
+  fun composeClientShowsMessageIfLibraryVersionNotFound() {
+    inspectionRule.composeInspector.createResponseStatus = AppInspection.CreateInspectorResponse.Status.VERSION_MISSING
+    val banner = InspectorBanner(inspectorRule.project)
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
+
+    assertThat(banner.text.text).isEqualTo(VERSION_MISSING_MESSAGE)
   }
 
   @Test

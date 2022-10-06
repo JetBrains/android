@@ -22,7 +22,9 @@ import com.android.tools.idea.appinspection.ide.getOrResolveInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionMissingException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
@@ -39,6 +41,7 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.protobuf.CodedInputStream
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.text.nullize
 import kotlinx.coroutines.cancel
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
@@ -65,7 +68,10 @@ private val DEV_JAR = AppInspectorJar(
 private val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate(
   "androidx.compose.ui", "ui", "1.0.0-beta02", ArtifactCoordinate.Type.AAR
 )
-private val COMPOSE_INSPECTION_COMPATIBILITY = LibraryCompatibility(MINIMUM_COMPOSE_COORDINATE)
+private const val EXPECTED_CLASS_IN_COMPOSE_LIBRARY = "androidx.compose.ui.Modifier"
+private val COMPOSE_INSPECTION_COMPATIBILITY = LibraryCompatibility(
+  MINIMUM_COMPOSE_COORDINATE, listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY)
+)
 
 @VisibleForTesting
 val INCOMPATIBLE_LIBRARY_MESSAGE =
@@ -73,6 +79,10 @@ val INCOMPATIBLE_LIBRARY_MESSAGE =
 
 @VisibleForTesting
 const val PROGUARDED_LIBRARY_MESSAGE = "Inspecting Compose layouts might not work properly with code shrinking enabled."
+
+@VisibleForTesting
+const val VERSION_MISSING_MESSAGE =
+  "Compose inspection unavailable. Could not determine the version of the androidx.compose.ui:ui artifact. Was the version excluded?"
 
 @VisibleForTesting
 const val INSPECTOR_NOT_FOUND_USE_SNAPSHOT = "Could not resolve inspector on maven.google.com. " +
@@ -162,7 +172,17 @@ class ComposeLayoutInspectorClient(
           listOf(InspectorBannerService.LearnMoreAction(PROGUARD_LEARN_MORE), banner.DISMISS_ACTION))
         null
       }
-      catch (ignored: AppInspectionException) {
+      catch (ignored: AppInspectionVersionMissingException) {
+        InspectorBannerService.getInstance(model.project)?.setNotification(VERSION_MISSING_MESSAGE)
+        null
+      }
+      catch (ignored: AppInspectionLibraryMissingException) {
+        // The artifact androidx.compose.ui:ui did not exist in the application.
+        // This is normal for View only applications.
+        null
+      }
+      catch (unexpected: AppInspectionException) {
+        Logger.getInstance(ComposeLayoutInspectorClient::class.java).warn(unexpected)
         null
       }
     }
