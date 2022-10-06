@@ -48,7 +48,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class VerifyJavaKotlinXmlCodeStylesTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private IdeSettingsDialogFixture mySettingsDialog;
   private static String javaCodeLanguage = "Java";
@@ -99,6 +99,8 @@ public class VerifyJavaKotlinXmlCodeStylesTest {
   @Before
   public void setUp() throws Exception {
     guiTest.withTimeout(7, TimeUnit.MINUTES);
+    guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
     guiTest.importSimpleApplication();
     guiTest.robot().waitForIdle();
   }
