@@ -32,6 +32,7 @@ import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameter
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -74,22 +75,19 @@ private val COMPOSE_INSPECTION_COMPATIBILITY = LibraryCompatibility(
 )
 
 @VisibleForTesting
-val INCOMPATIBLE_LIBRARY_MESSAGE =
-  "Inspecting Compose layouts is available only when connecting to apps using $MINIMUM_COMPOSE_COORDINATE or higher."
+const val INCOMPATIBLE_LIBRARY_MESSAGE_KEY = "incompatible.library.message"
 
 @VisibleForTesting
-const val PROGUARDED_LIBRARY_MESSAGE = "Inspecting Compose layouts might not work properly with code shrinking enabled."
+const val PROGUARDED_LIBRARY_MESSAGE_KEY = "proguarded.library.message"
 
 @VisibleForTesting
-const val VERSION_MISSING_MESSAGE =
-  "Compose inspection unavailable. Could not determine the version of the androidx.compose.ui:ui artifact. Was the version excluded?"
+const val VERSION_MISSING_MESSAGE_KEY = "version.missing.message"
 
 @VisibleForTesting
-const val INSPECTOR_NOT_FOUND_USE_SNAPSHOT = "Could not resolve inspector on maven.google.com. " +
-                                             "Please set use.snapshot.jar flag to use snapshot jars."
+const val INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY = "inspector.not.found.use.snapshot"
 
 @VisibleForTesting
-const val COMPOSE_INSPECTION_NOT_AVAILABLE = "Compose inspection is not available."
+const val COMPOSE_INSPECTION_NOT_AVAILABLE_KEY = "compose.inspection.not.available"
 
 private const val PROGUARD_LEARN_MORE = "https://d.android.com/r/studio-ui/layout-inspector/code-shrinking"
 
@@ -145,9 +143,11 @@ class ComposeLayoutInspectorClient(
         }
         catch (e: AppInspectionArtifactNotFoundException) {
           if (version.endsWith("-SNAPSHOT")) {
-            InspectorBannerService.getInstance(model.project)?.setNotification(INSPECTOR_NOT_FOUND_USE_SNAPSHOT)
+            InspectorBannerService.getInstance(model.project)?.setNotification(
+              LayoutInspectorBundle.message(INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY))
           } else {
-            InspectorBannerService.getInstance(model.project)?.setNotification(COMPOSE_INSPECTION_NOT_AVAILABLE)
+            InspectorBannerService.getInstance(model.project)?.setNotification(
+              LayoutInspectorBundle.message(COMPOSE_INSPECTION_NOT_AVAILABLE_KEY))
           }
           return null
         }
@@ -162,18 +162,19 @@ class ComposeLayoutInspectorClient(
         ComposeLayoutInspectorClient(model, treeSettings, messenger, capabilities, launchMonitor).apply { updateSettings() }
       }
       catch (ignored: AppInspectionVersionIncompatibleException) {
-        InspectorBannerService.getInstance(model.project)?.setNotification(INCOMPATIBLE_LIBRARY_MESSAGE)
+        InspectorBannerService.getInstance(model.project)?.setNotification(
+          LayoutInspectorBundle.message(INCOMPATIBLE_LIBRARY_MESSAGE_KEY, MINIMUM_COMPOSE_COORDINATE.toString()))
         null
       }
       catch (ignored: AppInspectionAppProguardedException) {
         val banner = InspectorBannerService.getInstance(model.project)
         banner?.setNotification(
-          PROGUARDED_LIBRARY_MESSAGE,
+          LayoutInspectorBundle.message(PROGUARDED_LIBRARY_MESSAGE_KEY),
           listOf(InspectorBannerService.LearnMoreAction(PROGUARD_LEARN_MORE), banner.DISMISS_ACTION))
         null
       }
       catch (ignored: AppInspectionVersionMissingException) {
-        InspectorBannerService.getInstance(model.project)?.setNotification(VERSION_MISSING_MESSAGE)
+        InspectorBannerService.getInstance(model.project)?.setNotification(LayoutInspectorBundle.message(VERSION_MISSING_MESSAGE_KEY))
         null
       }
       catch (ignored: AppInspectionLibraryMissingException) {

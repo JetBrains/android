@@ -29,11 +29,12 @@ import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbi
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_INSPECTION_NOT_AVAILABLE
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_INSPECTION_NOT_AVAILABLE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.INSPECTOR_NOT_FOUND_USE_SNAPSHOT
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -124,7 +125,7 @@ class ComposeLayoutInspectorClientTest {
     assertThat(client).isNull()
 
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-    assertThat(banner.text.text).isEqualTo(INSPECTOR_NOT_FOUND_USE_SNAPSHOT)
+    assertThat(banner.text.text).isEqualTo(LayoutInspectorBundle.message(INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY))
   }
 
   @Test
@@ -151,6 +152,6 @@ class ComposeLayoutInspectorClientTest {
     assertThat(client).isNull()
 
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-    assertThat(banner.text.text).isEqualTo(COMPOSE_INSPECTION_NOT_AVAILABLE)
+    assertThat(banner.text.text).isEqualTo(LayoutInspectorBundle.message(COMPOSE_INSPECTION_NOT_AVAILABLE_KEY))
   }
 }
