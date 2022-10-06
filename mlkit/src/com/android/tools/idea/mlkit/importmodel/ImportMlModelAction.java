@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.mlkit.importmodel;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
@@ -84,7 +84,7 @@ public class ImportMlModelAction extends AnAction {
       return;
     }
 
-    GradleVersion agpVersion = androidPluginInfo.getPluginVersion();
+    AgpVersion agpVersion = androidPluginInfo.getPluginVersion();
     if (agpVersion == null || agpVersion.compareTo(MIN_AGP_VERSION) < 0) {
       presentation.setEnabled(false);
       presentation.setText(AndroidBundle.message("android.wizard.action.requires.new.agp", TITLE, MIN_AGP_VERSION));

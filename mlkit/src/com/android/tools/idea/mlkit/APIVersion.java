@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.mlkit;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -36,7 +36,7 @@ public class APIVersion implements Comparable<APIVersion> {
    * </ul>
    */
   @NotNull
-  public static final APIVersion API_VERSION_1 = new APIVersion(SemVer.parseFromText("1.0.0"), GradleVersion.parse("4.1.0"));
+  public static final APIVersion API_VERSION_1 = new APIVersion(SemVer.parseFromText("1.0.0"), AgpVersion.parse("4.1.0"));
 
   /**
    * Second release of Ml Model Binding in AGP 4.2 with following features:
@@ -47,7 +47,7 @@ public class APIVersion implements Comparable<APIVersion> {
    * </ul>
    */
   @NotNull
-  public static final APIVersion API_VERSION_2 = new APIVersion(SemVer.parseFromText("1.2.0"), GradleVersion.parse("4.2.0-alpha8"));
+  public static final APIVersion API_VERSION_2 = new APIVersion(SemVer.parseFromText("1.2.0"), AgpVersion.parse("4.2.0-alpha8"));
 
   /**
    * Model schema version supported in current API version. If developer's model schema version is larger than this,
@@ -57,10 +57,11 @@ public class APIVersion implements Comparable<APIVersion> {
   private final SemVer myModelParserVersion;
 
   /**
-   * Minimum gradle version need to support current API version, since real codegen implementation lives in gradle task.
+   * Minimum version of the Android Gradle Plugin needed to support current API version, since
+   * real codegen implementation lives in gradle task.
    */
   @NotNull
-  private final GradleVersion myGradleVersion;
+  private final AgpVersion myAgpVersion;
 
   /**
    * Returns the ML Model Binding API version from project.
@@ -72,12 +73,12 @@ public class APIVersion implements Comparable<APIVersion> {
       Logger.getInstance(APIVersion.class).warn("AndroidPluginInfo is null in project: " + project);
       return API_VERSION_1;
     }
-    GradleVersion gradleVersion = androidPluginInfo.getPluginVersion();
-    if (gradleVersion == null) {
+    AgpVersion agpVersion = androidPluginInfo.getPluginVersion();
+    if (agpVersion == null) {
       Logger.getInstance(APIVersion.class).warn("GradleVersion is null in project: " + project);
       return API_VERSION_1;
     }
-    if (gradleVersion.compareTo(API_VERSION_2.myGradleVersion) >= 0) {
+    if (agpVersion.compareTo(API_VERSION_2.myAgpVersion) >= 0) {
       return API_VERSION_2;
     }
     else {
@@ -85,9 +86,9 @@ public class APIVersion implements Comparable<APIVersion> {
     }
   }
 
-  private APIVersion(@NotNull SemVer modelParserVersion, @NotNull GradleVersion gradleVersion) {
+  private APIVersion(@NotNull SemVer modelParserVersion, @NotNull AgpVersion agpVersion) {
     this.myModelParserVersion = modelParserVersion;
-    this.myGradleVersion = gradleVersion;
+    this.myAgpVersion = agpVersion;
   }
 
   public boolean isAtLeastVersion(@NotNull APIVersion apiVersion) {
@@ -109,6 +110,6 @@ public class APIVersion implements Comparable<APIVersion> {
 
   @Override
   public int compareTo(@NotNull APIVersion o) {
-    return myGradleVersion.compareTo(o.myGradleVersion);
+    return myAgpVersion.compareTo(o.myAgpVersion);
   }
 }
