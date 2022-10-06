@@ -18,6 +18,7 @@ package com.android.build.attribution.analyzers
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.google.wireless.android.sdk.stats.BuildDownloadsAnalysisData.RepositoryStats.RepositoryType
 import com.intellij.openapi.diagnostic.Logger
 import org.gradle.tooling.Failure
@@ -49,7 +50,7 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
 
   private val processedEvents = mutableListOf<DownloadResult>()
   private var gradleCanProvideDownloadEvents: Boolean? = null
-  private var currentAgpVersionFromBuild: GradleVersion? = null
+  private var currentAgpVersionFromBuild: AgpVersion? = null
 
   override fun receiveEvent(event: ProgressEvent) {
     if (event !is FileDownloadFinishEvent) return
@@ -87,7 +88,7 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
   }
 
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
-    currentAgpVersionFromBuild = androidGradlePluginAttributionData.buildInfo?.agpVersion?.let { GradleVersion.tryParse(it) }
+    currentAgpVersionFromBuild = androidGradlePluginAttributionData.buildInfo?.agpVersion?.let { AgpVersion.tryParse(it) }
   }
 
   override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalyzersProxy, studioProvidedInfo: StudioProvidedInfo) {

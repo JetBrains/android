@@ -94,7 +94,7 @@ class DownloadsAnalyzerUnitTest {
     val wrapper = BuildAnalyzersWrapper(listOf(analyzer), taskContainer, pluginContainer)
     val attributionData = AndroidGradlePluginAttributionData(
       buildInfo = AndroidGradlePluginAttributionData.BuildInfo(
-        agpVersion = "7.3",
+        agpVersion = "7.3.0",
         configurationCacheIsOn = false
       )
     )
@@ -192,7 +192,7 @@ class DownloadsAnalyzerUnitTest {
 
   @Test
   fun testDownloadsAnalyzerInactiveWithOldGradleAndAgpVersions() = runTestWithNoEventsForAgpAndGradleVersions(
-    agpVersionFromBuild = "4.3",
+    agpVersionFromBuild = "4.3.0",
     gradleVersion = "7.2",
     expectAnalyzerResult = DownloadsAnalyzer.GradleDoesNotProvideEvents
   )
@@ -207,7 +207,7 @@ class DownloadsAnalyzerUnitTest {
 
   @Test
   fun testDownloadsAnalyzerInactiveWithOldAgpAndMissingGradleVersions() = runTestWithNoEventsForAgpAndGradleVersions(
-    agpVersionFromBuild = "4.3",
+    agpVersionFromBuild = "4.3.0",
     gradleVersion = null,
     expectAnalyzerResult = DownloadsAnalyzer.GradleDoesNotProvideEvents
   )
@@ -215,14 +215,14 @@ class DownloadsAnalyzerUnitTest {
   @Test
   fun testDownloadsAnalyzerWithRecentAGP() = runTestWithNoEventsForAgpAndGradleVersions(
     // Case for when we assume Gradle version base on AGP version received from build.
-    agpVersionFromBuild = "7.3",
+    agpVersionFromBuild = "7.3.0",
     gradleVersion = null,
     expectAnalyzerResult = DownloadsAnalyzer.ActiveResult(emptyList())
   )
 
   @Test
   fun testDownloadsAnalyzerWithOldAGPButRecentGradle() = runTestWithNoEventsForAgpAndGradleVersions(
-    agpVersionFromBuild = "4.3",
+    agpVersionFromBuild = "4.3.0",
     gradleVersion = "7.3",
     expectAnalyzerResult = DownloadsAnalyzer.ActiveResult(emptyList())
   )

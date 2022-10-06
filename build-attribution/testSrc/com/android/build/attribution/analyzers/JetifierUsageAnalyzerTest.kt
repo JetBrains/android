@@ -26,7 +26,7 @@ import com.android.builder.model.PROPERTY_CHECK_JETIFIER_RESULT_FILE
 import com.android.ide.common.attribution.CheckJetifierResult
 import com.android.ide.common.attribution.DependencyPath
 import com.android.ide.common.attribution.FullDependencyPath
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.Projects
 import com.android.tools.idea.flags.StudioFlags
@@ -241,7 +241,7 @@ class JetifierUsageAnalyzerUnitTest {
     //This is a more of a unit test for the sake of efficiency.
     StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.override(true)
     val studioProvidedInfo = StudioProvidedInfo(
-      agpVersion = GradleVersion.parse("7.1.0-alpha11"),
+      agpVersion = AgpVersion.parse("7.1.0-alpha11"),
       gradleVersion = null,
       configurationCachingGradlePropertyState = null,
       buildInvocationType = BuildInvocationType.REGULAR_BUILD,
@@ -262,7 +262,7 @@ class JetifierUsageAnalyzerUnitTest {
     //This is a more of a unit test for the sake of efficiency.
     StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.override(true)
     val studioProvidedInfo = StudioProvidedInfo(
-      agpVersion = GradleVersion.parse("7.1.0"),
+      agpVersion = AgpVersion.parse("7.1.0"),
       gradleVersion = null,
       configurationCachingGradlePropertyState = null,
       buildInvocationType = BuildInvocationType.REGULAR_BUILD,

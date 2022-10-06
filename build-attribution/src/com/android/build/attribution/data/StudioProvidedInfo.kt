@@ -16,8 +16,8 @@
 package com.android.build.attribution.data
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.gradle.util.PropertiesFiles
@@ -31,7 +31,7 @@ import org.jetbrains.android.refactoring.isEnableJetifier
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 
 data class StudioProvidedInfo(
-  val agpVersion: GradleVersion?,
+  val agpVersion: AgpVersion?,
   val gradleVersion: GradleVersion?,
   val configurationCachingGradlePropertyState: String?,
   val buildInvocationType: BuildInvocationType,

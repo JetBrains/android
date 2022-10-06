@@ -21,7 +21,7 @@ import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.build.attribution.ui.data.builder.AbstractBuildAttributionReportBuilderTest
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.google.common.truth.Truth
 import com.intellij.util.text.DateFormatUtil
 import org.junit.Test
@@ -82,7 +82,7 @@ class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest()
   private val reporter = TaskIssueReportGenerator(
     buildReportData,
     { PLATFORM_INFORMATION_DATA_MOCK },
-    { listOf(GradleVersion.parse("4.0.0-dev")) }
+    { listOf(AgpVersion.parse("4.0.0-dev")) }
   )
 
   @Test
@@ -152,7 +152,7 @@ ${PLATFORM_INFORMATION_DATA_MOCK}
     val reporter = TaskIssueReportGenerator(
       buildReportData,
       { "" },
-      { listOf(GradleVersion.parse("4.0.0-dev"), GradleVersion.parse("4.0.0-dev"), GradleVersion.parse("3.0.0-dev")) }
+      { listOf(AgpVersion.parse("4.0.0-dev"), AgpVersion.parse("4.0.0-dev"), AgpVersion.parse("3.0.0-dev")) }
     )
 
     val task = buildReportData.findTaskUiDataFor(task1androidPlugin)

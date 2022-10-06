@@ -22,10 +22,10 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth
-import kotlinx.collections.immutable.toImmutableMap
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.junit.Rule
 import org.junit.Test
@@ -56,7 +56,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
 
   @Test
   fun `AGP compatible, no other plugins`() = test(TestCase(
-    agpVersion = GradleVersion.parse("7.0.0"),
+    agpVersion = AgpVersion.parse("7.0.0"),
     pluginsApplied = listOf(appPluginData),
     buildscriptDependenciesInfo = emptySet(),
     knownPluginsData = GradlePluginsData.emptyData,
@@ -65,11 +65,11 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
 
   @Test
   fun `AGP incompatible, no other plugins`() = test(TestCase(
-    agpVersion = GradleVersion.parse("4.1.0"),
+    agpVersion = AgpVersion.parse("4.1.0"),
     pluginsApplied = listOf(appPluginData),
     buildscriptDependenciesInfo = emptySet(),
     knownPluginsData = GradlePluginsData.emptyData,
-    expectedResult = AGPUpdateRequired(GradleVersion.parse("4.1.0"), listOf(appPluginData))
+    expectedResult = AGPUpdateRequired(AgpVersion.parse("4.1.0"), listOf(appPluginData))
   ))
 
   @Test
@@ -191,7 +191,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     val analyzer = ConfigurationCachingCompatibilityAnalyzer()
     val agpVersionString = "7.0.0"
     val studioProvidedInfo = studioProvidedInfo(
-      agpVersion = GradleVersion.parse(agpVersionString),
+      agpVersion = AgpVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = null,
       buildInvocationType = BuildInvocationType.REGULAR_BUILD
     )
@@ -225,7 +225,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     val analyzer = ConfigurationCachingCompatibilityAnalyzer()
     val agpVersionString = "7.0.0"
     val studioProvidedInfo = studioProvidedInfo(
-      agpVersion = GradleVersion.parse(agpVersionString),
+      agpVersion = AgpVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = "true",
       buildInvocationType = BuildInvocationType.REGULAR_BUILD
     )
@@ -250,7 +250,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     val analyzer = ConfigurationCachingCompatibilityAnalyzer()
     val agpVersionString = "7.0.0"
     val studioProvidedInfo = studioProvidedInfo(
-      agpVersion = GradleVersion.parse(agpVersionString),
+      agpVersion = AgpVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = "false",
       buildInvocationType = BuildInvocationType.REGULAR_BUILD
     )
@@ -275,7 +275,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     val analyzer = ConfigurationCachingCompatibilityAnalyzer()
     val agpVersionString = "7.0.0"
     val studioProvidedInfo = studioProvidedInfo(
-      agpVersion = GradleVersion.parse(agpVersionString),
+      agpVersion = AgpVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = null,
       buildInvocationType = BuildInvocationType.CONFIGURATION_CACHE_TRIAL
     )
@@ -303,7 +303,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     }, projectPath)
 
   private fun studioProvidedInfo(
-    agpVersion: GradleVersion?,
+    agpVersion: AgpVersion?,
     configurationCachingGradlePropertyState: String?,
     buildInvocationType: BuildInvocationType
     ): StudioProvidedInfo = StudioProvidedInfo(
@@ -317,7 +317,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   )
 
   data class TestCase(
-    val agpVersion: GradleVersion = GradleVersion.parse("7.0.0"),
+    val agpVersion: AgpVersion = AgpVersion.parse("7.0.0"),
     val pluginsApplied: List<PluginData>,
     val buildscriptDependenciesInfo: Set<String>,
     val knownPluginsData: GradlePluginsData,

@@ -21,10 +21,11 @@ import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import kotlinx.collections.immutable.toImmutableMap
 
 /** Minimal AGP version that supports configuration caching. */
-private val minAGPVersion = GradleVersion.parse("7.0.0-alpha10")
+private val minAGPVersion = AgpVersion.parse("7.0.0-alpha10")
 
 class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCachingCompatibilityProjectResult>(),
     BuildAttributionReportAnalyzer,
@@ -34,7 +35,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
   private val buildscriptClasspath = mutableListOf<GradleCoordinate>()
   private var appliedPlugins: Map<String, List<PluginData>> = emptyMap()
   private var knownPlugins: List<GradlePluginsData.PluginInfo> = emptyList()
-  private var currentAgpVersion: GradleVersion? = null
+  private var currentAgpVersion: AgpVersion? = null
   private var configurationCachingGradlePropertiesFlagState: String? = null
   private var configurationCacheInBuildState: Boolean? = null
   private var runningConfigurationCacheTestFlow: Boolean? = null
@@ -54,7 +55,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
       androidGradlePluginAttributionData.buildscriptDependenciesInfo.mapNotNull { GradleCoordinate.parseCoordinateString(it) }
     )
     configurationCacheInBuildState = androidGradlePluginAttributionData.buildInfo?.configurationCacheIsOn
-    currentAgpVersion = androidGradlePluginAttributionData.buildInfo?.agpVersion?.let { GradleVersion.tryParse(it) }
+    currentAgpVersion = androidGradlePluginAttributionData.buildInfo?.agpVersion?.let { AgpVersion.tryParse(it) }
   }
 
   override fun receiveKnownPluginsData(data: GradlePluginsData) {
@@ -125,10 +126,10 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
 sealed class ConfigurationCachingCompatibilityProjectResult : AnalyzerResult
 
 data class AGPUpdateRequired(
-  val currentVersion: GradleVersion,
+  val currentVersion: AgpVersion,
   val appliedPlugins: List<PluginData>
 ) : ConfigurationCachingCompatibilityProjectResult() {
-  val recommendedVersion = GradleVersion.parse("7.0.0")
+  val recommendedVersion = AgpVersion.parse("7.0.0")
   val dependencyCoordinates = GradlePluginsData.DependencyCoordinates("com.android.tools.build", "gradle")
 }
 
