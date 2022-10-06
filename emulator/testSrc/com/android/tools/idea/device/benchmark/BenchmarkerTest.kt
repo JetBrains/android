@@ -63,12 +63,12 @@ class BenchmarkerTest {
   private val benchmarker = createBenchmarker()
 
   private val progressValues: MutableList<Pair<Double, Double>> = mutableListOf()
+  private val failureMessages: MutableList<String> = mutableListOf()
 
   private var readyCalls: Int = 0
   private var cleanUpCalls: Int = 0
   private var finalizeInputsCalls: Int = 0
   private var stopCallbackCalled = false
-  private var completeCallbackCalled = false
 
   @Test
   fun timerSchedulingStarted() {
@@ -104,6 +104,7 @@ class BenchmarkerTest {
     verify(mockTimer).cancel()
     verifyNoMoreInteractions(mockTimer)
     assertThat(stopCallbackCalled).isTrue()
+    assertThat(failureMessages).containsExactly("Benchmarking was canceled.")
   }
 
   @Test
@@ -118,6 +119,7 @@ class BenchmarkerTest {
 
     assertThat(dispatched).hasSize(numValues)
     verify(mockTimer).cancel()
+    assertThat(failureMessages).isEmpty()
   }
 
   @Test
@@ -157,9 +159,11 @@ class BenchmarkerTest {
     benchmarker.start()
     assertThat(stopCallbackCalled).isFalse()
 
-    adapter.adapterCallbacks.onFailedToBecomeReady("failed")
+    val failureMessage = "This thing failed to become ready!"
+    adapter.adapterCallbacks.onFailedToBecomeReady(failureMessage)
 
     assertThat(stopCallbackCalled).isTrue()
+    assertThat(failureMessages).containsExactly(failureMessage)
   }
 
   @Test
@@ -179,7 +183,8 @@ class BenchmarkerTest {
     // All inputs should be received now, so we should be in state COMPLETE.
     assertThat(benchmarker.isDone()).isTrue()
     assertThat(stopCallbackCalled).isTrue()
-    assertThat(completeCallbackCalled).isTrue()
+    assertThat(results).isNotEmpty()
+    assertThat(failureMessages).isEmpty()
     verify(mockTimer).cancel()
     assertThat(results).hasSize(1)
     assertThat(results[0].raw).hasSize(numValues)
@@ -228,25 +233,23 @@ class BenchmarkerTest {
       adapter.adapterCallbacks.inputReturned(it, testTimeSource.markNow())
     }
 
-    assertThat(progressValues).hasSize(dispatched.size)
-    assertThat(progressValues.map{it.second}).isStrictlyOrdered()
-    assertThat(progressValues.first().second).isWithin(0.000001).of(1 / dispatched.size.toDouble())
-    assertThat(progressValues.last().second).isWithin(0.000001).of(1.0)
-    progressValues.map{it.first}.forEach {
-      assertThat(it).isWithin(0.000001).of(1.0)
-    }
+    // The first one is a 0,0 we always set to clear the progress bar.
+    val values = progressValues.drop(1)
+    assertThat(values).hasSize(dispatched.size)
+    assertThat(values.map{it.second}).isStrictlyOrdered()
+    assertThat(values.first().second).isWithin(0.000001).of(1 / dispatched.size.toDouble())
+    assertThat(values.last().second).isWithin(0.000001).of(1.0)
+    values.map{it.first}.forEach { assertThat(it).isWithin(0.000001).of(1.0) }
   }
 
   private fun createBenchmarker(inputRateHz: Int = INPUT_RATE_HZ) =
     Benchmarker(adapter, inputRateHz, testTimeSource, mockTimer).apply {
-      addOnStoppedCallback { stopCallbackCalled = true }
-      addOnCompleteCallback {
-        results.add(it)
-        completeCallbackCalled = true
-      }
-      addOnProgressCallback { sentProgress, receivedProgress ->
-        progressValues.add(sentProgress to receivedProgress)
-      }
+      addCallbacks(object: Benchmarker.Callbacks<Int> {
+        override fun onProgress(dispatched: Double, returned: Double) { progressValues.add(dispatched to returned) }
+        override fun onStopped() { stopCallbackCalled = true }
+        override fun onFailure(failureMessage: String) { failureMessages.add(failureMessage) }
+        override fun onComplete(results: Benchmarker.Results<Int>) { this@BenchmarkerTest.results.add(results) }
+      })
     }
 
 }

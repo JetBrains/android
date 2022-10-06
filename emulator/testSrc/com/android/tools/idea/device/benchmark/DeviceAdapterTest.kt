@@ -22,6 +22,7 @@ import com.android.tools.idea.emulator.interpolate
 import com.android.tools.idea.emulator.location
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
 import org.junit.Rule
@@ -75,11 +76,11 @@ class DeviceAdapterTest {
     override fun onFailedToBecomeReady(msg: String) { errors.add(msg) }
   }
   private val fakeInstaller = object : MirroringBenchmarkerAppInstaller {
-    override suspend fun installBenchmarkingApp(): Boolean {
+    override suspend fun installBenchmarkingApp(indicator: ProgressIndicator?): Boolean {
       installCalls++
       return installSuccess
     }
-    override suspend fun launchBenchmarkingApp(): Boolean {
+    override suspend fun launchBenchmarkingApp(indicator: ProgressIndicator?): Boolean {
       launchCalls++
       return launchSuccess
     }

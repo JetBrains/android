@@ -25,15 +25,23 @@ import com.android.adblib.utils.TextShellV2Collector
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import kotlinx.coroutines.flow.first
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import java.nio.file.Path
+import java.util.Base64
+import kotlin.time.Duration.Companion.hours
 
-private const val MIRRORING_BENCHMARKER_SOURCE_PATH = "tools/adt/idea/emulator/mirroring-benchmarker"
-private const val MIRRORING_BENCHMARKER_PREBUILT_PATH = "prebuilts/tools/common/mirroring-benchmarker/mirroring-benchmarker.apk"
+private const val APK_NAME = "mirroring-benchmarker.apk"
+private const val PROJECT_NAME = "mirroring-benchmarker"
+private const val RELATIVE_PATH = "common/$PROJECT_NAME/$APK_NAME"
+private const val SOURCE_PATH = "tools/adt/idea/emulator/$PROJECT_NAME"
+private const val PREBUILT_PATH = "prebuilts/tools/$RELATIVE_PATH"
+private const val BASE_PREBUILTS_URL = "https://android.googlesource.com/platform/prebuilts/tools/+/refs/heads/mirror-goog-studio-main/"
+private const val APK_URL = "$BASE_PREBUILTS_URL$RELATIVE_PATH?format=TEXT"  // Base-64 encoded
 private const val APP_PKG = "com.android.tools.screensharing.benchmark"
 private const val ACTIVITY = "InputEventRenderingActivity"
 private const val NO_ANIMATIONS = 65536 // Intent.FLAG_ACTIVITY_NO_ANIMATION
@@ -42,9 +50,9 @@ private const val START_COMMAND = "am start -n $APP_PKG/.$ACTIVITY -f $NO_ANIMAT
 /** Object that handles installation, launching, and uninstallation of the Mirroring Benchmarker APK. */
 interface MirroringBenchmarkerAppInstaller {
   /** Installs the mirroring benchmarker APK, returning `true` iff installation succeeds. */
-  suspend fun installBenchmarkingApp() : Boolean
+  suspend fun installBenchmarkingApp(indicator: ProgressIndicator?) : Boolean
   /** Launches the mirroring benchmarker APK, returning `true` iff launching succeeds. */
-  suspend fun launchBenchmarkingApp() : Boolean
+  suspend fun launchBenchmarkingApp(indicator: ProgressIndicator?) : Boolean
   /** Uninstalls the mirroring benchmarker APK, returning `true` iff the operation succeeds. */
   suspend fun uninstallBenchmarkingApp() : Boolean
 
@@ -91,13 +99,16 @@ internal class MirroringBenchmarkerAppInstallerImpl(
 ) : MirroringBenchmarkerAppInstaller {
   private val logger = thisLogger()
 
-  override suspend fun installBenchmarkingApp(): Boolean {
-    logger.debug("Attempting to install benchmarking app")
+  override suspend fun installBenchmarkingApp(indicator: ProgressIndicator?): Boolean {
+    val msg = "Installing benchmarking app"
+    logger.debug(msg)
+    indicator?.isIndeterminate = true
+    indicator?.text = msg
     val apkFile: Path
     if (StudioPathManager.isRunningFromSources()) {
       // Development environment.
       val projectDir = project.guessProjectDir()?.toNioPath()
-      apkFile = if (projectDir != null && projectDir.endsWith(MIRRORING_BENCHMARKER_SOURCE_PATH)) {
+      apkFile = if (projectDir != null && projectDir.endsWith(SOURCE_PATH)) {
         // Development environment for the screen sharing agent.
         // Use the agent built by running "Build > Make Project" in Studio.
         logger.debug("App project open, building and installing from here.")
@@ -108,20 +119,29 @@ internal class MirroringBenchmarkerAppInstallerImpl(
       }
       else {
         // Development environment for Studio.
-        StudioPathManager.resolvePathFromSourcesRoot(MIRRORING_BENCHMARKER_PREBUILT_PATH)
+        StudioPathManager.resolvePathFromSourcesRoot(PREBUILT_PATH)
       }
     }
     else {
-      // TODO(b/250874751): Implement this use case
       // Installed Studio.
-      logger.warn("Installed Studio not supported!")
-      return false
+      try {
+        apkFile = UrlFileCache.getInstance(project).get(APK_URL, 12.hours.inWholeMilliseconds, indicator) { Base64.getDecoder().wrap(it) }
+      }
+      catch (e: Exception) {
+        logger.error(e)
+        return false
+      }
     }
+    indicator?.isIndeterminate = true
+    indicator?.text = msg
     return adb.install(deviceSerialNumber, apkFile)
   }
 
-  override suspend fun launchBenchmarkingApp(): Boolean {
-    logger.debug("Launching benchmarking app")
+  override suspend fun launchBenchmarkingApp(indicator: ProgressIndicator?): Boolean {
+    val msg = "Launching benchmarking app"
+    logger.debug(msg)
+    indicator?.isIndeterminate = true
+    indicator?.text = msg
     return adb.shellCommand(deviceSerialNumber, START_COMMAND)
   }
 

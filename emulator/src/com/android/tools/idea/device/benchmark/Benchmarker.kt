@@ -26,8 +26,6 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
-typealias ProgressCallback = (Double, Double) -> Unit
-
 /** Class that conducts a generic benchmarking operation. */
 @OptIn(ExperimentalTime::class)
 class Benchmarker<InputType>(
@@ -72,20 +70,24 @@ class Benchmarker<InputType>(
     State.WAITING_FOR_OUTSTANDING_INPUTS.transitionsTo(State.STOPPED, State.COMPLETE)
     State.STOPPED.onEnter {
       adapter.cleanUp()
-      onStoppedCallbacks.forEach { it() }
+      callbacks.forEach {
+        it.onStopped()
+        it.onFailure(failureMsg)
+      }
     }
     State.COMPLETE.onEnter {
       adapter.cleanUp()
-      onStoppedCallbacks.forEach { it() }
-      onCompleteCallbacks.forEach { it(Results(inputRoundTrips)) }
+      val results = Results(inputRoundTrips)
+      callbacks.forEach {
+        it.onStopped()
+        it.onComplete(results)
+      }
     }
   }
 
   private var state : State by stateMachine::state
 
-  private val onProgressCallbacks: MutableList<ProgressCallback> = mutableListOf()
-  private val onCompleteCallbacks: MutableList<(Results<InputType>) -> Unit> = mutableListOf()
-  private val onStoppedCallbacks: MutableList<() -> Unit> = mutableListOf()
+  private val callbacks: MutableList<Callbacks<InputType>> = mutableListOf()
 
   private val outstandingInputs: MutableMap<InputType, TimeMark> = LinkedHashMap()
   private val inputRoundTrips: MutableMap<InputType, Duration> = mutableMapOf()
@@ -96,7 +98,10 @@ class Benchmarker<InputType>(
         this@Benchmarker.inputReturned(input, effectiveDispatchTime)
       }
 
-      override fun onReady() { state = State.SENDING_INPUTS }
+      override fun onReady() {
+        callbacks.forEach { it.onProgress(/* dispatched = */ 0.0, /* returned = */0.0) }
+        state = State.SENDING_INPUTS
+      }
 
       override fun onFailedToBecomeReady(msg: String) {
         LOG.warn(msg)
@@ -123,26 +128,16 @@ class Benchmarker<InputType>(
     }
     val denominator = adapter.numInputs().toDouble()
     val dispatchedProgress = (inputRoundTrips.size + outstandingInputs.size) / denominator
-    val receivedProgress = inputRoundTrips.size / denominator
-    onProgressCallbacks.forEach { it(dispatchedProgress, receivedProgress) }
+    val returnedProgress = inputRoundTrips.size / denominator
+    callbacks.forEach { it.onProgress(dispatchedProgress, returnedProgress) }
     if (state == State.WAITING_FOR_OUTSTANDING_INPUTS && outstandingInputs.isEmpty()) {
       state = State.COMPLETE
     }
   }
 
   @Synchronized
-  fun addOnStoppedCallback(callback: () -> Unit) {
-    onStoppedCallbacks.add(callback)
-  }
-
-  @Synchronized
-  fun addOnCompleteCallback(callback: (Results<InputType>) -> Unit) {
-    onCompleteCallbacks.add(callback)
-  }
-
-  @Synchronized
-  fun addOnProgressCallback(callback: (Double, Double) -> Unit) {
-    onProgressCallbacks.add(callback)
+  fun addCallbacks(callbacks: Callbacks<InputType>) {
+    this.callbacks.add(callbacks)
   }
 
   @Synchronized
@@ -174,6 +169,18 @@ class Benchmarker<InputType>(
   class Results<InputType>(val raw: Map<InputType, Duration>) {
     val percentiles: Map<Int, Double> =
       Quantiles.percentiles().indexes(IntRange(1, 100).toList()).compute(raw.values.map { it.inWholeMilliseconds })
+  }
+
+  /** Callbacks for various stages of benchmarking. */
+  interface Callbacks<InputType> {
+    /** Indicates what fraction of events have been [dispatched] and [returned] so far. */
+    fun onProgress(dispatched: Double, returned: Double)
+    /** Indicates that benchmarking has stopped. */
+    fun onStopped()
+    /** Indicates that benchmarking failed. */
+    fun onFailure(failureMessage: String)
+    /** Indicates that benchmarking has completed successfully. */
+    fun onComplete(results: Results<InputType>)
   }
 
   /** An object that handles interactions with whatever is being benchmarked. */

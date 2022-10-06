@@ -25,6 +25,7 @@ import com.android.tools.idea.emulator.rotatedByQuadrants
 import com.android.tools.idea.emulator.scaled
 import com.android.tools.idea.emulator.scaledUnbiased
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CoroutineScope
@@ -203,6 +204,7 @@ internal class DeviceAdapter (
   private val maxTouches: Int = 10_000,
   private val step: Int = 1,
   private val spikiness: Int = 1,
+  private val readyIndicator: ProgressIndicator? = null,
   private val timeSource: TimeSource = TimeSource.Monotonic,
   private val installer: MirroringBenchmarkerAppInstaller = MirroringBenchmarkerAppInstaller(project, target.serialNumber),
   private val coroutineScope: CoroutineScope = AndroidCoroutineScope(target.view),
@@ -265,6 +267,10 @@ internal class DeviceAdapter (
           touchableImageArea = it.first
           touchableArea = it.second
           appState = AppState.READY
+          readyIndicator?.apply {
+            isIndeterminate = false
+            fraction = 1.0
+          }
           adapterCallbacks.onReady()
         }
       }
@@ -287,12 +293,13 @@ internal class DeviceAdapter (
   }
 
   override fun ready() {
+    readyIndicator?.isIndeterminate = true
     coroutineScope.launch {
-      if (!installer.installBenchmarkingApp()) {
+      if (!installer.installBenchmarkingApp(readyIndicator)) {
         adapterCallbacks.onFailedToBecomeReady("Could not install benchmarking app.")
         return@launch
       }
-      if (!installer.launchBenchmarkingApp()) {
+      if (!installer.launchBenchmarkingApp(readyIndicator)) {
         adapterCallbacks.onFailedToBecomeReady("Could not launch benchmarking app.")
         return@launch
       }
