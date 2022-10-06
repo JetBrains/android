@@ -4,6 +4,7 @@ skip: tools-base/**/*
 # (https://youtrack.jetbrains.com/issue/IDEA-103558)
 skip: android/**/*
 skip: designer/**/*
-skip: artwork/**/*
+# skip: artwork/**/* generate android studio icons
 skip: smali/**/*
 skip: artwork/compatibilityResources/**/*
+skip: whats-new-assistant/**/*

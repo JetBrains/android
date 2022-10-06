@@ -226,7 +226,7 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
       weightx = 1 - SIDE_MARGIN * 2
       weighty = TOP_MARGIN
     }
-    val icon = JBLabel(AndroidIcons.DeviceExplorer.DevicesLineup)
+    val icon = JBLabel(AndroidIcons.Explorer.DevicesLineup)
     icon.horizontalAlignment = SwingConstants.CENTER
     icon.verticalAlignment = SwingConstants.BOTTOM
     add(icon, c)

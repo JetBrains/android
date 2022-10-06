@@ -386,7 +386,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   @Override
   public void showNoDeviceScreen() {
     myPanel.showMessageLayer("Connect a device via USB cable or run an Android Virtual Device",
-                             AndroidIcons.DeviceExplorer.DevicesLineup,
+                             AndroidIcons.Explorer.DevicesLineup,
                              false);
   }
 
