@@ -26,14 +26,20 @@ import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.ide.common.repository.GMAVEN_BASE_URL
 import com.android.repository.api.ConsoleProgressIndicator
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.io.IdeFileService
 import com.android.tools.idea.sdk.StudioDownloader
+import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.gson.stream.JsonReader
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.PerfettoSdkHandshakeMetadata
+import com.google.wireless.android.sdk.stats.PerfettoSdkHandshakeMetadata.HandshakeResult
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtilRt
 import org.assertj.core.util.VisibleForTesting
@@ -63,9 +69,15 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
                                       private val transportStub: TransportServiceGrpc.TransportServiceBlockingStub)
   : TransportProxy.ProxyCommandHandler {
 
+  // Field exists solely for testing (not used for any other reason)
   @VisibleForTesting
   var lastResponseCode: Int = -1
-    get() = field
+    private set
+
+  // Field exists solely for testing (not used for any other reason)
+  @VisibleForTesting
+  var lastMetricsEvent: AndroidStudioEvent.Builder? = null
+    private set
 
   private val log = Logger.getInstance(CpuTraceInterceptCommandHandler::class.java)
 
@@ -90,6 +102,8 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
   }
 
   private fun enableTrackingCompose(command: Commands.Command) {
+    var handshakeResult = HandshakeResult.UNKNOWN_RESULT
+
     try {
       val handshake = PerfettoHandshake(
         targetPackage = command.startCpuTrace.configuration.appName,
@@ -120,6 +134,7 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
         if (it.exitCode == RESULT_CODE_ERROR_BINARY_MISSING) {
           val path = resolveArtifact(it.requiredVersion)
           if (path == null) {
+            handshakeResult = HandshakeResult.ERROR_BINARY_UNAVAILABLE
             log.warn("Failed to download tracing-perfetto-binary ")
             return
           }
@@ -162,12 +177,32 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
       if (error != null) {
         log.warn(error)
       }
+
+      when (response.exitCode) {
+        0 -> handshakeResult = HandshakeResult.UNSUPPORTED
+        RESULT_CODE_SUCCESS -> handshakeResult = HandshakeResult.SUCCESS
+        RESULT_CODE_ALREADY_ENABLED -> handshakeResult = HandshakeResult.ALREADY_ENABLED
+        RESULT_CODE_ERROR_BINARY_VERSION_MISMATCH -> handshakeResult = HandshakeResult.ERROR_BINARY_VERSION_MISMATCH
+        RESULT_CODE_ERROR_BINARY_VERIFICATION_ERROR -> handshakeResult = HandshakeResult.ERROR_BINARY_VERIFICATION_ERROR
+        RESULT_CODE_ERROR_OTHER -> handshakeResult = HandshakeResult.ERROR_OTHER
+      }
     }
     catch (t: Throwable) {
       // Due to a bug in the current library an exception may be thrown that is a no-op.
       if (t.message == null || !t.message!!.contains("result=0")) {
         log.warn(t)
       }
+    } finally {
+      UsageTracker.log(
+        AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
+          .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device))
+          .setAndroidProfilerEvent(
+            AndroidProfilerEvent.newBuilder()
+              .setType(AndroidProfilerEvent.Type.PERFETTO_SDK_HANDSHAKE)
+              .setPerfettoSdkHandshakeMetadata(PerfettoSdkHandshakeMetadata.newBuilder().setHandshakeResult(handshakeResult))
+          ).also { lastMetricsEvent = it }
+      )
     }
   }
 

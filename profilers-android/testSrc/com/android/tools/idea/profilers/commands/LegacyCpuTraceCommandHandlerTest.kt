@@ -179,6 +179,7 @@ class LegacyCpuTraceCommandHandlerTest {
         whenever(methodProfilingStatus).thenReturn(ClientData.MethodProfilingStatus.TRACER_ON)
       }
       val mockDevice = mock(IDevice::class.java).apply {
+        whenever(serialNumber).thenReturn("")
         whenever(getClientName(ArgumentMatchers.anyInt())).thenReturn("TestClient")
         whenever(getClient(ArgumentMatchers.anyString())).thenReturn(thisClient)
       }

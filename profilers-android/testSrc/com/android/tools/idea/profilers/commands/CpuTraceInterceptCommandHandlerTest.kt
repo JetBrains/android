@@ -29,6 +29,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.truth.Truth
+import com.google.wireless.android.sdk.stats.PerfettoSdkHandshakeMetadata.HandshakeResult
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
@@ -111,6 +112,11 @@ class CpuTraceInterceptCommandHandlerTest {
     verify(commandHandler.device, times(1)).executeShellCommand(captor.capture(), MockitoKt.any())
     Truth.assertThat(captor.value).contains("broadcast")
     Truth.assertThat(commandHandler.lastResponseCode).isEqualTo(PerfettoHandshake.ResponseExitCodes.RESULT_CODE_ALREADY_ENABLED)
+    with(commandHandler.lastMetricsEvent!!) {
+      Truth.assertThat(hasAndroidProfilerEvent()).isTrue()
+      Truth.assertThat(androidProfilerEvent.hasPerfettoSdkHandshakeMetadata()).isTrue()
+      Truth.assertThat(androidProfilerEvent.perfettoSdkHandshakeMetadata.handshakeResult).isEqualTo(HandshakeResult.ALREADY_ENABLED)
+    }
   }
 
   private fun setupInterceptForTest(testPid: Int): CpuTraceInterceptCommandHandler {
