@@ -76,8 +76,8 @@ fun Module.getBuildAndRelativeGradleProjectPath(): BuildRelativeGradleProjectPat
 }
 
 interface CompositeBuildMap {
-  fun buildIdToName(buildId: File): String
-  fun buildNameToId(buildName: String): File
+  fun buildIdToName(buildId: File): String?
+  fun buildNameToId(buildName: String): File?
   val gradleSupportsDirectTaskInvocation: Boolean
 
   companion object {
@@ -89,8 +89,8 @@ fun IdeCompositeBuildMap.toCompositeBuildMap(): CompositeBuildMap {
   val byName = builds.associate { it.buildName to it.buildId }
   val byId = builds.associate { it.buildId to it.buildName }
   return object : CompositeBuildMap {
-    override fun buildIdToName(buildId: File): String = byId[buildId] ?: error("Build (id='$buildId') not found")
-    override fun buildNameToId(buildName: String): File = byName[buildName] ?: error("Build (name='$buildName') not found")
+    override fun buildIdToName(buildId: File): String? = byId[buildId]
+    override fun buildNameToId(buildName: String): File? = byName[buildName]
     override val gradleSupportsDirectTaskInvocation: Boolean
       get() = this@toCompositeBuildMap.gradleSupportsDirectTaskInvocation
   }
@@ -122,11 +122,12 @@ private fun Module.createCompositeBuildMapCachedValue(): CachedValueProvider.Res
 }
 
 fun CompositeBuildMap.translateToBuildAndRelativeProjectPath(projectPath: GradleProjectPath): BuildRelativeGradleProjectPath {
+  fun notTranslated() = BuildRelativeGradleProjectPath(projectPath.buildRootDir, ":", projectPath.path)
   return when (gradleSupportsDirectTaskInvocation) {
-    false -> BuildRelativeGradleProjectPath(projectPath.buildRootDir, ":", projectPath.path)
+    false -> notTranslated()
     true -> {
-      val rootBuildId = this.buildNameToId(":")
-      val buildName = this.buildIdToName(projectPath.buildRootDir)
+      val rootBuildId = this.buildNameToId(":") ?: return notTranslated()
+      val buildName = this.buildIdToName(projectPath.buildRootDir) ?: return notTranslated()
       BuildRelativeGradleProjectPath(rootBuildId, buildName, projectPath.path)
     }
   }
