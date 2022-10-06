@@ -16,9 +16,9 @@
 package com.android.tools.idea.npw.template
 
 import com.android.annotations.concurrency.Slow
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.repository.Revision
-import com.android.tools.idea.npw.project.determineGradlePluginVersion
+import com.android.tools.idea.npw.project.determineAgpVersion
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
@@ -41,7 +41,7 @@ private val log: Logger get() = logger<ProjectTemplateDataBuilder>()
 
 class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var androidXSupport: Boolean? = null
-  var gradlePluginVersion: GradleVersion? = null
+  var agpVersion: AgpVersion? = null
   var sdkDir: File? = null
   var language: Language? = null
   var kotlinVersion: String? = null
@@ -57,7 +57,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   internal fun setEssentials(project: Project) {
     applicationName = project.name
     kotlinVersion = getBestKotlinVersion()
-    gradlePluginVersion = determineGradlePluginVersion(project)
+    agpVersion = determineAgpVersion(project)
     // If we create a new project, then we have a checkbox for androidX support
     if (!isNewProject) {
       androidXSupport = project.isAndroidx()
@@ -85,16 +85,16 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
     sdkDir = sdkHandler.location?.toFile()
   }
 
-  /** Find the most appropriated Gradle Plugin version for the specified project. */
+  /** Find the most appropriate Android Gradle Plugin version for the specified project. */
   @Slow
-  private fun determineGradlePluginVersion(project: Project): GradleVersion {
+  private fun determineAgpVersion(project: Project): AgpVersion {
     // Could be expensive to calculate, so return any cached value.
-    return gradlePluginVersion ?: determineGradlePluginVersion(project, isNewProject)
+    return agpVersion ?: determineAgpVersion(project, isNewProject)
   }
 
   fun build() = ProjectTemplateData(
     androidXSupport!!,
-    gradlePluginVersion!!.toString(),
+    agpVersion!!.toString(),
     sdkDir,
     Language.valueOf(language!!.toString()),
     kotlinVersion!!,

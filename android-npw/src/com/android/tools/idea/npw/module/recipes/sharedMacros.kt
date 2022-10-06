@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.npw.module.recipes
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestJava
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestKt
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
-import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
 import com.android.tools.idea.wizard.template.GradlePluginVersion
@@ -99,7 +98,7 @@ fun proguardConfig(
   }
 
 fun toAndroidFieldVersion(fieldName: String, fieldValue: String, gradlePluginVersion: GradlePluginVersion): String {
-  val isNewAGP = GradleVersion.parse(gradlePluginVersion).compareIgnoringQualifiers("7.0.0") >= 0
+  val isNewAGP = AgpVersion.parse(gradlePluginVersion).compareIgnoringQualifiers("7.0.0") >= 0
   val versionNumber = fieldValue.toIntOrNull()
   return when {
     isNewAGP && versionNumber == null -> "${fieldName}Preview \"${fieldValue.replace("android-", "")}\""

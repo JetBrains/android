@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.UpdatablePackage
 import com.android.sdklib.SdkVersionInfo
@@ -33,7 +33,7 @@ import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedPr
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.sdkManagerLocalPath
-import com.android.tools.idea.npw.project.determineGradlePluginVersion
+import com.android.tools.idea.npw.project.determineAgpVersion
 import com.android.tools.idea.npw.project.determineVersionCatalogUse
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
 import com.android.tools.idea.npw.validator.ApiVersionValidator
@@ -83,7 +83,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
 ) : SkippableWizardStep<ModuleModelKind>(model, title, formFactor.icon) {
   protected val bindings = BindingsManager()
   protected val listeners = ListenerManager()
-  protected val gradleVersion: OptionalValueProperty<GradleVersion> = OptionalValueProperty()
+  protected val agpVersion: OptionalValueProperty<AgpVersion> = OptionalValueProperty()
   private val versionCatalogUse: OptionalValueProperty<Boolean> = OptionalValueProperty()
 
   private val androidVersionsInfo = AndroidVersionsInfo()
@@ -106,8 +106,8 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
         isAndroidX.get()
         }, isAndroidX)
 
-      val minKtsAgpVersion = GradleVersion.parse(KTS_AGP_MIN_VERSION)
-      registerValidator(gradleVersion, createValidator { version ->
+      val minKtsAgpVersion = AgpVersion.parse(KTS_AGP_MIN_VERSION)
+      registerValidator(agpVersion, createValidator { version ->
         if (model.useGradleKts.get() && version.isPresent && version.get().compareIgnoringQualifiers(minKtsAgpVersion) < 0)
           Validator.Result.fromNullableMessage(message("android.wizard.validate.module.needs.new.agp.kts", KTS_AGP_MIN_VERSION))
         else
@@ -119,12 +119,12 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
       })
 
       AndroidCoroutineScope(this).launch(Dispatchers.IO) {
-        val gradleVersionValue = determineGradlePluginVersion(model.project, false)
+        val agpVersionValue = determineAgpVersion(model.project, false)
         val versionCatalogUseValue = determineVersionCatalogUse(model.project)
 
         // ValueProperty's need to be set on the UI thread.
         withContext(AndroidDispatchers.uiThread(ModalityState.any())) {
-          gradleVersion.value = gradleVersionValue
+          agpVersion.value = agpVersionValue
           versionCatalogUse.value = versionCatalogUseValue
         }
       }
