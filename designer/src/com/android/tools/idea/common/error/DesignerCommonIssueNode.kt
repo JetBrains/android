@@ -17,6 +17,7 @@ package com.android.tools.idea.common.error
 
 import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.tools.idea.common.surface.navigateToComponent
+import com.android.tools.idea.uibuilder.surface.NlAtfIssue
 import com.android.tools.idea.uibuilder.visual.ConfigurationSet
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
@@ -276,7 +277,7 @@ class IssuedFileNode(val file: VirtualFile, parent: DesignerCommonIssueNode?) : 
   }
 
   override fun getChildren(): List<IssueNode> {
-    return getNodeProvider().getIssueNodes(this).sortedWith(issueComparator)
+    return getNodeProvider().getIssueNodes(this).sortedWith(PreprocessNodeComparator.thenComparing(issueComparator))
   }
 }
 
@@ -315,7 +316,7 @@ class NoFileNode(parent: DesignerCommonIssueNode?) : DesignerCommonIssueNode(par
   }
 
   override fun getChildren(): List<IssueNode> {
-    return getNodeProvider().getIssueNodes(this).sortedWith(issueComparator)
+    return getNodeProvider().getIssueNodes(this).sortedWith(PreprocessNodeComparator.thenComparing(issueComparator))
   }
 }
 
@@ -475,5 +476,20 @@ object FileNameComparator : Comparator<DesignerCommonIssueNode> {
     }
 
     return if (o1 is IssuedFileNode && o2 is IssuedFileNode) o1.getVirtualFile().name.compareTo(o2.getVirtualFile().name) else 0
+  }
+}
+
+/**
+ * Define the default order for [DesignerCommonIssueNode]. All [DesignerCommonIssueNode]s must pass to this comparator before sorting.
+ */
+object PreprocessNodeComparator : Comparator<DesignerCommonIssueNode> {
+  override fun compare(o1: DesignerCommonIssueNode?, o2: DesignerCommonIssueNode?): Int {
+    if (o1 !is IssueNode || o2 !is IssueNode) {
+      return 0
+    }
+    // Force sorted the ATF issue by name. This avoid the jumping order of ATF issue when there is no sorting option is selected.
+    val issue1 = o1.issue as? NlAtfIssue ?: return 0
+    val issue2 = o2.issue as? NlAtfIssue ?: return 0
+    return issue1.summary.compareTo(issue2.summary)
   }
 }

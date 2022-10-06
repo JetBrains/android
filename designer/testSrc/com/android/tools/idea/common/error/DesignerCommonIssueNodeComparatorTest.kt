@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.uibuilder.surface.NlAtfIssue
+import com.android.tools.idea.validator.ValidatorData
 import com.intellij.lang.annotation.HighlightSeverity
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
@@ -149,4 +152,65 @@ class IssueNodeNameComparatorTest {
 
     assertEquals(listOf(nodeA, nodeAUpperCase, nodeB), listOf(nodeAUpperCase, nodeA, nodeB).sortedWith(IssueNodeNameComparator))
   }
+}
+
+class PreprocessNodeComparatorTest {
+  @Test
+  fun testSortingNonATFIssues() {
+    val nodeA = TestNode("nodeA")
+    val nodeB = TestNode("nodeB")
+    // Note: We ignore the case when comparing
+    val nodeAUpperCase = TestNode("NodeA")
+
+    // Basic cases
+    assertEquals(0, PreprocessNodeComparator.compare(null, null))
+    assertEquals(0, PreprocessNodeComparator.compare(null, nodeA))
+    assertEquals(0, PreprocessNodeComparator.compare(nodeA, null))
+    assertEquals(0, PreprocessNodeComparator.compare(nodeA, nodeA))
+
+    assertEquals(0, PreprocessNodeComparator.compare(nodeA, nodeB))
+    assertEquals(0, PreprocessNodeComparator.compare(nodeB, nodeA))
+
+    assertEquals(0, PreprocessNodeComparator.compare(nodeB, nodeAUpperCase))
+    assertEquals(0, PreprocessNodeComparator.compare(nodeAUpperCase, nodeB))
+
+    assertEquals(0, PreprocessNodeComparator.compare(nodeA, nodeAUpperCase))
+    assertEquals(0, PreprocessNodeComparator.compare(nodeAUpperCase, nodeA))
+
+    assertEquals(listOf(nodeA, nodeAUpperCase, nodeB), listOf(nodeA, nodeAUpperCase, nodeB).sortedWith(PreprocessNodeComparator))
+  }
+
+  @Test
+  fun testSortingATFIssues() {
+
+    val atfNodeA = TestIssueNode(TestAtfIssue("AAA"))
+    val atfNodeB = TestIssueNode(TestAtfIssue("BBB"))
+    val otherNode = TestNode("other")
+
+    // Basic cases
+    assertEquals(0, PreprocessNodeComparator.compare(null, atfNodeA))
+    assertEquals(0, PreprocessNodeComparator.compare(atfNodeA, null))
+    assertEquals(0, PreprocessNodeComparator.compare(atfNodeA, atfNodeA))
+
+    assertEquals(0, PreprocessNodeComparator.compare(atfNodeA, otherNode))
+    assertEquals(0, PreprocessNodeComparator.compare(otherNode, atfNodeA))
+
+    assertTrue(PreprocessNodeComparator.compare(atfNodeA, atfNodeB) < 0)
+    assertTrue(PreprocessNodeComparator.compare(atfNodeB, atfNodeA) > 0)
+
+    assertEquals(listOf(atfNodeA, atfNodeB), listOf(atfNodeB, atfNodeA).sortedWith(PreprocessNodeComparator))
+  }
+}
+
+private class TestAtfIssue(override val summary: String):
+  NlAtfIssue(createIssueValidatorData(), IssueSource.NONE, mock(), null)
+
+fun createIssueValidatorData(): ValidatorData.Issue {
+  return ValidatorData.Issue.IssueBuilder()
+    .setCategory("")
+    .setType(ValidatorData.Type.ACCESSIBILITY)
+    .setMsg("")
+    .setLevel(ValidatorData.Level.ERROR)
+    .setSourceClass("")
+    .build()
 }
