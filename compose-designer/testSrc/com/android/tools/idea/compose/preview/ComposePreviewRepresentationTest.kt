@@ -36,11 +36,11 @@ import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.CountDownLatch
 import javax.swing.JComponent
 import javax.swing.JPanel
-import junit.framework.Assert.assertTrue
 import kotlin.test.assertContains
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -162,13 +162,13 @@ class ComposePreviewRepresentationTest {
         arrayOf("groupA"),
         preview.availableGroups.map { it.displayName }.toTypedArray()
       )
-/* b/250333664
-      assertTrue(
-        !preview.status().hasErrors &&
-          !preview.status().hasRuntimeErrors &&
-          !preview.status().isOutOfDate
-      )
-b/250333664 */
+
+      val status = preview.status()
+      assertFalse(status.isOutOfDate)
+      /* b/250333664
+      assertFalse(status.hasRuntimeErrors)
+      assertFalse(status.hasErrors)
+      */
       preview.onDeactivate()
     }
 }
