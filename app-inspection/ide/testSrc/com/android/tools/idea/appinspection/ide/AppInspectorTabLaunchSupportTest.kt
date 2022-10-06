@@ -105,16 +105,16 @@ class AppInspectorTabLaunchSupportTest {
       Commands.Command.CommandType.APP_INSPECTION,
       TestAppInspectorCommandHandler(timer, getLibraryVersionsResponse = { getLibraryVersionsCommand ->
         AppInspection.GetLibraryCompatibilityInfoResponse.newBuilder().addAllResponses(
-          getLibraryVersionsCommand.targetLibrariesList.map { coordinate ->
-            if (coordinate.version == "INCOMPATIBLE") {
+          getLibraryVersionsCommand.targetLibrariesList.map { compatibility ->
+            if (compatibility.coordinate.version == "INCOMPATIBLE") {
               AppInspection.LibraryCompatibilityInfo.newBuilder().setStatus(
                 AppInspection.LibraryCompatibilityInfo.Status.INCOMPATIBLE)
-                .setTargetLibrary(coordinate).setVersion(coordinate.version).build()
+                .setTargetLibrary(compatibility.coordinate).setVersion(compatibility.coordinate.version).build()
             }
             else {
               AppInspection.LibraryCompatibilityInfo.newBuilder().setStatus(
                 AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE)
-                .setTargetLibrary(coordinate).setVersion(coordinate.version).build()
+                .setTargetLibrary(compatibility.coordinate).setVersion(compatibility.coordinate.version).build()
             }
           }.toList()).build()
       }))

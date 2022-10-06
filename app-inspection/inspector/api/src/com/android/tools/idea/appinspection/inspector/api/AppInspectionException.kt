@@ -66,6 +66,11 @@ class AppInspectionProcessNoLongerExistsException(message: String, cause: Throwa
 class AppInspectionVersionIncompatibleException(message: String) : AppInspectionServiceException(message)
 
 /**
+ * Thrown when the targeted library version does not exist in the app.
+ */
+class AppInspectionVersionMissingException(message: String) : AppInspectionServiceException(message)
+
+/**
  * Thrown when the targeted library does not exist in the app.
  */
 class AppInspectionLibraryMissingException(message: String) : AppInspectionServiceException(message)

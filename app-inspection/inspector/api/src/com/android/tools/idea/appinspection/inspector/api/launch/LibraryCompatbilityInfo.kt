@@ -43,6 +43,11 @@ data class LibraryCompatbilityInfo(
     INCOMPATIBLE,
 
     /**
+     * The version file is missing from the app.
+     */
+    VERSION_MISSING,
+
+    /**
      * The target library is missing from the app.
      */
     LIBRARY_MISSING,

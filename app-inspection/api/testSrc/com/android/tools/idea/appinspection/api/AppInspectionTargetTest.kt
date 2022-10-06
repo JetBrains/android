@@ -20,6 +20,7 @@ import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.process.SimpleProcessListener
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.DefaultAppInspectionTarget
 import com.android.tools.idea.appinspection.internal.toLibraryCompatibilityInfo
@@ -223,10 +224,14 @@ class AppInspectionTargetTest {
         .setTargetLibrary(createArtifactCoordinate("4rd", "file", "1.0.0").toArtifactCoordinateProto())
         .setErrorMessage("proguarded")
         .build(),
-
+      AppInspection.LibraryCompatibilityInfo.newBuilder()
+        .setStatus(AppInspection.LibraryCompatibilityInfo.Status.VERSION_MISSING)
+        .setTargetLibrary(createArtifactCoordinate("5th", "file", "1.0.0").toArtifactCoordinateProto())
+        .setErrorMessage("missing")
+        .build(),
       AppInspection.LibraryCompatibilityInfo.newBuilder()
         .setStatus(AppInspection.LibraryCompatibilityInfo.Status.SERVICE_ERROR)
-        .setTargetLibrary(createArtifactCoordinate("5th", "file", "1.0.0").toArtifactCoordinateProto())
+        .setTargetLibrary(createArtifactCoordinate("6th", "file", "1.0.0").toArtifactCoordinateProto())
         .setErrorMessage("error")
         .build()
     )
@@ -261,11 +266,12 @@ class AppInspectionTargetTest {
 
     // These are the version files we are interested in targeting.
     val targets = listOf(
-      ArtifactCoordinate("1st", "file", "1.0.0", ArtifactCoordinate.Type.JAR),
-      ArtifactCoordinate("2nd", "file", "1.0.0", ArtifactCoordinate.Type.JAR),
-      ArtifactCoordinate("3rd", "file", "1.0.0", ArtifactCoordinate.Type.JAR),
-      ArtifactCoordinate("4th", "file", "1.0.0", ArtifactCoordinate.Type.JAR),
-      ArtifactCoordinate("5th", "file", "1.0.0", ArtifactCoordinate.Type.JAR),
+      LibraryCompatibility(ArtifactCoordinate("1st", "file", "1.0.0", ArtifactCoordinate.Type.JAR)),
+      LibraryCompatibility(ArtifactCoordinate("2nd", "file", "1.0.0", ArtifactCoordinate.Type.JAR)),
+      LibraryCompatibility(ArtifactCoordinate("3rd", "file", "1.0.0", ArtifactCoordinate.Type.JAR)),
+      LibraryCompatibility(ArtifactCoordinate("4th", "file", "1.0.0", ArtifactCoordinate.Type.JAR)),
+      LibraryCompatibility(ArtifactCoordinate("5th", "file", "1.0.0", ArtifactCoordinate.Type.JAR), listOf("com.example.MyClass")),
+      LibraryCompatibility(ArtifactCoordinate("6th", "file", "1.0.0", ArtifactCoordinate.Type.JAR)),
     )
 
     // Add the fake process to transport so we can attach to it via apiServices.attachToProcess
@@ -285,6 +291,6 @@ class AppInspectionTargetTest {
     // Verify response.
     val responses = appInspectionRule.apiServices.attachToProcess(process, TEST_PROJECT).getLibraryVersions(targets)
     assertThat(responses).containsExactlyElementsIn(
-      fakeLibraryVersionsResponse.mapIndexed { i, response -> response.toLibraryCompatibilityInfo(targets[i]) })
+      fakeLibraryVersionsResponse.mapIndexed { i, response -> response.toLibraryCompatibilityInfo(targets[i].coordinate) })
   }
 }

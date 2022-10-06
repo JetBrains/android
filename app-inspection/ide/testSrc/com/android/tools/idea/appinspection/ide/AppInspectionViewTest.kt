@@ -911,9 +911,9 @@ class AppInspectionViewTest {
           AppInspection.GetLibraryCompatibilityInfoResponse.newBuilder().addAllResponses(
             command.targetLibrariesList.map {
               val builder = AppInspection.LibraryCompatibilityInfo.newBuilder()
-                .setTargetLibrary(it)
-                .setVersion(it.version)
-              if (it.version == "INCOMPATIBLE") {
+                .setTargetLibrary(it.coordinate)
+                .setVersion(it.coordinate.version)
+              if (it.coordinate.version == "INCOMPATIBLE") {
                 builder.status = AppInspection.LibraryCompatibilityInfo.Status.INCOMPATIBLE
               }
               else {

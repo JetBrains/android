@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.protobuf.ByteString
@@ -41,6 +42,7 @@ const val TEST_PROJECT = "test.project"
 
 const val MIN_VERSION = "0.0.0-dev"
 val TEST_ARTIFACT = ArtifactCoordinate("test_group_id", "test_artifact_id", MIN_VERSION, ArtifactCoordinate.Type.JAR)
+val TEST_COMPATIBILITY = LibraryCompatibility(TEST_ARTIFACT)
 
 /**
  * A collection of utility functions for inspection tests.
@@ -110,7 +112,7 @@ object AppInspectionTestUtils {
     inspectorId: String = INSPECTOR_ID,
     jar: AppInspectorJar = TEST_JAR,
     project: String = TEST_PROJECT
-  ) = LaunchParameters(descriptor, inspectorId, jar, project, TEST_ARTIFACT)
+  ) = LaunchParameters(descriptor, inspectorId, jar, project, TEST_COMPATIBILITY)
 
   fun createArtifactCoordinate(
     groupId: String,

@@ -116,7 +116,7 @@ private val DEFAULT_DISPOSE_INSPECTOR_RESPONSE = { _: AppInspection.DisposeInspe
 
 private fun getDefaultLibraryVersionsResponse(command: Commands.Command): AppInspection.GetLibraryCompatibilityInfoResponse {
   val responses = command.appInspectionCommand.getLibraryCompatibilityInfoCommand.targetLibrariesList.map { target ->
-    AppInspection.LibraryCompatibilityInfo.newBuilder().setTargetLibrary(target).setStatus(
+    AppInspection.LibraryCompatibilityInfo.newBuilder().setTargetLibrary(target.coordinate).setStatus(
       AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE).build()
   }
   return AppInspection.GetLibraryCompatibilityInfoResponse.newBuilder()

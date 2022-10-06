@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactN
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorLaunchConfig
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
@@ -82,7 +83,8 @@ class AppInspectorTabLaunchSupport(
     }
 
     val coords = map { config -> (config.params as LibraryInspectorLaunchParams).minVersionLibraryCoordinate }
-    val compatibilityResponse = apiServices.attachToProcess(process, project.name).getLibraryVersions(coords)
+    val compatibilities = coords.map { LibraryCompatibility(it) }
+    val compatibilityResponse = apiServices.attachToProcess(process, project.name).getLibraryVersions(compatibilities)
 
     return mapIndexed { i, config ->
       config.id to when (compatibilityResponse[i].status) {

@@ -41,7 +41,7 @@ data class LaunchParameters(
   /**
    * Information about the library this inspector is targeting. Null if inspector doesn't target a library (ex: framework inspector).
    */
-  val libraryCoordinate: ArtifactCoordinate? = null,
+  val library: LibraryCompatibility? = null,
   /**
    * If true, launch the inspector even if one is already running.
    */

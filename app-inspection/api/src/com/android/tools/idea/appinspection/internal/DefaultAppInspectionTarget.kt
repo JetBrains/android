@@ -26,10 +26,12 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchExc
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionMissingException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.manager.StreamEventQuery
@@ -124,9 +126,7 @@ internal class DefaultAppInspectionTarget(
     val launchMetadata = AppInspection.LaunchMetadata.newBuilder()
       .setLaunchedByName(params.projectName)
       .setForce(params.force)
-    params.libraryCoordinate?.let {
-      launchMetadata.setMinLibrary(it.toArtifactCoordinateProto()).build()
-    }
+    params.library?.let { launchMetadata.setMinLibrary(it.toLibraryCompatibilityProto()) }
     val createInspectorCommand = CreateInspectorCommand.newBuilder()
       .setDexPath(fileDevicePath)
       .setLaunchMetadata(launchMetadata)
@@ -159,8 +159,8 @@ internal class DefaultAppInspectionTarget(
   }
 
   @WorkerThread
-  override suspend fun getLibraryVersions(libraryCoordinates: List<ArtifactCoordinate>): List<LibraryCompatbilityInfo> {
-    val libraryVersions = libraryCoordinates.map { it.toArtifactCoordinateProto() }
+  override suspend fun getLibraryVersions(libraryCoordinates: List<LibraryCompatibility>): List<LibraryCompatbilityInfo> {
+    val libraryVersions = libraryCoordinates.map { it.toLibraryCompatibilityProto() }
     val getLibraryVersionsCommand = AppInspection.GetLibraryCompatibilityInfoCommand.newBuilder().addAllTargetLibraries(
       libraryVersions).build()
     val commandId = AppInspectionTransport.generateNextCommandId()
@@ -174,7 +174,7 @@ internal class DefaultAppInspectionTarget(
     // The API call should always return a list of the same size.
     assert(libraryCoordinates.size == response.appInspectionResponse.getLibraryCompatibilityResponse.responsesCount)
     return response.appInspectionResponse.getLibraryCompatibilityResponse.responsesList.mapIndexed { i, result ->
-      result.toLibraryCompatibilityInfo(libraryCoordinates[i])
+      result.toLibraryCompatibilityInfo(libraryCoordinates[i].coordinate)
     }
   }
 }
@@ -196,6 +196,7 @@ private fun AppInspection.AppInspectionResponse.getException(inspectorId: String
   val message = "Could not launch inspector ${inspectorId}: ${this.errorMessage}"
   return when (this.createInspectorResponse.status) {
     AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE -> AppInspectionVersionIncompatibleException(message)
+    AppInspection.CreateInspectorResponse.Status.VERSION_MISSING -> AppInspectionVersionMissingException(message)
     AppInspection.CreateInspectorResponse.Status.LIBRARY_MISSING -> AppInspectionLibraryMissingException(message)
     AppInspection.CreateInspectorResponse.Status.APP_PROGUARDED -> AppInspectionAppProguardedException(message)
     else -> AppInspectionLaunchException(message)

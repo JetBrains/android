@@ -19,6 +19,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessDiscovery
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionProcessDiscovery
@@ -97,10 +98,11 @@ interface AppInspectionApiServices {
 suspend fun AppInspectionApiServices.findVersion(project: String,
                                                  process: ProcessDescriptor,
                                                  groupId: String,
-                                                 artifactId: String): String? {
+                                                 artifactId: String,
+                                                 expectedClassNames: List<String> = emptyList() ): String? {
   val coordinateAnyVersion = ArtifactCoordinate(groupId, artifactId, "0.0.0", ArtifactCoordinate.Type.AAR)
   return attachToProcess(process, project)
-    .getLibraryVersions(listOf(coordinateAnyVersion))
+    .getLibraryVersions(listOf(LibraryCompatibility(coordinateAnyVersion, expectedClassNames)))
     .singleOrNull()
     ?.version
     ?.takeIf { it.isNotBlank() }

@@ -27,6 +27,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -64,6 +65,7 @@ private val DEV_JAR = AppInspectorJar(
 private val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate(
   "androidx.compose.ui", "ui", "1.0.0-beta02", ArtifactCoordinate.Type.AAR
 )
+private val COMPOSE_INSPECTION_COMPATIBILITY = LibraryCompatibility(MINIMUM_COMPOSE_COORDINATE)
 
 @VisibleForTesting
 val INCOMPATIBLE_LIBRARY_MESSAGE =
@@ -143,7 +145,8 @@ class ComposeLayoutInspectorClient(
 
       // Set force = true, to be more aggressive about connecting the layout inspector if an old version was
       // left running for some reason. This is a better experience than silently falling back to a legacy client.
-      val params = LaunchParameters(process, COMPOSE_LAYOUT_INSPECTOR_ID, jar, model.project.name, MINIMUM_COMPOSE_COORDINATE, force = true)
+      val params = LaunchParameters(process, COMPOSE_LAYOUT_INSPECTOR_ID, jar, model.project.name, COMPOSE_INSPECTION_COMPATIBILITY,
+                                    force = true)
       return try {
         val messenger = apiServices.launchInspector(params)
         ComposeLayoutInspectorClient(model, treeSettings, messenger, capabilities, launchMonitor).apply { updateSettings() }

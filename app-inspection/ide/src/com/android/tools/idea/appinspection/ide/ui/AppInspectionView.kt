@@ -39,6 +39,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIn
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorForcefullyDisposedException
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorMessengerTarget
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
@@ -293,7 +294,7 @@ class AppInspectionView @VisibleForTesting constructor(
                     config.id,
                     jarTarget.jar,
                     project.name,
-                    (config.params as? LibraryInspectorLaunchParams)?.minVersionLibraryCoordinate,
+                    (config.params as? LibraryInspectorLaunchParams)?.minVersionLibraryCoordinate?.let { LibraryCompatibility(it) },
                     force
                   )
                 )

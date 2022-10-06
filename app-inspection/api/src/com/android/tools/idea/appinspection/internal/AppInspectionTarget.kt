@@ -19,7 +19,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 
 /**
  * Represents an app-inspection target process (on the device) being connected to from the host.
@@ -44,5 +44,5 @@ abstract class AppInspectionTarget {
    * The version check result can be in several different states. See [LibraryCompatbilityInfo.Status] for details.
    */
   @WorkerThread
-  abstract suspend fun getLibraryVersions(libraryCoordinates: List<ArtifactCoordinate>): List<LibraryCompatbilityInfo>
+  abstract suspend fun getLibraryVersions(libraryCoordinates: List<LibraryCompatibility>): List<LibraryCompatbilityInfo>
 }
