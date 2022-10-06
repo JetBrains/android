@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -48,12 +49,14 @@ data class GradleSyncLoggedEventsTestDef(
 
   override fun setup() {
     UsageTracker.setWriterForTest(testUsageTracker)
+    AnalyticsSettings.optedIn = true
   }
 
   override fun runTest(root: File, project: Project) = Unit
 
   override fun verifyAfterClosing(root: File) {
     val usages = testUsageTracker.usages
+    AnalyticsSettings.optedIn = false
     UsageTracker.cleanAfterTesting()
     if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.lowercase(Locale.getDefault()) == "y") {
       val events = usages
@@ -94,6 +97,12 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_ENDED
               |  USER_REQUESTED_PARALLEL
               |  STUDIO_REQUESTD_$expectedMode
+              |INTELLIJ_PROJECT_SIZE_STATS
+              |  JAVA : 3
+              |  XML : 16
+              |  DOT_CLASS : 0
+              |  KOTLIN : 0
+              |  NATIVE : 0
               |GRADLE_BUILD_DETAILS""".trim()
             )
           }.trimMargin()
@@ -127,6 +136,12 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_ENDED
               |  USER_REQUESTED_SEQUENTIAL
               |  STUDIO_REQUESTD_SEQUENTIAL
+              |INTELLIJ_PROJECT_SIZE_STATS
+              |  JAVA : 3
+              |  XML : 16
+              |  DOT_CLASS : 0
+              |  KOTLIN : 0
+              |  NATIVE : 0
               |GRADLE_BUILD_DETAILS""".trim()
             )
           }.trimMargin()
@@ -160,7 +175,7 @@ data class GradleSyncLoggedEventsTestDef(
 
     private fun List<LoggedUsage>.dumpSyncEvents(): String {
       return map { it.studioEvent }
-        .filter { it.hasGradleSyncStats() || it.hasGradleBuildDetails() }
+        .filter { it.hasGradleSyncStats() || it.hasGradleBuildDetails() || it.intellijProjectSizeStatsCount > 0 }
         .joinToString("") {
           buildString {
             appendLine(it.kind.toString())
@@ -173,6 +188,9 @@ data class GradleSyncLoggedEventsTestDef(
                   appendLine("    $fix")
                 }
               }
+            }
+            it.intellijProjectSizeStatsList.forEach {
+              entry -> appendLine("  ${entry.type} : ${entry.count}")
             }
           }
         }

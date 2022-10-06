@@ -124,6 +124,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy[test]",
         "//tools/base/build-system:studio.android.sdktools.manifest-merger[module, test]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
+        "//tools/analytics-library/shared:analytics-shared[module, test]",
     ],
 )
 

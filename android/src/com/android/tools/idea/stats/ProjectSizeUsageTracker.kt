@@ -25,15 +25,16 @@ import com.google.wireless.android.sdk.stats.IntellijProjectSizeStats
 import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.fileTypes.PlainTextFileType
-import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.progress.PerformInBackgroundOption
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Computable
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.ProjectScope
-import com.intellij.util.Processor
+import java.util.concurrent.Callable
 
 // Upper limit on the number of files we will count. Only 1% of projects have more files than this
 private const val FILE_CAP = 60000
@@ -44,7 +45,12 @@ class ProjectSizeUsageTrackerListener(private val project: Project) : SyncResult
       return
     }
     if (AnalyticsSettings.optedIn) {
-      ApplicationManager.getApplication().executeOnPooledThread(ReportProjectSizeTask(project));
+      object : Task.Backgroundable(project, "Computing project size", true, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+        override fun run(indicator: ProgressIndicator) {
+          ReportProjectSizeTask(project).run()
+        }
+
+      }.queue()
     }
   }
 }
@@ -74,22 +80,29 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
       .newBuilder()
       .setKind(AndroidStudioEvent.EventKind.INTELLIJ_PROJECT_SIZE_STATS)
       .withProjectId(project)
+
     for (fileType in FileType.values()) {
       val fileCount =
         try {
-          fileCount(fileType)
-        }
-        catch (e: Exception) {
+          ReadAction.nonBlocking(Callable {
+            fileCount(fileType)
+          })
+            .inSmartMode(project)
+            .expireWith(project)
+            .executeSynchronously()
+        } catch (e: Exception) {
           // in the case of any exception (project disposed, or ProcessCanceledException, etc)
           // we just send an impossible value so that we can track how often such scenarios
           // occur in the backend
           -1
         }
-      builder.addIntellijProjectSizeStats(IntellijProjectSizeStats
-                                            .newBuilder()
-                                            .setScope(IntellijProjectSizeStats.Scope.PROJECT)
-                                            .setType(fileType.statsFileType())
-                                            .setCount(fileCount))
+      builder.addIntellijProjectSizeStats(
+        IntellijProjectSizeStats
+          .newBuilder()
+          .setScope(IntellijProjectSizeStats.Scope.PROJECT)
+          .setType(fileType.statsFileType())
+          .setCount(fileCount)
+      )
     }
 
     UsageTracker.log(builder)
@@ -103,14 +116,13 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
     }
     else {
       val cap = ServerFlagService.instance.getInt("analytics/projectsize/filecap", FILE_CAP)
-      // note that this pauses the current thread until smart mode is available
-      return DumbService.getInstance(project).runReadActionInSmartMode(
-        Computable {
-          var numFiles = 0
-          FileTypeIndex.processFiles(fileType.languageFileType(), Processor { numFiles++; numFiles < cap },
-                                     ProjectScope.getProjectScope(project))
-          numFiles;
-        })
+      var numFiles = 0
+      FileTypeIndex.processFiles(
+        fileType.languageFileType(),
+        { numFiles++; numFiles < cap },
+        ProjectScope.getProjectScope(project)
+      )
+      return numFiles;
     }
   }
 }
