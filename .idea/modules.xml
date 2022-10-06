@@ -274,6 +274,7 @@
       <module fileurl="file://$PROJECT_DIR$/kotlin-integration/kotlin-integration-tests.iml" filepath="$PROJECT_DIR$/kotlin-integration/kotlin-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" filepath="$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/native-symbolizer/native-symbolizer.tests.iml" filepath="$PROJECT_DIR$/native-symbolizer/native-symbolizer.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/observable-demo/observable-demo.iml" filepath="$PROJECT_DIR$/observable-demo/observable-demo.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/perf-logger/perf-logger.iml" filepath="$PROJECT_DIR$/../../base/perf-logger/perf-logger.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/real-world-integration-test/real-world-integration-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/real-world-integration-test/real-world-integration-tests.iml" />

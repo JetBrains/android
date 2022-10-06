@@ -16,11 +16,21 @@
 package com.android.tools.nativeSymbolizer
 
 import com.android.sdklib.devices.Abi
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder.Companion.create
+import com.android.tools.idea.testing.AndroidProjectRule.Companion.inMemory
+import com.google.common.truth.Truth
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProviderManager.Companion.replaceForTest
 import org.junit.Assert
+import org.junit.Rule
 import org.junit.Test
 import java.io.File
 
 class SymbolSourceTest {
+
+  @Rule @JvmField
+  var projectRule = inMemory().initAndroid(true)
+
   @Test
   fun dynamicSymbolSourceReturnsDirectoriesPerArch() {
     val armLibraries = File("path/to/arm/libraries")
@@ -74,5 +84,36 @@ class SymbolSourceTest {
                                                                     moreX86Libraries)))
 
     Assert.assertTrue(source.getDirsFor(Abi.MIPS).isEmpty())
+  }
+
+  @Test
+  fun emptyJniLibs() {
+    val src = JniSymbolSource(projectRule.module)
+    val result: Collection<File?> = src.getDirsFor(Abi.ARM64_V8A)
+    Truth.assertThat(result).isEmpty()
+  }
+
+  @Test
+  fun withJniLibs() {
+    val src = JniSymbolSource(projectRule.module)
+
+    // Create foo.so file and get the jniLibs URL.
+    val jniLibsUrl = projectRule.fixture
+      .addFileToProject("jniLibs/arm64-v8a/foo.so", "hello, world!")
+      .virtualFile
+      .parent
+      .parent
+      .url
+    Truth.assertThat(jniLibsUrl).endsWith("jniLibs")
+
+    // Create a new source provider that contains the new jniLibsUrl, and inject it for the test.
+    replaceForTest(
+      AndroidFacet.getInstance(projectRule.module)!!,
+      projectRule.fixture.projectDisposable,
+      create("main", "AndroidManifest.xml")
+        .withJniLibsDirectoryUrls(listOf(jniLibsUrl))
+        .build())
+    val result: Collection<File?> = src.getDirsFor(Abi.ARM64_V8A)
+    Truth.assertThat(result).isNotEmpty()
   }
 }
