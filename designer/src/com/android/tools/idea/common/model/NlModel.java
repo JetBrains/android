@@ -147,6 +147,12 @@ public class NlModel implements ModificationTracker, DataContextHolder {
 
   @NotNull private DataContext myDataContext;
 
+  /**
+   * Indicate which group this NlModel belongs. This can be used to categorize the NlModel when rendering or layouting.
+   */
+  @Nullable
+  private String myGroupId = null;
+
   @NotNull
   public static NlModelBuilder builder(@NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
     return new NlModelBuilder(facet, file, configuration);
@@ -1059,6 +1065,15 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   @Override
   public final DataContext getDataContext() {
     return myDataContext;
+  }
+
+  @Nullable
+  public final String getGroupId() {
+    return myGroupId;
+  }
+
+  public final void setGroupId(@Nullable String groupId) {
+    myGroupId = groupId;
   }
 
   /**

@@ -1277,6 +1277,11 @@ public final class StudioFlags {
     "If enabled, annotation classes annotated with Preview, and its usages, will be considered when finding Previews in a file",
     true);
 
+  public static final Flag<Boolean> COMPOSE_NEW_PREVIEW_LAYOUT = Flag.create(
+    COMPOSE, "new.preview.layout", "Enable the new layout options of Compose Preview",
+    "If enabled, the options of new layout designs of compose preview will be shown in Compose Preview",
+    false);
+
   public static final Flag<Boolean> COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE = Flag.create(
     COMPOSE, "project.uses.compose.override", "Forces the Compose project detection",
     "If enabled, the project will be treated as a Compose project, showing Previews if available and enhancing the Compose editing",

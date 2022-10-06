@@ -202,6 +202,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           configureLayoutlibSceneManager(
             previewElement.displaySettings,
             addModelWithoutRender(newModel))
+          newModel.groupId = previewElement.displaySettings.group
           newModel
         }
       }

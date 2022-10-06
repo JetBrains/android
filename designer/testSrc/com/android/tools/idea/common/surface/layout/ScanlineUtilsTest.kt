@@ -32,6 +32,8 @@ class TestPositionableContent(override var x: Int = 0,
                               override val margin: Insets = JBInsets.emptyInsets()) : PositionableContent {
   private val dimension = Dimension(width, height)
 
+  override val groupId: String? = null
+
   override val isVisible: Boolean get() = true
 
   override fun setLocation(x: Int, y: Int) {
