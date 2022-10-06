@@ -242,6 +242,8 @@
     <option name="bundle" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="generate" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="signed" path="ActionManager" hit="Generate Signed Bundle / APK…" />
+    <option name="hard" path="ActionManager" hit="Hard Refresh" />
+    <option name="refresh" path="ActionManager" hit="Hard Refresh" />
     <option name="help" path="ActionManager" hit="Help" />
     <option name="connection" path="ActionManager" hit="Help debug device connection" />
     <option name="debug" path="ActionManager" hit="Help debug device connection" />
@@ -534,6 +536,7 @@
     <option name="record" path="ActionManager" hit="Record a video of the device display" />
     <option name="the" path="ActionManager" hit="Record a video of the device display" />
     <option name="video" path="ActionManager" hit="Record a video of the device display" />
+    <option name="refresh" path="ActionManager" hit="Refresh" />
     <option name="c" path="ActionManager" hit="Refresh Linked C++ Projects" />
     <option name="linked" path="ActionManager" hit="Refresh Linked C++ Projects" />
     <option name="projects" path="ActionManager" hit="Refresh Linked C++ Projects" />
@@ -996,6 +999,14 @@
     <option name="live" hit="Live Edit of literals" />
     <option name="of" hit="Live Edit of literals" />
     <option name="none" hit="None" />
+    <option name="automatically" hit="Push Edits Automatically" />
+    <option name="edits" hit="Push Edits Automatically" />
+    <option name="push" hit="Push Edits Automatically" />
+    <option name="ctrl" hit="Push Edits Manually (Ctrl-K)" />
+    <option name="edits" hit="Push Edits Manually (Ctrl-K)" />
+    <option name="k" hit="Push Edits Manually (Ctrl-K)" />
+    <option name="manually" hit="Push Edits Manually (Ctrl-K)" />
+    <option name="push" hit="Push Edits Manually (Ctrl-K)" />
   </configurable>
   <configurable id="AndroidSdkUpdater" configurable_name="Android SDK">
     <option name="" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool." />

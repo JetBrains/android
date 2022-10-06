@@ -65,7 +65,7 @@ enum class EditState {
   DISABLED          // LiveEdit has been disabled (via UI or custom properties).
 }
 
-data class EditStatus(val editState: EditState, val message: String)
+data class EditStatus(val editState: EditState, val message: String, val actionId: String?)
 
 /**
  * Allows any component to listen to all method body edits of a project.
@@ -171,9 +171,9 @@ class LiveEditService private constructor(val project: Project, var listenerExec
     fun getInstance(project: Project): LiveEditService = project.getService(LiveEditService::class.java)
 
     @JvmField
-    val DISABLED_STATUS = EditStatus(EditState.DISABLED, "")
+    val DISABLED_STATUS = EditStatus(EditState.DISABLED, "", null)
     @JvmField
-    val UP_TO_DATE_STATUS = EditStatus(EditState.UP_TO_DATE, "All changes applied.")
+    val UP_TO_DATE_STATUS = EditStatus(EditState.UP_TO_DATE, "All changes applied.", null)
   }
 
   fun editStatus(): EditStatus {

@@ -148,15 +148,15 @@ public class AndroidLiveEditDeployMonitor {
   // when things go wrong. This will be changed in the final product.
   private static final LogWrapper LOGGER = new LogWrapper(Logger.getInstance(AndroidLiveEditDeployMonitor.class));
 
-  private static final EditStatus UPDATE_IN_PROGRESS = new EditStatus(EditState.IN_PROGRESS, "Live edit update in progress");
+  private static final EditStatus UPDATE_IN_PROGRESS = new EditStatus(EditState.IN_PROGRESS, "Live edit update in progress", null);
 
-  private static final EditStatus DISCONNECTED = new EditStatus(EditState.PAUSED, "No apps are ready to receive live edits");
+  private static final EditStatus DISCONNECTED = new EditStatus(EditState.PAUSED, "No apps are ready to receive live edits", null);
 
-  private static final EditStatus UP_TO_DATE = new EditStatus(EditState.UP_TO_DATE, "Up to date");
+  private static final EditStatus UP_TO_DATE = new EditStatus(EditState.UP_TO_DATE, "Up to date", null);
 
-  private static final EditStatus OUT_OF_DATE = new EditStatus(EditState.OUT_OF_DATE, "Refresh ("+ LiveEditService.Companion.leTextKey() +") to view the latest Live Edit Changes");
+  private static final EditStatus OUT_OF_DATE = new EditStatus(EditState.OUT_OF_DATE, "Refresh ("+ LiveEditService.Companion.leTextKey() +") to view the latest Live Edit Changes", "android.deploy.livedit.trigger");
 
-  private static final EditStatus RECOMPOSE_NEEDED = new EditStatus(EditState.RECOMPOSE_NEEDED, "Hard refresh (" + LiveEditService.Companion.leResetTextKey() + ") must occur for all changes to be applied. App state will be reset");
+  private static final EditStatus RECOMPOSE_NEEDED = new EditStatus(EditState.RECOMPOSE_NEEDED, "Hard refresh (" + LiveEditService.Companion.leResetTextKey() + ") must occur for all changes to be applied. App state will be reset", "android.deploy.livedit.recompose");
 
 
   private final @NotNull Project project;
@@ -352,7 +352,7 @@ public class AndroidLiveEditDeployMonitor {
         bufferedEvents.addAll(changes);
       } else {
         // Something is wrong. Discard event otherwise we will run Out Of Memory
-        updateEditStatus(new EditStatus(EditState.ERROR, "Too many buffered LE keystrokes. Redeploy app."));
+        updateEditStatus(new EditStatus(EditState.ERROR, "Too many buffered LE keystrokes. Redeploy app.", null));
       }
 
       return true;
@@ -382,7 +382,7 @@ public class AndroidLiveEditDeployMonitor {
         return false;
       }
     } catch (LiveEditUpdateException e) {
-      updateEditStatus(new EditStatus(EditState.PAUSED, errorMessage(e)));
+      updateEditStatus(new EditStatus(EditState.PAUSED, errorMessage(e), null));
       return true;
     }
 
@@ -548,7 +548,7 @@ public class AndroidLiveEditDeployMonitor {
     }
 
     if (!results.isEmpty()) {
-      updateEditStatus(new EditStatus(EditState.ERROR, results.get(0).getMessage()));
+      updateEditStatus(new EditStatus(EditState.ERROR, results.get(0).getMessage(), null));
     }
     return results;
   }

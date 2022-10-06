@@ -22,6 +22,9 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public class ManualLiveEditTrigger extends AnAction {
+  private ManualLiveEditTrigger() {
+    super("Refresh");
+  }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {

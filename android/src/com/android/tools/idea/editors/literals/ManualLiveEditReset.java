@@ -22,6 +22,9 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public class ManualLiveEditReset extends AnAction {
+  private ManualLiveEditReset() {
+    super("Hard Refresh");
+  }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {

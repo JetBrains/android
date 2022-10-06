@@ -21,11 +21,13 @@ import com.android.tools.idea.editors.literals.EditState
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
+import com.intellij.icons.AllIcons
 import com.intellij.icons.AllIcons.General.InspectionsError
 import com.intellij.icons.AllIcons.General.InspectionsOK
 import com.intellij.icons.AllIcons.General.InspectionsOKEmpty
 import com.intellij.icons.AllIcons.General.InspectionsPause
 import com.intellij.ide.HelpTooltip
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -37,6 +39,8 @@ import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.colors.ColorKey
 import com.intellij.openapi.editor.markup.InspectionWidgetActionProvider
+import com.intellij.openapi.keymap.KeymapManager
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
@@ -84,6 +88,8 @@ class LiveEditActionProvider : InspectionWidgetActionProvider {
       EditState.PAUSED to ColoredIconGenerator.generateColoredIcon(InspectionsPause, Color.RED),
       EditState.IN_PROGRESS to AnimatedIcon.Default.INSTANCE,
       EditState.UP_TO_DATE to InspectionsOK,
+      EditState.OUT_OF_DATE to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InlineRefreshHover, Color.GREEN),
+      EditState.RECOMPOSE_NEEDED to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InlineRefreshHover, Color.RED),
       // DISABLED will end up with null icon
     )
 
@@ -102,14 +108,19 @@ class LiveEditActionProvider : InspectionWidgetActionProvider {
             }
             val status = LiveEditService.getInstance(project).editStatus()
             HelpTooltip.dispose(this)
-            HelpTooltip()
+            val tooltip = HelpTooltip()
               .setTitle(myPresentation.description)
               .setDescription(status.message)
-              .setLink("Configure live edit")
-              { ShowSettingsUtil.getInstance().showSettingsDialog(project, LiveEditConfigurable::class.java) }
-              .setBrowserLink(AndroidBundle.message("live.edit.tooltip.url.label"),
-                              URL("https://developer.android.com/studio/run#live-edit"))
-              .installOn(this)
+
+            if (!status.actionId.isNullOrBlank()) {
+              val actionId = status.actionId
+              val action = ActionManager.getInstance().getAction(actionId)
+              val shortcut = KeymapManager.getInstance()?.activeKeymap?.getShortcuts(actionId)?.toList()?.firstOrNull()
+              tooltip.setLink("${action.templateText}${if (shortcut != null) " (${KeymapUtil.getShortcutText (shortcut)})" else ""}")
+                { ActionManager.getInstance().tryToExecute(action, null, null, null, true) }
+            }
+
+            tooltip.installOn(this)
           }
           else {
             super.updateToolTipText()
