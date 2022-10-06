@@ -40,7 +40,7 @@ import java.io.File
  * The pre-recorded sync results can be found in [snapshotDirectoryWorkspaceRelativePath] *.txt files.
  *
  * For instructions on how to update the snapshot files see [SnapshotComparisonTest] and if running from the command-line use
- * target as "//tools/adt/idea/android-lint:intellij.android.lint.tests_tests__test_filter=LintModelSnapshotComparisonTest".
+ * target as "//tools/adt/idea/android-lint:intellij.android.lint.tests_tests__all --filter=LintModelSnapshotComparisonTest".
  */
 
 @RunsInEdt
