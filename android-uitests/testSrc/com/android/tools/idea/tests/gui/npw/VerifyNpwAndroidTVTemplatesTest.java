@@ -39,8 +39,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class VerifyNpwAndroidTVTemplatesTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
-  private static final Logger LOGGER = Logger.getInstance(VerifyNpwAndroidTVTemplatesTest.class);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private List<String> expectedTemplates = List.of("No Activity", "Blank Activity");
 
@@ -104,7 +103,6 @@ public class VerifyNpwAndroidTVTemplatesTest {
           failedBuildTemplates.add(templateName);
         }
         guiTest.ideFrame().closeProject();
-        LOGGER.debug("Validation complete for : " + templateName);
 
     }
 

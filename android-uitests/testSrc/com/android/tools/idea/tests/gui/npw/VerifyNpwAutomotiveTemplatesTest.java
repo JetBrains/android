@@ -40,7 +40,6 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class VerifyNpwAutomotiveTemplatesTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
-  private static final Logger LOGGER = Logger.getInstance(VerifyNpwAutomotiveTemplatesTest.class);
 
   private List<String> expectedTemplates = List.of("No Activity", "Media Service", "Messaging Service");
 
@@ -104,7 +103,6 @@ public class VerifyNpwAutomotiveTemplatesTest {
           failedBuildTemplates.add(templateName);
         }
         guiTest.ideFrame().closeProject();
-        LOGGER.info("Validation complete for : " + templateName);
 
     }
 

@@ -41,13 +41,12 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class VerifyNpwPhoneAndTabletTemplatesTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
-  private static final Logger LOGGER = Logger.getInstance(VerifyNpwPhoneAndTabletTemplatesTest.class);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(20, TimeUnit.MINUTES);
 
   private List<String> expectedTemplates = List.of("No Activity", "Basic Activity", "Basic Activity (Material3)",
                                                    "Bottom Navigation Activity", "Empty Compose Activity", "Empty Compose Activity (Material3)",
                                                    "Empty Activity", "Fullscreen Activity", "Google AdMob Ads Activity", "Google Maps Activity",
-                                                   "Google Pay Activity", "Login Activity", "Primary/Detail Flow", "Navigation Drawer Activity",
+                                                   "Google Pay Activity", "Google Wallet Activity", "Login Activity", "Primary/Detail Flow", "Navigation Drawer Activity",
                                                    "Responsive Activity", "Settings Activity", "Scrolling Activity", "Tabbed Activity",
                                                    "Fragment + ViewModel", "Game Activity (C++)", "Native C++");
 
@@ -121,7 +120,6 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
           failedBuildTemplates.add(templateName);
         }
         guiTest.ideFrame().closeProject();
-        LOGGER.info("Validation complete for : " + templateName);
     }
 
     if(!dependencyMissingTemplates.isEmpty()){

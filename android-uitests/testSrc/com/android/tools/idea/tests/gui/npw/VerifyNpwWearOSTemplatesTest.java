@@ -39,8 +39,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class VerifyNpwWearOSTemplatesTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
-  private static final Logger LOGGER = Logger.getInstance(VerifyNpwWearOSTemplatesTest.class);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private List<String> expectedTemplates = List.of("No Activity", "Blank Activity", "Empty Compose Activity", "Watch Face");
 
@@ -105,7 +104,6 @@ public class VerifyNpwWearOSTemplatesTest {
           failedBuildTemplates.add(templateName);
         }
         guiTest.ideFrame().closeProject();
-        LOGGER.info("Validation complete for : " + templateName);
 
     }
 
