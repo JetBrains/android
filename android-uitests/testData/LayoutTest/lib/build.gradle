@@ -4,6 +4,7 @@ android {
     resourcePrefix 'lib1_'
     compileSdkVersion 22
     buildToolsVersion "22.0.1"
+    namespace "com.android.tools.test.mylibrary"
 
     defaultConfig {
         minSdkVersion 15

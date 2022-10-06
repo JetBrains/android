@@ -86,9 +86,10 @@ public class DeviceConfigurationDialogTest {
 
     ChooseSystemImageStepFixture chooseSystemImageStep = avdEditWizard.getChooseSystemImageStep();
     chooseSystemImageStep.selectTab("Recommended");
+    /*
     chooseSystemImageStep.selectSystemImage(new ChooseSystemImageStepFixture.SystemImage("Sv2", "32", "x86_64", "Android 12L (Google Play)"));
 
-    /*
+
     // Since system image and emulator is not downloaded, device cannot be created
     avdEditWizard.clickNext();
 
