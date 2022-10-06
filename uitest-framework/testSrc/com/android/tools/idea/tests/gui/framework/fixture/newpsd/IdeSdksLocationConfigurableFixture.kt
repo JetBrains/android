@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
+import com.android.tools.idea.tests.gui.framework.fixture.HyperlinkLabelFixture
+import com.intellij.ui.HyperlinkLabel
 import org.fest.swing.core.Robot
 import org.fest.swing.fixture.ContainerFixture
 import java.awt.Container
@@ -26,6 +28,16 @@ class IdeSdksLocationConfigurableFixture(
 ) : ContainerFixture<Container> {
   override fun target(): Container = container
   override fun robot(): Robot = robot
+
+  private fun findGradleSettings() : HyperlinkLabelFixture{
+    return HyperlinkLabelFixture(robot, robot.finder()
+      .find(target()) { it is HyperlinkLabel && it.text.contains("Gradle Settings") } as HyperlinkLabel)
+  }
+
+  fun clickGradleSetting(){
+    // Click's exactly on the hyperlink to open the gradle settle dialog.
+    findGradleSettings().clickLink("Gradle Settings.")
+  }
 
 }
 
