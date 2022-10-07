@@ -56,7 +56,8 @@ data class EditEvent(val file: PsiFile,
 }
 
 enum class EditState {
-  ERROR,            // LiveEdit has encountered an error (can also be a recompose error).
+  ERROR,            // LiveEdit has encountered an error that is not recoverable.
+  RECOMPOSE_ERROR,  // A possibly recoverable error occurred after a recomposition.
   PAUSED,           // No apps are ready to receive live edit updates or a compilation error is preventing push to the device.
   IN_PROGRESS,      // Processing...
   UP_TO_DATE,       // The device and the code are in Sync.
