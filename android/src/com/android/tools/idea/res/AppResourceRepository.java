@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collection;
 import java.util.List;
@@ -34,8 +33,6 @@ import org.jetbrains.annotations.TestOnly;
  * @see ResourceRepositoryManager#getAppResources()
  */
 class AppResourceRepository extends MultiResourceRepository {
-  static final Key<Boolean> TEMPORARY_RESOURCE_CACHE = Key.create("TemporaryResourceCache");
-
   private final AndroidFacet myFacet;
   private final Object RESOURCE_MAP_LOCK = new Object();
 

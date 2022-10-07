@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
@@ -28,7 +29,6 @@ import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager;
 import com.google.common.base.Throwables;
@@ -246,18 +246,6 @@ public final class ResourceRepositoryManager implements Disposable {
   private ResourceRepositoryManager(@NotNull AndroidFacet facet, @NotNull Namespacing namespacing) {
     myFacet = facet;
     myNamespacing = namespacing;
-  }
-
-  /**
-   * Returns true if this project is build with Gradle but the AndroidModuleModel did not exist when the resources were cached.
-   * And reset the state.
-   */
-  public static boolean testAndClearTempResourceCached(@NotNull Project project) {
-    if (project.getUserData(AppResourceRepository.TEMPORARY_RESOURCE_CACHE) != Boolean.TRUE) {
-      return false;
-    }
-    project.putUserData(AppResourceRepository.TEMPORARY_RESOURCE_CACHE, null);
-    return true;
   }
 
   /**

@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
 import com.android.tools.idea.gradle.util.DynamicAppUtils
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.project.getPackageName
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
@@ -60,6 +59,7 @@ import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.GradleApplicationIdProvider
+import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.stats.recordTestLibraries
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
 import com.android.tools.idea.util.androidFacet
@@ -211,7 +211,12 @@ class GradleModuleSystem(
 
   private fun getRuntimeDependenciesFor(module: Module, scope: DependencyScopeType): Sequence<IdeDependencies> {
     fun impl(module: Module, scope: DependencyScopeType): Sequence<IdeDependencies> = sequence {
-      val gradleModel = GradleAndroidModel.get(module) ?: return@sequence
+      val gradleModel = GradleAndroidModel.get(module)
+      if (gradleModel == null) {
+        // TODO(b/253476264): Returning an incomplete set of dependencies is highly problematic and should be avoided.
+        ClearResourceCacheAfterFirstBuild.getInstance(module.project).setIncompleteRuntimeDependencies()
+        return@sequence
+      }
 
       val selectedVariant = gradleModel.selectedVariant
       val artifact = when (scope) {

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.startup
 
-import com.google.common.annotations.VisibleForTesting
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -24,8 +23,10 @@ import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.res.ResourceClassRegistry
 import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.util.Key
 import com.intellij.util.messages.MessageBusConnection
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidUtils
@@ -118,12 +119,21 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
   }
 
   /**
+   * Sets the flag indicating that computed runtime dependencies are incomplete because
+   * the underlying project model was not yet finalized when the computation happened.
+   */
+  fun setIncompleteRuntimeDependencies() {
+    project.putUserData(INCOMPLETE_RUNTIME_DEPENDENCIES, true)
+  }
+
+  /**
    * Dump the cached resources if we have accessed the resources before the build was ready.
    * Clear the file based resources and attributes that may have been created based on those resources.
    */
   @VisibleForTesting
   fun clearResourceCacheIfNecessary() {
-    if (ResourceRepositoryManager.testAndClearTempResourceCached(project)) {
+    if (project.getUserData(INCOMPLETE_RUNTIME_DEPENDENCIES) === java.lang.Boolean.TRUE) {
+      project.putUserData(INCOMPLETE_RUNTIME_DEPENDENCIES, null)
       ResourceClassRegistry.get(project).clearCache()
 
       AndroidUtils.getApplicationFacets(project).forEach { facet ->
@@ -171,7 +181,10 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
 
   companion object {
     @JvmStatic
-    fun getInstance(project: Project): ClearResourceCacheAfterFirstBuild = project
-        .getService(ClearResourceCacheAfterFirstBuild::class.java)
+    fun getInstance(project: Project): ClearResourceCacheAfterFirstBuild =
+        project.getService(ClearResourceCacheAfterFirstBuild::class.java)
+
+    @JvmStatic
+    private val INCOMPLETE_RUNTIME_DEPENDENCIES = Key.create<Boolean>("IncompleteRuntimeDependencies")
   }
 }
