@@ -366,28 +366,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     }
   }
 
-  /**
-   * Optional navigation helper for when the surface is clicked.
-   */
-  public interface NavigationHandler extends Disposable {
-    /**
-     * Triggered when preview in the design surface is clicked, returns true if the navigation was handled by this handler.
-     * This method receives the x and y coordinates of the click. You will usually only need the coordinates if your navigation can
-     * be different within a same {@link SceneComponent}.
-     *
-     * @param sceneView {@link SceneView} for which the navigation request is being issued
-     * @param sceneComponent {@link SceneComponent} for which the navigation request is being issued
-     * @param x X coordinate within the {@link SceneView} where the click action was initiated
-     * @param y y coordinate within the {@link SceneView} where the click action was initiated
-     * @param requestFocus true if the navigation should focus the editor
-     */
-    boolean handleNavigate(@NotNull SceneView sceneView,
-                           @NotNull SceneComponent sceneComponent,
-                           @SwingCoordinate int x,
-                           @SwingCoordinate int y,
-                           boolean requestFocus);
-  }
-
   @NotNull private ScreenViewProvider myScreenViewProvider = NlScreenViewProvider.Companion.loadPreferredMode();
   private boolean myIsCanvasResizing = false;
   private final boolean myIsInPreview;

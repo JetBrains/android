@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
@@ -72,7 +73,7 @@ private val COMPOSE_SUPPORTED_ACTIONS =
  */
 private fun createPreviewDesignSurfaceBuilder(
   project: Project,
-  navigationHandler: NlDesignSurface.NavigationHandler,
+  navigationHandler: NavigationHandler,
   delegateInteractionHandler: InteractionHandler,
   dataProvider: DataProvider,
   parentDisposable: Disposable,
@@ -109,7 +110,7 @@ private fun createPreviewDesignSurfaceBuilder(
 /** Creates a [NlDesignSurface.Builder] for the main design surface in the Compose preview. */
 internal fun createMainDesignSurfaceBuilder(
   project: Project,
-  navigationHandler: NlDesignSurface.NavigationHandler,
+  navigationHandler: NavigationHandler,
   delegateInteractionHandler: InteractionHandler,
   dataProvider: DataProvider,
   parentDisposable: Disposable,
@@ -128,7 +129,7 @@ internal fun createMainDesignSurfaceBuilder(
 /** Creates a [NlDesignSurface.Builder] for the pinned design surface in the Compose preview. */
 internal fun createPinnedDesignSurfaceBuilder(
   project: Project,
-  navigationHandler: NlDesignSurface.NavigationHandler,
+  navigationHandler: NavigationHandler,
   delegateInteractionHandler: InteractionHandler,
   dataProvider: DataProvider,
   parentDisposable: Disposable,

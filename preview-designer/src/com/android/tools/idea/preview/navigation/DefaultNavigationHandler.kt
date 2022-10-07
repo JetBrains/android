@@ -26,7 +26,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiFile
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.util.WeakHashMap
 
 /**
@@ -53,7 +53,7 @@ open class DefaultNavigationHandler(
           .createNavigatable(model.project, psiFile.virtualFile!!, offset)
   }
 
-  override fun handleNavigate(
+  override suspend fun handleNavigate(
     sceneView: SceneView,
     sceneComponent: SceneComponent,
     @SwingCoordinate hitX: Int,
@@ -62,22 +62,18 @@ open class DefaultNavigationHandler(
   ): Boolean {
     val fileName = defaultNavigationMap[sceneView.sceneManager.model]?.first ?: ""
     componentNavigationDelegate(sceneView, hitX, hitY, requestFocus, fileName)?.let {
-      runBlocking(uiThread) { it.navigate(requestFocus) }
+      withContext(uiThread) { it.navigate(requestFocus) }
       return true
     }
 
     // Only allow default navigation when double clicking since it might take us to a different file
     if (!requestFocus) return true
 
-    val navigatedToDefault = navigateToDefault(sceneView, requestFocus)
-    LOG.debug { "Navigated to default? $navigatedToDefault" }
-    return navigatedToDefault
-  }
-
-  private fun navigateToDefault(sceneView: SceneView, requestFocus: Boolean): Boolean {
-    defaultNavigationMap[sceneView.sceneManager.model]?.second?.navigate(requestFocus)
-    ?: return false
-    return true
+    return (defaultNavigationMap[sceneView.sceneManager.model]?.second?.apply {
+      withContext(uiThread) {
+        navigate(requestFocus)
+      }
+    } != null).also { LOG.debug { "Navigated to default? $it" } }
   }
 
   override fun dispose() {
