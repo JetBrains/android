@@ -30,6 +30,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.FakeInspectorState
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Root
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewResource
@@ -45,6 +46,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.awt.Dimension
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
@@ -97,6 +99,33 @@ class AppInspectionSnapshotSupportTest {
     val newModel = InspectorModel(inspectorRule.project)
     snapshotLoader.loadFile(savePath, newModel, inspectorRule.inspectorClient.stats)
     checkSnapshot(newModel, snapshotLoader)
+  }
+
+  @Test
+  fun saveAndLoadLiveSnapshotWithDeepComposeNesting() {
+    InspectorClientSettings.isCapturingModeOn = true
+    val inspectorState = FakeInspectorState(appInspectorRule.viewInspector, appInspectorRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeViewTreeAsSnapshot()
+    inspectorState.createFakeLargeComposeTree()
+    inspectorRule.processNotifier.fireConnected(PROCESS)
+    inspectorRule.processes.selectedProcess = PROCESS
+    waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }
+
+    inspectorRule.inspectorClient.saveSnapshot(savePath)
+
+    val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
+    val newModel = InspectorModel(inspectorRule.project)
+    snapshotLoader.loadFile(savePath, newModel, inspectorRule.inspectorClient.stats)
+
+    // Verify we have all 126 composables
+    for (id in -300L downTo -425L) {
+      assertThat(newModel[id]).isNotNull()
+    }
+
+    assertThat(newModel.resourceLookup.dpi).isEqualTo(240)
+    assertThat(newModel.resourceLookup.fontScale).isEqualTo(1.5f)
+    assertThat(newModel.resourceLookup.screenDimension).isEqualTo(Dimension(800, 1600))
   }
 
   @Test
