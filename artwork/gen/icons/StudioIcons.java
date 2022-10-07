@@ -20,13 +20,19 @@ public class StudioIcons {
     public static final Icon ANR_INLINE = load("/studio/icons/app-quality-insights/anr-inline.svg"); // 16x16
     public static final Icon ANR_WITH_NOTE = load("/studio/icons/app-quality-insights/anr-with-note.svg"); // 16x16
     public static final Icon ANR = load("/studio/icons/app-quality-insights/anr.svg"); // 16x16
+    public static final Icon EARLY_SIGNAL = load("/studio/icons/app-quality-insights/early-signal.svg"); // 16x16
     public static final Icon FATAL_INLINE = load("/studio/icons/app-quality-insights/fatal-inline.svg"); // 16x16
     public static final Icon FATAL_WITH_NOTE = load("/studio/icons/app-quality-insights/fatal-with-note.svg"); // 16x16
     public static final Icon FATAL = load("/studio/icons/app-quality-insights/fatal.svg"); // 16x16
+    public static final Icon FRESH_SIGNAL = load("/studio/icons/app-quality-insights/fresh-signal.svg"); // 16x16
     public static final Icon ISSUE = load("/studio/icons/app-quality-insights/issue.svg"); // 16x16
     public static final Icon NON_FATAL_INLINE = load("/studio/icons/app-quality-insights/non-fatal-inline.svg"); // 16x16
     public static final Icon NON_FATAL_WITH_NOTE = load("/studio/icons/app-quality-insights/non-fatal-with-note.svg"); // 16x16
     public static final Icon NON_FATAL = load("/studio/icons/app-quality-insights/non-fatal.svg"); // 16x16
+    public static final Icon NOTE = load("/studio/icons/app-quality-insights/note.svg"); // 16x16
+    public static final Icon REGRESSED_SIGNAL = load("/studio/icons/app-quality-insights/regressed-signal.svg"); // 16x16
+    public static final Icon REPETITIVE_SIGNAL = load("/studio/icons/app-quality-insights/repetitive-signal.svg"); // 16x16
+    public static final Icon SEND = load("/studio/icons/app-quality-insights/send.svg"); // 16x16
   }
 
   public static class Avd {
