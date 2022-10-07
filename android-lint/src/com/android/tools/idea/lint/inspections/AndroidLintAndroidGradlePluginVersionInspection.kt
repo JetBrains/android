@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint.inspections
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
@@ -50,7 +50,7 @@ class AndroidLintAndroidGradlePluginVersionInspection : AndroidLintInspectionBas
     return quickFixes.toArray(LintIdeQuickFix.EMPTY_ARRAY)
   }
 
-  class InvokeAGPUpgradeAssistantQuickFix(agpVersion: GradleVersion?) : DefaultLintQuickFix(
+  class InvokeAGPUpgradeAssistantQuickFix(agpVersion: AgpVersion?) : DefaultLintQuickFix(
     if (agpVersion == null)
       "Invoke Upgrade Assistant"
     else

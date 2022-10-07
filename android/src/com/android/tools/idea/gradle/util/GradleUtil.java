@@ -35,13 +35,16 @@ import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
+import static java.util.Objects.requireNonNullElseGet;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -67,9 +70,9 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
-import java.util.regex.Pattern;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NonNls;
@@ -97,7 +100,6 @@ public final class GradleUtil {
    * we find any other unsupported characters.
    */
   private static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
-  private static final Pattern PLUGIN_VERSION_PATTERN = Pattern.compile("[012]\\..*");
 
   private GradleUtil() {
   }
@@ -454,15 +456,15 @@ public final class GradleUtil {
    * Gradle plugin version is 3.0 or higher.
    *
    * @param configuration The original configuration name, such as "androidTestCompile"
-   * @param pluginVersion The plugin version number, such as 3.0.0-alpha1. If null, assumed to be current.
+   * @param pluginVersion The plugin version. If null, assumed to be current.
    * @param preferApi     If true, will use "api" instead of "implementation" for new configurations
    * @return the right configuration name to use
    */
   @NotNull
   public static String mapConfigurationName(@NotNull String configuration,
-                                            @Nullable GradleVersion pluginVersion,
+                                            @Nullable AgpVersion pluginVersion,
                                             boolean preferApi) {
-    return mapConfigurationName(configuration, pluginVersion != null ? pluginVersion.toString() : null, preferApi);
+    return mapConfigurationName(configuration, pluginVersion != null && !pluginVersion.isAtLeastIncludingPreviews(3, 0, 0), preferApi);
   }
 
   /**
@@ -478,9 +480,8 @@ public final class GradleUtil {
   public static String mapConfigurationName(@NotNull String configuration,
                                             @Nullable String pluginVersion,
                                             boolean preferApi) {
-
-    boolean compatibilityNames = pluginVersion != null && PLUGIN_VERSION_PATTERN.matcher(pluginVersion).matches();
-    return mapConfigurationName(configuration, compatibilityNames, preferApi);
+    AgpVersion agpVersion = AgpVersion.tryParse(requireNonNullElseGet(pluginVersion, LatestKnownPluginVersionProvider.INSTANCE::get));
+    return mapConfigurationName(configuration, agpVersion, preferApi);
   }
 
   /**

@@ -33,6 +33,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.AgpVersion;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.tools.adtui.validation.Validator;
@@ -153,7 +154,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
     boolean supportsSideBySideNdk = true;
     if (myProject != null) {
-      GradleVersion gradleModelNumber = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project);
+      AgpVersion gradleModelNumber = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project);
       if (gradleModelNumber != null) {
         supportsSideBySideNdk = supportsSideBySideNdk(gradleModelNumber);
       }

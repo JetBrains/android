@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.modules
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.createTreeModel
@@ -52,7 +52,7 @@ class AndroidModuleRootConfigurable(
 private fun dependenciesInfoPresent(context: PsContext, module: PsAndroidModule) =
   module.projectType == PsModuleType.ANDROID_APP &&
   context.project.androidGradlePluginVersion.maybeValue
-    ?.let { GradleVersion.tryParse(it) }?.isAtLeastIncludingPreviews(4, 0, 0) ?: false
+    ?.let { AgpVersion.tryParse(it) }?.isAtLeastIncludingPreviews(4, 0, 0) ?: false
 
 fun androidModulePropertiesModel(context: PsContext, module: PsAndroidModule) =
   PropertiesUiModel(

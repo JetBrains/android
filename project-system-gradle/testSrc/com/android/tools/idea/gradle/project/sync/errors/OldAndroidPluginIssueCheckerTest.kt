@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GradleVersion.AgpVersion
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginIssueChecker.Companion.MINIMUM_AGP_VERSION_JDK_11
@@ -47,13 +48,13 @@ class OldAndroidPluginIssueCheckerTest: AndroidGradleTestCase() {
     }
   }
 
-  fun verifyGradleIssue(minimumAgpVersion: GradleVersion) {
+  fun verifyGradleIssue(minimumAgpVersion: AgpVersion) {
     val errMsg = "Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version 2.2. You should upgrade your Gradle build to use Gradle 2.6 or later."
     val expectedErrorMsg = "This version of Android Studio requires projects to use Gradle 4.10 or newer. This project is using Gradle 2.2."
     val issueData = GradleIssueData(projectFolderPath.path, Throwable(errMsg, UnsupportedVersionException(errMsg)), null, null)
     val minimumGradleVersion = OldAndroidPluginIssueChecker.MINIMUM_GRADLE_VERSION
     val latestGradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION)
-    val latestAgpVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val latestAgpVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
 
     val buildIssue = oldAndroidPluginIssueChecker.check(issueData)
     assertThat(buildIssue).isNotNull()

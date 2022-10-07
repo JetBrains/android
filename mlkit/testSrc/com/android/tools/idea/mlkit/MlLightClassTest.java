@@ -58,8 +58,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class MlLightClassTest extends AndroidTestCase {
 
-  private final static String AGP_VERSION_SUPPORTING_ML = "4.2.0-alpha8";
-  private final static String AGP_VERSION_NOT_SUPPORTING_ML = "4.2.0-alpha7";
+  private final static String AGP_VERSION_SUPPORTING_ML = "4.2.0-alpha08";
+  private final static String AGP_VERSION_NOT_SUPPORTING_ML = "4.2.0-alpha07";
 
   @Override
   public void setUp() throws Exception {

@@ -36,7 +36,7 @@ val minGradleVersionProvidingDownloadEvents = GradleVersion.parse("7.3")
  * The version of AGP that requires gradle at least 7.3.
  * We get AGP version from current build and can assume Gradle version surely based on that.
  */
-private val minAgpVersionGuaranteesGradle_7_3 = GradleVersion.parse("7.2")
+private val minAgpVersionGuaranteesGradle_7_3 = AgpVersion.parse("7.2.0")
 
 /**
  * Analyzer for aggregating data about file downloads during build.

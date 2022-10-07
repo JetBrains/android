@@ -36,23 +36,21 @@ public class VersionsAreIncompatibleTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-      {"3.3.0-alpha9", "3.3.0-alpha9", false},
-      {"3.3.0-alpha9", "3.3.0-alpha91", true},
-      // Note: alpha9 is later in this algebra than alpha10.
-      {"3.3.0-alpha9", "3.3.0-alpha10", true},
+      {"3.3.0-alpha09", "3.3.0-alpha09", false},
+      {"3.3.0-alpha09", "3.3.0-alpha91", true},
       {"3.3.9-alpha09", "3.3.0-alpha10", true},
-      {"3.3.0-alpha9", "3.3.0-beta1", true},
-      {"3.3.0-alpha9", "3.3.0", true},
+      {"3.3.0-alpha09", "3.3.0-beta01", true},
+      {"3.3.0-alpha09", "3.3.0", true},
       {"3.3.0", "3.3.1", false},
       {"3.3.0", "4.0.0", false},
-      {"3.3.0-beta1", "3.4.0-alpha10", true},
+      {"3.3.0-beta01", "3.4.0-alpha10", true},
       {"3.3.0", "3.4.0-alpha10", false},
-      {"3.3.0-alpha1", "3.3.0-dev", false},
-      {"3.3.0-alpha8", "3.3.0-alpha8", false},
-      {"3.3.0-alpha9", "3.3.0-alpha8", true},
-      {"3.4.0", "3.3.0-alpha8", true},
-      {"3.4.0-alpha1", "3.3.0-alpha8", true},
-      {"3.3.0-alpha1", "3.4.0-alpha8", true},
+      {"3.3.0-alpha01", "3.3.0-dev", false},
+      {"3.3.0-alpha08", "3.3.0-alpha08", false},
+      {"3.3.0-alpha09", "3.3.0-alpha08", true},
+      {"3.4.0", "3.3.0-alpha08", true},
+      {"3.4.0-alpha01", "3.3.0-alpha08", true},
+      {"3.3.0-alpha01", "3.4.0-alpha08", true},
 
       // Treat -rc as effectively stable.  (Upgrades will be recommended, but not forced)
       {"3.3.1-rc01", "3.5.0-dev", false},

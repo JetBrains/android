@@ -40,11 +40,15 @@ class AgpCompatibleVersionTest : LightPlatformTestCase() {
       "7.3" to GradleVersion.parse("7.4"),
       "7.4" to GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)
     )
+    fun String.toBetaVersionString() = when (this) {
+      "3.1" -> "$this.0-beta2"
+      else -> "$this.0-beta02"
+    }
     data.forEach { (agpBase, expected) ->
       expect.that(getCompatibleGradleVersion(AgpVersion.parse("$agpBase.0")).version).isEqualTo(expected)
       expect.that(getCompatibleGradleVersion(AgpVersion.parse("$agpBase.9")).version).isEqualTo(expected)
       expect.that(getCompatibleGradleVersion(AgpVersion.parse("$agpBase.0-alpha01")).version).isEqualTo(expected)
-      expect.that(getCompatibleGradleVersion(AgpVersion.parse("$agpBase.0-beta02")).version).isEqualTo(expected)
+      expect.that(getCompatibleGradleVersion(AgpVersion.parse(agpBase.toBetaVersionString())).version).isEqualTo(expected)
       expect.that(getCompatibleGradleVersion(AgpVersion.parse("$agpBase.0-rc03")).version).isEqualTo(expected)
     }
   }

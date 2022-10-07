@@ -47,7 +47,7 @@ public class APIVersion implements Comparable<APIVersion> {
    * </ul>
    */
   @NotNull
-  public static final APIVersion API_VERSION_2 = new APIVersion(SemVer.parseFromText("1.2.0"), AgpVersion.parse("4.2.0-alpha8"));
+  public static final APIVersion API_VERSION_2 = new APIVersion(SemVer.parseFromText("1.2.0"), AgpVersion.parse("4.2.0-alpha08"));
 
   /**
    * Model schema version supported in current API version. If developer's model schema version is larger than this,

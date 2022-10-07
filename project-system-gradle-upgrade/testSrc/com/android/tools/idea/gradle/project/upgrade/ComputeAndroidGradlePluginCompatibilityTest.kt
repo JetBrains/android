@@ -44,6 +44,9 @@ class ComputeAndroidGradlePluginCompatibilityTest(private val info: TestInfo) {
 
       // Special case 2: current version earlier than minimum supported
       TestInfo("3.1.0", "4.2.0-alpha01", BEFORE_MINIMUM),
+      TestInfo("3.1.0-alpha01", "4.2.0-alpha01", BEFORE_MINIMUM),
+      TestInfo("3.1.0-beta2", "4.2.0-alpha01", BEFORE_MINIMUM),
+      TestInfo("3.1.0-rc03", "4.2.0-alpha01", BEFORE_MINIMUM),
 
       // RC/release of the same major/minor cycle
       TestInfo("7.1.0-rc01", "7.1.0", COMPATIBLE),

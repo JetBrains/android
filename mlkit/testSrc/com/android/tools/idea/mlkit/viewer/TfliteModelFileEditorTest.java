@@ -51,7 +51,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
 
   private VirtualFile setupProject(String mlSourceFile, String mlTargetFile) {
     VirtualFile result = myFixture.copyFileToProject(mlSourceFile, mlTargetFile);
-    MlProjectTestUtil.setupTestMlProject(myFixture, "4.2.0-alpha8", 28);
+    MlProjectTestUtil.setupTestMlProject(myFixture, "4.2.0-alpha08", 28);
     return result;
   }
 

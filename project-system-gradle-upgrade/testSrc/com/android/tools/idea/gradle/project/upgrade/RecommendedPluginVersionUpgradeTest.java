@@ -63,12 +63,12 @@ public class RecommendedPluginVersionUpgradeTest {
       {"4.4.0-beta01", "4.3.0-alpha01", false},
       {"4.4.0-beta01", "4.3.0-beta01", false},
       // Don't recommend to upgrade from stable version to newer alpha/beta version.
-      {"4.3.0", "4.3.0-alpha1", false},
+      {"4.3.0", "4.3.0-alpha01", false},
       {"4.3.0", "4.3.0-beta01", false},
       {"4.3.0", "4.4.0-alpha01", false},
       {"4.3.0", "4.4.0-beta01", false},
       // Never ask for upgrading from dev version to alpha/beta version. Dev version is for internal development only.
-      {"4.3.0-dev", "4.3.0-alpha1", false},
+      {"4.3.0-dev", "4.3.0-alpha01", false},
       {"4.3.0-dev", "4.3.0-beta01", false},
       {"4.3.0-dev", "4.4.0-alpha01", false},
       {"4.3.0-dev", "4.4.0-beta01", false},
