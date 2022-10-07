@@ -37,7 +37,6 @@ class ComposeTracingNavSourceTest {
     val navSource = ComposeTracingNavSource(
       getFilesByName = { emptyList() },
       createNavigatable = { files, lineNumber -> FakeNavigatable(files, lineNumber) },
-      mavenSignatureResolver = { null }
     )
 
     // when
@@ -46,6 +45,7 @@ class ComposeTracingNavSourceTest {
 
     // then
     assertThat(actual.files).isEmpty()
+    navSource.assertMetricsEventResultCount(0)
   }
 
   @Test
@@ -58,7 +58,6 @@ class ComposeTracingNavSourceTest {
     val navSource = ComposeTracingNavSource(
       getFilesByName = { listOf(targetFile) },
       createNavigatable = { files, line -> FakeNavigatable(files, line) },
-      mavenSignatureResolver = { null }
     )
 
     // when
@@ -67,6 +66,7 @@ class ComposeTracingNavSourceTest {
 
     // then
     assertThat((actual as FakeNavigatable).files).isEqualTo(listOf(targetFile))
+    navSource.assertMetricsEventResultCount(1)
   }
 
   @Test
@@ -80,7 +80,6 @@ class ComposeTracingNavSourceTest {
     val navSource = ComposeTracingNavSource(
       getFilesByName = { listOf(targetFile, otherFile) },
       createNavigatable = { files, line -> FakeNavigatable(files, line) },
-      mavenSignatureResolver = { null }
     )
 
     // when
@@ -102,7 +101,6 @@ class ComposeTracingNavSourceTest {
     val navSource = ComposeTracingNavSource(
       getFilesByName = { listOf(targetFile, otherFile) },
       createNavigatable = { files, line -> FakeNavigatable(files, line) },
-      mavenSignatureResolver = { null }
     )
 
     // when
@@ -125,7 +123,6 @@ class ComposeTracingNavSourceTest {
     val navSource = ComposeTracingNavSource(
       getFilesByName = { listOf(targetFile, otherFile) },
       createNavigatable = { files, line -> FakeNavigatable(files, line) },
-      mavenSignatureResolver = { null }
     )
 
     // when
@@ -147,7 +144,6 @@ class ComposeTracingNavSourceTest {
     val navSource = ComposeTracingNavSource(
       getFilesByName = { listOf(targetFile1, targetFile2) },
       createNavigatable = { files, line -> FakeNavigatable(files, line) },
-      mavenSignatureResolver = { null }
     )
 
     // when
@@ -156,6 +152,7 @@ class ComposeTracingNavSourceTest {
 
     // then
     assertThat((actual as FakeNavigatable).files).isEqualTo(listOf(targetFile1, targetFile2))
+    navSource.assertMetricsEventResultCount(2)
   }
 
   @Test
@@ -253,6 +250,7 @@ class ComposeTracingNavSourceTest {
 
     // then
     assertThat(actual).isEqualTo(FakeNavigatable(listOf(1, 2, 4, 6).map { files[it] }, 50))
+    navSource.assertMetricsEventResultCount(4)
   }
 }
 
@@ -299,4 +297,12 @@ private fun String.toCodeLocation(): CodeLocation? {
     .setFileName(matcher.group(2))
     .setLineNumber(matcher.group(4).toInt())
     .build()
+}
+
+private fun ComposeTracingNavSource.assertMetricsEventResultCount(expectedCount: Int) {
+  with(lastMetricsEvent!!) {
+    assertThat(hasAndroidProfilerEvent()).isTrue()
+    assertThat(androidProfilerEvent.hasResolveComposeTracingCodeLocationMetadata()).isTrue()
+    assertThat(androidProfilerEvent.resolveComposeTracingCodeLocationMetadata.resultCount).isEqualTo(expectedCount)
+  }
 }

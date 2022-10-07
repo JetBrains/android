@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.codenavigation
 
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.stats.withProjectId
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.ResolveComposeTracingCodeLocationMetadata
 import com.intellij.history.core.Paths
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -37,9 +42,10 @@ import java.io.File
  * or `null` if it cannot resolve the signature
  */
 class ComposeTracingNavSource @VisibleForTesting internal constructor(
-  @VisibleForTesting private val getFilesByName: (fileName: String) -> List<PsiFile>,
-  @VisibleForTesting private val createNavigatable: (files: List<PsiFile>, lineNumber: Int) -> Navigatable?,
-  @VisibleForTesting private val mavenSignatureResolver : (file: PsiFile) -> LibrarySignature?
+  private val getFilesByName: (fileName: String) -> List<PsiFile>,
+  private val createNavigatable: (files: List<PsiFile>, lineNumber: Int) -> Navigatable?,
+  private val mavenSignatureResolver: (file: PsiFile) -> LibrarySignature? = { null },
+  private val project: Project? = null
 ) : NavSource {
   constructor(project: Project) : this(
     getFilesByName = { fileName ->
@@ -50,16 +56,23 @@ class ComposeTracingNavSource @VisibleForTesting internal constructor(
       if (files.isEmpty()) null
       else MultiNavigatable(files.map { OpenFileDescriptor(project, it.virtualFile, lineNumber, -1) })
     },
-    mavenSignatureResolver = ::pomFileLookupMavenSignatureResolver
+    mavenSignatureResolver = ::pomFileLookupMavenSignatureResolver,
+    project = project
   )
+
+  // Field exists solely for testing (not used for any other reason)
+  @VisibleForTesting
+  var lastMetricsEvent: AndroidStudioEvent.Builder? = null
+    private set;
 
   // TODO(b/244437735): use PsiNavSource as a reference to use the PsiManager instead of enumerating files manually
   // TODO(b/244437735): sorting when multiple matches, e.g. prioritise user code when handling multiple matches
   override fun lookUp(location: CodeLocation, arch: String?): Navigatable? {
-    val fullComposableName = location.fullComposableName ?: return null
-    val fileName = location.fileName ?: return null
+    val fullComposableName = location.fullComposableName ?: return null // not a Compose Tracing location
+    val fileName = location.fileName ?: return null // not a Compose Tracing location
     val lineNumber = location.lineNumber
 
+    var resolvedLocations = 0
     try {
       val result = getFilesByName(fileName) // Find files matching required file name
         .filterIsInstance<PsiClassOwner>() // We need PsiClassOwner, which provides package name
@@ -67,6 +80,7 @@ class ComposeTracingNavSource @VisibleForTesting internal constructor(
         .filter { it.text.lineSequence().count() >= lineNumber } // Only keep files where the required line number exists
         .filterByMaxPackageNameLength() // Filter to files with max package name length (prefix to fullComposableName test done above)
         .filterByMaxLibraryVersion(mavenSignatureResolver) // Deduplicate results when multiple versions of the same library returned
+      resolvedLocations = result.size
 
       // Return all files that pass the filtering above
       return createNavigatable(result, lineNumber)
@@ -75,6 +89,18 @@ class ComposeTracingNavSource @VisibleForTesting internal constructor(
       logger.warn("Issue while trying to navigate to location: fullComposableName=$fullComposableName, fileName=$fileName, " +
                   "lineNumber=$lineNumber.", e)
       return null
+    } finally {
+      UsageTracker.log(
+        AndroidStudioEvent.newBuilder()
+          .withProjectId(project)
+          .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
+          .setAndroidProfilerEvent(
+            AndroidProfilerEvent.newBuilder()
+              .setType(AndroidProfilerEvent.Type.RESOLVE_COMPOSE_TRACING_CODE_LOCATION)
+              .setResolveComposeTracingCodeLocationMetadata(
+                ResolveComposeTracingCodeLocationMetadata.newBuilder().setResultCount(resolvedLocations))
+          ).also { lastMetricsEvent = it }
+      )
     }
   }
 

@@ -13,5 +13,7 @@
     <orderEntry type="module" module-name="native-symbolizer" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
   </component>
 </module>
