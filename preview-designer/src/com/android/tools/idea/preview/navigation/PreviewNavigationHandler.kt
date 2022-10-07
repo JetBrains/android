@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview
+package com.android.tools.idea.preview.navigation
 
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface

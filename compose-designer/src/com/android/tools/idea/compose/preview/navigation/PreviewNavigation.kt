@@ -19,12 +19,9 @@ import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.Coordinates
-import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigation.LOG
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.preview.PreviewNavigationHandler
+import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PsiNavigationSupport
@@ -33,10 +30,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
 import com.intellij.pom.Navigatable
-import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import java.util.WeakHashMap
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.core.util.getLineStartOffset
 
 private object PreviewNavigation {
@@ -132,63 +126,29 @@ fun findNavigatableComponentHit(
   return hits.mapNotNull { runReadAction { it.toNavigatable(module) } }.firstOrNull()
 }
 
-/** Handles navigation for compose preview when NlDesignSurface preview is clicked. */
-class ComposePreviewNavigationHandler : PreviewNavigationHandler {
-  // Default location to use when components are not found
-  @VisibleForTesting val defaultNavigationMap = WeakHashMap<NlModel, Pair<String, Navigatable>>()
+private fun findNavigatableComponent(
+  sceneView: SceneView,
+  @SwingCoordinate hitX: Int,
+  @SwingCoordinate hitY: Int,
+  requestFocus: Boolean,
+  fileName: String
+): Navigatable? {
+  val x = Coordinates.getAndroidX(sceneView, hitX)
+  val y = Coordinates.getAndroidY(sceneView, hitY)
+  LOG.debug { "handleNavigate x=$x, y=$y" }
 
-  /** Add default navigation location for model. */
-  override fun setDefaultLocation(model: NlModel, psiFile: PsiFile, offset: Int) {
-    LOG.debug { "Default location set to ${psiFile.name}:$offset" }
-    defaultNavigationMap[model] =
-      psiFile.name to
-        PsiNavigationSupport.getInstance()
-          .createNavigatable(model.project, psiFile.virtualFile!!, offset)
-  }
+  val model = sceneView.sceneManager.model
 
-  override fun handleNavigate(
-    sceneView: SceneView,
-    sceneComponent: SceneComponent,
-    @SwingCoordinate hitX: Int,
-    @SwingCoordinate hitY: Int,
-    requestFocus: Boolean
-  ): Boolean {
-    val x = Coordinates.getAndroidX(sceneView, hitX)
-    val y = Coordinates.getAndroidY(sceneView, hitY)
-    LOG.debug { "handleNavigate x=$x, y=$y" }
-
-    val model = sceneView.sceneManager.model
-
-    // Find component to navigate to
-    val root = model.components[0]
-    val viewInfo = root.viewInfo ?: return false
-    val fileName = defaultNavigationMap[model]?.first ?: ""
-    findNavigatableComponentHit(model.module, viewInfo, x, y) {
-      // We apply a filter to the hits. If requestFocus is true (the user double clicked), we allow
-      // any hit even if it's not in the current
-      // file. If requestFocus is false, we only allow single clicks
-      requestFocus || it.fileName == fileName
-    }
-      ?.let {
-        runBlocking(uiThread) { it.navigate(requestFocus) }
-        return true
-      }
-
-    // Only allow default navigation when double clicking since it might take us to a different file
-    if (!requestFocus) return true
-
-    val navigatedToDefault = navigateToDefault(sceneView, requestFocus)
-    LOG.debug { "Navigated to default? $navigatedToDefault" }
-    return navigatedToDefault
-  }
-
-  private fun navigateToDefault(sceneView: SceneView, requestFocus: Boolean): Boolean {
-    defaultNavigationMap[sceneView.sceneManager.model]?.second?.navigate(requestFocus)
-      ?: return false
-    return true
-  }
-
-  override fun dispose() {
-    defaultNavigationMap.clear()
+  // Find component to navigate to
+  val root = model.components[0]
+  val viewInfo = root.viewInfo ?: return null
+  return findNavigatableComponentHit(model.module, viewInfo, x, y) {
+    // We apply a filter to the hits. If requestFocus is true (the user double clicked), we allow
+    // any hit even if it's not in the current
+    // file. If requestFocus is false, we only allow single clicks
+    requestFocus || it.fileName == fileName
   }
 }
+
+/** Handles navigation for compose preview when NlDesignSurface preview is clicked. */
+class ComposePreviewNavigationHandler : DefaultNavigationHandler(::findNavigatableComponent)

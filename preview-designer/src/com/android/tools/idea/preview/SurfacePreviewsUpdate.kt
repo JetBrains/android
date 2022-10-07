@@ -27,6 +27,7 @@ import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.preview.PreviewBundle.message
+import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
