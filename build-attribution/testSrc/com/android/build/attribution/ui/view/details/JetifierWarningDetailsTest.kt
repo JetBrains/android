@@ -20,9 +20,9 @@ import com.android.build.attribution.analyzers.JetifierRequiredForLibraries
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.ui.view.ViewActionHandlers
-import com.android.ide.common.attribution.CheckJetifierResult
-import com.android.ide.common.attribution.DependencyPath
-import com.android.ide.common.attribution.FullDependencyPath
+import com.android.buildanalyzer.common.CheckJetifierResult
+import com.android.buildanalyzer.common.DependencyPath
+import com.android.buildanalyzer.common.FullDependencyPath
 import com.android.testutils.MockitoKt
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi

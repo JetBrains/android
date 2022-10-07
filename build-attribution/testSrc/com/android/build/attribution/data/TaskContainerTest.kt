@@ -17,12 +17,11 @@ package com.android.build.attribution.data
 
 import com.android.build.attribution.analyzers.createBinaryPluginIdentifierStub
 import com.android.build.attribution.analyzers.createTaskFinishEventStub
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
-import com.android.ide.common.attribution.TaskCategory
+import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
+import com.android.buildanalyzer.common.TaskCategory
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
-import org.junit.Rule
 import org.junit.Test
 
 class TaskContainerTest {

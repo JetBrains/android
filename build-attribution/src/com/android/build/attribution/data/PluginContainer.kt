@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.data
 
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.PluginIdentifier
 import org.gradle.tooling.events.ScriptPluginIdentifier

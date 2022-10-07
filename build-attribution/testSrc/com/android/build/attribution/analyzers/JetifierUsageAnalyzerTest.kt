@@ -22,10 +22,10 @@ import com.android.build.attribution.data.BuildInvocationType
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.getSuccessfulResult
 import com.android.build.attribution.ui.controllers.createCheckJetifierTaskRequest
+import com.android.buildanalyzer.common.CheckJetifierResult
+import com.android.buildanalyzer.common.DependencyPath
+import com.android.buildanalyzer.common.FullDependencyPath
 import com.android.builder.model.PROPERTY_CHECK_JETIFIER_RESULT_FILE
-import com.android.ide.common.attribution.CheckJetifierResult
-import com.android.ide.common.attribution.DependencyPath
-import com.android.ide.common.attribution.FullDependencyPath
 import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.Projects

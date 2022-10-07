@@ -16,12 +16,11 @@
 package com.android.build.attribution.ui
 
 import com.android.build.attribution.data.AnnotationProcessorData
-import com.android.build.attribution.ui.data.BuildAnalyzerTaskCategoryIssueUiData
+import com.android.build.attribution.ui.data.TaskCategoryIssueUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.view.ViewActionHandlers
-import com.android.ide.common.attribution.BuildAnalyzerTaskCategoryIssue
-import com.android.ide.common.attribution.IssueSeverity
-import com.android.ide.common.attribution.TaskCategory
+import com.android.buildanalyzer.common.TaskCategory
+import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.utils.HtmlBuilder
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
@@ -51,41 +50,41 @@ fun TaskCategory.displayName() = toString().split("_").joinToString(separator = 
   word.lowercase().replaceFirstChar { it.uppercase() }
 }
 
-fun BuildAnalyzerTaskCategoryIssue.getWarningMessage(nonIncrementalAnnotationProcessors: List<AnnotationProcessorData>): String {
+fun TaskCategoryIssue.getWarningMessage(nonIncrementalAnnotationProcessors: List<AnnotationProcessorData>): String {
   return when (this) {
-    BuildAnalyzerTaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED -> """
+    TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED -> """
         Resource IDs will be non-final by default in Android Gradle Plugin 8.0.
         This will break using resource ID's inside switch statements.
         To enable this, set android.nonFinalResIds=true in gradle.properties.
       """.trimIndent()
-    BuildAnalyzerTaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED -> """
+    TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED -> """
         Non-transitive R classes are currently disabled.
         Enable non-transitive R classes for faster incremental compilation.
         To enable this, set android.nonTransitiveRClass=true in gradle.properties.
       """.trimIndent()
-    BuildAnalyzerTaskCategoryIssue.RESOURCE_VALIDATION_ENABLED -> """
+    TaskCategoryIssue.RESOURCE_VALIDATION_ENABLED -> """
         Resource validation is currently enabled.
         This validates resources in your project on every debug build.
         To speed up your debug build, set android.disableResourceValidation=true in gradle.properties.
       """.trimIndent()
-    BuildAnalyzerTaskCategoryIssue.TEST_SHARDING_DISABLED -> """
+    TaskCategoryIssue.TEST_SHARDING_DISABLED -> """
         Test sharding between connected devices is currently disabled.
         To use multiple devices to run tests in parallel, set android.androidTest.shardBetweenDevices=true in gradle.properties.
       """.trimIndent()
-    BuildAnalyzerTaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED -> """
+    TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED -> """
         Following the deprecation of RenderScript in the Android platform, we are also removing support for RenderScript
         in the Android Gradle plugin. Starting with Android Gradle plugin 7.2, the RenderScript APIs are deprecated.
         They will continue to function, but will invoke warnings, and will be completely removed in future versions of AGP.
         Click 'Learn more' for more information on how to migrate from RenderScript.
       """.trimIndent()
-    BuildAnalyzerTaskCategoryIssue.AVOID_AIDL_UNNECESSARY_USE -> """
+    TaskCategoryIssue.AVOID_AIDL_UNNECESSARY_USE -> """
         Using AIDL is necessary only if you allow clients from different applications to
         access your service for IPC and want to handle multithreading in your service.
         If you do not need to perform concurrent IPC across different applications, you
         should create your interface by implementing a Binder or, if you want to perform
         IPC, but do not need to handle multithreading, implement your interface using a Messenger.
         """.trimIndent()
-    BuildAnalyzerTaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR -> """
+    TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR -> """
         The following annotation processor(s) are non-incremental, which causes the
         JavaCompile task to always run non-incrementally:
 
@@ -95,15 +94,15 @@ fun BuildAnalyzerTaskCategoryIssue.getWarningMessage(nonIncrementalAnnotationPro
       """.trimIndent()
   }
 }
-fun BuildAnalyzerTaskCategoryIssue.getLink(): BuildAnalyzerBrowserLinks? {
+fun TaskCategoryIssue.getLink(): BuildAnalyzerBrowserLinks? {
   return when (this) {
-    BuildAnalyzerTaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED -> null
-    BuildAnalyzerTaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED -> BuildAnalyzerBrowserLinks.NON_TRANSITIVE_R_CLASS
-    BuildAnalyzerTaskCategoryIssue.RESOURCE_VALIDATION_ENABLED -> null
-    BuildAnalyzerTaskCategoryIssue.TEST_SHARDING_DISABLED -> null
-    BuildAnalyzerTaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED -> BuildAnalyzerBrowserLinks.RENDERSCRIPT_MIGRATE
-    BuildAnalyzerTaskCategoryIssue.AVOID_AIDL_UNNECESSARY_USE -> BuildAnalyzerBrowserLinks.AIDL_INFO
-    BuildAnalyzerTaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR -> BuildAnalyzerBrowserLinks.NON_INCREMENTAL_ANNOTATION_PROCESSORS
+    TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED -> null
+    TaskCategoryIssue.RESOURCE_VALIDATION_ENABLED -> null
+    TaskCategoryIssue.TEST_SHARDING_DISABLED -> null
+    TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED -> BuildAnalyzerBrowserLinks.NON_TRANSITIVE_R_CLASS
+    TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED -> BuildAnalyzerBrowserLinks.RENDERSCRIPT_MIGRATE
+    TaskCategoryIssue.AVOID_AIDL_UNNECESSARY_USE -> BuildAnalyzerBrowserLinks.AIDL_INFO
+    TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR -> BuildAnalyzerBrowserLinks.NON_INCREMENTAL_ANNOTATION_PROCESSORS
   }
 }
 
@@ -149,20 +148,20 @@ fun htmlTextLabelWithFixedLines(htmlBodyContent: String, linksHandler: HtmlLinks
     caretPosition = 0
   }
 
-fun HtmlBuilder.createTaskCategoryIssueMessage(taskCategoryIssues: List<BuildAnalyzerTaskCategoryIssueUiData>, linksHandler: HtmlLinksHandler, actionHandlers: ViewActionHandlers) {
-  val iconToUse = if (taskCategoryIssues[0].buildAnalyzerTaskCategoryIssue.severity == IssueSeverity.INFO) infoIconHtml else warnIconHtml
+fun HtmlBuilder.createTaskCategoryIssueMessage(taskCategoryIssues: List<TaskCategoryIssueUiData>, linksHandler: HtmlLinksHandler, actionHandlers: ViewActionHandlers) {
+  val iconToUse = if (taskCategoryIssues[0].issue.severity == TaskCategoryIssue.Severity.INFO) infoIconHtml else warnIconHtml
   beginTable("VALIGN=TOP")
-  taskCategoryIssues.forEach { issue ->
-    var description = issue.message
-    if (issue.link != null) {
+  taskCategoryIssues.forEach { issueData ->
+    var description = issueData.message
+    if (issueData.link != null) {
       description += "\n"
-      if (issue.buildAnalyzerTaskCategoryIssue == BuildAnalyzerTaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED) {
+      if (issueData.issue == TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED) {
         val migrateRClassLink = linksHandler.actionLink("Migrate to non-transitive R classes", "AndroidMigrateToNonTransitiveRClassesAction") {
           actionHandlers.migrateToNonTransitiveRClass()
         }
         description += "${migrateRClassLink}, "
       }
-      description += linksHandler.externalLink("Learn more", issue.link)
+      description += linksHandler.externalLink("Learn more", issueData.link)
     }
     description = description.replace("\n", "<BR/>")
     addTableRow(iconToUse, description)

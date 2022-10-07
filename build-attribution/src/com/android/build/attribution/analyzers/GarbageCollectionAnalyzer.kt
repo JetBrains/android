@@ -16,7 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.data.GarbageCollectionData
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 import com.intellij.util.lang.JavaVersion
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 

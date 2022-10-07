@@ -18,24 +18,24 @@ package com.android.build.attribution.proto.converters
 import com.android.build.attribution.BuildAnalysisResultsMessage
 import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.proto.PairEnumFinder
-import com.android.ide.common.attribution.BuildAnalyzerTaskCategoryIssue
+import com.android.buildanalyzer.common.TaskCategoryIssue
 
 class TaskCategoryWarningsAnalyzerResultConverter {
   companion object {
     fun transform(taskCategoryWarningsAnalyzerResult: TaskCategoryWarningsAnalyzer.Result) =
       BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.newBuilder()
-        .addAllBuildAnalyzerTaskCategoryIssues(
-          taskCategoryWarningsAnalyzerResult.buildAnalyzerTaskCategoryIssues.map(this::transformBuildAnalyzerTaskCategoryIssue))
+        .addAllTaskCategoryIssues(
+          taskCategoryWarningsAnalyzerResult.taskCategoryIssues.map(this::transformTaskCategoryIssue))
         .build()
 
     fun construct(taskCategoryWarningsAnalyzerResult: BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult): TaskCategoryWarningsAnalyzer.Result =
       TaskCategoryWarningsAnalyzer.Result(
-        taskCategoryWarningsAnalyzerResult.buildAnalyzerTaskCategoryIssuesList.map(this::constructBuildAnalyzerTaskCategoryIssue))
+        taskCategoryWarningsAnalyzerResult.taskCategoryIssuesList.map(this::constructTaskCategoryIssue))
 
-    private fun transformBuildAnalyzerTaskCategoryIssue(buildAnalyzerTaskCategoryIssue: BuildAnalyzerTaskCategoryIssue): BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.BuildAnalyzerTaskCategoryIssue =
-      PairEnumFinder.aToB(buildAnalyzerTaskCategoryIssue)
+    private fun transformTaskCategoryIssue(taskCategoryIssue: TaskCategoryIssue): BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.TaskCategoryIssue =
+      PairEnumFinder.aToB(taskCategoryIssue)
 
-    private fun constructBuildAnalyzerTaskCategoryIssue(buildAnalyzerTaskCategoryIssue: BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.BuildAnalyzerTaskCategoryIssue): BuildAnalyzerTaskCategoryIssue =
-      PairEnumFinder.bToA(buildAnalyzerTaskCategoryIssue)
+    private fun constructTaskCategoryIssue(taskCategoryIssue: BuildAnalysisResultsMessage.TaskCategoryWarningsAnalyzerResult.TaskCategoryIssue): TaskCategoryIssue =
+      PairEnumFinder.bToA(taskCategoryIssue)
   }
 }

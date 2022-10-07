@@ -42,8 +42,8 @@ import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
 import com.android.build.attribution.ui.warningsCountString
-import com.android.ide.common.attribution.IssueSeverity
-import com.android.ide.common.attribution.TaskCategory
+import com.android.buildanalyzer.common.TaskCategory
+import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
@@ -151,7 +151,7 @@ class WarningsDataPageModelImpl(
       reportData.annotationProcessors.issueCount +
       reportData.confCachingData.warningsCount() +
       reportData.criticalPathTaskCategories.entries.sumOf { category ->
-        category.getTaskCategoryIssues(IssueSeverity.WARNING, forWarningsPage = true).size
+        category.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true).size
       } == 0
 
   override fun selectNode(warningsTreeNode: WarningsTreeNode?) {
@@ -271,7 +271,7 @@ private class WarningsTreeStructure(
       }
 
       reportData.criticalPathTaskCategories.entries.map { criticalPathTaskCategoryData ->
-        val warnings = criticalPathTaskCategoryData.getTaskCategoryIssues(IssueSeverity.WARNING, forWarningsPage = true)
+        val warnings = criticalPathTaskCategoryData.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true)
         if (warnings.isNotEmpty()) {
           rootNode.add(treeNode(TaskCategoryWarningNodeDescriptor(criticalPathTaskCategoryData)))
           treeStats.filteredWarningsCount += warnings.size
@@ -413,7 +413,7 @@ class TaskCategoryWarningNodeDescriptor(
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = taskCategoryData.name,
-      suffix = warningsCountString(taskCategoryData.getTaskCategoryIssues(IssueSeverity.WARNING, forWarningsPage = true).size),
+      suffix = warningsCountString(taskCategoryData.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true).size),
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(taskCategoryData.criticalPathDuration.timeMs)
     )
 }
@@ -543,6 +543,6 @@ fun BuildAttributionReportUiData.countTotalWarnings(): Int =
   annotationProcessors.issueCount +
   confCachingData.warningsCount() +
   criticalPathTaskCategories.entries.sumOf { category ->
-    category.getTaskCategoryIssues(IssueSeverity.WARNING, forWarningsPage = true).size
+    category.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true).size
   } +
   if (jetifierData.shouldShowWarning()) 1 else 0

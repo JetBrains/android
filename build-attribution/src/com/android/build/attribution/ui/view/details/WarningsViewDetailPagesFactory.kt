@@ -54,7 +54,7 @@ import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warningIcon
 import com.android.build.attribution.ui.warningsCountString
 import com.android.build.attribution.ui.withPluralization
-import com.android.ide.common.attribution.IssueSeverity
+import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.tools.adtui.TabularLayout
 import com.android.utils.HtmlBuilder
 import com.google.common.annotations.VisibleForTesting
@@ -169,7 +169,7 @@ class WarningsViewDetailPagesFactory(
   private fun taskCategoryWarningDetailsHtml(taskCategoryData: CriticalPathTaskCategoryUiData, linksHandler: HtmlLinksHandler): String {
     return HtmlBuilder().apply {
       val tasksNumber = taskCategoryData.criticalPathTasks.size
-      val taskCategoryWarnings = taskCategoryData.getTaskCategoryIssues(IssueSeverity.WARNING, forWarningsPage = true)
+      val taskCategoryWarnings = taskCategoryData.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true)
       addBold(taskCategoryData.name).newline()
       add(taskCategoryData.taskCategoryDescription).newline()
       newline()

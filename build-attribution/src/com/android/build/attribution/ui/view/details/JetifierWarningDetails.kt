@@ -25,7 +25,7 @@ import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.htmlTextLabelWithLinesWrap
 import com.android.build.attribution.ui.view.ViewActionHandlers
-import com.android.ide.common.attribution.FullDependencyPath
+import com.android.buildanalyzer.common.FullDependencyPath
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI.DEFAULT_STYLE_KEY
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.Disposable

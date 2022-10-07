@@ -301,8 +301,8 @@ message BuildAnalysisResultsMessage {
   }
 
   message TaskCategoryWarningsAnalyzerResult {
-    repeated BuildAnalyzerTaskCategoryIssue buildAnalyzerTaskCategoryIssues = 1;
-    enum BuildAnalyzerTaskCategoryIssue {
+    repeated TaskCategoryIssue taskCategoryIssues = 1;
+    enum TaskCategoryIssue {
       UNKNOWN = 0;
       NON_FINAL_RES_IDS_DISABLED = 1;
       NON_TRANSITIVE_R_CLASS_DISABLED = 2;

@@ -27,7 +27,7 @@ import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
-import com.android.ide.common.attribution.TaskCategory
+import com.android.buildanalyzer.common.TaskCategory
 import java.util.EnumMap
 
 

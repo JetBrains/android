@@ -16,7 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.data.StudioProvidedInfo
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.AgpVersion
 import com.google.wireless.android.sdk.stats.BuildDownloadsAnalysisData.RepositoryStats.RepositoryType

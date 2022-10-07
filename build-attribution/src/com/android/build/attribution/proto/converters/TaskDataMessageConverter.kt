@@ -19,8 +19,7 @@ import com.android.build.attribution.BuildAnalysisResultsMessage
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.proto.PairEnumFinder
-import com.android.ide.common.attribution.TaskCategory
-import com.google.common.annotations.VisibleForTesting
+import com.android.buildanalyzer.common.TaskCategory
 
 class TaskDataMessageConverter {
   companion object {

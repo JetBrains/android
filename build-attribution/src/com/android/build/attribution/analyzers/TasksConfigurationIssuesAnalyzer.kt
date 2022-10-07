@@ -18,7 +18,7 @@ package com.android.build.attribution.analyzers
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TasksSharingOutputData
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 
 /**
  * An analyzer that looks for misconfigured tasks. Tasks that declare the same output are considered misconfigured.

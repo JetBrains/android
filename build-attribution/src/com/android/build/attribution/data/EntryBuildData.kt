@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.data
 
-import com.android.ide.common.attribution.TaskCategory
+import com.android.buildanalyzer.common.TaskCategory
 
 data class PluginBuildData(val plugin: PluginData, val buildDuration: Long)
 

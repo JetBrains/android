@@ -279,7 +279,7 @@ class WarningsDataPageModelImplTest {
   }
 
   @Test
-  fun testAllWarningsFilteredOutExceptBuildAnalyzerTaskCategoryIssue() {
+  fun testAllWarningsFilteredOutExceptTaskCategoryIssues() {
     model.filter = WarningsFilter.DEFAULT.copy(
       showTaskWarningTypes = setOf(),
       showAnnotationProcessorWarnings = false,

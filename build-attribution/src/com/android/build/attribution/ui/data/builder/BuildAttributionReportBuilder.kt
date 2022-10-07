@@ -20,7 +20,6 @@ import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.TaskCategoryBuildData
 import com.android.build.attribution.data.TaskData
-import com.android.build.attribution.ui.data.BuildAnalyzerTaskCategoryIssueUiData
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.BuildSummary
 import com.android.build.attribution.ui.data.ConfigurationUiData
@@ -30,13 +29,13 @@ import com.android.build.attribution.ui.data.CriticalPathTaskCategoriesUiData
 import com.android.build.attribution.ui.data.CriticalPathTaskCategoryUiData
 import com.android.build.attribution.ui.data.CriticalPathTasksUiData
 import com.android.build.attribution.ui.data.IssueLevel
+import com.android.build.attribution.ui.data.TaskCategoryIssueUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.displayName
 import com.android.build.attribution.ui.getLink
 import com.android.build.attribution.ui.getWarningMessage
-import com.android.ide.common.attribution.BuildAnalyzerTaskCategoryIssue
-import com.android.ide.common.attribution.IssueSeverity
-import com.android.ide.common.attribution.TaskCategory
+import com.android.buildanalyzer.common.TaskCategory
+import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
@@ -135,16 +134,16 @@ class BuildAttributionReportBuilder(
       taskCategoriesDeterminingBuildDuration.add(TaskCategoryBuildData(taskCategory, duration))
     }
     val taskByTaskCategory = buildAnalysisResult.getTasksDeterminingBuildDuration().groupBy { it.primaryTaskCategory }
-    val buildAnalyzerTaskCategoryIssuesResult = buildAnalysisResult.getTaskCategoryWarningsAnalyzerResult()
+    val taskCategoryIssuesResult = buildAnalysisResult.getTaskCategoryWarningsAnalyzerResult()
     return object : CriticalPathTaskCategoriesUiData {
       override val criticalPathDuration = criticalPathDuration
       override val miscStepsTime = criticalPathDuration.supplement()
       override val entries = taskCategoriesDeterminingBuildDuration.map {
         createCriticalPathTaskCategoryUiData(taskByTaskCategory[it.taskCategory].orEmpty(),
-                                              it,
-                                              criticalPathDuration,
-                                              buildAnalyzerTaskCategoryIssuesResult.buildAnalyzerTaskCategoryIssues.filter { issue -> issue.taskCategory == it.taskCategory },
-                                              buildAnalysisResult.getAnnotationProcessorsData())
+                                             it,
+                                             criticalPathDuration,
+                                             taskCategoryIssuesResult.taskCategoryIssues.filter { issue -> issue.taskCategory == it.taskCategory },
+                                             buildAnalysisResult.getAnnotationProcessorsData())
       }.sortedByDescending { it.criticalPathDuration }
       override val warningCount = entries.sumOf { it.warningCount }
       override val infoCount = entries.sumOf { it.infoCount }
@@ -155,7 +154,7 @@ class BuildAttributionReportBuilder(
     criticalPathTasks: List<TaskData>,
     taskCategoryCriticalPathBuildData: TaskCategoryBuildData,
     totalCriticalPathDuration: TimeWithPercentage,
-    buildAnalyzerTaskCategoryIssues: List<BuildAnalyzerTaskCategoryIssue>,
+    taskCategoryIssues: List<TaskCategoryIssue>,
     nonIncrementalAnnotationProcessors: List<AnnotationProcessorData>
   ) = object : CriticalPathTaskCategoryUiData {
     override val name = taskCategoryCriticalPathBuildData.taskCategory.displayName()
@@ -170,15 +169,15 @@ class BuildAttributionReportBuilder(
     override val taskCategoryDescription: String
       get() = taskCategoryCriticalPathBuildData.taskCategory.description
 
-    override fun getTaskCategoryIssues(severity: IssueSeverity, forWarningsPage: Boolean): List<BuildAnalyzerTaskCategoryIssueUiData> {
-      return buildAnalyzerTaskCategoryIssues.filter {
+    override fun getTaskCategoryIssues(severity: TaskCategoryIssue.Severity, forWarningsPage: Boolean): List<TaskCategoryIssueUiData> {
+      return taskCategoryIssues.filter {
         if (forWarningsPage) {
           // Leave out Java non-incremental annotation processors task category warnings as warnings are already shown for that
-          return@filter it.severity == severity && it != BuildAnalyzerTaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR
+          return@filter it.severity == severity && it != TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR
         }
         return@filter it.severity == severity
       }.map { issue ->
-        BuildAnalyzerTaskCategoryIssueUiData(
+        TaskCategoryIssueUiData(
           issue,
           issue.getWarningMessage(nonIncrementalAnnotationProcessors),
           issue.getLink()

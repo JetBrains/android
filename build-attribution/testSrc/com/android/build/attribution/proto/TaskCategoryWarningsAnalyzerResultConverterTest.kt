@@ -16,9 +16,8 @@
 package com.android.build.attribution.proto
 
 import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
-import com.android.build.attribution.proto.converters.BuildResultsProtoMessageConverter
 import com.android.build.attribution.proto.converters.TaskCategoryWarningsAnalyzerResultConverter
-import com.android.ide.common.attribution.BuildAnalyzerTaskCategoryIssue
+import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.google.common.truth.Truth
 import org.junit.Test
 
@@ -26,10 +25,10 @@ class TaskCategoryWarningsAnalyzerResultConverterTest {
   @Test
   fun testTaskCategoryWarningsAnalyzerResult() {
     val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.Result(
-      listOf(BuildAnalyzerTaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
-             BuildAnalyzerTaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
-             BuildAnalyzerTaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED,
-             BuildAnalyzerTaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED)
+      listOf(TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
+             TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
+             TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED,
+             TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED)
     )
     val resultMessage = TaskCategoryWarningsAnalyzerResultConverter.transform(
       taskCategoryWarningsAnalyzerResult)
@@ -40,18 +39,18 @@ class TaskCategoryWarningsAnalyzerResultConverterTest {
   @Test
   fun testNotEqualsTaskCategoryWarningsAnalyzerResult() {
     val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.Result(
-      listOf(BuildAnalyzerTaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
-             BuildAnalyzerTaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
-             BuildAnalyzerTaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED,
-             BuildAnalyzerTaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED)
+      listOf(TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
+             TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
+             TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED,
+             TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED)
     )
     val resultMessage = TaskCategoryWarningsAnalyzerResultConverter.transform(
       taskCategoryWarningsAnalyzerResult)
     val resultConverted = TaskCategoryWarningsAnalyzerResultConverter.construct(resultMessage)
     val anotherTaskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.Result(
-      listOf(BuildAnalyzerTaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
-             BuildAnalyzerTaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
-             BuildAnalyzerTaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED)
+      listOf(TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
+             TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
+             TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED)
     )
     Truth.assertThat(resultConverted).isNotEqualTo(anotherTaskCategoryWarningsAnalyzerResult)
   }

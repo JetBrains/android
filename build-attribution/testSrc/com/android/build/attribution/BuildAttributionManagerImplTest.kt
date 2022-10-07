@@ -18,7 +18,7 @@ package com.android.build.attribution
 import com.android.build.attribution.analyzers.createBinaryPluginIdentifierStub
 import com.android.build.attribution.analyzers.createTaskFinishEventStub
 import com.android.build.attribution.ui.controllers.createCheckJetifierTaskRequest
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker

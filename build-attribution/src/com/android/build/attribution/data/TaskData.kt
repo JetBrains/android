@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.data
 
-import com.android.ide.common.attribution.TaskCategory
+import com.android.buildanalyzer.common.TaskCategory
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSuccessResult
 

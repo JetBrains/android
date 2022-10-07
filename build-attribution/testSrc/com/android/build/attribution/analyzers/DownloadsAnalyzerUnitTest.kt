@@ -20,7 +20,7 @@ import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 import com.android.ide.common.repository.GradleVersion
 import com.android.testutils.MockitoKt
 import com.google.common.truth.Truth

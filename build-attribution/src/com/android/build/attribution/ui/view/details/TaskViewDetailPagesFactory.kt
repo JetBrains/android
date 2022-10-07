@@ -30,7 +30,7 @@ import com.android.build.attribution.ui.panels.taskDetailsPage
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warnIconHtml
 import com.android.build.attribution.ui.withPluralization
-import com.android.ide.common.attribution.IssueSeverity
+import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.utils.HtmlBuilder
 import java.awt.BorderLayout
 import javax.swing.BoxLayout
@@ -102,7 +102,7 @@ class TaskViewDetailPagesFactory(
       newline()
 
       if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
-        val taskCategoryInfo = descriptor.entryData.getTaskCategoryIssues(IssueSeverity.INFO, forWarningsPage = false)
+        val taskCategoryInfo = descriptor.entryData.getTaskCategoryIssues(TaskCategoryIssue.Severity.INFO, forWarningsPage = false)
         if (taskCategoryInfo.isNotEmpty()) {
           createTaskCategoryIssueMessage(taskCategoryInfo, linksHandler, actionHandlers)
           newline()
@@ -112,7 +112,7 @@ class TaskViewDetailPagesFactory(
       addBold("Warnings").newline()
       var warningCount = filteredTasksWithWarnings.size
       val taskCategoryWarnings = if (descriptor.entryData is CriticalPathTaskCategoryUiData) {
-        descriptor.entryData.getTaskCategoryIssues(IssueSeverity.WARNING, forWarningsPage = false)
+        descriptor.entryData.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = false)
       } else emptyList()
       if (descriptor.entryData is CriticalPathTaskCategoryUiData) warningCount += taskCategoryWarnings.size
       if (warningCount == 0) {

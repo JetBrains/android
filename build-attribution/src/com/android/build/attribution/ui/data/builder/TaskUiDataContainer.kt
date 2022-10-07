@@ -22,7 +22,7 @@ import com.android.build.attribution.ui.data.PluginSourceType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
-import com.android.ide.common.attribution.TaskCategory
+import com.android.buildanalyzer.common.TaskCategory
 
 /**
  * This class holds [TaskUiData] representations for [TaskData] objects provided from build analyzers.

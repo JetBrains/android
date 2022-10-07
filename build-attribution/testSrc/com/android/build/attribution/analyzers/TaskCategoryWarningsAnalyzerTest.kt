@@ -17,7 +17,7 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.getSuccessfulResult
-import com.android.ide.common.attribution.BuildAnalyzerTaskCategoryIssue
+import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -52,11 +52,11 @@ class TaskCategoryWarningsAnalyzerTest {
       invokeTasks("preBuild")
       val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
       val results = buildAnalyzerStorageManager.getSuccessfulResult()
-      assertThat(results.getTaskCategoryWarningsAnalyzerResult().buildAnalyzerTaskCategoryIssues).containsExactly(
-        BuildAnalyzerTaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
-        BuildAnalyzerTaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED,
-        BuildAnalyzerTaskCategoryIssue.TEST_SHARDING_DISABLED,
-        BuildAnalyzerTaskCategoryIssue.RESOURCE_VALIDATION_ENABLED,
+      assertThat(results.getTaskCategoryWarningsAnalyzerResult().taskCategoryIssues).containsExactly(
+        TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
+        TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED,
+        TaskCategoryIssue.TEST_SHARDING_DISABLED,
+        TaskCategoryIssue.RESOURCE_VALIDATION_ENABLED,
       )
     }
   }
