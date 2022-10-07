@@ -39,7 +39,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyZeroInteractions
+import org.mockito.Mockito.verifyNoMoreInteractions
 import java.awt.Font
 import javax.swing.JComboBox
 import javax.swing.JLabel
@@ -734,7 +734,7 @@ class AddActionDialogTest : NavTestCase() {
     doReturn(DESIGN_SURFACE).whenever(dialog).invocationSite
     TestNavUsageTracker.create(model).use { tracker ->
       showAndUpdateFromDialog(dialog, surface, false)
-      verifyZeroInteractions(tracker)
+      verifyNoMoreInteractions(tracker)
     }
   }
 

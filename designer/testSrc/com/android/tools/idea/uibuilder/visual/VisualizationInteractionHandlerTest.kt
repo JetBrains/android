@@ -84,7 +84,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     (ActionManager.getInstance() as ActionManagerEx).addActionPopupMenuListener(popupMenuListener, testRootDisposable)
 
     interactionHandler.popupMenuTrigger(mouseEvent)
-    Mockito.verifyZeroInteractions(popupMenuListener)
+    Mockito.verifyNoMoreInteractions(popupMenuListener)
 
     // TODO(b/147799910): Also test the case which popup menu is created.
     //                    For now it is not testable in unit test because the create JComponent is invisible and an exception is thrown.

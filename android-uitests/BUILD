@@ -210,7 +210,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.7.10",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.10",
-        "@maven//:org.mockito.mockito-core_3.12.4",
+        "@maven//:org.mockito.mockito-core_4.8.0",
     ],
 )
 

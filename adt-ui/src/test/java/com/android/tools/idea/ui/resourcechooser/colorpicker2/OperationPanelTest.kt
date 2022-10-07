@@ -75,12 +75,12 @@ class OperationPanelTest : TestCase() {
 
     model.setColor(Color.BLUE)
 
-    Mockito.verifyZeroInteractions(ok)
-    Mockito.verifyZeroInteractions(cancel)
+    Mockito.verifyNoMoreInteractions(ok)
+    Mockito.verifyNoMoreInteractions(cancel)
 
     okButton!!.doClick()
     Mockito.verify(ok).invoke(Color.BLUE)
-    Mockito.verifyZeroInteractions(cancel)
+    Mockito.verifyNoMoreInteractions(cancel)
 
     cancelButton!!.doClick()
     Mockito.verify(cancel).invoke(Color.BLUE)

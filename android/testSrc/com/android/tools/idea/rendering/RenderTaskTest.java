@@ -19,7 +19,7 @@ import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.rendering.RenderTestUtil.DEFAULT_DEVICE_ID;
 import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Mockito.isNotNull;
+import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -129,7 +129,7 @@ public class RenderTaskTest extends AndroidTestCase {
         throw new RuntimeException(ex);
       }
 
-      verify(mockCrashReporter, times(1)).submit(isNotNull(CrashReport.class));
+      verify(mockCrashReporter, times(1)).submit((CrashReport)isNotNull());
     });
   }
 

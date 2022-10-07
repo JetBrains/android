@@ -99,7 +99,7 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
     assertThat(mySurfaceActionHandler.isCopyVisible(context)).isTrue();
     assertThat(mySurfaceActionHandler.isCopyEnabled(context)).isFalse();
     mySurfaceActionHandler.performCopy(context);
-    verifyZeroInteractions(myCopyPasteManager);
+    verifyNoMoreInteractions(myCopyPasteManager);
   }
 
   public void testCopyIsWhenNothingIsSelected() {

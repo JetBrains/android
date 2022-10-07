@@ -413,13 +413,13 @@ public class RangeSelectionComponentTest {
     component.setSize(dimension);
     Graphics2D graphics = mock(Graphics2D.class);
     component.draw(graphics, dimension);
-    Mockito.verifyZeroInteractions(graphics);
+    Mockito.verifyNoMoreInteractions(graphics);
     selectionRange.set(10, 20);
     component.draw(graphics, dimension);
-    Mockito.verifyZeroInteractions(graphics);
+    Mockito.verifyNoMoreInteractions(graphics);
     selectionRange.set(0, -1);
     component.draw(graphics, dimension);
-    Mockito.verifyZeroInteractions(graphics);
+    Mockito.verifyNoMoreInteractions(graphics);
   }
 
   @Test

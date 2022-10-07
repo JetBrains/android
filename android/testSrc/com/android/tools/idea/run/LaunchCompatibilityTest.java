@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

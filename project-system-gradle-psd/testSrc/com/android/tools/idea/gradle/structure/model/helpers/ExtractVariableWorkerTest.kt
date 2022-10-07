@@ -192,7 +192,7 @@ class ExtractVariableWorkerTest {
       val project = PsProjectImpl(resolvedProject)
       val appModule = project.findModuleByName("app") as PsAndroidModule
       val junit = appModule.dependencies.findLibraryDependencies("junit:junit:4.12").firstOrNull()
-      val mockito = appModule.dependencies.findLibraryDependencies("org.mockito:mockito-core:3.12.4").firstOrNull()
+      val mockito = appModule.dependencies.findLibraryDependencies("org.mockito:mockito-core:4.8.0").firstOrNull()
 
       assertThat(junit, notNullValue())
       assertThat(mockito, notNullValue())
@@ -221,13 +221,13 @@ class ExtractVariableWorkerTest {
         assertThat(newName, equalTo("mockitoCoreVersion"))
         assertThat(
           newProperty.getParsedValue(),
-          equalTo(ParsedValue.Set.Parsed("3.12.4", DslText.Literal).annotated())
+          equalTo(ParsedValue.Set.Parsed("4.8.0", DslText.Literal).annotated())
         )
         worker.commit("mockitoCoreVersion")
 
         assertThat(
           appModule.variables.getOrCreateVariable("mockitoCoreVersion").value,
-          equalTo(ParsedValue.Set.Parsed("3.12.4", DslText.Literal))
+          equalTo(ParsedValue.Set.Parsed("4.8.0", DslText.Literal))
         )
       }
     }
@@ -240,7 +240,7 @@ class ExtractVariableWorkerTest {
       val project = PsProjectImpl(resolvedProject)
       val javaModule = project.findModuleByName("javalib") as PsJavaModule
       val junit = javaModule.dependencies.findLibraryDependencies("junit:junit:4.12").firstOrNull()
-      val mockito = javaModule.dependencies.findLibraryDependencies("org.mockito:mockito-core:3.12.4").firstOrNull()
+      val mockito = javaModule.dependencies.findLibraryDependencies("org.mockito:mockito-core:4.8.0").firstOrNull()
 
       assertThat(junit, notNullValue())
       assertThat(mockito, notNullValue())
@@ -269,13 +269,13 @@ class ExtractVariableWorkerTest {
         assertThat(newName, equalTo("mockitoCoreVersion"))
         assertThat(
           newProperty.getParsedValue(),
-          equalTo(ParsedValue.Set.Parsed("3.12.4", DslText.Literal).annotated())
+          equalTo(ParsedValue.Set.Parsed("4.8.0", DslText.Literal).annotated())
         )
         worker.commit("mockitoCoreVersion")
 
         assertThat(
           javaModule.variables.getOrCreateVariable("mockitoCoreVersion").value,
-          equalTo(ParsedValue.Set.Parsed("3.12.4", DslText.Literal))
+          equalTo(ParsedValue.Set.Parsed("4.8.0", DslText.Literal))
         )
       }
     }

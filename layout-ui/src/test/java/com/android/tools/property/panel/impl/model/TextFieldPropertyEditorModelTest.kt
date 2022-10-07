@@ -32,7 +32,7 @@ import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyZeroInteractions
+import org.mockito.Mockito.verifyNoMoreInteractions
 
 class TextFieldPropertyEditorModelTest {
 
@@ -94,7 +94,7 @@ class TextFieldPropertyEditorModelTest {
     model.focusGained()
 
     assertThat(model.text).isEqualTo("hello")
-    verifyZeroInteractions(listener)
+    verifyNoMoreInteractions(listener)
   }
 
   @Test

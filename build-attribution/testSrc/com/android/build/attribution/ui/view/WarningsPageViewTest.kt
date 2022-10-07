@@ -83,7 +83,7 @@ class WarningsPageViewTest {
 
     assertThat(view.tree.selectionPath).isNull()
     assertThat((view.detailsPanel.key)).isEqualTo(WarningsPageId.emptySelection)
-    Mockito.verifyZeroInteractions(mockHandlers)
+    Mockito.verifyNoMoreInteractions(mockHandlers)
   }
 
   @Test
@@ -100,7 +100,7 @@ class WarningsPageViewTest {
     assertThat(selectedNode).isEqualTo(model.selectedNode)
     assertThat(selectedNode.descriptor.pageId).isEqualTo(pageIdToSelect)
     assertThat(view.detailsPanel.key).isEqualTo(pageIdToSelect)
-    Mockito.verifyZeroInteractions(mockHandlers)
+    Mockito.verifyNoMoreInteractions(mockHandlers)
   }
 
   @Test

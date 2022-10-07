@@ -25,7 +25,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.*;
 
 public class ComponentHelpActionTest extends AndroidTestCase {
@@ -66,13 +66,13 @@ public class ComponentHelpActionTest extends AndroidTestCase {
   public void testNullTagName() {
     myTagName = null;
     myAction.actionPerformed(myEvent);
-    verifyZeroInteractions(myBrowserLauncher);
+    verifyNoMoreInteractions(myBrowserLauncher);
   }
 
   public void testUnknownTagName() {
     myTagName = "UnknownComponentTagName";
     myAction.actionPerformed(myEvent);
-    verifyZeroInteractions(myBrowserLauncher);
+    verifyNoMoreInteractions(myBrowserLauncher);
   }
 
   public void testButton() {

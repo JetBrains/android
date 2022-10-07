@@ -52,11 +52,11 @@ class GenericInspectorLineModelTest {
 
     model.visible = false
     assertThat(model.visible).isFalse()
-    verifyZeroInteractions(listener)
+    verifyNoMoreInteractions(listener)
 
     model.visible = true
     assertThat(model.visible).isFalse()
-    verifyZeroInteractions(listener)
+    verifyNoMoreInteractions(listener)
   }
 
   @Test
