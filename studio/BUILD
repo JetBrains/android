@@ -222,6 +222,7 @@ studio_plugin(
             "//tools/base/annotations:studio.android.sdktools.android-annotations",
             "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer",
             "//tools/base/apkparser:studio.android.sdktools.binary-resources",
+            "//tools/base/build-analyzer/common:studio.android.build-analyzer.common",
             "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model",
             "//tools/base/build-system/builder-test-api:studio.android.sdktools.builder-test-api",
             "//tools/base/adblib:studio.android.sdktools.adblib",

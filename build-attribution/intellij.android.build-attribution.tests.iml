@@ -14,6 +14,7 @@
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
+    <orderEntry type="module" module-name="android.build-analyzer.common" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />

@@ -295,6 +295,7 @@
       <module fileurl="file://$PROJECT_DIR$/utp/utp.iml" filepath="$PROJECT_DIR$/utp/utp.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/build-analyzer/common/android.build-analyzer.common.iml" filepath="$PROJECT_DIR$/../../base/build-analyzer/common/android.build-analyzer.common.iml" />
     </modules>
   </component>
 </project>
