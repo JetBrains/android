@@ -35,8 +35,6 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.UpdatableManager;
-import com.android.tools.idea.codenavigation.CodeLocation;
-import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.profiler.proto.Commands;
@@ -46,7 +44,6 @@ import com.android.tools.profiler.proto.Cpu.TraceInitiationType;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.ProfilerAspect;
-import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StreamingStage;
@@ -69,7 +66,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Listener {
+public class CpuProfilerStage extends StreamingStage {
   private static final String HAS_USED_CPU_CAPTURE = "cpu.used.capture";
 
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
@@ -284,15 +281,12 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     getStudioProfilers().getUpdater().register(myCpuUsageAxis);
     getStudioProfilers().getUpdater().register(myThreadCountAxis);
 
-    CodeNavigator navigator = getStudioProfilers().getIdeServices().getCodeNavigator();
-    navigator.addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
 
     getStudioProfilers().addDependency(this).onChange(ProfilerAspect.PROCESSES, myProfilerConfigModel::updateProfilingConfigurations);
 
     myProfilerConfigModel.updateProfilingConfigurations();
     setupRecordingOptions();
-    setProfilerMode(ProfilerMode.EXPANDED);
   }
 
   @Override
@@ -303,9 +297,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     getStudioProfilers().getUpdater().unregister(myInProgressTraceHandler);
     getStudioProfilers().getUpdater().unregister(myCpuUsageAxis);
     getStudioProfilers().getUpdater().unregister(myThreadCountAxis);
-
-    getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
-    getStudioProfilers().removeDependencies(this);
 
     // Asks the parser to interrupt any parsing in progress.
     myCaptureParser.abortParsing();
@@ -504,7 +495,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     Range range = getTimeline().getSelectionRange();
     if (range.isEmpty()) {
       myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
-      setProfilerMode(ProfilerMode.EXPANDED);
     }
   }
 
@@ -524,8 +514,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
       myAspect.changed(CpuProfilerAspect.CAPTURE_STATE);
 
       if (captureState == CaptureState.CAPTURING) {
-        // When going to CAPTURING state, we should make sure the profiler mode is set to EXPANDED, so we show the Recording panel in L3.
-        setProfilerMode(ProfilerMode.EXPANDED);
         // When going to CAPTURING state need to keep the recording options model in sync.
         // This is needed when a startup recording or API recording has started.
         if (!myRecordingOptionsModel.isRecording()) {
@@ -556,11 +544,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   @NotNull
   public CpuThreadsModel getThreadStates() {
     return myThreadsStates;
-  }
-
-  @Override
-  public void onNavigated(@NotNull CodeLocation location) {
-    setProfilerMode(ProfilerMode.NORMAL);
   }
 
   /**

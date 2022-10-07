@@ -43,7 +43,6 @@ import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
-import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
@@ -829,11 +828,6 @@ public class MemoryClassifierViewTest {
     assertThat(codeLocation).isNotNull();
     String codeLocationClassName = codeLocation.getClassName();
     assertThat(codeLocationClassName).isEqualTo(TEST_CLASS_NAME);
-
-    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().addListener(myStage); // manually add, since we didn't enter stage
-    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().navigate(codeLocation);
-    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(myStage);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
   }
 
   @Test

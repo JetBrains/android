@@ -29,13 +29,10 @@ import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
-import com.android.tools.idea.codenavigation.CodeLocation;
-import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profilers.ProfilerAspect;
-import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
@@ -51,7 +48,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class EnergyProfilerStage extends StreamingStage implements CodeNavigator.Listener {
+public class EnergyProfilerStage extends StreamingStage {
   private static final String HAS_USED_ENERGY_SELECTION = "energy.used.selection";
   private static final String ENERGY_EVENT_ORIGIN_INDEX = "energy.event.origin";
 
@@ -87,15 +84,9 @@ public class EnergyProfilerStage extends StreamingStage implements CodeNavigator
     myRangeSelectionModel.addListener(new RangeSelectionListener() {
       @Override
       public void selectionCreated() {
-        setProfilerMode(ProfilerMode.EXPANDED);
         trackRangeSelection(profilers, myRangeSelectionModel.getSelectionRange());
         profilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_ENERGY_SELECTION, true);
         myInstructionsEaseOutModel.setCurrentPercentage(1);
-      }
-
-      @Override
-      public void selectionCleared() {
-        setProfilerMode(ProfilerMode.NORMAL);
       }
     });
 
@@ -113,7 +104,6 @@ public class EnergyProfilerStage extends StreamingStage implements CodeNavigator
     getStudioProfilers().getUpdater().register(myDetailedUsage);
     getStudioProfilers().getUpdater().register(myUpdatable);
 
-    getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
   }
 
@@ -123,8 +113,6 @@ public class EnergyProfilerStage extends StreamingStage implements CodeNavigator
 
     getStudioProfilers().getUpdater().unregister(myDetailedUsage);
     getStudioProfilers().getUpdater().unregister(myUpdatable);
-
-    getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
   }
 
   @Override
@@ -278,11 +266,6 @@ public class EnergyProfilerStage extends StreamingStage implements CodeNavigator
       new RangedSeries<>(range, new MergedEnergyEventsDataSeries(transportClient, streamId, pid,
                                                                  kind -> kind == EnergyDuration.Kind.LOCATION)));
     return stateChartModel;
-  }
-
-  @Override
-  public void onNavigated(@NotNull CodeLocation location) {
-    setProfilerMode(ProfilerMode.NORMAL);
   }
 
   public static class EnergyUsageLegends extends LegendComponentModel {

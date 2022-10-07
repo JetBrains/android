@@ -42,7 +42,6 @@ import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
-import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
@@ -107,19 +106,16 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.trackAllocations(false);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     MemoryProfilerTestUtils
       .startTrackingHelper(myStage, myTransportService, myTimer, -1, Status.NOT_ENABLED, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     MemoryProfilerTestUtils
       .stopTrackingHelper(myStage, myTransportService, myTimer, -1, Status.FAILURE_UNKNOWN, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
   }
 
@@ -136,7 +132,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
       .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(true);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isEqualTo(null);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     // Attempting to start a in-progress session
@@ -144,7 +139,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
       .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.IN_PROGRESS, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(true);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isEqualTo(null);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
     // Stops the tracking session.
@@ -153,7 +147,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
       .stopTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     myAspectObserver.assertAndResetCounts(1, 1, 0, 0, 0, 0, 0, 0);
     LegacyAllocationCaptureObject capture = (LegacyAllocationCaptureObject)myStage.getCaptureSelection().getSelectedCapture();
     assertThat(capture.isDoneLoading()).isFalse();
@@ -165,7 +158,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(capture.isDoneLoading()).isTrue();
     assertThat(capture.isError()).isFalse();
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
   }
 
   @Test
@@ -239,17 +231,14 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     MemoryProfilerTestUtils.heapDumpHelper(myStage, myTransportService,
                                            Memory.HeapDumpStatus.Status.FAILURE_UNKNOWN);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isNull();
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
 
     MemoryProfilerTestUtils.heapDumpHelper(myStage, myTransportService,
                                            Memory.HeapDumpStatus.Status.IN_PROGRESS);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isNull();
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
 
     MemoryProfilerTestUtils.heapDumpHelper(myStage, myTransportService,
                                            Memory.HeapDumpStatus.Status.UNSPECIFIED);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isNull();
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
 
     // TODO need to add a mock heap dump here to test the success path
   }
@@ -336,10 +325,8 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getCaptureSelection().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
     assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isNull();
     assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isNull();
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
     myMockLoader.runTask();
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
 
     // Make sure the same capture selected shouldn't result in aspects getting raised again.
@@ -457,7 +444,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> mockCapture1)),
                              null);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isEqualTo(mockCapture1);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
 
     // Make sure selecting a new capture while the first one is loading will select the new one
@@ -465,12 +451,10 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> mockCapture2)),
                              null);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isEqualTo(mockCapture2);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
 
     myMockLoader.runTask();
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isEqualTo(mockCapture2);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 0, 0, 0, 0);
   }
 
@@ -493,13 +477,11 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     assertThat((long)selectionRange.getMin()).isEqualTo(startTimeUs);
     assertThat((long)selectionRange.getMax()).isEqualTo(endTimeUs);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
 
     myMockLoader.runTask();
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isEqualTo(null);
     assertThat(selectionRange.isEmpty()).isTrue();
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
     myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 0, 0, 0, 0);
   }
 
@@ -652,7 +634,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isNull();
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
   }
 
   @Test
@@ -674,7 +655,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
     myAspectObserver.assertAndResetCounts(2, 1, 1, 0, 1, 0, 0, 0);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
   }
 
   @Test

@@ -35,7 +35,6 @@ import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
-import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
@@ -91,7 +90,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
   public void testDefaultValues() {
     assertThat(myStage.getCpuTraceDataSeries()).isNotNull();
     assertThat(myStage.getThreadStates()).isNotNull();
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     assertThat(myStage.getAspect()).isNotNull();
   }

@@ -31,15 +31,11 @@ import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
 import com.android.tools.adtui.model.updater.Updatable
-import com.android.tools.idea.codenavigation.CodeLocation
-import com.android.tools.idea.codenavigation.CodeNavigator
-import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.ProfilerClient
-import com.android.tools.profilers.ProfilerMode
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.UnifiedEventDataSeries
 import com.android.tools.profilers.analytics.FeatureTracker
@@ -63,8 +59,7 @@ private typealias DataSeriesConstructor<T> = (ProfilerClient, Common.Session, Fe
  */
 abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
                                                 captureObjectLoader: CaptureObjectLoader = CaptureObjectLoader())
-      : BaseMemoryProfilerStage(profilers, captureObjectLoader),
-        CodeNavigator.Listener {
+  : BaseMemoryProfilerStage(profilers, captureObjectLoader) {
   protected val logger get() = Logger.getInstance(this.javaClass)
   protected val sessionData = profilers.session
   var isTrackingAllocations = false
@@ -162,7 +157,6 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     loader.start()
     eventMonitor.enter()
     updatables.forEach(studioProfilers.updater::register)
-    studioProfilers.ideServices.codeNavigator.addListener(this)
     studioProfilers.ideServices.featureTracker.trackEnterStage(stageType)
   }
 
@@ -170,7 +164,6 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     eventMonitor.exit()
     updatables.forEach(studioProfilers.updater::unregister)
     loader.stop()
-    studioProfilers.ideServices.codeNavigator.removeListener(this)
     rangeSelectionModel.clearListeners()
   }
 
@@ -243,11 +236,6 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
       }
     }
     return durationData
-  }
-
-
-  override fun onNavigated(location: CodeLocation) {
-    profilerMode = ProfilerMode.NORMAL
   }
 
   /**

@@ -15,17 +15,14 @@
  */
 package com.android.tools.profilers.memory
 
-import com.android.tools.profilers.ProfilerMode
 import com.android.tools.profilers.StreamingStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.CancellationException
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
@@ -66,7 +63,6 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
       captureSelection.selectCaptureEntry(null)
       timeline.selectionRange.clear()
       captureSelection.aspect.changed(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE)
-      profilerMode = ProfilerMode.NORMAL
     }
     if (captureObject == null) {
       // Loading a capture can fail, in which case we reset everything.
@@ -124,7 +120,6 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
           }
         },
         joiner ?: MoreExecutors.directExecutor())
-      profilerMode = ProfilerMode.EXPANDED
     }
 
     studioProfilers.ideServices.runAsync(captureObject::canSafelyLoad) { canLoad -> when {

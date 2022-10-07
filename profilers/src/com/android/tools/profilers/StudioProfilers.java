@@ -907,14 +907,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myProfilers;
   }
 
-  public ProfilerMode getMode() {
-    return myStage.getProfilerMode();
-  }
-
-  public void modeChanged() {
-    changed(ProfilerAspect.MODE);
-  }
-
   @NotNull
   public IdeProfilerServices getIdeServices() {
     return myIdeServices;

@@ -33,7 +33,6 @@ import com.android.tools.profilers.Notification;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.sessions.SessionAspect;
@@ -299,7 +298,6 @@ public class AndroidProfilerToolWindow implements Disposable {
       );
 
       myProfilers.addDependency(this)
-        .onChange(ProfilerAspect.MODE, this::modeChanged)
         .onChange(ProfilerAspect.STAGE, this::stageChanged);
       myProfilers.getSessionsManager().addDependency(this)
         .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
@@ -341,11 +339,6 @@ public class AndroidProfilerToolWindow implements Disposable {
     @NotNull
     private StudioProfilersView getProfilersView() {
       return myView;
-    }
-
-    private void modeChanged() {
-      boolean maximize = myProfilers.getMode() == ProfilerMode.EXPANDED;
-      myWindow.setMaxmized(maximize);
     }
 
     private void stageChanged() {

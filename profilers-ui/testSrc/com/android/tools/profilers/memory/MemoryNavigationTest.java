@@ -31,7 +31,6 @@ import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
-import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
@@ -151,10 +150,5 @@ public class MemoryNavigationTest {
     assertNotNull(codeLocation);
     String codeLocationClassName = codeLocation.getClassName();
     assertEquals(testClassName, codeLocationClassName);
-
-    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().addListener(myStage); // manually add since we don't enter the stage
-    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().navigate(codeLocation);
-    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(myStage);
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
   }
 }

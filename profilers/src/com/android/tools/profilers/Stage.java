@@ -34,8 +34,6 @@ public abstract class Stage<T extends Timeline> extends AspectObserver {
 
   private final StudioProfilers myProfilers;
 
-  private ProfilerMode myProfilerMode = ProfilerMode.NORMAL;
-
   /**
    * The active tooltip for stages that contain more than one tooltips.
    */
@@ -66,28 +64,9 @@ public abstract class Stage<T extends Timeline> extends AspectObserver {
    */
   abstract public AndroidProfilerEvent.Stage getStageType();
 
-  @NotNull
-  public final ProfilerMode getProfilerMode() { return myProfilerMode; }
-
   @Nullable
   public TooltipModel getTooltip() {
     return myTooltip;
-  }
-
-  /**
-   * Allow inheriting classes to modify the {@link ProfilerMode}.
-   *
-   * Note that this method is intentionally not public, as only the stages themselves should
-   * contain the logic for setting their profiler mode. If a view finds itself needing to
-   * toggle the profiler mode, it should do it indirectly, either by modifying a model class
-   * inside the stage or by calling a public method on the stage which changes the mode as a
-   * side effect.
-   */
-  protected final void setProfilerMode(@NotNull ProfilerMode profilerMode) {
-    if (myProfilerMode != profilerMode) {
-      myProfilerMode = profilerMode;
-      getStudioProfilers().modeChanged();
-    }
   }
 
   /**

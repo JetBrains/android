@@ -32,7 +32,6 @@ import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
-import com.android.tools.profilers.ProfilerMode
 import com.android.tools.profilers.RecordingOptionsView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
@@ -241,7 +240,6 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
       myStage.enter()
     }
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
-    assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.EXPANDED)
 
     val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
     assertThat(splitter.secondComponent).isNotNull()
