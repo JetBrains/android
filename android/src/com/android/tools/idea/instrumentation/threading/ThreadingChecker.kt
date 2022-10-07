@@ -17,10 +17,12 @@ package com.android.tools.idea.instrumentation.threading
 
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerTrampoline
 import com.intellij.ide.ApplicationInitializedListener
+import com.intellij.openapi.diagnostic.thisLogger
 
 class ThreadingChecker : ApplicationInitializedListener {
   /** Start receiving notifications from the threading agent. */
   override fun componentsInitialized() {
     ThreadingCheckerTrampoline.installHook(ThreadingCheckerHookImpl())
+    thisLogger().debug("ThreadingChecker listener has been installed.")
   }
 }
