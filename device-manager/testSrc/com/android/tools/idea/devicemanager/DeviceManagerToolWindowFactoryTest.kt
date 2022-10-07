@@ -17,8 +17,10 @@ package com.android.tools.idea.devicemanager
 
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDevicePanel
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceWatcher
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
@@ -27,8 +29,10 @@ import com.intellij.ui.table.JBTable
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import java.awt.Container
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -41,21 +45,30 @@ class DeviceManagerToolWindowFactoryTest {
   @get:Rule
   val projectRule = ProjectRule()
 
+  private lateinit var factory: ToolWindowFactory
+
+  @Before
+  fun initFactory() {
+    factory = DeviceManagerToolWindowFactory { _, _ ->
+      VirtualDevicePanel(null, Mockito.mock(Disposable::class.java), Mockito.mock(VirtualDeviceWatcher::class.java))
+    }
+  }
+
   @Test
   fun testCreateCustomTabs() {
     val failingTab = object : DeviceManagerTab {
       override fun getName() = "Failing Tab"
       override fun getPanel(project: Project, parentDisposable: Disposable) = throw Exception("it failed")
     }
-    val failingTab2 = object: DeviceManagerTab {
+    val failingTab2 = object : DeviceManagerTab {
       override fun getName() = "Failing Tab with custom error"
       override fun getPanel(project: Project, parentDisposable: Disposable) = throw Exception("it failed")
       override fun getErrorComponent(throwable: Throwable): JComponent {
-        return JPanel().apply { add(JLabel("${throwable.message} custom"))}
+        return JPanel().apply { add(JLabel("${throwable.message} custom")) }
       }
     }
     val table = JBTable()
-    val successfulPanel = object : DevicePanel(projectRule.project) {
+    val successfulPanel: DevicePanel = object : DevicePanel(projectRule.project) {
       override fun newTable() = table
       override fun newDetailsPanel() = DetailsPanel("my details")
     }
@@ -70,7 +83,7 @@ class DeviceManagerToolWindowFactoryTest {
     DeviceManagerTab.EP_NAME.point.registerExtension(successfulTab, disposableRule.disposable)
     val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)
 
-    DeviceManagerToolWindowFactory().createToolWindowContent(projectRule.project, toolWindow)
+    factory.createToolWindowContent(projectRule.project, toolWindow)
 
     val tabs = toolWindow.contentManager.contents[0].component as JBTabbedPane
     assertEquals(5, tabs.tabCount)
@@ -91,16 +104,17 @@ class DeviceManagerToolWindowFactoryTest {
   fun testReloadErrorTab() {
     lateinit var callback: Runnable
     val table = JBTable()
-    val successfulPanel = object : DevicePanel(projectRule.project) {
+    val successfulPanel: DevicePanel = object : DevicePanel(projectRule.project) {
       override fun newTable() = table
       override fun newDetailsPanel() = DetailsPanel("my details")
     }
 
     var shouldFail = true
-    val tab = object: DeviceManagerTab {
+    val tab = object : DeviceManagerTab {
       override fun getName() = "My Tab"
       override fun getPanel(project: Project, parentDisposable: Disposable) =
         if (shouldFail) throw Exception("it failed") else successfulPanel
+
       override fun setRecreateCallback(runnable: Runnable, disposable: Disposable) {
         callback = runnable
       }
@@ -108,7 +122,7 @@ class DeviceManagerToolWindowFactoryTest {
     DeviceManagerTab.EP_NAME.point.registerExtension(tab, disposableRule.disposable)
     val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)
 
-    DeviceManagerToolWindowFactory().createToolWindowContent(projectRule.project, toolWindow)
+    factory.createToolWindowContent(projectRule.project, toolWindow)
 
     val tabs = toolWindow.contentManager.contents[0].component as JBTabbedPane
     assertEquals("My Tab", (tabs.getTabComponentAt(2) as JLabel).text)

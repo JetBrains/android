@@ -52,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
  * Studio loses focus, and then check the differences when Studio regains focus.
  */
 @Service
-final class VirtualDeviceWatcher {
+public final class VirtualDeviceWatcher {
   private @NotNull Map<String, AvdInfo> myAvds;
   private final @NotNull AvdManager myAvdManager;
   private final @NotNull EventListenerList myListeners;

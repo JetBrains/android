@@ -24,20 +24,31 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
+import java.util.function.BiFunction;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final String ID = "Device Manager";
+  private final @NotNull BiFunction<@Nullable Project, @NotNull Disposable, @NotNull Component> myNewVirtualDevicePanel;
 
+  @SuppressWarnings("unused")
+  private DeviceManagerToolWindowFactory() {
+    this(VirtualDevicePanel::new);
+  }
+
+  @NonInjectable
   @VisibleForTesting
-  DeviceManagerToolWindowFactory() {
+  DeviceManagerToolWindowFactory(@NotNull BiFunction<@Nullable Project, @NotNull Disposable, @NotNull Component> newVirtualDevicePanel) {
+    myNewVirtualDevicePanel = newVirtualDevicePanel;
   }
 
   @Override
@@ -60,7 +71,7 @@ public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, 
     JBTabbedPane pane = new JBTabbedPane();
     pane.setTabComponentInsets(JBUI.emptyInsets());
 
-    pane.addTab("Virtual", new VirtualDevicePanel(project, parent));
+    pane.addTab("Virtual", myNewVirtualDevicePanel.apply(project, parent));
     pane.addTab("Physical", new PhysicalDevicePanel(project, parent));
     for (DeviceManagerTab tab : DeviceManagerTab.EP_NAME.getExtensions()) {
       if (tab.isApplicable()) {
