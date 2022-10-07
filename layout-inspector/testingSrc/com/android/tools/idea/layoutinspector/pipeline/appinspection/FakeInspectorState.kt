@@ -35,6 +35,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.CaptureSnapshotResponse.WindowSnapshot
 import com.google.common.truth.Truth.assertThat
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
@@ -773,6 +774,44 @@ class FakeInspectorState(
     }
   }
 
+  fun createFakeViewTreeAsSnapshot() {
+    viewInspector.interceptWhen({ it.hasCaptureSnapshotCommand() }) { _ ->
+      LayoutInspectorViewProtocol.Response.newBuilder().apply {
+        captureSnapshotResponseBuilder.apply {
+          windowRootsBuilder.apply {
+            addAllIds(layoutTrees.map { it.id })
+          }.build()
+          layoutTrees.forEach { rootNode ->
+            addWindowSnapshots(WindowSnapshot.newBuilder().apply {
+              layoutBuilder.apply {
+                addAllStrings(viewStrings)
+                this.rootView = rootNode
+                configurationBuilder.apply {
+                  density = Density.HIGH.dpiValue
+                  fontScale = 1.5f
+                }
+                appContextBuilder.apply {
+                  theme = ViewResource(208, 210, 223)
+                  screenWidth = 800
+                  screenHeight = 1600
+                }
+                propertiesBuilder.apply {
+                  for (id in propertyGroups.keys) {
+                    addPropertyGroupsBuilder().apply {
+                      rootId = rootNode.id
+                      addAllStrings(viewStrings)
+                      addAllPropertyGroups(propertyGroups[rootNode.id])
+                    }
+                  }
+                }
+              }.build()
+            }.build())
+          }
+        }.build()
+      }.build()
+    }
+  }
+
   fun createFakeViewAttributes() {
     viewInspector.interceptWhen({ it.hasGetPropertiesCommand() }) { command ->
       getPropertiesRequestCount.compute(command.getPropertiesCommand.viewId) { _, prev -> (prev ?: 0) + 1 }
@@ -918,6 +957,8 @@ class FakeInspectorState(
           }
           appContextBuilder.apply {
             theme = ViewResource(208, 210, 223)
+            screenWidth = 800
+            screenHeight = 1600
           }
         }
       }
