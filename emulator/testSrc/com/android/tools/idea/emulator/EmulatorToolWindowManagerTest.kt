@@ -30,6 +30,7 @@ import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.device.FakeScreenSharingAgentRule
+import com.android.tools.idea.device.isFFmpegAvailableToTest
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.testing.AndroidExecutorsRule
@@ -43,7 +44,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
@@ -309,11 +309,8 @@ class EmulatorToolWindowManagerTest {
 
   @Test
   fun testPhysicalDevice() {
-    if (SystemInfo.isWindows) {
-      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
-    }
-    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
-      return // FFmpeg library requires Mac OS 10.15+.
+    if (!isFFmpegAvailableToTest()) {
+      return
     }
     assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
     windowFactory.createToolWindowContent(project, toolWindow)
@@ -332,11 +329,8 @@ class EmulatorToolWindowManagerTest {
 
   @Test
   fun testUnsupportedPhysicalPhone() {
-    if (SystemInfo.isWindows) {
-      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
-    }
-    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
-      return // FFmpeg library requires Mac OS 10.15+.
+    if (!isFFmpegAvailableToTest()) {
+      return
     }
     assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
     windowFactory.createToolWindowContent(project, toolWindow)
@@ -356,11 +350,8 @@ class EmulatorToolWindowManagerTest {
 
   @Test
   fun testUnsupportedPhysicalWatch() {
-    if (SystemInfo.isWindows) {
-      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
-    }
-    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
-      return // FFmpeg library requires Mac OS 10.15+.
+    if (!isFFmpegAvailableToTest()) {
+      return
     }
     assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
     windowFactory.createToolWindowContent(project, toolWindow)
