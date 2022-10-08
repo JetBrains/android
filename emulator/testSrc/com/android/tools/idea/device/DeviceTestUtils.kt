@@ -19,14 +19,7 @@ import com.intellij.openapi.util.SystemInfo
 
 /**
  * Checks if the current platform is suitable for tests depending on the FFmpeg library.
+ * For some unclear reason FFmpeg-dependent tests fail on Windows with
+ * "UnsatisfiedLinkError: no jniavcodec in java.library.path".
  */
-internal fun isFFmpegAvailableToTest(): Boolean {
-  if (SystemInfo.isWindows) {
-    // For some unclear reason FFmpeg-dependent tests fail on Windows with UnsatisfiedLinkError: no jniavcodec in java.library.path.
-    return false
-  }
-  if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
-    return false // FFmpeg library requires Mac OS 10.15+.
-  }
-  return true
-}
+internal fun isFFmpegAvailableToTest(): Boolean = !SystemInfo.isWindows
