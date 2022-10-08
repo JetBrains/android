@@ -114,6 +114,7 @@ class DeviceView(
   disposableParent: Disposable,
   private val deviceSerialNumber: String,
   private val deviceAbi: String,
+  private val deviceName: String,
   private val initialDisplayOrientation: Int,
   private val project: Project,
 ) : AbstractDisplayView(PRIMARY_DISPLAY_ID), Disposable, DeviceMirroringSettingsListener {
@@ -226,7 +227,7 @@ class DeviceView(
 
   private suspend fun initializeAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int) {
     try {
-      val deviceClient = DeviceClient(this, deviceSerialNumber, deviceAbi, project)
+      val deviceClient = DeviceClient(this, deviceSerialNumber, deviceAbi, deviceName, project)
       deviceClient.startAgentAndConnect(maxOutputSize, initialDisplayOrientation, MyFrameListener(), object : AgentTerminationListener {
         override fun agentTerminated(exitCode: Int) {
           disconnected(initialDisplayOrientation)

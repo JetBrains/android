@@ -555,7 +555,9 @@ internal class DeviceViewTest {
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {
-    view = DeviceView(testRootDisposable, device.serialNumber, device.deviceState.cpuAbi, UNKNOWN_ORIENTATION, agentRule.project)
+    val deviceState = device.deviceState
+    val deviceName = "${deviceState.manufacturer} ${deviceState.model} API ${deviceState.buildVersionSdk}"
+    view = DeviceView(testRootDisposable, device.serialNumber, deviceState.cpuAbi, deviceName, UNKNOWN_ORIENTATION, agentRule.project)
     fakeUi = FakeUi(wrapInScrollPane(view, width, height), screenScale)
     waitForCondition(15, TimeUnit.SECONDS) { agent.isRunning }
   }

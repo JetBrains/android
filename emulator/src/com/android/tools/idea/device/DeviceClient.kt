@@ -62,6 +62,7 @@ internal class DeviceClient(
   disposableParent: Disposable,
   private val deviceSerialNumber: String,
   private val deviceAbi: String,
+  private val deviceName: String,
   private val project: Project
 ) : Disposable {
 
@@ -217,7 +218,7 @@ internal class DeviceClient(
     // the agent has a chance to terminate gracefully when the client is disposed rather than
     // be killed by adb.
     CoroutineScope(Dispatchers.Unconfined).launch {
-      val log = Logger.getInstance("ScreenSharingAgent")
+      val log = Logger.getInstance("ScreenSharingAgent $deviceName")
       try {
         adb.shellAsLines(deviceSelector, command).collect {
           when (it) {
