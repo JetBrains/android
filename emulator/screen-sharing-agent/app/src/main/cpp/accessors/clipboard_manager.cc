@@ -76,21 +76,20 @@ ClipboardManager::ClipboardManager(Jni jni)
   clipboard_listener_.MakeGlobal();
 
   JClass clipboard_manager_class = clipboard_manager_.GetClass();
+  const char* signatures1[] = {
+      "(Ljava/lang/String;)Landroid/content/ClipData;",
+      "(Ljava/lang/String;I)Landroid/content/ClipData;",
+      "(Ljava/lang/String;Ljava/lang/String;I)Landroid/content/ClipData;"
+  };
   number_of_extra_parameters_ = api_level >= 33 ? 2 : api_level >= 29 ? 1 : 0;
   if (api_level == 33) {
     // The IClipboard.getPrimaryClip method may have either 2 or 3 parameters in API 33.
-    get_primary_clip_method_ =
-        clipboard_manager_class.FindMethod("getPrimaryClip", "(Ljava/lang/String;Ljava/lang/String;I)Landroid/content/ClipData;");
+    get_primary_clip_method_ = clipboard_manager_class.FindMethod("getPrimaryClip", signatures1[number_of_extra_parameters_]);
     if (get_primary_clip_method_ == nullptr) {
       number_of_extra_parameters_ = 1;
     }
   }
   if (get_primary_clip_method_ == nullptr) {
-    const char* signatures1[] = {
-        "(Ljava/lang/String;)Landroid/content/ClipData;",
-        "(Ljava/lang/String;I)Landroid/content/ClipData;",
-        "(Ljava/lang/String;Ljava/lang/String;I)Landroid/content/ClipData;"
-    };
     get_primary_clip_method_ = clipboard_manager_class.GetMethodId("getPrimaryClip", signatures1[number_of_extra_parameters_]);
   }
   const char* signatures2[] = {
