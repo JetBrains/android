@@ -42,6 +42,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SmartList;
 import com.intellij.util.concurrency.SameThreadExecutor;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.AbstractCollection;
 import java.util.AbstractList;
@@ -487,7 +488,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   }
 
   private static class ResourcePriorityComparator implements Comparator<ResourceItem> {
-    private final Object2IntOpenHashMap<SingleNamespaceResourceRepository> repositoryOrdering;
+    private final Object2IntMap<SingleNamespaceResourceRepository> repositoryOrdering;
 
     ResourcePriorityComparator(@NotNull Collection<SingleNamespaceResourceRepository> repositories) {
       repositoryOrdering = new Object2IntOpenHashMap<>(repositories.size());
