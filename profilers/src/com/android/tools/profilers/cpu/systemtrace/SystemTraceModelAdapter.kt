@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu.systemtrace
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.cpu.ThreadState
 import perfetto.protos.PerfettoTrace
 import java.io.Serializable
@@ -45,7 +46,7 @@ interface SystemTraceModelAdapter {
 
   fun getCpuCores(): List<CpuCoreModel>
 
-  fun getSystemTraceTechnology(): Cpu.CpuTraceType
+  fun getSystemTraceTechnology(): Trace.TraceType
 
   /**
    * @return true if there is potentially missing data from the capture.

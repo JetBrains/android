@@ -17,7 +17,7 @@ package com.android.tools.idea.profilers.profilingconfig;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
-import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Trace;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 
@@ -26,41 +26,41 @@ public class CpuProfilerConfigConverter {
   private CpuProfilerConfigConverter() {}
 
   /**
-   * Converts from list of {@link CpuProfilerConfig} to list of {@link Cpu.CpuTraceConfiguration}
+   * Converts from list of {@link CpuProfilerConfig} to list of {@link Trace.TraceConfiguration}
    */
-  public static List<Cpu.CpuTraceConfiguration.UserOptions> toProto(List<CpuProfilerConfig> configs, int deviceApi) {
+  public static List<Trace.TraceConfiguration.UserOptions> toProto(List<CpuProfilerConfig> configs, int deviceApi) {
     return ContainerUtil.map(configs, config -> toProto(config, deviceApi));
   }
 
   /**
-   * Converts from {@link CpuProfilerConfig} to {@link Cpu.CpuTraceConfiguration.UserOptions}
+   * Converts from {@link CpuProfilerConfig} to {@link Trace.TraceConfiguration.UserOptions}
    */
-  public static Cpu.CpuTraceConfiguration.UserOptions toProto(CpuProfilerConfig config, int deviceApi) {
-    Cpu.CpuTraceConfiguration.UserOptions.Builder protoBuilder = Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
+  public static Trace.TraceConfiguration.UserOptions toProto(CpuProfilerConfig config, int deviceApi) {
+    Trace.TraceConfiguration.UserOptions.Builder protoBuilder = Trace.TraceConfiguration.UserOptions.newBuilder()
       .setName(config.getName())
       .setBufferSizeInMb(config.getBufferSizeMb())
       .setSamplingIntervalUs(config.getSamplingIntervalUs());
 
     switch (config.getTechnology()) {
       case SAMPLED_JAVA:
-        protoBuilder.setTraceType(Cpu.CpuTraceType.ART);
-        protoBuilder.setTraceMode(Cpu.CpuTraceMode.SAMPLED);
+        protoBuilder.setTraceType(Trace.TraceType.ART);
+        protoBuilder.setTraceMode(Trace.TraceMode.SAMPLED);
         break;
       case INSTRUMENTED_JAVA:
-        protoBuilder.setTraceType(Cpu.CpuTraceType.ART);
-        protoBuilder.setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED);
+        protoBuilder.setTraceType(Trace.TraceType.ART);
+        protoBuilder.setTraceMode(Trace.TraceMode.INSTRUMENTED);
         break;
       case SAMPLED_NATIVE:
-        protoBuilder.setTraceType(Cpu.CpuTraceType.SIMPLEPERF);
-        protoBuilder.setTraceMode(Cpu.CpuTraceMode.SAMPLED);
+        protoBuilder.setTraceType(Trace.TraceType.SIMPLEPERF);
+        protoBuilder.setTraceMode(Trace.TraceMode.SAMPLED);
         break;
       case SYSTEM_TRACE:
         if (deviceApi >= AndroidVersion.VersionCodes.P) {
-          protoBuilder.setTraceType(Cpu.CpuTraceType.PERFETTO);
+          protoBuilder.setTraceType(Trace.TraceType.PERFETTO);
         } else {
-          protoBuilder.setTraceType(Cpu.CpuTraceType.ATRACE);
+          protoBuilder.setTraceType(Trace.TraceType.ATRACE);
         }
-        protoBuilder.setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED);
+        protoBuilder.setTraceMode(Trace.TraceMode.INSTRUMENTED);
         break;
     }
 
@@ -68,9 +68,9 @@ public class CpuProfilerConfigConverter {
   }
 
   /**
-   * Converts from {@link Cpu.CpuTraceConfiguration.UserOptions} to {@link CpuProfilerConfig}
+   * Converts from {@link Trace.TraceConfiguration.UserOptions} to {@link CpuProfilerConfig}
    */
-  public static CpuProfilerConfig fromProto(Cpu.CpuTraceConfiguration.UserOptions proto) {
+  public static CpuProfilerConfig fromProto(Trace.TraceConfiguration.UserOptions proto) {
     CpuProfilerConfig config = new CpuProfilerConfig()
       .setName(proto.getName())
       .setSamplingIntervalUs(proto.getSamplingIntervalUs())
@@ -78,7 +78,7 @@ public class CpuProfilerConfigConverter {
 
     switch (proto.getTraceType()) {
       case ART:
-        if (proto.getTraceMode() == Cpu.CpuTraceMode.SAMPLED) {
+        if (proto.getTraceMode() == Trace.TraceMode.SAMPLED) {
           config.setTechnology(CpuProfilerConfig.Technology.SAMPLED_JAVA);
         }
         else {

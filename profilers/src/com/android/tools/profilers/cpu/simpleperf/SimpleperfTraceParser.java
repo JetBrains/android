@@ -16,10 +16,10 @@
 package com.android.tools.profilers.cpu.simpleperf;
 
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.cpu.BaseCpuCapture;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
@@ -194,7 +194,7 @@ public class SimpleperfTraceParser implements TraceParser {
   public CpuCapture parse(@NotNull File trace, long traceId) throws IOException {
     parseTraceFile(trace);
     parseSampleData();
-    return new BaseCpuCapture(traceId, Cpu.CpuTraceType.SIMPLEPERF,
+    return new BaseCpuCapture(traceId, Trace.TraceType.SIMPLEPERF,
                               isThreadTimeSupported(), isThreadTimeSupported() ? null : DUAL_CLOCK_DISABLED_MESSAGE,
                               myCaptureRange, getCaptureTrees(), myTags);
   }

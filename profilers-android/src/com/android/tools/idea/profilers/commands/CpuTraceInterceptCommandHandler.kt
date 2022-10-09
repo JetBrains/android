@@ -32,7 +32,7 @@ import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Commands
-import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.gson.stream.JsonReader
@@ -85,7 +85,7 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
     // We only check perfetto traces.
     return when (command.type) {
       Commands.Command.CommandType.START_CPU_TRACE -> {
-        command.startCpuTrace.configuration.userOptions.traceType == Cpu.CpuTraceType.PERFETTO
+        command.startCpuTrace.configuration.userOptions.traceType == Trace.TraceType.PERFETTO
       }
       // The overhead of enabling the SDK tracing is minimal, we do not need to issue
       // a broadcast to disable it.

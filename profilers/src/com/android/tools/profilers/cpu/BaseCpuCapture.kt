@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.perflib.vmtrace.ClockType
-import com.android.tools.profiler.proto.Cpu.CpuTraceType
+import com.android.tools.profiler.proto.Trace.TraceType
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel
 import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel
@@ -33,7 +33,7 @@ open class BaseCpuCapture @JvmOverloads constructor(/**
                                                     /**
                                                      * Technology used to generate the capture.
                                                      */
-                                                    private val type: CpuTraceType,
+                                                    private val type: TraceType,
                                                     /**
                                                      * Whether this trace supports dual clock timing info.
                                                      */
@@ -47,7 +47,7 @@ open class BaseCpuCapture @JvmOverloads constructor(/**
                                                     private val tags: Set<String> = setOf()) : CpuCapture {
   @VisibleForTesting
   constructor(traceId: Long,
-              type: CpuTraceType,
+              type: TraceType,
               range: Range,
               captureTrees: Map<CpuThreadInfo, CaptureNode>) :
     this(traceId, type, true, null, range, captureTrees) {

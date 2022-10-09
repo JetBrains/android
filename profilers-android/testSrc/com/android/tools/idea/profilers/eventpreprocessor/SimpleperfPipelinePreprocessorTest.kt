@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers.eventpreprocessor
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.cpu.FakeTracePreProcessor
 import com.google.common.truth.Truth.assertThat
@@ -31,10 +32,10 @@ class SimpleperfPipelinePreprocessorTest {
   val validEvent = Common.Event.newBuilder().setCpuTrace(Cpu.CpuTraceData.newBuilder().setTraceStarted(
     Cpu.CpuTraceData.TraceStarted.newBuilder().setTraceInfo(Cpu.CpuTraceInfo.newBuilder()
                                                               .setTraceId(TRACE_ID)
-                                                              .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                                                              .setConfiguration(Trace.TraceConfiguration.newBuilder()
                                                                                   .setUserOptions(
-                                                                                    Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                                                                                      .setTraceType(Cpu.CpuTraceType.SIMPLEPERF))
+                                                                                    Trace.TraceConfiguration.UserOptions.newBuilder()
+                                                                                      .setTraceType(Trace.TraceType.SIMPLEPERF))
                                                                                   .addSymbolDirs("/path")))))
     .build()
 
@@ -49,13 +50,13 @@ class SimpleperfPipelinePreprocessorTest {
     assertThat(preprocessor.shouldPreprocess(event.build())).isFalse()
     event.cpuTraceBuilder.traceStartedBuilder.traceInfo = Cpu.CpuTraceInfo.getDefaultInstance()
     assertThat(preprocessor.shouldPreprocess(event.build())).isFalse()
-    event.cpuTraceBuilder.traceStartedBuilder.traceInfoBuilder.configuration = Cpu.CpuTraceConfiguration.getDefaultInstance()
+    event.cpuTraceBuilder.traceStartedBuilder.traceInfoBuilder.configuration = Trace.TraceConfiguration.getDefaultInstance()
     assertThat(preprocessor.shouldPreprocess(event.build())).isFalse()
     event.cpuTraceBuilder.traceStartedBuilder.traceInfoBuilder.configurationBuilder.userOptions =
-      Cpu.CpuTraceConfiguration.UserOptions.getDefaultInstance()
+      Trace.TraceConfiguration.UserOptions.getDefaultInstance()
     assertThat(preprocessor.shouldPreprocess(event.build())).isFalse()
     event.cpuTraceBuilder.traceStartedBuilder.traceInfoBuilder.configurationBuilder.userOptionsBuilder.traceType =
-      Cpu.CpuTraceType.SIMPLEPERF
+      Trace.TraceType.SIMPLEPERF
     assertThat(preprocessor.shouldPreprocess(event.build())).isTrue()
     assertThat(preprocessor.shouldPreprocess(validEvent)).isTrue()
   }

@@ -48,6 +48,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
@@ -262,11 +263,11 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     // TODO b/133321803 switch back to having daemon generates and provides the path.
     String traceFilePath = String.format(Locale.US, "%s/%s-%d.trace", DAEMON_DEVICE_DIR_PATH, appPackageName, System.nanoTime());
-    Cpu.CpuTraceConfiguration.UserOptions traceOptions =
+    Trace.TraceConfiguration.UserOptions traceOptions =
       CpuProfilerConfigConverter.toProto(startupConfig, device.getVersion().getFeatureLevel());
-    Cpu.CpuTraceConfiguration configuration = Cpu.CpuTraceConfiguration.newBuilder()
+    Trace.TraceConfiguration configuration = Trace.TraceConfiguration.newBuilder()
       .setAppName(appPackageName)
-      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP)
+      .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_STARTUP)
       .setAbiCpuArch(cpuAbi)
       .setTempPath(traceFilePath)
       .setUserOptions(traceOptions)
@@ -299,7 +300,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
     featureTracker.trackCpuStartupProfiling(profilerDevice, ProfilingConfiguration.fromProto(traceOptions));
 
-    if (traceOptions.getTraceType() != Cpu.CpuTraceType.ART) {
+    if (traceOptions.getTraceType() != Trace.TraceType.ART) {
       return "";
     }
 

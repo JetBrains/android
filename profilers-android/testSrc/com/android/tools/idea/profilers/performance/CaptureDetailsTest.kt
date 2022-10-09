@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.model.filter.Filter
 import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
@@ -131,7 +132,7 @@ class CaptureDetailsTest {
     // the program in an irrelevant way.
     val cpuCapture = object : CpuCapture {
       override fun getTraceId(): Long = TODO()
-      override fun getType(): Cpu.CpuTraceType = TODO()
+      override fun getType(): Trace.TraceType = TODO()
       override fun getTimeline(): Timeline = TODO()
       override fun isDualClock(): Boolean= TODO()
       override fun getDualClockDisabledMessage(): String = TODO()

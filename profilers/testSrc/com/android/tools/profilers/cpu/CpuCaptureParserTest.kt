@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeTraceProcessorService
@@ -196,7 +197,7 @@ class CpuCaptureParserTest {
     // Parsing should create a valid CpuCapture object
     val capture = futureCapture.get()
     checkValidCapture(capture)
-    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF)
+    assertThat(capture.type).isEqualTo(Trace.TraceType.SIMPLEPERF)
 
     // getCapture(traceId) should return the same object created by calling parse.
     assertThat(parser.getCapture(ANY_TRACE_ID)).isEqualTo(futureCapture)
@@ -212,7 +213,7 @@ class CpuCaptureParserTest {
     // Parsing should create a valid CpuCapture object
     val capture = futureCapture.get()
     checkValidCapture(capture)
-    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.ATRACE)
+    assertThat(capture.type).isEqualTo(Trace.TraceType.ATRACE)
 
     // getCapture(traceId) should return the same object created by calling parse.
     assertThat(parser.getCapture(ANY_TRACE_ID)).isEqualTo(futureCapture)
@@ -228,7 +229,7 @@ class CpuCaptureParserTest {
     // Parsing should create a valid CpuCapture object
     val capture = futureCapture.get()
     checkValidCapture(capture)
-    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.PERFETTO)
+    assertThat(capture.type).isEqualTo(Trace.TraceType.PERFETTO)
 
     // getCapture(traceId) should return the same object created by calling parse.
     assertThat(parser.getCapture(ANY_TRACE_ID)).isEqualTo(futureCapture)
@@ -244,7 +245,7 @@ class CpuCaptureParserTest {
     assertThat(capture.traceId).isEqualTo(234)
     // ART capture should be dual clock
     assertThat(capture.isDualClock).isTrue()
-    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.ART)
+    assertThat(capture.type).isEqualTo(Trace.TraceType.ART)
   }
 
   @Test
@@ -258,7 +259,7 @@ class CpuCaptureParserTest {
     assertThat(capture.traceId).isEqualTo(123)
     // Simpleperf capture should not be dual clock
     assertThat(capture.isDualClock).isFalse()
-    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF)
+    assertThat(capture.type).isEqualTo(Trace.TraceType.SIMPLEPERF)
   }
 
   @Test
@@ -464,7 +465,7 @@ class CpuCaptureParserTest {
     CpuCaptureParser.clearPreviouslyLoadedCaptures()
 
     val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
-    val futureCapture = parser.parseForTest(traceFile, type = Cpu.CpuTraceType.PERFETTO)
+    val futureCapture = parser.parseForTest(traceFile, type = Trace.TraceType.PERFETTO)
     assertThat(futureCapture.isCompletedExceptionally).isTrue()
     try {
       futureCapture.get()
@@ -496,7 +497,7 @@ class CpuCaptureParserTest {
     CpuCaptureParser.clearPreviouslyLoadedCaptures()
 
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
-    val futureCapture = parser.parseForTest(traceFile, type = Cpu.CpuTraceType.PERFETTO)
+    val futureCapture = parser.parseForTest(traceFile, type = Trace.TraceType.PERFETTO)
     assertThat(futureCapture.isCompletedExceptionally).isTrue()
     try {
       futureCapture.get()
@@ -575,19 +576,19 @@ class CpuCaptureParserTest {
                                                    traceId: Long = ANY_TRACE_ID,
                                                    idHint: Int = 0,
                                                    nameHint: String = ""): CompletableFuture<CpuCapture> {
-    return this.parseForTest(traceFile, traceId, Cpu.CpuTraceType.ART, idHint, nameHint)
+    return this.parseForTest(traceFile, traceId, Trace.TraceType.ART, idHint, nameHint)
   }
 
   private fun CpuCaptureParser.parseForTestWithSimplePerf(traceFile: File,
                                                           traceId: Long = ANY_TRACE_ID,
                                                           idHint: Int = 0,
                                                           nameHint: String = ""): CompletableFuture<CpuCapture> {
-    return this.parseForTest(traceFile, traceId, Cpu.CpuTraceType.SIMPLEPERF, idHint, nameHint)
+    return this.parseForTest(traceFile, traceId, Trace.TraceType.SIMPLEPERF, idHint, nameHint)
   }
 
   private fun CpuCaptureParser.parseForTest(traceFile: File,
                                             traceId: Long = ANY_TRACE_ID,
-                                            type: Cpu.CpuTraceType = Cpu.CpuTraceType.UNSPECIFIED_TYPE,
+                                            type: Trace.TraceType = Trace.TraceType.UNSPECIFIED_TYPE,
                                             idHint: Int = 0,
                                             nameHint: String = ""): CompletableFuture<CpuCapture> {
     return this.parse(traceFile, traceId, type, idHint, nameHint)

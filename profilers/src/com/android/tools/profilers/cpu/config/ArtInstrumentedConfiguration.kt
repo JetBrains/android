@@ -18,7 +18,8 @@ package com.android.tools.profilers.cpu.config
 import com.android.tools.adtui.model.options.OptionsProperty
 import com.android.tools.adtui.model.options.Slider
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.Cpu.CpuTraceMode
+import com.android.tools.profiler.proto.Trace
+import com.android.tools.profiler.proto.Trace.TraceMode
 
 /**
  * Configuration for art traces.
@@ -30,14 +31,14 @@ class ArtInstrumentedConfiguration(name: String) : ProfilingConfiguration(name) 
                 description = "Maximum recording output file size. On Android 8.0 (API level 26) and higher, this value is ignored.")
   var profilingBufferSizeInMb = DEFAULT_BUFFER_SIZE_MB
 
-  override fun buildUserOptions(): Cpu.CpuTraceConfiguration.UserOptions.Builder {
-    return Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-      .setTraceMode(CpuTraceMode.INSTRUMENTED)
+  override fun buildUserOptions(): Trace.TraceConfiguration.UserOptions.Builder {
+    return Trace.TraceConfiguration.UserOptions.newBuilder()
+      .setTraceMode(TraceMode.INSTRUMENTED)
       .setBufferSizeInMb(profilingBufferSizeInMb)
   }
 
-  override fun getTraceType(): Cpu.CpuTraceType {
-    return Cpu.CpuTraceType.ART
+  override fun getTraceType(): Trace.TraceType {
+    return Trace.TraceType.ART
   }
 
   override fun getRequiredDeviceLevel(): Int {

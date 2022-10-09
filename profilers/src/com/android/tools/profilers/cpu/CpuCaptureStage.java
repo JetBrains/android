@@ -33,6 +33,7 @@ import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.profiler.perfetto.proto.TraceProcessor;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerTrackRendererType;
@@ -398,9 +399,9 @@ public class CpuCaptureStage extends Stage<Timeline> {
       .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin()))
       .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax()))
       .setConfiguration(
-        Cpu.CpuTraceConfiguration
+        Trace.TraceConfiguration
           .newBuilder()
-          .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(capture.getType())))
+          .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder().setTraceType(capture.getType())))
       .build();
     // TODO(b/141560550): add test when we can mock TransportService#registerStreamServer.
     EventStreamServer streamServer =

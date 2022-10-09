@@ -17,14 +17,15 @@ package com.android.tools.profilers.cpu.config
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 
 /**
  * Perfetto configuration. This is used internally to differentiate the perfetto config from the atrace config.
  * Exposed properties only from {@link AtraceConfiguration}
  */
 class PerfettoConfiguration(name: String) : AtraceConfiguration(name) {
-  override fun getTraceType(): Cpu.CpuTraceType {
-    return Cpu.CpuTraceType.PERFETTO
+  override fun getTraceType(): Trace.TraceType {
+    return Trace.TraceType.PERFETTO
   }
 
   override fun getRequiredDeviceLevel(): Int {

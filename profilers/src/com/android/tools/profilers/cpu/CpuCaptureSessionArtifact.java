@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import java.io.OutputStream;
@@ -76,7 +77,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceIn
   @Override
   @NotNull
   public String getName() {
-    Cpu.CpuTraceConfiguration.UserOptions options = myInfo.getConfiguration().getUserOptions();
+    Trace.TraceConfiguration.UserOptions options = myInfo.getConfiguration().getUserOptions();
     return ProfilingTechnology.fromTypeAndMode(options.getTraceType(), options.getTraceMode()).getName();
   }
 

@@ -23,6 +23,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Trace;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -120,10 +121,10 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
       long startTime = SESSION_ONE_OFFSET + i * 2;
       Cpu.CpuTraceInfo trace = Cpu.CpuTraceInfo
         .newBuilder().setTraceId(startTime)
-        .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                            .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                                              .setTraceType(Cpu.CpuTraceType.ART)
-                                              .setTraceMode(Cpu.CpuTraceMode.SAMPLED)))
+        .setConfiguration(Trace.TraceConfiguration.newBuilder()
+                            .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder()
+                                              .setTraceType(Trace.TraceType.ART)
+                                              .setTraceMode(Trace.TraceMode.SAMPLED)))
         .setFromTimestamp(startTime).setToTimestamp(startTime + 1)
         .build();
       getTable().insertTraceInfo(SESSION_HUNDREDS, trace);

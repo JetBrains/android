@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
@@ -28,7 +29,7 @@ import org.mockito.Mockito
 class CaptureNodeAnalysisSummaryTabModelTest {
   @Test
   fun selectionRangeSingleNode() {
-    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, 100.0), Cpu.CpuTraceType.ART)
+    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, 100.0), Trace.TraceType.ART)
     val node = CaptureNode(SingleNameModel("Foo")).apply {
       startGlobal = 10
       endGlobal = 20
@@ -40,7 +41,7 @@ class CaptureNodeAnalysisSummaryTabModelTest {
 
   @Test
   fun selectionRangeMultipleNodes() {
-    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, 100.0), Cpu.CpuTraceType.ART)
+    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, 100.0), Trace.TraceType.ART)
     val nodes = listOf(
       CaptureNode(SingleNameModel("Foo")).apply {
         startGlobal = 10
@@ -59,9 +60,9 @@ class CaptureNodeAnalysisSummaryTabModelTest {
   @Test
   fun labelForTraceType() {
     val range = Range(0.0, 1.0)
-    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Cpu.CpuTraceType.ART).label).isEqualTo("Stack Frame")
-    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Cpu.CpuTraceType.SIMPLEPERF).label).isEqualTo("Stack Frame")
-    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Cpu.CpuTraceType.ATRACE).label).isEqualTo("Trace Event")
-    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Cpu.CpuTraceType.PERFETTO).label).isEqualTo("Trace Event")
+    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Trace.TraceType.ART).label).isEqualTo("Stack Frame")
+    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Trace.TraceType.SIMPLEPERF).label).isEqualTo("Stack Frame")
+    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Trace.TraceType.ATRACE).label).isEqualTo("Trace Event")
+    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Trace.TraceType.PERFETTO).label).isEqualTo("Trace Event")
   }
 }

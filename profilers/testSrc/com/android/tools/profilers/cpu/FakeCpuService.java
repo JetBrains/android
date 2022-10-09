@@ -56,7 +56,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private long myTraceDurationNs = TimeUnit.SECONDS.toNanos(1);
 
-  private Cpu.CpuTraceType myProfilerType = Cpu.CpuTraceType.ART;
+  private Trace.TraceType myProfilerType = Trace.TraceType.ART;
 
   private List<CpuProfiler.GetThreadsResponse.Thread> myThreads = new ArrayList<>();
 
@@ -120,11 +120,11 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     responseObserver.onCompleted();
   }
 
-  public Cpu.CpuTraceType getTraceType() {
+  public Trace.TraceType getTraceType() {
     return myProfilerType;
   }
 
-  public void setTraceType(Cpu.CpuTraceType profilerType) {
+  public void setTraceType(Trace.TraceType profilerType) {
     myProfilerType = profilerType;
   }
 

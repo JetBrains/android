@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
@@ -49,7 +50,7 @@ class CpuUsageTest {
 
   @Test
   fun perfettoCaptureCreatesMergedDataSeries() {
-    val parser = AtraceParser(Cpu.CpuTraceType.PERFETTO, MainProcessSelector())
+    val parser = AtraceParser(Trace.TraceType.PERFETTO, MainProcessSelector())
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"), 0)
     val usage = CpuUsage(profilers, capture.range, capture.range, capture)
     assertThat(usage.cpuSeries.series).isNotEmpty()

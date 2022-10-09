@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common.Device
-import com.android.tools.profiler.proto.Cpu.CpuTraceType
+import com.android.tools.profiler.proto.Trace.TraceType
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
@@ -62,12 +62,12 @@ class CpuProfilerConfigModelTest {
     var realConfigs = model!!.defaultProfilingConfigurations
     assertThat(realConfigs).hasSize(2)
     // First actual configuration should be ART Sampled
-    assertThat(realConfigs[0].traceType).isEqualTo(CpuTraceType.ART)
+    assertThat(realConfigs[0].traceType).isEqualTo(TraceType.ART)
     assertThat(realConfigs[0]).isInstanceOf(ArtSampledConfiguration::class.java)
     assertThat(realConfigs[0].name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_SAMPLED_NAME)
     assertThat(isDefault(realConfigs[0])).isTrue()
     // Second actual configuration should be ART Instrumented
-    assertThat(realConfigs[1].traceType).isEqualTo(CpuTraceType.ART)
+    assertThat(realConfigs[1].traceType).isEqualTo(TraceType.ART)
     assertThat(realConfigs[1]).isInstanceOf(ArtInstrumentedConfiguration::class.java)
     assertThat(realConfigs[1].name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
     assertThat(isDefault(realConfigs[1])).isTrue()
@@ -79,21 +79,21 @@ class CpuProfilerConfigModelTest {
 
     assertThat(realConfigs).hasSize(4)
     // First actual configuration should be ART Sampled
-    assertThat(realConfigs[0].traceType).isEqualTo(CpuTraceType.ART)
+    assertThat(realConfigs[0].traceType).isEqualTo(TraceType.ART)
     assertThat(realConfigs[0]).isInstanceOf(ArtSampledConfiguration::class.java)
     assertThat(realConfigs[0].name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_SAMPLED_NAME)
     assertThat(isDefault(realConfigs[0])).isTrue()
     // Second actual configuration should be ART Instrumented
-    assertThat(realConfigs[1].traceType).isEqualTo(CpuTraceType.ART)
+    assertThat(realConfigs[1].traceType).isEqualTo(TraceType.ART)
     assertThat(realConfigs[1]).isInstanceOf(ArtInstrumentedConfiguration::class.java)
     assertThat(realConfigs[1].name).isEqualTo(FakeIdeProfilerServices.FAKE_ART_INSTRUMENTED_NAME)
     assertThat(isDefault(realConfigs[1])).isTrue()
     // Second actual configuration should be ART Instrumented
-    assertThat(realConfigs[2].traceType).isEqualTo(CpuTraceType.SIMPLEPERF)
+    assertThat(realConfigs[2].traceType).isEqualTo(TraceType.SIMPLEPERF)
     assertThat(realConfigs[2].name).isEqualTo(FakeIdeProfilerServices.FAKE_SIMPLEPERF_NAME)
     assertThat(isDefault(realConfigs[2])).isTrue()
     // Second actual configuration should be ART Instrumented
-    assertThat(realConfigs[3].traceType).isEqualTo(CpuTraceType.ATRACE)
+    assertThat(realConfigs[3].traceType).isEqualTo(TraceType.ATRACE)
     assertThat(realConfigs[3].name).isEqualTo(FakeIdeProfilerServices.FAKE_ATRACE_NAME)
     assertThat(isDefault(realConfigs[3])).isTrue()
   }
@@ -102,67 +102,67 @@ class CpuProfilerConfigModelTest {
   fun customProfilingConfigsDeviceFiltering() {
     setDevice(AndroidVersion.VersionCodes.LOLLIPOP)
 
-    myServices.addCustomProfilingConfiguration("Art", CpuTraceType.ART)
-    myServices.addCustomProfilingConfiguration("System Trace", CpuTraceType.ATRACE)
-    myServices.addCustomProfilingConfiguration("Simpleperf", CpuTraceType.SIMPLEPERF)
+    myServices.addCustomProfilingConfiguration("Art", TraceType.ART)
+    myServices.addCustomProfilingConfiguration("System Trace", TraceType.ATRACE)
+    myServices.addCustomProfilingConfiguration("Simpleperf", TraceType.SIMPLEPERF)
     model!!.updateProfilingConfigurations()
 
     val customConfigs = model!!.customProfilingConfigurations
     assertThat(customConfigs).hasSize(3)
-    assertThat(customConfigs[0].traceType).isEqualTo(CpuTraceType.ART)
+    assertThat(customConfigs[0].traceType).isEqualTo(TraceType.ART)
     assertThat(customConfigs[0].name).isEqualTo("Art")
     assertThat(customConfigs[0].requiredDeviceLevel).isEqualTo(0)
-    assertThat(customConfigs[1].traceType).isEqualTo(CpuTraceType.ATRACE)
+    assertThat(customConfigs[1].traceType).isEqualTo(TraceType.ATRACE)
     assertThat(customConfigs[1].name).isEqualTo("System Trace")
     assertThat(customConfigs[1].requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.N)
-    assertThat(customConfigs[2].traceType).isEqualTo(CpuTraceType.SIMPLEPERF)
+    assertThat(customConfigs[2].traceType).isEqualTo(TraceType.SIMPLEPERF)
     assertThat(customConfigs[2].name).isEqualTo("Simpleperf")
     assertThat(customConfigs[2].requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.O)
 
     // ART and simpleperf are only supported from Android 8.0 (O)
     val customConfigsDeviceFilter = model!!.customProfilingConfigurationsDeviceFiltered
     assertThat(customConfigsDeviceFilter).hasSize(1)
-    assertThat(customConfigsDeviceFilter[0].traceType).isEqualTo(CpuTraceType.ART)
+    assertThat(customConfigsDeviceFilter[0].traceType).isEqualTo(TraceType.ART)
     assertThat(customConfigsDeviceFilter[0].name).isEqualTo("Art")
     assertThat(customConfigsDeviceFilter[0].requiredDeviceLevel).isEqualTo(0)
   }
 
   @Test
   fun atraceFlagFilterConfigsFromCustom() {
-    myServices.addCustomProfilingConfiguration("Art", CpuTraceType.ART)
-    myServices.addCustomProfilingConfiguration("System Trace", CpuTraceType.ATRACE)
-    myServices.addCustomProfilingConfiguration("Simpleperf", CpuTraceType.SIMPLEPERF)
+    myServices.addCustomProfilingConfiguration("Art", TraceType.ART)
+    myServices.addCustomProfilingConfiguration("System Trace", TraceType.ATRACE)
+    myServices.addCustomProfilingConfiguration("Simpleperf", TraceType.SIMPLEPERF)
     model!!.updateProfilingConfigurations()
 
     var customConfigs = model!!.customProfilingConfigurations
     assertThat(customConfigs).hasSize(3)
-    assertThat(customConfigs[0].traceType).isEqualTo(CpuTraceType.ART)
+    assertThat(customConfigs[0].traceType).isEqualTo(TraceType.ART)
     assertThat(customConfigs[0].name).isEqualTo("Art")
-    assertThat(customConfigs[1].traceType).isEqualTo(CpuTraceType.ATRACE)
+    assertThat(customConfigs[1].traceType).isEqualTo(TraceType.ATRACE)
     assertThat(customConfigs[1].name).isEqualTo("System Trace")
-    assertThat(customConfigs[2].traceType).isEqualTo(CpuTraceType.SIMPLEPERF)
+    assertThat(customConfigs[2].traceType).isEqualTo(TraceType.SIMPLEPERF)
     assertThat(customConfigs[2].name).isEqualTo("Simpleperf")
 
     var customConfigsDeviceFilter = model!!.customProfilingConfigurationsDeviceFiltered
     assertThat(customConfigsDeviceFilter).hasSize(3)
-    assertThat(customConfigsDeviceFilter[0].traceType).isEqualTo(CpuTraceType.ART)
+    assertThat(customConfigsDeviceFilter[0].traceType).isEqualTo(TraceType.ART)
     assertThat(customConfigsDeviceFilter[0].name).isEqualTo("Art")
-    assertThat(customConfigsDeviceFilter[1].traceType).isEqualTo(CpuTraceType.ATRACE)
+    assertThat(customConfigsDeviceFilter[1].traceType).isEqualTo(TraceType.ATRACE)
     assertThat(customConfigsDeviceFilter[1].name).isEqualTo("System Trace")
-    assertThat(customConfigsDeviceFilter[2].traceType).isEqualTo(CpuTraceType.SIMPLEPERF)
+    assertThat(customConfigsDeviceFilter[2].traceType).isEqualTo(TraceType.SIMPLEPERF)
     assertThat(customConfigsDeviceFilter[2].name).isEqualTo("Simpleperf")
   }
 
   @Test
   fun profilingConfigIsNotCustomByDefault() {
-    myServices.addCustomProfilingConfiguration("FakeConfig", CpuTraceType.ART)
+    myServices.addCustomProfilingConfiguration("FakeConfig", TraceType.ART)
     model!!.updateProfilingConfigurations()
     assertThat(isDefault(model!!.profilingConfiguration)).isTrue()
 
     val customConfigs = model!!.customProfilingConfigurations
     assertThat(customConfigs).hasSize(1)
     assertThat(customConfigs[0].name).isEqualTo("FakeConfig")
-    assertThat(customConfigs[0].traceType).isEqualTo(CpuTraceType.ART)
+    assertThat(customConfigs[0].traceType).isEqualTo(TraceType.ART)
     assertThat(customConfigs[0].requiredDeviceLevel).isEqualTo(0)
     assertThat(isDefault(customConfigs[0])).isFalse()
   }

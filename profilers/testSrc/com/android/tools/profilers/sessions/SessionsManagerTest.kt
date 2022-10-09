@@ -25,6 +25,7 @@ import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
@@ -544,9 +545,9 @@ class SessionsManagerTest {
 
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build()
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                          .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                                            .setTraceType(Cpu.CpuTraceType.SIMPLEPERF))).build()
+      .setConfiguration(Trace.TraceConfiguration.newBuilder()
+                          .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder()
+                                            .setTraceType(Trace.TraceType.SIMPLEPERF))).build()
 
     myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, session1Timestamp,
                                                                                        Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE,

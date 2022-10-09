@@ -22,6 +22,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.TransportServiceTestImpl
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
@@ -66,10 +67,10 @@ class CpuCaptureSessionArtifactTest {
   @Test
   fun testArtSampledCpuCaptureSessionName() {
     val artSampledTraceInfo = Cpu.CpuTraceInfo.newBuilder()
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                          .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                                            .setTraceType(Cpu.CpuTraceType.ART)
-                                            .setTraceMode(Cpu.CpuTraceMode.SAMPLED)))
+      .setConfiguration(Trace.TraceConfiguration.newBuilder()
+                          .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder()
+                                            .setTraceType(Trace.TraceType.ART)
+                                            .setTraceMode(Trace.TraceMode.SAMPLED)))
       .build()
     addTraceInfo(artSampledTraceInfo)
     sessionsManager.update()
@@ -80,10 +81,10 @@ class CpuCaptureSessionArtifactTest {
   @Test
   fun testArtInstrumentedCpuCaptureSessionName() {
     val artInstrumentedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                          .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                                            .setTraceType(Cpu.CpuTraceType.ART)
-                                            .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)))
+      .setConfiguration(Trace.TraceConfiguration.newBuilder()
+                          .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder()
+                                            .setTraceType(Trace.TraceType.ART)
+                                            .setTraceMode(Trace.TraceMode.INSTRUMENTED)))
       .build()
     addTraceInfo(artInstrumentedTraceInfo)
     sessionsManager.update()
@@ -94,9 +95,9 @@ class CpuCaptureSessionArtifactTest {
   @Test
   fun testImportedArtTraceCpuCaptureSessionName() {
     val artImportedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                          .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                                            .setTraceType(Cpu.CpuTraceType.ART)))
+      .setConfiguration(Trace.TraceConfiguration.newBuilder()
+                          .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder()
+                                            .setTraceType(Trace.TraceType.ART)))
       .build()
     addTraceInfo(artImportedTraceInfo)
     sessionsManager.update()
@@ -107,9 +108,9 @@ class CpuCaptureSessionArtifactTest {
   @Test
   fun testSimpleperfCpuCaptureSessionName() {
     val simpleperfTraceInfo = Cpu.CpuTraceInfo.newBuilder()
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                          .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                                            .setTraceType(Cpu.CpuTraceType.SIMPLEPERF)))
+      .setConfiguration(Trace.TraceConfiguration.newBuilder()
+                          .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder()
+                                            .setTraceType(Trace.TraceType.SIMPLEPERF)))
       .build()
     addTraceInfo(simpleperfTraceInfo)
     sessionsManager.update()
@@ -120,9 +121,9 @@ class CpuCaptureSessionArtifactTest {
   @Test
   fun testAtraceCpuCaptureSessionName() {
     val atraceInfo = Cpu.CpuTraceInfo.newBuilder()
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                          .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                                            .setTraceType(Cpu.CpuTraceType.ATRACE)))
+      .setConfiguration(Trace.TraceConfiguration.newBuilder()
+                          .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder()
+                                            .setTraceType(Trace.TraceType.ATRACE)))
       .build()
     addTraceInfo(atraceInfo)
     sessionsManager.update()

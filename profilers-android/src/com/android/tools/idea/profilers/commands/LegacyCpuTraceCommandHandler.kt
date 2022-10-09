@@ -62,10 +62,10 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     // in pre-O devices.
     return when (command.type) {
       Commands.Command.CommandType.START_CPU_TRACE -> {
-        command.startCpuTrace.configuration.userOptions.traceType == Cpu.CpuTraceType.ART
+        command.startCpuTrace.configuration.userOptions.traceType == Trace.TraceType.ART
       }
       Commands.Command.CommandType.STOP_CPU_TRACE -> {
-        command.stopCpuTrace.configuration.userOptions.traceType == Cpu.CpuTraceType.ART
+        command.stopCpuTrace.configuration.userOptions.traceType == Trace.TraceType.ART
       }
       else -> false
     }
@@ -83,7 +83,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
   private fun startTrace(command: Commands.Command) {
     val traceConfiguration = command.startCpuTrace.configuration
     val userOptions = traceConfiguration.userOptions
-    assert(userOptions.traceType == Cpu.CpuTraceType.ART)
+    assert(userOptions.traceType == Trace.TraceType.ART)
 
     val pid = command.pid
     val appPkgName = device.getClientName(pid)
@@ -114,7 +114,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
         val record = LegacyCpuTraceRecord()
         legacyProfilingRecord.put(pid, record)
         try {
-          if (userOptions.traceMode == Cpu.CpuTraceMode.SAMPLED) {
+          if (userOptions.traceMode == Trace.TraceMode.SAMPLED) {
             client.startSamplingProfiler(userOptions.samplingIntervalUs, TimeUnit.MICROSECONDS)
           }
           else {
@@ -171,7 +171,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
   private fun stopTrace(command: Commands.Command) {
     val traceConfiguration = command.stopCpuTrace.configuration
     val userOptions = traceConfiguration.userOptions
-    assert(userOptions.traceType == Cpu.CpuTraceType.ART)
+    assert(userOptions.traceType == Trace.TraceType.ART)
 
     val pid = command.pid
     val appPkgName = device.getClientName(pid)
@@ -200,7 +200,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
       }
       else {
         try {
-          if (userOptions.getTraceMode() == Cpu.CpuTraceMode.SAMPLED) {
+          if (userOptions.getTraceMode() == Trace.TraceMode.SAMPLED) {
             client.stopSamplingProfiler()
           }
           else {

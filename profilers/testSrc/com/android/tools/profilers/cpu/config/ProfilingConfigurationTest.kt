@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.config
 
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
@@ -28,10 +29,10 @@ class ProfilingConfigurationTest {
 
   @Test
   fun fromProto() {
-    val proto = Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
+    val proto = Trace.TraceConfiguration.UserOptions.newBuilder()
       .setName("MyConfiguration")
-      .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
-      .setTraceType(Cpu.CpuTraceType.ART)
+      .setTraceMode(Trace.TraceMode.SAMPLED)
+      .setTraceType(Trace.TraceType.ART)
       .setSamplingIntervalUs(123)
       .setBufferSizeInMb(12)
       .build()
@@ -40,7 +41,7 @@ class ProfilingConfigurationTest {
     val art = config as ArtSampledConfiguration
     assertThat(config.name).isEqualTo("MyConfiguration")
     assertThat(config).isInstanceOf(ArtSampledConfiguration::class.java)
-    assertThat(config.traceType).isEqualTo(Cpu.CpuTraceType.ART)
+    assertThat(config.traceType).isEqualTo(Trace.TraceType.ART)
     assertThat(config.profilingSamplingIntervalUs).isEqualTo(123)
     assertThat(config.profilingBufferSizeInMb).isEqualTo(12)
   }
@@ -53,8 +54,8 @@ class ProfilingConfigurationTest {
     val proto = configuration.toProto()
 
     assertThat(proto.name).isEqualTo("MyConfiguration")
-    assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.SAMPLED)
-    assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF)
+    assertThat(proto.traceMode).isEqualTo(Trace.TraceMode.SAMPLED)
+    assertThat(proto.traceType).isEqualTo(Trace.TraceType.SIMPLEPERF)
     assertThat(proto.samplingIntervalUs).isEqualTo(1234)
   }
 }

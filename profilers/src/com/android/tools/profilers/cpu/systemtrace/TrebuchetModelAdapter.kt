@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.cpu.ThreadState
 import trebuchet.model.CpuProcessSlice
 import trebuchet.model.Model
@@ -25,7 +26,7 @@ import trebuchet.model.SchedulingState
 import trebuchet.model.base.SliceGroup
 import java.util.concurrent.TimeUnit
 
-class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Cpu.CpuTraceType) : SystemTraceModelAdapter {
+class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Trace.TraceType) : SystemTraceModelAdapter {
 
   companion object {
     private val SECONDS_TO_US = TimeUnit.SECONDS.toMicros(1)

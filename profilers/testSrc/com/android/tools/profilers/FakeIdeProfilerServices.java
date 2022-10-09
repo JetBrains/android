@@ -18,8 +18,8 @@ package com.android.tools.profilers;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.FakeNavSource;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.FakeTracePreProcessor;
 import com.android.tools.profilers.cpu.TracePreProcessor;
@@ -323,18 +323,18 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     myShouldProceedYesNoDialog = shouldProceedYesNoDialog;
   }
 
-  public void addCustomProfilingConfiguration(String name, Cpu.CpuTraceType type) {
+  public void addCustomProfilingConfiguration(String name, Trace.TraceType type) {
     ProfilingConfiguration config;
-    if (type == Cpu.CpuTraceType.ART) {
+    if (type == Trace.TraceType.ART) {
       config = new ArtSampledConfiguration(name);
     }
-    else if (type == Cpu.CpuTraceType.SIMPLEPERF) {
+    else if (type == Trace.TraceType.SIMPLEPERF) {
       config = new SimpleperfConfiguration(name);
     }
-    else if (type == Cpu.CpuTraceType.PERFETTO) {
+    else if (type == Trace.TraceType.PERFETTO) {
       config = new PerfettoConfiguration(name);
     }
-    else if (type == Cpu.CpuTraceType.ATRACE) {
+    else if (type == Trace.TraceType.ATRACE) {
       config = new AtraceConfiguration(name);
     }
     else {

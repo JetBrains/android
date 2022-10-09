@@ -19,7 +19,8 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.options.OptionsProperty
 import com.android.tools.adtui.model.options.Slider
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.Cpu.CpuTraceType
+import com.android.tools.profiler.proto.Trace
+import com.android.tools.profiler.proto.Trace.TraceType
 
 /**
  * Configuration for ATrace traces.
@@ -31,13 +32,13 @@ open class AtraceConfiguration(name: String) : ProfilingConfiguration(name) {
             unit = "Mb")
   var profilingBufferSizeInMb = DEFAULT_BUFFER_SIZE_MB
 
-  override fun buildUserOptions(): Cpu.CpuTraceConfiguration.UserOptions.Builder {
-    return Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
+  override fun buildUserOptions(): Trace.TraceConfiguration.UserOptions.Builder {
+    return Trace.TraceConfiguration.UserOptions.newBuilder()
       .setBufferSizeInMb(profilingBufferSizeInMb)
   }
 
-  override fun getTraceType(): CpuTraceType {
-    return CpuTraceType.ATRACE
+  override fun getTraceType(): TraceType {
+    return TraceType.ATRACE
   }
 
   override fun getRequiredDeviceLevel(): Int {

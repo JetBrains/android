@@ -22,7 +22,7 @@ import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
-import com.android.tools.profiler.proto.Cpu.CpuTraceType;
+import com.android.tools.profiler.proto.Trace.TraceType;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
@@ -177,7 +177,7 @@ public class CpuProfiler implements StudioProfiler {
       // to handle converting the format to a format that Systrace can support. The reason for the multi-part file
       // is because Atrace dumps a compressed data file every X interval and this file represents the concatenation of all
       // the individual dumps.
-      if (info.getConfiguration().getUserOptions().getTraceType() == CpuTraceType.ATRACE) {
+      if (info.getConfiguration().getUserOptions().getTraceType() == TraceType.ATRACE) {
         File trace = FileUtil.createTempFile(String.format("cpu_trace_%d", info.getTraceId()), ".trace", true);
         try (FileOutputStream out = new FileOutputStream(trace)) {
           out.write(traceResponse.getContents().toByteArray());
@@ -186,7 +186,7 @@ public class CpuProfiler implements StudioProfiler {
       }
       else {
         FileUtil.copy(new ByteArrayInputStream(traceResponse.getContents().toByteArray()), outputStream);
-        if (info.getConfiguration().getUserOptions().getTraceType() == CpuTraceType.PERFETTO) {
+        if (info.getConfiguration().getUserOptions().getTraceType() == TraceType.PERFETTO) {
           // TODO (b/184681183): Uncomment this when we know what we want the user experience to be.
           //PerfettoTrace.Trace trace = PerfettoTrace.Trace.newBuilder()
           //  .addPacket(PerfettoTrace.TracePacket.newBuilder()
@@ -211,7 +211,7 @@ public class CpuProfiler implements StudioProfiler {
    * Generate a default name for a trace to be exported. The name suggested is based on the current timestamp and the capture type.
    */
   @NotNull
-  static String generateCaptureFileName(@NotNull CpuTraceType profilerType) {
+  static String generateCaptureFileName(@NotNull TraceType profilerType) {
     StringBuilder traceName = new StringBuilder(String.format("cpu-%s-", StringUtil.toLowerCase(profilerType.name())));
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
     traceName.append(LocalDateTime.now().format(formatter));
@@ -316,7 +316,7 @@ public class CpuProfiler implements StudioProfiler {
 
   public static void stopTracing(@NotNull StudioProfilers profilers,
                                  @NotNull Common.Session session,
-                                 @NotNull Cpu.CpuTraceConfiguration configuration,
+                                 @NotNull Trace.TraceConfiguration configuration,
                                  @Nullable Consumer<Trace.TraceStopStatus> responseHandler) {
     Commands.Command stopCommand = Commands.Command.newBuilder()
       .setStreamId(session.getStreamId())

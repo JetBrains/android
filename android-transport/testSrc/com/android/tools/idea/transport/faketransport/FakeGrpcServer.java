@@ -57,6 +57,7 @@ import com.android.tools.profiler.proto.NetworkProfiler.NetworkStopResponse;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.idea.io.grpc.BindableService;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
+import com.android.tools.profiler.proto.Trace;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -239,7 +240,7 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   }
 
   public static class CpuService extends CpuServiceGrpc.CpuServiceImplBase {
-    private Cpu.CpuTraceConfiguration myTraceConfiguration = Cpu.CpuTraceConfiguration.getDefaultInstance();
+    private Trace.TraceConfiguration myTraceConfiguration = Trace.TraceConfiguration.getDefaultInstance();
     private List<Cpu.CpuTraceInfo> myTraceInfos = new ArrayList<>();
     private FakeGrpcServer myServer;
 

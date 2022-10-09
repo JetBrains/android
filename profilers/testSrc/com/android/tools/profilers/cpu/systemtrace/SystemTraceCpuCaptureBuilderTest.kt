@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.ThreadState
 import com.google.common.truth.Truth.assertThat
@@ -351,7 +352,7 @@ class SystemTraceCpuCaptureBuilderTest {
     override fun getDanglingThread(tid: Int): ThreadModel? = danglingThreads[tid]
     override fun getCpuCores(): List<CpuCoreModel> = cpuCores
 
-    override fun getSystemTraceTechnology() = Cpu.CpuTraceType.UNSPECIFIED_TYPE
+    override fun getSystemTraceTechnology() = Trace.TraceType.UNSPECIFIED_TYPE
     override fun isCapturePossibleCorrupted() = false
     override fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer> = emptyList()
     override fun getAndroidFrameTimelineEvents(): List<AndroidFrameTimelineEvent> = timelineEvents

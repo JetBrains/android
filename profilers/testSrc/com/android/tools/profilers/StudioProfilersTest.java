@@ -649,8 +649,8 @@ public final class StudioProfilersTest {
     myTransportService.addDevice(device);
     myTransportService.addProcess(device, process);
     Cpu.CpuTraceInfo traceInfo = Cpu.CpuTraceInfo.newBuilder()
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                          .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP))
+      .setConfiguration(Trace.TraceConfiguration.newBuilder()
+                          .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_STARTUP))
       .build();
     if (myNewEventPipeline) {
       myTransportService.addEventToStream(device.getDeviceId(), Common.Event.newBuilder()

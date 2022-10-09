@@ -18,6 +18,7 @@ package com.android.tools.profilers.perfetto.traceprocessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.*
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CounterModel
@@ -90,7 +91,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
 
   override fun getCpuCores() = cpuCores
 
-  override fun getSystemTraceTechnology() = Cpu.CpuTraceType.PERFETTO
+  override fun getSystemTraceTechnology() = Trace.TraceType.PERFETTO
 
   // TODO(b/156578844): Fetch data from TraceProcessor error table to populate this.
   override fun isCapturePossibleCorrupted() = false

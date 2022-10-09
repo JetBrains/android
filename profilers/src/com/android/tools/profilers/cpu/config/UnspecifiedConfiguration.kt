@@ -16,15 +16,16 @@
 package com.android.tools.profilers.cpu.config
 
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 
 /**
  * Unspecified configuration used as a placeholder configuration for things like ui objects.
  */
 open class UnspecifiedConfiguration(name: String) : ProfilingConfiguration(name) {
-  override fun buildUserOptions(): Cpu.CpuTraceConfiguration.UserOptions.Builder = Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
+  override fun buildUserOptions(): Trace.TraceConfiguration.UserOptions.Builder = Trace.TraceConfiguration.UserOptions.newBuilder()
 
-  override fun getTraceType(): Cpu.CpuTraceType {
-    return Cpu.CpuTraceType.UNSPECIFIED_TYPE
+  override fun getTraceType(): Trace.TraceType {
+    return Trace.TraceType.UNSPECIFIED_TYPE
   }
 
   override fun getRequiredDeviceLevel(): Int {

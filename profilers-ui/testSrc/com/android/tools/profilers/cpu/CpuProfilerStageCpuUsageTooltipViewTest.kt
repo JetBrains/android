@@ -21,7 +21,8 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.Cpu.CpuTraceType
+import com.android.tools.profiler.proto.Trace
+import com.android.tools.profiler.proto.Trace.TraceType
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
@@ -69,8 +70,8 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
       tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
       viewRange.set(0.0, TimeUnit.SECONDS.toMicros(10).toDouble())
     }
-    addTraceInfo(1, 2, 4, CpuTraceType.ATRACE)
-    addTraceInfo(2, 5, 7, CpuTraceType.SIMPLEPERF)
+    addTraceInfo(1, 2, 4, TraceType.ATRACE)
+    addTraceInfo(2, 5, 7, TraceType.SIMPLEPERF)
   }
 
   @Test
@@ -89,13 +90,13 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
   }
 
 
-  private fun addTraceInfo(traceId: Long, startTimeSec: Long, endTimeSec: Long, traceType: CpuTraceType) {
+  private fun addTraceInfo(traceId: Long, startTimeSec: Long, endTimeSec: Long, traceType: TraceType) {
     val traceInfo: Cpu.CpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
       .setTraceId(traceId)
       .setFromTimestamp(TimeUnit.SECONDS.toNanos(startTimeSec))
       .setToTimestamp(TimeUnit.SECONDS.toNanos(endTimeSec))
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder().setUserOptions(
-        Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(traceType)))
+      .setConfiguration(Trace.TraceConfiguration.newBuilder().setUserOptions(
+        Trace.TraceConfiguration.UserOptions.newBuilder().setTraceType(traceType)))
       .build()
     val traceEventBuilder = Common.Event.newBuilder()
       .setGroupId(traceId)

@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu.analysis
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
@@ -32,7 +33,7 @@ class CaptureNodeAnalysisModelTest {
   fun analysisTabs() {
     val capture = Mockito.mock(CpuCapture::class.java).apply {
       whenever(this.range).thenReturn(Range())
-      whenever(this.type).thenReturn(Cpu.CpuTraceType.PERFETTO)
+      whenever(this.type).thenReturn(Trace.TraceType.PERFETTO)
     }
     val model = CaptureNodeAnalysisModel(CaptureNode(SingleNameModel("Foo")), capture, Utils::runOnUi)
     val tabs = model.analysisModel.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()

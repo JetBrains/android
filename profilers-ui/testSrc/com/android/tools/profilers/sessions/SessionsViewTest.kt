@@ -28,6 +28,7 @@ import com.android.tools.profiler.proto.Common.Process.ExposureLevel.PROFILEABLE
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -137,10 +138,10 @@ class SessionsViewTest {
     val cpuTraceTimestamp = 20L
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+      .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setUserOptions(
-                            Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                              .setTraceType(Cpu.CpuTraceType.SIMPLEPERF)))
+                            Trace.TraceConfiguration.UserOptions.newBuilder()
+                              .setTraceType(Trace.TraceType.SIMPLEPERF)))
       .setFromTimestamp(cpuTraceTimestamp)
       .setToTimestamp(cpuTraceTimestamp + 1)
       .build()
@@ -404,11 +405,11 @@ class SessionsViewTest {
     val process2 = debuggableProcess { pid = 20 }
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(10).setEndTime(11).build()
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+      .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setUserOptions(
-                            Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                              .setTraceType(Cpu.CpuTraceType.ART)
-                              .setTraceMode(Cpu.CpuTraceMode.SAMPLED)))
+                            Trace.TraceConfiguration.UserOptions.newBuilder()
+                              .setTraceType(Trace.TraceType.ART)
+                              .setTraceMode(Trace.TraceMode.SAMPLED)))
       .setFromTimestamp(20)
       .setToTimestamp(21)
       .build()
@@ -551,11 +552,11 @@ class SessionsViewTest {
       .setTraceId(traceInfoId)
       .setFromTimestamp(TimeUnit.MINUTES.toNanos(1))
       .setToTimestamp(TimeUnit.MINUTES.toNanos(2))
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+      .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setUserOptions(
-                            Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                              .setTraceType(Cpu.CpuTraceType.ART)
-                              .setTraceMode(Cpu.CpuTraceMode.SAMPLED)))
+                            Trace.TraceConfiguration.UserOptions.newBuilder()
+                              .setTraceType(Trace.TraceType.ART)
+                              .setTraceMode(Trace.TraceMode.SAMPLED)))
       .build()
 
     myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
@@ -625,11 +626,11 @@ class SessionsViewTest {
     // Sets an ongoing trace info in the service
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
       .setTraceId(1)
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+      .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setUserOptions(
-                            Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                              .setTraceType(Cpu.CpuTraceType.ATRACE)
-                              .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)))
+                            Trace.TraceConfiguration.UserOptions.newBuilder()
+                              .setTraceType(Trace.TraceType.ATRACE)
+                              .setTraceMode(Trace.TraceMode.INSTRUMENTED)))
       .setFromTimestamp(sessionStartNs + 1)
       .setToTimestamp(-1)
       .build()

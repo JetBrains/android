@@ -16,16 +16,16 @@
 package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
-import com.android.tools.profiler.proto.Cpu.CpuTraceType
+import com.android.tools.profiler.proto.Trace.TraceType
 
 /**
  * Analysis tab model for capture nodes.
  */
-class CaptureNodeAnalysisSummaryTabModel(captureRange: Range, private val traceType: CpuTraceType) :
+class CaptureNodeAnalysisSummaryTabModel(captureRange: Range, private val traceType: TraceType) :
            CpuAnalysisSummaryTabModel<CaptureNodeAnalysisModel>(captureRange) {
   override fun getLabel() = when (traceType) {
-    CpuTraceType.ATRACE, CpuTraceType.PERFETTO -> "Trace Event"
-    CpuTraceType.ART, CpuTraceType.SIMPLEPERF -> "Stack Frame"
+    TraceType.ATRACE, TraceType.PERFETTO -> "Trace Event"
+    TraceType.ART, TraceType.SIMPLEPERF -> "Stack Frame"
     else -> "Stack Frame"
   }
 

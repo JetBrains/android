@@ -40,7 +40,7 @@ import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.Cpu.TraceInitiationType;
+import com.android.tools.profiler.proto.Trace.TraceInitiationType;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.ProfilerAspect;
@@ -334,7 +334,7 @@ public class CpuProfilerStage extends StreamingStage {
     String traceFilePath = String.format(Locale.US, "%s/%s-%d.trace", DAEMON_DEVICE_DIR_PATH, process.getName(), System.nanoTime());
 
     setCaptureState(CaptureState.STARTING);
-    Cpu.CpuTraceConfiguration configuration = Cpu.CpuTraceConfiguration.newBuilder()
+    Trace.TraceConfiguration configuration = Trace.TraceConfiguration.newBuilder()
       .setAppName(process.getName())
       .setAbiCpuArch(TransportFileManager.getShortAbiName(getStudioProfilers().getDevice().getCpuAbi()))
       .setInitiationType(TraceInitiationType.INITIATED_BY_UI)

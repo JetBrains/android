@@ -19,7 +19,7 @@ import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.SessionMetaData
-import com.android.tools.profiler.proto.Cpu.CpuTraceType
+import com.android.tools.profiler.proto.Trace.TraceType
 import com.android.tools.profilers.analytics.energy.EnergyEventMetadata
 import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata
 import com.android.tools.profilers.cpu.CpuCaptureMetadata
@@ -195,7 +195,7 @@ interface FeatureTracker {
   /**
    * Track the user importing a method trace.
    */
-  fun trackImportTrace(traceType: CpuTraceType, success: Boolean)
+  fun trackImportTrace(traceType: TraceType, success: Boolean)
 
   /**
    * Track the startup CPU profiling that was started with the given {@param device} and {@param configuration}.

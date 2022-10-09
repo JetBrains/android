@@ -30,7 +30,6 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.trackgroup.Track;
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.adtui.ComboCheckBox;
 import com.android.tools.profilers.StringUtils;
 import com.android.tools.profilers.ProfilerColors;
@@ -93,7 +92,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * This class represents the view of a capture taken from within the {@link CpuProfilerStageView}.
- * all captures of type {@link Cpu.CpuTraceType} are supported.
+ * all captures of type {@link Trace.TraceType} are supported.
  */
 public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   /**

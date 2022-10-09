@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers.profilingconfig
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -25,11 +26,11 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun fromProtoSampledJava() {
-    val proto = Cpu.CpuTraceConfiguration.UserOptions
+    val proto = Trace.TraceConfiguration.UserOptions
       .newBuilder()
       .setName("MySampledJava")
-      .setTraceType(Cpu.CpuTraceType.ART)
-      .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
+      .setTraceType(Trace.TraceType.ART)
+      .setTraceMode(Trace.TraceMode.SAMPLED)
       .setSamplingIntervalUs(1234)
       .setBufferSizeInMb(12)
       .build()
@@ -43,10 +44,10 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun fromProtoSampledNative() {
-    val proto = Cpu.CpuTraceConfiguration.UserOptions
+    val proto = Trace.TraceConfiguration.UserOptions
       .newBuilder()
-      .setTraceType(Cpu.CpuTraceType.SIMPLEPERF)
-      .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
+      .setTraceType(Trace.TraceType.SIMPLEPERF)
+      .setTraceMode(Trace.TraceMode.SAMPLED)
       .build()
     val config = CpuProfilerConfigConverter.fromProto(proto)
     assertThat(config.technology).isEqualTo(CpuProfilerConfig.Technology.SAMPLED_NATIVE)
@@ -54,10 +55,10 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun fromProtoInstrumentedJava() {
-    val proto = Cpu.CpuTraceConfiguration.UserOptions
+    val proto = Trace.TraceConfiguration.UserOptions
       .newBuilder()
-      .setTraceType(Cpu.CpuTraceType.ART)
-      .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)
+      .setTraceType(Trace.TraceType.ART)
+      .setTraceMode(Trace.TraceMode.INSTRUMENTED)
       .build()
     val config = CpuProfilerConfigConverter.fromProto(proto)
     assertThat(config.technology).isEqualTo(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA)
@@ -65,10 +66,10 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun fromProtoAtrace() {
-    val proto = Cpu.CpuTraceConfiguration.UserOptions
+    val proto = Trace.TraceConfiguration.UserOptions
       .newBuilder()
-      .setTraceType(Cpu.CpuTraceType.ATRACE)
-      .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)
+      .setTraceType(Trace.TraceType.ATRACE)
+      .setTraceMode(Trace.TraceMode.INSTRUMENTED)
       .build()
     val config = CpuProfilerConfigConverter.fromProto(proto)
     assertThat(config.technology).isEqualTo(CpuProfilerConfig.Technology.SYSTEM_TRACE)
@@ -76,10 +77,10 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun fromProtoPerfetto() {
-    val proto = Cpu.CpuTraceConfiguration.UserOptions
+    val proto = Trace.TraceConfiguration.UserOptions
       .newBuilder()
-      .setTraceType(Cpu.CpuTraceType.PERFETTO)
-      .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)
+      .setTraceType(Trace.TraceType.PERFETTO)
+      .setTraceMode(Trace.TraceMode.INSTRUMENTED)
       .build()
     val config = CpuProfilerConfigConverter.fromProto(proto)
     assertThat(config.technology).isEqualTo(CpuProfilerConfig.Technology.SYSTEM_TRACE)
@@ -94,8 +95,8 @@ class CpuProfilerConfigConverterTest {
 
     val proto = CpuProfilerConfigConverter.toProto(config, AndroidVersion.VersionCodes.N)
     assertThat(proto.name).isEqualTo("MySampledJava")
-    assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.ART)
-    assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.SAMPLED)
+    assertThat(proto.traceType).isEqualTo(Trace.TraceType.ART)
+    assertThat(proto.traceMode).isEqualTo(Trace.TraceMode.SAMPLED)
     assertThat(proto.samplingIntervalUs).isEqualTo(1234)
     assertThat(proto.bufferSizeInMb).isEqualTo(12)
   }
@@ -107,8 +108,8 @@ class CpuProfilerConfigConverterTest {
     }
 
     val proto = CpuProfilerConfigConverter.toProto(config, AndroidVersion.VersionCodes.N)
-    assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.ART)
-    assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.INSTRUMENTED)
+    assertThat(proto.traceType).isEqualTo(Trace.TraceType.ART)
+    assertThat(proto.traceMode).isEqualTo(Trace.TraceMode.INSTRUMENTED)
   }
 
 
@@ -119,8 +120,8 @@ class CpuProfilerConfigConverterTest {
     }
 
     val proto = CpuProfilerConfigConverter.toProto(config, AndroidVersion.VersionCodes.N)
-    assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF)
-    assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.SAMPLED)
+    assertThat(proto.traceType).isEqualTo(Trace.TraceType.SIMPLEPERF)
+    assertThat(proto.traceMode).isEqualTo(Trace.TraceMode.SAMPLED)
   }
 
   @Test
@@ -130,8 +131,8 @@ class CpuProfilerConfigConverterTest {
     }
 
     val proto = CpuProfilerConfigConverter.toProto(config, AndroidVersion.VersionCodes.N)
-    assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.ATRACE)
-    assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.INSTRUMENTED)
+    assertThat(proto.traceType).isEqualTo(Trace.TraceType.ATRACE)
+    assertThat(proto.traceMode).isEqualTo(Trace.TraceMode.INSTRUMENTED)
   }
 
   @Test
@@ -141,8 +142,8 @@ class CpuProfilerConfigConverterTest {
     }
 
     val proto = CpuProfilerConfigConverter.toProto(config, AndroidVersion.VersionCodes.O)
-    assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.ATRACE)
-    assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.INSTRUMENTED)
+    assertThat(proto.traceType).isEqualTo(Trace.TraceType.ATRACE)
+    assertThat(proto.traceMode).isEqualTo(Trace.TraceMode.INSTRUMENTED)
   }
 
   @Test
@@ -152,8 +153,8 @@ class CpuProfilerConfigConverterTest {
     }
 
     val proto = CpuProfilerConfigConverter.toProto(config, AndroidVersion.VersionCodes.P)
-    assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.PERFETTO)
-    assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.INSTRUMENTED)
+    assertThat(proto.traceType).isEqualTo(Trace.TraceType.PERFETTO)
+    assertThat(proto.traceMode).isEqualTo(Trace.TraceMode.INSTRUMENTED)
   }
 
   @Test
@@ -163,7 +164,7 @@ class CpuProfilerConfigConverterTest {
     }
 
     val proto = CpuProfilerConfigConverter.toProto(config, AndroidVersion.VersionCodes.Q)
-    assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.PERFETTO)
-    assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.INSTRUMENTED)
+    assertThat(proto.traceType).isEqualTo(Trace.TraceType.PERFETTO)
+    assertThat(proto.traceMode).isEqualTo(Trace.TraceMode.INSTRUMENTED)
   }
 }

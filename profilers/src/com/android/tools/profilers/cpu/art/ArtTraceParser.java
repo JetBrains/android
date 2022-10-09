@@ -17,7 +17,7 @@ package com.android.tools.profilers.cpu.art;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
-import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.cpu.BaseCpuCapture;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.TraceParser;
@@ -40,6 +40,6 @@ public class ArtTraceParser implements TraceParser {
       myTraceHandler.getStartTimeUs(),
       myTraceHandler.getStartTimeUs() + myTraceHandler.getElapsedTimeUs());
     // ART traces always support dual clock mode.
-    return new BaseCpuCapture(traceId, Cpu.CpuTraceType.ART, true, null, range, myTraceHandler.getThreadsGraph());
+    return new BaseCpuCapture(traceId, Trace.TraceType.ART, true, null, range, myTraceHandler.getThreadsGraph());
   }
 }

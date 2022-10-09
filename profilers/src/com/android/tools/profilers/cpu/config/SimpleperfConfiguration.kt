@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu.config
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.options.OptionsProperty
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 
 /**
  * Simple perf configuration
@@ -29,14 +30,14 @@ class SimpleperfConfiguration(name: String) : ProfilingConfiguration(name) {
   @OptionsProperty(name = "Sample interval: ", group = TRACE_CONFIG_GROUP, order = 100, unit = "Us (Microseconds)")
   var profilingSamplingIntervalUs = DEFAULT_SAMPLING_INTERVAL_US
 
-  override fun buildUserOptions(): Cpu.CpuTraceConfiguration.UserOptions.Builder {
-    return Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-      .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
+  override fun buildUserOptions(): Trace.TraceConfiguration.UserOptions.Builder {
+    return Trace.TraceConfiguration.UserOptions.newBuilder()
+      .setTraceMode(Trace.TraceMode.SAMPLED)
       .setSamplingIntervalUs(profilingSamplingIntervalUs)
   }
 
-  override fun getTraceType(): Cpu.CpuTraceType {
-    return Cpu.CpuTraceType.SIMPLEPERF
+  override fun getTraceType(): Trace.TraceType {
+    return Trace.TraceType.SIMPLEPERF
   }
 
   override fun getRequiredDeviceLevel(): Int {

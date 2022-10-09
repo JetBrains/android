@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
@@ -49,7 +50,7 @@ class CpuCaptureMinimapModelTest {
   fun selectionRangeIsBoundByCaptureRange() {
     val mockCapture = Mockito.mock(SystemTraceCpuCapture::class.java)
     whenever(mockCapture.range).thenReturn(Range(1.0, 10.0))
-    whenever(mockCapture.type).thenReturn(Cpu.CpuTraceType.ATRACE)
+    whenever(mockCapture.type).thenReturn(Trace.TraceType.ATRACE)
     whenever(mockCapture.timeline).thenReturn(DefaultTimeline())
 
     val minimapModel = CpuCaptureMinimapModel(profilers, mockCapture, Range())
@@ -64,7 +65,7 @@ class CpuCaptureMinimapModelTest {
     timeline.viewRange.set(1.0,5.0)
     val mockCapture = Mockito.mock(SystemTraceCpuCapture::class.java)
     whenever(mockCapture.range).thenReturn(Range(1.0, 10.0))
-    whenever(mockCapture.type).thenReturn(Cpu.CpuTraceType.PERFETTO)
+    whenever(mockCapture.type).thenReturn(Trace.TraceType.PERFETTO)
     whenever(mockCapture.timeline).thenReturn(timeline)
 
     val minimapModel = CpuCaptureMinimapModel(profilers, mockCapture, Range())

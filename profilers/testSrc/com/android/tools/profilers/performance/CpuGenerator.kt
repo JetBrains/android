@@ -18,6 +18,7 @@ package com.android.tools.profilers.performance
 import com.android.tools.datastore.database.CpuTable
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
+import com.android.tools.profiler.proto.Trace
 
 import java.sql.Connection
 
@@ -55,10 +56,10 @@ class CpuGenerator(connection: Connection) : DataGenerator(connection) {
       .setFromTimestamp((lastTraceInfoTimestamp + timestamp) / 2)
       .setToTimestamp(timestamp)
       .setTraceId(random.nextLong())
-      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                          .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_UI)
-                          .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                                            .setTraceMode(Cpu.CpuTraceMode.SAMPLED)))
+      .setConfiguration(Trace.TraceConfiguration.newBuilder()
+                          .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_UI)
+                          .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder()
+                                            .setTraceMode(Trace.TraceMode.SAMPLED)))
       .build()
     myTable.insertTraceInfo(properties.session, trace)
   }

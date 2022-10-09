@@ -17,8 +17,8 @@ package com.android.tools.profilers.cpu.config;
 
 import com.android.tools.adtui.model.options.OptionsProvider;
 import com.android.tools.adtui.model.options.OptionsProperty;
-import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.Cpu.CpuTraceType;
+import com.android.tools.profiler.proto.Trace;
+import com.android.tools.profiler.proto.Trace.TraceType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -41,7 +41,7 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
   }
 
   @NotNull
-  public abstract CpuTraceType getTraceType();
+  public abstract TraceType getTraceType();
 
   @NotNull
   @OptionsProperty(name = "Configuration name: ", group = TRACE_CONFIG_GROUP, order = 99)
@@ -61,14 +61,14 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
   }
 
   /**
-   * Converts from {@link Cpu.CpuTraceConfiguration} to {@link ProfilingConfiguration}.
+   * Converts from {@link Trace.TraceConfiguration} to {@link ProfilingConfiguration}.
    */
   @NotNull
-  public static ProfilingConfiguration fromProto(@NotNull Cpu.CpuTraceConfiguration.UserOptions proto) {
+  public static ProfilingConfiguration fromProto(@NotNull Trace.TraceConfiguration.UserOptions proto) {
     ProfilingConfiguration configuration = null;
     switch (proto.getTraceType()) {
       case ART:
-        if (proto.getTraceMode() == Cpu.CpuTraceMode.SAMPLED) {
+        if (proto.getTraceMode() == Trace.TraceMode.SAMPLED) {
           ArtSampledConfiguration artSampled = new ArtSampledConfiguration(proto.getName());
           artSampled.setProfilingSamplingIntervalUs(proto.getSamplingIntervalUs());
           artSampled.setProfilingBufferSizeInMb(proto.getBufferSizeInMb());
@@ -103,17 +103,17 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
   }
 
   /**
-   * Converts {@code this} to {@link Cpu.CpuTraceConfiguration.UserOptions}.
+   * Converts {@code this} to {@link Trace.TraceConfiguration.UserOptions}.
    */
   @NotNull
-  public Cpu.CpuTraceConfiguration.UserOptions toProto() {
+  public Trace.TraceConfiguration.UserOptions toProto() {
     return buildUserOptions()
       .setName(getName())
       .setTraceType(getTraceType())
       .build();
   }
 
-  protected abstract Cpu.CpuTraceConfiguration.UserOptions.Builder buildUserOptions();
+  protected abstract Trace.TraceConfiguration.UserOptions.Builder buildUserOptions();
 
   @Override
   public boolean equals(Object obj) {

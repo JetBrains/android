@@ -16,6 +16,7 @@
 package com.android.tools.profilers.perfetto
 
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeTraceProcessorService
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
@@ -38,7 +39,7 @@ class PerfettoParserTest {
     val capture = parser.parse(traceFile, 1)
 
     assertThat(capture).isInstanceOf(SystemTraceCpuCapture::class.java)
-    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.PERFETTO)
+    assertThat(capture.type).isEqualTo(Trace.TraceType.PERFETTO)
   }
 
   @Test
@@ -91,7 +92,7 @@ class PerfettoParserTest {
     val capture = parser.parse(traceFile, 1)
 
     assertThat(capture).isInstanceOf(SystemTraceCpuCapture::class.java)
-    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.PERFETTO)
+    assertThat(capture.type).isEqualTo(Trace.TraceType.PERFETTO)
   }
 
   @Test
