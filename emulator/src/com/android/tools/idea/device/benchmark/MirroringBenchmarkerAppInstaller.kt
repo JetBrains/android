@@ -21,7 +21,7 @@ import com.android.adblib.shellCommand
 import com.android.adblib.tools.UninstallResult
 import com.android.adblib.tools.install
 import com.android.adblib.tools.uninstall
-import com.android.adblib.utils.TextShellV2Collector
+import com.android.adblib.TextShellV2Collector
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.diagnostic.thisLogger

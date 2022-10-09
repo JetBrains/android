@@ -17,7 +17,7 @@ package com.android.tools.idea.adb
 
 import com.android.adblib.DeviceSelector
 import com.android.adblib.ShellCollector
-import com.android.adblib.utils.TextShellCollector
+import com.android.adblib.TextShellCollector
 import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.ShellCommandUnresponsiveException
