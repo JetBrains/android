@@ -42,8 +42,8 @@ public:
     return !clipboard_manager_.IsNull();
   }
 
-  std::string GetText(Jni jni) const;
-  void SetText(Jni jni, const std::string& text) const;
+  std::string GetText() const;
+  void SetText(const std::string& text) const;
   void AddClipboardListener(ClipboardListener* listener);
   void RemoveClipboardListener(ClipboardListener* listener);
 
@@ -51,6 +51,8 @@ public:
 
 private:
   ClipboardManager(Jni jni);
+
+  Jni jni_;
   // Number of parameters of the getPrimaryClip method minus 1. Possible values: 0, 1 and 2.
   int number_of_extra_parameters_;
 

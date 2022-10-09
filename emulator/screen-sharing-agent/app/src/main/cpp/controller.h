@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <mutex>
+#include <atomic>
 #include <thread>
 #include <vector>
 
@@ -66,6 +66,7 @@ private:
   void StartClipboardSync(const StartClipboardSyncMessage& message);
   void StopClipboardSync();
   void OnPrimaryClipChanged();
+  void ProcessClipboardChange();
 
   Jni jni_ = nullptr;
   int socket_fd_;  // Owned.
@@ -82,10 +83,9 @@ private:
   ScopedSetting accelerometer_rotation_;
 
   ClipboardListener clipboard_listener_;
-  std::mutex clipboard_mutex_;
-  int max_synced_clipboard_length_;  // GUARDED_BY(clipboard_mutex_)
-  std::string last_clipboard_text_;  // GUARDED_BY(clipboard_mutex_)
-  bool setting_clipboard_;  // GUARDED_BY(clipboard_mutex_)
+  int max_synced_clipboard_length_;
+  std::string last_clipboard_text_;
+  std::atomic_bool clipboard_changed_;
 
   DISALLOW_COPY_AND_ASSIGN(Controller);
 };

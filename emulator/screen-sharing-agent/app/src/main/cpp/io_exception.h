@@ -32,6 +32,9 @@ private:
   std::string message_;
 };
 
+class IoTimeout : public IoException {
+};
+
 class EndOfFile : public IoException {
 };
 

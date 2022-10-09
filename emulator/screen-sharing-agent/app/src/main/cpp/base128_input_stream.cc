@@ -54,6 +54,9 @@ uint8_t Base128InputStream::ReadByte() {
   if (offset_ == data_end_) {
     auto n = read(fd_, buffer_, buffer_capacity_);
     if (n < 0) {
+      if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        throw IoTimeout();
+      }
       throw IoException();
     } else if (n == 0) {
       throw EndOfFile();

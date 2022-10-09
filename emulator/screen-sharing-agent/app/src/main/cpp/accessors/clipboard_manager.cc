@@ -37,7 +37,8 @@ atomic<ClipboardManager*> clipboard_manager_instance = nullptr;
 }  // namespace
 
 ClipboardManager::ClipboardManager(Jni jni)
-    : clipboard_manager_(ServiceManager::GetServiceAsInterface(jni, "clipboard", "android/content/IClipboard", /*allow_null =*/ true)),
+    : jni_(jni),
+      clipboard_manager_(ServiceManager::GetServiceAsInterface(jni, "clipboard", "android/content/IClipboard", /*allow_null =*/ true)),
       set_extras_method_(),
       clipboard_listeners_(new vector<ClipboardListener*>()) {
   if (clipboard_manager_.IsNull()) {
@@ -128,14 +129,14 @@ ClipboardManager* ClipboardManager::GetInstance(Jni jni) {
   return clipboard_manager_instance;
 }
 
-string ClipboardManager::GetText(Jni jni) const {
+string ClipboardManager::GetText() const {
   JObject clip_data =
       number_of_extra_parameters_ == 0 ?
-          clipboard_manager_.CallObjectMethod(jni, get_primary_clip_method_, package_name_.ref()) :
+          clipboard_manager_.CallObjectMethod(jni_, get_primary_clip_method_, package_name_.ref()) :
       number_of_extra_parameters_ == 1 ?
-          clipboard_manager_.CallObjectMethod(jni, get_primary_clip_method_, package_name_.ref(), USER_ID) :
+          clipboard_manager_.CallObjectMethod(jni_, get_primary_clip_method_, package_name_.ref(), USER_ID) :
           clipboard_manager_.CallObjectMethod(
-              jni, get_primary_clip_method_, package_name_.ref(), JString(jni, "ScreenSharing").ref(), USER_ID);
+              jni_, get_primary_clip_method_, package_name_.ref(), JString(jni_, "ScreenSharing").ref(), USER_ID);
   if (clip_data.IsNull() || clip_data.CallIntMethod(get_item_count_method_) == 0) {
     return "";
   }
@@ -147,22 +148,22 @@ string ClipboardManager::GetText(Jni jni) const {
   return text.ToString();
 }
 
-void ClipboardManager::SetText(Jni jni, const string& text) const {
-  JString jtext = JString(jni, text.c_str());
-  JObject clip_data = clip_data_class_.CallStaticObjectMethod(jni, new_plain_text_method_, jtext.ref(), jtext.ref());
+void ClipboardManager::SetText(const string& text) const {
+  JString jtext = JString(jni_, text.c_str());
+  JObject clip_data = clip_data_class_.CallStaticObjectMethod(jni_, new_plain_text_method_, jtext.ref(), jtext.ref());
   auto api_level = android_get_device_api_level();
   if (api_level >= 33) {
     // Suppress clipboard change UI overlay on Android 13+.
-    JObject clip_description = clip_data.CallObjectMethod(jni, get_description_method_);
+    JObject clip_description = clip_data.CallObjectMethod(jni_, get_description_method_);
     clip_description.CallVoidMethod(set_extras_method_, overlay_suppressor_.ref());
   }
   if (number_of_extra_parameters_ == 0) {
-    clipboard_manager_.CallObjectMethod(jni, set_primary_clip_method_, clip_data.ref(), package_name_.ref());
+    clipboard_manager_.CallObjectMethod(jni_, set_primary_clip_method_, clip_data.ref(), package_name_.ref());
   } else if (number_of_extra_parameters_ == 1) {
-    clipboard_manager_.CallObjectMethod(jni, set_primary_clip_method_, clip_data.ref(), package_name_.ref(), USER_ID);
+    clipboard_manager_.CallObjectMethod(jni_, set_primary_clip_method_, clip_data.ref(), package_name_.ref(), USER_ID);
   } else {
     clipboard_manager_.CallObjectMethod(
-        jni, set_primary_clip_method_, clip_data.ref(), package_name_.ref(), JString(jni, "ScreenSharing").ref(), USER_ID);
+        jni_, set_primary_clip_method_, clip_data.ref(), package_name_.ref(), JString(jni_, "ScreenSharing").ref(), USER_ID);
   }
 }
 
@@ -204,7 +205,6 @@ void ClipboardManager::OnPrimaryClipChanged() const {
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_android_tools_screensharing_ClipboardListener_dispatchPrimaryClipChanged(JNIEnv* env, jobject thiz) {
-  Log::D("ClipboardListener.dispatchPrimaryClipChanged");
   ClipboardManager* clipboard_manager = clipboard_manager_instance;
   if (clipboard_manager != nullptr) {
     clipboard_manager->OnPrimaryClipChanged();
