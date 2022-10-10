@@ -34,7 +34,7 @@ public class EditTextHandler extends TextViewHandler {
 
   // The style, title, and icon mapping should be same as layout_palette.xml file.
   private enum EditTextInputType {
-    PLAIN_TEXT("textPersonName", "Plain Text", StudioIcons.LayoutEditor.Palette.TEXTFIELD),
+    PLAIN_TEXT("text", "Plain Text", StudioIcons.LayoutEditor.Palette.TEXTFIELD),
     PASSWORD("textPassword", "Password", StudioIcons.LayoutEditor.Palette.PASSWORD_TEXTFIELD),
     PASSWORD_NUMERIC("numberPassword", "Password (Numeric)", StudioIcons.LayoutEditor.Palette.PASSWORD_NUMERIC_TEXTFIELD),
     EMAIL("textEmailAddress", "E-mail", StudioIcons.LayoutEditor.Palette.EMAIL_TEXTFIELD),
