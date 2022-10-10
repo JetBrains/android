@@ -28,7 +28,7 @@
         key="analytics-layouteditor-shortcuts"
         label="Layout Editor Keyboard Shortcuts"
         remoteLink="https://developer.android.com/training/constraint-layout"
-        remoteLinkLabel="View ConstraintLayout Guide.">
+        remoteLinkLabel="View ConstraintLayout Guide">
     <description>
       <![CDATA[
       <table>
@@ -271,13 +271,13 @@
     </tutorial>
   </feature>
   <feature
-      name="Guide to ConstraintLayout.">
+      name="Guide to ConstraintLayout">
     <description></description>
     <tutorial
       key="analytics-layouteditor-constraintlayout-concepts"
       label="ConstraintLayout concepts"
       remoteLink="https://developer.android.com/training/constraint-layout"
-      remoteLinkLabel="View ConstraintLayout Guide."
+      remoteLinkLabel="View ConstraintLayout Guide"
       hasLocalHTMLPaths="true"
       loadLazily="true">
       <description>
@@ -394,15 +394,13 @@ Once a widget has been constrained via opposite constraint, its applied bias can
   </feature>
 
   <feature
-      name="Guide to MotionLayout.">
-    <description>
-      <![CDATA[Guide to MotionLayout.]]>
-    </description>
+      name="Guide to MotionLayout">
+    <description></description>
     <tutorial
         key="analytics-layouteditor-motionlayout"
         label="Guide to MotionLayout."
         remoteLink="https://developer.android.com/training/constraint-layout/motionlayout"
-        remoteLinkLabel="View MotionLayout Guide."
+        remoteLinkLabel="View MotionLayout Guide"
         hasLocalHTMLPaths="true"
         loadLazily="true">
       <description>
