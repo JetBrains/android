@@ -65,8 +65,8 @@ public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, 
     for (DeviceManagerTab tab : DeviceManagerTab.EP_NAME.getExtensions()) {
       if (tab.isApplicable()) {
         int index = pane.getTabCount();
-        tab.setRecreateCallback(() -> pane.setComponentAt(index, createTabContent(project, parent, tab)), parent);
         pane.addTab(tab.getName(), createTabContent(project, parent, tab));
+        tab.setRecreateCallback(() -> pane.setComponentAt(index, createTabContent(project, parent, tab)), parent);
       }
     }
     return pane;
