@@ -17,7 +17,6 @@ package com.android.tools.idea.project;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
-import static com.android.tools.idea.run.AndroidRunConfiguration.DO_NOTHING;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
 import static com.android.tools.idea.run.util.LaunchUtils.isWatchFeatureRequired;
 
@@ -84,12 +83,7 @@ public class AndroidRunConfigurations {
     if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       configuration.setLaunchUrl(getDefaultInstantAppUrl(facet));
     }
-    else if (hasDefaultLauncherActivity(facet)) {
-      configuration.MODE = LAUNCH_DEFAULT_ACTIVITY;
-    }
-    else {
-      configuration.MODE = DO_NOTHING;
-    }
+    configuration.MODE = LAUNCH_DEFAULT_ACTIVITY;
 
     if (targetSelectionMode != null) {
       configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
