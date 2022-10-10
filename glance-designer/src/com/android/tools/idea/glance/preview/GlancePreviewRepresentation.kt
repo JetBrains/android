@@ -27,9 +27,11 @@ import com.android.tools.idea.glance.preview.GlancePreviewBundle.message
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
+import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
+import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
@@ -117,6 +119,8 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
           }
         }
         .setSupportedActions(GLANCE_APPWIDGET_SUPPORTED_ACTIONS)
+        .setInteractionHandlerProvider { NavigatingInteractionHandler(it) }
+        .setNavigationHandler(DefaultNavigationHandler { _, _, _, _, _ -> null })
         .setDelegateDataProvider {
           when (it) {
             PREVIEW_VIEW_MODEL_STATUS.name -> previewViewModel
