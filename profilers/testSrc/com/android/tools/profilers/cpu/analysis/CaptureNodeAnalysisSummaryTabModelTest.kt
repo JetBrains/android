@@ -29,7 +29,7 @@ import org.mockito.Mockito
 class CaptureNodeAnalysisSummaryTabModelTest {
   @Test
   fun selectionRangeSingleNode() {
-    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, 100.0), Trace.TraceType.ART)
+    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, 100.0), Trace.UserOptions.TraceType.ART)
     val node = CaptureNode(SingleNameModel("Foo")).apply {
       startGlobal = 10
       endGlobal = 20
@@ -41,7 +41,7 @@ class CaptureNodeAnalysisSummaryTabModelTest {
 
   @Test
   fun selectionRangeMultipleNodes() {
-    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, 100.0), Trace.TraceType.ART)
+    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, 100.0), Trace.UserOptions.TraceType.ART)
     val nodes = listOf(
       CaptureNode(SingleNameModel("Foo")).apply {
         startGlobal = 10
@@ -60,9 +60,9 @@ class CaptureNodeAnalysisSummaryTabModelTest {
   @Test
   fun labelForTraceType() {
     val range = Range(0.0, 1.0)
-    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Trace.TraceType.ART).label).isEqualTo("Stack Frame")
-    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Trace.TraceType.SIMPLEPERF).label).isEqualTo("Stack Frame")
-    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Trace.TraceType.ATRACE).label).isEqualTo("Trace Event")
-    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Trace.TraceType.PERFETTO).label).isEqualTo("Trace Event")
+    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Trace.UserOptions.TraceType.ART).label).isEqualTo("Stack Frame")
+    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Trace.UserOptions.TraceType.SIMPLEPERF).label).isEqualTo("Stack Frame")
+    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Trace.UserOptions.TraceType.ATRACE).label).isEqualTo("Trace Event")
+    assertThat(CaptureNodeAnalysisSummaryTabModel(range, Trace.UserOptions.TraceType.PERFETTO).label).isEqualTo("Trace Event")
   }
 }

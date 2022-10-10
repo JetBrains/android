@@ -300,7 +300,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
     featureTracker.trackCpuStartupProfiling(profilerDevice, ProfilingConfiguration.fromProto(traceOptions));
 
-    if (traceOptions.getTraceType() != Trace.TraceType.ART) {
+    if (traceOptions.getTraceType() != Trace.UserOptions.TraceType.ART) {
       return "";
     }
 

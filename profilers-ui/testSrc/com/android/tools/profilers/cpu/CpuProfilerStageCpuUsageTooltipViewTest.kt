@@ -22,7 +22,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Trace
-import com.android.tools.profiler.proto.Trace.TraceType
+import com.android.tools.profiler.proto.Trace.UserOptions.TraceType
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient

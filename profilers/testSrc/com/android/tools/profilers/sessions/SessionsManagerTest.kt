@@ -547,7 +547,7 @@ class SessionsManagerTest {
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setUserOptions(Trace.UserOptions.newBuilder()
-                                            .setTraceType(Trace.TraceType.SIMPLEPERF))).build()
+                                            .setTraceType(Trace.UserOptions.TraceType.SIMPLEPERF))).build()
 
     myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, session1Timestamp,
                                                                                        Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE,

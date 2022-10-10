@@ -116,7 +116,7 @@ class CpuThreadSummaryDetailsViewTest {
       whenever(getThreadStatesForThread(123)).thenReturn(listOf())
     }
     val sysTrace = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(type).thenReturn(Trace.TraceType.PERFETTO)
+      whenever(type).thenReturn(Trace.UserOptions.TraceType.PERFETTO)
       whenever(systemTraceData).thenReturn(sysTraceData)
     }
     val cpuThreadTrackModel = CpuThreadTrackModel(
@@ -138,7 +138,7 @@ class CpuThreadSummaryDetailsViewTest {
       viewRange.set(0.0, 0.0)
     }
     val sysTrace = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(type).thenReturn(Trace.TraceType.ART)
+      whenever(type).thenReturn(Trace.UserOptions.TraceType.ART)
     }
     val cpuThreadTrackModel = CpuThreadTrackModel(
       sysTrace,

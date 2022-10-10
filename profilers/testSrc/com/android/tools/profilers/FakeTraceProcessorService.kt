@@ -146,7 +146,7 @@ class FakeTraceProcessorService: TraceProcessorService {
     override fun getProcessById(id: Int) = getProcesses().find { it.id == id }
     override fun getDanglingThread(tid: Int): ThreadModel? = null
     override fun getCpuCores(): List<CpuCoreModel> = emptyList()
-    override fun getSystemTraceTechnology() = Trace.TraceType.PERFETTO
+    override fun getSystemTraceTechnology() = Trace.UserOptions.TraceType.PERFETTO
     override fun isCapturePossibleCorrupted() = false
     override fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer> = emptyList()
     override fun getAndroidFrameTimelineEvents(): List<AndroidFrameTimelineEvent> = emptyList()

@@ -43,22 +43,22 @@ public class CpuProfilerConfigConverter {
 
     switch (config.getTechnology()) {
       case SAMPLED_JAVA:
-        protoBuilder.setTraceType(Trace.TraceType.ART);
+        protoBuilder.setTraceType(Trace.UserOptions.TraceType.ART);
         protoBuilder.setTraceMode(Trace.TraceMode.SAMPLED);
         break;
       case INSTRUMENTED_JAVA:
-        protoBuilder.setTraceType(Trace.TraceType.ART);
+        protoBuilder.setTraceType(Trace.UserOptions.TraceType.ART);
         protoBuilder.setTraceMode(Trace.TraceMode.INSTRUMENTED);
         break;
       case SAMPLED_NATIVE:
-        protoBuilder.setTraceType(Trace.TraceType.SIMPLEPERF);
+        protoBuilder.setTraceType(Trace.UserOptions.TraceType.SIMPLEPERF);
         protoBuilder.setTraceMode(Trace.TraceMode.SAMPLED);
         break;
       case SYSTEM_TRACE:
         if (deviceApi >= AndroidVersion.VersionCodes.P) {
-          protoBuilder.setTraceType(Trace.TraceType.PERFETTO);
+          protoBuilder.setTraceType(Trace.UserOptions.TraceType.PERFETTO);
         } else {
-          protoBuilder.setTraceType(Trace.TraceType.ATRACE);
+          protoBuilder.setTraceType(Trace.UserOptions.TraceType.ATRACE);
         }
         protoBuilder.setTraceMode(Trace.TraceMode.INSTRUMENTED);
         break;

@@ -72,7 +72,7 @@ public class CpuCaptureTest {
     Map<CpuThreadInfo, CaptureNode> captureTrees =
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new SingleNameModel("Thread1"))).build();
     CpuCapture capture =
-      new BaseCpuCapture(20, Trace.TraceType.UNSPECIFIED_TYPE, range, captureTrees);
+      new BaseCpuCapture(20, Trace.UserOptions.TraceType.UNSPECIFIED_TYPE, range, captureTrees);
     // Test if we don't have an actual main thread, we still get a main thread id.
     assertThat(capture.getMainThreadId()).isEqualTo(10);
     assertThat(capture.getCaptureNode(10).getData().getName()).isEqualTo("Thread1");
@@ -87,7 +87,7 @@ public class CpuCaptureTest {
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(valid, new CaptureNode(new SingleNameModel("Valid")))
         .put(other, new CaptureNode(new SingleNameModel("Other"))).build();
     CpuCapture capture =
-      new BaseCpuCapture(20, Trace.TraceType.UNSPECIFIED_TYPE, range, captureTrees);
+      new BaseCpuCapture(20, Trace.UserOptions.TraceType.UNSPECIFIED_TYPE, range, captureTrees);
     // Test if we don't have a main thread, and we pass in an invalid name we still get a main thread id.
     assertThat(capture.getMainThreadId()).isEqualTo(10);
     assertThat(capture.getCaptureNode(10).getData().getName()).isEqualTo("Valid");
@@ -104,7 +104,7 @@ public class CpuCaptureTest {
         .put(other, new CaptureNode(new SingleNameModel("Other")))
         .put(main, new CaptureNode(new SingleNameModel("MainThread"))).build();
     CpuCapture capture =
-      new BaseCpuCapture(20, Trace.TraceType.UNSPECIFIED_TYPE, range, captureTrees);
+      new BaseCpuCapture(20, Trace.UserOptions.TraceType.UNSPECIFIED_TYPE, range, captureTrees);
     // Test if we don't have a main thread, and we pass in an invalid name we still get a main thread id.
     assertThat(capture.getMainThreadId()).isEqualTo(main.getProcessId());
     assertThat(capture.getCaptureNode(main.getProcessId()).getData().getName()).isEqualTo(main.getProcessName());
@@ -113,7 +113,7 @@ public class CpuCaptureTest {
   @Test
   public void corruptedTraceFileThrowsException() throws InterruptedException {
     File corruptedTrace = CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"); // Malformed trace file.
-    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(corruptedTrace, Trace.TraceType.ART);
+    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(corruptedTrace, Trace.UserOptions.TraceType.ART);
     try {
       future.get();
       fail();
@@ -133,7 +133,7 @@ public class CpuCaptureTest {
   @Test
   public void emptyTraceFileThrowsException() throws InterruptedException {
     File emptyTrace = CpuProfilerTestUtils.getTraceFile("empty_trace.trace");
-    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(emptyTrace, Trace.TraceType.ART);
+    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(emptyTrace, Trace.UserOptions.TraceType.ART);
     assertThat(future).isNotNull();
 
     try {
@@ -157,7 +157,7 @@ public class CpuCaptureTest {
   public void emptyTraceIsAccepted() {
     Range range = new Range();
     Map<CpuThreadInfo, CaptureNode> captureTrees = new HashMap<>();
-    CpuCapture capture = new BaseCpuCapture(20, Trace.TraceType.UNSPECIFIED_TYPE, range, captureTrees);
+    CpuCapture capture = new BaseCpuCapture(20, Trace.UserOptions.TraceType.UNSPECIFIED_TYPE, range, captureTrees);
     assertThat(capture.getCaptureNodes()).isEmpty();
     assertThat(capture.getMainThreadId()).isEqualTo(BaseCpuCapture.NO_THREAD_ID);
   }
@@ -166,7 +166,7 @@ public class CpuCaptureTest {
   public void parsingTraceWithWrongProfilerTypeShouldFail() throws InterruptedException {
     // Try to create a capture by passing an ART trace and simpleperf profiler type
     File artTrace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace"); /* Valid ART trace */
-    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(artTrace, Trace.TraceType.SIMPLEPERF);
+    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(artTrace, Trace.UserOptions.TraceType.SIMPLEPERF);
 
     try {
       future.get();
@@ -189,11 +189,11 @@ public class CpuCaptureTest {
     Map<CpuThreadInfo, CaptureNode> captureTrees =
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new StubCaptureNodeModel())).build();
 
-    CpuCapture capture = new BaseCpuCapture(traceId1, Trace.TraceType.UNSPECIFIED_TYPE, range, captureTrees);
+    CpuCapture capture = new BaseCpuCapture(traceId1, Trace.UserOptions.TraceType.UNSPECIFIED_TYPE, range, captureTrees);
     assertThat(capture.getTraceId()).isEqualTo(traceId1);
 
     int traceId2 = 50;
-    capture = new BaseCpuCapture(traceId2, Trace.TraceType.UNSPECIFIED_TYPE, range, captureTrees);
+    capture = new BaseCpuCapture(traceId2, Trace.UserOptions.TraceType.UNSPECIFIED_TYPE, range, captureTrees);
     assertThat(capture.getTraceId()).isEqualTo(traceId2);
   }
 
@@ -205,25 +205,25 @@ public class CpuCaptureTest {
     Map<CpuThreadInfo, CaptureNode> captureTrees =
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new StubCaptureNodeModel())).build();
 
-    CpuCapture capture = new BaseCpuCapture(traceId, Trace.TraceType.ART, range, captureTrees);
-    assertThat(capture.getType()).isEqualTo(Trace.TraceType.ART);
+    CpuCapture capture = new BaseCpuCapture(traceId, Trace.UserOptions.TraceType.ART, range, captureTrees);
+    assertThat(capture.getType()).isEqualTo(Trace.UserOptions.TraceType.ART);
     assertThat(capture.isDualClock()).isTrue();
 
-    capture = new BaseCpuCapture(traceId, Trace.TraceType.SIMPLEPERF, true, null, range, captureTrees);
-    assertThat(capture.getType()).isEqualTo(Trace.TraceType.SIMPLEPERF);
+    capture = new BaseCpuCapture(traceId, Trace.UserOptions.TraceType.SIMPLEPERF, true, null, range, captureTrees);
+    assertThat(capture.getType()).isEqualTo(Trace.UserOptions.TraceType.SIMPLEPERF);
     assertThat(capture.isDualClock()).isTrue();
 
-    capture = new BaseCpuCapture(traceId, Trace.TraceType.SIMPLEPERF, false, "fake message", range, captureTrees);
-    assertThat(capture.getType()).isEqualTo(Trace.TraceType.SIMPLEPERF);
+    capture = new BaseCpuCapture(traceId, Trace.UserOptions.TraceType.SIMPLEPERF, false, "fake message", range, captureTrees);
+    assertThat(capture.getType()).isEqualTo(Trace.UserOptions.TraceType.SIMPLEPERF);
     assertThat(capture.isDualClock()).isFalse();
     assertThat(capture.getDualClockDisabledMessage()).isEqualTo("fake message");
 
-    capture = new BaseCpuCapture(traceId, Trace.TraceType.PERFETTO, false, null, range, captureTrees);
-    assertThat(capture.getType()).isEqualTo(Trace.TraceType.PERFETTO);
+    capture = new BaseCpuCapture(traceId, Trace.UserOptions.TraceType.PERFETTO, false, null, range, captureTrees);
+    assertThat(capture.getType()).isEqualTo(Trace.UserOptions.TraceType.PERFETTO);
     assertThat(capture.isDualClock()).isFalse();
 
-    capture = new BaseCpuCapture(traceId, Trace.TraceType.UNSPECIFIED_TYPE, false, null, range, captureTrees);
-    assertThat(capture.getType()).isEqualTo(Trace.TraceType.UNSPECIFIED_TYPE);
+    capture = new BaseCpuCapture(traceId, Trace.UserOptions.TraceType.UNSPECIFIED_TYPE, false, null, range, captureTrees);
+    assertThat(capture.getType()).isEqualTo(Trace.UserOptions.TraceType.UNSPECIFIED_TYPE);
     assertThat(capture.isDualClock()).isFalse();
   }
 }

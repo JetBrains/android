@@ -80,18 +80,18 @@ public enum ProfilingTechnology {
   }
 
   @NotNull
-  public Trace.TraceType getType() {
+  public Trace.UserOptions.TraceType getType() {
     switch (this) {
       case ART_SAMPLED:
-        return Trace.TraceType.ART;
+        return Trace.UserOptions.TraceType.ART;
       case ART_INSTRUMENTED:
-        return Trace.TraceType.ART;
+        return Trace.UserOptions.TraceType.ART;
       case ART_UNSPECIFIED:
-        return Trace.TraceType.ART;
+        return Trace.UserOptions.TraceType.ART;
       case SIMPLEPERF:
-        return Trace.TraceType.SIMPLEPERF;
+        return Trace.UserOptions.TraceType.SIMPLEPERF;
       case SYSTEM_TRACE:
-        return Trace.TraceType.ATRACE;
+        return Trace.UserOptions.TraceType.ATRACE;
     }
     throw new IllegalArgumentException("Unreachable code");
   }
@@ -114,7 +114,7 @@ public enum ProfilingTechnology {
   }
 
   @NotNull
-  public static ProfilingTechnology fromTypeAndMode(@NotNull Trace.TraceType type,
+  public static ProfilingTechnology fromTypeAndMode(@NotNull Trace.UserOptions.TraceType type,
                                                     @NotNull Trace.TraceMode mode) {
     switch (type) {
       case ART:

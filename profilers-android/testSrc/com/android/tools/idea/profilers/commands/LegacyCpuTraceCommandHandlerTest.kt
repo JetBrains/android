@@ -169,7 +169,7 @@ class LegacyCpuTraceCommandHandlerTest {
     private val TRACE_CONFIG = Trace.TraceConfiguration.newBuilder().apply {
       userOptions = Trace.UserOptions.newBuilder().apply {
         traceMode = Trace.TraceMode.INSTRUMENTED
-        traceType = Trace.TraceType.ART
+        traceType = Trace.UserOptions.TraceType.ART
       }.build()
     }.build()
 

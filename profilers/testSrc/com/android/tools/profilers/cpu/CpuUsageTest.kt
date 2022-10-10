@@ -50,7 +50,7 @@ class CpuUsageTest {
 
   @Test
   fun perfettoCaptureCreatesMergedDataSeries() {
-    val parser = AtraceParser(Trace.TraceType.PERFETTO, MainProcessSelector())
+    val parser = AtraceParser(Trace.UserOptions.TraceType.PERFETTO, MainProcessSelector())
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"), 0)
     val usage = CpuUsage(profilers, capture.range, capture.range, capture)
     assertThat(usage.cpuSeries.series).isNotEmpty()

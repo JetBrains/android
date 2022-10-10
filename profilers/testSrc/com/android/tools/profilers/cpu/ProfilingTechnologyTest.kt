@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.profiler.proto.Trace.TraceMode
-import com.android.tools.profiler.proto.Trace.TraceType
+import com.android.tools.profiler.proto.Trace.UserOptions.TraceType
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
 import com.android.tools.profilers.cpu.config.AtraceConfiguration

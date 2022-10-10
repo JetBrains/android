@@ -26,7 +26,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.idea.transport.faketransport.commands.StartCpuTrace;
 import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
 import com.android.tools.profiler.proto.Commands;
-import com.android.tools.profiler.proto.Trace.TraceType;
+import com.android.tools.profiler.proto.Trace.UserOptions.TraceType;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import java.io.File;

@@ -22,7 +22,7 @@ import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
-import com.android.tools.profiler.proto.Trace.TraceType;
+import com.android.tools.profiler.proto.Trace.UserOptions.TraceType;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;

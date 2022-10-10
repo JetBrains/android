@@ -18,7 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.protobuf.ByteString;
-import com.android.tools.profiler.proto.Trace.TraceType;
+import com.android.tools.profiler.proto.Trace.UserOptions.TraceType;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;

@@ -91,7 +91,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
 
   override fun getCpuCores() = cpuCores
 
-  override fun getSystemTraceTechnology() = Trace.TraceType.PERFETTO
+  override fun getSystemTraceTechnology() = Trace.UserOptions.TraceType.PERFETTO
 
   // TODO(b/156578844): Fetch data from TraceProcessor error table to populate this.
   override fun isCapturePossibleCorrupted() = false

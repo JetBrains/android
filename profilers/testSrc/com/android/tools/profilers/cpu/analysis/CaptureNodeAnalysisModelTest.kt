@@ -33,7 +33,7 @@ class CaptureNodeAnalysisModelTest {
   fun analysisTabs() {
     val capture = Mockito.mock(CpuCapture::class.java).apply {
       whenever(this.range).thenReturn(Range())
-      whenever(this.type).thenReturn(Trace.TraceType.PERFETTO)
+      whenever(this.type).thenReturn(Trace.UserOptions.TraceType.PERFETTO)
     }
     val model = CaptureNodeAnalysisModel(CaptureNode(SingleNameModel("Foo")), capture, Utils::runOnUi)
     val tabs = model.analysisModel.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()

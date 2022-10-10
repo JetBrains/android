@@ -48,7 +48,7 @@ public class SimpleperfPipelinePreprocessor implements TransportEventPreprocesso
     return event.hasCpuTrace() &&
            event.getCpuTrace().hasTraceStarted() &&
            event.getCpuTrace().getTraceStarted().getTraceInfo().getConfiguration().getUserOptions().getTraceType() ==
-           Trace.TraceType.SIMPLEPERF;
+           Trace.UserOptions.TraceType.SIMPLEPERF;
   }
 
   /**

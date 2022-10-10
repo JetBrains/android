@@ -39,7 +39,7 @@ class PerfettoParserTest {
     val capture = parser.parse(traceFile, 1)
 
     assertThat(capture).isInstanceOf(SystemTraceCpuCapture::class.java)
-    assertThat(capture.type).isEqualTo(Trace.TraceType.PERFETTO)
+    assertThat(capture.type).isEqualTo(Trace.UserOptions.TraceType.PERFETTO)
   }
 
   @Test
@@ -92,7 +92,7 @@ class PerfettoParserTest {
     val capture = parser.parse(traceFile, 1)
 
     assertThat(capture).isInstanceOf(SystemTraceCpuCapture::class.java)
-    assertThat(capture.type).isEqualTo(Trace.TraceType.PERFETTO)
+    assertThat(capture.type).isEqualTo(Trace.UserOptions.TraceType.PERFETTO)
   }
 
   @Test

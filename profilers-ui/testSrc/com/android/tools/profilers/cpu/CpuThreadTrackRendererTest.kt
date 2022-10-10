@@ -85,7 +85,7 @@ class CpuThreadTrackRendererTest {
     val fakeTimeline = DefaultTimeline()
     val mockCapture = Mockito.mock(CpuCapture::class.java).apply {
       whenever(range).thenReturn(Range())
-      whenever(type).thenReturn(Trace.TraceType.ATRACE)
+      whenever(type).thenReturn(Trace.UserOptions.TraceType.ATRACE)
       whenever(getCaptureNode(1)).thenReturn(captureNode)
       whenever(systemTraceData).thenReturn(sysTraceData)
       whenever(timeline).thenReturn(fakeTimeline)
@@ -120,7 +120,7 @@ class CpuThreadTrackRendererTest {
     // Mock an imported ART trace
     val mockCapture = Mockito.mock(CpuCapture::class.java)
     whenever(mockCapture.range).thenReturn(Range())
-    whenever(mockCapture.type).thenReturn(Trace.TraceType.ART)
+    whenever(mockCapture.type).thenReturn(Trace.UserOptions.TraceType.ART)
     whenever(mockCapture.getCaptureNode(1)).thenReturn(CaptureNode(StubCaptureNodeModel()))
     val threadTrackModel = TrackModel.newBuilder(
       CpuThreadTrackModel(
@@ -141,7 +141,7 @@ class CpuThreadTrackRendererTest {
     // Mock a recorded ART trace.
     val mockCapture = Mockito.mock(CpuCapture::class.java).apply {
       whenever(range).thenReturn(Range())
-      whenever(type).thenReturn(Trace.TraceType.ART)
+      whenever(type).thenReturn(Trace.UserOptions.TraceType.ART)
     }
     val threadTrackModel = TrackModel.newBuilder(
       CpuThreadTrackModel(

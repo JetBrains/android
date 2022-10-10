@@ -53,11 +53,11 @@ class CpuTraceInterceptCommandHandlerTest {
     val cmdId = 1
     val commandHandler = setupInterceptForTest(testPid)
 
-    var command = buildCommand(cmdId, Trace.TraceType.PERFETTO)
+    var command = buildCommand(cmdId, Trace.UserOptions.TraceType.PERFETTO)
     Truth.assertThat(commandHandler.shouldHandle(command)).isTrue()
-    command = buildCommand(cmdId, Trace.TraceType.ART)
+    command = buildCommand(cmdId, Trace.UserOptions.TraceType.ART)
     Truth.assertThat(commandHandler.shouldHandle(command)).isFalse()
-    command = buildCommand(cmdId, Trace.TraceType.SIMPLEPERF)
+    command = buildCommand(cmdId, Trace.UserOptions.TraceType.SIMPLEPERF)
     Truth.assertThat(commandHandler.shouldHandle(command)).isFalse()
   }
 
@@ -66,7 +66,7 @@ class CpuTraceInterceptCommandHandlerTest {
     val testPid = 1
     val commandHandler = setupInterceptForTest(testPid)
 
-    var command = buildCommand(1, Trace.TraceType.ART)
+    var command = buildCommand(1, Trace.UserOptions.TraceType.ART)
     var returnValue = commandHandler.execute(command)
     Truth.assertThat(returnValue.commandId).isEqualTo(1)
 
@@ -74,7 +74,7 @@ class CpuTraceInterceptCommandHandlerTest {
     Truth.assertThat(eventStream).hasSize(1)
     Truth.assertThat(eventStream.first { it.kind == Common.Event.Kind.TRACE_STATUS }.commandId).isEqualTo(1)
 
-    command = buildCommand(2, Trace.TraceType.PERFETTO)
+    command = buildCommand(2, Trace.UserOptions.TraceType.PERFETTO)
     returnValue = commandHandler.execute(command)
     Truth.assertThat(returnValue.commandId).isEqualTo(2)
 
@@ -88,7 +88,7 @@ class CpuTraceInterceptCommandHandlerTest {
     val testPid = 1
     val cmdId = 1
     val commandHandler = setupInterceptForTest(testPid)
-    val startTrackCommand = buildCommand(cmdId, Trace.TraceType.PERFETTO)
+    val startTrackCommand = buildCommand(cmdId, Trace.UserOptions.TraceType.PERFETTO)
     val returnValue = commandHandler.execute(startTrackCommand)
     Truth.assertThat(returnValue.commandId).isEqualTo(cmdId)
     val captor = ArgumentCaptor.forClass(String::class.java)
@@ -106,7 +106,7 @@ class CpuTraceInterceptCommandHandlerTest {
                            "Broadcast completed: result=2, data=\"{\"exitCode\":2,\"requiredVersion\":\"1.0.0-alpha01\"" +
                            "}\"\n")
     val commandHandler = setupInterceptForTest(testPid, broadcastFailed)
-    val startTrackCommand = buildCommand(cmdId, Trace.TraceType.PERFETTO)
+    val startTrackCommand = buildCommand(cmdId, Trace.UserOptions.TraceType.PERFETTO)
     val returnValue = commandHandler.execute(startTrackCommand)
     Truth.assertThat(returnValue.commandId).isEqualTo(cmdId)
     val captor = ArgumentCaptor.forClass(String::class.java)
@@ -141,7 +141,7 @@ class CpuTraceInterceptCommandHandlerTest {
     return commandHandler
   }
 
-  fun buildCommand(cmdId: Int, traceType: Trace.TraceType) = Commands.Command.newBuilder().apply {
+  fun buildCommand(cmdId: Int, traceType: Trace.UserOptions.TraceType) = Commands.Command.newBuilder().apply {
     type = Commands.Command.CommandType.START_CPU_TRACE
     commandId = cmdId
     startCpuTrace = Cpu.StartCpuTrace.newBuilder().apply {

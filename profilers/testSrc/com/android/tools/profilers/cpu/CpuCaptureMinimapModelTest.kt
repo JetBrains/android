@@ -50,7 +50,7 @@ class CpuCaptureMinimapModelTest {
   fun selectionRangeIsBoundByCaptureRange() {
     val mockCapture = Mockito.mock(SystemTraceCpuCapture::class.java)
     whenever(mockCapture.range).thenReturn(Range(1.0, 10.0))
-    whenever(mockCapture.type).thenReturn(Trace.TraceType.ATRACE)
+    whenever(mockCapture.type).thenReturn(Trace.UserOptions.TraceType.ATRACE)
     whenever(mockCapture.timeline).thenReturn(DefaultTimeline())
 
     val minimapModel = CpuCaptureMinimapModel(profilers, mockCapture, Range())
@@ -65,7 +65,7 @@ class CpuCaptureMinimapModelTest {
     timeline.viewRange.set(1.0,5.0)
     val mockCapture = Mockito.mock(SystemTraceCpuCapture::class.java)
     whenever(mockCapture.range).thenReturn(Range(1.0, 10.0))
-    whenever(mockCapture.type).thenReturn(Trace.TraceType.PERFETTO)
+    whenever(mockCapture.type).thenReturn(Trace.UserOptions.TraceType.PERFETTO)
     whenever(mockCapture.timeline).thenReturn(timeline)
 
     val minimapModel = CpuCaptureMinimapModel(profilers, mockCapture, Range())

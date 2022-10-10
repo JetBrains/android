@@ -352,7 +352,7 @@ class SystemTraceCpuCaptureBuilderTest {
     override fun getDanglingThread(tid: Int): ThreadModel? = danglingThreads[tid]
     override fun getCpuCores(): List<CpuCoreModel> = cpuCores
 
-    override fun getSystemTraceTechnology() = Trace.TraceType.UNSPECIFIED_TYPE
+    override fun getSystemTraceTechnology() = Trace.UserOptions.TraceType.UNSPECIFIED_TYPE
     override fun isCapturePossibleCorrupted() = false
     override fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer> = emptyList()
     override fun getAndroidFrameTimelineEvents(): List<AndroidFrameTimelineEvent> = timelineEvents

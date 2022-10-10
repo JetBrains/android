@@ -46,7 +46,7 @@ interface SystemTraceModelAdapter {
 
   fun getCpuCores(): List<CpuCoreModel>
 
-  fun getSystemTraceTechnology(): Trace.TraceType
+  fun getSystemTraceTechnology(): Trace.UserOptions.TraceType
 
   /**
    * @return true if there is potentially missing data from the capture.

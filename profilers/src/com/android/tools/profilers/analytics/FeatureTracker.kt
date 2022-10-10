@@ -19,7 +19,7 @@ import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.SessionMetaData
-import com.android.tools.profiler.proto.Trace.TraceType
+import com.android.tools.profiler.proto.Trace.UserOptions.TraceType
 import com.android.tools.profilers.analytics.energy.EnergyEventMetadata
 import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata
 import com.android.tools.profilers.cpu.CpuCaptureMetadata

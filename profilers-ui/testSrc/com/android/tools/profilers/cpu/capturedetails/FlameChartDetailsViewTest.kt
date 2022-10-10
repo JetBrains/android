@@ -81,7 +81,7 @@ class FlameChartDetailsViewTest {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
 
     val traceFile = resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_PID1_PATH).toFile()
-    val atraceCapture = parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, Trace.TraceType.ATRACE, 1, null).get()
+    val atraceCapture = parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, Trace.UserOptions.TraceType.ATRACE, 1, null).get()
 
     val flameChart = CaptureDetails.Type.FLAME_CHART.build(ClockType.GLOBAL, Range(Double.MIN_VALUE, Double.MAX_VALUE),
                                                            listOf(atraceCapture.getCaptureNode(atraceCapture.mainThreadId)!!),

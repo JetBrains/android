@@ -28,7 +28,7 @@ import org.junit.Test
 class BaseCpuCaptureTest {
   @Test
   fun updateClockType() {
-    val capture = BaseCpuCapture(42, Trace.TraceType.ART, Range(0.0, 1.0), CAPTURE_TREES)
+    val capture = BaseCpuCapture(42, Trace.UserOptions.TraceType.ART, Range(0.0, 1.0), CAPTURE_TREES)
     assertClockType(capture.captureNodes, ClockType.GLOBAL)
     capture.updateClockType(ClockType.THREAD)
     assertClockType(capture.captureNodes, ClockType.THREAD)
@@ -46,7 +46,7 @@ class BaseCpuCaptureTest {
         addChild(CaptureNode(SingleNameModel("bar")))
       }
     )
-    val capture = BaseCpuCapture(42, Trace.TraceType.SIMPLEPERF, true, null, Range(0.0, 1.0), captureTrees,
+    val capture = BaseCpuCapture(42, Trace.UserOptions.TraceType.SIMPLEPERF, true, null, Range(0.0, 1.0), captureTrees,
                                  setOf("path"))
     assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data is NoSymbolModel)
     capture.collapseNodesWithTags(setOf("path"))

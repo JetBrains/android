@@ -132,7 +132,7 @@ class CaptureDetailsTest {
     // the program in an irrelevant way.
     val cpuCapture = object : CpuCapture {
       override fun getTraceId(): Long = TODO()
-      override fun getType(): Trace.TraceType = TODO()
+      override fun getType(): Trace.UserOptions.TraceType = TODO()
       override fun getTimeline(): Timeline = TODO()
       override fun isDualClock(): Boolean= TODO()
       override fun getDualClockDisabledMessage(): String = TODO()

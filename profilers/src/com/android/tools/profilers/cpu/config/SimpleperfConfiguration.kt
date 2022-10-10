@@ -36,8 +36,8 @@ class SimpleperfConfiguration(name: String) : ProfilingConfiguration(name) {
       .setSamplingIntervalUs(profilingSamplingIntervalUs)
   }
 
-  override fun getTraceType(): Trace.TraceType {
-    return Trace.TraceType.SIMPLEPERF
+  override fun getTraceType(): Trace.UserOptions.TraceType {
+    return Trace.UserOptions.TraceType.SIMPLEPERF
   }
 
   override fun getRequiredDeviceLevel(): Int {

@@ -62,10 +62,10 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     // in pre-O devices.
     return when (command.type) {
       Commands.Command.CommandType.START_CPU_TRACE -> {
-        command.startCpuTrace.configuration.userOptions.traceType == Trace.TraceType.ART
+        command.startCpuTrace.configuration.userOptions.traceType == Trace.UserOptions.TraceType.ART
       }
       Commands.Command.CommandType.STOP_CPU_TRACE -> {
-        command.stopCpuTrace.configuration.userOptions.traceType == Trace.TraceType.ART
+        command.stopCpuTrace.configuration.userOptions.traceType == Trace.UserOptions.TraceType.ART
       }
       else -> false
     }
@@ -83,7 +83,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
   private fun startTrace(command: Commands.Command) {
     val traceConfiguration = command.startCpuTrace.configuration
     val userOptions = traceConfiguration.userOptions
-    assert(userOptions.traceType == Trace.TraceType.ART)
+    assert(userOptions.traceType == Trace.UserOptions.TraceType.ART)
 
     val pid = command.pid
     val appPkgName = device.getClientName(pid)
@@ -171,7 +171,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
   private fun stopTrace(command: Commands.Command) {
     val traceConfiguration = command.stopCpuTrace.configuration
     val userOptions = traceConfiguration.userOptions
-    assert(userOptions.traceType == Trace.TraceType.ART)
+    assert(userOptions.traceType == Trace.UserOptions.TraceType.ART)
 
     val pid = command.pid
     val appPkgName = device.getClientName(pid)

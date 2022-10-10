@@ -194,7 +194,7 @@ public class SimpleperfTraceParser implements TraceParser {
   public CpuCapture parse(@NotNull File trace, long traceId) throws IOException {
     parseTraceFile(trace);
     parseSampleData();
-    return new BaseCpuCapture(traceId, Trace.TraceType.SIMPLEPERF,
+    return new BaseCpuCapture(traceId, Trace.UserOptions.TraceType.SIMPLEPERF,
                               isThreadTimeSupported(), isThreadTimeSupported() ? null : DUAL_CLOCK_DISABLED_MESSAGE,
                               myCaptureRange, getCaptureTrees(), myTags);
   }

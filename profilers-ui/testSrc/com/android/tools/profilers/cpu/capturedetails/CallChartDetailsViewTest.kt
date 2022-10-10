@@ -85,7 +85,7 @@ class CallChartDetailsViewTest {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
 
     val traceFile = resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_PID1_PATH).toFile()
-    val aTraceCapture = parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, Trace.TraceType.ATRACE, 1, null).get()
+    val aTraceCapture = parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, Trace.UserOptions.TraceType.ATRACE, 1, null).get()
 
     val callChart = CaptureDetails.Type.CALL_CHART.build(ClockType.GLOBAL, Range(Double.MIN_VALUE, Double.MAX_VALUE),
                                                          listOf(aTraceCapture.getCaptureNode(aTraceCapture.mainThreadId)!!),

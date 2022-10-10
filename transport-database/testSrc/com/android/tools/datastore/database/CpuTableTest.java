@@ -123,7 +123,7 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
         .newBuilder().setTraceId(startTime)
         .setConfiguration(Trace.TraceConfiguration.newBuilder()
                             .setUserOptions(Trace.UserOptions.newBuilder()
-                                              .setTraceType(Trace.TraceType.ART)
+                                              .setTraceType(Trace.UserOptions.TraceType.ART)
                                               .setTraceMode(Trace.TraceMode.SAMPLED)))
         .setFromTimestamp(startTime).setToTimestamp(startTime + 1)
         .build();

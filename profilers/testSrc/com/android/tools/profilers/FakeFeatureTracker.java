@@ -60,9 +60,9 @@ public final class FakeFeatureTracker implements FeatureTracker {
   private FilterMetadata myLastFilterMetadata;
 
   /**
-   * Stores the last {@link Trace.TraceType} passed to the tracker.
+   * Stores the last {@link Trace.UserOptions.TraceType} passed to the tracker.
    */
-  public Trace.TraceType myLastCpuTraceType;
+  public Trace.UserOptions.TraceType myLastCpuTraceType;
 
   /**
    * Whether the last import trace was tracked as success.
@@ -267,12 +267,12 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackImportTrace(@NotNull Trace.TraceType profilerType, boolean success) {
+  public void trackImportTrace(@NotNull Trace.UserOptions.TraceType profilerType, boolean success) {
     myLastCpuTraceType = profilerType;
     myLastImportTraceSucceeded = success;
   }
 
-  public Trace.TraceType getLastCpuTraceType() {
+  public Trace.UserOptions.TraceType getLastCpuTraceType() {
     return myLastCpuTraceType;
   }
 

@@ -323,18 +323,18 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     myShouldProceedYesNoDialog = shouldProceedYesNoDialog;
   }
 
-  public void addCustomProfilingConfiguration(String name, Trace.TraceType type) {
+  public void addCustomProfilingConfiguration(String name, Trace.UserOptions.TraceType type) {
     ProfilingConfiguration config;
-    if (type == Trace.TraceType.ART) {
+    if (type == Trace.UserOptions.TraceType.ART) {
       config = new ArtSampledConfiguration(name);
     }
-    else if (type == Trace.TraceType.SIMPLEPERF) {
+    else if (type == Trace.UserOptions.TraceType.SIMPLEPERF) {
       config = new SimpleperfConfiguration(name);
     }
-    else if (type == Trace.TraceType.PERFETTO) {
+    else if (type == Trace.UserOptions.TraceType.PERFETTO) {
       config = new PerfettoConfiguration(name);
     }
-    else if (type == Trace.TraceType.ATRACE) {
+    else if (type == Trace.UserOptions.TraceType.ATRACE) {
       config = new AtraceConfiguration(name);
     }
     else {

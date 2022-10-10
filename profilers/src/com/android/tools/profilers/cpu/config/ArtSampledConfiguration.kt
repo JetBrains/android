@@ -39,8 +39,8 @@ class ArtSampledConfiguration(name: String) : ProfilingConfiguration(name) {
       .setSamplingIntervalUs(profilingSamplingIntervalUs)
   }
 
-  override fun getTraceType(): Trace.TraceType {
-    return Trace.TraceType.ART
+  override fun getTraceType(): Trace.UserOptions.TraceType {
+    return Trace.UserOptions.TraceType.ART
   }
 
   override fun getRequiredDeviceLevel(): Int {

@@ -353,7 +353,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackImportTrace(@NotNull Trace.TraceType profilerType, boolean success) {
+  public void trackImportTrace(@NotNull Trace.UserOptions.TraceType profilerType, boolean success) {
     CpuImportTraceMetadata.Builder metadata = CpuImportTraceMetadata.newBuilder();
     metadata.setImportStatus(success ? CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_SUCCESS
                                      : CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_FAILURE);
@@ -1054,7 +1054,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
             CPU_CAPTURE_STATUS_MAP.getOrDefault(myCpuCaptureMetadata.getStatus(), CpuCaptureMetadata.CaptureStatus.SUCCESS));
 
         captureMetadata.setProfilingConfig(toStatsCpuProfilingConfig(myCpuCaptureMetadata.getProfilingConfiguration()));
-        if (myCpuCaptureMetadata.getProfilingConfiguration().getTraceType() == Trace.TraceType.ART) {
+        if (myCpuCaptureMetadata.getProfilingConfiguration().getTraceType() == Trace.UserOptions.TraceType.ART) {
           captureMetadata.setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC);
         }
         profilerEvent.setCpuCaptureMetadata(captureMetadata);

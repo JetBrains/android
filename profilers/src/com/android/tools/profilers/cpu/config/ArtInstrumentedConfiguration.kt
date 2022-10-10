@@ -37,8 +37,8 @@ class ArtInstrumentedConfiguration(name: String) : ProfilingConfiguration(name) 
       .setBufferSizeInMb(profilingBufferSizeInMb)
   }
 
-  override fun getTraceType(): Trace.TraceType {
-    return Trace.TraceType.ART
+  override fun getTraceType(): Trace.UserOptions.TraceType {
+    return Trace.UserOptions.TraceType.ART
   }
 
   override fun getRequiredDeviceLevel(): Int {

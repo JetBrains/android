@@ -141,7 +141,7 @@ class SessionsViewTest {
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setUserOptions(
                             Trace.UserOptions.newBuilder()
-                              .setTraceType(Trace.TraceType.SIMPLEPERF)))
+                              .setTraceType(Trace.UserOptions.TraceType.SIMPLEPERF)))
       .setFromTimestamp(cpuTraceTimestamp)
       .setToTimestamp(cpuTraceTimestamp + 1)
       .build()
@@ -408,7 +408,7 @@ class SessionsViewTest {
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setUserOptions(
                             Trace.UserOptions.newBuilder()
-                              .setTraceType(Trace.TraceType.ART)
+                              .setTraceType(Trace.UserOptions.TraceType.ART)
                               .setTraceMode(Trace.TraceMode.SAMPLED)))
       .setFromTimestamp(20)
       .setToTimestamp(21)
@@ -555,7 +555,7 @@ class SessionsViewTest {
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setUserOptions(
                             Trace.UserOptions.newBuilder()
-                              .setTraceType(Trace.TraceType.ART)
+                              .setTraceType(Trace.UserOptions.TraceType.ART)
                               .setTraceMode(Trace.TraceMode.SAMPLED)))
       .build()
 
@@ -629,7 +629,7 @@ class SessionsViewTest {
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setUserOptions(
                             Trace.UserOptions.newBuilder()
-                              .setTraceType(Trace.TraceType.ATRACE)
+                              .setTraceType(Trace.UserOptions.TraceType.ATRACE)
                               .setTraceMode(Trace.TraceMode.INSTRUMENTED)))
       .setFromTimestamp(sessionStartNs + 1)
       .setToTimestamp(-1)

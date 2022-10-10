@@ -80,22 +80,22 @@ public class CaptureNodeModelRendererVisualTest extends VisualTest {
   }
 
   private static CaptureNode parseArtTraceAndGetHNode() {
-    return parseTraceAndGetHNode("cpu_trace.trace", "main", Trace.TraceType.ART);
+    return parseTraceAndGetHNode("cpu_trace.trace", "main", Trace.UserOptions.TraceType.ART);
   }
 
   private static CaptureNode parseSimpleperfTraceAndGetHNode() {
-    return parseTraceAndGetHNode("simpleperf_trace.trace", "splayingbitmaps", Trace.TraceType.SIMPLEPERF);
+    return parseTraceAndGetHNode("simpleperf_trace.trace", "splayingbitmaps", Trace.UserOptions.TraceType.SIMPLEPERF);
   }
 
   private static CaptureNode parseTraceAndGetHNode(String traceFile, String nodeName,
-                                                   Trace.TraceType profilerType) {
+                                                   Trace.UserOptions.TraceType profilerType) {
     File file = TestUtils.resolveWorkspacePath(TEST_RESOURCE_DIR + traceFile).toFile();
     TraceParser parser;
     int traceId = 20;
-    if (profilerType == Trace.TraceType.ART) {
+    if (profilerType == Trace.UserOptions.TraceType.ART) {
       parser = new ArtTraceParser();
     }
-    else if (profilerType == Trace.TraceType.SIMPLEPERF) {
+    else if (profilerType == Trace.UserOptions.TraceType.SIMPLEPERF) {
       parser = new SimpleperfTraceParser();
     }
     else {

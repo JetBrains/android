@@ -24,8 +24,8 @@ import com.android.tools.profiler.proto.Trace
 open class UnspecifiedConfiguration(name: String) : ProfilingConfiguration(name) {
   override fun buildUserOptions(): Trace.UserOptions.Builder = Trace.UserOptions.newBuilder()
 
-  override fun getTraceType(): Trace.TraceType {
-    return Trace.TraceType.UNSPECIFIED_TYPE
+  override fun getTraceType(): Trace.UserOptions.TraceType {
+    return Trace.UserOptions.TraceType.UNSPECIFIED_TYPE
   }
 
   override fun getRequiredDeviceLevel(): Int {

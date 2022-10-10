@@ -32,7 +32,7 @@ class ProfilingConfigurationTest {
     val proto = Trace.UserOptions.newBuilder()
       .setName("MyConfiguration")
       .setTraceMode(Trace.TraceMode.SAMPLED)
-      .setTraceType(Trace.TraceType.ART)
+      .setTraceType(Trace.UserOptions.TraceType.ART)
       .setSamplingIntervalUs(123)
       .setBufferSizeInMb(12)
       .build()
@@ -41,7 +41,7 @@ class ProfilingConfigurationTest {
     val art = config as ArtSampledConfiguration
     assertThat(config.name).isEqualTo("MyConfiguration")
     assertThat(config).isInstanceOf(ArtSampledConfiguration::class.java)
-    assertThat(config.traceType).isEqualTo(Trace.TraceType.ART)
+    assertThat(config.traceType).isEqualTo(Trace.UserOptions.TraceType.ART)
     assertThat(config.profilingSamplingIntervalUs).isEqualTo(123)
     assertThat(config.profilingBufferSizeInMb).isEqualTo(12)
   }
@@ -55,7 +55,7 @@ class ProfilingConfigurationTest {
 
     assertThat(proto.name).isEqualTo("MyConfiguration")
     assertThat(proto.traceMode).isEqualTo(Trace.TraceMode.SAMPLED)
-    assertThat(proto.traceType).isEqualTo(Trace.TraceType.SIMPLEPERF)
+    assertThat(proto.traceType).isEqualTo(Trace.UserOptions.TraceType.SIMPLEPERF)
     assertThat(proto.samplingIntervalUs).isEqualTo(1234)
   }
 }

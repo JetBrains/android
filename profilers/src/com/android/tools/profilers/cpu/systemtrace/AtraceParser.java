@@ -42,7 +42,7 @@ public class AtraceParser implements TraceParser {
 
   // This should be always ATRACE or PERFETTO and is needed so the CpuCapture returned can contain the correct type.
   @NotNull
-  private final Trace.TraceType myCpuTraceType;
+  private final Trace.UserOptions.TraceType myCpuTraceType;
 
   /**
    * For testing purposes, when we don't care about which process in going to be selected as the main one.
@@ -56,16 +56,16 @@ public class AtraceParser implements TraceParser {
    * This constructor assumes we don't know which process we want to focus on and will use the passed {@code processSelector} to find it.
    */
   public AtraceParser(@NotNull MainProcessSelector processSelector) {
-    this(Trace.TraceType.ATRACE, processSelector);
+    this(Trace.UserOptions.TraceType.ATRACE, processSelector);
   }
 
   /**
    * This constructor allow us to override the TraceType, for when we want to parse Perfetto traces using Trebuchet.
    * It also assumes we don't know which process we want to focus on and will use the passed {@code processSelector} to find it.
    */
-  public AtraceParser(@NotNull Trace.TraceType type, @NotNull MainProcessSelector processSelector) {
+  public AtraceParser(@NotNull Trace.UserOptions.TraceType type, @NotNull MainProcessSelector processSelector) {
     this.processSelector = processSelector;
-    Preconditions.checkArgument(type == Trace.TraceType.ATRACE || type == Trace.TraceType.PERFETTO,
+    Preconditions.checkArgument(type == Trace.UserOptions.TraceType.ATRACE || type == Trace.UserOptions.TraceType.PERFETTO,
                                 "type must be ATRACE or PERFETTO.");
     myCpuTraceType = type;
   }
@@ -93,10 +93,10 @@ public class AtraceParser implements TraceParser {
    */
   private SystemTraceModelAdapter parseToModel(@NotNull File file) throws IOException {
     TrebuchetBufferProducer producer;
-    if (myCpuTraceType == Trace.TraceType.ATRACE) {
+    if (myCpuTraceType == Trace.UserOptions.TraceType.ATRACE) {
       producer = new AtraceProducer();
     }
-    else if (myCpuTraceType == Trace.TraceType.PERFETTO){
+    else if (myCpuTraceType == Trace.UserOptions.TraceType.PERFETTO){
       producer = new PerfettoProducer();
     } else {
       throw new IllegalStateException("Trying to parse something that is not ATRACE nor PERFETTO.");

@@ -85,7 +85,7 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
     // We only check perfetto traces.
     return when (command.type) {
       Commands.Command.CommandType.START_CPU_TRACE -> {
-        command.startCpuTrace.configuration.userOptions.traceType == Trace.TraceType.PERFETTO
+        command.startCpuTrace.configuration.userOptions.traceType == Trace.UserOptions.TraceType.PERFETTO
       }
       // The overhead of enabling the SDK tracing is minimal, we do not need to issue
       // a broadcast to disable it.

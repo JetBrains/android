@@ -40,6 +40,6 @@ public class ArtTraceParser implements TraceParser {
       myTraceHandler.getStartTimeUs(),
       myTraceHandler.getStartTimeUs() + myTraceHandler.getElapsedTimeUs());
     // ART traces always support dual clock mode.
-    return new BaseCpuCapture(traceId, Trace.TraceType.ART, true, null, range, myTraceHandler.getThreadsGraph());
+    return new BaseCpuCapture(traceId, Trace.UserOptions.TraceType.ART, true, null, range, myTraceHandler.getThreadsGraph());
   }
 }

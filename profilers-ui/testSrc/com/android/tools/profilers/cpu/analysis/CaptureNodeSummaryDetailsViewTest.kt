@@ -61,7 +61,7 @@ class CaptureNodeSummaryDetailsViewTest {
       startGlobal = TimeUnit.SECONDS.toMicros(10)
       endGlobal = TimeUnit.SECONDS.toMicros(20)
     }
-    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, Double.MAX_VALUE), Trace.TraceType.PERFETTO).apply {
+    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, Double.MAX_VALUE), Trace.UserOptions.TraceType.PERFETTO).apply {
       dataSeries.add(CaptureNodeAnalysisModel(captureNode, Mockito.mock(CpuCapture::class.java), Utils::runOnUi))
     }
     val view = CaptureNodeSummaryDetailsView(profilersView, model)

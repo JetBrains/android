@@ -55,7 +55,7 @@ public class CpuTraceInfo implements ConfigurableDurationData {
   }
 
   @NotNull
-  public Trace.TraceType getTraceType() {
+  public Trace.UserOptions.TraceType getTraceType() {
     return myInfo.getConfiguration().getUserOptions().getTraceType();
   }
 

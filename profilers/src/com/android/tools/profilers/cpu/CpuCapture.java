@@ -40,7 +40,7 @@ public interface CpuCapture extends ConfigurableDurationData {
    * Returns the underlying method/technology used to produce this capture.
    */
   @NotNull
-  Trace.TraceType getType();
+  Trace.UserOptions.TraceType getType();
 
   /**
    * Returns the timeline associated with this CpuCapture, which includes the data & view ranges.

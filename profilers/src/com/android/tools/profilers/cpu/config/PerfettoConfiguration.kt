@@ -24,8 +24,8 @@ import com.android.tools.profiler.proto.Trace
  * Exposed properties only from {@link AtraceConfiguration}
  */
 class PerfettoConfiguration(name: String) : AtraceConfiguration(name) {
-  override fun getTraceType(): Trace.TraceType {
-    return Trace.TraceType.PERFETTO
+  override fun getTraceType(): Trace.UserOptions.TraceType {
+    return Trace.UserOptions.TraceType.PERFETTO
   }
 
   override fun getRequiredDeviceLevel(): Int {
