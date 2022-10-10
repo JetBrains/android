@@ -202,7 +202,12 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
       for (device in devices) {
         val selected = current != null && current.id == device.id
         val avdDisplayName = "AVD: " + device.displayName
-        add(DeviceMenuAction.SetAvdAction(renderContext, { updatePresentation(it) }, device, avdDisplayName, selected))
+        add(DeviceMenuAction.SetAvdAction(renderContext,
+                                          { updatePresentation(it) },
+                                          deviceChangeListener,
+                                          device,
+                                          avdDisplayName,
+                                          selected))
       }
       addSeparator()
     }

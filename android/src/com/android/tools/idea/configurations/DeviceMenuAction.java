@@ -265,7 +265,7 @@ public class DeviceMenuAction extends DropDownAction {
         boolean selected = current != null && current.getId().equals(device.getId());
 
         String avdDisplayName = "AVD: " + device.getDisplayName();
-        add(new SetAvdAction(myRenderContext, this::updatePresentation, device, avdDisplayName, selected));
+        add(new SetAvdAction(myRenderContext, this::updatePresentation, myDeviceChangeListener, device, avdDisplayName, selected));
       }
       addSeparator();
     }
@@ -544,13 +544,17 @@ public class DeviceMenuAction extends DropDownAction {
     @NotNull private final Device myAvdDevice;
     private final boolean mySelected;
 
+    @NotNull protected final DeviceChangeListener myDeviceChangeListener;
+
     public SetAvdAction(@NotNull ConfigurationHolder renderContext,
                         @Nullable Consumer<Presentation> updatePresentationCallback,
+                        @NotNull DeviceChangeListener deviceChangeListener,
                         @NotNull Device avdDevice,
                         @NotNull String displayName,
                         final boolean select) {
       super(renderContext, displayName);
       myUpdatePresentationCallback = updatePresentationCallback;
+      myDeviceChangeListener = deviceChangeListener;
       myAvdDevice = avdDevice;
       mySelected = select;
     }
@@ -572,6 +576,7 @@ public class DeviceMenuAction extends DropDownAction {
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
       // TODO: force set orientation for virtual wear os device
       configuration.setDevice(myAvdDevice, false);
+      myDeviceChangeListener.onDeviceChanged(configuration.getCachedDevice(), myAvdDevice);
     }
   }
 
