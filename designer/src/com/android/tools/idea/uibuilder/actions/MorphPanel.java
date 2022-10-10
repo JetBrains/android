@@ -72,10 +72,10 @@ public class MorphPanel extends JPanel {
     setFocusable(true);
     myOkButton.addActionListener(e -> doOkAction());
     setupTextTagField(oldTag);
-    setupButtonList(tagSuggestions);
+    setupButtonList(tagSuggestions, oldTag);
   }
 
-  private void setupButtonList(List<String> suggestions) {
+  private void setupButtonList(List<String> suggestions, @NotNull String oldTag) {
     DefaultListModel<Palette.Item> model = new DefaultListModel<>();
     ViewHandlerManager manager = ViewHandlerManager.get(myProject);
     for (String tagSuggestion: suggestions) {
@@ -97,7 +97,13 @@ public class MorphPanel extends JPanel {
     }));
     mySuggestionsList.setBackground(getBackground().brighter());
     mySuggestionsList.setVisibleRowCount(5);
-    mySuggestionsList.setSelectedIndex(0);
+    int oldTagPos = suggestions.indexOf(oldTag);
+    if (oldTagPos > -1) {
+      mySuggestionsList.setSelectedIndex(oldTagPos);
+    } else {
+      myNewTagText.setText(suggestions.get(0));
+      mySuggestionsList.setSelectedIndex(0);
+    }
     mySuggestionsList.addListSelectionListener(e -> {
       String tag = mySuggestionsList.getSelectedValue().getTagName();
       myNewTagText.setText(tag);
