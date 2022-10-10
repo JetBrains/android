@@ -456,11 +456,11 @@ internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<Sc
       for (sceneViewPeerPanel in sceneViewPeerPanels) {
         val positionable = sceneViewPeerPanel.positionableAdapter
         val size = positionable.getScaledContentSize(reusableDimension)
-        val hasRenderErrors = sceneViewPeerPanel.sceneView.hasRenderErrors()
+        val renderErrorPanel = sceneViewPeerPanel.sceneView.surface.shouldRenderErrorsPanel() && sceneViewPeerPanel.sceneView.hasRenderErrors()
         @SwingCoordinate
-        val right = positionable.x + if (hasRenderErrors) sceneViewPeerPanel.sceneViewCenterPanel.preferredSize.width else size.width
+        val right = positionable.x + if (renderErrorPanel) sceneViewPeerPanel.sceneViewCenterPanel.preferredSize.width else size.width
         @SwingCoordinate
-        val bottom = positionable.y + if (hasRenderErrors) sceneViewPeerPanel.sceneViewCenterPanel.preferredSize.height else size.height
+        val bottom = positionable.y + if (renderErrorPanel) sceneViewPeerPanel.sceneViewCenterPanel.preferredSize.height else size.height
         // This finds the maximum allowed area for the screen views to paint into. See more details in the
         // ScanlineUtils.kt documentation.
         @SwingCoordinate var minX = findSmallerScanline(verticalRightScanLines, positionable.x, viewportBounds.x)
@@ -486,7 +486,7 @@ internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<Sc
         clipBounds.setBounds(minX, minY, maxX - minX, maxY - minY)
         g2d.clip = clipBounds
         // Only paint the scene view if it needs to be painted, otherwise the sceneViewCenterPanel will be painted instead.
-        if (!sceneViewPeerPanel.sceneView.surface.shouldRenderErrorsPanel() || !hasRenderErrors) {
+        if (!renderErrorPanel) {
           sceneViewPeerPanel.sceneView.paint(g2d)
         }
       }
