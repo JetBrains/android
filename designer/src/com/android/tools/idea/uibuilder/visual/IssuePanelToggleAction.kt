@@ -48,7 +48,8 @@ class IssuePanelToggleAction(val surface: NlDesignSurface) : ToggleAction(BUTTON
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    // TODO(b/184734874): figure out whether to hide the action or disable it when there are no issues
-    e.presentation.isVisible = surface.issueModel.hasIssues()
+    e.getData(PlatformDataKeys.PROJECT)?.let { project ->
+      e.presentation.isVisible = IssuePanelService.getInstance(project).getSharedPanelIssues()?.size != 0
+    }
   }
 }
