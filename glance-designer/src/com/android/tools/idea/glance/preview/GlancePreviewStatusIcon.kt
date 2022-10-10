@@ -33,11 +33,11 @@ import org.jetbrains.annotations.VisibleForTesting
 val PREVIEW_VIEW_MODEL_STATUS = DataKey.create<PreviewViewModelStatus>("PreviewViewModelStatus")
 
 /** [AnAction] that can be used to show an icon according to the [PreviewViewModelStatus]. */
-internal class GlancePreviewStatusIcon(private val sceneView: SceneView?) : AnAction() {
+internal class GlancePreviewStatusIcon(private val sceneView: SceneView) : AnAction() {
   override fun update(e: AnActionEvent) {
-    val previewViewModelStatus = e.getData(PREVIEW_VIEW_MODEL_STATUS) ?: return
+    val previewViewModelStatus = e.getData(PREVIEW_VIEW_MODEL_STATUS)
     e.presentation.apply {
-      if (sceneView?.hasRenderErrors() == true && !previewViewModelStatus.isRefreshing) {
+      if (sceneView.hasRenderErrors() && previewViewModelStatus?.isRefreshing == false) {
         isVisible = true
         isEnabled = true
         icon = StudioIcons.Common.WARNING
