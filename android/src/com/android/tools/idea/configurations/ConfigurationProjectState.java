@@ -43,7 +43,12 @@ public class ConfigurationProjectState {
    * When this value is null, it means the last selected device is not a wear device.
    */
   @Nullable
-  private String myNonWearDeviceLastStateName;
+  private String myNonWearDeviceLastSelectedStateName;
+
+  /**
+   * True, if the last default orientation from the last selected non-wear-device is the default for the device.
+   */
+  private boolean myNonWearDeviceDefaultStateName;
 
   @NotNull
   @Property(surroundWithTag = false)
@@ -86,12 +91,17 @@ public class ConfigurationProjectState {
   }
 
   @Nullable
-  public String getNonWearDeviceLastStateName() {
-    return myNonWearDeviceLastStateName;
+  public String getNonWearDeviceLastSelectedStateName() {
+    return myNonWearDeviceLastSelectedStateName;
   }
 
-  public void setNonWearDeviceLastStateName(@Nullable String nonWearDeviceLastState) {
-    myNonWearDeviceLastStateName = nonWearDeviceLastState;
+  public boolean isNonWearDeviceDefaultStateName() {
+    return myNonWearDeviceDefaultStateName;
+  }
+
+  public void setNonWearDeviceLastSelectedStateName(@Nullable String nonWearDeviceLastState, boolean nonWearDeviceDefaultState) {
+    myNonWearDeviceLastSelectedStateName = nonWearDeviceLastState;
+    myNonWearDeviceDefaultStateName = nonWearDeviceDefaultState;
   }
 
   @Nullable

@@ -335,7 +335,7 @@ public class DeviceMenuAction extends DropDownAction {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       // Always disable, do nothing
     }
   }
@@ -405,40 +405,37 @@ public class DeviceMenuAction extends DropDownAction {
       // portrait orientation on a Nexus 4 (its default), and you switch to a Nexus 10, we jump to landscape orientation
       // (its default) unless of course there is a different layout that is the best fit for that device.
       Device prevDevice = configuration.getCachedDevice();
-      State prevState;
 
       ConfigurationProjectState projectState = configuration.getConfigurationManager().getStateManager().getProjectState();
-      String lastNonWearStateName = projectState.getNonWearDeviceLastStateName();
-      if (prevDevice != null && lastNonWearStateName != null) {
-        // Load last state of non-wear device.
-        prevState = prevDevice.getState(lastNonWearStateName);
+      String lastSelectedNonWearStateName = projectState.getNonWearDeviceLastSelectedStateName();
+      String newDefaultStateName = myDevice.getDefaultState().getName();
+      State wantedState = lastSelectedNonWearStateName != null ? getMatchingState(myDevice, lastSelectedNonWearStateName) : null;
+      String wantedStateName = wantedState != null ? wantedState.getName() : newDefaultStateName;
+      if (!wantedStateName.equals(newDefaultStateName) &&
+          projectState.isNonWearDeviceDefaultStateName() &&
+          !hasBetterMatchingLayoutFile(configuration, myDevice, newDefaultStateName)) {
+        wantedStateName = newDefaultStateName;
       }
-      else {
-        prevState = configuration.getDeviceState();
-      }
-      String newState = prevState != null ? prevState.getName() : null;
-      if (prevDevice != null && prevState != null && prevState.isDefaultState() &&
-          !myDevice.getDefaultState().getName().equals(prevState.getName()) &&
-          configuration.getEditedConfig().getScreenOrientationQualifier() == null) {
-        VirtualFile file = configuration.getFile();
-        if (file != null) {
-          String name = myDevice.getDefaultState().getName();
-          if (ConfigurationMatcher.getBetterMatch(configuration, myDevice, name, null, null) == null) {
-            newState = name;
-          }
-        }
-      }
-      // Save last state of non-wear device.
-      projectState.setNonWearDeviceLastStateName(newState);
 
-      if (newState != null) {
-        configuration.setDeviceStateName(newState);
-      }
       if (commit) {
         configuration.getConfigurationManager().selectDevice(myDevice);
       }
       configuration.setDevice(myDevice, true);
+      configuration.setDeviceState(getMatchingState(myDevice, wantedStateName));
       myDeviceChangeListener.onDeviceChanged(prevDevice, myDevice);
+    }
+
+    private boolean hasBetterMatchingLayoutFile(@NotNull Configuration configuration, @NotNull Device device, @NotNull String stateName) {
+      VirtualFile file = configuration.getFile();
+      if (file == null) {
+        return false;
+      }
+      return ConfigurationMatcher.getBetterMatch(configuration, device, stateName, null, null) != null;
+    }
+
+    @Nullable
+    private State getMatchingState(@NotNull Device device, @NotNull String stateName) {
+      return device.getAllStates().stream().filter(state -> state.getName().equalsIgnoreCase(stateName)).findFirst().orElse(null);
     }
 
     @NotNull
