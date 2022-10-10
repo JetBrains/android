@@ -631,6 +631,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public String getAndroidStudioVersion() {
     AboutAndroidStudioFixture aboutStudio = AboutAndroidStudioFixture.openAboutStudioDialog(this);
     String name = aboutStudio.getAndroidStudioVersion();
+    GuiTests.takeScreenshot(robot(), "AboutAndroidStudio");
     aboutStudio.clickCopy();
     return name;
   }

@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -29,6 +30,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.NewKotlinClassDialogFi
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
@@ -41,6 +43,7 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,7 +51,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class VerifyJavaKotlinXmlCodeStylesTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(11, TimeUnit.MINUTES);
 
   private IdeSettingsDialogFixture mySettingsDialog;
   private static String javaCodeLanguage = "Java";
@@ -95,14 +98,26 @@ public class VerifyJavaKotlinXmlCodeStylesTest {
                                                 "}\n";
   private static final Pattern ORDER_OF_VIEWS = Pattern.compile(
     "button.*button2.*editText.*LinearLayout.*button3.*button5.*button6", Pattern.DOTALL);
+  private File projectDir;
+  private IdeFrameFixture ideFrame;
+  private String projectName = "SimpleApplication";
 
   @Before
   public void setUp() throws Exception {
-    guiTest.withTimeout(7, TimeUnit.MINUTES);
-    guiTest.waitForBackgroundTasks();
+    projectDir = guiTest.setUpProject(projectName, null, null, null, null);
+    guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    ideFrame = guiTest.ideFrame();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+  }
+
+  @After
+  public void cleanUp() throws Exception {
+    ideFrame.requestFocusIfLost();
     guiTest.robot().waitForIdle();
-    guiTest.importSimpleApplication();
-    guiTest.robot().waitForIdle();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    ideFrame.clearNotificationsPresentOnIdeFrame();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
   /**
@@ -132,10 +147,12 @@ public class VerifyJavaKotlinXmlCodeStylesTest {
    *   </pre>
    * <p>
    */
+
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testModifyJavaCodeStyle() throws IOException, InterruptedException {
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     EditorFixture editor = ideFrame.getEditor();
 
     //Change tab size and indent for Java (only)
@@ -173,13 +190,14 @@ public class VerifyJavaKotlinXmlCodeStylesTest {
     testModifyCodeStyle(kotlincodeLanguage, oldTabSize, newTabSize, oldIndent, newIndent);
     applyNewSettings();
 
-
     //Verify new tab size and ident is applied to Kotlin class
     editor.open("/app/src/main/java/google/simpleapplication/Children.kt")
       .moveBetween("class Children {","")
       .enterText(origKotlinContent);
 
     assertEquals(expectedKotlinContent, editor.getCurrentFileContents());
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    GuiTests.takeScreenshot(ideFrame.robot(),"Test case testModifyJavaCodeStyle finished.");
   }
 
   /**
@@ -209,22 +227,24 @@ public class VerifyJavaKotlinXmlCodeStylesTest {
    *   </pre>
    * <p>
    */
+
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testXMlCodeStyleReformatting() throws IOException, InterruptedException {
-    EditorFixture editorFixture = guiTest.ideFrame().getEditor();
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    EditorFixture editorFixture = ideFrame.getEditor();
 
     // Update the XNL code Style.
     testModifyCodeStyle(xmlLanguage, oldTabSize, newTabSize, oldIndent, newIndent);
     changeXMLAndroidTabSettings();
     applyNewSettings();
 
-    guiTest.waitForBackgroundTasks();
-    guiTest.robot().waitForIdle();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     String currentFileContent = editorFixture.open("app/src/main/res/layout/absolute.xml",
                                                    EditorFixture.Tab.EDITOR)
       .getCurrentFileContents();
-
 
     //Verify the XML content
     assertThat(currentFileContent).contains("    <Button");
@@ -233,6 +253,8 @@ public class VerifyJavaKotlinXmlCodeStylesTest {
     //Verify the order of the Views
     assertThat(currentFileContent).containsMatch(ORDER_OF_VIEWS);
 
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    guiTest.ideFrame().requestFocusIfLost();
 
     // Apply Code Reformat
     Wait.seconds(2).expecting("Wait for code to be reformatted").until(() -> {
@@ -255,26 +277,29 @@ public class VerifyJavaKotlinXmlCodeStylesTest {
 
     //Verify the order of the Views are not changed after reformat is applied.
     assertThat(currentFileContent).containsMatch(ORDER_OF_VIEWS);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    GuiTests.takeScreenshot(ideFrame.robot(),"Test case testXMlCodeStyleReformatting finished.");
+
   }
-
-
 
   public void testModifyCodeStyle(String codeLanguage, String oldTabSize, String newTabSize, String oldIndent, String newIndent) throws
                                                                                                                                  IOException, InterruptedException {
-
     mySettingsDialog = guiTest
       .ideFrame()
-      .openIdeSettings()
-      .selectCodeStylePage(codeLanguage);
+      .openIdeSettings();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    mySettingsDialog.selectCodeStylePage(codeLanguage);
 
     guiTest.waitForBackgroundTasks();
     guiTest.robot().waitForIdle();
 
     mySettingsDialog.clickTab("Tabs and Indents");
 
-    mySettingsDialog.changeTextFieldContent("Tab size:", oldTabSize, newTabSize);
-    mySettingsDialog.changeTextFieldContent("Indent:", oldIndent, newIndent);
+    guiTest.waitForBackgroundTasks();
 
+    mySettingsDialog.changeTextFieldContent("Tab size:", oldTabSize, newTabSize);
+    guiTest.waitForBackgroundTasks();
+    mySettingsDialog.changeTextFieldContent("Indent:", oldIndent, newIndent);
   }
 
   public void applyNewSettings() {
@@ -302,13 +327,13 @@ public class VerifyJavaKotlinXmlCodeStylesTest {
 
   @NotNull
   private NewJavaClassDialogFixture invokeJavaClass(@NotNull IdeFrameFixture ideFrame) {
-    guiTest.ideFrame().invokeMenuPath("File", "New", "Java Class");
+    ideFrame.invokeMenuPath("File", "New", "Java Class");
     return NewJavaClassDialogFixture.find(ideFrame);
   }
 
   @NotNull
   private NewKotlinClassDialogFixture invokeKotlinClass(@NotNull IdeFrameFixture ideFrame) {
-    guiTest.ideFrame().invokeMenuPath("File", "New", "Kotlin Class/File");
+    ideFrame.invokeMenuPath("File", "New", "Kotlin Class/File");
     return NewKotlinClassDialogFixture.find(ideFrame);
   }
 
