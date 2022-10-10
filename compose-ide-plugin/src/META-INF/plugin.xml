@@ -27,6 +27,7 @@
     <storageComponentContainerContributor implementation="com.android.tools.compose.ComposableCallChecker"/>
     <storageComponentContainerContributor implementation="com.android.tools.compose.ComposableDeclarationChecker"/>
     <diagnosticSuppressor implementation="com.android.tools.compose.ComposeDiagnosticSuppressor"/>
+    <highlighterExtension implementation="com.android.tools.compose.ComposableHighlighterExtension"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -34,10 +35,7 @@
 
     <annotator language="kotlin" implementationClass="com.android.tools.compose.ComposeColorAnnotator"/>
 
-    <annotator
-        language="kotlin"
-        implementationClass="com.android.tools.compose.ComposableAnnotator"/>
-    <additionalTextAttributes scheme="Default" file="colorschemes/IdeComposableAnnotatorColorSchemeDefault.xml"/>
+    <additionalTextAttributes scheme="Default" file="colorschemes/ComposableHighlighterExtensionColorSchemeDefault.xml"/>
     <colorSettingsPage implementation="com.android.tools.compose.ComposeColorSettingsPage"/>
 
     <intentionAction>

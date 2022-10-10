@@ -1095,7 +1095,7 @@ class ComposableCallCheckerTest {
       """.trimIndent(),
       highlights
         .filter { (highlight, _) ->
-          highlight.severity == HighlightSeverity.INFORMATION && highlight.forcedTextAttributesKey == ComposableAnnotator.COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY
+          highlight.severity == HighlightSeverity.INFORMATION && highlight.forcedTextAttributesKey == ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY
         }
         .joinToString("\n") { (highlight, line) -> "${highlight.text}@$line" })
   }
