@@ -18,6 +18,8 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
+import com.android.tools.idea.rendering.RenderLogger
+import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -34,6 +36,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 
@@ -146,4 +149,40 @@ internal fun getRepresentationForFile(
 
   runBlocking { multiRepresentationPreview.onInit() }
   return multiRepresentationPreview.currentRepresentation!!
+}
+
+internal data class DebugStatus(
+  val status: ComposePreviewManager.Status,
+  val renderResult: List<RenderResult>,
+  private val loggerContents: String
+)
+
+private fun RenderLogger.toDebugString(): String {
+  val output = StringBuilder()
+
+  output.appendLine("-- Broken classes ---------")
+  brokenClasses.forEach { output.appendLine("${it.key}: ${it.value}") }
+  output.appendLine("---------------------------").appendLine()
+
+  output.appendLine("Messages")
+  messages.forEach { output.appendLine("[${it.severity}] ${it.html}\n${it.throwable}") }
+  output.appendLine("---------------------------").appendLine()
+
+  return output.toString()
+}
+
+/**
+ * Returns the [ComposePreviewManager.Status] and the internal [RenderResult]s so they can be used
+ * to testing.
+ */
+@TestOnly
+internal fun ComposePreviewRepresentation.debugStatusForTesting(): DebugStatus {
+  val renderResults =
+    surfaces().mapNotNull { it.sceneManager }.mapNotNull { it.renderResult }.toList()
+
+  return DebugStatus(
+    status(),
+    renderResults,
+    renderResults.joinToString { it.logger.toDebugString() }
+  )
 }

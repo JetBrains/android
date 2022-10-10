@@ -963,7 +963,7 @@ class ComposePreviewRepresentation(
         !isRefreshing && hasSyntaxErrors(),
         !isRefreshing && projectBuildStatusManager.status == ProjectStatus.OutOfDate,
         isRefreshing,
-        interactiveMode
+        interactiveMode,
       )
 
     // This allows us to display notifications synchronized with any other change detection. The
@@ -979,6 +979,9 @@ class ComposePreviewRepresentation(
 
     return newStatus
   }
+
+  /** Method for tests to access the surfaces managed by this [ComposePreviewRepresentation]. */
+  @TestOnly internal fun surfaces() = listOfNotNull(pinnedSurface, surface)
 
   /**
    * Method called when the notifications of the [PreviewRepresentation] need to be updated. This is
@@ -1089,8 +1092,10 @@ class ComposePreviewRepresentation(
     }
   }
 
-  fun requestRefresh(quickRefresh: Boolean = false) =
+  private fun requestRefresh(quickRefresh: Boolean = false) {
+    if (LOG.isDebugEnabled) LOG.debug("requestRefresh", Throwable())
     launch(workerThread) { refreshFlow.emit(RefreshRequest(quickRefresh)) }
+  }
 
   /**
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and
