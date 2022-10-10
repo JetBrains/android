@@ -92,6 +92,11 @@ fun TaskCategoryIssue.getWarningMessage(nonIncrementalAnnotationProcessors: List
 
         Consider switching to using an incremental annotation processor.
       """.trimIndent()
+    TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD -> """
+      Minification is enabled in debug variants.
+      Enabling minification has an impact on build time for debug variants. Consider disabling minification for
+      faster development flow.
+    """.trimIndent()
   }
 }
 fun TaskCategoryIssue.getLink(): BuildAnalyzerBrowserLinks? {
@@ -99,6 +104,7 @@ fun TaskCategoryIssue.getLink(): BuildAnalyzerBrowserLinks? {
     TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED -> null
     TaskCategoryIssue.RESOURCE_VALIDATION_ENABLED -> null
     TaskCategoryIssue.TEST_SHARDING_DISABLED -> null
+    TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD -> null
     TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED -> BuildAnalyzerBrowserLinks.NON_TRANSITIVE_R_CLASS
     TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED -> BuildAnalyzerBrowserLinks.RENDERSCRIPT_MIGRATE
     TaskCategoryIssue.AVOID_AIDL_UNNECESSARY_USE -> BuildAnalyzerBrowserLinks.AIDL_INFO
