@@ -31,7 +31,7 @@
 package com.android.tools.idea.gradle.project.upgrade.integration
 
 import com.android.testutils.junit4.OldAgpSuite
-import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.*
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.ALL_DEPRECATIONS
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.BASIC

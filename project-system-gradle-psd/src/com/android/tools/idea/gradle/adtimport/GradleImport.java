@@ -16,6 +16,37 @@
 
 package com.android.tools.idea.gradle.adtimport;
 
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.ATTR_PACKAGE;
+import static com.android.SdkConstants.DOT_AIDL;
+import static com.android.SdkConstants.DOT_FS;
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.DOT_JAVA;
+import static com.android.SdkConstants.DOT_JSON;
+import static com.android.SdkConstants.DOT_KT;
+import static com.android.SdkConstants.DOT_KTS;
+import static com.android.SdkConstants.DOT_PROPERTIES;
+import static com.android.SdkConstants.DOT_RS;
+import static com.android.SdkConstants.DOT_RSH;
+import static com.android.SdkConstants.DOT_TXT;
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.FD_RES;
+import static com.android.SdkConstants.FD_SOURCES;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.GRADLE_PLUGIN_NAME;
+import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_NDK;
+import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_SDK;
+import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
+import static com.android.xml.AndroidManifest.NODE_INSTRUMENTATION;
+import static com.google.common.base.Charsets.UTF_8;
+import static java.io.File.separator;
+import static java.io.File.separatorChar;
+
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
@@ -36,30 +67,30 @@ import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 import com.google.common.primitives.Bytes;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeMap;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_NDK;
-import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_SDK;
-import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
-import static com.android.xml.AndroidManifest.NODE_INSTRUMENTATION;
-import static com.google.common.base.Charsets.UTF_8;
-import static java.io.File.separator;
-import static java.io.File.separatorChar;
 
 /**
  * Importer which can generate Android Gradle projects.
@@ -881,7 +912,7 @@ public class GradleImport {
     if (!myCreateGradleWrapper) {
       return;
     }
-    GradleWrapper.create(destDir, GRADLE_LATEST_VERSION, null);
+    GradleWrapper.create(destDir, GradleWrapper.getGradleVersionToUse(), null);
     File gradlewDest = new File(destDir, FN_GRADLE_WRAPPER_UNIX);
     if (!gradlewDest.canExecute()) {
       reportWarning((ImportModule)null, gradlewDest, "Gradle wrapper script is not executable");

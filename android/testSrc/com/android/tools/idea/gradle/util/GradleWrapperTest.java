@@ -24,6 +24,9 @@ import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 import com.android.SdkConstants;
+import com.android.Version;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.project.ProjectStoreOwner;
@@ -116,6 +119,18 @@ public class GradleWrapperTest extends PlatformTestCase {
     Properties properties = getProperties(wrapperFilePath);
     String distributionUrl = properties.getProperty("distributionUrl");
     assertEquals("https://services.gradle.org/distributions/gradle-1.6-bin.zip", distributionUrl);
+  }
+
+  public void testAgpVersionToUse() {
+    String specifiedVersion = "7.2.0-alpha03";
+    StudioFlags.AGP_VERSION_TO_USE.override(specifiedVersion);
+
+    assertEquals(specifiedVersion, LatestKnownPluginVersionProvider.INSTANCE.get());
+    assertEquals("7.3.3", GradleWrapper.getGradleVersionToUse());
+
+    StudioFlags.AGP_VERSION_TO_USE.override("");
+    assertEquals(Version.ANDROID_GRADLE_PLUGIN_VERSION, LatestKnownPluginVersionProvider.INSTANCE.get());
+    assertEquals(SdkConstants.GRADLE_LATEST_VERSION, GradleWrapper.getGradleVersionToUse());
   }
 
   public void testUpdateDistributionUrlUpgradeGradleWrapper() throws IOException {

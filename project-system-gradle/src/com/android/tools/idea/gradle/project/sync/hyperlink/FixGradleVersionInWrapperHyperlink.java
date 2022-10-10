@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_WRAPPER_GRADLE_VERSION_FIXED;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -43,14 +41,15 @@ public class FixGradleVersionInWrapperHyperlink extends SyncIssueNotificationHyp
    * Creates a new {@link FixGradleVersionInWrapperHyperlink} if the given project is using the Gradle wrapper.
    *
    * @param project the given project.
-   * @param gradleVersion the version of Gradle to set. If {@code null}, this method will use {@link SdkConstants#GRADLE_LATEST_VERSION}.
+   * @param gradleVersion the version of Gradle to set. If {@code null}, this method will use
+   * {@link com.android.tools.idea.flags.StudioFlags#AGP_VERSION_TO_USE}.
    * @return the created hyperlink, or {@code null} if the project is not using the Gradle wrapper.
    */
   @Nullable
   public static SyncIssueNotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project, @Nullable String gradleVersion) {
     GradleWrapper gradleWrapper = GradleWrapper.find(project);
     if (gradleWrapper != null) {
-      String version = gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION;
+      String version = gradleVersion != null ? gradleVersion : GradleWrapper.getGradleVersionToUse();
       return new FixGradleVersionInWrapperHyperlink(gradleWrapper, version);
     }
     return null;

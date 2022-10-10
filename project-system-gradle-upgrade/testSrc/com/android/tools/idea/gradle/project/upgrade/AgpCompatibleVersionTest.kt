@@ -3,7 +3,7 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.google.common.truth.Expect
 import com.intellij.testFramework.LightPlatformTestCase
 import org.junit.Rule

@@ -27,7 +27,8 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByURL;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
-import com.android.SdkConstants;
+import com.android.ide.common.repository.AgpVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wizard.template.TemplateData;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -79,31 +80,17 @@ public final class GradleWrapper {
   }
 
   /**
-   * Creates the Gradle wrapper, using the latest supported version of Gradle, in the project at the given directory.
+   * Creates the Gradle wrapper in the project at the given directory.
    *
    * @param projectPath the project's root directory.
    * @param project     the project, if available, or null if this is not in the context of an existing project.
-   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created;
+   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created.
    * @throws IOException any unexpected I/O error.
-   * @see SdkConstants#GRADLE_LATEST_VERSION
-   */
-  @NotNull
-  public static GradleWrapper create(@NotNull VirtualFile projectPath, @Nullable Project project) throws IOException {
-    return create(projectPath, GRADLE_LATEST_VERSION, project);
-  }
-
-  /**
-   * Creates the Gradle wrapper, using the latest supported version of Gradle, in the project at the given directory.
-   *
-   * @param projectPath the project's root directory.
-   * @param project     the project, if available, or null if this is not in the context of an existing project.
-   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created;
-   * @throws IOException any unexpected I/O error.
-   * @see SdkConstants#GRADLE_LATEST_VERSION
+   * @see StudioFlags#AGP_VERSION_TO_USE
    */
   @NotNull
   public static GradleWrapper create(@NotNull File projectPath, @Nullable Project project) throws IOException {
-    return create(projectPath, GRADLE_LATEST_VERSION, project);
+    return create(projectPath, GradleWrapper.getGradleVersionToUse(), project);
   }
 
   /**
@@ -112,9 +99,8 @@ public final class GradleWrapper {
    * @param projectPath   the project's root directory.
    * @param gradleVersion the version of Gradle to use.
    * @param project       the project, if available, or null if this is not in the context of an existing project.
-   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created;
+   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created.
    * @throws IOException any unexpected I/O error.
-   * @see SdkConstants#GRADLE_LATEST_VERSION
    */
   @NotNull
   public static GradleWrapper create(@NotNull File projectPath, @NotNull String gradleVersion, @Nullable Project project)
@@ -130,9 +116,8 @@ public final class GradleWrapper {
    * @param projectPath   the project's root directory.
    * @param gradleVersion the version of Gradle to use.
    * @param project       the project, if available, or null if this is not in the context of an existing project.
-   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created;
+   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created.
    * @throws IOException any unexpected I/O error.
-   * @see SdkConstants#GRADLE_LATEST_VERSION
    */
   @NotNull
   public static GradleWrapper create(@NotNull VirtualFile projectPath,
@@ -231,6 +216,18 @@ public final class GradleWrapper {
     properties.setProperty(DISTRIBUTION_URL_PROPERTY, distributionUrl);
     saveProperties(properties, myPropertiesFilePath, myProject);
     return true;
+  }
+
+  public static String getGradleVersionToUse() {
+    String agpVersion = StudioFlags.AGP_VERSION_TO_USE.get();
+    if (agpVersion.isEmpty()) {
+      return GRADLE_LATEST_VERSION;
+    }
+
+    AgpVersion parsedVersion = AgpVersion.parse(agpVersion);
+    CompatibleGradleVersion gradleVersion = CompatibleGradleVersion.Companion.getCompatibleGradleVersion(parsedVersion);
+
+    return gradleVersion.getVersion().toString();
   }
 
   /**

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.model
 
-import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.io.CancellableFileIo
@@ -238,7 +237,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         val rootLocation = File(projectLocation.get())
         val wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(rootLocation)
         try {
-          GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(GRADLE_LATEST_VERSION)
+          GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(GradleWrapper.getGradleVersionToUse())
         }
         catch (e: IOException) {
           // Unlikely to happen. Continue with import, the worst-case scenario is that sync fails and the error message has a "quick fix".
