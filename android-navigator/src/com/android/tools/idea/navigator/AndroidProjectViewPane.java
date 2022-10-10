@@ -36,20 +36,17 @@ import com.intellij.facet.ProjectWideFacetListenersRegistry;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectViewSelectInTarget;
-import com.intellij.ide.projectView.BaseProjectTreeBuilder;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ProjectViewSettings;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.AbstractProjectViewPSIPane;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
+import com.intellij.ide.projectView.impl.AsyncProjectViewPane;
 import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase;
 import com.intellij.ide.projectView.impl.ProjectTreeStructure;
 import com.intellij.ide.projectView.impl.ProjectViewTree;
 import com.intellij.ide.projectView.impl.nodes.PackageElement;
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.ide.util.treeView.AbstractTreeUpdater;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -82,7 +79,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
+public class AndroidProjectViewPane extends AsyncProjectViewPane {
   // Note: This value is duplicated in ProjectViewImpl.java to set the default view to be the Android project view.
   public static final String ID = AndroidProjectView.ID;
 
@@ -190,24 +187,10 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     return new AndroidProjectTreeStructure(myProject, ID);
   }
 
-  @Nullable
-  @Override
-  protected BaseProjectTreeBuilder createBuilder(@NotNull DefaultTreeModel treeModel) {
-    return null;
-  }
-
   @NotNull
   @Override
   protected ProjectViewTree createTree(@NotNull final DefaultTreeModel treeModel) {
     return new MyProjectViewTree(treeModel);
-  }
-
-  @NotNull
-  @Override
-  protected AbstractTreeUpdater createTreeUpdater(@NotNull AbstractTreeBuilder treeBuilder) {
-    return new AbstractTreeUpdater(treeBuilder) {
-      // unique class to simplify search through the logs
-    };
   }
 
   @Override
