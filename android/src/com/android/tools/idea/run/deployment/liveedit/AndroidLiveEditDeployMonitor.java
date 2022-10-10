@@ -505,7 +505,7 @@ public class AndroidLiveEditDeployMonitor {
   }
 
   private void sendRecomposeRequests(IDevice device) {
-    LiveUpdateDeployer deployer = new LiveUpdateDeployer();
+    LiveUpdateDeployer deployer = new LiveUpdateDeployer(LOGGER);
     Installer installer = newInstaller(device);
     AdbClient adb = new AdbClient(device, LOGGER);
     deployer.recompose(installer, adb, applicationId);
@@ -514,7 +514,7 @@ public class AndroidLiveEditDeployMonitor {
 
   private List<LiveUpdateDeployer.UpdateLiveEditError> pushUpdatesToDevice(
       String applicationId, IDevice device, List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> updates) {
-    LiveUpdateDeployer deployer = new LiveUpdateDeployer();
+    LiveUpdateDeployer deployer = new LiveUpdateDeployer(LOGGER);
     Installer installer = newInstaller(device);
     AdbClient adb = new AdbClient(device, LOGGER);
 
