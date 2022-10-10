@@ -57,6 +57,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.preview.FilteredPreviewElementProvider
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
+import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.actions.BuildAndRefresh
@@ -76,7 +77,6 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepres
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.idea.util.toDisplayString
 import com.intellij.ide.ActivityTracker
@@ -557,7 +557,7 @@ class ComposePreviewRepresentation(
   }
 
   private val staticPreviewInteractionHandler =
-    NlInteractionHandler(composeWorkBench.mainSurface).also {
+    NavigatingInteractionHandler(composeWorkBench.mainSurface).also {
       delegateInteractionHandler.delegate = it
     }
   private val interactiveInteractionHandler =

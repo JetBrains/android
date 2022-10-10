@@ -99,7 +99,6 @@ private fun createPreviewDesignSurfaceBuilder(
   sceneComponentProvider: ComposeSceneComponentProvider
 ): NlDesignSurface.Builder =
   NlDesignSurface.builder(project, parentDisposable)
-    .setIsPreview(true)
     .setNavigationHandler(navigationHandler)
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
     .setInteractionHandlerProvider { delegateInteractionHandler }

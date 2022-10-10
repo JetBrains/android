@@ -279,21 +279,6 @@ public class InteractionManagerTest extends LayoutTestCase {
     Disposer.dispose(surface);
   }
 
-  public void testDblClickComponentWithInvalidXmlTagInPreview() {
-    NlDesignSurface surface = setupLinearLayoutCursorTest();
-    InteractionManager manager = surface.getInteractionManager();
-    when(surface.isPreviewSurface()).thenReturn(true);
-    ScreenView screenView = (ScreenView)surface.getSceneViewAtOrPrimary(0, 0);
-    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
-    deleteXmlTag(textView.getNlComponent());
-    clickMouse(manager, MouseEvent.BUTTON1, 2,
-               Coordinates.getSwingXDip(screenView, textView.getCenterX()),
-               Coordinates.getSwingYDip(screenView, textView.getCenterY()), 0);
-    List<NlComponent> selections = surface.getSelectionModel().getSelection();
-    assertEquals(1, selections.size());
-    assertEquals(textView.getNlComponent(), selections.get(0));
-  }
-
   public void testLinearLayoutCursorHoverComponent() {
     DesignSurface<?> surface = setupLinearLayoutCursorTest();
     InteractionHandler interactionHandler = new NlInteractionHandler(surface);

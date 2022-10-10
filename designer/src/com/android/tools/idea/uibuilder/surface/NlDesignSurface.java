@@ -113,7 +113,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   public static class Builder {
     private final Project myProject;
     private final Disposable myParentDisposable;
-    private boolean myIsPreview = false;
     private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider =
       NlDesignSurface::defaultSceneManagerProvider;
     private SurfaceLayoutManager myLayoutManager;
@@ -153,15 +152,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
       myParentDisposable = parentDisposable;
-    }
-
-    /**
-     * Marks the {@link NlDesignSurface} as being in preview mode.
-     */
-    @NotNull
-    public Builder setIsPreview(boolean isPreview) {
-      myIsPreview = isPreview;
-      return this;
     }
 
     /**
@@ -341,7 +331,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       NlDesignSurface surface = new NlDesignSurface(
         myProject,
         myParentDisposable,
-        myIsPreview,
         mySceneManagerProvider,
         layoutManager,
         myActionManagerProvider,
@@ -368,7 +357,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @NotNull private ScreenViewProvider myScreenViewProvider = NlScreenViewProvider.Companion.loadPreferredMode();
   private boolean myIsCanvasResizing = false;
-  private final boolean myIsInPreview;
   private final RenderListener myRenderListener = this::modelRendered;
   @NotNull private ImmutableList<? extends IssueProvider> myRenderIssueProviders = ImmutableList.of();
   private final AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true);
@@ -413,7 +401,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
-                          boolean isInPreview,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
                           @NotNull SurfaceLayoutManager defaultLayoutManager,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> actionManagerProvider,
@@ -437,7 +424,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
           maxFitIntoZoomLevel);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
-    myIsInPreview = isInPreview;
     myLayoutManager = defaultLayoutManager;
     mySceneManagerProvider = sceneManagerProvider;
     myNavigationHandler = navigationHandler;
@@ -582,10 +568,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @Override
   public @Nullable LayoutScannerControl getLayoutScannerControl() {
     return myScannerControl;
-  }
-
-  public boolean isPreviewSurface() {
-    return myIsInPreview;
   }
 
   /**

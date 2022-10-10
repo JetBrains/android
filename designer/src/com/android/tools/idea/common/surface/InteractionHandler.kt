@@ -335,7 +335,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   }
 }
 
-internal fun navigateToComponent(component: NlComponent, needsFocusEditor: Boolean) {
+fun navigateToComponent(component: NlComponent, needsFocusEditor: Boolean) {
   val componentBackend = component.backend
   val element = (if (componentBackend.tag == null) null else componentBackend.tag!!.navigationElement) ?: return
   if (PsiNavigationSupport.getInstance().canNavigate(element) && element is Navigatable) {
