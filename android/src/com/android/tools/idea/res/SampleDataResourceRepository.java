@@ -27,10 +27,13 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -39,12 +42,17 @@ import com.intellij.psi.PsiManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
@@ -157,27 +165,32 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
       return;
     }
 
-    List<SampleDataResourceItem> items = ImmutableList.of();
-
-    VirtualFile sampleDataDir = toVirtualFile(ProjectSystemUtil.getModuleSystem(myAndroidFacet.getModule()).getSampleDataDirectory());
-    if (sampleDataDir != null) {
-      List<SampleDataResourceItem> items1 = new ArrayList<>();
-      PsiManager psiManager = PsiManager.getInstance(myAndroidFacet.getModule().getProject());
-      Stream<VirtualFile> childrenStream = Arrays.stream(sampleDataDir.getChildren());
-      ApplicationManager.getApplication().runReadAction(() -> childrenStream
-        .map(vf -> vf.isDirectory() ? psiManager.findDirectory(vf) : psiManager.findFile(vf))
-        .filter(Objects::nonNull)
-        .forEach(f -> items1.addAll(loadItemsFromFile(f))));
-      items = items1;
-    }
+    PsiManager psiManager = PsiManager.getInstance(myAndroidFacet.getMainModule().getProject());
+    // This collects all modules and dependencies and finds the sampledata directory in all of them. The order is relevant since the
+    // modules will override sampledata from parents (for example the app module from a library module).
+    List<SampleDataResourceItem> items = Stream.concat(
+        Stream.of(myAndroidFacet.getMainModule()),
+        ProjectSystemUtil.getModuleSystem(myAndroidFacet.getMainModule()).getResourceModuleDependencies().stream())
+      // Collect all the sample directories, in order
+      .map((module) -> toVirtualFile(ProjectSystemUtil.getModuleSystem(module).getSampleDataDirectory()))
+      .filter(Objects::nonNull)
+      .flatMap((sampleDataDir) -> Arrays.stream(sampleDataDir.getChildren()))
+      // Find the PsiFile or PsiDirectory for the element
+      .map((sampleDataDir) -> sampleDataDir.isDirectory() ? psiManager.findDirectory(sampleDataDir) : psiManager.findFile(sampleDataDir))
+      .filter(Objects::nonNull)
+      .flatMap((psiElement) -> loadItemsFromFile(psiElement).stream())
+      .collect(Collectors.toUnmodifiableList());
 
     synchronized (ITEM_MAP_LOCK) {
       myResourceTable.clear();
       if (!items.isEmpty()) {
+        HashSet<String> alreadyParsedItems = new HashSet<>();
         ImmutableListMultimap.Builder<String, ResourceItem> mapBuilder = ImmutableListMultimap.builder();
         for (ResourceItem item : items) {
           assert item.getNamespace().equals(myNamespace);
-          mapBuilder.put(item.getName(), item);
+          // Only add to the result if we have not parsed a sample data source with the same name. If there are collisions, we use the
+          // dependency order so in, app -> lib, app sample data sources would override the lib ones.
+          if (alreadyParsedItems.add(item.getName())) mapBuilder.put(item.getName(), item);
         }
         myResourceTable.put(ResourceType.SAMPLE_DATA, mapBuilder.build());
       }

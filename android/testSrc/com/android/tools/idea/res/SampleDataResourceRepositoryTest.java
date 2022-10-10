@@ -35,12 +35,17 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.testing.AndroidModuleDependency;
+import com.android.tools.idea.testing.AndroidModuleModelBuilder;
+import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -69,7 +74,16 @@ import org.junit.Test;
 @SuppressWarnings("DataFlowIssue")
 public class SampleDataResourceRepositoryTest {
   @Rule
-  public final AndroidProjectRule myProjectRule = AndroidProjectRule.onDisk();
+  public final AndroidProjectRule myProjectRule = AndroidProjectRule.withAndroidModels(
+    new AndroidModuleModelBuilder(":", "debug",
+                                  new AndroidProjectBuilder().withAndroidModuleDependencyList(
+                                    (it, variant) -> Lists.newArrayList(new AndroidModuleDependency(":lib", "debug")))),
+    new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()
+      .withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_LIBRARY)
+      .withAndroidModuleDependencyList((it, variant) -> Lists.newArrayList(new AndroidModuleDependency(":transitive", "debug")))),
+    new AndroidModuleModelBuilder(":transitive", "debug", new AndroidProjectBuilder()
+      .withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_LIBRARY))
+  );
   @Rule
   public final EdtRule myEdtRule = new EdtRule();
   private AndroidModuleSystem myAppModuleSystem;
@@ -96,6 +110,17 @@ public class SampleDataResourceRepositoryTest {
     return repo.getResources(RES_AUTO, ResourceType.SAMPLE_DATA, resName);
   }
 
+  @NotNull
+  private PsiFile addLayoutFile() {
+    @Language("XML")
+    String layoutText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                        "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                        "    android:layout_width=\"match_parent\"\n" +
+                        "    android:layout_height=\"match_parent\" />";
+
+    return myProjectRule.getFixture().addFileToProject("src/main/res/layout/layout.xml", layoutText);
+  }
+
   @Test
   public void testGetInstance() {
     SampleDataResourceRepository repository = SampleDataResourceRepository.getInstance(myFacet);
@@ -111,17 +136,17 @@ public class SampleDataResourceRepositoryTest {
   @Test
   public void testDataLoad() {
     myProjectRule.getFixture().addFileToProject("sampledata/strings",
-                               "string1\n" +
-                               "string2\n" +
-                               "string3\n");
+                                                "string1\n" +
+                                                "string2\n" +
+                                                "string3\n");
     myProjectRule.getFixture().addFileToProject("sampledata/images/image1.png",
-                               "Insert image here\n");
+                                                "Insert image here\n");
     myProjectRule.getFixture().addFileToProject("sampledata/images/image2.jpg",
-                               "Insert image here 2\n");
+                                                "Insert image here 2\n");
     myProjectRule.getFixture().addFileToProject("sampledata/images/image3.png",
-                               "Insert image here 3\n");
+                                                "Insert image here 3\n");
     myProjectRule.getFixture().addFileToProject("sampledata/root_image.png",
-                               "Insert image here 3\n");
+                                                "Insert image here 3\n");
     SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
 
     assertEquals(3, getResources(repo).size());
@@ -133,11 +158,6 @@ public class SampleDataResourceRepositoryTest {
   @Test
   public void testResolver() {
     @Language("XML")
-    String layoutText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                        "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                        "    android:layout_width=\"match_parent\"\n" +
-                        "    android:layout_height=\"match_parent\" />";
-    @Language("XML")
     String stringsText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                          "<resources>\n" +
                          "  <string name=\"test1\">Hello 1</string>\n" +
@@ -145,41 +165,42 @@ public class SampleDataResourceRepositoryTest {
                          "</resources>";
 
     myProjectRule.getFixture().addFileToProject("sampledata/strings",
-                               "string1\n" +
-                               "string2\n" +
-                               "string3\n");
+                                                "string1\n" +
+                                                "string2\n" +
+                                                "string3\n");
     myProjectRule.getFixture().addFileToProject("sampledata/ints",
-                               "1\n" +
-                               "2\n");
+                                                "1\n" +
+                                                "2\n");
     myProjectRule.getFixture().addFileToProject("sampledata/refs",
-                               "@string/test1\n" +
-                               "@string/invalid\n");
+                                                "@string/test1\n" +
+                                                "@string/invalid\n");
     myProjectRule.getFixture().addFileToProject("sampledata/users.json",
-                               // language="JSON"
-                               "{\n" +
-                               "  \"users\": [\n" +
-                               "    {\n" +
-                               "      \"name\": \"Name1\",\n" +
-                               "      \"surname\": \"Surname1\"\n" +
-                               "    },\n" +
-                               "    {\n" +
-                               "      \"name\": \"Name2\",\n" +
-                               "      \"surname\": \"Surname2\"\n" +
-                               "    },\n" +
-                               "    {\n" +
-                               "      \"name\": \"Name3\",\n" +
-                               "      \"surname\": \"Surname3\",\n" +
-                               "      \"phone\": \"555-00000\"\n" +
-                               "    }\n" +
-                               "  ]\n" +
-                               "}");
+                                                // language="JSON"
+                                                "{\n" +
+                                                "  \"users\": [\n" +
+                                                "    {\n" +
+                                                "      \"name\": \"Name1\",\n" +
+                                                "      \"surname\": \"Surname1\"\n" +
+                                                "    },\n" +
+                                                "    {\n" +
+                                                "      \"name\": \"Name2\",\n" +
+                                                "      \"surname\": \"Surname2\"\n" +
+                                                "    },\n" +
+                                                "    {\n" +
+                                                "      \"name\": \"Name3\",\n" +
+                                                "      \"surname\": \"Surname3\",\n" +
+                                                "      \"phone\": \"555-00000\"\n" +
+                                                "    }\n" +
+                                                "  ]\n" +
+                                                "}");
     PsiFile image1 = myProjectRule.getFixture().addFileToProject("sampledata/images/image1.png",
-                               "Insert image here\n");
+                                                                 "Insert image here\n");
     PsiFile image2 = myProjectRule.getFixture().addFileToProject("sampledata/images/image2.jpg",
-                               "Insert image here 2\n");
-    myProjectRule.getFixture().addFileToProject("res/values/strings.xml", stringsText);
-    PsiFile layout = myProjectRule.getFixture().addFileToProject("res/layout/layout.xml", layoutText);
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myProjectRule.getModule()).getConfiguration(layout.getVirtualFile());
+                                                                 "Insert image here 2\n");
+    myProjectRule.getFixture().addFileToProject("src/main/res/values/strings.xml", stringsText);
+    PsiFile layout = addLayoutFile();
+    Configuration configuration =
+      ConfigurationManager.getOrCreateInstance(myProjectRule.getModule()).getConfiguration(layout.getVirtualFile());
     ResourceResolver resolver = configuration.getResourceResolver();
     assertEquals("string1", resolver.findResValue("@sample/strings", false).getValue());
     assertEquals("1", resolver.findResValue("@sample/ints", false).getValue());
@@ -206,10 +227,10 @@ public class SampleDataResourceRepositoryTest {
 
     // Check reference resolution
     assertEquals("Hello 1", resolver.resolveResValue(
-        new ResourceValueImpl(RES_AUTO, ResourceType.STRING, "test", "@sample/refs")).getValue());
+      new ResourceValueImpl(RES_AUTO, ResourceType.STRING, "test", "@sample/refs")).getValue());
     // @string/invalid does not exist so the sample data will just return the unresolved reference
     assertEquals("@string/invalid", resolver.resolveResValue(
-        new ResourceValueImpl(RES_AUTO, ResourceType.STRING, "test", "@sample/refs")).getValue());
+      new ResourceValueImpl(RES_AUTO, ResourceType.STRING, "test", "@sample/refs")).getValue());
 
     // Check indexing (all calls should return the same)
     assertEquals("Name2", resolver.findResValue("@sample/users.json/users/name[1]", false).getValue());
@@ -228,9 +249,9 @@ public class SampleDataResourceRepositoryTest {
     assertTrue(getResources(repo).isEmpty());
 
     PsiFile strings = myProjectRule.getFixture().addFileToProject("sampledata/strings",
-                               "string1\n" +
-                               "string2\n" +
-                               "string3\n");
+                                                                  "string1\n" +
+                                                                  "string2\n" +
+                                                                  "string3\n");
     assertEquals(1, getResources(repo).size());
     assertEquals(1, getResources(repo, "strings").size());
 
@@ -289,30 +310,30 @@ public class SampleDataResourceRepositoryTest {
   @Test
   public void testJsonSampleData() {
     myProjectRule.getFixture().addFileToProject("sampledata/users.json",
-                               "{\n" +
-                               "  \"users\": [\n" +
-                               "    {\n" +
-                               "      \"name\": \"Name1\",\n" +
-                               "      \"surname\": \"Surname1\"\n" +
-                               "    },\n" +
-                               "    {\n" +
-                               "      \"name\": \"Name2\",\n" +
-                               "      \"surname\": \"Surname2\"\n" +
-                               "    },\n" +
-                               "    {\n" +
-                               "      \"name\": \"Name3\",\n" +
-                               "      \"surname\": \"Surname3\",\n" +
-                               "      \"phone\": \"555-00000\"\n" +
-                               "    }\n" +
-                               "  ]\n" +
-                               "}");
+                                                "{\n" +
+                                                "  \"users\": [\n" +
+                                                "    {\n" +
+                                                "      \"name\": \"Name1\",\n" +
+                                                "      \"surname\": \"Surname1\"\n" +
+                                                "    },\n" +
+                                                "    {\n" +
+                                                "      \"name\": \"Name2\",\n" +
+                                                "      \"surname\": \"Surname2\"\n" +
+                                                "    },\n" +
+                                                "    {\n" +
+                                                "      \"name\": \"Name3\",\n" +
+                                                "      \"surname\": \"Surname3\",\n" +
+                                                "      \"phone\": \"555-00000\"\n" +
+                                                "    }\n" +
+                                                "  ]\n" +
+                                                "}");
     myProjectRule.getFixture().addFileToProject("sampledata/invalid.json",
-                               "{\n" +
-                               "  \"users\": [\n" +
-                               "    {\n" +
-                               "      \"name\": \"Name1\",\n" +
-                               "      \"surname\": \"Surname1\"\n" +
-                               "    },\n");
+                                                "{\n" +
+                                                "  \"users\": [\n" +
+                                                "    {\n" +
+                                                "      \"name\": \"Name1\",\n" +
+                                                "      \"surname\": \"Surname1\"\n" +
+                                                "    },\n");
     SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
@@ -323,10 +344,10 @@ public class SampleDataResourceRepositoryTest {
   @Test
   public void testCsvSampleData() {
     myProjectRule.getFixture().addFileToProject("sampledata/users.csv",
-                               "name,surname,phone\n" +
-                               "Name1,Surname1\n" +
-                               "Name2,Surname2\n" +
-                               "Name3,Surname3,555-00000");
+                                                "name,surname,phone\n" +
+                                                "Name1,Surname1\n" +
+                                                "Name2,Surname2\n" +
+                                                "Name3,Surname3,555-00000");
     SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
@@ -336,27 +357,22 @@ public class SampleDataResourceRepositoryTest {
 
   @Test
   public void testResolverCacheInvalidation() {
-    @Language("XML")
-    String layoutText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                        "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                        "    android:layout_width=\"match_parent\"\n" +
-                        "    android:layout_height=\"match_parent\" />";
-
     PsiFile sampleDataFile = myProjectRule.getFixture().addFileToProject("sampledata/strings",
-                               "string1\n" +
-                               "string2\n" +
-                               "string3\n");
-    PsiFile layout = myProjectRule.getFixture().addFileToProject("res/layout/layout.xml", layoutText);
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myProjectRule.getModule()).getConfiguration(layout.getVirtualFile());
+                                                                         "string1\n" +
+                                                                         "string2\n" +
+                                                                         "string3\n");
+    PsiFile layout = addLayoutFile();
+    Configuration configuration =
+      ConfigurationManager.getOrCreateInstance(myProjectRule.getModule()).getConfiguration(layout.getVirtualFile());
     ResourceResolver resolver = configuration.getResourceResolver();
     assertEquals("string1", resolver.findResValue("@sample/strings", false).getValue());
     assertEquals("string2", resolver.findResValue("@sample/strings", false).getValue());
     ApplicationManager.getApplication().runWriteAction(() -> {
       try {
         sampleDataFile.getVirtualFile().setBinaryContent(("new1\n" +
-                                                     "new2\n" +
-                                                     "new3\n" +
-                                                     "new4\n").getBytes(Charsets.UTF_8));
+                                                          "new2\n" +
+                                                          "new3\n" +
+                                                          "new4\n").getBytes(Charsets.UTF_8));
         PsiDocumentManager.getInstance(myProjectRule.getProject()).commitAllDocuments();
       }
       catch (IOException e) {
@@ -387,8 +403,8 @@ public class SampleDataResourceRepositoryTest {
     assertEquals(SampleDataResourceItem.ContentType.IMAGE, item.getContentType());
     SampleDataResourceValue value = (SampleDataResourceValue)item.getResourceValue();
     List<String> fileNames = value.getValueAsLines().stream()
-         .map(file -> new File(file).getName())
-         .collect(Collectors.toList());
+      .map(file -> new File(file).getName())
+      .collect(Collectors.toList());
     assertContainsElements(fileNames, "image1.png", "image2.png", "image3.png");
 
     SampleDataResourceItem rootImageItem =
@@ -400,17 +416,12 @@ public class SampleDataResourceRepositoryTest {
 
   @Test
   public void testSubsetSampleData() {
-    @Language("XML")
-    String layoutText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                        "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                        "    android:layout_width=\"match_parent\"\n" +
-                        "    android:layout_height=\"match_parent\" />";
-
-    PsiFile layout = myProjectRule.getFixture().addFileToProject("res/layout/layout.xml", layoutText);
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myProjectRule.getModule()).getConfiguration(layout.getVirtualFile());
+    PsiFile layout = addLayoutFile();
+    Configuration configuration =
+      ConfigurationManager.getOrCreateInstance(myProjectRule.getModule()).getConfiguration(layout.getVirtualFile());
     ResourceResolver resolver = configuration.getResourceResolver();
     ResourceValue sampledLorem =
-        new ResourceValueImpl(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA, "lorem_data", "@sample/lorem[4:10]");
+      new ResourceValueImpl(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA, "lorem_data", "@sample/lorem[4:10]");
     assertEquals("Lorem ipsum dolor sit amet.", resolver.dereference(sampledLorem).getValue());
     assertEquals("Lorem ipsum dolor sit amet, consectetur.", resolver.dereference(sampledLorem).getValue());
   }
@@ -421,5 +432,61 @@ public class SampleDataResourceRepositoryTest {
       SampleDataResourceRepository.SampleDataRepositoryManager.getInstance(myFacet);
 
     ResourceRepositoryManager.getInstance(myFacet).resetAllCaches();
+  }
+
+  @Test
+  public void testSampleDataInLibrary() {
+    myProjectRule.getFixture().addFileToProject("lib/sampledata/lib.csv",
+                                                "name,surname,phone\n" +
+                                                "LibName1,LibSurname1\n" +
+                                                "LibName2,LibSurname2\n" +
+                                                "LibName3,LibSurname3,555-00000");
+    myProjectRule.getFixture().addFileToProject("transitive/sampledata/transitive.csv",
+                                                "name,surname,phone\n" +
+                                                "TransitiveName1,TransitiveSurname1\n" +
+                                                "TransitiveName2,TransitiveSurname2\n" +
+                                                "TransitiveName3,TransitiveSurname3,555-00000");
+    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+
+    // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
+    assertEquals(6, getResources(repo).size());
+    assertEquals(1, getResources(repo, "lib.csv/name").size());
+    assertEquals(1, getResources(repo, "transitive.csv/name").size());
+
+    PsiFile layout = addLayoutFile();
+    Configuration configuration =
+      ConfigurationManager.getOrCreateInstance(myProjectRule.getModule()).getConfiguration(layout.getVirtualFile());
+    ResourceResolver resolver = configuration.getResourceResolver();
+    assertEquals("LibName1", resolver.findResValue("@sample/lib.csv/name", false).getValue());
+    assertEquals("TransitiveName1", resolver.findResValue("@sample/transitive.csv/name", false).getValue());
+  }
+
+  @Test
+  public void testMultiModuleAppOverrides() {
+    myProjectRule.getFixture().addFileToProject("sampledata/users.csv",
+                                                "name,surname,phone\n" +
+                                                "AppName1,AppSurname1\n" +
+                                                "AppName2,AppSurname2\n" +
+                                                "AppName3,AppSurname3,555-00000");
+    myProjectRule.getFixture().addFileToProject("lib/sampledata/users.csv",
+                                                "name,surname,phone\n" +
+                                                "LibName1,LibSurname1\n" +
+                                                "LibName2,LibSurname2\n" +
+                                                "LibName3,LibSurname3,555-00000");
+    myProjectRule.getFixture().addFileToProject("transitive/sampledata/users.csv",
+                                                "name,surname,phone\n" +
+                                                "TransitiveName1,TransitiveSurname1\n" +
+                                                "TransitiveName2,TransitiveSurname2\n" +
+                                                "TransitiveName3,TransitiveSurname3,555-00000");
+    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+
+    PsiFile layout = addLayoutFile();
+    // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
+    assertEquals(3, getResources(repo).size());
+    assertEquals(1, getResources(repo, "users.csv/name").size());
+    Configuration configuration =
+      ConfigurationManager.getOrCreateInstance(myProjectRule.getModule()).getConfiguration(layout.getVirtualFile());
+    ResourceResolver resolver = configuration.getResourceResolver();
+    assertEquals("AppName1", resolver.findResValue("@sample/users.csv/name", false).getValue());
   }
 }
