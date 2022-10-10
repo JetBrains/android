@@ -32,8 +32,8 @@ open class AtraceConfiguration(name: String) : ProfilingConfiguration(name) {
             unit = "Mb")
   var profilingBufferSizeInMb = DEFAULT_BUFFER_SIZE_MB
 
-  override fun buildUserOptions(): Trace.TraceConfiguration.UserOptions.Builder {
-    return Trace.TraceConfiguration.UserOptions.newBuilder()
+  override fun buildUserOptions(): Trace.UserOptions.Builder {
+    return Trace.UserOptions.newBuilder()
       .setBufferSizeInMb(profilingBufferSizeInMb)
   }
 

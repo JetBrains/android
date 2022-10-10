@@ -1067,7 +1067,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @NotNull
     private static CpuProfilingConfig toStatsCpuProfilingConfig(@NotNull ProfilingConfiguration config) {
       CpuProfilingConfig.Builder cpuConfigInfo = CpuProfilingConfig.newBuilder();
-      Trace.TraceConfiguration.UserOptions options = config.toProto();
+      Trace.UserOptions options = config.toProto();
       switch (config.getTraceType()) {
         case ART:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.ART);

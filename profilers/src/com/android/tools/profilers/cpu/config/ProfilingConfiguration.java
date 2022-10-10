@@ -64,7 +64,7 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
    * Converts from {@link Trace.TraceConfiguration} to {@link ProfilingConfiguration}.
    */
   @NotNull
-  public static ProfilingConfiguration fromProto(@NotNull Trace.TraceConfiguration.UserOptions proto) {
+  public static ProfilingConfiguration fromProto(@NotNull Trace.UserOptions proto) {
     ProfilingConfiguration configuration = null;
     switch (proto.getTraceType()) {
       case ART:
@@ -103,17 +103,17 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
   }
 
   /**
-   * Converts {@code this} to {@link Trace.TraceConfiguration.UserOptions}.
+   * Converts {@code this} to {@link Trace.UserOptions}.
    */
   @NotNull
-  public Trace.TraceConfiguration.UserOptions toProto() {
+  public Trace.UserOptions toProto() {
     return buildUserOptions()
       .setName(getName())
       .setTraceType(getTraceType())
       .build();
   }
 
-  protected abstract Trace.TraceConfiguration.UserOptions.Builder buildUserOptions();
+  protected abstract Trace.UserOptions.Builder buildUserOptions();
 
   @Override
   public boolean equals(Object obj) {

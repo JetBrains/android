@@ -58,7 +58,7 @@ class CpuGenerator(connection: Connection) : DataGenerator(connection) {
       .setTraceId(random.nextLong())
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_UI)
-                          .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder()
+                          .setUserOptions(Trace.UserOptions.newBuilder()
                                             .setTraceMode(Trace.TraceMode.SAMPLED)))
       .build()
     myTable.insertTraceInfo(properties.session, trace)

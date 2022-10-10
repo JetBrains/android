@@ -401,7 +401,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
       .setConfiguration(
         Trace.TraceConfiguration
           .newBuilder()
-          .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder().setTraceType(capture.getType())))
+          .setUserOptions(Trace.UserOptions.newBuilder().setTraceType(capture.getType())))
       .build();
     // TODO(b/141560550): add test when we can mock TransportService#registerStreamServer.
     EventStreamServer streamServer =

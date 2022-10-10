@@ -68,7 +68,7 @@ class CpuCaptureSessionArtifactTest {
   fun testArtSampledCpuCaptureSessionName() {
     val artSampledTraceInfo = Cpu.CpuTraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
-                          .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder()
+                          .setUserOptions(Trace.UserOptions.newBuilder()
                                             .setTraceType(Trace.TraceType.ART)
                                             .setTraceMode(Trace.TraceMode.SAMPLED)))
       .build()
@@ -82,7 +82,7 @@ class CpuCaptureSessionArtifactTest {
   fun testArtInstrumentedCpuCaptureSessionName() {
     val artInstrumentedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
-                          .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder()
+                          .setUserOptions(Trace.UserOptions.newBuilder()
                                             .setTraceType(Trace.TraceType.ART)
                                             .setTraceMode(Trace.TraceMode.INSTRUMENTED)))
       .build()
@@ -96,7 +96,7 @@ class CpuCaptureSessionArtifactTest {
   fun testImportedArtTraceCpuCaptureSessionName() {
     val artImportedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
-                          .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder()
+                          .setUserOptions(Trace.UserOptions.newBuilder()
                                             .setTraceType(Trace.TraceType.ART)))
       .build()
     addTraceInfo(artImportedTraceInfo)
@@ -109,7 +109,7 @@ class CpuCaptureSessionArtifactTest {
   fun testSimpleperfCpuCaptureSessionName() {
     val simpleperfTraceInfo = Cpu.CpuTraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
-                          .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder()
+                          .setUserOptions(Trace.UserOptions.newBuilder()
                                             .setTraceType(Trace.TraceType.SIMPLEPERF)))
       .build()
     addTraceInfo(simpleperfTraceInfo)
@@ -122,7 +122,7 @@ class CpuCaptureSessionArtifactTest {
   fun testAtraceCpuCaptureSessionName() {
     val atraceInfo = Cpu.CpuTraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
-                          .setUserOptions(Trace.TraceConfiguration.UserOptions.newBuilder()
+                          .setUserOptions(Trace.UserOptions.newBuilder()
                                             .setTraceType(Trace.TraceType.ATRACE)))
       .build()
     addTraceInfo(atraceInfo)

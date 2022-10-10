@@ -26,7 +26,7 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun fromProtoSampledJava() {
-    val proto = Trace.TraceConfiguration.UserOptions
+    val proto = Trace.UserOptions
       .newBuilder()
       .setName("MySampledJava")
       .setTraceType(Trace.TraceType.ART)
@@ -44,7 +44,7 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun fromProtoSampledNative() {
-    val proto = Trace.TraceConfiguration.UserOptions
+    val proto = Trace.UserOptions
       .newBuilder()
       .setTraceType(Trace.TraceType.SIMPLEPERF)
       .setTraceMode(Trace.TraceMode.SAMPLED)
@@ -55,7 +55,7 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun fromProtoInstrumentedJava() {
-    val proto = Trace.TraceConfiguration.UserOptions
+    val proto = Trace.UserOptions
       .newBuilder()
       .setTraceType(Trace.TraceType.ART)
       .setTraceMode(Trace.TraceMode.INSTRUMENTED)
@@ -66,7 +66,7 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun fromProtoAtrace() {
-    val proto = Trace.TraceConfiguration.UserOptions
+    val proto = Trace.UserOptions
       .newBuilder()
       .setTraceType(Trace.TraceType.ATRACE)
       .setTraceMode(Trace.TraceMode.INSTRUMENTED)
@@ -77,7 +77,7 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun fromProtoPerfetto() {
-    val proto = Trace.TraceConfiguration.UserOptions
+    val proto = Trace.UserOptions
       .newBuilder()
       .setTraceType(Trace.TraceType.PERFETTO)
       .setTraceMode(Trace.TraceMode.INSTRUMENTED)

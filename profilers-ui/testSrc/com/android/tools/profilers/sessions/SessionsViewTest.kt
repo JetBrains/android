@@ -140,7 +140,7 @@ class SessionsViewTest {
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setUserOptions(
-                            Trace.TraceConfiguration.UserOptions.newBuilder()
+                            Trace.UserOptions.newBuilder()
                               .setTraceType(Trace.TraceType.SIMPLEPERF)))
       .setFromTimestamp(cpuTraceTimestamp)
       .setToTimestamp(cpuTraceTimestamp + 1)
@@ -407,7 +407,7 @@ class SessionsViewTest {
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setUserOptions(
-                            Trace.TraceConfiguration.UserOptions.newBuilder()
+                            Trace.UserOptions.newBuilder()
                               .setTraceType(Trace.TraceType.ART)
                               .setTraceMode(Trace.TraceMode.SAMPLED)))
       .setFromTimestamp(20)
@@ -554,7 +554,7 @@ class SessionsViewTest {
       .setToTimestamp(TimeUnit.MINUTES.toNanos(2))
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setUserOptions(
-                            Trace.TraceConfiguration.UserOptions.newBuilder()
+                            Trace.UserOptions.newBuilder()
                               .setTraceType(Trace.TraceType.ART)
                               .setTraceMode(Trace.TraceMode.SAMPLED)))
       .build()
@@ -628,7 +628,7 @@ class SessionsViewTest {
       .setTraceId(1)
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setUserOptions(
-                            Trace.TraceConfiguration.UserOptions.newBuilder()
+                            Trace.UserOptions.newBuilder()
                               .setTraceType(Trace.TraceType.ATRACE)
                               .setTraceMode(Trace.TraceMode.INSTRUMENTED)))
       .setFromTimestamp(sessionStartNs + 1)

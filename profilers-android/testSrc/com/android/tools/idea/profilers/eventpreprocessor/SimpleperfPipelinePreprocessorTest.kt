@@ -34,7 +34,7 @@ class SimpleperfPipelinePreprocessorTest {
                                                               .setTraceId(TRACE_ID)
                                                               .setConfiguration(Trace.TraceConfiguration.newBuilder()
                                                                                   .setUserOptions(
-                                                                                    Trace.TraceConfiguration.UserOptions.newBuilder()
+                                                                                    Trace.UserOptions.newBuilder()
                                                                                       .setTraceType(Trace.TraceType.SIMPLEPERF))
                                                                                   .addSymbolDirs("/path")))))
     .build()
@@ -53,7 +53,7 @@ class SimpleperfPipelinePreprocessorTest {
     event.cpuTraceBuilder.traceStartedBuilder.traceInfoBuilder.configuration = Trace.TraceConfiguration.getDefaultInstance()
     assertThat(preprocessor.shouldPreprocess(event.build())).isFalse()
     event.cpuTraceBuilder.traceStartedBuilder.traceInfoBuilder.configurationBuilder.userOptions =
-      Trace.TraceConfiguration.UserOptions.getDefaultInstance()
+      Trace.UserOptions.getDefaultInstance()
     assertThat(preprocessor.shouldPreprocess(event.build())).isFalse()
     event.cpuTraceBuilder.traceStartedBuilder.traceInfoBuilder.configurationBuilder.userOptionsBuilder.traceType =
       Trace.TraceType.SIMPLEPERF

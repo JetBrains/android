@@ -28,15 +28,15 @@ public class CpuProfilerConfigConverter {
   /**
    * Converts from list of {@link CpuProfilerConfig} to list of {@link Trace.TraceConfiguration}
    */
-  public static List<Trace.TraceConfiguration.UserOptions> toProto(List<CpuProfilerConfig> configs, int deviceApi) {
+  public static List<Trace.UserOptions> toProto(List<CpuProfilerConfig> configs, int deviceApi) {
     return ContainerUtil.map(configs, config -> toProto(config, deviceApi));
   }
 
   /**
-   * Converts from {@link CpuProfilerConfig} to {@link Trace.TraceConfiguration.UserOptions}
+   * Converts from {@link CpuProfilerConfig} to {@link Trace.UserOptions}
    */
-  public static Trace.TraceConfiguration.UserOptions toProto(CpuProfilerConfig config, int deviceApi) {
-    Trace.TraceConfiguration.UserOptions.Builder protoBuilder = Trace.TraceConfiguration.UserOptions.newBuilder()
+  public static Trace.UserOptions toProto(CpuProfilerConfig config, int deviceApi) {
+    Trace.UserOptions.Builder protoBuilder = Trace.UserOptions.newBuilder()
       .setName(config.getName())
       .setBufferSizeInMb(config.getBufferSizeMb())
       .setSamplingIntervalUs(config.getSamplingIntervalUs());
@@ -68,9 +68,9 @@ public class CpuProfilerConfigConverter {
   }
 
   /**
-   * Converts from {@link Trace.TraceConfiguration.UserOptions} to {@link CpuProfilerConfig}
+   * Converts from {@link Trace.UserOptions} to {@link CpuProfilerConfig}
    */
-  public static CpuProfilerConfig fromProto(Trace.TraceConfiguration.UserOptions proto) {
+  public static CpuProfilerConfig fromProto(Trace.UserOptions proto) {
     CpuProfilerConfig config = new CpuProfilerConfig()
       .setName(proto.getName())
       .setSamplingIntervalUs(proto.getSamplingIntervalUs())

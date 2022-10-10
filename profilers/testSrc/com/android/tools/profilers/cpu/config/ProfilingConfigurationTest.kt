@@ -29,7 +29,7 @@ class ProfilingConfigurationTest {
 
   @Test
   fun fromProto() {
-    val proto = Trace.TraceConfiguration.UserOptions.newBuilder()
+    val proto = Trace.UserOptions.newBuilder()
       .setName("MyConfiguration")
       .setTraceMode(Trace.TraceMode.SAMPLED)
       .setTraceType(Trace.TraceType.ART)

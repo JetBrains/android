@@ -263,7 +263,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     // TODO b/133321803 switch back to having daemon generates and provides the path.
     String traceFilePath = String.format(Locale.US, "%s/%s-%d.trace", DAEMON_DEVICE_DIR_PATH, appPackageName, System.nanoTime());
-    Trace.TraceConfiguration.UserOptions traceOptions =
+    Trace.UserOptions traceOptions =
       CpuProfilerConfigConverter.toProto(startupConfig, device.getVersion().getFeatureLevel());
     Trace.TraceConfiguration configuration = Trace.TraceConfiguration.newBuilder()
       .setAppName(appPackageName)

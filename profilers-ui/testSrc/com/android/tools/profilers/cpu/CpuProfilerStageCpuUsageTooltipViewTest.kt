@@ -96,7 +96,7 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
       .setFromTimestamp(TimeUnit.SECONDS.toNanos(startTimeSec))
       .setToTimestamp(TimeUnit.SECONDS.toNanos(endTimeSec))
       .setConfiguration(Trace.TraceConfiguration.newBuilder().setUserOptions(
-        Trace.TraceConfiguration.UserOptions.newBuilder().setTraceType(traceType)))
+        Trace.UserOptions.newBuilder().setTraceType(traceType)))
       .build()
     val traceEventBuilder = Common.Event.newBuilder()
       .setGroupId(traceId)
