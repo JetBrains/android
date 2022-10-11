@@ -105,7 +105,7 @@ struct CodecOutputBuffer {
 
 int CodecOutputBuffer::consequent_error_count = 0;
 
-constexpr int MIN_VIDEO_RESOLUTION = 128;
+constexpr double MIN_VIDEO_RESOLUTION = 128;
 constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
 constexpr int BIT_RATE = 8000000;
 constexpr int I_FRAME_INTERVAL_SECONDS = 10;
@@ -145,12 +145,10 @@ int32_t RoundUpToMultipleOf(int32_t value, int32_t power_of_two) {
 }
 
 Size ComputeVideoSize(Size rotated_display_size, Size max_resolution, Size size_alignment) {
-  auto width = max(rotated_display_size.width, MIN_VIDEO_RESOLUTION);
-  auto height = max(rotated_display_size.height, MIN_VIDEO_RESOLUTION);
-  double scale = min(1.0, min(static_cast<double>(max_resolution.width) / width, static_cast<double>(max_resolution.height) / height));
-  if (scale == 0) {
-    scale = 1.;
-  }
+  auto width = rotated_display_size.width;
+  auto height = rotated_display_size.height;
+  double scale = max(min(1.0, min(static_cast<double>(max_resolution.width) / width, static_cast<double>(max_resolution.height) / height)),
+                     max(MIN_VIDEO_RESOLUTION / width, MIN_VIDEO_RESOLUTION / height));
   return Size { RoundUpToMultipleOf(lround(width * scale), max(size_alignment.width, 8)),
                 RoundUpToMultipleOf(lround(height * scale), max(size_alignment.height, 8)) };
 }
