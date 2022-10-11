@@ -230,7 +230,12 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
     var elem: PsiElement = targetFunction
     while (elem.getKotlinFqName() == null || elem !is KtNamedFunction) {
       if (elem.parent == null) {
-        throw LiveEditUpdateException.internalError("Unable to retrieve context for function ${targetFunction.name}", elem.containingFile);
+        // Suppose you are editing:
+        // val direct = @Composable{Text(text = "hi")}
+        //
+        // We would not be able to find a named function with the current implementation. What we need to do is figure out the name
+        // of the function in the .class that is changed. This can only be done with something like a class differ.
+        throw LiveEditUpdateException.internalError("Unsupported edit of unnamed function", elem.containingFile);
       }
       elem = elem.parent
     }
