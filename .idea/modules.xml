@@ -127,6 +127,7 @@
       <module fileurl="file://$PROJECT_DIR$/android-adb/intellij.android.adb.tests.iml" filepath="$PROJECT_DIR$/android-adb/intellij.android.adb.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-adb-ui/intellij.android.adb.ui.iml" filepath="$PROJECT_DIR$/android-adb-ui/intellij.android.adb.ui.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-adb-ui/intellij.android.adb.ui.tests.iml" filepath="$PROJECT_DIR$/android-adb-ui/intellij.android.adb.ui.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/intellij.android.adddevicedialog/intellij.android.adddevicedialog.iml" filepath="$PROJECT_DIR$/intellij.android.adddevicedialog/intellij.android.adddevicedialog.iml" />
       <module fileurl="file://$PROJECT_DIR$/swingp/intellij.android.adt.swingp.iml" filepath="$PROJECT_DIR$/swingp/intellij.android.adt.swingp.iml" />
       <module fileurl="file://$PROJECT_DIR$/adt-testutils/intellij.android.adt.testutils.iml" filepath="$PROJECT_DIR$/adt-testutils/intellij.android.adt.testutils.iml" />
       <module fileurl="file://$PROJECT_DIR$/adt-ui/intellij.android.adt.ui.iml" filepath="$PROJECT_DIR$/adt-ui/intellij.android.adt.ui.iml" />
