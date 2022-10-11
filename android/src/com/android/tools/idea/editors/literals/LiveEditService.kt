@@ -109,57 +109,13 @@ class LiveEditService private constructor(val project: Project, var listenerExec
     val listener = MyPsiListener(::onMethodBodyUpdated)
     PsiManager.getInstance(project).addPsiTreeChangeListener(listener, this)
     deployMonitor = AndroidLiveEditDeployMonitor(this, project)
-    bindKeyMapShortcut(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
+    //bindKeyMapShortcut(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
   }
 
   companion object {
-    val leKey = 'K' // This must match the text in AndroidBundle.properties
-
-    fun leTriggerKey() = if (SystemInfo.isMac) "meta" else "ctrl"
-    fun leTriggerTextKey() = if (SystemInfo.isMac) "Cmd" else "Ctrl"
-
-    // Used to display mouse over text.
-    fun leTextKey() : String {
-      val cmd = leTriggerTextKey()
-      return "$cmd-$leKey"
-    }
-
-    // Used to display mouse over text.
-    fun leResetTextKey() : String {
-      val cmd = leTriggerTextKey()
-      return "$cmd-Shift-$leKey"
-    }
-
     enum class LiveEditTriggerMode {
       LE_TRIGGER_MANUAL,
       LE_TRIGGER_AUTOMATIC,
-    }
-
-    // In manual mode LiveEdit changes are pushed only when the user triggered it via a key combination. The shortcut needs to be installed.
-    // In automatic mode the shortcut needs to be uninstalled.
-    fun bindKeyMapShortcut(mode: LiveEditTriggerMode) {
-      // TODO: Change this to 'S' when we found out how to chain Action (and if it is even possible). For now, use K.
-      val triggerShortcut = KeyboardShortcut(KeyStroke.getKeyStroke("${leTriggerKey()} $leKey"), null)
-
-      val recomposeKey = "shift $leKey" // This must match the text in AndroidBundle.properties
-      val recomposeShortcut = KeyboardShortcut(KeyStroke.getKeyStroke("${leTriggerKey()} $recomposeKey"), null)
-
-      val manager = KeymapManager.getInstance() ?: return
-      val keymap = manager.getActiveKeymap();
-
-      // Keep these in sync with android-plugin.xml
-      val TRIGGER_ACTION_ID = "android.deploy.livedit.trigger"
-      val RECOMPOSE_ACTION_ID = "android.deploy.livedit.recompose"
-
-      if (isLeTriggerManual()) {
-        // Add listeners
-        keymap.addShortcut(TRIGGER_ACTION_ID, triggerShortcut)
-        keymap.addShortcut(RECOMPOSE_ACTION_ID, recomposeShortcut)
-      } else {
-        // Remove listeners
-        keymap.removeShortcut(TRIGGER_ACTION_ID, triggerShortcut)
-        keymap.removeShortcut(RECOMPOSE_ACTION_ID, recomposeShortcut)
-      }
     }
 
     fun isLeTriggerManual(mode : LiveEditTriggerMode) : Boolean {

@@ -16,9 +16,15 @@
 package com.android.tools.idea.editors.literals;
 
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
+import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.KeyStroke;
 import org.jetbrains.annotations.NotNull;
 
 public class ManualLiveEditTrigger extends AnAction {
@@ -28,8 +34,11 @@ public class ManualLiveEditTrigger extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-
     if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
+      return;
+    }
+
+    if (!LiveEditService.Companion.isLeTriggerManual()) {
       return;
     }
 
@@ -39,5 +48,15 @@ public class ManualLiveEditTrigger extends AnAction {
     }
 
     LiveEditService.getInstance(project).triggerLiveEdit();
+  }
+
+  private static KeyboardShortcut getKeyboardShortcut() {
+    ActionManager manager = ActionManager.getInstance();
+    return manager.getKeyboardShortcut("android.deploy.livedit.trigger");
+  }
+
+  public static String getShortCutString() {
+    KeyboardShortcut shortcut = getKeyboardShortcut();
+    return KeymapUtil.getShortcutText (shortcut);
   }
 }

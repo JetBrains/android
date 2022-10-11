@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
-import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
@@ -23,6 +22,7 @@ import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
 import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_MANUAL
 import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC
+import com.android.tools.idea.editors.literals.ManualLiveEditTrigger
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.intellij.ide.ActivityTracker
@@ -67,7 +67,7 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
               buttonGroup {
                 row {
                   radioButton(
-                    message("live.edit.mode.manual", LiveEditService.leTriggerTextKey()),
+                    message("live.edit.mode.manual", ManualLiveEditTrigger.getShortCutString()),
                     { config.leTriggerMode == LE_TRIGGER_MANUAL },
                     { enabled ->
                       if (enabled) {

@@ -60,7 +60,6 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
     get() = state.leTriggerMode
     set(value) {
         state.leTriggerMode = value
-        LiveEditService.bindKeyMapShortcut(value)
     }
 
   /**

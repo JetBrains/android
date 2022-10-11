@@ -525,6 +525,12 @@
     <option name="related" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="style" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="them" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
+    <option name="changes" path="ActionManager" hit="Push @composable code changes via LiveEdit" />
+    <option name="code" path="ActionManager" hit="Push @composable code changes via LiveEdit" />
+    <option name="composable" path="ActionManager" hit="Push @composable code changes via LiveEdit" />
+    <option name="liveedit" path="ActionManager" hit="Push @composable code changes via LiveEdit" />
+    <option name="push" path="ActionManager" hit="Push @composable code changes via LiveEdit" />
+    <option name="via" path="ActionManager" hit="Push @composable code changes via LiveEdit" />
     <option name="project" path="ActionManager" hit="Rebuild Project" />
     <option name="rebuild" path="ActionManager" hit="Rebuild Project" />
     <option name="record" path="ActionManager" hit="Record Screen" />
@@ -664,6 +670,11 @@
     <option name="resource" path="ActionManager" hit="Trace Resource Updates" />
     <option name="trace" path="ActionManager" hit="Trace Resource Updates" />
     <option name="updates" path="ActionManager" hit="Trace Resource Updates" />
+    <option name="composable" path="ActionManager" hit="Trigger @Composable recompose via LiveEDit" />
+    <option name="liveedit" path="ActionManager" hit="Trigger @Composable recompose via LiveEDit" />
+    <option name="recompose" path="ActionManager" hit="Trigger @Composable recompose via LiveEDit" />
+    <option name="trigger" path="ActionManager" hit="Trigger @Composable recompose via LiveEDit" />
+    <option name="via" path="ActionManager" hit="Trigger @Composable recompose via LiveEDit" />
     <option name="connections" path="ActionManager" hit="Troubleshoot Device Connections" />
     <option name="device" path="ActionManager" hit="Troubleshoot Device Connections" />
     <option name="troubleshoot" path="ActionManager" hit="Troubleshoot Device Connections" />
@@ -984,11 +995,12 @@
     <option name="automatically" hit="Push Edits Automatically" />
     <option name="edits" hit="Push Edits Automatically" />
     <option name="push" hit="Push Edits Automatically" />
-    <option name="ctrl" hit="Push Edits Manually (Ctrl-K)" />
-    <option name="edits" hit="Push Edits Manually (Ctrl-K)" />
-    <option name="k" hit="Push Edits Manually (Ctrl-K)" />
-    <option name="manually" hit="Push Edits Manually (Ctrl-K)" />
-    <option name="push" hit="Push Edits Manually (Ctrl-K)" />
+    <option name="ctrl" hit="Push Edits Manually (Ctrl+Shift+S)" />
+    <option name="edits" hit="Push Edits Manually (Ctrl+Shift+S)" />
+    <option name="manually" hit="Push Edits Manually (Ctrl+Shift+S)" />
+    <option name="push" hit="Push Edits Manually (Ctrl+Shift+S)" />
+    <option name="s" hit="Push Edits Manually (Ctrl+Shift+S)" />
+    <option name="shift" hit="Push Edits Manually (Ctrl+Shift+S)" />
   </configurable>
   <configurable id="AndroidSdkUpdater" configurable_name="Android SDK">
     <option name="" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool." />

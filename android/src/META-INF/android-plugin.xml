@@ -56,8 +56,14 @@
     </group>
 
     <group id="Android.LiveEdit">
-      <action id="android.deploy.livedit.trigger" class="com.android.tools.idea.editors.literals.ManualLiveEditTrigger"/>
-      <action id="android.deploy.livedit.recompose" class="com.android.tools.idea.editors.literals.ManualLiveEditReset"/>
+      <action id="android.deploy.livedit.trigger" class="com.android.tools.idea.editors.literals.ManualLiveEditTrigger"
+        description="Push @composable code changes via LiveEdit">
+        <keyboard-shortcut keymap="$default" first-keystroke="control shift S" replace-all="true"/>
+      </action>
+      <action id="android.deploy.livedit.recompose" class="com.android.tools.idea.editors.literals.ManualLiveEditReset"
+        description="Trigger @Composable recompose via LiveEDit">
+        <keyboard-shortcut keymap="$default" first-keystroke="control shift D" replace-all="true"/>
+      </action>
     </group>
 
     <action id="LegacyNewAndroidComponent" class="com.android.tools.idea.actions.LegacyNewAndroidComponentAction">
