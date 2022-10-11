@@ -52,6 +52,7 @@ public class StartUpTest {
       List<String> expectedPlugins = new ArrayList<>(Arrays.asList(
         "Android",
         "Android APK Support",
+        "Android SDK Upgrade Assistant",
         "Android NDK Support",
         "App Links Assistant",
         "C/C++ Language Support",
@@ -105,7 +106,6 @@ public class StartUpTest {
         "Shell Script",
         "Smali Support",
         "Subversion",
-        "TargetSDKVersion Upgrade Assistant",
         "Task Management",
         "Terminal",
         "Test Recorder",

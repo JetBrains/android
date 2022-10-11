@@ -1534,8 +1534,8 @@ public final class StudioFlags {
   // endregion NEW_SEND_FEEDBACK_DIALOG
 
   // region TargetSDKVersion Upgrade Assistant
-  private static final FlagGroup TSDKVUA = new FlagGroup(FLAGS, "tsdkvua", "TargetSDKVersion Upgrade Assistant");
-  public static final Flag<Boolean> TSDKVUA_ENABLE = Flag.create(TSDKVUA, "enable", "Enable the TargetSDKVersion Upgrade Assistant", "Enable the TargetSDKVersion Upgrade Assistant", false);
+  private static final FlagGroup TSDKVUA = new FlagGroup(FLAGS, "tsdkvua", "Android SDK Upgrade Assistant");
+  public static final Flag<Boolean> TSDKVUA_ENABLE = Flag.create(TSDKVUA, "enable", "Enable the Android SDK Upgrade Assistant", "Enable the Android SDK Upgrade Assistant", false);
   // endregion TargetSDKVersion Upgrade Assistant
 
   private StudioFlags() { }
