@@ -74,7 +74,6 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    * the project has been successfully built. The returned [ApplicationIdProvider] will throw [ApkProvisionException]'s
    * or return a name derived from incomplete configuration in this case.
    */
-  @JvmDefault
   fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? = null
 
   /**
@@ -85,10 +84,8 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    *
    * Returns `null`, if the project system does not recognize the [runConfiguration] as a supported one.
    */
-  @JvmDefault
   fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? = null
 
-  @JvmDefault
   fun validateRunConfiguration(runConfiguration: RunConfiguration): List<ValidationError> {
     return listOf(ValidationError.fatal("Run configuration ${runConfiguration.name} is not supported in this project"));
   }
@@ -135,7 +132,6 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
   /**
    * @return all the application IDs of artifacts this project module is known to produce.
    */
-  @JvmDefault
   fun getKnownApplicationIds(project: Project): Set<String> = emptySet()
 }
 

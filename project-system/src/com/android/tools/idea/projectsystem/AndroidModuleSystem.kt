@@ -52,7 +52,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
 
   }
 
-  @JvmDefault
   val type: Type
     get() = when (module.androidFacet?.properties?.PROJECT_TYPE) {
       AndroidProjectTypes.PROJECT_TYPE_APP -> Type.TYPE_APP
@@ -145,7 +144,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * **Note**: This function will not acquire any locks during it's operation.
    */
   @Throws(DependencyManagementException::class)
-  @JvmDefault
   fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? = getResolvedDependency(coordinate, DependencyScopeType.MAIN)
 
   @Throws(DependencyManagementException::class)
@@ -185,7 +183,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * it will find any constraint layout occurrences of 1.0.0-alpha1 and replace them with 1.0.0-alpha2.
    */
   @Throws(DependencyManagementException::class)
-  @JvmDefault
   fun updateLibrariesToVersion(toVersions: List<GradleCoordinate>) : Unit = throw UnsupportedOperationException()
 
   /**
@@ -211,7 +208,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   /**
    * Returns the Android modules that this module's `androidTest` module depends on for resources.
    */
-  @JvmDefault
   fun getAndroidTestDirectResourceModuleDependencies(): List<Module> = emptyList()
 
   /**
@@ -244,13 +240,11 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * This is a light version of [getManifestOverrides] and the returned value is supposed to be equal to
    * `getManifestOverrides().placeholders`.
    */
-  @JvmDefault
   fun getManifestPlaceholders(): Map<String, String> = getManifestOverrides().placeholders
 
   /**
    * Returns a structure describing the manifest files contributing to the module's merged manifest.
    */
-  @JvmDefault
   fun getMergedManifestContributors(): MergedManifestContributors = defaultGetMergedManifestContributors()
 
   /**
@@ -275,7 +269,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * the latest contents of the build configuration if the project hasn't been re-synced with
    * the build configuration yet.
    */
-  @JvmDefault
   fun getTestPackageName(): String? = null
 
   /**
@@ -288,7 +281,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * Some project system may allow multiple applications in one IDE module. The behavior in this case is defined by the specific project
    * system.
    */
-  @JvmDefault
   fun getApplicationIdProvider(): ApplicationIdProvider = object : ApplicationIdProvider {
     val androidModel = AndroidModel.get(module)
     override fun getPackageName(): String =
@@ -309,15 +301,12 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getResolveScope(scopeType: ScopeType): GlobalSearchScope
 
   /** Returns an [TestArtifactSearchScopes] instance for a given module, if multiple test types are supported. */
-  @JvmDefault
   fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = null
 
   /** Whether the Jetpack Compose feature is enabled for this module. */
-  @JvmDefault
   val usesCompose: Boolean get() = false
 
   /** Shrinker type in selected variant or null if minification is disabled or shrinker cannot be determined.**/
-  @JvmDefault
   val codeShrinker: CodeShrinker? get() = null
 
   /**
@@ -326,7 +315,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * If it is transitive it will contain all of the resources defined in its transitive dependencies alongside those defined in this
    * module. If non-transitive it will only contain the resources defined in this module.
    */
-  @JvmDefault
   val isRClassTransitive: Boolean get() = true
 
   /**
@@ -340,15 +328,12 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getBaseFeatureModule(): Module? = null
 
   /** Whether the ML model binding feature is enabled for this module. */
-  @JvmDefault
   val isMlModelBindingEnabled: Boolean get() = false
 
   /** Whether the view binding feature is enabled for this module. */
-  @JvmDefault
   val isViewBindingEnabled: Boolean get() = false
 
   /** Whether KAPT is enabled for this module. */
-  @JvmDefault
   val isKaptEnabled: Boolean get() = false
 
   /**
@@ -362,7 +347,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * If they are constant they can be inlined by the java compiler and used in places that
    * require constants such as annotations and cases of switch statements.
    */
-  @JvmDefault
   val applicationRClassConstantIds: Boolean get() = true
 
   /**
@@ -371,10 +355,8 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * If they are constant they can be inlined by the java compiler and used in places that
    * require constants such as annotations and cases of switch statements.
    */
-  @JvmDefault
   val testRClassConstantIds: Boolean get() = true
 
-  @JvmDefault
   fun getTestLibrariesInUse(): TestLibraries? = null
 }
 
