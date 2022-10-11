@@ -195,6 +195,7 @@ object AndroidStudioUsageTracker {
   private fun runShutdownReports() {
     TypingLatencyTracker.reportTypingLatency()
     CompletionStats.reportCompletionStats()
+    ManifestMergerStatsTracker.reportMergerStats()
   }
 
   private fun reportEnabledPlugins() {
@@ -334,6 +335,7 @@ object AndroidStudioUsageTracker {
 
     TypingLatencyTracker.reportTypingLatency()
     CompletionStats.reportCompletionStats()
+    ManifestMergerStatsTracker.reportMergerStats()
   }
 
   /**

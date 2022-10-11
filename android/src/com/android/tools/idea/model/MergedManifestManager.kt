@@ -20,6 +20,8 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.concurrency.ThrottlingAsyncSupplier
+import com.android.tools.idea.stats.ManifestMergerStatsTracker
+import com.android.tools.idea.stats.ManifestMergerStatsTracker.MergeResult
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.TraceUtils
 import com.android.utils.concurrency.AsyncSupplier
@@ -40,6 +42,8 @@ import com.intellij.openapi.util.RecursionManager
 import org.jetbrains.android.facet.AndroidFacet
 import java.time.Duration
 import java.util.concurrent.ExecutionException
+import kotlin.time.ExperimentalTime
+import kotlin.time.TimeSource
 
 /**
  * The minimum amount of time between the creation of any two [MergedManifestSnapshot]s
@@ -79,6 +83,9 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
   @GuardedBy("callingThreadLock")
   private var snapshotBeingComputedInCallingThread: ListenableFuture<MergedManifestSnapshot>? = null
 
+  @OptIn(ExperimentalTime::class)
+  private val timeSource = TimeSource.Monotonic
+
   init {
     Disposer.register(this, delegate)
   }
@@ -104,9 +111,30 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
         // Make sure the module wasn't disposed while we were waiting for the read lock.
         facet.isDisposed() || module.project.isDisposed -> throw ProcessCanceledException()
         cachedSnapshot != null && snapshotUpToDate(cachedSnapshot) -> cachedSnapshot
-        else -> MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, MergedManifestInfo.create(facet))
+        else -> createMergedManifestSnapshot(facet)
       }
     }
+  }
+
+  /** Create a [MergedManifestSnapshot] and record associated telemetry. */
+  @OptIn(ExperimentalTime::class)
+  @Slow
+  private fun createMergedManifestSnapshot(facet: AndroidFacet): MergedManifestSnapshot {
+    val snapshot: MergedManifestSnapshot
+    val startMark = timeSource.markNow()
+    var result = MergeResult.FAILED
+
+    try {
+      snapshot = MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, MergedManifestInfo.create(facet))
+      result = MergeResult.SUCCESS
+    } catch (e: ProcessCanceledException) {
+      result = MergeResult.CANCELED
+      throw e
+    } finally {
+      ManifestMergerStatsTracker.recordManifestMergeRunTime(startMark.elapsedNow(), result)
+    }
+
+    return snapshot
   }
 
   /**
