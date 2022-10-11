@@ -63,7 +63,6 @@ import java.util.function.Consumer
 import javax.swing.event.ChangeListener
 
 private const val UPDATE_QUEUE_NAME = "propertysheet"
-private const val UPDATE_IDENTITY = "updateProperies"
 private const val UPDATE_DELAY_MILLI_SECONDS = 250
 
 /**
@@ -79,6 +78,7 @@ open class NlPropertiesModel(
 ) : PropertiesModel<NlPropertyItem>, Disposable {
   val project: Project = facet.module.project
 
+  private val updateIdentity = Any()
   private val listeners: MutableList<PropertiesModelListener<NlPropertyItem>> = mutableListOf()
   private val designSurfaceListener = PropertiesDesignSurfaceListener()
   private val modelListener = NlModelListener()
@@ -284,7 +284,7 @@ open class NlPropertiesModel(
     components: List<NlComponent>
   ) {
     updateLiveListeners(Collections.emptyList())
-    updateQueue.queue(object : Update(UPDATE_IDENTITY) {
+    updateQueue.queue(object : Update(updateIdentity) {
       override fun run() {
         handleSelectionUpdate(surface, panel, type, accessory, components)
       }

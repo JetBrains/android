@@ -39,6 +39,8 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import java.util.EnumSet
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class NlPropertiesModelTest: LayoutTestCase() {
 
@@ -274,6 +276,35 @@ class NlPropertiesModelTest: LayoutTestCase() {
     nlModel.surface.selectionModel.setSecondarySelection(textView, Any())
     waitUntilLastSelectionUpdateCompleted(model)
     assertThat(model.updateCount).isNotEqualTo(lastUpdateCount)
+  }
+
+  /**
+   * Regression test for b/247726011. When sharing one [MergingUpdateQueue], different [NlPropertiesModel] should still schedule one update
+   * per model. When sharing a queue, the updates would be folded into the one incorrectly.
+   */
+  fun testMultipleModelsSharingQueue() {
+    // setup
+    var generated = 0
+    val listener = object: PropertiesModelListener<NlPropertyItem> {
+      override fun propertiesGenerated(model: PropertiesModel<NlPropertyItem>) {
+        generated++
+      }
+    }
+
+    val queue = MergingUpdateQueue("MQ", 100, false, null, testRootDisposable)
+    val model1 = NlPropertiesModel(testRootDisposable, myFacet, queue)
+    val model2 = NlPropertiesModel(testRootDisposable, myFacet, queue)
+    val nlModel = createNlModel(TEXT_VIEW)
+    model1.addListener(listener)
+    model2.addListener(listener)
+
+    // test
+    model1.surface = nlModel.surface
+    model2.surface = nlModel.surface
+    queue.resume()
+    waitUntilLastSelectionUpdateCompleted(model1)
+    waitUntilLastSelectionUpdateCompleted(model2)
+    assertEquals(2, generated)
   }
 
   private fun createNlModel(vararg tag: String): SyncNlModel {
