@@ -150,9 +150,6 @@ internal fun Int.scaledUnbiased(fromRange: Int, toRange: Int): Int =
 internal fun Point.scaledUnbiased(fromDim: Dimension, toDim: Dimension): Point =
   Point(x.scaledUnbiased(fromDim.width, toDim.width), y.scaledUnbiased(fromDim.height, toDim.height))
 
-internal fun Dimension.scaledUnbiased(fromDim: Dimension, toDim: Dimension): Dimension =
-  Dimension(width.scaledUnbiased(fromDim.width, toDim.width), height.scaledUnbiased(fromDim.height, toDim.height))
-
 /**
  * Checks if the ratio between [width1] and [height1] is the same as the ratio between
  * [width2] and [height2] within the given relative [tolerance].
@@ -199,6 +196,7 @@ internal val Container.sizeWithoutInsets: Dimension
   get() = Dimension(width - insets.left - insets.right.coerceAtLeast(0),
                     height - insets.top - insets.bottom.coerceAtLeast(0))
 
+@Suppress("UnstableApiUsage")
 val Project.earlyDisposable: Disposable
   get() = (this as? ProjectEx)?.earlyDisposable ?: this
 
