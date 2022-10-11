@@ -47,8 +47,8 @@ class BuildAnalyzersWrapper(
   ) {
 
     if (androidGradlePluginAttributionData != null) {
-      taskContainer.updateTasksData(androidGradlePluginAttributionData)
       pluginContainer.updatePluginsData(androidGradlePluginAttributionData)
+      taskContainer.updateTasksData(androidGradlePluginAttributionData)
     }
 
     if (androidGradlePluginAttributionData != null) {

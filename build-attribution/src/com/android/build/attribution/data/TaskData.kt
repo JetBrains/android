@@ -121,7 +121,12 @@ class TaskData(private val taskId: TaskDataId,
     this.primaryTaskCategory = when {
       isKotlinCompilationTask() -> TaskCategory.KOTLIN
       isJavaCompilationTask() || originPlugin.isJavaPlugin() -> TaskCategory.JAVA
+
       primaryTaskCategory != TaskCategory.UNKNOWN -> primaryTaskCategory
+
+      originPlugin.pluginType == PluginData.PluginType.BUILDSRC_PLUGIN -> TaskCategory.BUILD_SOURCE
+      originPlugin.pluginType == PluginData.PluginType.SCRIPT -> TaskCategory.BUILD_SCRIPT
+
       originPlugin.isAndroidPlugin() -> TaskCategory.MISC
       originPlugin.isKotlinPlugin() -> TaskCategory.KOTLIN
       originPlugin.isGradlePlugin() -> TaskCategory.GRADLE
@@ -136,10 +141,10 @@ class TaskData(private val taskId: TaskDataId,
     }
   }
 
-  fun isJavaCompilationTask(): Boolean {
+  private fun isJavaCompilationTask(): Boolean {
     return taskType == "org.gradle.api.tasks.compile.JavaCompile"
   }
-  fun isKotlinCompilationTask(): Boolean {
+  private fun isKotlinCompilationTask(): Boolean {
     return isKaptTask() || taskType == "org.jetbrains.kotlin.gradle.tasks.KotlinCompile"
   }
 

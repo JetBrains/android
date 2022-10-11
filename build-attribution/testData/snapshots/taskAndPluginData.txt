@@ -1,0 +1,452 @@
+Task                          : :app:alwaysRunningBuildSrcTask
+    TaskType                      : org.example.buildsrc.AlwaysRunningBuildSrcTask
+    PrimaryTaskCategory           : BUILD_SOURCE
+    Plugin                        : buildSrc plugin org.example.buildsrc.AlwaysRunningBuildSrcPlugin
+Task                          : :app:alwaysRunningTask
+    TaskType                      : AlwaysRunTask
+    PrimaryTaskCategory           : UNKNOWN
+    Plugin                        : binary plugin AlwaysRunTasksPlugin
+Task                          : :app:alwaysRunningTask2
+    TaskType                      : AlwaysRunTask
+    PrimaryTaskCategory           : UNKNOWN
+    Plugin                        : binary plugin AlwaysRunTasksPlugin
+Task                          : :app:assembleDebug
+    TaskType                      : org.gradle.api.DefaultTask
+    PrimaryTaskCategory           : MISC
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:checkDebugAarMetadata
+    TaskType                      : com.android.build.gradle.internal.tasks.CheckAarMetadataTask
+    PrimaryTaskCategory           : VERIFICATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:checkDebugDuplicateClasses
+    TaskType                      : com.android.build.gradle.internal.tasks.CheckDuplicateClassesTask
+    PrimaryTaskCategory           : VERIFICATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:compileDebugJavaWithJavac
+    TaskType                      : org.gradle.api.tasks.compile.JavaCompile
+    PrimaryTaskCategory           : JAVA
+    SecondaryTaskCategories       : COMPILATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:compressDebugAssets
+    TaskType                      : com.android.build.gradle.internal.tasks.CompressAssetsTask
+    PrimaryTaskCategory           : APK_PACKAGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:createDebugApkListingFileRedirect
+    TaskType                      : com.android.build.gradle.internal.tasks.ListingFileRedirectTask
+    PrimaryTaskCategory           : SYNC
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:createDebugCompatibleScreenManifests
+    TaskType                      : com.android.build.gradle.tasks.CompatibleScreensManifest
+    PrimaryTaskCategory           : MANIFEST
+    SecondaryTaskCategories       : SOURCE_GENERATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:createDebugVariantModel
+    TaskType                      : com.android.build.gradle.tasks.sync.LibraryVariantModelTask
+    PrimaryTaskCategory           : SYNC
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:extractDeepLinksDebug
+    TaskType                      : com.android.build.gradle.tasks.ExtractDeepLinksTask
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:extractProguardFiles
+    TaskType                      : com.android.build.gradle.internal.tasks.ExtractProguardFiles
+    PrimaryTaskCategory           : OPTIMIZATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:generateDebugAssets
+    TaskType                      : org.gradle.api.DefaultTask
+    PrimaryTaskCategory           : MISC
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:generateDebugBuildConfig
+    TaskType                      : com.android.build.gradle.tasks.GenerateBuildConfig
+    PrimaryTaskCategory           : COMPILED_CLASSES
+    SecondaryTaskCategories       : SOURCE_GENERATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:generateDebugResValues
+    TaskType                      : com.android.build.gradle.tasks.GenerateResValues
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    SecondaryTaskCategories       : SOURCE_GENERATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:generateDebugResources
+    TaskType                      : org.gradle.api.DefaultTask
+    PrimaryTaskCategory           : MISC
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:javaPreCompileDebug
+    TaskType                      : com.android.build.gradle.tasks.JavaPreCompileTask
+    PrimaryTaskCategory           : JAVA
+    SecondaryTaskCategories       : COMPILATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:mapDebugSourceSetPaths
+    TaskType                      : com.android.build.gradle.tasks.MapSourceSetPathsTask
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:mergeDebugAssets
+    TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
+    PrimaryTaskCategory           : MISC
+    SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:mergeDebugGeneratedProguardFiles
+    TaskType                      : com.android.build.gradle.internal.tasks.MergeFileTask
+    PrimaryTaskCategory           : MISC
+    SecondaryTaskCategories       : MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:mergeDebugJavaResource
+    TaskType                      : com.android.build.gradle.internal.tasks.MergeJavaResourceTask
+    PrimaryTaskCategory           : JAVA_RESOURCES
+    SecondaryTaskCategories       : MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:mergeDebugJniLibFolders
+    TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
+    PrimaryTaskCategory           : MISC
+    SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:mergeDebugResources
+    TaskType                      : com.android.build.gradle.tasks.MergeResources
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    SecondaryTaskCategories       : MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:mergeDebugShaders
+    TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
+    PrimaryTaskCategory           : MISC
+    SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:minifyDebugWithR8
+    TaskType                      : com.android.build.gradle.internal.tasks.R8Task
+    PrimaryTaskCategory           : OPTIMIZATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:overlappingOutputTask1
+    TaskType                      : OverlappingOutputTask
+    PrimaryTaskCategory           : BUILD_SCRIPT
+    Plugin                        : script :app:build.gradle
+Task                          : :app:overlappingOutputTask2
+    TaskType                      : OverlappingOutputTask
+    PrimaryTaskCategory           : BUILD_SCRIPT
+    Plugin                        : script :app:build.gradle
+Task                          : :app:packageDebug
+    TaskType                      : com.android.build.gradle.tasks.PackageApplication
+    PrimaryTaskCategory           : APK_PACKAGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:preBuild
+    TaskType                      : org.gradle.api.DefaultTask
+    PrimaryTaskCategory           : MISC
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:preDebugBuild
+    TaskType                      : com.android.build.gradle.internal.tasks.AndroidVariantTask
+    PrimaryTaskCategory           : MISC
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:processDebugMainManifest
+    TaskType                      : com.android.build.gradle.tasks.ProcessApplicationManifest
+    PrimaryTaskCategory           : MANIFEST
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:processDebugManifest
+    TaskType                      : com.android.build.gradle.tasks.ProcessMultiApkApplicationManifest
+    PrimaryTaskCategory           : MANIFEST
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:processDebugManifestForPackage
+    TaskType                      : com.android.build.gradle.tasks.ProcessPackagedManifestTask
+    PrimaryTaskCategory           : MANIFEST
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:processDebugResources
+    TaskType                      : com.android.build.gradle.internal.res.LinkApplicationAndroidResourcesTask
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    SecondaryTaskCategories       : LINKING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:reportBuildAnalyzerIssues
+    TaskType                      : com.android.build.gradle.tasks.BuildAnalyzerTask
+    PrimaryTaskCategory           : MISC
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:validateSigningDebug
+    TaskType                      : com.android.build.gradle.internal.tasks.ValidateSigningTask
+    PrimaryTaskCategory           : VERIFICATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:writeDebugAppMetadata
+    TaskType                      : com.android.build.gradle.internal.tasks.AppMetadataTask
+    PrimaryTaskCategory           : METADATA
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:writeDebugSigningConfigVersions
+    TaskType                      : com.android.build.gradle.internal.tasks.SigningConfigVersionsWriterTask
+    PrimaryTaskCategory           : APK_PACKAGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :buildSrc:assemble
+    TaskType                      : UNKNOWN
+    PrimaryTaskCategory           : GRADLE
+    Plugin                        : binary plugin org.gradle.language.base.plugins.LifecycleBasePlugin
+Task                          : :buildSrc:build
+    TaskType                      : UNKNOWN
+    PrimaryTaskCategory           : GRADLE
+    Plugin                        : binary plugin org.gradle.language.base.plugins.LifecycleBasePlugin
+Task                          : :buildSrc:check
+    TaskType                      : UNKNOWN
+    PrimaryTaskCategory           : GRADLE
+    Plugin                        : binary plugin org.gradle.language.base.plugins.LifecycleBasePlugin
+Task                          : :buildSrc:classes
+    TaskType                      : UNKNOWN
+    PrimaryTaskCategory           : GRADLE
+    Plugin                        : binary plugin org.gradle.api.plugins.JavaBasePlugin
+Task                          : :buildSrc:compileJava
+    TaskType                      : UNKNOWN
+    PrimaryTaskCategory           : GRADLE
+    Plugin                        : binary plugin org.gradle.api.plugins.JavaBasePlugin
+Task                          : :buildSrc:jar
+    TaskType                      : UNKNOWN
+    PrimaryTaskCategory           : GRADLE
+    Plugin                        : binary plugin org.gradle.api.plugins.JavaPlugin
+Task                          : :buildSrc:pluginDescriptors
+    TaskType                      : UNKNOWN
+    PrimaryTaskCategory           : GRADLE
+    Plugin                        : binary plugin org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
+Task                          : :buildSrc:pluginUnderTestMetadata
+    TaskType                      : UNKNOWN
+    PrimaryTaskCategory           : GRADLE
+    Plugin                        : binary plugin org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
+Task                          : :buildSrc:processResources
+    TaskType                      : UNKNOWN
+    PrimaryTaskCategory           : GRADLE
+    Plugin                        : binary plugin org.gradle.api.plugins.JavaBasePlugin
+Task                          : :buildSrc:testClasses
+    TaskType                      : UNKNOWN
+    PrimaryTaskCategory           : GRADLE
+    Plugin                        : binary plugin org.gradle.api.plugins.JavaBasePlugin
+Task                          : :buildSrc:validatePlugins
+    TaskType                      : UNKNOWN
+    PrimaryTaskCategory           : GRADLE
+    Plugin                        : binary plugin org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
+Task                          : :lib:assembleDebug
+    TaskType                      : org.gradle.api.DefaultTask
+    PrimaryTaskCategory           : MISC
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:bundleDebugAar
+    TaskType                      : com.android.build.gradle.tasks.BundleAar
+    PrimaryTaskCategory           : AAR_PACKAGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:bundleLibCompileToJarDebug
+    TaskType                      : com.android.build.gradle.internal.tasks.BundleLibraryClassesJar
+    PrimaryTaskCategory           : COMPILED_CLASSES
+    SecondaryTaskCategories       : ZIPPING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:bundleLibResDebug
+    TaskType                      : com.android.build.gradle.internal.tasks.BundleLibraryJavaRes
+    PrimaryTaskCategory           : JAVA_RESOURCES
+    SecondaryTaskCategories       : ZIPPING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:bundleLibRuntimeToJarDebug
+    TaskType                      : com.android.build.gradle.internal.tasks.BundleLibraryClassesJar
+    PrimaryTaskCategory           : COMPILED_CLASSES
+    SecondaryTaskCategories       : ZIPPING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:compileDebugJavaWithJavac
+    TaskType                      : org.gradle.api.tasks.compile.JavaCompile
+    PrimaryTaskCategory           : JAVA
+    SecondaryTaskCategories       : COMPILATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:compileDebugLibraryResources
+    TaskType                      : com.android.build.gradle.tasks.CompileLibraryResourcesTask
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    SecondaryTaskCategories       : COMPILATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:copyDebugJniLibsProjectAndLocalJars
+    TaskType                      : com.android.build.gradle.internal.tasks.LibraryJniLibsTask
+    PrimaryTaskCategory           : NATIVE
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:copyDebugJniLibsProjectOnly
+    TaskType                      : com.android.build.gradle.internal.tasks.LibraryJniLibsTask
+    PrimaryTaskCategory           : NATIVE
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:createDebugVariantModel
+    TaskType                      : com.android.build.gradle.tasks.sync.LibraryVariantModelTask
+    PrimaryTaskCategory           : SYNC
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:exportDebugConsumerProguardFiles
+    TaskType                      : com.android.build.gradle.internal.tasks.ExportConsumerProguardFilesTask
+    PrimaryTaskCategory           : OPTIMIZATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:extractDebugAnnotations
+    TaskType                      : com.android.build.gradle.tasks.ExtractAnnotations
+    PrimaryTaskCategory           : COMPILED_CLASSES
+    SecondaryTaskCategories       : SOURCE_PROCESSING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:extractDeepLinksDebug
+    TaskType                      : com.android.build.gradle.tasks.ExtractDeepLinksTask
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:extractDeepLinksForAarDebug
+    TaskType                      : com.android.build.gradle.tasks.ExtractDeepLinksTask
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:generateDebugAssets
+    TaskType                      : org.gradle.api.DefaultTask
+    PrimaryTaskCategory           : MISC
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:generateDebugBuildConfig
+    TaskType                      : com.android.build.gradle.tasks.GenerateBuildConfig
+    PrimaryTaskCategory           : COMPILED_CLASSES
+    SecondaryTaskCategories       : SOURCE_GENERATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:generateDebugRFile
+    TaskType                      : com.android.build.gradle.internal.res.GenerateLibraryRFileTask
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:generateDebugResValues
+    TaskType                      : com.android.build.gradle.tasks.GenerateResValues
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    SecondaryTaskCategories       : SOURCE_GENERATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:generateDebugResources
+    TaskType                      : org.gradle.api.DefaultTask
+    PrimaryTaskCategory           : MISC
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:javaPreCompileDebug
+    TaskType                      : com.android.build.gradle.tasks.JavaPreCompileTask
+    PrimaryTaskCategory           : JAVA
+    SecondaryTaskCategories       : COMPILATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:kaptDebugKotlin
+    TaskType                      : org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask
+    PrimaryTaskCategory           : KOTLIN
+    SecondaryTaskCategories       : COMPILATION
+    Plugin                        : binary plugin org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+Task                          : :lib:kaptGenerateStubsDebugKotlin
+    TaskType                      : org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask
+    PrimaryTaskCategory           : KOTLIN
+    SecondaryTaskCategories       : COMPILATION
+    Plugin                        : binary plugin org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+Task                          : :lib:mergeDebugConsumerProguardFiles
+    TaskType                      : com.android.build.gradle.internal.tasks.MergeConsumerProguardFilesTask
+    PrimaryTaskCategory           : OPTIMIZATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:mergeDebugGeneratedProguardFiles
+    TaskType                      : com.android.build.gradle.internal.tasks.MergeFileTask
+    PrimaryTaskCategory           : MISC
+    SecondaryTaskCategories       : MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:mergeDebugJavaResource
+    TaskType                      : com.android.build.gradle.internal.tasks.MergeJavaResourceTask
+    PrimaryTaskCategory           : JAVA_RESOURCES
+    SecondaryTaskCategories       : MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:mergeDebugJniLibFolders
+    TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
+    PrimaryTaskCategory           : MISC
+    SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:mergeDebugShaders
+    TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
+    PrimaryTaskCategory           : MISC
+    SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:packageDebugAssets
+    TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
+    PrimaryTaskCategory           : MISC
+    SecondaryTaskCategories       : SOURCE_PROCESSING,MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:packageDebugResources
+    TaskType                      : com.android.build.gradle.tasks.MergeResources
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    SecondaryTaskCategories       : MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:parseDebugLocalResources
+    TaskType                      : com.android.build.gradle.internal.res.ParseLibraryResourcesTask
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:preBuild
+    TaskType                      : org.gradle.api.DefaultTask
+    PrimaryTaskCategory           : MISC
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:preDebugBuild
+    TaskType                      : com.android.build.gradle.internal.tasks.AndroidVariantTask
+    PrimaryTaskCategory           : MISC
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:prepareDebugArtProfile
+    TaskType                      : com.android.build.gradle.tasks.ProcessLibraryArtProfileTask
+    PrimaryTaskCategory           : ART_PROFILE
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:prepareLintJarForPublish
+    TaskType                      : com.android.build.gradle.internal.tasks.PrepareLintJarForPublish
+    PrimaryTaskCategory           : LINT
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:processDebugManifest
+    TaskType                      : com.android.build.gradle.tasks.ProcessMultiApkApplicationManifest
+    PrimaryTaskCategory           : MANIFEST
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:reportBuildAnalyzerIssues
+    TaskType                      : com.android.build.gradle.tasks.BuildAnalyzerTask
+    PrimaryTaskCategory           : MISC
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:syncDebugLibJars
+    TaskType                      : com.android.build.gradle.internal.tasks.LibraryAarJarsTask
+    PrimaryTaskCategory           : AAR_PACKAGING
+    SecondaryTaskCategories       : ZIPPING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:writeDebugAarMetadata
+    TaskType                      : com.android.build.gradle.internal.tasks.AarMetadataTask
+    PrimaryTaskCategory           : METADATA
+    SecondaryTaskCategories       : SOURCE_GENERATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Plugin                        : ::build.gradle
+    PluginType                    : SCRIPT
+    PluginDisplayNames            : ::build.gradle
+Plugin                        : :app:build.gradle
+    PluginType                    : SCRIPT
+    PluginDisplayNames            : :app:build.gradle
+Plugin                        : :lib:build.gradle
+    PluginType                    : SCRIPT
+    PluginDisplayNames            : :lib:build.gradle
+Plugin                        : AlwaysRunTasksPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : AlwaysRunTasksPlugin
+Plugin                        : com.android.build.gradle.AppPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : com.android.application
+Plugin                        : com.android.build.gradle.LibraryPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : com.android.library
+Plugin                        : com.android.build.gradle.api.AndroidBasePlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : com.android.build.gradle.api.AndroidBasePlugin
+Plugin                        : com.android.build.gradle.internal.plugins.AppPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : com.android.application
+Plugin                        : com.android.build.gradle.internal.plugins.LibraryPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : com.android.library
+Plugin                        : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : com.android.version-check
+Plugin                        : org.example.buildsrc.AlwaysRunningBuildSrcPlugin
+    PluginType                    : BUILDSRC_PLUGIN
+    PluginDisplayNames            : AlwaysRunningBuildSrcPlugin
+Plugin                        : org.gradle.api.plugins.BasePlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : org.gradle.api.plugins.BasePlugin
+Plugin                        : org.gradle.api.plugins.HelpTasksPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : org.gradle.help-tasks
+Plugin                        : org.gradle.api.plugins.JavaBasePlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : org.gradle.api.plugins.JavaBasePlugin
+Plugin                        : org.gradle.api.plugins.JavaPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : org.gradle.api.plugins.JavaPlugin
+Plugin                        : org.gradle.api.plugins.JvmEcosystemPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : org.gradle.api.plugins.JvmEcosystemPlugin
+Plugin                        : org.gradle.api.plugins.ReportingBasePlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : org.gradle.api.plugins.ReportingBasePlugin
+Plugin                        : org.gradle.buildinit.plugins.BuildInitPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : org.gradle.build-init
+Plugin                        : org.gradle.buildinit.plugins.WrapperPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : org.gradle.wrapper
+Plugin                        : org.gradle.language.base.plugins.LifecycleBasePlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : org.gradle.language.base.plugins.LifecycleBasePlugin
+Plugin                        : org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : org.gradle.java-gradle-plugin
+Plugin                        : org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : kotlin-kapt
+Plugin                        : org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+    PluginType                    : BINARY_PLUGIN
+    PluginDisplayNames            : kotlin-android

@@ -139,6 +139,8 @@ message BuildAnalysisResultsMessage {
       COMPILED_CLASSES = 32;
       GRADLE = 33;
       MISC = 34;
+      BUILD_SCRIPT = 35;
+      BUILD_SOURCE = 36;
     }
   }
 
