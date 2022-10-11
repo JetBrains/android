@@ -281,15 +281,16 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
 
     // TODO: Perform caching
     List<AnAction> actions = new ArrayList<>();
+    ViewHandler leafHandler = null;
     if (leafComponent != null) {
-      ViewHandler handler = ViewHandlerManager.get(project).getHandler(leafComponent);
-      if (handler != null) {
-        actions.addAll(getViewActionsForHandler(leafComponent, selection, editor, handler, toolbar));
+      leafHandler = ViewHandlerManager.get(project).getHandler(leafComponent);
+      if (leafHandler != null) {
+        actions.addAll(getViewActionsForHandler(leafComponent, selection, editor, leafHandler, toolbar));
       }
     }
     if (parent != null) {
       ViewHandler handler = ViewHandlerManager.get(project).getHandler(parent);
-      if (handler != null) {
+      if (handler != null && leafHandler != handler) {
         List<NlComponent> selectedChildren = Lists.newArrayListWithCapacity(selection.size());
         // TODO(b/150297043): If the selected components have different parents, do we need to provide the view action from parents?
         for (NlComponent selected : selection) {
