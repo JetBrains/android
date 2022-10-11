@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.device.explorer
 
+import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
 import com.android.tools.idea.device.explorer.files.DeviceExplorerFilesController
 import com.android.tools.idea.device.explorer.files.DeviceExplorerFilesModel
 import com.android.tools.idea.device.explorer.files.ui.DeviceExplorerFilesViewImpl
-import com.android.tools.idea.device.explorer.monitor.DeviceExplorerMonitorController
-import com.android.tools.idea.device.explorer.monitor.DeviceExplorerMonitorModel
-import com.android.tools.idea.device.explorer.monitor.ui.DeviceExplorerMonitorViewImpl
+import com.android.tools.idea.device.explorer.monitor.DeviceMonitorController
+import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
+import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
+import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorViewImpl
 import com.android.tools.idea.device.explorer.ui.DeviceExplorerViewImpl
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.isAndroidEnvironment
@@ -42,19 +44,21 @@ class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
     toolWindow.title = TOOL_WINDOW_ID
     val model = DeviceExplorerModel(project)
     val view = DeviceExplorerViewImpl(project, model)
-    val deviceMonitorController = createDeviceMonitorController()
+    val deviceMonitorController = createDeviceMonitorController(project)
     val deviceFilesController = createDeviceFilesController()
-    val deviceExplorerController = DeviceExplorerController(model, view, deviceFilesController, deviceMonitorController)
+    val deviceExplorerController = DeviceExplorerController(project, model, view, deviceFilesController, deviceMonitorController)
     deviceExplorerController.setup()
     val contentManager = toolWindow.contentManager
     val toolWindowContent = contentManager.factory.createContent(view.component, "", true)
     contentManager.addContent(toolWindowContent)
   }
 
-  private fun createDeviceMonitorController(): DeviceExplorerMonitorController {
-    val model = DeviceExplorerMonitorModel()
-    val view = DeviceExplorerMonitorViewImpl()
-    return DeviceExplorerMonitorController(model, view)
+  private fun createDeviceMonitorController(project: Project): DeviceMonitorController {
+    val adbService = project.getService(AdbDeviceService::class.java)
+    val processService = project.getService(DeviceProcessService::class.java)
+    val model = DeviceMonitorModel(processService)
+    val view = DeviceMonitorViewImpl()
+    return DeviceMonitorController(project, model, view, adbService)
   }
 
   private fun createDeviceFilesController(): DeviceExplorerFilesController {

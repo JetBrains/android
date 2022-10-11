@@ -15,5 +15,14 @@
  */
 package com.android.tools.idea.device.explorer.monitor
 
-class DeviceExplorerMonitorModel {
+import com.android.ddmlib.IDevice
+
+interface DeviceService {
+  fun addListener(listener: DeviceServiceListener)
+  fun removeListener(listener: DeviceServiceListener)
+  fun getIDeviceFromSerialNumber(serialNumber: String?): IDevice?
+  /**
+   * Starts the service, usually after registering one or more [DeviceListServiceListener].
+   */
+  suspend fun start()
 }

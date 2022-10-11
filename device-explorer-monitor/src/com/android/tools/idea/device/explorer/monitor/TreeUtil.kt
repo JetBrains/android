@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.monitor.ui
+package com.android.tools.idea.device.explorer.monitor
 
 import com.intellij.openapi.diagnostic.thisLogger
 import java.util.Enumeration

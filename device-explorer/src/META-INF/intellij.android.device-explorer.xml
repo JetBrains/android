@@ -16,7 +16,8 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup id="Device Explorer" displayType="BALLOON"/>
-<!--    <projectService serviceImplementation="com.android.tools.idea.device.explorer.adbimpl.AdbDeviceService"/>-->
+    <projectService serviceImplementation="com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService"/>
+    <projectService serviceImplementation="com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService"/>
     <toolWindow id="Device Explorer"
                 anchor="right"
                 secondary="true"

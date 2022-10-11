@@ -16,13 +16,9 @@
 package com.android.tools.idea.device.explorer.monitor
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.device.monitor.processes.Device
 
 @UiThread
 interface DeviceMonitorViewListener {
-  fun noDeviceSelected()
-  fun deviceSelected(device: Device)
-  fun treeNodeExpanding(treeNode: ProcessTreeNode)
   fun refreshInvoked()
   fun killNodesInvoked(nodes: List<ProcessTreeNode>)
   fun forceStopNodesInvoked(nodes: List<ProcessTreeNode>)

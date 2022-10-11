@@ -24,6 +24,7 @@ import javax.swing.Icon;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +33,7 @@ public class DeviceExplorerPanel {
   private JPanel myComponent;
   private JPanel errorPanel;
   private JLabel errorText;
+  private JTabbedPane tabPane;
 
   public DeviceExplorerPanel() {
     errorPanel.setBackground(UIUtil.getTreeBackground());
@@ -50,8 +52,15 @@ public class DeviceExplorerPanel {
     return myDeviceCombo;
   }
 
+  @NotNull
+  public JTabbedPane getTabPane() {
+    //noinspection unchecked
+    return tabPane;
+  }
+
   public void showTabs() {
     myDeviceCombo.setVisible(true);
+    tabPane.setVisible(true);
     errorPanel.setVisible(false);
     errorText.setText("");
   }
@@ -70,5 +79,6 @@ public class DeviceExplorerPanel {
                                     StringUtil.escapeXml(message));
     errorText.setText(htmlText);
     errorPanel.setVisible(true);
+    tabPane.setVisible(false);
   }
 }

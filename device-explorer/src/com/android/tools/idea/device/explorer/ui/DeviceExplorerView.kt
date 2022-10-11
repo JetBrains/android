@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.device.explorer.ui
 
+import javax.swing.JComponent
+
 interface DeviceExplorerView {
   fun setup()
   fun addListener(listener: DeviceExplorerViewListener)
   fun removeListener(listener: DeviceExplorerViewListener)
+
+  fun addTab(tab: JComponent, title: String)
   suspend fun trackDeviceListChanges()
   suspend fun trackActiveDeviceChanges()
 

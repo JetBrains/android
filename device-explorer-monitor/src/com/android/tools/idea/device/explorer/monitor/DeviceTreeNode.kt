@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.device.explorer.monitor
 
-import com.android.tools.idea.device.monitor.processes.Device
+import com.android.tools.idea.device.explorer.monitor.processes.Device
 
 /**
  * A [ProcessTreeNode] representing a [device]. This node should always be

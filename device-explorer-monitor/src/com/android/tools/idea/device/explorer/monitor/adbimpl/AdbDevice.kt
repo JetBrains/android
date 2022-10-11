@@ -16,8 +16,7 @@
 package com.android.tools.idea.device.explorer.monitor.adbimpl
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.device.monitor.processes.Device
-import com.android.tools.idea.device.monitor.processes.DeviceState
+import com.android.tools.idea.device.explorer.monitor.processes.Device
 
 class AdbDevice(val device: IDevice) : Device {
 
@@ -26,15 +25,4 @@ class AdbDevice(val device: IDevice) : Device {
 
   override val serialNumber: String
     get() = device.serialNumber
-
-  override val state: DeviceState
-    get() = when (device.state) {
-      IDevice.DeviceState.ONLINE -> DeviceState.ONLINE
-      IDevice.DeviceState.OFFLINE -> DeviceState.OFFLINE
-      IDevice.DeviceState.UNAUTHORIZED -> DeviceState.UNAUTHORIZED
-      IDevice.DeviceState.BOOTLOADER -> DeviceState.BOOTLOADER
-      IDevice.DeviceState.RECOVERY -> DeviceState.RECOVERY
-      IDevice.DeviceState.SIDELOAD -> DeviceState.SIDELOAD
-      else -> DeviceState.DISCONNECTED
-    }
 }

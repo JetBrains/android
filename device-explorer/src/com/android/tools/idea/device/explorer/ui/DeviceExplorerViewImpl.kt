@@ -62,6 +62,10 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
     showPanel()
   }
 
+  override fun addTab(tab: JComponent, title: String) {
+    panel.tabPane.addTab(title, tab)
+  }
+
   override suspend fun trackDeviceListChanges() {
     val devicesInComboBox = mutableSetOf<DeviceHandle>()
 

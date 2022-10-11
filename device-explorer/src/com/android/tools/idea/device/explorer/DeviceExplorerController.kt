@@ -19,23 +19,27 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.files.DeviceExplorerFilesController
-import com.android.tools.idea.device.explorer.monitor.DeviceExplorerMonitorController
+import com.android.tools.idea.device.explorer.monitor.DeviceMonitorController
 import com.android.tools.idea.device.explorer.ui.DeviceExplorerView
 import com.android.tools.idea.device.explorer.ui.DeviceExplorerViewListener
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 class DeviceExplorerController(
+  project: Project,
   private val model: DeviceExplorerModel,
   private val view: DeviceExplorerView,
   private val deviceFilesController: DeviceExplorerFilesController,
-  private val deviceMonitorController: DeviceExplorerMonitorController) : Disposable {
+  private val deviceMonitorController: DeviceMonitorController) : Disposable {
 
   private val uiThreadScope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
   private val viewListener: DeviceExplorerViewListener = ViewListener()
 
   init {
+    Disposer.register(project, this)
     view.addListener(viewListener)
   }
 
@@ -46,6 +50,8 @@ class DeviceExplorerController(
   fun setup() {
     uiThreadScope.launch {
       view.setup()
+      view.addTab(deviceMonitorController.getViewComponent(), "Processes")
+      deviceMonitorController.setup()
       launch { view.trackDeviceListChanges() }
       launch { view.trackActiveDeviceChanges() }
     }
@@ -54,10 +60,12 @@ class DeviceExplorerController(
   private inner class ViewListener : DeviceExplorerViewListener {
     override fun noDeviceSelected() {
       model.setActiveDevice(null)
+      deviceMonitorController.activeDeviceChanged(null)
     }
 
     override fun deviceSelected(deviceHandle: DeviceHandle) {
       model.setActiveDevice(deviceHandle)
+      deviceMonitorController.activeDeviceChanged(deviceHandle.state.connectedDevice)
     }
   }
 }

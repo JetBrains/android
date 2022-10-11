@@ -30,9 +30,4 @@ interface Device {
    */
   val serialNumber: String
 
-  /**
-   * The device state, as defined by [DeviceState]. This value can change over time, as the device
-   * comes [DeviceState.ONLINE] or [DeviceState.DISCONNECTED].
-   */
-  val state: DeviceState
 }

@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer.monitor.adbimpl
+package com.android.tools.idea.device.explorer.monitor.ui
 
-import com.android.tools.idea.ddms.DeviceNamePropertiesProvider
-import com.android.tools.idea.device.monitor.DeviceNameRendererFactory
+import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModelListener
+import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
+import javax.swing.JComponent
 
-class AdbDeviceNameRendererFactory(private val adbDeviceListService: AdbDeviceListService) : DeviceNameRendererFactory {
-  override fun create(deviceNamePropertiesProvider: DeviceNamePropertiesProvider): AdbDeviceRenderer {
-    return AdbDeviceRenderer(adbDeviceListService, deviceNamePropertiesProvider)
-  }
+interface DeviceMonitorView {
+  val modelListener: DeviceMonitorModelListener
+  val panelComponent: JComponent
+  fun setup()
+  fun addListener(listener: DeviceMonitorViewListener)
+  fun removeListener(listener: DeviceMonitorViewListener)
 }

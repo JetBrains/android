@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.monitor.ui
+package com.android.tools.idea.device.explorer.monitor.ui
 
-import com.android.tools.idea.device.monitor.ProcessTreeNode
+import com.android.tools.idea.device.explorer.monitor.ProcessTreeNode
 
 interface DeviceMonitorActionsListener {
   val selectedNodes: List<ProcessTreeNode>?

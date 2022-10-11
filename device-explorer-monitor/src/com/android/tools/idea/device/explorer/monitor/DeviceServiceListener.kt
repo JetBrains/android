@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.device.explorer.monitor
 
-interface DeviceMonitorProgressListener {
-  fun cancellationRequested()
+import com.android.ddmlib.IDevice
+
+interface DeviceServiceListener {
+  fun deviceProcessListUpdated(device: IDevice)
 }

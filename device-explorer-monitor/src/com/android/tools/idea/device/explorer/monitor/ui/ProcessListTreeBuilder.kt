@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.monitor.ui
+package com.android.tools.idea.device.explorer.monitor.ui
 
 import com.android.ddmlib.ClientData
 import com.android.tools.adtui.common.ColumnTreeBuilder
 import com.android.tools.adtui.common.ColumnTreeBuilder.ColumnBuilder
-import com.android.tools.idea.device.monitor.ProcessInfoTreeNode
-import com.android.tools.idea.device.monitor.ProcessInfoTreeNode.Companion.fromNode
-import com.android.tools.idea.device.monitor.processes.isPidOnly
-import com.android.tools.idea.device.monitor.processes.safeProcessName
+import com.android.tools.idea.device.explorer.monitor.ProcessInfoTreeNode
+import com.android.tools.idea.device.explorer.monitor.ProcessInfoTreeNode.Companion.fromNode
+import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
+import com.android.tools.idea.device.explorer.monitor.processes.safeProcessName
 import com.intellij.ide.ui.search.SearchUtil
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
@@ -44,99 +44,29 @@ class ProcessListTreeBuilder {
 
     val builder = ColumnTreeBuilder(myTree)
       .setBackground(UIUtil.getTreeBackground())
-      .addColumn(
-        ColumnBuilder()
-          .setName("Process Name")
-          .setPreferredWidth(JBUI.scale(600))
-          .setHeaderAlignment(SwingConstants.CENTER)
-          .setHeaderBorder(
-            JBUI.Borders.empty(
-              DeviceMonitorPanel.TEXT_RENDERER_VERT_PADDING,
-              DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING
-            )
-          )
-          .setRenderer(NameRenderer(treeSpeedSearch))
-      )
-      .addColumn(
-        ColumnBuilder()
-          .setName("PID")
-          .setPreferredWidth(JBUI.scale(150))
-          .setHeaderAlignment(SwingConstants.CENTER)
-          .setHeaderBorder(
-            JBUI.Borders.empty(
-              DeviceMonitorPanel.TEXT_RENDERER_VERT_PADDING,
-              DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING
-            )
-          )
-          .setRenderer(PidRenderer())
-      )
-      .addColumn(
-        ColumnBuilder()
-          .setName("ABI")
-          .setPreferredWidth(JBUI.scale(200))
-          .setHeaderAlignment(SwingConstants.CENTER)
-          .setHeaderBorder(
-            JBUI.Borders.empty(
-              DeviceMonitorPanel.TEXT_RENDERER_VERT_PADDING,
-              DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING
-            )
-          )
-          .setRenderer(AbiRenderer())
-      )
-      .addColumn(
-        ColumnBuilder()
-          .setName("VM")
-          .setPreferredWidth(JBUI.scale(200))
-          .setHeaderAlignment(SwingConstants.CENTER)
-          .setHeaderBorder(
-            JBUI.Borders.empty(
-              DeviceMonitorPanel.TEXT_RENDERER_VERT_PADDING,
-              DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING
-            )
-          )
-          .setRenderer(VmIdentifierRenderer())
-      )
-      .addColumn(
-        ColumnBuilder()
-          .setName("User ID")
-          .setPreferredWidth(JBUI.scale(100))
-          .setHeaderAlignment(SwingConstants.CENTER)
-          .setHeaderBorder(
-            JBUI.Borders.empty(
-              DeviceMonitorPanel.TEXT_RENDERER_VERT_PADDING,
-              DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING
-            )
-          )
-          .setRenderer(UserIdRenderer())
-      )
-      .addColumn(
-        ColumnBuilder()
-          .setName("Debugger")
-          .setPreferredWidth(JBUI.scale(100))
-          .setHeaderAlignment(SwingConstants.CENTER)
-          .setHeaderBorder(
-            JBUI.Borders.empty(
-              DeviceMonitorPanel.TEXT_RENDERER_VERT_PADDING,
-              DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING
-            )
-          )
-          .setRenderer(StatusRenderer())
-      )
-      .addColumn(
-        ColumnBuilder()
-          .setName("Native")
-          .setPreferredWidth(JBUI.scale(100))
-          .setHeaderAlignment(SwingConstants.CENTER)
-          .setHeaderBorder(
-            JBUI.Borders.empty(
-              DeviceMonitorPanel.TEXT_RENDERER_VERT_PADDING,
-              DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING
-            )
-          )
-          .setRenderer(SupportsNativeDebuggingRenderer())
-      )
+      .addColumn(createColumnBuilder("Process Name", 600, NameRenderer(treeSpeedSearch)))
+      .addColumn(createColumnBuilder("PID", 150, PidRenderer()))
+      .addColumn(createColumnBuilder("ABI", 200, AbiRenderer()))
+      .addColumn(createColumnBuilder("VM", 200, VmIdentifierRenderer()))
+      .addColumn(createColumnBuilder("User ID", 100, UserIdRenderer()))
+      .addColumn(createColumnBuilder("Debugger", 100, StatusRenderer()))
+      .addColumn(createColumnBuilder("Native", 100, SupportsNativeDebuggingRenderer()))
     return builder.build()
   }
+
+  private fun createColumnBuilder(name: String, preferredWidth: Int, renderer: ColoredTreeCellRenderer): ColumnTreeBuilder.ColumnBuilder =
+    ColumnBuilder()
+      .setName(name)
+      .setPreferredWidth(JBUI.scale(preferredWidth))
+      .setHeaderAlignment(SwingConstants.CENTER)
+      .setHeaderBorder(
+        JBUI.Borders.empty(
+          DeviceMonitorPanel.TEXT_RENDERER_VERT_PADDING,
+          DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING
+        )
+      )
+      .setRenderer(renderer)
+
 
   class NameRenderer(private val mySpeedSearch: TreeSpeedSearch) : ColoredTreeCellRenderer() {
     override fun customizeCellRenderer(

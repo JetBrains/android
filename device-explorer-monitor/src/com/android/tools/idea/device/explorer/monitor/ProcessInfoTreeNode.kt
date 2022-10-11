@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.device.explorer.monitor
 
-import com.android.tools.idea.device.monitor.processes.ProcessInfo
-import com.android.tools.idea.device.monitor.processes.safeProcessName
+import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
+import com.android.tools.idea.device.explorer.monitor.processes.safeProcessName
 
 /**
  * A [ProcessTreeNode] representing a [ProcessInfo].

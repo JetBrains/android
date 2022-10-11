@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.monitor.ui
+package com.android.tools.idea.device.explorer.monitor.ui
 
-import com.android.tools.idea.device.monitor.ui.menu.item.PopupMenuItem
+import com.android.tools.idea.device.explorer.monitor.ui.menu.item.PopupMenuItem
 import javax.swing.JComponent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.ui.PopupHandler
