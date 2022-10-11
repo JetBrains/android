@@ -24,6 +24,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.idea.transport.FailedToStartServerException
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportDeviceManager
 import com.android.tools.idea.transport.TransportProxy
@@ -183,8 +184,10 @@ class TransportDeviceManagerListenerImpl : TransportDeviceManager.TransportDevic
   }
 
   override fun onPreTransportDaemonStart(device: Common.Device) { }
-  override fun onStartTransportDaemonFail(device: Common.Device, exception: Exception) { }
+  override fun onTransportDaemonException(device: Common.Device, exception: Exception) { }
   override fun onTransportProxyCreationFail(device: Common.Device, exception: Exception) { }
+  override fun onStartTransportDaemonServerFail(device: Common.Device, exception: FailedToStartServerException) { }
+
   override fun customizeProxyService(proxy: TransportProxy) { }
   override fun customizeAgentConfig(configBuilder: Agent.AgentConfig.Builder, runConfig: AndroidRunConfigurationBase?) { }
 

@@ -26,6 +26,7 @@ import com.android.tools.idea.profilers.eventpreprocessor.EnergyUsagePreprocesso
 import com.android.tools.idea.profilers.eventpreprocessor.SimpleperfPipelinePreprocessor;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.transport.FailedToStartServerException;
 import com.android.tools.idea.transport.TransportDeviceManager;
 import com.android.tools.idea.transport.TransportProxy;
 import com.android.tools.idea.transport.TransportService;
@@ -68,11 +69,15 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
   }
 
   @Override
-  public void onStartTransportDaemonFail(@NotNull Common.Device device, @NotNull Exception exception) {
+  public void onTransportDaemonException(@NotNull Common.Device device, @NotNull Exception exception) {
   }
 
   @Override
   public void onTransportProxyCreationFail(@NotNull Common.Device device, @NotNull Exception exception) {
+  }
+
+  @Override
+  public void onStartTransportDaemonServerFail(@NotNull Common.Device device, @NotNull FailedToStartServerException exception) {
   }
 
   @Override

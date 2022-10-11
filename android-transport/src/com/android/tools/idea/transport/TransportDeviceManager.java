@@ -274,22 +274,26 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         }
       }
       catch (ShellCommandUnresponsiveException | SyncException e) {
-        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
+        myMessageBus.syncPublisher(TOPIC).onTransportDaemonException(transportDevice, e);
         getLogger().error("Error when trying to spawn Transport daemon", e);
       }
       catch (AdbCommandRejectedException | IOException e) {
         // AdbCommandRejectedException and IOException happen when unplugging the device shortly after plugging it in.
         // We don't want to crash in this case.
         getLogger().warn("Error when trying to spawn Transport", e);
-        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
+        myMessageBus.syncPublisher(TOPIC).onTransportDaemonException(transportDevice, e);
       }
       catch (TimeoutException | InterruptedException e) {
         // These happen when users unplug their devices or if studio is closed. We don't need to surface the exceptions here.
-        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
+        myMessageBus.syncPublisher(TOPIC).onTransportDaemonException(transportDevice, e);
+      }
+      catch (FailedToStartServerException e) {
+        getLogger().warn("Error when trying to spawn Transport", e);
+        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonServerFail(transportDevice, e);
       }
       catch (RuntimeException e) {
         getLogger().warn("Error when trying to spawn Transport", e);
-        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
+        myMessageBus.syncPublisher(TOPIC).onTransportDaemonException(transportDevice, e);
       }
     }
 
@@ -328,8 +332,8 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
           if (!startGrpcServerOutput.startsWith("Server listening on")) {
             if (attemptNumber >= 3) {
               // By throwing an exception we stop the transport from keep trying to start the server forever.
-              // An `onStartTransportDaemonFail` is published to the `TransportDeviceManager.TOPIC`.
-              throw new RuntimeException(startGrpcServerOutput);
+              // An `onStartTransportDaemonServerFail` is published to the `TransportDeviceManager.TOPIC`.
+              throw new FailedToStartServerException(startGrpcServerOutput);
             }
             else {
               // By returning the transport will try to connect again.
@@ -614,14 +618,19 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
     void onPreTransportDaemonStart(@NotNull Common.Device device);
 
     /**
-     * Callback for when the transport daemon fails to start.
+     * Callback for when the transport daemon throws an exception.
      */
-    void onStartTransportDaemonFail(@NotNull Common.Device device, @NotNull Exception exception);
+    void onTransportDaemonException(@NotNull Common.Device device, @NotNull Exception exception);
 
     /**
      * Callback for when the device manager fails to initialize the proxy layer that connects between the datastore and the daemon.
      */
     void onTransportProxyCreationFail(@NotNull Common.Device device, @NotNull Exception exception);
+
+    /**
+     * Callback for when the transport daemon fails to start the server.
+     */
+    void onStartTransportDaemonServerFail(@NotNull Common.Device device, @NotNull FailedToStartServerException exception);
 
     /**
      * void onTransportThreadStarts(@NotNull IDevice device, @NotNull Common.Device transportDevice);
@@ -653,3 +662,4 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
     void customizeAgentConfig(@NotNull Agent.AgentConfig.Builder configBuilder, @Nullable AndroidRunConfigurationBase runConfig);
   }
 }
+
