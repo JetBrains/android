@@ -230,50 +230,6 @@ fun CodeInsightTestFixture.stubDevicesAsLibrary(devicesPackageName: String) {
 }
 
 /**
- * Memory/light fixture only.
- *
- * @see stubClassAsLibrary
- */
-fun CodeInsightTestFixture.stubSpringSpecLibrary() {
-  @Language("kotlin")
-  val fileContents =
-    """
-package ${SdkConstants.PACKAGE_COMPOSE_ANIMATION}
-class SpringSpec<T>(
-    val dampingRatio: Float = Spring.DampingRatioNoBouncy,
-    val stiffness: Float = Spring.StiffnessMedium,
-    val visibilityThreshold: T? = null
-)
-
-fun <T> spring(
-    dampingRatio: Float = Spring.DampingRatioNoBouncy,
-    stiffness: Float = Spring.StiffnessMedium,
-    visibilityThreshold: T? = null
-): SpringSpec<T> =
-    SpringSpec(dampingRatio, stiffness, visibilityThreshold)
-
-class FloatSpringSpec(
-    val dampingRatio: Float = Spring.DampingRatioNoBouncy,
-    val stiffness: Float = Spring.StiffnessMedium,
-    private val visibilityThreshold: Float = Spring.DefaultDisplacementThreshold
-)
-
-object Spring {
-    const val StiffnessHigh = 10_000f
-    const val StiffnessMedium = 1500f
-    const val StiffnessLow = 200f
-    const val StiffnessVeryLow = 50f
-    const val DampingRatioHighBouncy = 0.2f
-    const val DampingRatioMediumBouncy = 0.5f
-    const val DampingRatioLowBouncy = 0.75f
-    const val DampingRatioNoBouncy = 1f
-    const val DefaultDisplacementThreshold = 0.01f
-}
-    """.trimIndent()
-  this.stubClassAsLibrary("spring", SdkConstants.PACKAGE_COMPOSE_ANIMATION + ".SpringKt", KotlinFileType.INSTANCE, fileContents)
-}
-
-/**
  * Seems to only work properly in memory/light fixtures. Such as AndroidProjectRule#inMemory
  */
 private fun CodeInsightTestFixture.stubClassAsLibrary(libraryName: String, fqClassName: String, fileType: FileType, fileContents: String) {
