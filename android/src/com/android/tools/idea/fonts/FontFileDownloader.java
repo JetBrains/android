@@ -3,7 +3,6 @@ package com.android.tools.idea.fonts;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import com.intellij.concurrency.SensitiveProgressWrapper;
-import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
@@ -27,6 +26,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +57,7 @@ public class FontFileDownloader {
 
     try {
       final ConcurrentTasksProgressManager progressManager = new ConcurrentTasksProgressManager(parentIndicator, myFileDescriptions.size());
-      parentIndicator.setText(IdeBundle.message("progress.downloading.0.files.text", myFileDescriptions.size()));
+      parentIndicator.setText(AndroidBundle.message("progress.downloading.0.files.text", myFileDescriptions.size()));
       int maxParallelDownloads = Runtime.getRuntime().availableProcessors();
       LOG.debug("Downloading " + myFileDescriptions.size() + " files using " + maxParallelDownloads + " threads");
       long start = System.currentTimeMillis();
@@ -89,7 +89,7 @@ public class FontFileDownloader {
               downloaded = downloadFile(description, existing, indicator);
             }
             catch (IOException e) {
-              throw new IOException(IdeBundle.message("error.file.download.failed", description.getDownloadUrl(),
+              throw new IOException(AndroidBundle.message("error.file.download.failed", description.getDownloadUrl(),
                                                       e.getMessage()), e);
             }
             if (FileUtil.filesEqual(downloaded, existing)) {
@@ -187,7 +187,7 @@ public class FontFileDownloader {
                                    @NotNull final ProgressIndicator indicator,
                                    boolean compressed) throws IOException {
     final String presentableUrl = description.getPresentableDownloadUrl();
-    indicator.setText2(IdeBundle.message("progress.connecting.to.download.file.text", presentableUrl));
+    indicator.setText2(AndroidBundle.message("progress.connecting.to.download.file.text", presentableUrl));
     indicator.setIndeterminate(true);
 
     return HttpRequests.request(description.getDownloadUrl()).gzip(compressed).connect(new HttpRequests.RequestProcessor<File>() {
@@ -198,7 +198,7 @@ public class FontFileDownloader {
           return existingFile;
         }
 
-        indicator.setText2(IdeBundle.message("progress.download.file.text", description.getPresentableFileName(), presentableUrl));
+        indicator.setText2(AndroidBundle.message("progress.download.file.text", description.getPresentableFileName(), presentableUrl));
         return request.saveToFile(FileUtil.createTempFile("download.", ".tmp"), indicator);
       }
     });
