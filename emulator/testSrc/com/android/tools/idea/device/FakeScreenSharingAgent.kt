@@ -89,6 +89,7 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Predicate
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -543,17 +544,14 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
     }
 
     private fun getScaledAndRotatedDisplaySize(): Dimension {
-      val maxResolutionX = maxVideoResolution.width.coerceAtMost(maxVideoEncoderResolution)
-      val maxResolutionY = maxVideoResolution.height.coerceAtMost(maxVideoEncoderResolution)
-      val aspectRatio = displaySize.height.toDouble() / displaySize.width
-      return if (displayOrientation % 2 == 0) {
-        val width = displaySize.width.coerceAtMost((maxResolutionX / aspectRatio).toInt()).roundUpToMultipleOf8()
-        Dimension(width, (width * aspectRatio).roundToInt().roundToMultipleOf2().coerceAtMost(displaySize.height))
-      }
-      else {
-        val width = displaySize.height.coerceAtMost((maxResolutionY * aspectRatio).toInt()).roundUpToMultipleOf8()
-        Dimension(width, (width / aspectRatio).roundToInt().roundToMultipleOf2().coerceAtMost(displaySize.width))
-      }
+      val rotatedDisplaySize = displaySize.rotatedByQuadrants(displayOrientation)
+      val width = rotatedDisplaySize.width
+      val height = rotatedDisplaySize.height
+      val maxResolutionWidth = maxVideoResolution.width.coerceAtMost(maxVideoEncoderResolution)
+      val maxResolutionHeight = maxVideoResolution.height.coerceAtMost(maxVideoEncoderResolution)
+      val scale = max(min(1.0, min(maxResolutionWidth.toDouble() / width, maxResolutionHeight.toDouble() / height)),
+                      max(MIN_VIDEO_RESOLUTION / width, MIN_VIDEO_RESOLUTION / height))
+      return Dimension((width * scale).roundToInt().roundUpToMultipleOf8(), (height * scale).roundToInt().roundUpToMultipleOf8())
     }
 
     private fun Int.roundUpToMultipleOf8(): Int =
@@ -692,3 +690,4 @@ private val COLOR_SCHEMES = listOf(ColorScheme(Color(236, 112, 99), Color(250, 2
 private const val FRAME_RATE = 60
 private const val CHANNEL_HEADER_LENGTH = 20
 private const val CONTROL_MSG_BUFFER_SIZE = 4096
+private const val MIN_VIDEO_RESOLUTION = 128.0
