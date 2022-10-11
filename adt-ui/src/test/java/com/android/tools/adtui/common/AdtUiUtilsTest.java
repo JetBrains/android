@@ -45,22 +45,30 @@ public class AdtUiUtilsTest {
 
     // Enough space to render the whole string so no truncation occurs
     assertEquals(testString, AdtUiUtils.shrinkToFit(testString, testMetrics, stringWidth));
+    assertEquals(testString, AdtUiUtils.shrinkToFit(testString, testMetrics, stringWidth, AdtUiUtils.ShrinkDirection.TRUNCATE_START));
 
     // Not enough space for ellipsis so an empty string should be returned
     assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, ellipsisWidth - 1));
+    assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, ellipsisWidth - 1, AdtUiUtils.ShrinkDirection.TRUNCATE_START));
 
     // Just enough space for ellipsis, but we should still return an empty string (since "..." on
     // its own is useless)
     assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, ellipsisWidth));
+    assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, ellipsisWidth, AdtUiUtils.ShrinkDirection.TRUNCATE_START));
 
     // Provide a threshold to avoid font width computation (performance optimization)
     assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, 1.0f, 1.0f));
+    assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, 1.0f, 1.0f, AdtUiUtils.ShrinkDirection.TRUNCATE_START));
 
     for (int i = 5; i < 80; ++i) {
       int spaceAvailable = i * perCharacterWidth;
 
       String shrunk = AdtUiUtils.shrinkToFit(testString, s -> testMetrics.stringWidth(s) <= spaceAvailable + ellipsisWidth);
       assertEquals(StringUtil.repeat("A", i) + "...", shrunk);
+
+      shrunk = AdtUiUtils.shrinkToFit(
+        testString, AdtUiUtils.ShrinkDirection.TRUNCATE_START, s -> testMetrics.stringWidth(s) <= spaceAvailable + ellipsisWidth);
+      assertEquals("..." + StringUtil.repeat("A", i), shrunk);
     }
   }
 

@@ -16,6 +16,7 @@
 package com.android.tools.adtui.common
 
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.common.AdtUiUtils.ShrinkDirection.*
 import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.intellij.openapi.keymap.MacKeymapUtil
@@ -42,7 +43,6 @@ import java.awt.GridBagConstraints
 import java.awt.Insets
 import java.awt.Point
 import java.awt.event.InputEvent
-import java.util.function.BiFunction
 import java.util.function.Predicate
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -116,6 +116,7 @@ object AdtUiUtils {
   @JvmField
   val GBC_FULL = GridBagConstraints(0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.BASELINE, GridBagConstraints.BOTH, Insets(0, 0, 0, 0), 0, 0)
 
+  enum class ShrinkDirection { TRUNCATE_START, TRUNCATE_END }
   /**
    * Collapse a line of text to fit the availableSpace by truncating the string and pad the end with ellipsis.
    *
@@ -126,9 +127,12 @@ object AdtUiUtils {
    * @return the fitted text
    */
   @JvmStatic
-  fun shrinkToFit(text: String, metrics: FontMetrics, availableSpace: Float, spaceThreshold: Float): String {
+  @JvmOverloads
+  fun shrinkToFit(
+    text: String, metrics: FontMetrics, availableSpace: Float, spaceThreshold: Float, direction: ShrinkDirection = TRUNCATE_END
+  ): String {
     // FontMetrics#stringWidth(String) has some runtime overhead so the threshold is a performance optimization.
-    return shrinkToFit(text) { s: String ->
+    return shrinkToFit(text, direction) { s: String ->
       availableSpace > spaceThreshold && availableSpace >= metrics.stringWidth(s)
     }
   }
@@ -138,8 +142,9 @@ object AdtUiUtils {
    * but instead of a predicate to fit space it uses the font metrics compared to available space.
    */
   @JvmStatic
-  fun shrinkToFit(text: String, metrics: FontMetrics, availableSpace: Float): String {
-    return shrinkToFit(text, metrics, availableSpace, 0.0f)
+  @JvmOverloads
+  fun shrinkToFit(text: String, metrics: FontMetrics, availableSpace: Float, direction: ShrinkDirection = TRUNCATE_END): String {
+    return shrinkToFit(text, metrics, availableSpace, 0.0f, direction)
   }
 
   /**
@@ -150,7 +155,8 @@ object AdtUiUtils {
    * @return the fitted text.
    */
   @JvmStatic
-  fun shrinkToFit(text: String, textFitPredicate: Predicate<String>): String {
+  @JvmOverloads
+  fun shrinkToFit(text: String, direction: ShrinkDirection = TRUNCATE_END, textFitPredicate: Predicate<String>): String {
     if (textFitPredicate.test(text)) {
       // Enough space - early return.
       return text
@@ -164,7 +170,10 @@ object AdtUiUtils {
     var bestLength = smallestLength
     do {
       val midLength = smallestLength + (largestLength - smallestLength) / 2
-      if (textFitPredicate.test("${text.substring(0, midLength)}${SwingHelper.ELLIPSIS}")) {
+      val substring =
+        if (direction == TRUNCATE_END) text.substring(0, midLength)
+        else text.substring(text.length - 1 - midLength, text.length)
+      if (textFitPredicate.test("$substring${SwingHelper.ELLIPSIS}")) {
         bestLength = midLength
         smallestLength = midLength + 1
       }
@@ -175,7 +184,11 @@ object AdtUiUtils {
     while (smallestLength <= largestLength)
 
     // Note: Don't return "..." if that's all we could show
-    return if (bestLength > 0) "${text.substring(0, bestLength)}${SwingHelper.ELLIPSIS}" else ""
+    val result =
+      if (direction == TRUNCATE_END) "${text.substring(0, bestLength)}${SwingHelper.ELLIPSIS}"
+      else "${SwingHelper.ELLIPSIS}${text.substring(text.length - 1 - bestLength, text.length)}"
+
+    return if (bestLength > 0) result else ""
   }
 
   /**
