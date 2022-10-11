@@ -203,7 +203,8 @@ void DisplayStreamer::Run() {
   if (codec == nullptr) {
     Log::Fatal("Unable to create a %s video encoder", codec_info->name.c_str());
   }
-  Log::D("Using %s video encoder", codec_info->name.c_str());
+  Log::D("Using %s video encoder with %dx%d max resolution",
+         codec_info->name.c_str(), codec_info->max_resolution.width, codec_info->max_resolution.height);
   AMediaFormat* media_format = CreateMediaFormat(mime_type.c_str());
 
   string header;
