@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.diagnostics.jfr.analysis
 
-class CallTree(val name: String, val isRoot: Boolean = false) {
+class CallTree(val name: String) {
   var sampleCount: Int = 0
+  var truncatedSampleCount = 0
   var time: Long = 0
   private val children = mutableListOf<CallTree>()
 

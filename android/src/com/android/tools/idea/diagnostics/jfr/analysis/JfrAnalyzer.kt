@@ -23,7 +23,7 @@ import jdk.jfr.consumer.RecordingFile
 import java.nio.file.Path
 import java.time.Instant
 
-private data class Sample(val thread: String, val time: Instant, val duration: Long, val stackTrace: List<String>)
+private data class Sample(val thread: String, val time: Instant, val duration: Long, val stackTrace: List<String>, val truncated: Boolean)
 
 private class Freeze(val startTime: Long, val endTime: Long) {
   val samples = mutableMapOf<Long, MutableList<Sample>>() // thread id -> samples for that thread
@@ -33,9 +33,13 @@ private class Freeze(val startTime: Long, val endTime: Long) {
   fun aggregateCallTrees(): MutableMap<Long, CallTree> {
     val trees = mutableMapOf<Long, CallTree>()
     samples.forEach { (tid, sampleList) ->
-      val root = CallTree("", isRoot = true)
+      val root = CallTree("")
       sampleList.forEach { sample ->
-        root.addStacktrace(sample.stackTrace, sample.duration)
+        if (sample.truncated) {
+          root.truncatedSampleCount++
+        } else {
+          root.addStacktrace(sample.stackTrace, sample.duration)
+        }
       }
       root.sort()
       trees[tid] = root
@@ -77,7 +81,7 @@ class JfrAnalyzer {
           if (isIdle(threadName, stacktrace)) {
             stacktrace = listOf("IDLE.IDLE(Unknown Source)")
           }
-          samples.add(Sample(threadName, e.startTime, nextEventTime - e.startTime.toEpochMilli(), stacktrace))
+          samples.add(Sample(threadName, e.startTime, nextEventTime - e.startTime.toEpochMilli(), stacktrace, e.stackTrace.isTruncated))
         }
         if (samples.isNotEmpty()) freeze.samples[tid] = samples
       }
@@ -85,8 +89,10 @@ class JfrAnalyzer {
     val callTrees = freeze.aggregateCallTrees()
     val edtTree = callTrees.remove(edtId)
 
-    fun getThreadReport(tid: Long, tree: CallTree): String {
-      return "${threadIdToName[tid]}, TID: $tid [${tree.time}ms] (${tree.sampleCount})\n$tree\n"
+    fun getThreadReport(tid: Long, tree: CallTree) = buildString {
+      append("${threadIdToName[tid]}, TID: $tid [${tree.time}ms] (${tree.sampleCount} samples")
+      append(if (tree.truncatedSampleCount > 0) "; omitted ${tree.truncatedSampleCount} truncated stacks)" else ")")
+      append("\n$tree\n")
     }
 
     val sb = TruncatingStringBuilder(MAX_REPORT_LENGTH_BYTES, "\n...report truncated...")
