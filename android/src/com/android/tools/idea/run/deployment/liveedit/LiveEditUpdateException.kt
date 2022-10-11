@@ -49,9 +49,6 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
     fun internalError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
       LiveEditUpdateException(Error.INTERNAL_ERROR, details, source, cause)
 
-    fun internalError(details: String, cause: Throwable? = null) =
-      LiveEditUpdateException(Error.INTERNAL_ERROR, details, null, cause)
-
     /**
      * We are unable to locate the Invalidate Group ID of a given Composable function's offsets.
      * This is unlikely to happen unless the Compose compiler changes how the offset-to-ID mapping works.

@@ -17,7 +17,6 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
 import com.google.common.collect.HashMultimap
 import com.intellij.openapi.progress.ProgressManager
@@ -140,8 +139,6 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
         } else {
           throw e
         }
-      } catch (t : Throwable) {
-        throw internalError("Internal Error During Code Gen", t)
       }
 
       // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
