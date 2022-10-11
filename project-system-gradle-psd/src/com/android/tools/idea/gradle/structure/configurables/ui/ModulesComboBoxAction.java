@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
 import com.android.utils.HtmlBuilder;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -52,7 +53,7 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
 
   @Override
   @NotNull
-  protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+  protected DefaultActionGroup createPopupActionGroup(@NotNull JComponent button, @NotNull DataContext context) {
     DefaultActionGroup group = new DefaultActionGroup();
 
     for (PsModule module : myBasePerspective.getExtraModules()) {
