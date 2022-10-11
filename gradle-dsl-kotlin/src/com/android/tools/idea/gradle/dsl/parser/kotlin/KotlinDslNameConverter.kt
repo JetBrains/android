@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import kotlin.jvm.JvmDefault
 
 import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription
@@ -42,10 +41,8 @@ import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import java.util.regex.Pattern
 
 interface KotlinDslNameConverter: GradleDslNameConverter {
-  @JvmDefault
   override fun getKind() = KOTLIN
 
-  @JvmDefault
   override fun psiToName(element: PsiElement): String {
     return when (element) {
       is KtStringTemplateExpression -> when (val contents = element.literalContents()) {
@@ -57,7 +54,6 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
     }
   }
 
-  @JvmDefault
   override fun convertReferenceText(context: GradleDslElement, referenceText: String): String {
     var result : String? = null
     runReadAction {
@@ -67,12 +63,10 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
     return result ?: referenceText
   }
 
-  @JvmDefault
   override fun convertReferencePsi(context: GradleDslElement, element: PsiElement): String {
     return (element as? KtExpression)?.let { gradleNameFor(element) } ?: convertReferenceText(context, element.text)
   }
 
-  @JvmDefault
   override fun convertReferenceToExternalText(context: GradleDslElement,
                                               referenceText: String,
                                               forInjection: Boolean): String {
@@ -82,7 +76,6 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
     }
   }
 
-  @JvmDefault
   override fun convertReferenceToExternalText(context: GradleDslElement,
                                               dslElement: GradleDslElement,
                                               forInjection: Boolean): String {
@@ -92,7 +85,6 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
     }
   }
 
-  @JvmDefault
   override fun externalNameForParent(modelName: String, context: GradleDslElement): ExternalNameInfo {
     val map = context.getExternalToModelMap(this)
     val defaultResult = ExternalNameInfo(modelName, UNKNOWN)
@@ -124,7 +116,6 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
     return Pattern.compile("\\$\\{([^}]*)}")
   }
 
-  @JvmDefault
   override fun modelDescriptionForParent(externalName: String, context: GradleDslElement): ModelPropertyDescription? {
     val map = context.getExternalToModelMap(this)
     for (e in map.entrySet) {
@@ -135,6 +126,5 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
 
   val internalContext: BuildModelContext
 
-  @JvmDefault
   override fun getContext(): BuildModelContext = internalContext
 }

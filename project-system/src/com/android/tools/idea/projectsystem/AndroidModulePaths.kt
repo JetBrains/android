@@ -59,7 +59,6 @@ interface AndroidModulePaths {
 
   val manifestDirectory: File?
 
-  @JvmDefault
   val mlModelsDirectories: List<File>
     get() = Collections.emptyList()
 }

@@ -18,7 +18,6 @@ package com.android.tools.idea.projectsystem
 import com.intellij.openapi.module.Module
 
 interface ModuleHierarchyProvider {
-  @JvmDefault
   val submodules: Collection<Module>
     get() = throw UnsupportedOperationException("Module hierarchy is not supported by the current project system.")
 }

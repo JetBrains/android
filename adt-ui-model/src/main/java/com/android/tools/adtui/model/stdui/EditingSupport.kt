@@ -69,7 +69,6 @@ interface EditingSupport {
    * Indicates whether the completion list should be refreshed on
    * every keystroke.
    */
-  @JvmDefault
   val alwaysRefreshCompletions : Boolean
     get() = false
 
