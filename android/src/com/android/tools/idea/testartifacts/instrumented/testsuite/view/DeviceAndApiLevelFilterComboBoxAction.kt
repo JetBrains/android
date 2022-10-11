@@ -20,6 +20,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
 import com.intellij.openapi.project.DumbAware
@@ -52,7 +53,7 @@ class DeviceAndApiLevelFilterComboBoxAction : ComboBoxAction(), DumbAware {
     e.presentation.isVisible = (myAvailableDevices.size > 1)
   }
 
-  override fun createPopupActionGroup(button: JComponent): DefaultActionGroup = createActionGroup()
+  override fun createPopupActionGroup(button: JComponent, context: DataContext): DefaultActionGroup = createActionGroup()
 
   fun createActionGroup(): DefaultActionGroup {
     val actionGroup = DefaultActionGroup()
