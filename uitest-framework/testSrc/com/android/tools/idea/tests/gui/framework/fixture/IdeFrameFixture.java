@@ -78,6 +78,7 @@ import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -630,10 +631,16 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public String getAndroidStudioVersion() {
     AboutAndroidStudioFixture aboutStudio = AboutAndroidStudioFixture.openAboutStudioDialog(this);
+    takeScreenshot();
     String name = aboutStudio.getAndroidStudioVersion();
-    GuiTests.takeScreenshot(robot(), "AboutAndroidStudio");
     aboutStudio.clickCopy();
     return name;
+  }
+
+  public void takeScreenshot() {
+    Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+    String screenShotName = timestamp.toString();
+    GuiTests.takeScreenshot(this.robot(), screenShotName);
   }
 
   @NotNull
