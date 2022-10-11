@@ -49,8 +49,7 @@ class DebugSessionStarter(private val environment: ExecutionEnvironment, applica
     ProgressManager.checkCanceled()
     indicator?.text = "Attaching debugger"
     return attachDebugger(project, client, environment) {
-      (debuggerContext.androidDebugger as AndroidJavaDebugger).getDebugProcessStarter(project, client, consoleView, null,
-                                                                                      destroyRunningProcess)
+      (debuggerContext.androidDebugger as AndroidJavaDebugger).getDebugProcessStarter(project, client, consoleView, destroyRunningProcess)
     }.onError {
       destroyRunningProcess(device)
       ApplicationTerminator(device, appId).killApp()  // Terminate the process to make it ready for future debugging.

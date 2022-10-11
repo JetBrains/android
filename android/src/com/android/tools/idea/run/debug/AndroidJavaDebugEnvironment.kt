@@ -42,7 +42,6 @@ internal class AndroidJavaDebugEnvironment(
   private val client: Client,
   private val mySessionName: String,
   private val consoleViewToReuse: ConsoleView?,
-  private val onDebugProcessStarted: (() -> Unit)?,
   private val onDebugProcessDestroyed: (IDevice) -> Unit,
   private val detachIsDefault: Boolean
 ) : DebugEnvironment {
@@ -57,8 +56,6 @@ internal class AndroidJavaDebugEnvironment(
     Disposer.register(project, console)
     val debugProcessHandler = AndroidRemoteDebugProcessHandler(project, client, detachIsDefault, onDebugProcessDestroyed)
     console.attachToProcess(debugProcessHandler)
-
-    onDebugProcessStarted?.let { it() }
 
     return DefaultExecutionResult(console, debugProcessHandler)
   }

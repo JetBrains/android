@@ -32,7 +32,6 @@ fun startAndroidJavaDebuggerSession(
   project: Project,
   client: Client,
   consoleViewToReuse: ConsoleView?,
-  onDebugProcessStarted: (() -> Unit)?,
   onDebugProcessDestroyed: (IDevice) -> Unit,
   detachIsDefault: Boolean
 ): AsyncPromise<DebuggerSession> {
@@ -48,7 +47,6 @@ fun startAndroidJavaDebuggerSession(
         client,
         sessionName,
         consoleViewToReuse,
-        onDebugProcessStarted,
         onDebugProcessDestroyed,
         detachIsDefault
       )

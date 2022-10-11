@@ -101,7 +101,7 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState?>() {
 
     return attachDebuggerAndShowTab(project, sessionName)
     {
-      getDebugProcessStarter(project, client, null, null,
+      getDebugProcessStarter(project, client, null,
                              { device -> device.forceStop(client.clientData.clientDescription) },
                              true)
     }
@@ -111,11 +111,10 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState?>() {
     project: Project,
     client: Client,
     consoleViewToReuse: ConsoleView?,
-    onDebugProcessStarted: (() -> Unit)?,
     onDebugProcessDestroyed: (IDevice) -> Unit,
     detachIsDefault: Boolean = false,
     ): Promise<XDebugProcessStarter> {
-    return startAndroidJavaDebuggerSession(project, client, consoleViewToReuse, onDebugProcessStarted,
+    return startAndroidJavaDebuggerSession(project, client, consoleViewToReuse,
                                            onDebugProcessDestroyed, detachIsDefault)
       .then { debuggerSession ->
         return@then object : XDebugProcessStarter() {

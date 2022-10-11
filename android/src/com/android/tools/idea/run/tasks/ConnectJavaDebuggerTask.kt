@@ -48,7 +48,6 @@ class ConnectJavaDebuggerTask(
       env.project,
       client,
       androidTestResultListener,
-      {}
       { device -> myApplicationIds.forEach { device.forceStop(it) } },
       false
     )

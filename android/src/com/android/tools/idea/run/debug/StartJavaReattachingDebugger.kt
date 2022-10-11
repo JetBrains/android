@@ -51,13 +51,11 @@ fun startJavaReattachingDebugger(
   applicationIds: Set<String>,
   environment: ExecutionEnvironment,
   consoleViewToReuse: ConsoleView? = null,
-  onDebugProcessStarted: (() -> Unit)? = null,
 ): Promise<XDebugSessionImpl> {
   val masterProcessHandler = AndroidProcessHandler(project, masterAndroidProcessName)
   masterProcessHandler.addTargetDevice(device)
 
-  return startJavaReattachingDebugger(project, device, masterProcessHandler, applicationIds, environment, consoleViewToReuse,
-                                      onDebugProcessStarted)
+  return startJavaReattachingDebugger(project, device, masterProcessHandler, applicationIds, environment, consoleViewToReuse)
 }
 
 /**
@@ -74,16 +72,15 @@ fun startJavaReattachingDebugger(
   applicationIds: Set<String>,
   environment: ExecutionEnvironment,
   consoleViewToReuse: ConsoleView? = null,
-  onDebugProcessStarted: (() -> Unit)? = null,
 ): Promise<XDebugSessionImpl> {
 
-  fun startJavaSession(client: Client, onDebugProcessStarted: (() -> Unit)?) =
+  fun startJavaSession(client: Client) =
     attachDebugger(project, client, environment) {
-      AndroidJavaDebugger().getDebugProcessStarter(project, client, consoleViewToReuse, onDebugProcessStarted,
+      AndroidJavaDebugger().getDebugProcessStarter(project, client, consoleViewToReuse,
                                                    onDebugProcessDestroyed = { it.forceStop(client.clientData.clientDescription) })
     }
 
-  return startReattachingDebugger(project, device, masterProcessHandler, applicationIds, ::startJavaSession, onDebugProcessStarted)
+  return startReattachingDebugger(project, device, masterProcessHandler, applicationIds, ::startJavaSession)
 }
 
 
@@ -99,8 +96,7 @@ private fun startReattachingDebugger(
   device: IDevice,
   masterProcessHandler: ProcessHandler,
   applicationIds: Set<String>,
-  startSession: (Client, (() -> Unit)?) -> Promise<XDebugSessionImpl>,
-  onDebugProcessStarted: (() -> Unit)? = null
+  startSession: (Client) -> Promise<XDebugSessionImpl>
 ): Promise<XDebugSessionImpl> {
   // We wait for a client in this method, it shouldn't be on EDT.
   ApplicationManager.getApplication().assertIsNonDispatchThread()
@@ -110,7 +106,7 @@ private fun startReattachingDebugger(
   // We wait for the first client outside [reattachingListener] because there is case when client is already waiting for debug before we add
   // [reattachingListener].
   val client = waitForClientReadyForDebug(device, applicationIds, 200)
-  fun startSessionFinal(client: Client, onDebugProcessStarted: (() -> Unit)?) = startSession(client, onDebugProcessStarted)
+  fun startSessionFinal(client: Client) = startSession(client)
     .onSuccess { session ->
       session.runContentDescriptor.processHandler!!.addProcessListener(object : ProcessAdapter() {
         override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
@@ -137,7 +133,7 @@ private fun startReattachingDebugger(
     }
   })
   masterProcessHandler.startNotify()
-  return startSessionFinal(client, onDebugProcessStarted)
+  return startSessionFinal(client)
 }
 
 /**
@@ -147,7 +143,7 @@ private class ReattachingDebuggerListener(
   private val project: Project,
   private val masterProcessHandler: ProcessHandler,
   private val applicationIds: Set<String>,
-  private val startSession: (Client, (() -> Unit)?) -> Promise<XDebugSessionImpl>
+  private val startSession: (Client) -> Promise<XDebugSessionImpl>
 ) : AndroidDebugBridge.IClientChangeListener {
 
   init {
@@ -191,7 +187,7 @@ private class ReattachingDebuggerListener(
     if (isClientForDebug(client, changeMask)) {
       if (!masterProcessHandler.isProcessTerminating && !masterProcessHandler.isProcessTerminated) {
         LOG.debug("Attaching debugger to a client, PORT: ${client.debuggerListenPort}")
-        startSession(client, null)
+        startSession(client)
           .onSuccess { session ->
             runInEdt {
               try {
