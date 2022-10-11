@@ -225,7 +225,7 @@ object GuiTestLauncher {
       options += "-Denable.bleak=true"
       options += "-Xmx16g"
       val jvmtiAgent =
-        TestUtils.resolveWorkspacePathUnchecked("bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
+        TestUtils.resolveWorkspacePathUnchecked("_solib_k8/libtools_Sadt_Sidea_Sbleak_Ssrc_Scom_Sandroid_Stools_Sidea_Sbleak_Sagents_Slibjnibleakhelper.so").toRealPath()
       if (Files.exists(jvmtiAgent)) {
         options += "-agentpath:$jvmtiAgent"
         options += "-Dbleak.jvmti.enabled=true"
@@ -248,7 +248,7 @@ object GuiTestLauncher {
     options += AnalyticsTestUtils.vmDialogOption
     options += AnalyticsTestUtils.vmLoggingOption
     /* options for tests with native libraries */
-    if (!options.contains("-Djava.library.path=")) {
+    if (!options.any { it.startsWith("-Djava.library.path=") }) {
       options += "-Djava.library.path=${System.getProperty("java.library.path")}"
     }
     if (TestUtils.runningFromBazel()) {

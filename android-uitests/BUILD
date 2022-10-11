@@ -15,6 +15,7 @@ COMMON_DATA = [
     ":test_deps",
     "//tools/adt/idea/android-uitests:aspects_baseline",
     "//tools/adt/idea/android-uitests:aspect_rules",
+    "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
     "//tools/base/aspects_agent:aspects_agent",
     "//prebuilts/studio/jdk",
     "//prebuilts/studio/sdk:build-tools/latest",
