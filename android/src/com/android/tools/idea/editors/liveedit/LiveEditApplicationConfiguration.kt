@@ -38,7 +38,7 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
   }
 
   class State : BaseState() {
-    var mode by enum(LIVE_EDIT)
+    var mode by enum(LIVE_LITERALS)
     var leTriggerMode by enum(LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_MANUAL)
   }
 
