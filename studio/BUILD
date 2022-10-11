@@ -523,10 +523,8 @@ studio_plugin(
     libs = [
         "//prebuilts/tools/common/google-api-java-client/1.20.0:google-api-java-client",
         "//prebuilts/tools/common/m2:jsr305-2.0.1",
-        "//tools/adt/idea/.idea/libraries:google-api-services-oauth2-v2-rev150-1.22.0",
+        "//tools/adt/idea/.idea/libraries:oauth2",
         "//prebuilts/tools/common/m2:javax-servlet",
-        "@maven//:com.google.apis.google-api-services-oauth2",
-        "@maven//:com.google.auth.google-auth-library-oauth2-http",
     ],
     modules = {"google-login-as.jar": ["//tools/studio/google/cloud/tools/google-login-plugin:google-login-as"]},
     visibility = ["//visibility:public"],

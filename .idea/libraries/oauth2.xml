@@ -1,7 +1,8 @@
 <component name="libraryTable">
-  <library name="google-api-services-oauth2-v2-rev150-1.22.0">
+  <library name="oauth2">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/apis/google-api-services-oauth2/v2-rev150-1.22.0/google-api-services-oauth2-v2-rev150-1.22.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/auth/google-auth-library-oauth2-http/0.22.2/google-auth-library-oauth2-http-0.22.2.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
