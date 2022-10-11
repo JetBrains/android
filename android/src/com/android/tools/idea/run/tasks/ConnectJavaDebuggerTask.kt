@@ -48,11 +48,14 @@ class ConnectJavaDebuggerTask(
       env.project,
       client,
       androidTestResultListener,
-      { processHandler.detachProcess() },
+      {}
       { device -> myApplicationIds.forEach { device.forceStop(it) } },
       false
     )
 
-    attachDebugger(env.project, client, env) { debugProcessStarter }.onSuccess { session -> session.showSessionTab() }
+    attachDebugger(env.project, client, env) { debugProcessStarter }.onSuccess { session ->
+      processHandler.detachProcess()
+      session.showSessionTab()
+    }
   }
 }

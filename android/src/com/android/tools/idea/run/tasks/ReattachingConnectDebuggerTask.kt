@@ -78,9 +78,11 @@ class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
           base.myApplicationIds.toSet(),
           launchInfo.env,
           androidTestResultListener as? ConsoleView,
-          processHandler::detachProcess
         )
-          .then { runInEdt { it.showSessionTab() } }
+          .onSuccess {
+            processHandler.detachProcess()
+            runInEdt { it.showSessionTab() }
+          }
       }
     }
 
