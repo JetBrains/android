@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT;
@@ -98,7 +99,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -747,7 +747,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    */
   private boolean isWithinIllegalParent(@NotNull Object viewObject, int depth) {
     String fqcn = viewObject.getClass().getName();
-    if (fqcn.endsWith(CALENDAR_VIEW) || !(fqcn.startsWith(ANDROID_PKG_PREFIX)
+    if (fqcn.endsWith(CALENDAR_VIEW) || !(fqcn.startsWith(ANDROID_PKG_PREFIX) || fqcn.startsWith(ANDROIDX_PKG_PREFIX)
                                             // ActionBar at the root level
                                           || fqcn.startsWith("com.android.internal.widget."))) {
       return true;
@@ -768,27 +768,10 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   @Override
   @Nullable
-  public AdapterBinding getAdapterBinding(final ResourceReference adapterView, final Object adapterCookie, final Object viewObject) {
-    // Look for user-recorded preference for layout to be used for previews
-    if (adapterCookie instanceof TagSnapshot) {
-      AdapterBinding binding = LayoutMetadata.getNodeBinding(viewObject, (TagSnapshot)adapterCookie);
-      if (binding != null) {
-        return binding;
-      }
-    }
-    else if (adapterCookie instanceof XmlTag) {
-      AdapterBinding binding =
-        LayoutMetadata.getNodeBinding(viewObject, TagSnapshot.createTagSnapshotWithoutChildren((XmlTag)adapterCookie));
-      if (binding != null) {
-        return binding;
-      }
-    }
-    else if (adapterCookie instanceof Map<?, ?>) {
-      @SuppressWarnings("unchecked") Map<String, String> map = (Map<String, String>)adapterCookie;
-      AdapterBinding binding = LayoutMetadata.getNodeBinding(viewObject, map);
-      if (binding != null) {
-        return binding;
-      }
+  public AdapterBinding getAdapterBinding(final Object viewObject, final Map<String, String> attributes) {
+    AdapterBinding binding = LayoutMetadata.getNodeBinding(viewObject, attributes);
+    if (binding != null) {
+      return binding;
     }
 
     if (viewObject == null) {
@@ -814,7 +797,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     }
 
     int count = listFqcn.endsWith(GRID_VIEW) ? 24 : 12;
-    AdapterBinding binding = new AdapterBinding(count);
+    binding = new AdapterBinding(count);
     if (listFqcn.endsWith(EXPANDABLE_LIST_VIEW)) {
       binding.addItem(new DataBindingItem(LayoutMetadata.DEFAULT_EXPANDABLE_LIST_ITEM, true /* isFramework */, 1));
     }

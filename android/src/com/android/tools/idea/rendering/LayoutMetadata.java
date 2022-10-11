@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.ANDROID_LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.EXPANDABLE_LIST_VIEW;
+import static com.android.SdkConstants.GRID_VIEW;
+import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VALUE_AUTO_FIT;
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
+
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.AdapterBinding;
 import com.android.ide.common.rendering.api.DataBindingItem;
@@ -36,16 +46,12 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xmlpull.v1.XmlPullParser;
-
-import java.util.List;
-import java.util.Map;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 /**
  * Design-time metadata lookup for layouts, such as fragment and AdapterView bindings.
@@ -76,6 +82,10 @@ public class LayoutMetadata {
    * The property key, included in comments, which references a list footer layout
    */
   public static final String KEY_LV_FOOTER = "listfooter";    //$NON-NLS-1$
+  /**
+   * The property key, included in comments, which references the number of columns to use
+   */
+  public static final String KEY_LV_COLUMN = "numColumns";
   /**
    * The property key, included in comments, which references a fragment layout to show
    */
@@ -166,42 +176,27 @@ public class LayoutMetadata {
    * has not yet chosen a target layout to use for the given AdapterView.
    *
    * @param viewObject the view object to create an adapter binding for
-   * @param map        a map containing tools attribute metadata
+   * @param attributes a map of the attributes needed to create the binding
    * @return a binding, or null
    */
   @Nullable
-  public static AdapterBinding getNodeBinding(@Nullable Object viewObject, @NotNull Map<String, String> map) {
-    String header = map.get(KEY_LV_HEADER);
-    String footer = map.get(KEY_LV_FOOTER);
-    String layout = map.get(KEY_LV_ITEM);
-    if (layout != null || header != null || footer != null) {
-      int count = 12;
-      return getNodeBinding(viewObject, header, footer, layout, count);
+  public static AdapterBinding getNodeBinding(@Nullable Object viewObject, @Nullable Map<String, String> attributes) {
+    if (attributes == null) {
+      return null;
     }
 
-    return null;
-  }
+    String header = attributes.get(KEY_LV_HEADER);
+    String footer = attributes.get(KEY_LV_FOOTER);
+    String layout = attributes.get(KEY_LV_ITEM);
 
-  /**
-   * Creates an {@link AdapterBinding} for the given view object, or null if the user
-   * has not yet chosen a target layout to use for the given AdapterView.
-   *
-   * @param viewObject the view object to create an adapter binding for
-   * @param xmlNode    the ui node corresponding to the view object
-   * @return a binding, or null
-   */
-  @Nullable
-  public static AdapterBinding getNodeBinding(@Nullable Object viewObject, @NotNull TagSnapshot xmlNode) {
-    String header = getProperty(xmlNode, KEY_LV_HEADER);
-    String footer = getProperty(xmlNode, KEY_LV_FOOTER);
-    String layout = getProperty(xmlNode, KEY_LV_ITEM);
-    if (layout != null || header != null || footer != null) {
-      int count = 12;
-      // If we're dealing with a grid view, multiply the list item count
-      // by the number of columns to ensure we have enough items
-      if (xmlNode.tagName.endsWith(GRID_VIEW)) {
-        String columns = xmlNode.getAttribute(ATTR_NUM_COLUMNS, ANDROID_URI);
+    int count = 12;
+    // If we're dealing with a grid view, multiply the list item count
+    // by the number of columns to ensure we have enough items
+    if (viewObject != null) {
+      String listFqcn = LayoutlibCallbackImpl.getListAdapterViewFqcn(viewObject.getClass());
+      if (listFqcn != null && listFqcn.endsWith(GRID_VIEW)){
         int multiplier = 2;
+        String columns = attributes.get(KEY_LV_COLUMN);
         if (columns != null && !columns.isEmpty() &&
             !columns.equals(VALUE_AUTO_FIT)) {
           try {
@@ -217,11 +212,9 @@ public class LayoutMetadata {
         }
         count *= multiplier;
       }
-
-      return getNodeBinding(viewObject, header, footer, layout, count);
     }
 
-    return null;
+    return getNodeBinding(viewObject, header, footer, layout, count);
   }
 
   @Nullable

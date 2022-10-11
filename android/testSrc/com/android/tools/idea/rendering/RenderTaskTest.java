@@ -846,4 +846,49 @@ public class RenderTaskTest extends AndroidTestCase {
       }).join();
     });
   }
+
+  public void testAdapterBindingWithInclude() {
+    @Language("XML") final String spinnerItem = "<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                            "    style=\"?android:attr/spinnerDropDownItemStyle\"\n" +
+                                            "    android:layout_width=\"match_parent\"\n" +
+                                            "    android:layout_height=\"wrap_content\"\n" +
+                                            "    android:text=\"This is a spinner item\" />";
+    myFixture.addFileToProject("res/layout/spinner_item.xml", spinnerItem);
+
+    @Language("XML") final String spinner = "<Spinner xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                            "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                                            "    android:id=\"@+id/spinner\"\n" +
+                                            "    android:layout_width=\"match_parent\"\n" +
+                                            "    android:layout_height=\"wrap_content\"\n" +
+                                            "    tools:listitem=\"@layout/item_spinner_simple\" />";
+    myFixture.addFileToProject("res/layout/spinner.xml", spinner);
+
+    @Language("XML") final String include = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                            "    android:layout_width=\"match_parent\"\n" +
+                                            "    android:layout_height=\"wrap_content\"\n" +
+                                            "    android:orientation=\"vertical\">\n" +
+                                            "    <include\n" +
+                                            "        layout=\"@layout/spinner\"\n" +
+                                            "        android:layout_width=\"wrap_content\"\n" +
+                                            "        android:layout_height=\"wrap_content\" />\n" +
+                                            "</LinearLayout>";
+    VirtualFile file = myFixture.addFileToProject("res/layout/include.xml", include).getVirtualFile();
+
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      task.setDecorations(false);
+      try {
+        BufferedImage result = task.render().get().getRenderedImage().getCopy();
+
+        BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/spinner.png"));
+        assert result != null;
+        ImageDiffUtil.assertImageSimilar("spinner", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+      }
+      catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    });
+  }
 }
