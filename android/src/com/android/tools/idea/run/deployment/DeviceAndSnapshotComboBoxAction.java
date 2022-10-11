@@ -295,12 +295,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NotNull
   @Override
-  protected DefaultActionGroup createPopupActionGroup(@NotNull JComponent button) {
-    throw new UnsupportedOperationException();
-  }
-
-  @NotNull
-  @Override
   protected DefaultActionGroup createPopupActionGroup(@NotNull JComponent button, @NotNull DataContext context) {
     Project project = context.getData(CommonDataKeys.PROJECT);
     assert project != null;
