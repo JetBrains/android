@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint
 
+import com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
+import com.android.AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER
 import com.android.AndroidXConstants.RECYCLER_VIEW
 import com.android.SdkConstants.TAG_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
@@ -51,9 +53,11 @@ class ConstraintLayoutHandlerTest: SceneTest() {
     val handler = myModel.find("root")!!.viewGroupHandler!!
     val button1 = myModel.find("button1")!!
     val text1 = myModel.find("text1")!!
+    val barrier1 = myModel.find("barrier1")!!
+    val group1 = myModel.find("group1")!!
     val recyclerView = myModel.find("recycler_view")!!
 
-    handler.clearAttributes(listOf(button1, text1, recyclerView))
+    handler.clearAttributes(listOf(button1, text1, recyclerView, barrier1, group1))
 
     myScreen.get("@+id/button1")
       .expectXml("<TextView\n" +
@@ -76,6 +80,20 @@ class ConstraintLayoutHandlerTest: SceneTest() {
                  "        android:layout_height=\"860dp\"\n" +
                  "        tools:layout_editor_absoluteX=\"70dp\"\n" +
                  "        tools:layout_editor_absoluteY=\"70dp\" />")
+    myScreen.get("@+id/barrier1")
+      .expectXml("<android.support.constraint.Barrier\n" +
+                 "        android:id=\"@+id/barrier1\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        app:barrierDirection=\"left\"\n" +
+                 "        app:constraint_referenced_ids=\"button1,text1\" />")
+    myScreen.get("@+id/group1")
+      .expectXml("<android.support.constraint.Group\n" +
+                 "        android:id=\"@+id/group1\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:visibility=\"visible\"\n" +
+                 "        app:constraint_referenced_ids=\"button1,text1\" />")
   }
 
   override fun createModel(): ModelBuilder {
@@ -117,7 +135,23 @@ class ConstraintLayoutHandlerTest: SceneTest() {
                        .withAttribute("app:layout_constraintStart_toStartOf", "parent")
                        .withAttribute("app:layout_constraintEnd_toEndOf", "parent")
                        .withAttribute("app:layout_constraintTop_toTopOf", "parent")
-                       .withAttribute("app:layout_constraintBottom_toBottomOf", "parent")
+                       .withAttribute("app:layout_constraintBottom_toBottomOf", "parent"),
+                     component(CONSTRAINT_LAYOUT_BARRIER.defaultName())
+                       .id("@+id/barrier1")
+                       .width("wrap_content")
+                       .height("wrap_content")
+                       .withAttribute("app:barrierDirection", "left")
+                       .withAttribute("app:constraint_referenced_ids", "button1,text1")
+                       .withAttribute("tools:layout_editor_absoluteX", "56dp")
+                       .withAttribute("tools:layout_editor_absoluteY", "81dp"),
+                     component(CLASS_CONSTRAINT_LAYOUT_GROUP.defaultName())
+                       .id("@+id/group1")
+                       .width("wrap_content")
+                       .height("wrap_content")
+                       .withAttribute("android:visibility", "visible")
+                       .withAttribute("app:constraint_referenced_ids", "button1,text1")
+                       .withAttribute("tools:layout_editor_absoluteX", "99dp")
+                       .withAttribute("tools:layout_editor_absoluteY", "109dp")
                    ))
   }
 

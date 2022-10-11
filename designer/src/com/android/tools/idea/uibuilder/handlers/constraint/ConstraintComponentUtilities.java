@@ -1100,7 +1100,7 @@ public final class ConstraintComponentUtilities {
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
     }
 
-    if (isGuideLine(component)) {
+    if (isGuideLine(component) || isBarrier(component) || isGroup(component)) {
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, null);
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
     }
@@ -1124,6 +1124,14 @@ public final class ConstraintComponentUtilities {
 
   public static boolean isGuideLine(@NotNull NlComponent component) {
     return AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(component.getTagName());
+  }
+
+  private static boolean isBarrier(@NotNull NlComponent component) {
+    return AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER.isEqualsIgnoreCase(component.getTagName());
+  }
+
+  private static boolean isGroup(@NotNull NlComponent component) {
+    return AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP.isEqualsIgnoreCase(component.getTagName());
   }
 
   public static @Nullable
