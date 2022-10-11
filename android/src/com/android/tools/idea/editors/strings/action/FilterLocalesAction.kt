@@ -39,11 +39,6 @@ class FilterLocalesAction : ComboBoxAction() {
     event.presentation.text = filter?.getDescription() ?: NO_FILTER_TITLE
   }
 
-  @Deprecated("Call the two-argument version instead.")
-  override fun createPopupActionGroup(button: JComponent?): DefaultActionGroup {
-    throw UnsupportedOperationException("Call the two-argument version instead.")
-  }
-
   override fun createPopupActionGroup(button: JComponent, dataContext: DataContext): DefaultActionGroup {
     val group = DefaultActionGroup.createPopupGroupWithEmptyText()
 
