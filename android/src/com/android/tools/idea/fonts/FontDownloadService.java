@@ -17,8 +17,11 @@ package com.android.tools.idea.fonts;
 
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.download.DownloadableFileService;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +40,9 @@ import java.util.List;
  * The menu font file is usually a smaller font file (~4k).
  */
 public class FontDownloadService {
+  private static final NotificationGroup PROBLEM_NOTIFICATION_GROUP =
+    NotificationGroupManager.getInstance().getNotificationGroup("Font Downloading Problems");
+
   private final DownloadableFontCacheServiceImpl myCacheService;
   private final File myFontPath;
   private final List<FontFamily> myFontsToDownload;
@@ -108,7 +114,12 @@ public class FontDownloadService {
         downloader.download(fontPath);
       }
       catch (Exception ex) {
-        Logger.getInstance(FontDownloadService.class).warn("Unable to download: " + file.getDownloadUrl(), ex);
+        String errorMessage = "Unable to download: " + file.getDownloadUrl();
+        Logger.getInstance(FontDownloadService.class).warn(errorMessage, ex);
+
+        ApplicationManager.getApplication().invokeLater(() ->
+          PROBLEM_NOTIFICATION_GROUP.createNotification(errorMessage, MessageType.WARNING).notify(null)
+        );
         success = false;
       }
     }
