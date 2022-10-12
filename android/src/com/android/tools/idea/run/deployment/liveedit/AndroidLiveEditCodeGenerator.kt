@@ -17,8 +17,10 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
 import com.google.common.collect.HashMultimap
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -132,13 +134,20 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
           // We will need to start using the binding context from the new analysis for code gen.
           bindingContext = newAnalysisResult.bindingContext
 
-          generationState = tracker.record({backendCodeGen(project, resolution, bindingContext, inputFiles,
-                                                           inputFiles.first().module!!, inlineCandidates,
-                                                           AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))},
+          generationState = tracker.record({
+                                             backendCodeGen(project, resolution, bindingContext, inputFiles,
+                                                            inputFiles.first().module!!, inlineCandidates,
+                                                            AndroidLiveEditLanguageVersionSettings(file.languageVersionSettings))
+                                           },
                                            "codegen_inline")
-        } else {
+        }
+        else {
           throw e
         }
+      } catch (p : ProcessCanceledException) {
+        throw p
+      } catch (t : Throwable) {
+        throw internalError("Internal Error During Code Gen", t)
       }
 
       // 3) From the information we gather at the PSI changes and the output classes of Step 2, we

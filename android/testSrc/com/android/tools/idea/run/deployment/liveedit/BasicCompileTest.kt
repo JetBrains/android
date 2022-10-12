@@ -214,8 +214,15 @@ class BasicCompileTest {
     LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis = useInliner
     LiveEditAdvancedConfiguration.getInstance().usePartialRecompose = false
     val output = mutableListOf<AndroidLiveEditCodeGenerator.CodeGeneratorOutput>()
-    AndroidLiveEditCodeGenerator(myProject).compile(
-      listOf(AndroidLiveEditCodeGenerator.CodeGeneratorInput(file, function)), output)
+
+    // The real Live Edit / Fast Preview has a retry system should the compilation got cancelled.
+    // We are going to use a simplified version of that here and continue to try until
+    // compilation succeeds.
+    var finished = false
+    while (!finished) {
+      finished = AndroidLiveEditCodeGenerator(myProject).compile(
+        listOf(AndroidLiveEditCodeGenerator.CodeGeneratorInput(file, function)), output)
+    }
     return output
   }
 
