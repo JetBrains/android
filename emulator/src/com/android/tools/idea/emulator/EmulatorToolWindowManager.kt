@@ -109,7 +109,7 @@ internal class EmulatorToolWindowManager @AnyThread private constructor(
       viewSelectionChanged(getToolWindow())
     }
 
-    override fun contentRemoved(event: ContentManagerEvent) {
+    override fun contentRemoveQuery(event: ContentManagerEvent) {
       val panel = event.content.component as? RunningDevicePanel ?: return
       if (panel is EmulatorToolWindowPanel) {
         panel.emulator.shutdown()
