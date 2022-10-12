@@ -70,6 +70,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
   private Boolean myLastImportTraceSucceeded;
 
   /**
+   * Whether the trace contains Compose Tracing nodes
+   */
+  private Boolean myHasComposeTracingNodes;
+
+  /**
    * Whether {@link #trackSelectThread()} was called.
    */
   private boolean myTrackSelectThreadCalled;
@@ -267,9 +272,12 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackImportTrace(@NotNull Trace.UserOptions.TraceType profilerType, boolean success) {
+  public void trackImportTrace(@NotNull Trace.UserOptions.TraceType profilerType,
+                               boolean success,
+                               @Nullable Boolean hasComposeTracingNodes) {
     myLastCpuTraceType = profilerType;
     myLastImportTraceSucceeded = success;
+    myHasComposeTracingNodes = hasComposeTracingNodes;
   }
 
   public Trace.UserOptions.TraceType getLastCpuTraceType() {
@@ -278,6 +286,10 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   public Boolean getLastImportTraceStatus() {
     return myLastImportTraceSucceeded;
+  }
+
+  public Boolean getHasComposeTracingNodes() {
+    return myHasComposeTracingNodes;
   }
 
   @Override

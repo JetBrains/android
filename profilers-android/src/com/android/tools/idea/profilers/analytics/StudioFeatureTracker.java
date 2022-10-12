@@ -353,7 +353,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackImportTrace(@NotNull Trace.UserOptions.TraceType profilerType, boolean success) {
+  public void trackImportTrace(@NotNull Trace.UserOptions.TraceType profilerType,
+                               boolean success,
+                               @Nullable Boolean hasComposeTracingNodes) {
     CpuImportTraceMetadata.Builder metadata = CpuImportTraceMetadata.newBuilder();
     metadata.setImportStatus(success ? CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_SUCCESS
                                      : CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_FAILURE);
@@ -367,10 +369,14 @@ public final class StudioFeatureTracker implements FeatureTracker {
       case ATRACE:
         metadata.setTechnology(CpuImportTraceMetadata.Technology.ATRACE_TECHNOLOGY);
         break;
+      case PERFETTO:
+        metadata.setTechnology(CpuImportTraceMetadata.Technology.PERFETTO_TECHNOLOGY);
+        break;
       default:
         metadata.setTechnology(CpuImportTraceMetadata.Technology.UNKNOWN_TECHNOLOGY);
         break;
     }
+    if (hasComposeTracingNodes != null) metadata.setHasComposeTracingNodes(hasComposeTracingNodes);
     newTracker(AndroidProfilerEvent.Type.CPU_IMPORT_TRACE).setDevice(myActiveDevice).setCpuImportTraceMetadata(metadata.build()).track();
   }
 
@@ -1052,6 +1058,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
           .setStoppingTimeMs(myCpuCaptureMetadata.getStoppingTimeMs())
           .setCaptureStatus(
             CPU_CAPTURE_STATUS_MAP.getOrDefault(myCpuCaptureMetadata.getStatus(), CpuCaptureMetadata.CaptureStatus.SUCCESS));
+
+        Boolean hasComposeTracingNodes = myCpuCaptureMetadata.getHasComposeTracingNodes();
+        if (hasComposeTracingNodes != null) captureMetadata.setHasComposeTracingNodes(hasComposeTracingNodes);
 
         captureMetadata.setProfilingConfig(toStatsCpuProfilingConfig(myCpuCaptureMetadata.getProfilingConfiguration()));
         if (myCpuCaptureMetadata.getProfilingConfiguration().getTraceType() == Trace.UserOptions.TraceType.ART) {

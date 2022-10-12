@@ -34,6 +34,7 @@ import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.compose.ComposeTracingConstants;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
@@ -53,7 +54,7 @@ import org.jetbrains.annotations.Nullable;
  * A base class for {@link CallChartDetailsView} and {@link FlameChartDetailsView} details views.
  */
 public abstract class ChartDetailsView extends CaptureDetailsView {
-  private static final Pattern COMPOSABLE_TRACE_EVENT_PATTERN = Pattern.compile("^(.*) \\((.*\\.(kt|java)):(-?\\d+)\\)$");
+  private static final Pattern COMPOSABLE_TRACE_EVENT_PATTERN = Pattern.compile(ComposeTracingConstants.COMPOSABLE_TRACE_EVENT_REGEX);
 
   /**
    * Component that contains everything, e.g chart, axis, scrollbar.

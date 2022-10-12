@@ -195,7 +195,7 @@ interface FeatureTracker {
   /**
    * Track the user importing a method trace.
    */
-  fun trackImportTrace(traceType: TraceType, success: Boolean)
+  fun trackImportTrace(traceType: TraceType, success: Boolean, hasComposeTracingNodes: Boolean?)
 
   /**
    * Track the startup CPU profiling that was started with the given {@param device} and {@param configuration}.

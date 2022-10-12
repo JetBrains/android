@@ -149,6 +149,11 @@ public class CpuCaptureMetadata {
   private int myStoppingTimeMs;
 
   /**
+   * Whether the trace contains Compose Tracing nodes
+   */
+  private @Nullable Boolean myHasComposeTracingNodes;
+
+  /**
    * {@link ProfilingConfiguration} used to start the capture.
    */
   private @NotNull ProfilingConfiguration myProfilingConfiguration;
@@ -188,6 +193,14 @@ public class CpuCaptureMetadata {
 
   public void setStoppingTimeMs(int stoppingTimeMs) {
     myStoppingTimeMs = stoppingTimeMs;
+  }
+
+  public @Nullable Boolean getHasComposeTracingNodes() {
+    return myHasComposeTracingNodes;
+  }
+
+  public void setHasComposeTracingNodes(@Nullable Boolean hasComposeTracingNodes) {
+    myHasComposeTracingNodes = hasComposeTracingNodes;
   }
 
   public long getParsingTimeMs() {

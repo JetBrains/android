@@ -21,8 +21,10 @@ import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Trace.UserOptions.TraceType;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
+import com.android.tools.profilers.cpu.compose.ComposeTracingConstants;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
+import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.android.tools.profilers.cpu.systemtrace.AtraceParser;
 import com.android.tools.profilers.cpu.systemtrace.AtraceProducer;
@@ -34,6 +36,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -45,6 +48,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -491,6 +495,9 @@ public class CpuCaptureParser {
   /**
    * This step update the parser state as finished and is also responsible to handle the metric
    * reporting logic.
+   * <p>
+   * Note: Metadata related work (in the {@link #accept} method) is not expected to be run on the main thread, and therefore its computation
+   * is not on the critical path.
    */
   private final class TraceResultHandler implements BiConsumer<CpuCapture, Throwable> {
     @NotNull
@@ -519,6 +526,7 @@ public class CpuCaptureParser {
         metadata.setParsingTimeMs(Math.max(1, System.currentTimeMillis() - myParsingStartTimeMs));
         metadata.setCaptureDurationMs(TimeUnit.MICROSECONDS.toMillis(capture.getDurationUs()));
         metadata.setRecordDurationMs(calculateRecordDurationMs(capture));
+        metadata.setHasComposeTracingNodes(checkHasComposeTracingNodes(capture));
       }
       else if (throwable != null) {
         LOGGER.warn("Unable to parse capture: " + throwable.getMessage(), throwable.getCause());
@@ -568,7 +576,7 @@ public class CpuCaptureParser {
         myServices.getFeatureTracker().trackCaptureTrace(metadata);
         // We also have a specific set of metrics for imported:
         if (isImportedTrace && capture != null) {
-          myServices.getFeatureTracker().trackImportTrace(capture.getType(), true);
+          myServices.getFeatureTracker().trackImportTrace(capture.getType(), true, metadata.getHasComposeTracingNodes());
         }
         myCaptureMetadataMap.remove(traceId);
       }
@@ -584,6 +592,24 @@ public class CpuCaptureParser {
         maxDataRange.expand(node.getStartGlobal(), node.getEndGlobal());
       }
       return TimeUnit.MICROSECONDS.toMillis((long)maxDataRange.getLength());
+    }
+
+    private @NotNull Boolean checkHasComposeTracingNodes(CpuCapture capture) {
+      var pattern = Pattern.compile(ComposeTracingConstants.COMPOSABLE_TRACE_EVENT_REGEX);
+
+      var queue = new ArrayDeque<CaptureNode>();
+      var seen = new HashSet<CaptureNode>();
+      for (CaptureNode node : capture.getCaptureNodes()) if (seen.add(node)) queue.add(node);
+
+      while (!queue.isEmpty()) {
+        var node = queue.removeFirst();
+        var data = node.getData();
+        // TODO(244438846): add a test for this
+        if (data instanceof SystemTraceNodeModel && pattern.matcher(data.getFullName()).find()) return true;
+        for (CaptureNode child : node.childrenList) if (seen.add(child)) queue.addLast(child);
+      }
+
+      return false;
     }
   }
 }
