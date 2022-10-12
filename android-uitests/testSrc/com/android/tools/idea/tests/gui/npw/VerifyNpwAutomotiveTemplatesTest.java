@@ -42,6 +42,7 @@ public class VerifyNpwAutomotiveTemplatesTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   private List<String> expectedTemplates = List.of("No Activity", "Media Service", "Messaging Service");
+  private String defaultActivity = "Media Service";
 
   private List<String> failedBuildTemplates = new ArrayList<String>();
   private List<String> dependencyMissingTemplates = new ArrayList<String>();
@@ -49,7 +50,6 @@ public class VerifyNpwAutomotiveTemplatesTest {
 
   @Test
   public void testAvailableTemplates() {
-
     ChooseAndroidProjectStepFixture androidProjectStep = guiTest.welcomeFrame()
       .createNewProject()
       .getChooseAndroidProjectStep()
@@ -61,8 +61,24 @@ public class VerifyNpwAutomotiveTemplatesTest {
   }
 
   @Test
-  public void testTemplateBuild() {
+  public void testDefaultTemplate() {
+    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
+      .createNewProject()
+      .getChooseAndroidProjectStep()
+      .selectTab(selectAutomotiveTab)
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .wizard();
 
+    String actualActivityName = newProjectWizard.getActivityName(defaultActivity);
+    newProjectWizard.clickCancel(); //Close New Project dialog
+    System.out.println("\nObserved default activity " + actualActivityName);
+    assertThat(actualActivityName).contains(defaultActivity); //Verify expected default template
+  }
+
+  @Test
+  public void testTemplateBuild() {
     for (String templateName : expectedTemplates) {
         System.out.println("\nValidating Build > Make Project for: " + templateName);
 
@@ -103,7 +119,6 @@ public class VerifyNpwAutomotiveTemplatesTest {
           failedBuildTemplates.add(templateName);
         }
         guiTest.ideFrame().closeProject();
-
     }
 
     if(!dependencyMissingTemplates.isEmpty()){

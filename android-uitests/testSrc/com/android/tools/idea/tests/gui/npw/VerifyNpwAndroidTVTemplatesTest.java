@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JButton;
 import javax.swing.JPopupMenu;
 import org.fest.swing.timing.Pause;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,6 +43,7 @@ public class VerifyNpwAndroidTVTemplatesTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private List<String> expectedTemplates = List.of("No Activity", "Blank Activity");
+  private String defaultActivity = "Blank Activity";
 
   private List<String> failedBuildTemplates = new ArrayList<String>();
   private List<String> dependencyMissingTemplates = new ArrayList<String>();
@@ -49,7 +51,6 @@ public class VerifyNpwAndroidTVTemplatesTest {
 
   @Test
   public void testAvailableTemplates() {
-
     ChooseAndroidProjectStepFixture androidProjectStep = guiTest.welcomeFrame()
       .createNewProject()
       .getChooseAndroidProjectStep()
@@ -57,12 +58,28 @@ public class VerifyNpwAndroidTVTemplatesTest {
 
     List<String> observedTemplates = androidProjectStep.listActivities(); //Get list of templates
     androidProjectStep.clickCancel(); //Close New Project dialog
-    assertThat(observedTemplates).isEqualTo(expectedTemplates); //Verify expected templates are displayed for Phone and Tablet
+    assertThat(observedTemplates).isEqualTo(expectedTemplates); //Verify expected templates are displayed for Android TV
+  }
+
+  @Test
+  public void testDefaultTemplate() {
+    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
+      .createNewProject()
+      .getChooseAndroidProjectStep()
+      .selectTab(selectTVTab)
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .wizard();
+
+    String actualActivityName = newProjectWizard.getActivityName(defaultActivity);
+    newProjectWizard.clickCancel(); //Close New Project dialog
+    System.out.println("\nObserved default activity " + actualActivityName);
+    assertThat(actualActivityName).contains(defaultActivity); //Verify expected default template
   }
 
   @Test
   public void testTemplateBuild() {
-
     for (String templateName : expectedTemplates) {
         System.out.println("\nValidating Build > Make Project for: " + templateName);
 
@@ -103,7 +120,6 @@ public class VerifyNpwAndroidTVTemplatesTest {
           failedBuildTemplates.add(templateName);
         }
         guiTest.ideFrame().closeProject();
-
     }
 
     if(!dependencyMissingTemplates.isEmpty()){

@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndKeypressButton;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.project.ProjectManager;
-import java.awt.Point;
 import java.awt.event.KeyEvent;
+import java.util.List;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JRootPane;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
@@ -49,6 +50,19 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
     JRootPane rootPane = findStepWithTitle("Minimum SDK");
     return new ConfigureNewAndroidProjectStepFixture<>(this, rootPane);
   }
+
+  @NotNull
+  public String getActivityName(String activityName) {
+
+    List<JLabel> allLabels = Lists.newArrayList(robot().finder().findAll(target(), Matchers.byType(JLabel.class)));
+    for (JLabel label : allLabels) {
+      if (label.getText() != null && label.getText().contains(activityName)) {
+        return label.getText();
+      }
+    }
+    return "No matching activity found";
+  }
+
 
   @NotNull
   public ChooseAndroidProjectStepFixture<NewProjectWizardFixture> getChooseAndroidProjectStep() {

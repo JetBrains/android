@@ -45,20 +45,18 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
 
   private List<String> expectedTemplates = List.of("No Activity", "Basic Activity", "Basic Activity (Material3)",
                                                    "Bottom Navigation Activity", "Empty Compose Activity", "Empty Compose Activity (Material3)",
-                                                   "Empty Activity", "Fullscreen Activity", "Google AdMob Ads Activity", "Google Maps Activity",
-                                                   "Google Pay Activity", "Google Wallet Activity", "Login Activity", "Primary/Detail Flow", "Navigation Drawer Activity",
-                                                   "Responsive Activity", "Settings Activity", "Scrolling Activity", "Tabbed Activity",
-                                                   "Fragment + ViewModel", "Game Activity (C++)", "Native C++");
+                                                   "Empty Activity", "Google Wallet Activity", "Login Activity", "Navigation Drawer Activity",
+                                                   "Responsive Activity", "Settings Activity", "Game Activity (C++)", "Native C++");
 
+  private String defaultActivity = "Empty Activity";
+  private List<String> material3Templates = List.of("Basic Activity (Material3)", "Empty Compose Activity (Material3)");
   private List<String> failedBuildTemplates = new ArrayList<String>();
   private List<String> dependencyMissingTemplates = new ArrayList<String>();
   private List<String> failedGradleSyncTemplates = new ArrayList<String>();
   FormFactor selectMobileTab = FormFactor.MOBILE;
 
-
   @Test
   public void testAvailableTemplates() {
-
     ChooseAndroidProjectStepFixture androidProjectStep = guiTest.welcomeFrame()
       .createNewProject()
       .getChooseAndroidProjectStep()
@@ -70,9 +68,26 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
   }
 
   @Test
-  public void testTemplateBuild() throws InterruptedException {
+  public void testDefaultTemplate() {
+    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
+      .createNewProject()
+      .getChooseAndroidProjectStep()
+      .selectTab(selectMobileTab)
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .wizard();
 
+    String actualActivityName = newProjectWizard.getActivityName(defaultActivity);
+    newProjectWizard.clickCancel(); //Close New Project dialog
+    System.out.println("\nObserved default activity " + actualActivityName);
+    assertThat(actualActivityName).contains(defaultActivity); //Verify expected default template
+  }
+
+  @Test
+  public void testTemplateBuild() throws InterruptedException {
     for (String templateName : expectedTemplates) {
+      if (templateName != "Game Activity (C++)") {
         System.out.println("\nValidating Build > Make Project for: " + templateName);
 
         NewProjectWizardFixture newProjectWizard = guiTest
@@ -119,7 +134,13 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
         if (!buildSuccessful) {
           failedBuildTemplates.add(templateName);
         }
+
+        if(material3Templates.contains(templateName)) {
+          validateGradleFile(); //Validate Gradle file contains Material 3 dependencies
+          validateMainActivity(); //Validate MainActivity has @Composable
+        }
         guiTest.ideFrame().closeProject();
+      }
     }
 
     if(!dependencyMissingTemplates.isEmpty()){
@@ -134,5 +155,22 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
       System.out.println("\n*** Make Project failed for: " + Arrays.toString(failedBuildTemplates.toArray()) + " ***");
     }
     assertThat(failedBuildTemplates.isEmpty()).isTrue();
+  }
+
+  private void validateMainActivity() {
+    String mainActivityContents = guiTest.getProjectFileText("app/src/main/java/com/example/myapplication/MainActivity.kt");
+      assertThat(mainActivityContents).contains("@Composable");
+  }
+
+  private void validateGradleFile() {
+    String buildGradleContents = guiTest.getProjectFileText("app/build.gradle");
+      assertThat(buildGradleContents).contains("implementation \"androidx.compose.ui:ui:");
+      assertThat(buildGradleContents).contains("implementation 'androidx.compose.material:");
+      assertThat(buildGradleContents).contains("implementation 'androidx.compose.material3:");
+      assertThat(buildGradleContents).contains("implementation \"androidx.compose.ui:ui-tooling-preview:");
+      assertThat(buildGradleContents).contains("debugImplementation \"androidx.compose.ui:ui-tooling:");
+
+    String projectBuildGradleContents = guiTest.getProjectFileText("build.gradle");
+      assertThat(projectBuildGradleContents).contains("compose_version = '1.3");
   }
 }

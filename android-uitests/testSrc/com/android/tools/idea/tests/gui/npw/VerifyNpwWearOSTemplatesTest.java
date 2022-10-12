@@ -42,15 +42,15 @@ public class VerifyNpwWearOSTemplatesTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private List<String> expectedTemplates = List.of("No Activity", "Blank Activity", "Empty Compose Activity", "Watch Face");
+  private String defaultActivity = "Blank Activity";
+  private List<String> material3Templates = List.of("Empty Compose Activity (Material3)");
 
   private List<String> failedBuildTemplates = new ArrayList<String>();
   private List<String> dependencyMissingTemplates = new ArrayList<String>();
   FormFactor selectWearTab = FormFactor.WEAR;
 
-
   @Test
   public void testAvailableTemplates() {
-
     ChooseAndroidProjectStepFixture androidProjectStep = guiTest.welcomeFrame()
       .createNewProject()
       .getChooseAndroidProjectStep()
@@ -62,8 +62,24 @@ public class VerifyNpwWearOSTemplatesTest {
   }
 
   @Test
-  public void testTemplateBuild() {
+  public void testDefaultTemplate() {
+    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
+      .createNewProject()
+      .getChooseAndroidProjectStep()
+      .selectTab(selectWearTab)
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .wizard();
 
+    String actualActivityName = newProjectWizard.getActivityName(defaultActivity);
+    newProjectWizard.clickCancel(); //Close New Project dialog
+    System.out.println("\nObserved default activity " + actualActivityName);
+    assertThat(actualActivityName).contains(defaultActivity); //Verify expected default template
+  }
+
+  @Test
+  public void testTemplateBuild() {
     for (String templateName : expectedTemplates) {
         System.out.println("\nValidating Build > Make Project for: " + templateName);
 
