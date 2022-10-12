@@ -286,6 +286,10 @@ public class AndroidStudioInstallation {
     return workDir;
   }
 
+  public Path getConfigDir() {
+    return configDir;
+  }
+
   public Path getStudioDir() {
     return studioDir;
   }

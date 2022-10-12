@@ -178,6 +178,39 @@ iml_test(
 )
 
 iml_test(
+    name = "LiveEditTest",
+    timeout = "long",
+    data = select({
+        "@platforms//os:linux": [
+            "//tools/adt/idea/studio:android-studio.linux.zip",
+        ],
+        "@platforms//os:macos": [
+            "//tools/adt/idea/studio:android-studio.mac.zip",
+        ],
+        "@platforms//os:windows": [
+            "//tools/adt/idea/studio:android-studio.win.zip",
+        ],
+        "//conditions:default": [],
+    }) + [
+        ":live_edit_project_deps",
+        ":liveeditproject",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//tools/base/build-system:gradle-distrib-7.3.3",
+        "@system_image_android-30_default_x86_64//:x86_64-android-30-images",
+    ],
+    module = ":intellij.android.core.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.LiveEditTest",
+)
+
+iml_test(
     name = "BuildAndRunTest",
     timeout = "long",
     data = select({
@@ -260,7 +293,35 @@ maven_repository(
     ],
 )
 
+maven_repository(
+    name = "live_edit_project_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "@maven//:androidx.activity.activity-compose_1.5.1",
+        "@maven//:androidx.compose.compiler.compiler_1.3.2",
+        "@maven//:androidx.compose.material.material_1.3.0",
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.3.0",
+        "@maven//:androidx.compose.ui.ui-tooling-preview_1.3.0",
+        "@maven//:androidx.compose.ui.ui-tooling_1.3.0",
+        "@maven//:androidx.compose.ui.ui_1.3.0",
+        "@maven//:androidx.core.core-ktx_1.8.0",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
+        "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.3.1",
+        "@maven//:com.android.tools.build.aapt2_7.1.0-7984345",
+        "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
+        "@maven//:com.android.tools.build.gradle_7.2.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
+    ],
+)
+
 filegroup(
     name = "minapp",
     srcs = glob(["testData/minapp/**"]),
+)
+
+filegroup(
+    name = "liveeditproject",
+    srcs = glob(["testData/liveedit/**"]),
 )
