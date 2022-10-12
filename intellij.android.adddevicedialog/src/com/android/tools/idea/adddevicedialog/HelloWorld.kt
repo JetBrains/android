@@ -13,13 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.adddevicedialog;
+package com.android.tools.idea.adddevicedialog
 
-final class HelloWorld {
-  private HelloWorld() {
-  }
-
-  public static void main(String[] args) {
-    System.out.println("Hello, World!");
-  }
+fun main() {
+  println("Hello, World!")
 }

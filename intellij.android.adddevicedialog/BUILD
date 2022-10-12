@@ -6,4 +6,5 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.adddevicedialog.iml"],
     visibility = ["//visibility:public"],
+    deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],
 )
