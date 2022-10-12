@@ -51,7 +51,7 @@ class FormatWithNewLineInsertHandler(private val format: InsertionFormat) : Inse
       EditorActionManager.getInstance().getActionHandler(IdeActions.ACTION_EDITOR_ENTER).execute(
         editor,
         caret,
-        CaretSpecificDataContext(DataManager.getInstance().getDataContext(editor.contentComponent), caret)
+        CaretSpecificDataContext.create(DataManager.getInstance().getDataContext(editor.contentComponent), caret)
       )
     }
   }
