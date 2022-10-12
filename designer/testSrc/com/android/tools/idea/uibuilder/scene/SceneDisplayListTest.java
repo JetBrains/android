@@ -60,7 +60,7 @@ public class SceneDisplayListTest extends SceneTest {
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                         "Clip,0,0,1000,1000\n" +
                         "DrawComponentBackground,100,200,100,20,1\n" +
-                        "DrawTextRegion,100,200,100,20,0,16,false,false,5,5,28,1.0,\"\"\n" +
+                        "DrawTextRegion,100,200,100,20,0,16,false,false,4,5,28,1.0,\"TextView\"\n" +
                         "DrawNlComponentFrame,100,200,100,20,1,20,20\n" +
                         "UNClip\n";
 
@@ -84,7 +84,7 @@ public class SceneDisplayListTest extends SceneTest {
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                         "Clip,0,0,1000,1000\n" +
                         "DrawComponentBackground,100,200,100,20,1\n" +
-                        "DrawTextRegion,100,200,100,20,0,16,false,false,5,5,28,1.0,\"\"\n" +
+                        "DrawTextRegion,100,200,100,20,0,16,false,false,4,5,28,1.0,\"TextView\"\n" +
                         "DrawNlComponentFrame,100,200,100,20,1,20,20\n" +
                         "UNClip\n";
 
@@ -94,7 +94,7 @@ public class SceneDisplayListTest extends SceneTest {
     String afterLockedList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                              "Clip,0,0,1000,1000\n" +
                              "DrawComponentBackground,100,200,100,20,0\n" +
-                             "DrawTextRegion,100,200,100,20,0,16,false,false,5,5,28,1.0,\"\"\n" +
+                             "DrawTextRegion,100,200,100,20,0,16,false,false,4,5,28,1.0,\"TextView\"\n" +
                              "DrawNlComponentFrame,100,200,100,20,1,20,20\n" +
                              "UNClip\n";
     assertEquals(afterLockedList, myInteraction.getDisplayList().serialize());

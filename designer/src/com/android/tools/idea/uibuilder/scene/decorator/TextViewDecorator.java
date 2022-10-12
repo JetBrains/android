@@ -25,6 +25,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawTextRegion;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.TextWidgetConstants;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -42,19 +43,16 @@ public class TextViewDecorator extends SceneDecorator {
     @SwingCoordinate int t = sceneContext.getSwingYDip(rect.y);
     @SwingCoordinate int w = sceneContext.getSwingDimensionDip(rect.width);
     @SwingCoordinate int h = sceneContext.getSwingDimensionDip(rect.height);
-    String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
+    String text = component.getNlComponent().getTagName();
     NlComponent nlc = component.getNlComponent();
 
     int size = DrawTextRegion.getFont(nlc, DEFAULT_DIM);
 
-    String alignment = nlc.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_ALIGNMENT);
-    boolean rtl = component.getScene().isInRTL();
-    int align = ConstraintUtilities.getAlignment(alignment, rtl);
     String single = nlc.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_SINGLE_LINE);
     boolean singleLine = Boolean.parseBoolean(single);
     int baseLineOffset = sceneContext.getSwingDimensionDip(component.getBaseline());
     int mode = component.isSelected() ? DecoratorUtilities.ViewStates.SELECTED_VALUE : DecoratorUtilities.ViewStates.NORMAL_VALUE;
-    list.add(new DrawTextRegion(l, t, w, h, mode, baseLineOffset, text, singleLine, false, align, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START, size,
-                                (float)sceneContext.getScale()));
+    list.add(new DrawTextRegion(l, t, w, h, mode, baseLineOffset, text, singleLine, false, TextWidgetConstants.TEXT_ALIGNMENT_CENTER,
+                                DrawTextRegion.TEXT_ALIGNMENT_VIEW_START, size, (float)sceneContext.getScale()));
   }
 }

@@ -69,16 +69,16 @@ class SceneDisplayListWithSelectionTest : SceneTest() {
     val simpleList = """DrawNlComponentFrame,0,0,1000,1000,1,1000,1000
 Clip,0,0,1000,1000
 DrawComponentBackground,100,200,100,20,1
-DrawTextRegion,100,200,100,20,0,16,false,false,5,5,28,1.0,""
+DrawTextRegion,100,200,100,20,0,16,false,false,4,5,28,1.0,"TextView"
 DrawNlComponentFrame,100,200,100,20,1,20,20
 DrawComponentBackground,100,500,5,5,1
-DrawTextRegion,100,500,5,5,0,4,false,false,5,5,28,1.0,""
+DrawTextRegion,100,500,5,5,0,4,false,false,4,5,28,1.0,"TextView"
 DrawNlComponentFrame,100,500,5,5,1,5,5
 DrawLinearLayout,600,600,250,250,1
 DrawNlComponentFrame,600,600,250,250,1,250,250
 Clip,600,600,250,250
 DrawComponentBackground,600,600,100,100,1
-DrawTextRegion,600,600,100,100,0,80,false,false,5,5,28,1.0,""
+DrawTextRegion,600,600,100,100,0,80,false,false,4,5,28,1.0,"TextView"
 DrawNlComponentFrame,600,600,100,100,1,100,100
 UNClip
 UNClip
@@ -96,7 +96,7 @@ UNClip
     val simpleList = """DrawNlComponentFrame,0,0,1000,1000,1,1000,1000
 Clip,0,0,1000,1000
 DrawComponentBackground,100,200,100,20,3
-DrawTextRegion,100,200,100,20,2,16,false,false,5,5,28,1.0,""
+DrawTextRegion,100,200,100,20,2,16,false,false,4,5,28,1.0,"TextView"
 DrawNlComponentFrame,100,200,100,20,3,20,20
 DrawResize,96,196,8,8,0
 DrawResize,96,216,8,8,0
@@ -107,13 +107,13 @@ DrawAnchor,144,192,12,12,0
 DrawAnchor,194,204,12,12,0
 DrawAnchor,144,216,12,12,0
 DrawComponentBackground,100,500,5,5,1
-DrawTextRegion,100,500,5,5,0,4,false,false,5,5,28,1.0,""
+DrawTextRegion,100,500,5,5,0,4,false,false,4,5,28,1.0,"TextView"
 DrawNlComponentFrame,100,500,5,5,1,5,5
 DrawLinearLayout,600,600,250,250,1
 DrawNlComponentFrame,600,600,250,250,1,250,250
 Clip,600,600,250,250
 DrawComponentBackground,600,600,100,100,1
-DrawTextRegion,600,600,100,100,0,80,false,false,5,5,28,1.0,""
+DrawTextRegion,600,600,100,100,0,80,false,false,4,5,28,1.0,"TextView"
 DrawNlComponentFrame,600,600,100,100,1,100,100
 UNClip
 UNClip
@@ -132,16 +132,16 @@ UNClip
     val simpleList = """DrawNlComponentFrame,0,0,1000,1000,1,1000,1000
 Clip,0,0,1000,1000
 DrawComponentBackground,100,200,100,20,3
-DrawTextRegion,100,200,100,20,2,16,false,false,5,5,28,1.0,""
+DrawTextRegion,100,200,100,20,2,16,false,false,4,5,28,1.0,"TextView"
 DrawNlComponentFrame,100,200,100,20,3,20,20
 DrawComponentBackground,100,500,5,5,3
-DrawTextRegion,100,500,5,5,2,4,false,false,5,5,28,1.0,""
+DrawTextRegion,100,500,5,5,2,4,false,false,4,5,28,1.0,"TextView"
 DrawNlComponentFrame,100,500,5,5,3,5,5
 DrawLinearLayout,600,600,250,250,1
 DrawNlComponentFrame,600,600,250,250,1,250,250
 Clip,600,600,250,250
 DrawComponentBackground,600,600,100,100,1
-DrawTextRegion,600,600,100,100,0,80,false,false,5,5,28,1.0,""
+DrawTextRegion,600,600,100,100,0,80,false,false,4,5,28,1.0,"TextView"
 DrawNlComponentFrame,600,600,100,100,1,100,100
 UNClip
 UNClip

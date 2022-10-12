@@ -127,7 +127,7 @@ DrawComponentBackground,225,225,50,50,1
 DrawProgressBar,225,225,50,50
 DrawNlComponentFrame,225,225,50,50,1,100,100
 DrawComponentBackground,225,245,50,10,1
-DrawButton,225,245,50,10,0,8,1.0,28,"this is a test"
+DrawButton,225,245,50,10,0,8,1.0,28,"Button"
 DrawNlComponentFrame,225,245,50,10,1,20,20
 VerticalZigZagLineCommand - (250, 0, 225)
 VerticalZigZagLineCommand - (250, 275, 500)
@@ -180,7 +180,7 @@ DrawComponentBackground,225,265,30,10,1
 DrawImageView,225,265,30,10
 DrawNlComponentFrame,225,265,30,10,1,20,20
 DrawComponentBackground,460,480,30,10,1
-DrawTextRegion,460,480,30,10,0,8,false,false,5,5,28,1.0,""
+DrawTextRegion,460,480,30,10,0,8,false,false,4,5,28,1.0,"TextView"
 DrawNlComponentFrame,460,480,30,10,1,20,20
 DrawVerticalArrowCommand - (240, 265, 0)
 DrawHorizontalArrowCommand - (225, 270, 270)
