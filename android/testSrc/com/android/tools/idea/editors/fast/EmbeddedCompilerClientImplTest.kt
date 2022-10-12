@@ -131,7 +131,7 @@ internal class EmbeddedCompilerClientImplTest {
         assertTrue(result.toString(), result is CompilationResult.RequestException)
         assertEquals(
           "Unable to update function that references an inline function from another source file: public final fun inlineMethod (): kotlin.Unit [inline] declared in <root>.InlineKt",
-          (result as CompilationResult.RequestException).e?.message?.substringAfter(':')?.trim())
+          (result as CompilationResult.RequestException).e?.message?.trim())
       }
     }
 

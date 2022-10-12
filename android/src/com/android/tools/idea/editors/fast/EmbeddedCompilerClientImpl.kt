@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
 
 private val defaultRetryTimes = Integer.getInteger("fast.preview.224875189.retries", 3)
@@ -76,12 +77,25 @@ fun <T> retryInNonBlockingReadAction(retryTimes: Int = defaultRetryTimes,
                                      retryBlock: () -> T): T {
   var lastException: Throwable? = null
   val result: CompletableDeferred<T> = CompletableDeferred()
-  repeat(retryTimes) {
+  repeat(retryTimes) { retryAttempt ->
     indicator.checkCanceled()
     try {
-      ReadAction.nonBlocking {
-        result.complete(retryBlock())
-      }
+      ReadAction.nonBlocking(Callable<Unit> {
+        try {
+          lastException = null
+          result.complete(retryBlock())
+        }
+        catch (t: ProcessCanceledException) {
+          // ProcessCanceledException can not be logged
+          lastException = t
+        }
+        catch (t: Throwable) {
+          lastException = if (t is ExecutionException) {
+            t.cause
+          }
+          else t
+        }
+      })
         .wrapProgress(indicator)
         .submit(AndroidExecutors.getInstance().workerThreadExecutor).get()
     }
@@ -89,17 +103,17 @@ fun <T> retryInNonBlockingReadAction(retryTimes: Int = defaultRetryTimes,
       // ProcessCanceledException can not be logged
       lastException = t
     }
-    catch (t: Throwable) {
-      ((t as? ExecutionException)?.cause as? NonRetriableException)?.cause?.let { nonRetriableException ->
+    if (result.isCompleted) return result.getCompleted()
+
+    lastException?.let {
+      (it as? NonRetriableException)?.cause?.let { nonRetriableException ->
         throw nonRetriableException
       }
 
-      Logger.getInstance(EmbeddedCompilerClientImpl::class.java).debug("Retrying after error (retry $it)", t)
-      lastException = t
+      Logger.getInstance(EmbeddedCompilerClientImpl::class.java).warn("Retrying after error (retry $retryAttempt)", it)
     }
-    if (result.isCompleted) return result.getCompleted()
     indicator.checkCanceled()
-    Thread.sleep((50 * it).coerceAtMost(200).toLong())
+    Thread.sleep((50 * retryAttempt).coerceAtMost(200).toLong())
   }
   lastException?.let {
     Logger.getInstance(EmbeddedCompilerClientImpl::class.java).warn("Compile request failed with exception", it)
