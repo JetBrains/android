@@ -1460,7 +1460,7 @@ public final class StudioFlags {
       "enable.open.close.issues",
       "Enable open/close issue functionality.",
       "Add open/close button to App Quality Insights panel.",
-      false);
+      true);
 
   public static final Flag<Boolean> ADDITIONAL_FILTERS_ENABLED =
     Flag.create(
@@ -1468,7 +1468,7 @@ public final class StudioFlags {
       "enable.issue.filters",
       "Enable additional issue filters.",
       "Add device, OS, Play Track filters to App Quality Insights panel.",
-      false);
+      true);
 
   public static final Flag<Boolean> OFFLINE_MODE_SUPPORT_ENABLED =
     Flag.create(
@@ -1484,7 +1484,7 @@ public final class StudioFlags {
       "enable.notes",
       "Enable read/write notes functionality.",
       "Add notes tab to App Quality Insights panel.",
-      false);
+      true);
   // endregion App Insights
 
   // region App Links Assistant
