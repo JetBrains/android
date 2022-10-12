@@ -134,6 +134,7 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
   @Volatile
   var frameNumber: Int = 0
     private set
+  @Volatile
   var crashOnStart = false
 
   private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
