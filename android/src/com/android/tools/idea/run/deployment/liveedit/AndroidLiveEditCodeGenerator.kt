@@ -16,10 +16,12 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
+import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
 import com.google.common.collect.HashMultimap
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
@@ -69,7 +71,7 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
    * LiveEditException detailing the failure.
    */
   @Trace
-  fun compile(inputs: List<CodeGeneratorInput>, outputs: MutableList<CodeGeneratorOutput>) : Boolean {
+  fun compile(inputs: List<CodeGeneratorInput>, outputs: MutableList<CodeGeneratorOutput>, giveWritePriority : Boolean = true) : Boolean {
     outputs.clear()
 
     // Bundle changes per-file to prevent wasted recompilation of the same file. The most common
@@ -84,12 +86,27 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
     // Wrap compilation in a read action that can be interrupted by any other read or write action,
     // which prevents the UI from freezing during compilation if the user continues typing.
     val progressManager = ProgressManager.getInstance()
-    return progressManager.runInReadActionWithWriteActionPriority(
-      {
-        for ((file, input) in changedFiles.asMap()) {
-          outputs.addAll(compileKtFile(file, input))
-        }
-      }, progressManager.progressIndicator)
+
+
+    val compileCmd = {
+      for ((file, input) in changedFiles.asMap()) {
+        outputs.addAll(compileKtFile(file, input))
+      }
+    }
+
+    // In manual mode, we trigger when SaveAll action shortcut is detected. Which means we run concurrently with SaveAllAction.
+    // Therefore we cannot use runInReadActionWithWriteActionPriority (otherwise we would be continuously interrupted because
+    // save is happening, upon testing on a small file we were interrupted 1000 times by save writes).
+    // Instead we run with runReadAction.
+    //
+    // In automatic mode, we want to be interrupted on each keystroke so we only run when the user is done typing.
+    // A keystroke writes the PSI trees so running with runInReadActionWithWriteActionPriority yield exactly the interrupt policy we need.
+    if (giveWritePriority) {
+      return progressManager.runInReadActionWithWriteActionPriority(compileCmd, progressManager.progressIndicator)
+    } else {
+      ApplicationManager.getApplication().runReadAction(compileCmd)
+      return true
+    }
   }
 
   private fun compileKtFile(file: KtFile, inputs: Collection<CodeGeneratorInput>) : List<CodeGeneratorOutput> {

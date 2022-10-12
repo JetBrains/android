@@ -23,11 +23,8 @@ import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonit
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.util.ListenerCollection
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeEvent
@@ -40,7 +37,6 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
-import javax.swing.KeyStroke
 
 
 /**
@@ -113,6 +109,12 @@ class LiveEditService private constructor(val project: Project, var listenerExec
   }
 
   companion object {
+
+    // The action upon which we trigger LiveEdit to do a push in manual mode.
+    // Right now this is set to "SaveAll" which is called via Ctrl/Cmd+S.
+    @JvmStatic
+    val PIGGYBACK_ACTION_ID: String = "SaveAll"
+
     enum class LiveEditTriggerMode {
       LE_TRIGGER_MANUAL,
       LE_TRIGGER_AUTOMATIC,
@@ -122,6 +124,7 @@ class LiveEditService private constructor(val project: Project, var listenerExec
       return mode == LiveEditTriggerMode.LE_TRIGGER_MANUAL
     }
 
+    @JvmStatic
     fun isLeTriggerManual() = isLeTriggerManual(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
 
     @JvmStatic

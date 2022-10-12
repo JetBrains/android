@@ -56,13 +56,9 @@
     </group>
 
     <group id="Android.LiveEdit">
-      <action id="android.deploy.livedit.trigger" class="com.android.tools.idea.editors.literals.ManualLiveEditTrigger"
-        description="Push @composable code changes via LiveEdit">
-        <keyboard-shortcut keymap="$default" first-keystroke="control shift S" replace-all="true"/>
-      </action>
       <action id="android.deploy.livedit.recompose" class="com.android.tools.idea.editors.literals.ManualLiveEditReset"
         description="Trigger @Composable recompose via LiveEDit">
-        <keyboard-shortcut keymap="$default" first-keystroke="control shift D" replace-all="true"/>
+        <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift S"/>
       </action>
     </group>
 
@@ -814,6 +810,11 @@
   <extensions defaultExtensionNs="com.android.tools.idea">
     <deviceProvisioner implementation="com.android.tools.idea.avdmanager.LocalEmulatorProvisionerFactory"/>
   </extensions>
+
+  <applicationListeners>
+    <listener class="com.android.tools.idea.editors.literals.LiveEditAnActionListener"
+              topic="com.intellij.openapi.actionSystem.ex.AnActionListener"/>
+  </applicationListeners>
 
   <applicationListeners>
     <listener class="com.android.tools.idea.startup.ProjectMetricsInitializer"

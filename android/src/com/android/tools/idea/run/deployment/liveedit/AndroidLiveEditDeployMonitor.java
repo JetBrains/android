@@ -31,8 +31,6 @@ import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.deployer.tasks.LiveUpdateDeployer;
 import com.android.tools.idea.editors.literals.EditState;
 import com.android.tools.idea.editors.literals.EditStatus;
-import com.android.tools.idea.editors.literals.ManualLiveEditReset;
-import com.android.tools.idea.editors.literals.ManualLiveEditTrigger;
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration;
 import com.android.tools.idea.editors.literals.LiveEditService;
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler;
@@ -158,7 +156,8 @@ public class AndroidLiveEditDeployMonitor {
 
   private static final EditStatus UP_TO_DATE = new EditStatus(EditState.UP_TO_DATE, "Up to date", null);
 
-  private static final EditStatus OUT_OF_DATE = new EditStatus(EditState.OUT_OF_DATE, "Refresh to view the latest Live Edit Changes", "android.deploy.livedit.trigger");
+
+  private static final EditStatus OUT_OF_DATE = new EditStatus(EditState.OUT_OF_DATE, "Refresh to view the latest Live Edit Changes", LiveEditService.getPIGGYBACK_ACTION_ID());
 
   private static final EditStatus RECOMPOSE_NEEDED = new EditStatus(EditState.RECOMPOSE_NEEDED, "Hard refresh must occur for all changes to be applied. App state will be reset", "android.deploy.livedit.recompose");
 
@@ -338,10 +337,11 @@ public class AndroidLiveEditDeployMonitor {
 
   private void doOnManualLETrigger() {
     updateEditStatus(UPDATE_IN_PROGRESS);
-    boolean success = processChanges(project, bufferedEvents);
-    if (success) {
-      bufferedEvents.clear();
+
+    while(!processChanges(project, bufferedEvents)) {
+        LOGGER.info("ProcessChanges was interrupted");
     }
+    bufferedEvents.clear();
   }
 
 
@@ -384,7 +384,7 @@ public class AndroidLiveEditDeployMonitor {
         change ->
           new AndroidLiveEditCodeGenerator.CodeGeneratorInput(change.getFile(), change.getOrigin(), change.getParentGroup()))
         .collect(Collectors.toList());
-      if (!new AndroidLiveEditCodeGenerator(project, sourceInlineCandidateCache).compile(inputs, compiled)) {
+      if (!new AndroidLiveEditCodeGenerator(project, sourceInlineCandidateCache).compile(inputs, compiled, !LiveEditService.isLeTriggerManual())) {
         return false;
       }
     } catch (LiveEditUpdateException e) {
