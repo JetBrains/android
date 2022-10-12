@@ -30,6 +30,7 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.utils.Pair;
 import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
+import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata;
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata;
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats;
 import java.util.ArrayList;
@@ -65,14 +66,9 @@ public final class FakeFeatureTracker implements FeatureTracker {
   public Trace.UserOptions.TraceType myLastCpuTraceType;
 
   /**
-   * Whether the last import trace was tracked as success.
+   * Stores the last {@link CpuImportTraceMetadata} passed to the tracker.
    */
-  private Boolean myLastImportTraceSucceeded;
-
-  /**
-   * Whether the trace contains Compose Tracing nodes
-   */
-  private Boolean myHasComposeTracingNodes;
+  private CpuImportTraceMetadata myLastCpuImportTraceMetadata;
 
   /**
    * Whether {@link #trackSelectThread()} was called.
@@ -271,25 +267,21 @@ public final class FakeFeatureTracker implements FeatureTracker {
     myLastCpuCaptureMetadata = null;
   }
 
+  public CpuImportTraceMetadata getLastCpuImportTraceMetadata() {
+    return myLastCpuImportTraceMetadata;
+  }
+
+  public void resetLastCpuImportTraceMetadata() {
+    myLastCpuImportTraceMetadata = null;
+  }
+
   @Override
-  public void trackImportTrace(@NotNull Trace.UserOptions.TraceType profilerType,
-                               boolean success,
-                               @Nullable Boolean hasComposeTracingNodes) {
-    myLastCpuTraceType = profilerType;
-    myLastImportTraceSucceeded = success;
-    myHasComposeTracingNodes = hasComposeTracingNodes;
+  public void trackImportTrace(@NotNull CpuImportTraceMetadata cpuImportTraceMetadata) {
+    myLastCpuImportTraceMetadata = cpuImportTraceMetadata;
   }
 
   public Trace.UserOptions.TraceType getLastCpuTraceType() {
     return myLastCpuTraceType;
-  }
-
-  public Boolean getLastImportTraceStatus() {
-    return myLastImportTraceSucceeded;
-  }
-
-  public Boolean getHasComposeTracingNodes() {
-    return myHasComposeTracingNodes;
   }
 
   @Override

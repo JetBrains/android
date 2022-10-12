@@ -15,6 +15,9 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.google.wireless.android.sdk.stats.CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_FAILURE;
+import static com.google.wireless.android.sdk.stats.CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_SUCCESS;
+
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.protobuf.ByteString;
@@ -31,6 +34,7 @@ import com.android.tools.profilers.cpu.systemtrace.AtraceProducer;
 import com.android.tools.profilers.cpu.systemtrace.PerfettoProducer;
 import com.android.tools.profilers.perfetto.PerfettoParser;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
 import java.io.FileInputStream;
@@ -292,7 +296,8 @@ public class CpuCaptureParser {
           if (TracePreProcessor.FAILURE.equals(fileContent)) {
             throw new PreProcessorFailureException();
           }
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
           throw new ReadErrorParsingFailureException(traceFile.getAbsolutePath(), e);
         }
       }
@@ -366,7 +371,8 @@ public class CpuCaptureParser {
     private static final Supplier<TraceParser> ART_PARSER_SUPPLIER = () -> new ArtTraceParser();
     private static final Supplier<TraceParser> SIMPLEPERF_PARSER_SUPPLIER = () -> new SimpleperfTraceParser();
     private final Supplier<TraceParser> ATRACE_PARSER_SUPPLIER = () -> new AtraceParser(getMainProcessSelector());
-    private final Supplier<TraceParser> PERFETTO_PARSER_SUPPLIER = () -> new PerfettoParser(getMainProcessSelector(), getProfilerServices());
+    private final Supplier<TraceParser> PERFETTO_PARSER_SUPPLIER =
+      () -> new PerfettoParser(getMainProcessSelector(), getProfilerServices());
 
     // Specific file tests used in parseToCapture before attempting to parse the whole trace.
     private static final Predicate<File> NO_OP_FILE_TESTER = null;
@@ -456,7 +462,8 @@ public class CpuCaptureParser {
         boolean inputVerification;
         try {
           inputVerification = traceInputVerification.test(traceFile);
-        } catch (Throwable t) {
+        }
+        catch (Throwable t) {
           throw new FileHeaderParsingFailureException(traceFile.getAbsolutePath(), type, t);
         }
         if (!inputVerification) {
@@ -488,8 +495,6 @@ public class CpuCaptureParser {
         }
       }
     }
-
-
   }
 
   /**
@@ -575,8 +580,13 @@ public class CpuCaptureParser {
         myPreviouslyLoadedCaptures.add(traceFile.getAbsolutePath());
         myServices.getFeatureTracker().trackCaptureTrace(metadata);
         // We also have a specific set of metrics for imported:
-        if (isImportedTrace && capture != null) {
-          myServices.getFeatureTracker().trackImportTrace(capture.getType(), true, metadata.getHasComposeTracingNodes());
+        if (isImportedTrace) {
+          var type = capture != null
+                     ? capture.getType() // get info from capture
+                     : metadata.getProfilingConfiguration().getTraceType(); // best effort to get info
+          var isSuccess = capture != null;
+          myServices.getFeatureTracker()
+            .trackImportTrace(createCpuImportTraceMetadata(type, isSuccess, metadata.getHasComposeTracingNodes()));
         }
         myCaptureMetadataMap.remove(traceId);
       }
@@ -604,12 +614,36 @@ public class CpuCaptureParser {
       while (!queue.isEmpty()) {
         var node = queue.removeFirst();
         var data = node.getData();
-        // TODO(244438846): add a test for this
         if (data instanceof SystemTraceNodeModel && pattern.matcher(data.getFullName()).find()) return true;
         for (CaptureNode child : node.childrenList) if (seen.add(child)) queue.addLast(child);
       }
 
       return false;
+    }
+
+    private CpuImportTraceMetadata createCpuImportTraceMetadata(@NotNull TraceType profilerType,
+                                                                boolean isSuccess,
+                                                                @Nullable Boolean hasComposeTracingNodes) {
+      CpuImportTraceMetadata.Builder metadata = CpuImportTraceMetadata.newBuilder();
+      metadata.setImportStatus(isSuccess ? IMPORT_TRACE_SUCCESS : IMPORT_TRACE_FAILURE);
+      metadata.setTechnology(technologyForProfilerType(profilerType));
+      if (hasComposeTracingNodes != null) metadata.setHasComposeTracingNodes(hasComposeTracingNodes);
+      return metadata.build();
+    }
+
+    private CpuImportTraceMetadata.Technology technologyForProfilerType(@NotNull TraceType profilerType) {
+      switch (profilerType) {
+        case ART:
+          return CpuImportTraceMetadata.Technology.ART_TECHNOLOGY;
+        case SIMPLEPERF:
+          return CpuImportTraceMetadata.Technology.SIMPLEPERF_TECHNOLOGY;
+        case ATRACE:
+          return CpuImportTraceMetadata.Technology.ATRACE_TECHNOLOGY;
+        case PERFETTO:
+          return CpuImportTraceMetadata.Technology.PERFETTO_TECHNOLOGY;
+        default:
+          return CpuImportTraceMetadata.Technology.UNKNOWN_TECHNOLOGY;
+      }
     }
   }
 }

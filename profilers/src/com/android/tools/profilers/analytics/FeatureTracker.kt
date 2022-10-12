@@ -28,6 +28,7 @@ import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObject
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager.SessionCreationSource
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
+import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats.QueryReturnStatus
 
@@ -195,7 +196,7 @@ interface FeatureTracker {
   /**
    * Track the user importing a method trace.
    */
-  fun trackImportTrace(traceType: TraceType, success: Boolean, hasComposeTracingNodes: Boolean?)
+  fun trackImportTrace(metadata: CpuImportTraceMetadata)
 
   /**
    * Track the startup CPU profiling that was started with the given {@param device} and {@param configuration}.

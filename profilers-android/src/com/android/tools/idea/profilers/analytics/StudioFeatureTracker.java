@@ -353,31 +353,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackImportTrace(@NotNull Trace.UserOptions.TraceType profilerType,
-                               boolean success,
-                               @Nullable Boolean hasComposeTracingNodes) {
-    CpuImportTraceMetadata.Builder metadata = CpuImportTraceMetadata.newBuilder();
-    metadata.setImportStatus(success ? CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_SUCCESS
-                                     : CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_FAILURE);
-    switch (profilerType) {
-      case ART:
-        metadata.setTechnology(CpuImportTraceMetadata.Technology.ART_TECHNOLOGY);
-        break;
-      case SIMPLEPERF:
-        metadata.setTechnology(CpuImportTraceMetadata.Technology.SIMPLEPERF_TECHNOLOGY);
-        break;
-      case ATRACE:
-        metadata.setTechnology(CpuImportTraceMetadata.Technology.ATRACE_TECHNOLOGY);
-        break;
-      case PERFETTO:
-        metadata.setTechnology(CpuImportTraceMetadata.Technology.PERFETTO_TECHNOLOGY);
-        break;
-      default:
-        metadata.setTechnology(CpuImportTraceMetadata.Technology.UNKNOWN_TECHNOLOGY);
-        break;
-    }
-    if (hasComposeTracingNodes != null) metadata.setHasComposeTracingNodes(hasComposeTracingNodes);
-    newTracker(AndroidProfilerEvent.Type.CPU_IMPORT_TRACE).setDevice(myActiveDevice).setCpuImportTraceMetadata(metadata.build()).track();
+  public void trackImportTrace(@NotNull CpuImportTraceMetadata metadata) {
+    newTracker(AndroidProfilerEvent.Type.CPU_IMPORT_TRACE).setDevice(myActiveDevice).setCpuImportTraceMetadata(metadata).track();
   }
 
   @Override

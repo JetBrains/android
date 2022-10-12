@@ -157,6 +157,8 @@ class SerializedTraceProcessorModelForTestsVerifier {
     produceAndWriteModelsFor(CpuProfilerTestUtils.getTraceFile("perfetto.trace"), 1)
     produceAndWriteModelsFor(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"), 2)
     produceAndWriteModelsFor(CpuProfilerTestUtils.getTraceFile("perfetto_frame_lifecycle.trace"), 3, "android.com.java.profilertester")
+    produceAndWriteModelsFor(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_compose.trace"), 4,
+                             "com.google.samples.apps.nowinandroid.demo.debug")
   }
 
   private fun produceAndWriteModelsFor(traceFile: File, traceId: Long, selectedProcessName: String = "") {

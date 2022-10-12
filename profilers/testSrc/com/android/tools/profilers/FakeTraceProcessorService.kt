@@ -37,6 +37,7 @@ class FakeTraceProcessorService: TraceProcessorService {
       setOf(
         CpuProfilerTestUtils.getTraceFile("perfetto.trace"),
         CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"),
+        CpuProfilerTestUtils.getTraceFile("perfetto_cpu_compose.trace"),
         CpuProfilerTestUtils.getTraceFile("perfetto_frame_lifecycle.trace")
       )
     }
