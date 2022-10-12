@@ -84,7 +84,8 @@ import java.util.concurrent.CopyOnWriteArraySet
  * Manages contents of the Emulator tool window. Listens to changes in [RunningEmulatorCatalog]
  * and maintains [EmulatorToolWindowPanel]s, one per running Emulator.
  */
-internal class EmulatorToolWindowManager private constructor(
+@UiThread
+internal class EmulatorToolWindowManager @AnyThread private constructor(
   private val project: Project
 ) : RunningEmulatorCatalog.Listener, DeviceMirroringSettingsListener, DumbAware {
 
@@ -103,12 +104,10 @@ internal class EmulatorToolWindowManager private constructor(
   private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, project.earlyDisposable)
 
   private val contentManagerListener = object : ContentManagerListener {
-    @UiThread
     override fun selectionChanged(event: ContentManagerEvent) {
       viewSelectionChanged(getToolWindow())
     }
 
-    @UiThread
     override fun contentRemoved(event: ContentManagerEvent) {
       val panel = event.content.component as? RunningDevicePanel ?: return
       if (panel is EmulatorToolWindowPanel) {
@@ -124,7 +123,7 @@ internal class EmulatorToolWindowManager private constructor(
     }
   }
 
-  private val connectionStateListener = object: ConnectionStateListener {
+  private val connectionStateListener = object : ConnectionStateListener {
     @AnyThread
     override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
       if (connectionState == ConnectionState.DISCONNECTED) {
@@ -163,7 +162,6 @@ internal class EmulatorToolWindowManager private constructor(
     // Lazily initialize content since we can only have one frame.
     val messageBusConnection = project.messageBus.connect(project.earlyDisposable)
     messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
-      @UiThread
       override fun stateChanged(toolWindowManager: ToolWindowManager) {
         val toolWindow = toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?: return
 
@@ -482,7 +480,6 @@ internal class EmulatorToolWindowManager private constructor(
     }
   }
 
-  @UiThread
   override fun settingsChanged(settings: DeviceMirroringSettings) {
     if (settings.deviceMirroringEnabled) {
       if (contentCreated && physicalDeviceWatcher == null) {
@@ -565,6 +562,7 @@ internal class EmulatorToolWindowManager private constructor(
      * Initializes [EmulatorToolWindowManager] for the given project. Repeated calls for the same project
      * are ignored.
      */
+    @AnyThread
     @JvmStatic
     fun initializeForProject(project: Project) {
       if (registeredProjects.add(project)) {
@@ -573,6 +571,7 @@ internal class EmulatorToolWindowManager private constructor(
       }
     }
 
+    @AnyThread
     @JvmStatic
     private fun isEmbeddedEmulator(commandLine: GeneralCommandLine) =
       commandLine.parametersList.parameters.contains("-qt-hide-window")
@@ -593,6 +592,7 @@ internal class EmulatorToolWindowManager private constructor(
       }
     }
 
+    @AnyThread
     private suspend fun onDeviceListChanged(deviceList: DeviceList, adbSession: AdbSession) {
       val onlineDevices = deviceList.filter { it.deviceState == DeviceState.ONLINE }.map(DeviceInfo::serialNumber).toSet()
       val removed = mirroredDevices.minus(onlineDevices)
