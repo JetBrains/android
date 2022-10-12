@@ -15,8 +15,19 @@
  */
 package com.android.tools.idea.adddevicedialog
 
-fun getMessage() = "Hello, World!"
+import org.junit.Assert.assertEquals
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-fun main() {
-  println(getMessage())
+@RunWith(JUnit4::class)
+class HelloWorldTest {
+  @Test
+  fun testGetMessage() {
+    // Act
+    val message = getMessage()
+
+    // Assert
+    assertEquals("Hello, World!", message)
+  }
 }
