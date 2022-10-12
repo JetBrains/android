@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.util.io.exists
 import org.jetbrains.kotlin.codegen.inline.InlineCache
@@ -37,7 +38,6 @@ import java.nio.file.Paths
 import java.util.ArrayList
 import java.util.HashSet
 import java.util.LinkedHashSet
-import kotlin.system.measureTimeMillis
 
 /**
  * This is a cache of class name (fully qualify name such as java/lang/String) to a inlinable source (bytecode on disk or in memory)
@@ -54,8 +54,11 @@ typealias SourceInlineCandidateCache = LinkedHashMap<String, SourceInlineCandida
  * into the inline cache of the code generation process.
  */
 data class SourceInlineCandidate (val sourceFile: KtFile, val className : String, val module: Module) {
-  var bytecode : ByteArray? = null
+  companion object {
+    val LOGGER = Logger.getInstance(SourceInlineCandidate.javaClass)
+  }
 
+  var bytecode : ByteArray? = null
   /**
    * Return true if we can populate the KtFile's inline cache entry of the code generation process.
    * IE: Can we have the bytecode available either in memory or on disk somehow.
@@ -76,20 +79,15 @@ data class SourceInlineCandidate (val sourceFile: KtFile, val className : String
     var vFile = sourceFile.getModuleSystem()?.getClassFileFinderForSourceFile(sourceFile.virtualFile)?.findClassFile(className)
 
     if (vFile == null) {
-      // TODO REMOVE
-      println("Unable to local $className in the build system.")
+      LOGGER.warn("Unable to local $className in the build system.")
     }
 
     bytecode = vFile?.let {
       val file = Paths.get(it.path)
 
       if (!file.exists()) {
-        // TODO REMOVE
-        println("Build output $file NOT found")
+        LOGGER.warn("Build output $file NOT found")
         return
-      } else {
-        // TODO REMOVE
-        println("Build output $file found")
       }
 
       return@let Files.readAllBytes(file)
@@ -109,7 +107,6 @@ data class SourceInlineCandidate (val sourceFile: KtFile, val className : String
    */
   fun fillInlineCache(inlineCache : InlineCache) : Boolean {
     if (canFillInlineCache()) {
-      println("Injecting $className into InlineCache")
       inlineCache.classBytes.put(className, bytecode!!)
       return true
     }
@@ -134,17 +131,8 @@ fun analyzeSingleDepthInlinedFunctions(
   bindingContext: BindingContext,
   cache: SourceInlineCandidateCache): Set<SourceInlineCandidate> {
   val referencedClasses = LinkedHashSet<SourceInlineCandidate>()
-  val elapsed = measureTimeMillis {
-    analyzeElementWithOneLevelInline(
-      resolutionFacadeForFile,
-      file,
-      bindingContext,
-      referencedClasses,
-      cache)
-  }
-
-  // TODO REMOVE
-  System.out.println("analyzeSingleDepthInlinedFunctions took: $elapsed ms")
+  analyzeElementWithOneLevelInline(resolutionFacadeForFile,
+    file, bindingContext, referencedClasses, cache)
   return referencedClasses
 }
 
