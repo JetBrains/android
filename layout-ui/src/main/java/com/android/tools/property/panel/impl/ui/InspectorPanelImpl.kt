@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.impl.model.InspectorPanelModel
+import com.android.tools.property.ptable.ColumnFraction
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
@@ -33,8 +34,8 @@ typealias ComponentBounds = com.intellij.openapi.util.Pair<Component, Rectangle>
 /**
  * Implementation of [InspectorPanel].
  */
-class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Disposable) :
-  AdtSecondaryPanel(InspectorLayoutManager()), Disposable, ValueChangedListener {
+class InspectorPanelImpl(val model: InspectorPanelModel, nameColumnFraction: ColumnFraction, parentDisposable: Disposable) :
+  AdtSecondaryPanel(InspectorLayoutManager(nameColumnFraction)), Disposable, ValueChangedListener {
 
   init {
     Disposer.register(parentDisposable, this)

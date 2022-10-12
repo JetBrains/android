@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.panel.impl.ui
 
+import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesViewTab
@@ -27,8 +28,10 @@ import com.android.tools.property.panel.impl.model.InspectorPanelModel
 import com.android.tools.property.panel.impl.model.SeparatorLineModel
 import com.android.tools.property.panel.impl.model.TableLineModelImpl
 import com.android.tools.property.panel.impl.model.TitleLineModel
+import com.android.tools.property.ptable.ColumnFraction
 import com.android.tools.property.ptable.PTableModel
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.util.SystemInfo
@@ -49,15 +52,29 @@ import javax.swing.ScrollPaneConstants
 private const val TITLE_SEPARATOR_HEIGHT = 4
 private const val SUBTITLE_SEPARATOR_HEIGHT = 2
 
+@VisibleForTesting
+const val LEFT_FRACTION_KEY = "android.property.left.fraction"
+
 /**
  * Provides a page for a tab defined by a [PropertiesViewTab].
  */
 class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   @VisibleForTesting
   val inspectorModel = InspectorPanelModel()
-  private val inspector = InspectorPanelImpl(inspectorModel, parentDisposable)
   private var lastAddedLine: InspectorLineModel? = null
   private var lastTitleLine: CollapsibleLabelModel? = null
+  @VisibleForTesting
+  val nameColumnFraction = ColumnFraction(PropertiesComponent.getInstance().getFloat(LEFT_FRACTION_KEY, 0.4f), resizeSupported = true)
+  private val inspector = InspectorPanelImpl(inspectorModel, nameColumnFraction, parentDisposable)
+
+  init {
+    nameColumnFraction.listeners.add(ValueChangedListener {
+      inspector.invalidate()
+      inspector.validate()
+      inspector.repaint()
+      PropertiesComponent.getInstance().setValue(LEFT_FRACTION_KEY, nameColumnFraction.value, 0.4f)
+    })
+  }
 
   val component = createScrollPane(inspector)
 
@@ -125,7 +142,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   override fun addTitle(title: String, actions: List<AnAction>): InspectorLineModel {
     addSeparatorBeforeTitle()
     val model = TitleLineModel(title)
-    val label = CollapsibleLabelPanel(model, UIUtil.FontSize.NORMAL, Font.BOLD, actions)
+    val label = CollapsibleLabelPanel(model, UIUtil.FontSize.NORMAL, Font.BOLD, actions, nameColumnFraction)
     label.isOpaque = true
     label.innerBorder = JBUI.Borders.empty(TITLE_SEPARATOR_HEIGHT, 0)
     label.border = JBUI.Borders.merge(JBUI.Borders.empty(0, LEFT_HORIZONTAL_CONTENT_BORDER_SIZE, 0, 0),
@@ -170,7 +187,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
                         parent: InspectorLineModel?): TableLineModel {
     // Do NOT call addSeparatorAfterTitle since tables should not be preceded with spacing after a title
     val model = TableLineModelImpl(tableModel, searchable)
-    val editor = TableEditor(model, tableUI.tableCellRendererProvider, tableUI.tableCellEditorProvider, actions)
+    val editor = TableEditor(model, tableUI.tableCellRendererProvider, tableUI.tableCellEditorProvider, actions, nameColumnFraction)
     addLine(model, parent)
     inspector.addLineElement(editor.component)
     return model

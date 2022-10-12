@@ -16,7 +16,10 @@
 package com.android.tools.property.panel.impl.ui
 
 import com.android.tools.adtui.common.secondaryPanelBackground
+import com.android.tools.adtui.common.selectionBackground
 import com.android.tools.property.panel.impl.model.CollapsibleLabelModel
+import com.android.tools.property.ptable.ColumnFraction
+import com.android.tools.property.ptable.ColumnFractionChangeHandler
 import com.google.common.html.HtmlEscapers
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -26,13 +29,17 @@ import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
+import java.awt.Cursor
 import java.awt.FlowLayout
 import java.awt.Font
+import java.awt.Graphics
+import java.awt.Graphics2D
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JPanel
 import javax.swing.border.Border
+import kotlin.math.roundToInt
 
 /**
  * A panel to show text and an optional control for collapsing/expanding a section.
@@ -48,7 +55,8 @@ class CollapsibleLabelPanel(
   val model: CollapsibleLabelModel,
   fontSize: UIUtil.FontSize,
   fontStyle: Int,
-  actions: List<AnAction> = emptyList()
+  actions: List<AnAction> = emptyList(),
+  private val nameColumnFraction: ColumnFraction = ColumnFraction()
 ) : JPanel(BorderLayout()) {
   val label = ExpandableLabel()
 
@@ -65,6 +73,7 @@ class CollapsibleLabelPanel(
 
   private val expandButton = IconWithFocusBorder { if (model.expandable) expandAction else null }
   private val actionButtons = mutableListOf<FocusableActionButton>()
+  private val resizeHandler = ColumnFractionChangeHandler(nameColumnFraction, { label.x }, { width }, ::onResizeModeChange)
 
   val text: String?
     get() = label.text
@@ -112,7 +121,29 @@ class CollapsibleLabelPanel(
         }
       }
     })
+    label.addMouseListener(resizeHandler)
+    label.addMouseMotionListener(resizeHandler)
     valueChanged()
+  }
+
+  override fun paintComponent(g: Graphics) {
+    super.paintComponent(g)
+    if (resizeHandler.resizeMode) {
+      paintResizeNibs(g)
+    }
+  }
+
+  private fun paintResizeNibs(g: Graphics) {
+    val g2 = g.create() as Graphics2D
+    g2.color = selectionBackground
+    val x = (width * nameColumnFraction.value).roundToInt()
+    g2.drawLine(x, 0, x, height)
+    g2.dispose()
+  }
+
+  private fun onResizeModeChange(newResizeMode: Boolean) {
+    label.cursor = Cursor.getPredefinedCursor(if (newResizeMode) Cursor.W_RESIZE_CURSOR else Cursor.DEFAULT_CURSOR)
+    repaint()
   }
 
   private fun toggle() {

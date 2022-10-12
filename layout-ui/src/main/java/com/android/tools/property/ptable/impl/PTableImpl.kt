@@ -18,6 +18,8 @@ package com.android.tools.property.ptable.impl
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
+import com.android.tools.property.ptable.ColumnFraction
+import com.android.tools.property.ptable.ColumnFractionChangeHandler
 import com.android.tools.property.ptable.PTable
 import com.android.tools.property.ptable.PTableCellEditorProvider
 import com.android.tools.property.ptable.PTableCellRendererProvider
@@ -70,8 +72,6 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
-private const val LEFT_FRACTION = 0.40
-private const val MAX_LABEL_WIDTH = 240
 private const val EXPANSION_RIGHT_PADDING = 4
 private const val COLUMN_COUNT = 2
 
@@ -87,7 +87,8 @@ class PTableImpl(
   private val rendererProvider: PTableCellRendererProvider,
   private val editorProvider: PTableCellEditorProvider,
   private val customToolTipHook: (MouseEvent) -> String? = { null },
-  private val updatingUI: () -> Unit = {}
+  private val updatingUI: () -> Unit = {},
+  private val nameColumnFraction: ColumnFraction = ColumnFraction()
 ) : PFormTableImpl(PTableModelImpl(tableModel)), PTable {
 
   private val nameRowSorter = TableRowSorter<TableModel>()
@@ -95,8 +96,9 @@ class PTableImpl(
   private val tableCellRenderer = PTableCellRendererWrapper()
   private val tableCellEditor = PTableCellEditorWrapper()
   private val expandableNameHandler = PTableExpandableItemsHandler(this)
+  private val resizeHandler = ColumnFractionChangeHandler(nameColumnFraction, { 0 }, { width }, ::onResizeModeChange)
+  private var lastLeftFractionValue = nameColumnFraction.value
   private var initialized = false
-  private var scaledMaxLabelWidth = JBUI.scale(MAX_LABEL_WIDTH)
   override val backgroundColor: Color
     get() = super.getBackground()
   override val foregroundColor: Color
@@ -122,6 +124,8 @@ class PTableImpl(
 
     addMouseListener(MouseTableListener())
     addKeyListener(PTableKeyListener())
+    addMouseListener(resizeHandler)
+    addMouseMotionListener(resizeHandler)
 
     // We want expansion for the property names but not of the editors. This disables expansion for both columns.
     // TODO: Provide expansion of the left column only.
@@ -137,11 +141,21 @@ class PTableImpl(
     initialized = true
   }
 
+  private fun onResizeModeChange(newResizeMode: Boolean) {
+  }
+
+  override fun isValid(): Boolean {
+    // Make sure we cause a layout when the leftFraction has changed.
+    // This method is called during initialization where the leftFraction property is still null, so guard with "initialized".
+    return super.isValid() && (!initialized || lastLeftFractionValue == nameColumnFraction.value)
+  }
+
   override fun doLayout() {
+    lastLeftFractionValue = nameColumnFraction.value
     val nameColumn = getColumnModel().getColumn(0)
     val valueColumn = getColumnModel().getColumn(1)
-    nameColumn.width = min((width * LEFT_FRACTION).roundToInt(), scaledMaxLabelWidth)
-    valueColumn.width = width - nameColumn.width
+    nameColumn.width = maxOf((width * lastLeftFractionValue).roundToInt(), 0)
+    valueColumn.width = maxOf(width - nameColumn.width, 0)
   }
 
   override val component: JComponent
@@ -240,7 +254,6 @@ class PTableImpl(
     super.updateUI()
     customizeKeyMaps()
     if (initialized) {  // This method is called but JTable.init
-      scaledMaxLabelWidth = JBUI.scale(MAX_LABEL_WIDTH)
       updatingUI()
       rendererProvider.updateUI()
       editorProvider.updateUI()
@@ -469,7 +482,7 @@ class PTableImpl(
   }
 
   override fun editCellAt(row: Int, column: Int, event: EventObject?): Boolean {
-    if (!super.editCellAt(row, column, event)) {
+    if (resizeHandler.resizeMode || !super.editCellAt(row, column, event)) {
       return false
     }
     repaintOtherCellInRow()
@@ -626,7 +639,7 @@ class PTableImpl(
         ) getRenderer(row, column) else null
 
         // Replace the cursor of the table to the cursor of the component in the renderer the mouse event points to.
-        cursor = renderer?.let {
+        cursor = if (resizeHandler.resizeMode) Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR) else renderer?.let {
           val rect = getCellRect(row, column.ordinal, true)
           val component = SwingUtilities.getDeepestComponentAt(renderer, event.x - rect.x, event.y - rect.y)
           // The property panel is using text editors to display text.

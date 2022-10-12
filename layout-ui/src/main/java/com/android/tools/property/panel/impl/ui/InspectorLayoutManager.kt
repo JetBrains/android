@@ -15,8 +15,8 @@
  */
 package com.android.tools.property.panel.impl.ui
 
+import com.android.tools.property.ptable.ColumnFraction
 import com.intellij.util.ui.JBDimension
-import com.intellij.util.ui.JBUI
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import java.awt.Component
 import java.awt.Container
@@ -25,16 +25,13 @@ import java.awt.LayoutManager2
 
 enum class Placement {LEFT, RIGHT, LINE}
 
-private const val LEFT_FRACTION = 0.4
-private const val RIGHT_FRACTION = 1.0 - LEFT_FRACTION
 private const val MIN_WIDTH = 120
 private const val MIN_HEIGHT = 240
-private const val MAX_LABEL_WIDTH = 240
 
 /**
  * Layout for 2 column grid used in [InspectorPanelImpl].
  */
-class InspectorLayoutManager: LayoutManager2 {
+class InspectorLayoutManager(private val nameColumnFraction: ColumnFraction = ColumnFraction()): LayoutManager2 {
   private var leftWidth = -1
   private var rightWidth = -1
   private var totalHeight = -1
@@ -52,7 +49,7 @@ class InspectorLayoutManager: LayoutManager2 {
     val size = container.size
     val width = size.width - insets.left - insets.right
     val leftMargin = insets.left
-    val left = maxOf(minOf((width * LEFT_FRACTION).toInt(), SCALED_MAX_LABEL_WIDTH), 0)
+    val left = maxOf((width * nameColumnFraction.value).toInt(), 0)
     val right = maxOf(width - left, 0)
     var rowIndex = 0
     var y = insets.top
@@ -196,14 +193,14 @@ class InspectorLayoutManager: LayoutManager2 {
       }
     }
 
-    val width = maxOf(leftMaxWidth / LEFT_FRACTION, rightMaxWidth / RIGHT_FRACTION, lineMaxWidth.toDouble()).toInt()
-    leftWidth = (width * LEFT_FRACTION).toInt()
+    val rightFraction = 1.0f - nameColumnFraction.value
+    val width = maxOf(leftMaxWidth / nameColumnFraction.value, rightMaxWidth / rightFraction, lineMaxWidth.toFloat()).toInt()
+    leftWidth = (width * nameColumnFraction.value).toInt()
     rightWidth = width - leftWidth
     totalHeight = maxHeight
   }
 
   companion object {
-    private val SCALED_MAX_LABEL_WIDTH = JBUI.scale(MAX_LABEL_WIDTH)
     private val MINIMUM_LAYOUT_SIZE = JBDimension(MIN_WIDTH, MIN_HEIGHT)
     private val MAXIMUM_LAYOUT_SIZE = Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE)
   }
