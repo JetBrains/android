@@ -47,7 +47,6 @@ class LayoutInspectorMetrics(
     stats: SessionStatistics,
     errorState: AttachErrorState? = null,
     errorCode: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE,
-    autoConnectInfo: DynamicLayoutInspectorAutoConnectInfo? = null
   ) {
     when(eventType) {
       DynamicLayoutInspectorEventType.INITIAL_RENDER,
@@ -73,9 +72,6 @@ class LayoutInspectorMetrics(
             attachErrorState = errorState
             attachErrorCode = errorCode
           }
-        }
-        if (autoConnectInfo != null) {
-          autoConnectInfoBuilder.mergeFrom(autoConnectInfo)
         }
       }
       process?.let { deviceInfo = it.device.toDeviceInfo() }

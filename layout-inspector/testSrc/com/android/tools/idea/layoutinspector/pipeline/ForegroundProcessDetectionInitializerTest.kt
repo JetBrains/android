@@ -25,7 +25,6 @@ import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportService
@@ -99,7 +98,7 @@ class ForegroundProcessDetectionInitializerTest {
       deviceModel = deviceModel,
       coroutineScope = CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
       foregroundProcessListener = foregroundProcessListener,
-      metrics = ForegroundProcessDetectionMetrics(LayoutInspectorMetrics(projectRule.project)),
+      metrics = ForegroundProcessDetectionMetrics,
     )
 
     foregroundProcessListener.onNewProcess(device1, ForegroundProcess(1, "process1"))
@@ -163,7 +162,7 @@ class ForegroundProcessDetectionInitializerTest {
       deviceModel = deviceModel,
       coroutineScope = projectRule.project.coroutineScope,
       transportClient =  transportClient,
-      metrics = ForegroundProcessDetectionMetrics(LayoutInspectorMetrics(projectRule.project)),
+      metrics = ForegroundProcessDetectionMetrics,
     )
 
     connectStream(fakeStream1)

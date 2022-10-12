@@ -172,7 +172,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         processModel = processesModel,
         deviceModel = deviceModel,
         coroutineScope = project.coroutineScope,
-        metrics = ForegroundProcessDetectionMetrics(layoutInspectorMetrics)
+        metrics = ForegroundProcessDetectionMetrics
       ).also {
         project.messageBus.connect(workBench).subscribe(
           ToolWindowManagerListener.TOPIC,

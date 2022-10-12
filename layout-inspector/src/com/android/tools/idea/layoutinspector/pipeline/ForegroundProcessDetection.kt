@@ -321,7 +321,7 @@ class ForegroundProcessDetection(
                         if (!devicesWithUnknownState.contains(streamDevice)) {
                           devicesWithUnknownState.add(streamDevice)
                           // log UNKNOWN devices only once
-                          metrics.logHandshakeResult(streamEvent.event.layoutInspectorTrackingForegroundProcessSupported)
+                          metrics.logHandshakeResult(streamEvent.event.layoutInspectorTrackingForegroundProcessSupported, streamDevice)
                         }
                         delay(2000)
                         sendStartHandshakeCommand(activity.streamChannel.stream)
@@ -372,7 +372,7 @@ class ForegroundProcessDetection(
               // This could happen if there are issues in the handshake or if a device was disconnected
               // before the UNKNOWN state had time to resolve.
               // For example if a device was plugged in while locked and unplugged before ever being unlocked.
-              metrics.logConversion(HandshakeUnknownConversion.UNKNOWN_NOT_RESOLVED)
+              metrics.logHandshakeConversion(HandshakeUnknownConversion.UNKNOWN_NOT_RESOLVED, streamDevice)
             }
 
             devicesWithUnknownState.clear()
@@ -401,10 +401,10 @@ class ForegroundProcessDetection(
     streamDevice: DeviceDescriptor,
     conversion: HandshakeUnknownConversion
   ) {
-    metrics.logHandshakeResult(handshakeResult)
+    metrics.logHandshakeResult(handshakeResult, streamDevice)
     if (devicesWithUnknownState.contains(streamDevice)) {
       devicesWithUnknownState.remove(streamDevice)
-      metrics.logConversion(conversion)
+      metrics.logHandshakeConversion(conversion, streamDevice)
     }
   }
 

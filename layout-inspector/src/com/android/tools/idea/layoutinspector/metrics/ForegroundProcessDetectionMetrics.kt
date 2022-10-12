@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.layoutinspector.metrics
 
-import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.appinspection.ide.analytics.toDeviceInfo
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import layout_inspector.LayoutInspector
@@ -24,31 +27,42 @@ import layout_inspector.LayoutInspector
  * Utility class used to log metrics for [ForegroundProcessDetection] to Studio metrics.
  *
  */
-class ForegroundProcessDetectionMetrics(private val layoutInspectorMetrics: LayoutInspectorMetrics) {
+object ForegroundProcessDetectionMetrics {
+
   /**
    * Used to log the result of a handshake. SUPPORTED, NOT_SUPPORTED or UNKNOWN.
    * In case of NOT_SUPPORTED we also log the reason why.
    */
-  fun logHandshakeResult(handshakeInfo: LayoutInspector.TrackingForegroundProcessSupported) {
-    layoutInspectorMetrics.logEvent(
-      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.AUTO_CONNECT_INFO,
-      DisconnectedClient.stats,
-      autoConnectInfo = buildAutoConnectInfo(handshakeInfo)
-    )
+  fun logHandshakeResult(handshakeInfo: LayoutInspector.TrackingForegroundProcessSupported, device: DeviceDescriptor) {
+    val event = buildLayoutInspectorEvent(buildAutoConnectInfo(handshakeInfo), device)
+    UsageTracker.log(event)
   }
 
   /**
    * Used to log the conversion of a device with UNKNOWN support to SUPPORTED or NOT_SUPPORTED.
    */
-  fun logConversion(conversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion) {
-    layoutInspectorMetrics.logEvent(
-      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.AUTO_CONNECT_INFO,
-      DisconnectedClient.stats,
-      autoConnectInfo = buildAutoConnectInfo(conversion)
-    )
+  fun logHandshakeConversion(conversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion, device: DeviceDescriptor) {
+    val event = buildLayoutInspectorEvent(buildAutoConnectInfo(conversion), device)
+    UsageTracker.log(event)
   }
 
-  private fun buildAutoConnectInfo(supportInfo: LayoutInspector.TrackingForegroundProcessSupported): DynamicLayoutInspectorAutoConnectInfo {
+  private fun buildLayoutInspectorEvent(
+    autoConnect: DynamicLayoutInspectorAutoConnectInfo,
+    device: DeviceDescriptor
+  ): AndroidStudioEvent.Builder {
+    return AndroidStudioEvent.newBuilder().apply {
+      kind = AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
+      dynamicLayoutInspectorEvent = DynamicLayoutInspectorEvent.newBuilder().apply {
+        type = DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.AUTO_CONNECT_INFO
+        autoConnectInfo = autoConnect
+      }.build()
+      deviceInfo = device.toDeviceInfo()
+    }
+  }
+
+  private fun buildAutoConnectInfo(
+    supportInfo: LayoutInspector.TrackingForegroundProcessSupported
+  ): DynamicLayoutInspectorAutoConnectInfo {
     val builder = DynamicLayoutInspectorAutoConnectInfo.newBuilder()
     val supportType = supportInfo.supportType
     if (supportType != null) {
