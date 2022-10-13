@@ -83,8 +83,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -354,9 +356,6 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
           final List<VirtualFile> allLayoutDir = new ArrayList<>();
 
           for (VirtualFile oneRes : allRes) {
-            if (isLibraryResourceRoot(oneRes)) {
-              continue;
-            }
             final VirtualFile[] children = oneRes.getChildren();
             // Check every children if they are a layout dir but not a "-v17" one
             for (VirtualFile oneChild : children) {
@@ -390,13 +389,8 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
         }
         else {
           LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-          Collection<PsiFile> files = resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT);
-          for (PsiFile psiFile : files) {
-            if (isLibraryResourceFile(psiFile.getVirtualFile())) {
-              continue;
-            }
-            list.addAll(getLayoutRefactoringForFile(psiFile, false /* do not create the v17 version */, minSdk));
-          }
+          resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT, null, true, false)
+            .forEach(psiFile -> list.addAll(getLayoutRefactoringForFile(psiFile, false /* do not create the v17 version */, minSdk)));
         }
       }
     }
@@ -620,49 +614,6 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
   @Override
   protected String getCommandName() {
     return getRefactoringName();
-  }
-
-  /**
-   * Returns true if the given resource file (such as a given layout XML file) is an extracted library (AAR) resource file
-   *
-   * @param file the file to check
-   * @return true if the file is a library resource file
-   */
-  private static boolean isLibraryResourceFile(@Nullable VirtualFile file) {
-    if (file != null) {
-      VirtualFile folder = file.getParent();
-      if (folder != null) {
-        return isLibraryResourceRoot(folder.getParent());
-      }
-
-      return false;
-    }
-
-    return false;
-  }
-
-  /**
-   * Returns true if the given resource folder (such as a given "res" folder, a parent of say a layout folder) is an extracted
-   * library (AAR) resource folder
-   *
-   * @param res the folder to check
-   * @return true if the folder is a library resource folder
-   */
-  private static boolean isLibraryResourceRoot(@Nullable VirtualFile res) {
-    if (res != null) {
-      VirtualFile aar = res.getParent();
-      if (aar != null) {
-        VirtualFile exploded = aar.getParent();
-        if (exploded != null) {
-          String name = exploded.getName();
-          if (name.equals(FilenameConstants.EXPLODED_AAR)) {
-            return true;
-          }
-        }
-      }
-    }
-
-    return false;
   }
 
   private static String getRefactoringName() {
