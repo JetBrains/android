@@ -224,6 +224,10 @@
     <item tag="WebView" suggested="true"/>
     <item tag="VideoView"/>
     <item tag="CalendarView"/>
+    <item tag="TextClock"
+          id="textClock"
+          icon="StudioIcons.LayoutEditor.Palette.TEXT_CLOCK"
+          title="Text Clock"/>
     <item tag="ProgressBar"
           materialReference="https://material.io/guidelines/components/progress-activity.html"
           suggested="true"
