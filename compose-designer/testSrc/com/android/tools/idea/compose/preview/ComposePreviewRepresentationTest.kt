@@ -22,6 +22,8 @@ import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
@@ -30,10 +32,13 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.diagnostic.LogLevel
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndWait
+import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -72,6 +77,8 @@ internal class TestComposePreviewView(
 }
 
 class ComposePreviewRepresentationTest {
+  private val logger = Logger.getInstance(ComposePreviewRepresentationTest::class.java)
+
   @get:Rule
   val projectRule =
     ComposeProjectRule(
@@ -85,8 +92,15 @@ class ComposePreviewRepresentationTest {
 
   @Before
   fun setup() {
+    Logger.getInstance(ComposePreviewRepresentation::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(FastPreviewManager::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(ProjectStatus::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance("#com.android.tools.idea.projectsystem.CodeOutOfDateTrackerImpl")
+      .setLevel(LogLevel.ALL)
+    logger.info("setup")
     val testProjectSystem = TestProjectSystem(project)
     runInEdtAndWait { testProjectSystem.useInTests() }
+    logger.info("setup complete")
   }
 
   @Test
@@ -128,7 +142,10 @@ class ComposePreviewRepresentationTest {
       mainSurface.addListener(
         object : DesignSurfaceListener {
           override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
+            val id = UUID.randomUUID().toString().substring(0, 5)
+            logger.info("modelChanged ($id)")
             (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener {
+              logger.info("renderListener ($id)")
               modelRenderedLatch.countDown()
             }
           }
@@ -151,7 +168,9 @@ class ComposePreviewRepresentationTest {
         ) { _, _, _, _, _, _, _, _, _ -> composeView }
       Disposer.register(fixture.testRootDisposable, preview)
       withContext(Dispatchers.IO) {
+        logger.info("compile")
         ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
+        logger.info("activate")
         preview.onActivate()
 
         modelRenderedLatch.await()
