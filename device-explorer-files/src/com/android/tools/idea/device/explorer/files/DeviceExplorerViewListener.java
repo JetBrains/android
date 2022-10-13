@@ -16,8 +16,8 @@
 package com.android.tools.idea.device.explorer.files;
 
 import com.android.annotations.concurrency.UiThread;
-import com.android.tools.idea.file.explorer.toolwindow.DeviceFileEntryNode;
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem;
+import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode;
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem;
 import java.nio.file.Path;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;

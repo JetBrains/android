@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.device.explorer.files.actions;
 
-import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerController;
+import com.android.tools.idea.device.explorer.files.DeviceExplorerController;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import org.jetbrains.annotations.NotNull;

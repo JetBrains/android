@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.device.explorer.files
 
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileEntry
-import com.android.tools.idea.file.explorer.toolwindow.fs.DownloadProgress
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
+import com.android.tools.idea.device.explorer.files.fs.DownloadProgress
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path

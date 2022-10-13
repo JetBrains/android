@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.device.explorer.files;
 
-import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerModelListener;
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem;
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceState;
+import com.android.tools.idea.device.explorer.files.DeviceExplorerModelListener;
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem;
+import com.android.tools.idea.device.explorer.files.fs.DeviceState;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

@@ -16,10 +16,10 @@
 package com.android.tools.idea.device.explorer.files;
 
 import com.android.tools.adtui.util.HumanReadableUtil;
-import com.android.tools.idea.file.explorer.toolwindow.FileTransferSummary;
-import com.android.tools.idea.file.explorer.toolwindow.FileTransferWorkEstimate;
-import com.android.tools.idea.file.explorer.toolwindow.FileTransferWorkEstimator;
-import com.android.tools.idea.file.explorer.toolwindow.LongRunningOperationTracker;
+import com.android.tools.idea.device.explorer.files.FileTransferSummary;
+import com.android.tools.idea.device.explorer.files.FileTransferWorkEstimate;
+import com.android.tools.idea.device.explorer.files.FileTransferWorkEstimator;
+import com.android.tools.idea.device.explorer.files.LongRunningOperationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ExceptionUtil;

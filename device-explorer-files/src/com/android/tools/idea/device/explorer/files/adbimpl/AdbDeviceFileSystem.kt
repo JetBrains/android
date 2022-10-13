@@ -22,9 +22,9 @@ import com.android.adblib.serialNumber
 import com.android.ddmlib.FileListingService
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileEntry
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceState
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
+import com.android.tools.idea.device.explorer.files.fs.DeviceState
 import com.intellij.openapi.util.text.StringUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope

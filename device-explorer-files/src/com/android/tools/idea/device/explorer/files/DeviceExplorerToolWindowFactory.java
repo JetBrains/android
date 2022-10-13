@@ -17,11 +17,11 @@ package com.android.tools.idea.device.explorer.files;
 
 import static com.android.tools.idea.AndroidEnvironmentUtils.isAndroidEnvironment;
 
-import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerController;
-import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerFileManager;
-import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbDeviceFileSystemRenderer;
-import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbDeviceFileSystemService;
-import com.android.tools.idea.file.explorer.toolwindow.ui.DeviceExplorerViewImpl;
+import com.android.tools.idea.device.explorer.files.DeviceExplorerController;
+import com.android.tools.idea.device.explorer.files.DeviceExplorerFileManager;
+import com.android.tools.idea.device.explorer.files.adbimpl.AdbDeviceFileSystemRenderer;
+import com.android.tools.idea.device.explorer.files.adbimpl.AdbDeviceFileSystemService;
+import com.android.tools.idea.device.explorer.files.ui.DeviceExplorerViewImpl;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;

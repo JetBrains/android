@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.device.explorer.files;
 
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem;
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultTreeSelectionModel;
 import org.jetbrains.annotations.NotNull;

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.device.explorer.files;
 
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileEntry;
-import com.android.tools.idea.file.explorer.toolwindow.ui.TreeUtil;
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry;
+import com.android.tools.idea.device.explorer.files.ui.TreeUtil;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;

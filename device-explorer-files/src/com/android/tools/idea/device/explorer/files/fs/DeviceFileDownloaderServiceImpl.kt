@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.file.explorer.toolwindow.fs
+package com.android.tools.idea.device.explorer.files.fs
 
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.AdbCommandRejectedException
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
-import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerFileManager
-import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbDeviceFileSystemService
-import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbPathUtil
+import com.android.tools.idea.device.explorer.files.DeviceExplorerFileManager
+import com.android.tools.idea.device.explorer.files.adbimpl.AdbDeviceFileSystemService
+import com.android.tools.idea.device.explorer.files.adbimpl.AdbPathUtil
 import com.android.utils.FileUtils
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile

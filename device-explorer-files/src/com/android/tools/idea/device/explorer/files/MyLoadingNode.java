@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.device.explorer.files;
 
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileEntry;
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry;
 import com.intellij.ui.LoadingNode;
 import org.jetbrains.annotations.NotNull;
 

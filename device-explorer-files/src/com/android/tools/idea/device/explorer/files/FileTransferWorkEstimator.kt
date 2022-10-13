@@ -17,10 +17,10 @@ package com.android.tools.idea.device.explorer.files
 
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.file.explorer.toolwindow.FileTransferWorkEstimator.Companion.directoryWorkUnits
-import com.android.tools.idea.file.explorer.toolwindow.FileTransferWorkEstimator.Companion.fileWorkUnits
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileEntry
-import com.android.tools.idea.file.explorer.toolwindow.fs.ThrottledProgress
+import com.android.tools.idea.device.explorer.files.FileTransferWorkEstimator.Companion.directoryWorkUnits
+import com.android.tools.idea.device.explorer.files.FileTransferWorkEstimator.Companion.fileWorkUnits
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
+import com.android.tools.idea.device.explorer.files.fs.ThrottledProgress
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch

@@ -22,8 +22,8 @@ import com.android.sdklib.deviceprovisioner.pairWithNestedState
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystemService
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystemService
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable

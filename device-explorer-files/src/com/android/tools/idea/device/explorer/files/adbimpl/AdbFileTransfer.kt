@@ -21,9 +21,9 @@ import com.android.adblib.SyncProgress
 import com.android.adblib.syncRecv
 import com.android.adblib.syncSend
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.file.explorer.toolwindow.cancelAndThrow
-import com.android.tools.idea.file.explorer.toolwindow.fs.FileTransferProgress
-import com.android.tools.idea.file.explorer.toolwindow.fs.ThrottledProgress
+import com.android.tools.idea.device.explorer.files.cancelAndThrow
+import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
+import com.android.tools.idea.device.explorer.files.fs.ThrottledProgress
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.diagnostic.logger

@@ -18,7 +18,7 @@ package com.android.tools.idea.device.explorer.files.adbimpl
 import com.android.adblib.ConnectedDevice
 import com.android.ddmlib.FileListingService
 import com.android.tools.idea.adb.AdbShellCommandsUtil
-import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbFileListingEntry.EntryKind
+import com.android.tools.idea.device.explorer.files.adbimpl.AdbFileListingEntry.EntryKind
 import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext

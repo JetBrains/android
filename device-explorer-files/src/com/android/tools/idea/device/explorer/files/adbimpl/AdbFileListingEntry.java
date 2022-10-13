@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.device.explorer.files.adbimpl;
 
-import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbPathUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;

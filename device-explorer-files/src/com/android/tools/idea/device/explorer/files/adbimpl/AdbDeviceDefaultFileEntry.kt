@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.device.explorer.files.adbimpl
 
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileEntry
-import com.android.tools.idea.file.explorer.toolwindow.fs.FileTransferProgress
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
+import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
 import java.nio.file.Path
 
 /**

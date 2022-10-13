@@ -17,8 +17,7 @@ package com.android.tools.idea.device.explorer.files.adbimpl;
 
 import com.android.tools.idea.deviceprovisioner.DeviceHandleRenderer;
 import com.android.tools.idea.deviceprovisioner.DeviceHandleRendererKt;
-import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbDeviceFileSystem;
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystemRenderer;
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystemRenderer;
 import com.google.common.collect.Iterables;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;

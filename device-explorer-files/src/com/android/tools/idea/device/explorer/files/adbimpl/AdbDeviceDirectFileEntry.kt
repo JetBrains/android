@@ -18,8 +18,8 @@ package com.android.tools.idea.device.explorer.files.adbimpl
 import com.android.adblib.AdbFailResponseException
 import com.android.ddmlib.SyncException
 import com.android.tools.idea.adb.AdbShellCommandException
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileEntry
-import com.android.tools.idea.file.explorer.toolwindow.fs.FileTransferProgress
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
+import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.nio.file.Path

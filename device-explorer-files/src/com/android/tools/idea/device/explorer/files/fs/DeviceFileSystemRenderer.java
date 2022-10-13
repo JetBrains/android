@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.device.explorer.files.fs;
 
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem;
 import javax.swing.ListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Provide Swing components to help with rendering
  */
-public interface DeviceFileSystemRenderer<S extends com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem> {
+public interface DeviceFileSystemRenderer<S extends DeviceFileSystem> {
   /**
    * Returns a {@link ListCellRenderer} used to render device names in UI components.
    */

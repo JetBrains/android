@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.device.explorer.files;
 
-import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerViewListener;
-import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerViewProgressListener;
-import com.android.tools.idea.file.explorer.toolwindow.DeviceFileEntryNode;
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem;
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystemService;
+import com.android.tools.idea.device.explorer.files.DeviceExplorerViewListener;
+import com.android.tools.idea.device.explorer.files.DeviceExplorerViewProgressListener;
+import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode;
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem;
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystemService;
 import org.jetbrains.annotations.NotNull;
 
 public interface DeviceExplorerView {
