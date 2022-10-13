@@ -19,6 +19,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <cassert>
 #include <cstdio>
 
 #include "accessors/input_manager.h"

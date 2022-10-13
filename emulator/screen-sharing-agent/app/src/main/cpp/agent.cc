@@ -21,6 +21,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include <cassert>
 #include <chrono>
 #include <cstdlib>
 
