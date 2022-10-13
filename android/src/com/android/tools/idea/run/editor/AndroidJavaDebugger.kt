@@ -119,10 +119,10 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
       }
   }
 
-  fun getDebugProcessStarterForExistingProcess(
+  override fun getDebugProcessStarterForExistingProcess(
     project: Project,
     client: Client,
-    state: AndroidDebuggerState,
+    state: AndroidDebuggerState?
   ): Promise<XDebugProcessStarter> {
 
     return startAndroidJavaDebuggerSession(project, client, null, {}, true)

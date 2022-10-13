@@ -23,6 +23,7 @@ import com.android.tools.idea.run.ApplicationTerminator
 import com.android.tools.idea.run.debug.captureLogcatOutputToProcessHandler
 import com.android.tools.idea.run.debug.showError
 import com.android.tools.idea.run.debug.waitForClientReadyForDebug
+import com.android.tools.idea.run.editor.AndroidDebugger
 import com.android.tools.idea.run.editor.AndroidDebuggerState
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.intellij.execution.ExecutionException
@@ -124,11 +125,11 @@ object DebugSessionStarter {
    * Starts a new Debugging session with [starter] and opens tab with [tabName] in Debug tool window.
    */
   @AnyThread
-  fun attachDebuggerToClientAndShowTab(
+  fun <S : AndroidDebuggerState> attachDebuggerToClientAndShowTab(
     project: Project,
     client: Client,
-    androidDebugger: AndroidJavaDebugger,
-    androidDebuggerState: AndroidDebuggerState
+    androidDebugger: AndroidDebugger<S>,
+    androidDebuggerState: S
   ): Promise<XDebugSession> {
 
     val sessionName = "${androidDebugger.displayName} (${client.clientData.pid})"

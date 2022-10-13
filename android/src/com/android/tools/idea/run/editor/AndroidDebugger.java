@@ -23,6 +23,7 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
+import com.intellij.xdebugger.XDebugProcessStarter;
 import com.intellij.xdebugger.XDebugSession;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -126,4 +127,8 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
    * @return true if it should be the default.
    */
   boolean shouldBeDefault();
+
+  Promise<XDebugProcessStarter> getDebugProcessStarterForExistingProcess(@NotNull Project project,
+                                                                         @NotNull Client client,
+                                                                         @Nullable S debugState);
 }
