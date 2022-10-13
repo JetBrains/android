@@ -572,9 +572,6 @@ studio_plugin(
 studio_plugin(
     name = "com.google.urlassistant",
     directory = "url-assistant",
-    libs = [
-        "//tools/vendor/google/url-assistant:urlassistant_proto",
-    ],
     modules = {"url-assistant.jar": ["//tools/vendor/google/url-assistant:url-assistant"]},
     visibility = ["//visibility:public"],
     deps = [
