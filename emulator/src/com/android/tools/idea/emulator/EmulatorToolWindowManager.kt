@@ -28,6 +28,7 @@ import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MODEL
 import com.android.adblib.DeviceSelector
 import com.android.adblib.DeviceState
 import com.android.adblib.deviceProperties
+import com.android.adblib.trackDevices
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
@@ -586,8 +587,8 @@ internal class EmulatorToolWindowManager @AnyThread private constructor(
       Disposer.register(getToolWindow().disposable, this)
       coroutineScope.launch {
         val adbSession = AdbLibService.getSession(project)
-        adbSession.hostServices.trackDevices().collect { deviceList ->
-          onDeviceListChanged(deviceList, adbSession)
+        adbSession.trackDevices().collect { deviceList ->
+          onDeviceListChanged(deviceList.devices, adbSession)
         }
       }
     }
