@@ -35,15 +35,16 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import static com.android.SdkConstants.DOT_XML;
+import static com.android.tools.idea.npw.assetstudio.BuiltInImages.getJarFilePath;
 import static com.android.tools.idea.npw.assetstudio.BuiltInImages.getResourcesNames;
 
 /**
  * Methods for accessing library of material design icons.
  */
 public final class MaterialDesignIcons {
-  private static final String DEFAULT_ICON_NAME = "action/ic_android_black_24dp.xml";
-  private static final String PATH = "images/material_design_icons/";
-  private static final Pattern CATEGORY_PATTERN = Pattern.compile(PATH + "(\\w+)/");
+  private static final String DEFAULT_ICON_NAME = "/action/ic_android_black_24dp.xml";
+  private static final String PATH = "images/material_design_icons";
+  private static final Pattern CATEGORY_PATTERN = Pattern.compile(PATH + "/(\\w+)/");
 
   /** Do not instantiate - all methods are static. */
   private MaterialDesignIcons() {
@@ -61,10 +62,10 @@ public final class MaterialDesignIcons {
     int dotXmlLength = DOT_XML.length();
 
     for (String category : getCategories()) {
-      String path = PATH + category + '/';
+      String path = PATH + '/' + category;
 
       for (String name : generator.apply(path)) {
-        builder.put(name.substring(0, name.length() - dotXmlLength), path + name);
+        builder.put(name.substring(0, name.length() - dotXmlLength), path + '/' + name);
       }
     }
 
@@ -72,13 +73,8 @@ public final class MaterialDesignIcons {
   }
 
   @NotNull
-  public static Collection<String> getCategories() {
+  private static Collection<String> getCategories() {
     return getCategories(getResourceUrl(PATH));
-  }
-
-  @NotNull
-  public static List<String> getIconNames(@NotNull String categoryName) {
-    return getResourcesNames(getIconDirectoryPath(categoryName), SdkConstants.DOT_XML);
   }
 
   @NotNull
@@ -104,8 +100,10 @@ public final class MaterialDesignIcons {
         return getCategoriesFromFile(new File(url.getPath()));
       case "jar":
         try {
-          JarURLConnection connection = (JarURLConnection)url.openConnection();
-          return getCategoriesFromJar(connection.getJarFile());
+          String jarPath = getJarFilePath(url);
+          try (ZipFile jarFile = new ZipFile(jarPath)) {
+            return getCategoriesFromJar(jarFile);
+          }
         } catch (IOException e) {
           return Collections.emptyList();
         }

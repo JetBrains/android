@@ -69,6 +69,19 @@ public class BuiltInImages {
     }
   }
 
+  private static final String JAR_URL_PREFIX = "file:";
+  private static final String JAR_RESOURCE_PATH_SEPARATOR = ".jar!";
+
+  /**
+   * Returns the path of the jar file that contains the resource at the {@link URL}.
+   * The assumption is that the URL is of "file:<path to jar file>.jar!<path to the resource within jar>" format.
+   */
+  public static String getJarFilePath(URL jarFileResourceUrl) {
+    String imagesFolderPath = jarFileResourceUrl.getPath();
+    int pathSeparator = imagesFolderPath.indexOf(JAR_RESOURCE_PATH_SEPARATOR) + JAR_RESOURCE_PATH_SEPARATOR.length() - 1;
+    return imagesFolderPath.substring(JAR_URL_PREFIX.length(), pathSeparator);
+  }
+
   /**
    * Returns the names of available clip art images which can be obtained by passing the name
    * to {@link #getClipartImage(String)}.
@@ -78,50 +91,35 @@ public class BuiltInImages {
   @NotNull
   public static List<String> getResourcesNames(@NotNull String pathPrefix, @NotNull String filenameExtension) {
     List<String> names = new ArrayList<>(80);
-    ZipFile zipFile = null;
     try {
       Enumeration<URL> en = BuiltInImages.class.getClassLoader().getResources(pathPrefix);
       if (en.hasMoreElements()) {
         URL url = en.nextElement();
-        URLConnection urlConnection = url.openConnection();
-        if (urlConnection instanceof JarURLConnection) {
-          JarURLConnection urlConn = (JarURLConnection)urlConnection;
-          zipFile = urlConn.getJarFile();
+        if ("jar".equals(url.getProtocol())) {
+          String jarPath = getJarFilePath(url);
+          try (ZipFile jarFile = new ZipFile(jarPath)) {
+            jarFile.stream().forEach(zipEntry -> {
+              String name = zipEntry.getName();
+              if (name.startsWith(pathPrefix) && name.endsWith(filenameExtension)) {
+                int lastSlash = name.lastIndexOf('/');
+                if (lastSlash >= 0) {
+                  name = name.substring(lastSlash + 1);
+                }
+                names.add(name);
+              }
+            });
+          }
         } else if ("file".equals(url.getProtocol())) { //$NON-NLS-1$
           File directory = new File(url.getPath());
           String[] list = directory.list();
-          if (list == null) {
-            return Collections.emptyList();
+          if (list != null) {
+            names.addAll(Arrays.asList(list));
           }
-          return Arrays.asList(list);
-        }
-      }
-
-      Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
-      while (enumeration.hasMoreElements()) {
-        ZipEntry zipEntry = enumeration.nextElement();
-        String name = zipEntry.getName();
-        if (name.startsWith(pathPrefix) && name.endsWith(filenameExtension)) {
-          int lastSlash = name.lastIndexOf('/');
-          if (lastSlash >= 0) {
-            name = name.substring(lastSlash + 1);
-          }
-          names.add(name);
         }
       }
     }
     catch (Exception e) {
       getLog().error(e);
-    }
-    finally {
-      if (zipFile != null) {
-        try {
-          zipFile.close();
-        }
-        catch (IOException e) {
-          getLog().error(e);
-        }
-      }
     }
 
     return names;

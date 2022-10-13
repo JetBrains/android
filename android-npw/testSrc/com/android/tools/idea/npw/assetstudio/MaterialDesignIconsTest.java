@@ -59,7 +59,7 @@ public final class MaterialDesignIconsTest {
     public void getBasenameToPathMapThrowsIllegalArgumentException() {
         Function<String, List<String>> generator = mockGenerator();
 
-        Mockito.when(generator.apply("images/material_design_icons/device/"))
+        Mockito.when(generator.apply("images/material_design_icons/device"))
                 .thenReturn(Collections.singletonList("ic_search_black_24dp.xml"));
 
         try {
@@ -77,7 +77,7 @@ public final class MaterialDesignIconsTest {
         Mockito.when(generator.apply(ArgumentMatchers.any()))
                 .thenReturn(Collections.emptyList());
 
-        Mockito.when(generator.apply("images/material_design_icons/action/"))
+        Mockito.when(generator.apply("images/material_design_icons/action"))
                 .thenReturn(Collections.singletonList("ic_search_black_24dp.xml"));
 
         return generator;
