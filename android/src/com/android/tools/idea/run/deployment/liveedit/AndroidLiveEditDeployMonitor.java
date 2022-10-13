@@ -336,6 +336,13 @@ public class AndroidLiveEditDeployMonitor {
   }
 
   private void doOnManualLETrigger() {
+
+    // If user to trigger a LE push twice in a row with compilation errors, the second trigger would set the state to "synced" even
+    // though the compilation error prevented a push on the first trigger
+    if (bufferedEvents.isEmpty()) {
+      return;
+    }
+
     updateEditStatus(UPDATE_IN_PROGRESS);
 
     while(!processChanges(project, bufferedEvents)) {
