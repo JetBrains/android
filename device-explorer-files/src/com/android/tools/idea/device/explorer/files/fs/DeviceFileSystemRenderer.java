@@ -13,7 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer.files.ui
+package com.android.tools.idea.device.explorer.files.fs;
 
-interface DeviceExplorerFilesView {
+import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem;
+import javax.swing.ListCellRenderer;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Provide Swing components to help with rendering
+ */
+public interface DeviceFileSystemRenderer<S extends com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem> {
+  /**
+   * Returns a {@link ListCellRenderer} used to render device names in UI components.
+   */
+  @NotNull
+  ListCellRenderer<S> getDeviceNameListRenderer();
 }

@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer.files
+package com.android.tools.idea.file.explorer.toolwindow.fs;
 
-import com.android.tools.idea.device.explorer.files.ui.DeviceExplorerFilesView
-
-class DeviceExplorerFilesController(
-  private val model: DeviceExplorerFilesModel,
-  private val view: DeviceExplorerFilesView
-) {
+/**
+ * See {@link com.android.adblib.DeviceState}
+ */
+@SuppressWarnings("SpellCheckingInspection")
+public enum DeviceState {
+  BOOTLOADER,
+  OFFLINE,
+  ONLINE,
+  RECOVERY,
+  SIDELOAD,
+  UNAUTHORIZED,
+  DISCONNECTED,
 }

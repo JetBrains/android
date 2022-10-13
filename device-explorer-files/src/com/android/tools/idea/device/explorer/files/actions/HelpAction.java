@@ -13,7 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer.files
+package com.android.tools.idea.device.explorer.files.actions;
 
-class DeviceExplorerFilesModel {
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.project.DumbAwareAction;
+import org.jetbrains.annotations.NotNull;
+
+public class HelpAction extends DumbAwareAction {
+  @Override
+  public void update(@NotNull AnActionEvent e) {
+    e.getPresentation().setEnabled(false);
+  }
+
+  @Override
+  public void actionPerformed(@NotNull AnActionEvent e) {
+  }
 }

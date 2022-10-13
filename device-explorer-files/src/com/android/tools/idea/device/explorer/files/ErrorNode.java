@@ -13,7 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer.files.ui
+package com.android.tools.idea.device.explorer.files;
 
-class DeviceExplorerFilesViewImpl: DeviceExplorerFilesView {
+import javax.swing.tree.DefaultMutableTreeNode;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * A {@link DefaultMutableTreeNode} that shows an error message
+ */
+public class ErrorNode extends DefaultMutableTreeNode {
+  private final @NotNull String myText;
+
+  public ErrorNode(@NotNull String text) {
+    myText = text;
+  }
+
+  @Override
+  public String toString() {
+    return myText;
+  }
+
+  @Override
+  public boolean isLeaf() {
+    return true;
+  }
+
+  @NotNull
+  public String getText() {
+    return myText;
+  }
 }
