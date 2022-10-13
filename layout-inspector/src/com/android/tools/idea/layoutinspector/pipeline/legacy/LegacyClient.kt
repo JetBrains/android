@@ -42,10 +42,10 @@ class LegacyClient(
   private val metrics: LayoutInspectorMetrics,
   parentDisposable: Disposable,
   treeLoaderForTest: LegacyTreeLoader? = null
-) : AbstractInspectorClient(process, isInstantlyAutoConnected, SessionStatisticsImpl(LEGACY_CLIENT, model), parentDisposable) {
+) : AbstractInspectorClient(LEGACY_CLIENT, model.project, process, isInstantlyAutoConnected, SessionStatisticsImpl(LEGACY_CLIENT, model),
+                            parentDisposable) {
 
   private val lookup: ViewNodeAndResourceLookup = model
-  private val project = model.project
 
   override val isCapturing = false
 
@@ -121,7 +121,7 @@ class LegacyClient(
     val snapshotMetadata = saveLegacySnapshot(path, latestData, latestScreenshots, process)
     snapshotMetadata.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
-    val saveMetrics = LayoutInspectorMetrics(project, process, snapshotMetadata = snapshotMetadata)
+    val saveMetrics = LayoutInspectorMetrics(model.project, process, snapshotMetadata = snapshotMetadata)
     saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED, stats)
   }
 

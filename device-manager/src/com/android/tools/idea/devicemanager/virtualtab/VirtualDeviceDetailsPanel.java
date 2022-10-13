@@ -32,8 +32,9 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.EdtExecutorService;
-import java.util.HashMap;
+import java.text.Collator;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Function;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
@@ -152,7 +153,8 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
       return;
     }
 
-    Map<String, String> properties = new HashMap<>(device.getProperties());
+    Map<String, String> properties = new TreeMap<>(Collator.getInstance());
+    properties.putAll(device.getProperties());
 
     properties.remove(AvdManager.AVD_INI_ABI_TYPE);
     properties.remove(AvdManager.AVD_INI_CPU_ARCH);

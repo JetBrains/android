@@ -32,6 +32,7 @@ import com.android.tools.idea.util.ListenerCollection
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.intellij.openapi.Disposable
@@ -44,6 +45,8 @@ import org.jetbrains.annotations.TestOnly
  * Base class for [InspectorClient] implementations with some boilerplate logic provided.
  */
 abstract class AbstractInspectorClient(
+  final override val clientType: ClientType,
+  val project: Project,
   final override val process: ProcessDescriptor,
   final override val isInstantlyAutoConnected: Boolean,
   final override val stats: SessionStatistics,
@@ -66,7 +69,7 @@ abstract class AbstractInspectorClient(
   private val treeEventCallbacks = ListenerCollection.createWithDirectExecutor<(Any) -> Unit>()
   private val attachStateListeners = ListenerCollection.createWithDirectExecutor<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
 
-  var launchMonitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor(attachStateListeners)
+  var launchMonitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor(project, attachStateListeners)
     @TestOnly set
 
   override fun dispose() {

@@ -375,7 +375,7 @@ studio_plugin(
 studio_plugin(
     name = "androidx.compose.plugins.idea",
     directory = "android-compose-ide-plugin",
-    libs = ["//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.2.0-SNAPSHOT"],
+    libs = ["//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.3.0-SNAPSHOT"],
     modules = {"android-compose-ide-plugin.jar": ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"]},
     deps = [
         ":org.jetbrains.android",
@@ -591,10 +591,10 @@ android_studio(
     ],
     searchable_options = "//tools/adt/idea/searchable-options",
     version_code_name = "Electric Eel",
-    version_micro_patch = "1.12",
+    version_micro_patch = "1.11",
     # This will get added to the end of the full-version string.
     # TODO(b/240707039): automate this.
-    version_release_number = 2,
+    version_release_number = 1,
     version_type = "Beta",
     # version_update_message = "<html>this is optional</html>",
     visibility = ["//visibility:public"],

@@ -29,8 +29,10 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import org.junit.Before
@@ -78,7 +80,7 @@ class AbstractInspectorClientTest {
   fun clientWithAdbResponseConnects() {
     shouldEcho = true
     adbRule.withDeviceCommandHandler(FakeShellCommandHandler())
-    val client = MyClient(disposableRule.disposable)
+    val client = MyClient(projectRule.project, disposableRule.disposable)
     val monitor = mock<InspectorClientLaunchMonitor>()
     client.launchMonitor = monitor
     client.connect(projectRule.project)
@@ -90,7 +92,7 @@ class AbstractInspectorClientTest {
   fun clientWithNoAdbResponseFailsToConnect() {
     shouldEcho = false
     adbRule.withDeviceCommandHandler(FakeShellCommandHandler())
-    val client = MyClient(disposableRule.disposable)
+    val client = MyClient(projectRule.project, disposableRule.disposable)
     val monitor = mock<InspectorClientLaunchMonitor>()
     client.launchMonitor = monitor
     client.connect(projectRule.project)
@@ -99,8 +101,10 @@ class AbstractInspectorClientTest {
   }
 
   class MyClient(
+    project: Project,
     disposable: Disposable
-  ) : AbstractInspectorClient(MODERN_DEVICE.createProcess(), true, DisconnectedClient.stats, disposable) {
+  ) : AbstractInspectorClient(ClientType.UNKNOWN_CLIENT_TYPE, project, MODERN_DEVICE.createProcess(), true, DisconnectedClient.stats,
+                              disposable) {
     override fun doConnect(): ListenableFuture<Nothing> = immediateFuture(null)
 
     override fun doDisconnect(): ListenableFuture<Nothing> = immediateFuture(null)

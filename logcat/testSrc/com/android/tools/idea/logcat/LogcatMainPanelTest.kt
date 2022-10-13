@@ -304,7 +304,7 @@ class LogcatMainPanelTest {
       })
     }
     val logcatMainPanel = logcatMainPanel(splitterPopupActionGroup = splitterActions).apply {
-      size = Dimension(100, 100)
+      size = Dimension(100, 500)
       editor.document.setText("foo") // put some text so 'Fold Lines Like This' is enabled
     }
     val fakeUi = FakeUi(logcatMainPanel, createFakeWindow = true)

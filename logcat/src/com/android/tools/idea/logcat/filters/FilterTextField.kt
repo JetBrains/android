@@ -36,10 +36,15 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FILTER_ADDED_
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.keymap.Keymap
+import com.intellij.openapi.keymap.KeymapManager
+import com.intellij.openapi.keymap.KeymapManagerListener
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.PopupChooserBuilder
@@ -207,9 +212,12 @@ internal class FilterTextField(
       })
       addFocusListener(object : FocusAdapter() {
         override fun focusGained(e: FocusEvent?) {
-          GotItTooltip(GOT_IT_ID, LogcatBundle.message("logcat.filter.hint"), project)
-            .withBrowserLink(LogcatBundle.message("logcat.filter.got.it.link.text"), LOGCAT_FILTER_HELP_URL)
-            .show(textField, BOTTOM_LEFT)
+          val hintText = getFilterHintText()
+          if (hintText != null) {
+            GotItTooltip(GOT_IT_ID, hintText, logcatPresenter)
+              .withBrowserLink(LogcatBundle.message("logcat.filter.got.it.link.text"), LOGCAT_FILTER_HELP_URL)
+              .show(textField, BOTTOM_LEFT)
+          }
         }
 
         override fun focusLost(e: FocusEvent?) {
@@ -218,8 +226,15 @@ internal class FilterTextField(
       })
       // The text field needs to be moved an extra pixel down to appear correctly.
       border = JBUI.Borders.customLine(background, 1, 0, 0, 0)
-      textField.setPlaceholder(LogcatBundle.message("logcat.filter.hint"))
-      textField.setShowPlaceholderWhenFocused(true)
+
+      setShowPlaceholderWhenFocused(true)
+      setPlaceholder(getFilterHintText())
+      ApplicationManager.getApplication().messageBus.connect(logcatPresenter)
+        .subscribe(KeymapManagerListener.TOPIC, object : KeymapManagerListener {
+          override fun activeKeymapChanged(keymap: Keymap?) {
+            setPlaceholder(getFilterHintText())
+          }
+        })
     }
 
     clearButton.apply {
@@ -709,6 +724,11 @@ internal class FilterTextField(
 
     abstract fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent
   }
+}
+
+private fun getFilterHintText(): String? {
+  val shortcut = KeymapManager.getInstance().activeKeymap.getShortcuts(IdeActions.ACTION_CODE_COMPLETION).firstOrNull() ?: return null
+  return LogcatBundle.message("logcat.filter.hint", KeymapUtil.getShortcutText(shortcut))
 }
 
 private operator fun Rectangle.plus(point: Point): Rectangle {

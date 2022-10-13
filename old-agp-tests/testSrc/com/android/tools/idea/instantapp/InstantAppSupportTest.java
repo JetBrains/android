@@ -62,7 +62,7 @@ public class InstantAppSupportTest {
   @RunsInEdt
   public void testLoadInstantAppProject() throws Exception {
     // Use a plugin with instant app support
-    projectRule.loadProject(INSTANT_APP, null, GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION);
+    projectRule.loadProject(INSTANT_APP, null, GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION, null, null, "32");
     projectRule.generateSources();
 
     assertModuleIsValidAIAInstantApp(projectRule.getModule("instant-app"), ImmutableList.of(":feature"));
@@ -101,7 +101,7 @@ public class InstantAppSupportTest {
   @RunsInEdt
   public void testAndroidRunConfigurationWithoutError() throws Exception {
     // Use a plugin with instant app support
-    projectRule.loadProject(INSTANT_APP, "feature", GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION);
+    projectRule.loadProject(INSTANT_APP, "feature", GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION, null, null, "32");
     AndroidTestRunConfiguration
       runConfiguration = createAndroidTestConfigurationFromClass(projectRule.getProject(), "com.example.instantapp.ExampleInstrumentedTest");
     runConfiguration.checkConfiguration();
@@ -112,7 +112,7 @@ public class InstantAppSupportTest {
   @Ignore("b/203803107")
   public void testRunConfigurationFailsIfWrongURL() throws Throwable {
     // Use a plugin with instant app support
-    projectRule.loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0");
+    projectRule.loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0", null, null, "32");
 
     // Create one run configuration
     List<RunConfiguration> configurations =

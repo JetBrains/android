@@ -1200,6 +1200,306 @@ MODULE                        : NonStandardSourceSetDependencies
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
                     testRuntimeOnlyDependenciesMetadata     : <empty>
+            kmp-java                      : :kmp-java (DefaultExternalProject)
+                name                          : kmp-java
+                qName                         : :kmp-java
+                group                         : NonStandardSourceSetDependencies
+                version                       : unspecified
+                childProjects
+                    sample                        : :kmp-java:sample (DefaultExternalProject)
+                        name                          : sample
+                        qName                         : :kmp-java:sample
+                        group                         : NonStandardSourceSetDependencies.kmp-java
+                        version                       : unspecified
+                        sourceCompatibility           : 11
+                        targetCompatibility           : 11
+                        projectDir                    : <ROOT>/kmp-java/sample
+                        buildDir                      : <ROOT>/kmp-java/sample/build [-]
+                        buildFile                     : <ROOT>/kmp-java/sample/build.gradle
+                        tasks
+                            jvmTest                       : jvmTest (DefaultExternalTask)
+                                qName                         : :kmp-java:sample:jvmTest
+                            test                          : test (DefaultExternalTask)
+                                qName                         : :kmp-java:sample:test
+                        sourceSets
+                            main                          : main (DefaultExternalSourceSet)
+                                sources
+                                    RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                        - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmMain/resources [-]
+                                        outputDir                     : <ROOT>/kmp-java/sample/out/production/resources [-]
+                                        - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
+                                        patterns                      : FilePatternSetImpl
+                                    SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                        - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmMain/java [-]
+                                        outputDir                     : <ROOT>/kmp-java/sample/out/production/classes [-]
+                                        - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/main [-]
+                                        - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+                                        patterns                      : FilePatternSetImpl
+                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                                - dependencies                : DefaultFileCollectionDependency
+                                    - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
+                                    - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+                                    - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
+                                - artifacts                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                                sourceCompatibility           : 11
+                                targetCompatibility           : 11
+                            test                          : test (DefaultExternalSourceSet)
+                                sources
+                                    TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                                        - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmTest/java [-]
+                                        outputDir                     : <ROOT>/kmp-java/sample/out/test/classes [-]
+                                        - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/java/test [-]
+                                        - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
+                                        patterns                      : FilePatternSetImpl
+                                    TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                                        - srcDirs                     : <ROOT>/kmp-java/sample/src/jvmTest/resources [-]
+                                        outputDir                     : <ROOT>/kmp-java/sample/out/test/resources [-]
+                                        - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
+                                        patterns                      : FilePatternSetImpl
+                                - dependencies                : DefaultFileCollectionDependency
+                                    - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
+                                    - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+                                    - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
+                                - dependencies                : DefaultFileCollectionDependency
+                                    - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+                                - dependencies                : DefaultFileCollectionDependency
+                                    - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
+                                - dependencies                : DefaultExternalLibraryDependency
+                                    file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                                - dependencies                : DefaultFileCollectionDependency
+                                    - files                       : <ROOT>/kmp-java/sample/build/classes/java/test [-]
+                                    - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
+                                    - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
+                                - dependencies                : DefaultFileCollectionDependency
+                                    - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
+                                sourceCompatibility           : 11
+                                targetCompatibility           : 11
+                        externalSystemId              : GRADLE
+                        - artifacts                   : <ROOT>/kmp-java/sample/build/libs/sample-metadata.jar [-]
+                        - artifacts                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                        - artifacts                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                        artifactsByConfiguration
+                            allSourceSetsCompileDependenciesMetadata          : <empty>
+                            allSourceSetsRuntimeDependenciesMetadata          : <empty>
+                            annotationProcessor           : <empty>
+                            - apiElements                 : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                            - archives                    : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                            - archives                    : <ROOT>/kmp-java/sample/build/libs/sample-metadata.jar [-]
+                            commonMainApi                 : <empty>
+                            commonMainApiDependenciesMetadata       : <empty>
+                            commonMainCompileOnly         : <empty>
+                            commonMainCompileOnlyDependenciesMetadata         : <empty>
+                            commonMainImplementation      : <empty>
+                            commonMainImplementationDependenciesMetadata      : <empty>
+                            commonMainIntransitiveDependenciesMetadata        : <empty>
+                            commonMainRuntimeOnly         : <empty>
+                            commonMainRuntimeOnlyDependenciesMetadata         : <empty>
+                            commonTestApi                 : <empty>
+                            commonTestApiDependenciesMetadata       : <empty>
+                            commonTestCompileOnly         : <empty>
+                            commonTestCompileOnlyDependenciesMetadata         : <empty>
+                            commonTestImplementation      : <empty>
+                            commonTestImplementationDependenciesMetadata      : <empty>
+                            commonTestIntransitiveDependenciesMetadata        : <empty>
+                            commonTestRuntimeOnly         : <empty>
+                            commonTestRuntimeOnlyDependenciesMetadata         : <empty>
+                            compileClasspath              : <empty>
+                            compileOnly                   : <empty>
+                            default                       : <empty>
+                            implementation                : <empty>
+                            jvmApi                        : <empty>
+                            - jvmApiElements              : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                            jvmCompileClasspath           : <empty>
+                            jvmCompileOnly                : <empty>
+                            jvmImplementation             : <empty>
+                            jvmMainApi                    : <empty>
+                            jvmMainApiDependenciesMetadata          : <empty>
+                            jvmMainCompileOnly            : <empty>
+                            jvmMainCompileOnlyDependenciesMetadata  : <empty>
+                            jvmMainImplementation         : <empty>
+                            jvmMainImplementationDependenciesMetadata         : <empty>
+                            jvmMainIntransitiveDependenciesMetadata : <empty>
+                            jvmMainRuntimeOnly            : <empty>
+                            jvmMainRuntimeOnlyDependenciesMetadata  : <empty>
+                            jvmRuntimeClasspath           : <empty>
+                            - jvmRuntimeElements          : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                            jvmRuntimeOnly                : <empty>
+                            - jvmSourceArtifacts          : <ROOT>/kmp-java/sample/build/libs/sample-jvm-sources.jar [-]
+                            jvmTestApi                    : <empty>
+                            jvmTestApiDependenciesMetadata          : <empty>
+                            jvmTestCompileClasspath       : <empty>
+                            jvmTestCompileOnly            : <empty>
+                            jvmTestCompileOnlyDependenciesMetadata  : <empty>
+                            jvmTestImplementation         : <empty>
+                            jvmTestImplementationDependenciesMetadata         : <empty>
+                            jvmTestIntransitiveDependenciesMetadata : <empty>
+                            jvmTestRuntimeClasspath       : <empty>
+                            jvmTestRuntimeOnly            : <empty>
+                            jvmTestRuntimeOnlyDependenciesMetadata  : <empty>
+                            kotlinCompilerClasspath       : <empty>
+                            kotlinCompilerPluginClasspath : <empty>
+                            kotlinCompilerPluginClasspathJvmMain    : <empty>
+                            kotlinCompilerPluginClasspathJvmTest    : <empty>
+                            kotlinCompilerPluginClasspathMetadataCommonMain   : <empty>
+                            kotlinCompilerPluginClasspathMetadataMain         : <empty>
+                            kotlinKlibCommonizerClasspath : <empty>
+                            kotlinNativeCompilerPluginClasspath     : <empty>
+                            kotlinScriptDef               : <empty>
+                            kotlinScriptDefExtensions     : <empty>
+                            - mainSourceElements          : <ROOT>/kmp-java/sample/src/jvmMain/java [-]
+                            - mainSourceElements          : <ROOT>/kmp-java/sample/src/jvmMain/resources [-]
+                            metadataApi                   : <empty>
+                            - metadataApiElements         : <ROOT>/kmp-java/sample/build/libs/sample-metadata.jar [-]
+                            metadataCommonMainApi         : <empty>
+                            metadataCommonMainCompileClasspath      : <empty>
+                            metadataCommonMainCompileOnly : <empty>
+                            metadataCommonMainImplementation        : <empty>
+                            metadataCompileClasspath      : <empty>
+                            metadataCompileOnly           : <empty>
+                            metadataImplementation        : <empty>
+                            runtimeClasspath              : <empty>
+                            - runtimeElements             : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                            runtimeOnly                   : <empty>
+                            testAnnotationProcessor       : <empty>
+                            testCompileClasspath          : <empty>
+                            testCompileOnly               : <empty>
+                            testImplementation            : <empty>
+                            testKotlinScriptDef           : <empty>
+                            testKotlinScriptDefExtensions : <empty>
+                            - testResultsElementsForTest  : <ROOT>/kmp-java/sample/build/test-results/test/binary [-]
+                            testRuntimeClasspath          : <empty>
+                            testRuntimeOnly               : <empty>
+                    sample-test                   : :kmp-java:sample-test (DefaultExternalProject)
+                        name                          : sample-test
+                        qName                         : :kmp-java:sample-test
+                        group                         : NonStandardSourceSetDependencies.kmp-java
+                        version                       : unspecified
+                        sourceCompatibility           : 11
+                        targetCompatibility           : 11
+                        projectDir                    : <ROOT>/kmp-java/sample-test
+                        buildDir                      : <ROOT>/kmp-java/sample-test/build [-]
+                        buildFile                     : <ROOT>/kmp-java/sample-test/build.gradle
+                        tasks
+                            testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                                qName                         : :kmp-java:sample-test:testDebugUnitTest
+                            testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                                qName                         : :kmp-java:sample-test:testReleaseUnitTest
+                        externalSystemId              : GRADLE
+                        artifactsByConfiguration
+                            androidApis                   : <empty>
+                            androidJacocoAnt              : <empty>
+                            androidJdkImage               : <empty>
+                            androidTestAnnotationProcessor          : <empty>
+                            androidTestCompileOnly        : <empty>
+                            androidTestDebugAnnotationProcessor     : <empty>
+                            androidTestDebugCompileOnly   : <empty>
+                            androidTestDebugImplementation          : <empty>
+                            androidTestDebugRuntimeOnly   : <empty>
+                            androidTestDebugWearApp       : <empty>
+                            androidTestImplementation     : <empty>
+                            androidTestReleaseAnnotationProcessor   : <empty>
+                            androidTestReleaseCompileOnly : <empty>
+                            androidTestReleaseImplementation        : <empty>
+                            androidTestReleaseRuntimeOnly : <empty>
+                            androidTestReleaseWearApp     : <empty>
+                            androidTestRuntimeOnly        : <empty>
+                            androidTestUtil               : <empty>
+                            androidTestWearApp            : <empty>
+                            annotationProcessor           : <empty>
+                            api                           : <empty>
+                            archives                      : <empty>
+                            compileOnly                   : <empty>
+                            coreLibraryDesugaring         : <empty>
+                            debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                            debugAndroidTestCompileClasspath        : <empty>
+                            debugAndroidTestRuntimeClasspath        : <empty>
+                            debugAnnotationProcessor      : <empty>
+                            debugAnnotationProcessorClasspath       : <empty>
+                            debugApi                      : <empty>
+                            debugApiElements              : <empty>
+                            debugCompileClasspath         : <empty>
+                            debugCompileOnly              : <empty>
+                            debugImplementation           : <empty>
+                            debugRuntimeClasspath         : <empty>
+                            debugRuntimeElements          : <empty>
+                            debugRuntimeOnly              : <empty>
+                            debugUnitTestAnnotationProcessorClasspath         : <empty>
+                            debugUnitTestCompileClasspath : <empty>
+                            debugUnitTestRuntimeClasspath : <empty>
+                            - debugVariantAllApiPublication         : <ROOT>/kmp-java/sample-test/build/outputs/aar/sample-test-debug.aar [-]
+                            - debugVariantAllRuntimePublication     : <ROOT>/kmp-java/sample-test/build/outputs/aar/sample-test-debug.aar [-]
+                            - debugVariantDebugApiPublication       : <ROOT>/kmp-java/sample-test/build/outputs/aar/sample-test-debug.aar [-]
+                            - debugVariantDebugRuntimePublication   : <ROOT>/kmp-java/sample-test/build/outputs/aar/sample-test-debug.aar [-]
+                            debugWearApp                  : <empty>
+                            default                       : <empty>
+                            implementation                : <empty>
+                            lintChecks                    : <empty>
+                            lintPublish                   : <empty>
+                            releaseAnnotationProcessor    : <empty>
+                            releaseAnnotationProcessorClasspath     : <empty>
+                            releaseApi                    : <empty>
+                            releaseApiElements            : <empty>
+                            releaseCompileClasspath       : <empty>
+                            releaseCompileOnly            : <empty>
+                            releaseImplementation         : <empty>
+                            releaseRuntimeClasspath       : <empty>
+                            releaseRuntimeElements        : <empty>
+                            releaseRuntimeOnly            : <empty>
+                            releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                            releaseUnitTestCompileClasspath         : <empty>
+                            releaseUnitTestRuntimeClasspath         : <empty>
+                            - releaseVariantAllApiPublication       : <ROOT>/kmp-java/sample-test/build/outputs/aar/sample-test-release.aar [-]
+                            - releaseVariantAllRuntimePublication   : <ROOT>/kmp-java/sample-test/build/outputs/aar/sample-test-release.aar [-]
+                            - releaseVariantReleaseApiPublication   : <ROOT>/kmp-java/sample-test/build/outputs/aar/sample-test-release.aar [-]
+                            - releaseVariantReleaseRuntimePublication         : <ROOT>/kmp-java/sample-test/build/outputs/aar/sample-test-release.aar [-]
+                            releaseWearApp                : <empty>
+                            runtimeOnly                   : <empty>
+                            testAnnotationProcessor       : <empty>
+                            testCompileOnly               : <empty>
+                            testDebugAnnotationProcessor  : <empty>
+                            testDebugCompileOnly          : <empty>
+                            testDebugImplementation       : <empty>
+                            testDebugRuntimeOnly          : <empty>
+                            testDebugWearApp              : <empty>
+                            testFixturesAnnotationProcessor         : <empty>
+                            testFixturesApi               : <empty>
+                            testFixturesCompileOnly       : <empty>
+                            testFixturesDebugAnnotationProcessor    : <empty>
+                            testFixturesDebugApi          : <empty>
+                            testFixturesDebugCompileOnly  : <empty>
+                            testFixturesDebugImplementation         : <empty>
+                            testFixturesDebugRuntimeOnly  : <empty>
+                            testFixturesDebugWearApp      : <empty>
+                            testFixturesImplementation    : <empty>
+                            testFixturesReleaseAnnotationProcessor  : <empty>
+                            testFixturesReleaseApi        : <empty>
+                            testFixturesReleaseCompileOnly          : <empty>
+                            testFixturesReleaseImplementation       : <empty>
+                            testFixturesReleaseRuntimeOnly          : <empty>
+                            testFixturesReleaseWearApp    : <empty>
+                            testFixturesRuntimeOnly       : <empty>
+                            testFixturesWearApp           : <empty>
+                            testImplementation            : <empty>
+                            testReleaseAnnotationProcessor          : <empty>
+                            testReleaseCompileOnly        : <empty>
+                            testReleaseImplementation     : <empty>
+                            testReleaseRuntimeOnly        : <empty>
+                            testReleaseWearApp            : <empty>
+                            testRuntimeOnly               : <empty>
+                            testWearApp                   : <empty>
+                            wearApp                       : <empty>
+                projectDir                    : <ROOT>/kmp-java
+                buildDir                      : <ROOT>/kmp-java/build [-]
+                buildFile                     : <ROOT>/kmp-java/build.gradle [-]
+                externalSystemId              : GRADLE
             lib                           : :lib (DefaultExternalProject)
                 name                          : lib
                 qName                         : :lib
@@ -2615,6 +2915,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
+                    backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -2631,7 +2932,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    parallelBackendThreads        : 1
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -2641,6 +2941,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
+                    backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -2660,7 +2961,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    parallelBackendThreads        : 1
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -2670,6 +2970,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
+                    backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -2689,7 +2990,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    parallelBackendThreads        : 1
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -2842,6 +3142,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
+                        backendThreads                : 1
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -2851,7 +3152,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         moduleName                    : common
                         noReflect                     : true
                         noStdlib                      : true
-                        parallelBackendThreads        : 1
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -2956,6 +3256,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
+                        backendThreads                : 1
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -2967,7 +3268,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         moduleName                    : common
                         noReflect                     : true
                         noStdlib                      : true
-                        parallelBackendThreads        : 1
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -3060,6 +3360,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
+                    backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -3070,7 +3371,6 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     moduleName                    : desktop
                     noReflect                     : true
                     noStdlib                      : true
-                    parallelBackendThreads        : 1
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -3088,6 +3388,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
+                    backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -3101,7 +3402,6 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     moduleName                    : desktop
                     noReflect                     : true
                     noStdlib                      : true
-                    parallelBackendThreads        : 1
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -3874,6 +4174,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
+                    backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -3913,7 +4214,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    parallelBackendThreads        : 1
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -3923,6 +4223,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
+                    backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -3965,7 +4266,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    parallelBackendThreads        : 1
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -3975,6 +4275,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
+                    backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -4017,7 +4318,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    parallelBackendThreads        : 1
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -4729,6 +5029,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
+                        backendThreads                : 1
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -4741,7 +5042,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         noJdk                         : true
                         noReflect                     : true
                         noStdlib                      : true
-                        parallelBackendThreads        : 1
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -4855,6 +5155,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
+                        backendThreads                : 1
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -4870,7 +5171,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         noJdk                         : true
                         noReflect                     : true
                         noStdlib                      : true
-                        parallelBackendThreads        : 1
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -4947,6 +5247,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
+                        backendThreads                : 1
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -4962,7 +5263,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         noJdk                         : true
                         noReflect                     : true
                         noStdlib                      : true
-                        parallelBackendThreads        : 1
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
@@ -5063,6 +5363,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
+                    backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
@@ -5074,7 +5375,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     moduleName                    : javaLibrary
                     noReflect                     : true
                     noStdlib                      : true
-                    parallelBackendThreads        : 1
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -5092,6 +5392,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
+                    backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
@@ -5106,7 +5407,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     moduleName                    : javaLibrary
                     noReflect                     : true
                     noStdlib                      : true
-                    parallelBackendThreads        : 1
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -5124,6 +5424,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
+                    backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -5134,7 +5435,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     moduleName                    : javaLibrary_testEnv
                     noReflect                     : true
                     noStdlib                      : true
-                    parallelBackendThreads        : 1
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -5168,6 +5468,681 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
 MODULE                        : NonStandardSourceSetDependencies.javaLibrary.main
 MODULE                        : NonStandardSourceSetDependencies.javaLibrary.test
 MODULE                        : NonStandardSourceSetDependencies.javaLibrary.testEnv
+MODULE                        : NonStandardSourceSetDependencies.kmp-java
+    GradleModuleModel
+        gradlePath                    : :kmp-java
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFilePath                 : <ROOT>/kmp-java/build.gradle [-]
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+    externalProject               : :kmp-java (DefaultExternalProject) (*seen*)
+MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
+    GradleModuleModel
+        gradlePath                    : :kmp-java:sample
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/kmp-java/sample/build.gradle
+        buildFilePath                 : <ROOT>/kmp-java/sample/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.scripting.internal.ScriptingKotlinGradleSubplugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin
+        - gradlePlugins               : org.jetbrains.kotlin.gradle.plugin.KotlinMultiplatformPluginWrapper
+        - gradlePlugins               : org.gradle.testing.base.plugins.TestSuiteBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmTestSuitePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaPlugin
+    kotlinMppGradleModel          : {commonMain=commonMain, commonTest=commonTest, jvmMain=jvmMain, jvmTest=jvmTest} (KotlinMPPGradleModelImpl)
+        dependencyMap
+            1                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+            2                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+            3                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            4                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            5                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+            6                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+            7                             : DefaultFileCollectionDependency
+                - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+            8                             : DefaultFileCollectionDependency
+                - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
+            9                             : DefaultFileCollectionDependency
+                - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+            10                            : DefaultFileCollectionDependency
+                - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
+            11                            : DefaultFileCollectionDependency
+                - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
+            12                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+            13                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+            14                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            15                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+            16                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+            17                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+            18                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            19                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+            20                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+            21                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+            22                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            23                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+        extraFeatures                 : ExtraFeaturesImpl
+            isNativeDependencyPropagationEnabled    : true
+        - targets                     : jvm (KotlinTargetImpl)
+            - compilations                : main (KotlinCompilationImpl)
+                - allSourceSets               : commonMain (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        - platforms                   : COMMON
+                    - dependencies                : 1
+                    - dependencies                : 2
+                    - dependencies                : 3
+                    - dependencies                : 4
+                    - dependencies                : 5
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - regularDependencies         : 1
+                    - regularDependencies         : 2
+                    - regularDependencies         : 3
+                    - regularDependencies         : 4
+                    - regularDependencies         : 5
+                    - resourceDirs                : <ROOT>/kmp-java/sample/src/commonMain/resources [-]
+                    - sourceDirs                  : <ROOT>/kmp-java/sample/src/commonMain/kotlin
+                    platform                      : COMMON
+                - allSourceSets               : jvmMain (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        arePlatformsInitialized       : true
+                        - platforms                   : JVM
+                    - allDependsOnSourceSets      : commonMain
+                    - declaredDependsOnSourceSets : commonMain
+                    - dependencies                : 1
+                    - dependencies                : 2
+                    - dependencies                : 3
+                    - dependencies                : 6
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - regularDependencies         : 1
+                    - regularDependencies         : 2
+                    - regularDependencies         : 3
+                    - regularDependencies         : 6
+                    - resourceDirs                : <ROOT>/kmp-java/sample/src/jvmMain/resources [-]
+                    - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmMain/kotlin
+                    - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmMain/java [-]
+                    - dependsOnSourceSets         : commonMain
+                    platform                      : JVM
+                arguments                     : KotlinCompilationArgumentsImpl
+                cachedArgsInfo
+                    compilerArguments             : K2JVMCompilerArguments
+                        allowNoSourceFiles            : true
+                        assertionsMode                : legacy
+                        backendThreads                : 1
+                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        destination                   : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main
+                        jvmDefault                    : disable
+                        moduleName                    : sample
+                        noReflect                     : true
+                        noStdlib                      : true
+                        serializeIr                   : none
+                        autoAdvanceApiVersion         : true
+                        autoAdvanceLanguageVersion    : true
+                        errors                        : ArgumentParseErrors
+                        explicitApi                   : disable
+                        multiPlatform                 : true
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - declaredSourceSets          : jvmMain (KotlinSourceSetImpl) (*seen*)
+                - dependencies                : 1
+                - dependencies                : 2
+                - dependencies                : 3
+                - dependencies                : 6
+                - dependencies                : 12
+                - dependencies                : 13
+                - dependencies                : 14
+                - dependencies                : 15
+                disambiguationClassifier      : jvm
+                kotlinTaskProperties          : KotlinTaskPropertiesImpl
+                    incremental                   : true
+                    pluginVersion                 : <CUT>
+                    - pureKotlinSourceFolders     : <ROOT>/kmp-java/sample/src/jvmMain/kotlin
+                output                        : KotlinCompilationOutputImpl
+                    - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+                    - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/java/main [-]
+                    effectiveClassesDir           : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+                    resourcesDir                  : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
+                platform                      : JVM
+                - sourceSets                  : jvmMain (KotlinSourceSetImpl) (*seen*)
+            - compilations                : test (KotlinCompilationImpl)
+                - allSourceSets               : commonTest (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        - platforms                   : COMMON
+                    - additionalVisibleSourceSets : jvmMain
+                    - additionalVisibleSourceSets : commonMain
+                    - dependencies                : 1
+                    - dependencies                : 2
+                    - dependencies                : 3
+                    - dependencies                : 4
+                    - dependencies                : 5
+                    isTestComponent               : true
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - regularDependencies         : 1
+                    - regularDependencies         : 2
+                    - regularDependencies         : 3
+                    - regularDependencies         : 4
+                    - regularDependencies         : 5
+                    - resourceDirs                : <ROOT>/kmp-java/sample/src/commonTest/resources [-]
+                    - sourceDirs                  : <ROOT>/kmp-java/sample/src/commonTest/kotlin [-]
+                    platform                      : COMMON
+                - allSourceSets               : jvmTest (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        arePlatformsInitialized       : true
+                        - platforms                   : JVM
+                    - additionalVisibleSourceSets : jvmMain
+                    - additionalVisibleSourceSets : commonMain
+                    - allDependsOnSourceSets      : commonTest
+                    - declaredDependsOnSourceSets : commonTest
+                    - dependencies                : 1
+                    - dependencies                : 2
+                    - dependencies                : 3
+                    - dependencies                : 6
+                    - dependencies                : 7
+                    - dependencies                : 8
+                    - dependencies                : 9
+                    - dependencies                : 10
+                    - dependencies                : 11
+                    isTestComponent               : true
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - regularDependencies         : 1
+                    - regularDependencies         : 2
+                    - regularDependencies         : 3
+                    - regularDependencies         : 6
+                    - regularDependencies         : 7
+                    - regularDependencies         : 8
+                    - regularDependencies         : 9
+                    - regularDependencies         : 10
+                    - regularDependencies         : 11
+                    - resourceDirs                : <ROOT>/kmp-java/sample/src/jvmTest/resources [-]
+                    - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmTest/kotlin [-]
+                    - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmTest/java [-]
+                    - dependsOnSourceSets         : commonTest
+                    platform                      : JVM
+                arguments                     : KotlinCompilationArgumentsImpl
+                cachedArgsInfo
+                    compilerArguments             : K2JVMCompilerArguments
+                        allowNoSourceFiles            : true
+                        assertionsMode                : legacy
+                        backendThreads                : 1
+                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        destination                   : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test
+                        - friendPaths                 : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+                        - friendPaths                 : <ROOT>/kmp-java/sample/build/classes/java/main [-]
+                        - friendPaths                 : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                        jvmDefault                    : disable
+                        moduleName                    : sample
+                        noReflect                     : true
+                        noStdlib                      : true
+                        serializeIr                   : none
+                        autoAdvanceApiVersion         : true
+                        autoAdvanceLanguageVersion    : true
+                        errors                        : ArgumentParseErrors
+                        explicitApi                   : disable
+                        multiPlatform                 : true
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - declaredSourceSets          : jvmTest (KotlinSourceSetImpl) (*seen*)
+                - dependencies                : 7
+                - dependencies                : 8
+                - dependencies                : 16
+                - dependencies                : 17
+                - dependencies                : 18
+                - dependencies                : 19
+                - dependencies                : 9
+                - dependencies                : 10
+                - dependencies                : 11
+                - dependencies                : 20
+                - dependencies                : 21
+                - dependencies                : 22
+                - dependencies                : 23
+                - dependencies                : 1
+                - dependencies                : 2
+                - dependencies                : 3
+                - dependencies                : 6
+                disambiguationClassifier      : jvm
+                isTestComponent               : true
+                kotlinTaskProperties          : KotlinTaskPropertiesImpl
+                    incremental                   : true
+                    pluginVersion                 : <CUT>
+                    - pureKotlinSourceFolders     : <ROOT>/kmp-java/sample/src/jvmTest/kotlin [-]
+                output                        : KotlinCompilationOutputImpl
+                    - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
+                    - classesDirs                 : <ROOT>/kmp-java/sample/build/classes/java/test [-]
+                    effectiveClassesDir           : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
+                    resourcesDir                  : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
+                platform                      : JVM
+                - sourceSets                  : jvmTest (KotlinSourceSetImpl) (*seen*)
+            disambiguationClassifier      : jvm
+            jar                           : KotlinTargetJarImpl
+                archiveFile                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+            platform                      : JVM
+            presetName                    : jvm
+            - testRunTasks                : KotlinTestRunTaskImpl
+                compilationName               : test
+                taskName                      : jvmTest
+        sourceSets
+            commonMain                    : commonMain (KotlinSourceSetImpl) (*seen*)
+            commonTest                    : commonTest (KotlinSourceSetImpl) (*seen*)
+            jvmMain                       : jvmMain (KotlinSourceSetImpl) (*seen*)
+            jvmTest                       : jvmTest (KotlinSourceSetImpl) (*seen*)
+    externalProject               : :kmp-java:sample (DefaultExternalProject) (*seen*)
+MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample-test
+    GradleModuleModel
+        agpVersion                    : <AGP_VERSION>
+        gradlePath                    : :kmp-java:sample-test
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/kmp-java/sample-test/build.gradle
+        buildFilePath                 : <ROOT>/kmp-java/sample-test/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
+        - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        runtimeMinSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+        targetSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
+    ProjectPath                   : :kmp-java:sample-test
+    ModelVersion                  : <AGP_VERSION>
+    ProjectType                   : PROJECT_TYPE_LIBRARY
+    CompileTarget                 : android-<SDK_VERSION>
+    BuildFolder                   : <ROOT>/kmp-java/sample-test/build [-]
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    IsBaseSplit                   : false
+    GroupId                       : NonStandardSourceSetDependencies.kmp-java
+    Namespace                     : test
+    TestNamespace                 : test.test
+    AaptOptions
+        NameSpacing                   : DISABLED
+    LintOptions
+        IsCheckTestSources            : false
+        IsCheckDependencies           : false
+        IsAbortOnError                : true
+        IsAbsolutePaths               : true
+        IsNoLines                     : false
+        IsQuiet                       : false
+        IsCheckAllWarnings            : false
+        IsIgnoreWarnings              : false
+        IsWarningsAsErrors            : false
+        IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
+        IsCheckGeneratedSources       : false
+        IsCheckReleaseBuilds          : true
+        IsExplainIssues               : true
+        IsShowAll                     : false
+        TextReport                    : false
+        HtmlReport                    : true
+        XmlReport                     : true
+        SarifReport                   : false
+    JavaCompileOptions
+        Encoding                      : UTF-8
+        SourceCompatibility           : 1.8
+        TargetCompatibility           : 1.8
+        IsCoreLibraryDesugaringEnabled          : false
+    AgpFlags
+        ApplicationRClassConstantIds  : true
+        AestRClassConstantIds         : true
+        TransitiveRClasses            : true
+        UsesCompose                   : false
+        MlModelBindingEnabled         : false
+    - basicVariant:               : debug
+        testApplicationId             : test.test
+    - basicVariant:               : release
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    ViewBindingOptions
+        Enabled                       : false
+    DefaultConfig
+        ProductFlavor
+            Name                          : main
+            VectorDrawables
+                UseSupportLibrary             : false
+        SourceProvider
+            Name                          : main
+            Manifest                      : <ROOT>/kmp-java/sample-test/src/main/AndroidManifest.xml
+            JavaDirectories               : <ROOT>/kmp-java/sample-test/src/main/java [-]
+            KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/main/java [-]
+            KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/main/kotlin
+            ResourcesDirectories          : <ROOT>/kmp-java/sample-test/src/main/resources [-]
+            AidlDirectories               : <ROOT>/kmp-java/sample-test/src/main/aidl [-]
+            RenderscriptDirectories       : <ROOT>/kmp-java/sample-test/src/main/rs [-]
+            ResDirectories                : <ROOT>/kmp-java/sample-test/src/main/res [-]
+            AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/main/assets [-]
+            JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/main/jniLibs [-]
+            ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/main/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTest
+                    Manifest                      : <ROOT>/kmp-java/sample-test/src/androidTest/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/kmp-java/sample-test/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/androidTest/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/kmp-java/sample-test/src/androidTest/resources [-]
+                    AidlDirectories               : <ROOT>/kmp-java/sample-test/src/androidTest/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/kmp-java/sample-test/src/androidTest/rs [-]
+                    ResDirectories                : <ROOT>/kmp-java/sample-test/src/androidTest/res [-]
+                    AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/androidTest/assets [-]
+                    JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/androidTest/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/androidTest/shaders [-]
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : test
+                    Manifest                      : <ROOT>/kmp-java/sample-test/src/test/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/kmp-java/sample-test/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/test/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/kmp-java/sample-test/src/test/resources [-]
+                    AidlDirectories               : <ROOT>/kmp-java/sample-test/src/test/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/kmp-java/sample-test/src/test/rs [-]
+                    ResDirectories                : <ROOT>/kmp-java/sample-test/src/test/res [-]
+                    AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/test/assets [-]
+                    JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/test/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/test/shaders [-]
+    BuildTypes
+        BuildType
+            Name                          : debug
+            IsDebuggable                  : true
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : debug
+            Manifest                      : <ROOT>/kmp-java/sample-test/src/debug/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/kmp-java/sample-test/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/debug/kotlin [-]
+            ResourcesDirectories          : <ROOT>/kmp-java/sample-test/src/debug/resources [-]
+            AidlDirectories               : <ROOT>/kmp-java/sample-test/src/debug/aidl [-]
+            RenderscriptDirectories       : <ROOT>/kmp-java/sample-test/src/debug/rs [-]
+            ResDirectories                : <ROOT>/kmp-java/sample-test/src/debug/res [-]
+            AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/debug/assets [-]
+            JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/debug/jniLibs [-]
+            ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/debug/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestDebug
+                    Manifest                      : <ROOT>/kmp-java/sample-test/src/androidTestDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/kmp-java/sample-test/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/androidTestDebug/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/kmp-java/sample-test/src/androidTestDebug/resources [-]
+                    AidlDirectories               : <ROOT>/kmp-java/sample-test/src/androidTestDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/kmp-java/sample-test/src/androidTestDebug/rs [-]
+                    ResDirectories                : <ROOT>/kmp-java/sample-test/src/androidTestDebug/res [-]
+                    AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/androidTestDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/androidTestDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/androidTestDebug/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testDebug
+                    Manifest                      : <ROOT>/kmp-java/sample-test/src/testDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/kmp-java/sample-test/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/testDebug/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/kmp-java/sample-test/src/testDebug/resources [-]
+                    AidlDirectories               : <ROOT>/kmp-java/sample-test/src/testDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/kmp-java/sample-test/src/testDebug/rs [-]
+                    ResDirectories                : <ROOT>/kmp-java/sample-test/src/testDebug/res [-]
+                    AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/testDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/testDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/testDebug/shaders [-]
+        BuildType
+            Name                          : release
+            IsDebuggable                  : false
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : release
+            Manifest                      : <ROOT>/kmp-java/sample-test/src/release/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/kmp-java/sample-test/src/release/java [-]
+            KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/release/java [-]
+            KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/release/kotlin [-]
+            ResourcesDirectories          : <ROOT>/kmp-java/sample-test/src/release/resources [-]
+            AidlDirectories               : <ROOT>/kmp-java/sample-test/src/release/aidl [-]
+            RenderscriptDirectories       : <ROOT>/kmp-java/sample-test/src/release/rs [-]
+            ResDirectories                : <ROOT>/kmp-java/sample-test/src/release/res [-]
+            AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/release/assets [-]
+            JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/release/jniLibs [-]
+            ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/release/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testRelease
+                    Manifest                      : <ROOT>/kmp-java/sample-test/src/testRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/kmp-java/sample-test/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/kmp-java/sample-test/src/testRelease/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/kmp-java/sample-test/src/testRelease/resources [-]
+                    AidlDirectories               : <ROOT>/kmp-java/sample-test/src/testRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/kmp-java/sample-test/src/testRelease/rs [-]
+                    ResDirectories                : <ROOT>/kmp-java/sample-test/src/testRelease/res [-]
+                    AssetsDirectories             : <ROOT>/kmp-java/sample-test/src/testRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/kmp-java/sample-test/src/testRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/kmp-java/sample-test/src/testRelease/shaders [-]
+    SigningConfigs
+        SigningConfig
+            Name                          : debug
+            StoreFile                     : debug.keystore
+            StorePassword                 : android
+            KeyAlias                      : AndroidDebugKey
+    VariantBuildInformation
+        VariantBuildInformation
+            VariantName                   : debug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+        VariantBuildInformation
+            VariantName                   : release
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+    IdeVariants
+        IdeVariant
+            Name                          : debug
+            BuildType                     : debug
+            DisplayName                   : debug
+            InstantAppCompatible          : false
+            MinSdkVersion
+                ApiLevel                      : 1
+                ApiString                     : 1
+            MainArtifact
+                Name                          : MAIN
+                CompileTaskName               : compileDebugSources
+                AssembleTaskName              : assembleDebug
+                IsTestArtifact                : false
+                IdeSetupTaskNames             : generateDebugSources
+                GeneratedSourceFolders        : <ROOT>/kmp-java/sample-test/build/generated/aidl_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/kmp-java/sample-test/build/generated/ap_generated_sources/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/kmp-java/sample-test/build/generated/renderscript_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/kmp-java/sample-test/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/javac/debug/classes [-]
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                    runtimeClasspath              : IdeDependenciesImpl
+                IsSigned                      : false
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                GeneratedResourceFolders      : <ROOT>/kmp-java/sample-test/build/generated/res/rs/debug [-]
+                GeneratedResourceFolders      : <ROOT>/kmp-java/sample-test/build/generated/res/resValues/debug [-]
+                ModelSyncFile
+                    Type                          : BASIC
+                    TaskName                      : createDebugVariantModel
+                    File                          : <ROOT>/kmp-java/sample-test/build/intermediates/variant_model/debug/variant_model.json [-]
+            AndroidTestArtifact
+                Name                          : ANDROID_TEST
+                CompileTaskName               : compileDebugAndroidTestSources
+                AssembleTaskName              : assembleDebugAndroidTest
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : generateDebugAndroidTestSources
+                GeneratedSourceFolders        : <ROOT>/kmp-java/sample-test/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/kmp-java/sample-test/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/kmp-java/sample-test/build/generated/source/buildConfig/androidTest/debug [-]
+                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/javac/debugAndroidTest/classes [-]
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                        - moduleDependencies          : <ROOT>::kmp-java:sample-test@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::kmp-java:sample-test@debug (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>
+                                lintJar                       : <ROOT>/kmp-java/sample-test/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                                projectPath                   : :kmp-java:sample-test
+                                sourceSet                     : MAIN
+                                variant                       : debug
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - moduleDependencies          : <ROOT>::kmp-java:sample-test@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::kmp-java:sample-test@debug (IdeModuleLibraryImpl) (*seen*)
+                ApplicationId                 : test.test
+                SigningConfigName             : debug
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/kmp-java/sample-test/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                GeneratedResourceFolders      : <ROOT>/kmp-java/sample-test/build/generated/res/rs/androidTest/debug [-]
+                GeneratedResourceFolders      : <ROOT>/kmp-java/sample-test/build/generated/res/resValues/androidTest/debug [-]
+                TestOptions
+                    AnimationsDisabled            : false
+                    Execution                     : HOST
+            UnitTestArtifact
+                Name                          : UNIT_TEST
+                CompileTaskName               : compileDebugUnitTestSources
+                AssembleTaskName              : assembleDebugUnitTest
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : createMockableJar
+                GeneratedSourceFolders        : <ROOT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/classes [-]
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                        - moduleDependencies          : <ROOT>::kmp-java:sample-test@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::kmp-java:sample-test@debug (IdeModuleLibraryImpl) (*seen*)
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - moduleDependencies          : <ROOT>::kmp-java:sample-test@debug (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::kmp-java:sample-test@debug (IdeModuleLibraryImpl) (*seen*)
+                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+    externalProject               : :kmp-java:sample-test (DefaultExternalProject) (*seen*)
+MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample-test.androidTest
+MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample-test.main
+MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample-test.unitTest
+MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.commonMain
+MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.commonTest
+MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
+MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.jvmTest
+MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.main
+MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.test
 MODULE                        : NonStandardSourceSetDependencies.lib
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -5795,6 +6770,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
+                    backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
@@ -5809,7 +6785,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    parallelBackendThreads        : 1
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -5819,6 +6794,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
+                    backendThreads                : 1
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2-api.jar
                     - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0-api.jar
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
@@ -5852,7 +6828,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    parallelBackendThreads        : 1
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
@@ -5862,6 +6837,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
+                    backendThreads                : 1
                     - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                     - classpath                   : <M2>/junit/junit/4.12/junit-4.12.jar
                     - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
@@ -5881,7 +6857,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
-                    parallelBackendThreads        : 1
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true

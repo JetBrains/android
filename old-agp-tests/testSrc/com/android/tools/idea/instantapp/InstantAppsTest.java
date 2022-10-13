@@ -41,7 +41,7 @@ public class InstantAppsTest {
 
   @Test
   public void testFindBaseFeatureWithInstantApp() throws Exception {
-    projectRule.loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0");
+    projectRule.loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0", null, null, "32");
     AndroidFacet facet = requireNonNull(AndroidFacet.getInstance(projectRule.getModule("instant-app")));
     assertEquals(TestModuleUtil.findModule(projectRule.getProject(), "feature"), findBaseFeature(facet));
   }
@@ -50,7 +50,7 @@ public class InstantAppsTest {
   @Ignore("b/203803107")
   public void testGetDefaultInstantAppUrlWithInstantApp() throws Exception {
     // Use a plugin version that supports instant app
-    projectRule.loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0");
+    projectRule.loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0", null, null, "32");
     AndroidFacet facet = requireNonNull(AndroidFacet.getInstance(projectRule.getModule("instant-app")));
     assertEquals("http://example.com/example", getDefaultInstantAppUrl(facet));
   }

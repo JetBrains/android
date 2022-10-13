@@ -104,7 +104,7 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
       client = getClient(device);
     }
     catch (ExecutionException e) {
-      logger().error(e);
+      logger().info(e);
       return;
     }
 

@@ -23,6 +23,7 @@ import com.android.tools.idea.run.deployment.liveedit.CompileScope
 import com.intellij.openapi.progress.ProcessCanceledException
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 
 @Suppress("INVISIBLE_REFERENCE", "EXPERIMENTAL_IS_NOT_ENABLED")
@@ -30,10 +31,12 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 class ComposePluginIrGenerationExtension : IrGenerationExtension {
   override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
     try {
-        ComposeIrGenerationExtension(reportsDestination = null,
+        ComposeIrGenerationExtension(configuration = CompilerConfiguration.EMPTY,
+                                     reportsDestination = null,
                                      metricsDestination = null,
                                      generateFunctionKeyMetaClasses = true,
-                                     intrinsicRememberEnabled = false).generate(moduleFragment, pluginContext);
+                                     intrinsicRememberEnabled = false)
+          .generate(moduleFragment, pluginContext)
     } catch (e : ProcessCanceledException) {
       // From ProcessCanceledException javadoc: "Usually, this exception should not be caught, swallowed, logged, or handled in any way.
       // Instead, it should be rethrown so that the infrastructure can handle it correctly."

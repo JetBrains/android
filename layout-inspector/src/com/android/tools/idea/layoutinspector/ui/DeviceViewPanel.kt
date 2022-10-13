@@ -132,7 +132,7 @@ class DeviceViewPanel(
   override val screenScalingFactor = 1.0
 
   override var isPanning = false
-    get() = ( field || isMiddleMousePressed || isSpacePressed ) && processesModel?.selectedProcess != null
+    get() = ( field || isMiddleMousePressed || isSpacePressed ) && (layoutInspector.isSnapshot || processesModel?.selectedProcess != null)
 
   private var isSpacePressed = false
   private var isMiddleMousePressed = false

@@ -26,6 +26,7 @@ import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.Storage;
+import com.android.sdklib.devices.Storage.Unit;
 import com.android.sdklib.internal.avd.AvdCamera;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
@@ -77,13 +78,11 @@ import org.jetbrains.annotations.Nullable;
  * See also {@link AvdDeviceData}, which these options supplement.
  */
 public final class AvdOptionsModel extends WizardModel {
-
-  private static final Storage minGeneralInternalMemSize = new Storage(200, Storage.Unit.MiB);
-  private static final Storage minPlayStoreInternalMemSize = new Storage(2, Storage.Unit.GiB);
-  private static final Storage minGeneralSdSize = new Storage(10, Storage.Unit.MiB);
-  private static final Storage minPlayStoreSdSize = new Storage(100, Storage.Unit.MiB);
-  private static final Storage defaultSdSize = new Storage(512, Storage.Unit.MiB);
-  private static final Storage zeroSdSize = new Storage(0, Storage.Unit.MiB);
+  private static final Storage minInternalMemSize = new Storage(2, Unit.GiB);
+  private static final Storage minGeneralSdSize = new Storage(10, Unit.MiB);
+  private static final Storage minPlayStoreSdSize = new Storage(100, Unit.MiB);
+  private static final Storage defaultSdSize = new Storage(512, Unit.MiB);
+  private static final Storage zeroSdSize = new Storage(0, Unit.MiB);
 
   private final AvdInfo myAvdInfo;
   @Nullable private final Runnable myAvdCreatedCallback;
@@ -219,7 +218,7 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   public Storage minInternalMemSize() {
-    return isPlayStoreCompatible() ? minPlayStoreInternalMemSize : minGeneralInternalMemSize;
+    return minInternalMemSize;
   }
 
   /**
@@ -247,15 +246,15 @@ public final class AvdOptionsModel extends WizardModel {
     }
     String numString = iniString.substring(0, iniString.length() - 1);
     char unitChar = iniString.charAt(iniString.length() - 1);
-    Storage.Unit selectedUnit = null;
-    for (Storage.Unit u : Storage.Unit.values()) {
+    Unit selectedUnit = null;
+    for (Unit u : Unit.values()) {
       if (u.toString().charAt(0) == unitChar) {
         selectedUnit = u;
         break;
       }
     }
     if (selectedUnit == null) {
-      selectedUnit = isInternalStorage ? Storage.Unit.B : Storage.Unit.MiB; // Values expressed without a unit read as B for internal storage
+      selectedUnit = isInternalStorage ? Unit.B : Unit.MiB; // Values expressed without a unit read as B for internal storage
       numString = iniString;
     }
     try {
@@ -289,7 +288,7 @@ public final class AvdOptionsModel extends WizardModel {
    */
   @NotNull
   public static String toIniString(@NotNull Storage storage, boolean convertToMb) {
-    Storage.Unit unit = convertToMb ? Storage.Unit.MiB : storage.getAppropriateUnits();
+    Unit unit = convertToMb ? Unit.MiB : storage.getAppropriateUnits();
     String unitString = convertToMb ? "" : unit.toString().substring(0, 1);
     return String.format(Locale.US, "%1$d%2$s", storage.getSizeAsUnit(unit), unitString);
   }

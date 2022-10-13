@@ -82,16 +82,16 @@ private val TAG_KEY = StringKey("tag", message("logcat.filter.completion.hint.ke
 
 private val STRING_KEYS = listOf(MESSAGE_KEY, PACKAGE_KEY, TAG_KEY, PROCESS_KEY)
 
-private val LEVEL_LOOKUP = createLookupElement(LEVEL_KEY, message("logcat.filter.completion.hint.level"))
+private val LEVEL_LOOKUP get() = createLookupElement(LEVEL_KEY, message("logcat.filter.completion.hint.level"))
 
-private val LEVEL_LOOKUPS = LogLevel.values().map {
+private val LEVEL_LOOKUPS get() = LogLevel.values().map {
   createLookupElement("$LEVEL_KEY${it.stringValue} ", message("logcat.filter.completion.hint.level.value", it.name))
 }
 
-private val LEVEL_LOOKUPS_LOWERCASE = LogLevel.values()
+private val LEVEL_LOOKUPS_LOWERCASE get() = LogLevel.values()
   .map { createLookupElement("${it.name.lowercase()} ", message("logcat.filter.completion.hint.level.value", it.name)) }
 
-private val LEVEL_LOOKUPS_UPPERCASE = LogLevel.values()
+private val LEVEL_LOOKUPS_UPPERCASE get() = LogLevel.values()
   .map { createLookupElement("${it.name.uppercase()} ", message("logcat.filter.completion.hint.level.value", it.name)) }
 
 private val IS_VALUES = listOf(
@@ -99,25 +99,25 @@ private val IS_VALUES = listOf(
   Pair("stacktrace", message("logcat.filter.completion.hint.is.stacktrace")),
 )
 
-private val IS_LOOKUP = createLookupElement(IS_KEY, message("logcat.filter.completion.hint.is"))
+private val IS_LOOKUP get() = createLookupElement(IS_KEY, message("logcat.filter.completion.hint.is"))
 
-private val IS_LOOKUPS = IS_VALUES.map {(value, hint) ->
+private val IS_LOOKUPS get() = IS_VALUES.map {(value, hint) ->
   createLookupElement("$IS_KEY$value ", hint)
 }
 
-private val IS_VALUE_LOOKUPS = IS_VALUES.map {(value, hint) ->
+private val IS_VALUE_LOOKUPS get() = IS_VALUES.map {(value, hint) ->
   createLookupElement("$value ", hint)
 }
 
-private val BASE_KEY_LOOKUPS =
+private val BASE_KEY_LOOKUPS get() =
   STRING_KEYS.map { createLookupElement(it.normalKey, it.normalHint) } +
   listOf(
     createLookupElement(AGE_KEY, message("logcat.filter.completion.hint.age")),
     createLookupElement(NAME_KEY, message("logcat.filter.completion.hint.name")),
   )
 
-private val KEY_LOOKUPS = BASE_KEY_LOOKUPS + LEVEL_LOOKUP + IS_LOOKUP
-private val ALL_KEY_LOOKUPS = BASE_KEY_LOOKUPS + LEVEL_LOOKUPS + IS_LOOKUPS + STRING_KEYS.flatMap {
+private val KEY_LOOKUPS get() = BASE_KEY_LOOKUPS + LEVEL_LOOKUP + IS_LOOKUP
+private val ALL_KEY_LOOKUPS get() = BASE_KEY_LOOKUPS + LEVEL_LOOKUPS + IS_LOOKUPS + STRING_KEYS.flatMap {
   listOf(
     createLookupElement(it.negatedKey, it.negatedHint),
     createLookupElement(it.regexKey, it.regexHint),
@@ -127,7 +127,7 @@ private val ALL_KEY_LOOKUPS = BASE_KEY_LOOKUPS + LEVEL_LOOKUPS + IS_LOOKUPS + ST
   )
 }
 
-private val AGE_LOOKUPS = listOf(
+private val AGE_LOOKUPS get() = listOf(
   createLookupElement("30s ", message("logcat.filter.completion.hint.age.value", 30, message("logcat.filter.completion.hint.age.second"))),
   createLookupElement("5m ", message("logcat.filter.completion.hint.age.value", 5, message("logcat.filter.completion.hint.age.minute"))),
   createLookupElement("3h ", message("logcat.filter.completion.hint.age.value", 3, message("logcat.filter.completion.hint.age.hour"))),

@@ -20,11 +20,11 @@ import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
+import com.android.tools.idea.wearpairing.WearPairingManagerKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import java.util.List;
@@ -32,9 +32,6 @@ import java.util.Optional;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
-import kotlin.coroutines.CoroutineContext;
-import kotlinx.coroutines.BuildersKt;
-import kotlinx.coroutines.GlobalScope;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCellEditor {
@@ -100,14 +97,7 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
         Object name = pairs.get(0).getPeerDevice(key).getDisplayName();
         item.setToolTipText(AndroidWearPairingBundle.message("wear.assistant.device.list.forget.connection", name));
 
-        try {
-          CoroutineContext context = GlobalScope.INSTANCE.getCoroutineContext();
-          BuildersKt.runBlocking(context, (scope, continuation) -> myManager.removeAllPairedDevices(key, true, continuation));
-        }
-        catch (InterruptedException exception) {
-          Thread.currentThread().interrupt();
-          Logger.getInstance(PopUpMenuButtonTableCellEditor.class).warn(exception);
-        }
+        WearPairingManagerKt.removeAllPairedDevicesAsync(myManager, key, true);
       }
     });
 

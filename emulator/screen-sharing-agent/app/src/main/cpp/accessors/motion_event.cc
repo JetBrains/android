@@ -29,18 +29,23 @@ MotionEvent::MotionEvent(Jni jni)
 
 JObject MotionEvent::ToJava() const {
   InitializeStatics(jni_);
-  return motion_event_class_.CallStaticObjectMethod(
-      jni_, obtain_method_, down_time_millis, event_time_millis, action, pointer_count, pointer_properties, pointer_coordinates,
-      meta_state, button_state, x_precision, y_precision, device_id, edge_flags, source, display_id, flags);
+  return android_get_device_api_level() >= 28 ?
+      motion_event_class_.CallStaticObjectMethod(
+          jni_, obtain_method_, down_time_millis, event_time_millis, action, pointer_count, pointer_properties, pointer_coordinates,
+          meta_state, button_state, x_precision, y_precision, device_id, edge_flags, source, display_id, flags) :
+      motion_event_class_.CallStaticObjectMethod(
+          jni_, obtain_method_, down_time_millis, event_time_millis, action, pointer_count, pointer_properties, pointer_coordinates,
+          meta_state, button_state, x_precision, y_precision, device_id, edge_flags, source, flags);
 }
 
 void MotionEvent::InitializeStatics(Jni jni) {
   if (!statics_initialized_) {
     statics_initialized_ = true;
     motion_event_class_ = jni.GetClass("android/view/MotionEvent");
-    obtain_method_ = motion_event_class_.GetStaticMethodId(
-        "obtain",
-        "(JJII[Landroid/view/MotionEvent$PointerProperties;[Landroid/view/MotionEvent$PointerCoords;IIFFIIIII)Landroid/view/MotionEvent;");
+    const char* signature = android_get_device_api_level() >= 28 ?
+        "(JJII[Landroid/view/MotionEvent$PointerProperties;[Landroid/view/MotionEvent$PointerCoords;IIFFIIIII)Landroid/view/MotionEvent;" :
+        "(JJII[Landroid/view/MotionEvent$PointerProperties;[Landroid/view/MotionEvent$PointerCoords;IIFFIIII)Landroid/view/MotionEvent;";
+    obtain_method_ = motion_event_class_.GetStaticMethodId("obtain", signature);
     motion_event_class_.MakeGlobal();
   }
 }

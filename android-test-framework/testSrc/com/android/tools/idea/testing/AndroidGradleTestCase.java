@@ -262,12 +262,30 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                    @Nullable String chosenModuleName,
                                    @Nullable String gradleVersion,
                                    @Nullable String gradlePluginVersion,
+                                   @Nullable String compileSdk) throws Exception {
+    loadProject(relativePath, chosenModuleName, gradleVersion, gradlePluginVersion, null, null, compileSdk);
+  }
+
+  protected final void loadProject(@NotNull String relativePath,
+                                   @Nullable String chosenModuleName,
+                                   @Nullable String gradleVersion,
+                                   @Nullable String gradlePluginVersion,
                                    @Nullable String kotlinVersion,
-                                   @Nullable String ndkVersion) throws Exception {
-    prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, null);
+                                   @Nullable String ndkVersion,
+                                   @Nullable String compileSdk) throws Exception {
+    prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, compileSdk);
     importProject();
 
     prepareProjectForTest(getProject(), chosenModuleName);
+  }
+
+  protected final void loadProject(@NotNull String relativePath,
+                                   @Nullable String chosenModuleName,
+                                   @Nullable String gradleVersion,
+                                   @Nullable String gradlePluginVersion,
+                                   @Nullable String kotlinVersion,
+                                   @Nullable String ndkVersion) throws Exception {
+    loadProject(relativePath, chosenModuleName, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, null);
   }
 
   /**

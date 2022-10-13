@@ -186,21 +186,21 @@ class InspectorClientLauncher(
 
             activeClient = client
 
-            // InspectorClientLaunchMonitor should kill it before this, but just in case, don't wait forever.
-            latch.await(1, TimeUnit.MINUTES)
+            // Wait until client is connected or the user stops the connection attempt.
+            latch.await()
+
             // The current selected process changed out from under us, abort the whole thing.
             if (processes.selectedProcess?.isRunning != true || processes.selectedProcess?.pid != process.pid) {
               metrics?.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED, client.stats)
               return
             }
-            // This client didn't work, try the next
             if (validClientConnected) {
+              // Successful connected exit creator loop
               break
             }
-            else {
-              // Disconnect to clean up any partial connection or leftover process
-              client.disconnect()
-            }
+            // This client didn't work, try the next
+            // Disconnect to clean up any partial connection or leftover process
+            client.disconnect()
           }
           catch (cancellationException: CancellationException) {
             // Disconnect to clean up any partial connection or leftover process

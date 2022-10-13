@@ -253,7 +253,7 @@ MODULE                        : navgraph.app
     ProjectPath                   : :app
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
@@ -298,7 +298,7 @@ MODULE                        : navgraph.app
         testApplicationId             : com.example.navgraph.test
     - basicVariant:               : release
         applicationId                 : com.example.navgraph
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -2075,7 +2075,7 @@ MODULE                        : navgraph.lib
     ProjectPath                   : :lib
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/lib/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
@@ -2118,7 +2118,7 @@ MODULE                        : navgraph.lib
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig

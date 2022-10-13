@@ -41,7 +41,7 @@
     <problem_class id="AndroidLintUnusedResources" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused resources</problem_class>
     <hints />
     <description>&lt;html&gt;The resource &lt;code&gt;R.string.APP_KEY&lt;/code&gt; appears to be unused&lt;/html&gt;</description>
-    <highlighted_element>apply plugin: 'com.android.application' android { compileSdkVersion 32 buildToolsVersion '30.0....</highlighted_element>
+    <highlighted_element>apply plugin: 'com.android.application' android { compileSdkVersion 33 buildToolsVersion '30.0....</highlighted_element>
     <language>Groovy</language>
     <offset>0</offset>
     <length>863</length>

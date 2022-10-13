@@ -126,8 +126,8 @@ public final class VirtualDeviceDetailsPanelTest {
     // Assert
     InfoSection section = panel.getPropertiesSection();
 
-    assertEquals(List.of("fastboot.chosenSnapshotFile", "runtime.network.speed", "hw.accelerometer"), section.getNames());
-    assertEquals(List.of("", "full", "yes"), section.getValues());
+    assertEquals(List.of("fastboot.chosenSnapshotFile", "hw.accelerometer", "runtime.network.speed"), section.getNames());
+    assertEquals(List.of("", "yes", "full"), section.getValues());
   }
 
   private static @NotNull AsyncVirtualDeviceDetailsBuilder mock(@NotNull Device device) {

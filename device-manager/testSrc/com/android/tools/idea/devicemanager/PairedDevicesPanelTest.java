@@ -60,10 +60,13 @@ public final class PairedDevicesPanelTest {
   @Test
   public void removeButtonDoesntThrowExceptionWhenSelectionIsEmpty() {
     // Arrange
-    Mockito.when(myManager.getPairsForDevice("Pixel_4_API_31"))
+    Mockito.when(myManager.getPairsForDevice(PIXEL_4_API_31_KEY.toString()))
       .thenReturn(Collections.singletonList(new PhoneWearPair(myPixel4Api31, myWearOsSmallRoundApi28)));
 
-    AbstractButton button = new PairedDevicesPanel(PIXEL_4_API_31_KEY, Mockito.mock(Disposable.class), null, myManager).getRemoveButton();
+    PairedDevicesPanel panel = new PairedDevicesPanel(PIXEL_4_API_31_KEY, Mockito.mock(Disposable.class), null, myManager);
+    panel.getTable().removeRowSelectionInterval(0, 0);
+
+    AbstractButton button = panel.getRemoveButton();
 
     // Act
     button.doClick();

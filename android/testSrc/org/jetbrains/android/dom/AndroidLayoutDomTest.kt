@@ -1212,7 +1212,8 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
                              "ExpandableListView", "GridView", "HorizontalScrollView", "ImageView", "ListView", "MultiAutoCompleteTextView",
                              "ScrollView", "SearchView", "StackView", "SurfaceView", "TextView", "TextureView", "VideoView", "View",
                              "ViewAnimator", "ViewFlipper", "ViewStub", "ViewSwitcher", "WebView", "android.appwidget.AppWidgetHostView",
-                             "android.gesture.GestureOverlayView", "android.inputmethodservice.KeyboardView", "android.media.tv.TvView",
+                             "android.gesture.GestureOverlayView", "android.inputmethodservice.KeyboardView",
+                             "android.media.tv.interactive.TvInteractiveAppView", "android.media.tv.TvView",
                              "android.opengl.GLSurfaceView", "android.widget.inline.InlineContentView", "android.window.SplashScreenView")
   }
 

@@ -18,18 +18,22 @@ package com.android.tools.idea.ui;
 import com.android.tools.idea.stats.Distribution;
 import com.android.tools.idea.stats.DistributionService;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.util.List;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Chart of distributions
@@ -40,12 +44,12 @@ public class DistributionChartComponent extends JPanel {
     void onDistributionSelected(@NotNull Distribution d);
   }
 
-  // Because this text overlays colored components, it must stay white/gray, and does not change for dark themes. 
+  // Because this text overlays colored components, it must stay white/gray, and does not change for dark themes.
   private static final Color TEXT_COLOR = new Color(0xFEFEFE);
   private static final Color API_LEVEL_COLOR = new Color(0, 0, 0, 77);
 
-  private static final int INTER_SECTION_SPACING = JBUI.scale(1);
-  private static final int HEADER_TO_BODY_SPACING = JBUI.scale(4);
+  private final int INTER_SECTION_SPACING = JBUIScale.scale(1);
+  private final int HEADER_TO_BODY_SPACING = JBUIScale.scale(4);
 
   /* Strings appearing in the header of the distribution table */
   private static final String STR_ANDROID_PLATFORM = "ANDROID PLATFORM";
@@ -55,15 +59,15 @@ public class DistributionChartComponent extends JPanel {
   private static final String STR_DISTRIBUTION = "DISTRIBUTION";
   private static final String STR_LOADING = "Loading distribution data ...";
 
-  private static final double MIN_PERCENTAGE_HEIGHT = 0.06;
-  private static final double EXPANSION_ON_SELECTION = 1.063882064;
-  private static final double RIGHT_GUTTER_PERCENTAGE = 0.209708738;
-  private static final int TOP_PADDING = JBUI.scale(40);
-  private static final int NAME_OFFSET = JBUI.scale(50);
-  private static final int MIN_API_FONT_SIZE = JBUI.scale(18);
-  private static final int MAX_API_FONT_SIZE = JBUI.scale(45);
-  private static final int API_OFFSET = JBUI.scale(120);
-  private static final int NUMBER_OFFSET = JBUI.scale(10);
+  private static final double MIN_PERCENTAGE_HEIGHT = 0.01;
+  private static final double EXPANSION_ON_SELECTION = 1.06;
+  private static final double RIGHT_GUTTER_PERCENTAGE = 0.21;
+  private final int TOP_PADDING = JBUIScale.scale(40);
+  private final int NAME_OFFSET = JBUIScale.scale(50);
+  private final int MIN_API_FONT_SIZE = JBUIScale.scale(18);
+  private final int MAX_API_FONT_SIZE = JBUIScale.scale(45);
+  private final int API_OFFSET = JBUIScale.scale(120);
+  private final int NUMBER_OFFSET = JBUIScale.scale(10);
 
   private static Font MEDIUM_WEIGHT_FONT;
   private static Font REGULAR_WEIGHT_FONT;
@@ -148,11 +152,11 @@ public class DistributionChartComponent extends JPanel {
 
   private static void loadFonts() {
     if (MEDIUM_WEIGHT_FONT == null) {
-      REGULAR_WEIGHT_FONT = new Font("Sans", Font.PLAIN, 12);
-      MEDIUM_WEIGHT_FONT = new Font("Sans", Font.BOLD, 12);
-      VERSION_NAME_FONT = REGULAR_WEIGHT_FONT.deriveFont(JBUI.scale((float)16.0));
-      VERSION_NUMBER_FONT = REGULAR_WEIGHT_FONT.deriveFont(JBUI.scale((float)20.0));
-      TITLE_FONT = MEDIUM_WEIGHT_FONT.deriveFont(JBUI.scale((float)16.0));
+      REGULAR_WEIGHT_FONT = new Font("DroidSans", Font.PLAIN, 12);
+      MEDIUM_WEIGHT_FONT = new Font("DroidSans", Font.BOLD, 12);
+      VERSION_NAME_FONT = REGULAR_WEIGHT_FONT.deriveFont(JBUIScale.scale((float)14));
+      VERSION_NUMBER_FONT = REGULAR_WEIGHT_FONT.deriveFont(JBUIScale.scale((float)14.0));
+      TITLE_FONT = MEDIUM_WEIGHT_FONT.deriveFont(JBUIScale.scale((float)14.0));
     }
   }
 
@@ -167,7 +171,7 @@ public class DistributionChartComponent extends JPanel {
 
   @Override
   public void paintComponent(Graphics g) {
-    GraphicsUtil.setupAntialiasing(g);
+    GraphicsUtil.setupAntialiasing(g, true, true);
     GraphicsUtil.setupAAPainting(g);
     super.paintComponent(g);
 
@@ -222,10 +226,11 @@ public class DistributionChartComponent extends JPanel {
     g.drawString(STR_CUMULATIVE, (lastColumnLeftOffset + totalWidth - titleMetrics.stringWidth(STR_CUMULATIVE)) / 2, titleHeight);
     g.drawString(STR_DISTRIBUTION, (lastColumnLeftOffset + totalWidth - titleMetrics.stringWidth(STR_DISTRIBUTION)) / 2, titleHeight * 2);
 
-    int smallItemCount = 0;
+    double percentageToDistribute = 0;
     for (Distribution d : distributions) {
-      if (d.getDistributionPercentage() < MIN_PERCENTAGE_HEIGHT) {
-        smallItemCount++;
+      double percentageAboveMin = d.getDistributionPercentage() - MIN_PERCENTAGE_HEIGHT;
+      if (percentageAboveMin > 0) {
+        percentageToDistribute += percentageAboveMin;
       }
     }
 
@@ -235,33 +240,40 @@ public class DistributionChartComponent extends JPanel {
     Font minApiLevelFont = REGULAR_WEIGHT_FONT.deriveFont(logistic(MIN_PERCENTAGE_HEIGHT));
     int minBoxHeight = Math.max((int)Math.round(MIN_PERCENTAGE_HEIGHT * heightToDistribute), g.getFontMetrics(minApiLevelFont).getHeight());
 
-    heightToDistribute = Math.max(0, heightToDistribute - smallItemCount * minBoxHeight);
+    heightToDistribute = Math.max(0, heightToDistribute - distributions.size() * minBoxHeight);
 
     // Keep track of how much of the distribution we've covered so far
     double percentageSum = 0;
     int startY = (2 * titleHeight) + HEADER_TO_BODY_SPACING;
     int recColorIdx = 0;
     for (Distribution d : distributions) {
-      // Draw the colored rectangle
-      g.setColor(RECT_COLORS[recColorIdx % RECT_COLORS.length]);
-      double effectivePercentage = Math.max(d.getDistributionPercentage(), MIN_PERCENTAGE_HEIGHT);
-      int calculatedHeight = Math.max(minBoxHeight, (int)Math.round(effectivePercentage * heightToDistribute));
+      int calculatedHeight;
+      Font apiLevelFont;
+      if (d.getDistributionPercentage() <= MIN_PERCENTAGE_HEIGHT) {
+        calculatedHeight = minBoxHeight;
+        apiLevelFont = minApiLevelFont;
+      }
+      else {
+        double extraPercentage = d.getDistributionPercentage() - MIN_PERCENTAGE_HEIGHT;
+        calculatedHeight = minBoxHeight + (int)Math.round(heightToDistribute * extraPercentage / percentageToDistribute);
+        apiLevelFont = REGULAR_WEIGHT_FONT.deriveFont(logistic(MIN_PERCENTAGE_HEIGHT + extraPercentage / percentageToDistribute));
+      }
+
       int bottom = startY + calculatedHeight;
 
+      // Draw the colored rectangle
+      g.setColor(RECT_COLORS[recColorIdx % RECT_COLORS.length]);
       if (d.equals(mySelectedDistribution)) {
         g.fillRect(0, bottom - calculatedHeight, width, calculatedHeight);
       } else {
         g.fillRect(leftGutter, bottom - calculatedHeight, normalBoxSize, calculatedHeight);
       }
 
-      // Size our fonts according to the rectangle size
-      Font apiLevelFont = REGULAR_WEIGHT_FONT.deriveFont(logistic(effectivePercentage));
-
       // Measure our font heights so we can center text
       FontMetrics apiLevelMetrics = g.getFontMetrics(apiLevelFont);
-      int halfApiFontHeight = (apiLevelMetrics.getHeight() - apiLevelMetrics.getDescent()) / 2;
+      int halfApiFontHeight = apiLevelMetrics.getAscent() * 43 / 100; // Slightly less than half for better vertical alignment.
 
-      int currentMidY = startY + calculatedHeight/2;
+      int currentMidY = startY + calculatedHeight / 2;
       // Write the name
       g.setColor(TEXT_COLOR);
       g.setFont(VERSION_NAME_FONT);
@@ -286,7 +298,7 @@ public class DistributionChartComponent extends JPanel {
         g.setFont(VERSION_NUMBER_FONT);
         String percentageStr = (percentageSum > 0.999) ? "< 0.1%" : new DecimalFormat("0.0%").format(1.0 - percentageSum);
         int percentStringWidth = versionNumberMetrics.stringWidth(percentageStr);
-        g.drawString(percentageStr, totalWidth - percentStringWidth - 2, versionNameMetrics.getHeight() + bottom);
+        g.drawString(percentageStr, totalWidth - percentStringWidth - 2, versionNameMetrics.getAscent() + bottom);
         g.setColor(JBColor.darkGray);
         g.drawLine(leftGutter + normalBoxSize, startY + calculatedHeight, totalWidth, startY + calculatedHeight);
       }
@@ -301,7 +313,7 @@ public class DistributionChartComponent extends JPanel {
    * @param normalizedValue a value between 0 and 1
    * @return an integer between the given MIN_API_FONT_SIZE and MAX_API_FONT_SIZE value
    */
-  private static float logistic(double normalizedValue) {
+  private float logistic(double normalizedValue) {
     double exp = Math.exp(MIN_API_FONT_SIZE * normalizedValue);
     return (float)((MAX_API_FONT_SIZE * MIN_API_FONT_SIZE * exp) /
                    (MAX_API_FONT_SIZE + MIN_API_FONT_SIZE * exp));

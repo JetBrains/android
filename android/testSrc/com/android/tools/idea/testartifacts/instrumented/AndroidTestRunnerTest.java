@@ -31,6 +31,7 @@ import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
+import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.execution.process.NopProcessHandler;
@@ -47,6 +48,15 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
   protected boolean shouldRunTest() {
     // Do not run tests on Windows (see http://b.android.com/222904)
     return !SystemInfo.isWindows && super.shouldRunTest();
+  }
+
+  public void testRunnerArgumentsSetByGradleWhenGradleTestRunnerDisabled() throws Exception {
+    loadProject(TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS);
+    AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE = false;
+
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("com.android.runnerarguments.ExampleInstrumentationTest");
+    assertThat(runner.getAmInstrumentCommand()).contains("-e size medium");
+    assertThat(runner.getAmInstrumentCommand()).contains("-e foo bar");
   }
 
   public void testTestOptionsSetByGradle() throws Exception {

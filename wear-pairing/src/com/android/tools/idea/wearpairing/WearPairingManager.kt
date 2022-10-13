@@ -585,3 +585,25 @@ private fun showMessageBalloon(title: String, text: String, wizardAction: Wizard
     AndroidNotification.getInstance(it).showBalloon(title, "$text<br/>", INFORMATION, hyperlink)
   }
 }
+
+/**
+ * Asynchronous version of [WearPairingManager.removeAllPairedDevices] aimed to be used in asynchronous contexts from Java. Prefer the use
+ * of the coroutine version when possible.
+ */
+fun WearPairingManager.removeAllPairedDevicesAsync(deviceID: String, restartWearGmsCore: Boolean = true) {
+  @Suppress("OPT_IN_USAGE") // We want the action to be launched in the background and survive the scope of the WearPairingManager.
+  GlobalScope.launch(Dispatchers.IO) {
+    removeAllPairedDevices(deviceID, restartWearGmsCore)
+  }
+}
+
+/**
+ * Asynchronous version of [WearPairingManager.removePairedDevices] aimed to be used in asynchronous contexts from Java. Prefer the use of
+ * the coroutine version when possible.
+ */
+fun WearPairingManager.removePairedDevicesAsync(phoneWearPair: WearPairingManager.PhoneWearPair, restartWearGmsCore: Boolean = true) {
+  @Suppress("OPT_IN_USAGE") // We want the action to be launched in the background and survive the scope of the WearPairingManager.
+  GlobalScope.launch(Dispatchers.IO) {
+    removePairedDevices(phoneWearPair, restartWearGmsCore)
+  }
+}

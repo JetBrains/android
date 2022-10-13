@@ -59,7 +59,7 @@ class AppInspectionInspectorMetricsTest {
   val disposableRule = DisposableRule()
 
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
+  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
   private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) {
     it.name == MODERN_PROCESS.name
   }

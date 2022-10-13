@@ -51,7 +51,7 @@ public class GradleSyncWithOlderPluginTest extends AndroidGradleTestCase {
    * @throws Exception
    */
   public void testDaemonStops5Dot3Dot1() throws Exception {
-    loadProject(SIMPLE_APPLICATION, null, "5.3.1", "3.3.2");
+    loadProject(SIMPLE_APPLICATION, null, "5.3.1", "3.3.2", "32");
     verifyDaemonStops();
   }
 

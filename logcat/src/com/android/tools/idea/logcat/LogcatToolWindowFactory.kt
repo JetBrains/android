@@ -48,6 +48,11 @@ import org.jetbrains.annotations.VisibleForTesting
 
 internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
 
+  private val logcatColors: LogcatColors = LogcatColors()
+
+  // When ShowLogcatListener is activated, we do not want to create a new Logcat tab if the tool was empty
+  private var insideShowLogcatListener = false
+
   init {
     // TODO(b/236246692): Register from XML when Logcat V2 is mainstream.
     if (isLogcatV2Enabled()) {
@@ -76,30 +81,35 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
     AndroidCoroutineScope(toolWindow.project).launch {
       val device = DeviceFactory(AdbLibService.getSession(toolWindow.project)).createDevice(serialNumber)
       withContext(uiThread) {
+        insideShowLogcatListener = true
         toolWindow.activate {
-          val contentManager = toolWindow.contentManager
-          val count = contentManager.contentCount
-          for (i in 0 until count) {
-            val content = contentManager.getContent(i)
-            content?.findLogcatPresenters()?.forEach {
-              if (it.getConnectedDevice()?.serialNumber == serialNumber) {
-                contentManager.setSelectedContent(content, true)
-                return@activate
+          try {
+            val contentManager = toolWindow.contentManager
+            val count = contentManager.contentCount
+            for (i in 0 until count) {
+              val content = contentManager.getContent(i)
+              content?.findLogcatPresenters()?.forEach {
+                if (it.getConnectedDevice()?.serialNumber == serialNumber) {
+                  contentManager.setSelectedContent(content, true)
+                  return@activate
+                }
               }
             }
+            val config = LogcatPanelConfig(
+              device,
+              getDefaultFormattingConfig(),
+              getDefaultFilter(toolWindow.project, AndroidProjectDetectorImpl()),
+              isSoftWrap = false)
+            createNewTab(toolWindow, serialNumber, LogcatPanelConfig.toJson(config))
+          } finally {
+            insideShowLogcatListener = false
           }
-          val config = LogcatPanelConfig(
-            device,
-            getDefaultFormattingConfig(),
-            getDefaultFilter(toolWindow.project, AndroidProjectDetectorImpl()),
-            isSoftWrap = false)
-          createNewTab(toolWindow, serialNumber, LogcatPanelConfig.toJson(config))
         }
       }
     }
   }
 
-  private val logcatColors: LogcatColors = LogcatColors()
+  override fun shouldCreateNewTabWhenEmpty() = !insideShowLogcatListener
 
   override fun isApplicable(project: Project) = isAndroidEnvironment(project) && isLogcatV2Enabled()
 

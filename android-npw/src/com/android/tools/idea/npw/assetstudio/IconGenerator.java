@@ -191,7 +191,7 @@ public abstract class IconGenerator implements Disposable {
     }
 
     CategoryIconMap categoryIconMap = generateIntoMemory();
-    return categoryIconMap.toFileMap(resDirectory.getParentFile());
+    return categoryIconMap.toFileMap(resDirectory);
   }
 
   /**

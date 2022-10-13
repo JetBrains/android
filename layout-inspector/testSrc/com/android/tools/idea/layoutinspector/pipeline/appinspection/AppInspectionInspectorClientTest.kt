@@ -101,6 +101,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -131,8 +132,8 @@ class AppInspectionInspectorClientTest {
   private val disposableRule = DisposableRule()
   private val treeRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(monitor)), projectRule) {
+  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
+  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider { monitor }), projectRule) {
     it == preferredProcess
   }
   private val usageRule = MetricsTrackerRule()
@@ -290,6 +291,7 @@ class AppInspectionInspectorClientTest {
     }
   }
 
+  @Ignore("b/244184385")
   @Test
   fun statsInitializedWhenConnectedA() {
     inspectorRule.inspector.treeSettings.hideSystemNodes = true
@@ -313,6 +315,7 @@ class AppInspectionInspectorClientTest {
     assertThat(session1.compose.framesWithRecompositionCountsOn).isEqualTo(0)
   }
 
+  @Ignore("b/244184385")
   @Test
   fun statsInitializedWhenConnectedB() {
     // Make the start settings opposite from statsInitializedWhenConnectedA:
@@ -720,6 +723,25 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
+  fun testDeepNestedComposeNodes() {
+    val inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeLargeComposeTree()
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+
+    // Verify we have all 126 composables
+    for (id in -300L downTo -425L) {
+      assertThat(inspectorRule.inspectorModel[id]).isNotNull()
+    }
+  }
+
+  @Test
   fun errorShownOnConnectException() {
     InspectorClientSettings.isCapturingModeOn = true
     val banner = InspectorBanner(inspectorRule.project)
@@ -942,7 +964,7 @@ class AppInspectionInspectorClientTest {
 class AppInspectionInspectorClientWithUnsupportedApi29 {
   private val disposableRule = DisposableRule()
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
+  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
   private val inspectorRule = LayoutInspectorRule(listOf(mock()), projectRule) { false }
 
   @get:Rule
@@ -1104,20 +1126,22 @@ class AppInspectionInspectorClientWithFailingClientTest {
   private val usageTrackerRule = MetricsTrackerRule()
   private val disposableRule = DisposableRule()
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
+  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable, projectRule)
   private var throwOnState: AttachErrorState = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
   private var exceptionToThrow: Exception = RuntimeException("expected")
-  private val monitor = spy(InspectorClientLaunchMonitor(ListenerCollection.createWithDirectExecutor())).also {
-    doAnswer { invocation ->
-      val state = invocation.arguments[0] as AttachErrorState
-      if (state == throwOnState) {
-        throw exceptionToThrow
-      }
-      null
-    }.whenever(it).updateProgress(any(AttachErrorState::class.java))
+  private val getMonitor: () -> InspectorClientLaunchMonitor = {
+    spy(InspectorClientLaunchMonitor(projectRule.project, ListenerCollection.createWithDirectExecutor())).also {
+      doAnswer { invocation ->
+        val state = invocation.arguments[0] as AttachErrorState
+        if (state == throwOnState) {
+          throw exceptionToThrow
+        }
+        null
+      }.whenever(it).updateProgress(any(AttachErrorState::class.java))
+    }
   }
 
-  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(monitor)), projectRule) {
+  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(getMonitor)), projectRule) {
     it.name == MODERN_PROCESS.name
   }
 

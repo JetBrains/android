@@ -168,7 +168,7 @@ MODULE                        : project.app
     ProjectPath                   : :app
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -213,8 +213,8 @@ MODULE                        : project.app
         testApplicationId             : google.simpleapplication.test
     - basicVariant:               : release
         applicationId                 : google.simpleapplication
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/optional/org.apache.http.legacy.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo

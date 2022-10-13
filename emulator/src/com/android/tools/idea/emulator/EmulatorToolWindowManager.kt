@@ -616,6 +616,7 @@ internal class EmulatorToolWindowManager private constructor(
     private val coroutineScope = AndroidCoroutineScope(this)
 
     init {
+      Disposer.register(getToolWindow().disposable, this)
       coroutineScope.launch {
         val adbSession = AdbLibService.getSession(project)
         adbSession.hostServices.trackDevices().collect { deviceList ->

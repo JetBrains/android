@@ -43,7 +43,7 @@ public class FeatureMergedManifestTest {
   @Ignore("b/203803107")
   public void testLibraryManifestMergedOnFeature() throws Exception {
     // Use a plugin version with feature support
-    projectRule.loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, "5.5", "3.5.0");
+    projectRule.loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, "5.5", "3.5.0", null, null, "32");
     Module featureModule = projectRule.getModule("feature");
     MergedManifestSnapshot mergedManifestManager = MergedManifestManager.getSnapshot(featureModule);
     assertSize(1, mergedManifestManager.getActivities());
@@ -53,7 +53,7 @@ public class FeatureMergedManifestTest {
   @Ignore("b/203803107")
   public void testCanFindURL() throws Exception {
     // Use a plugin version with feature support
-    projectRule.loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, "5.5", "3.5.0");
+    projectRule.loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, "5.5", "3.5.0", null, null, "32");
     Module bundleModule = projectRule.getModule("instantapp");
     AndroidFacet facet = AndroidFacet.getInstance(bundleModule);
     assertEquals("https://android.example.com/example", InstantApps.getDefaultInstantAppUrl(facet));
