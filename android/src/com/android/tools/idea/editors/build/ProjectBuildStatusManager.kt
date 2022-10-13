@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.build
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -37,6 +38,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.util.application.runReadAction
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 /**
  * This represents the build status of the project without taking into account any file modifications.
@@ -149,6 +153,8 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
       else
         psiFileChangeDetector
 
+  private val projectBuildStatusLock = ReentrantReadWriteLock()
+  @GuardedBy("projectBuildStatusLock")
   private var projectBuildStatus: ProjectBuildStatus = ProjectBuildStatus.NotReady
     set(value) {
       if (field != value) {
@@ -159,31 +165,39 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
   private var lastFilterModificationCount = psiFilter.modificationCount
   override val status: ProjectStatus
     get() {
+      val currentProjectBuildStatus = projectBuildStatusLock.read {
+        projectBuildStatus
+      }
       if (psiFilter.modificationCount != lastFilterModificationCount) {
         lastFilterModificationCount = psiFilter.modificationCount
 
-        if (projectBuildStatus != ProjectBuildStatus.NotReady) {
+        if (currentProjectBuildStatus != ProjectBuildStatus.NotReady) {
           fileChangeDetector.forceMarkFileAsUpToDate(editorFile)
         }
       }
       return when {
-        projectBuildStatus == ProjectBuildStatus.NotReady -> ProjectStatus.NotReady
-        projectBuildStatus == ProjectBuildStatus.NeedsBuild -> ProjectStatus.NeedsBuild
+        currentProjectBuildStatus == ProjectBuildStatus.NotReady -> ProjectStatus.NotReady
+        currentProjectBuildStatus == ProjectBuildStatus.NeedsBuild -> ProjectStatus.NeedsBuild
         isBuildOutOfDate() -> ProjectStatus.OutOfDate
         else -> ProjectStatus.Ready
+      }.also {
+        LOG.debug("status $it")
       }
     }
 
   @get:UiThread
-  override val isBuilding: Boolean get() =
-    ProjectSystemService.getInstance(project).projectSystem.getBuildManager().isBuilding ||
-    FastPreviewManager.getInstance(project).isCompiling
+  override val isBuilding: Boolean
+    get() =
+      ProjectSystemService.getInstance(project).projectSystem.getBuildManager().isBuilding ||
+      FastPreviewManager.getInstance(project).isCompiling
 
   private val buildListener = object : ProjectSystemBuildManager.BuildListener {
     override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
       LOG.debug("buildStarted $mode")
       if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
-        projectBuildStatus = ProjectBuildStatus.NeedsBuild
+        projectBuildStatusLock.write {
+          projectBuildStatus = ProjectBuildStatus.NeedsBuild
+        }
       }
     }
 
@@ -193,7 +207,7 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
         onSuccessfulBuild()
         return
       }
-      projectBuildStatus = if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
+      val newProjectBuildStatus = if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
         onSuccessfulBuild()
         ProjectBuildStatus.Built
       }
@@ -205,6 +219,10 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
           // If the project was not ready, then it needs a build since this one failed.
           else -> ProjectBuildStatus.NeedsBuild
         }
+      }
+
+      projectBuildStatusLock.write {
+        projectBuildStatus = newProjectBuildStatus
       }
     }
   }
@@ -223,39 +241,45 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
     project.runWhenSmartAndSyncedOnEdt(parentDisposable, {
       fileChangeDetector.markFileAsUpToDate(editorFile)
 
-      if (projectBuildStatus === ProjectBuildStatus.NotReady) {
+      if (projectBuildStatusLock.read { projectBuildStatus } === ProjectBuildStatus.NotReady) {
         // Check in the background the state of the build (hasBeenBuiltSuccessfully is a slow method).
         scope.launch {
           val newState = if (hasExistingClassFile(editorFile)) ProjectBuildStatus.Built else ProjectBuildStatus.NeedsBuild
           // Only update the status if we are still in NotReady.
-          if (projectBuildStatus === ProjectBuildStatus.NotReady) {
-            // Set the initial state of the project and initialize the modification count.
-            // TODO(b/239802877): here we essentially change the build status, therefore we need a callback to inform the parent, the
-            // callback should probably do the same as what the parent does on runWhenSmartAndSyncedOnEdt
-            projectBuildStatus = newState
+          projectBuildStatusLock.write {
+            if (projectBuildStatus === ProjectBuildStatus.NotReady) {
+              // Set the initial state of the project and initialize the modification count.
+              // TODO(b/239802877): here we essentially change the build status, therefore we need a callback to inform the parent, the
+              // callback should probably do the same as what the parent does on runWhenSmartAndSyncedOnEdt
+              projectBuildStatus = newState
+            }
           }
         }
       }
     })
 
     if (FastPreviewManager.getInstance(project).isAvailable) {
-      FastPreviewManager.getInstance(project).addListener(parentDisposable, object : FastPreviewManager.Companion.FastPreviewManagerListener {
-        var lastCompilationResult: CompilationResult = CompilationResult.Success
+      FastPreviewManager.getInstance(project).addListener(parentDisposable,
+                                                          object : FastPreviewManager.Companion.FastPreviewManagerListener {
+                                                            var lastCompilationResult: CompilationResult = CompilationResult.Success
 
-        override fun onCompilationStarted(files: Collection<PsiFile>) { }
+                                                            override fun onCompilationStarted(files: Collection<PsiFile>) {}
 
-        override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
-          val file = editorFile ?: return
-          lastCompilationResult = result
-          if (result == CompilationResult.Success && files.any { it.isEquivalentTo(file) }) onSuccessfulBuild()
-        }
+                                                            override fun onCompilationComplete(result: CompilationResult,
+                                                                                               files: Collection<PsiFile>) {
+                                                              val file = editorFile ?: return
+                                                              lastCompilationResult = result
+                                                              if (result == CompilationResult.Success && files.any {
+                                                                  it.isEquivalentTo(file)
+                                                                }) onSuccessfulBuild()
+                                                            }
 
-        override fun onFastPreviewStatusChanged(isFastPreviewEnabled: Boolean) {
-          // When Fast Preview is disabled, the fileChangeDetector will be restored. This will automatically mark the file as out of date.
-          // This check, verifies if the last fast build was successful and, only in that case, will mark the file as being up to date.
-          if (!isFastPreviewEnabled && lastCompilationResult == CompilationResult.Success) onSuccessfulBuild()
-        }
-      })
+                                                            override fun onFastPreviewStatusChanged(isFastPreviewEnabled: Boolean) {
+                                                              // When Fast Preview is disabled, the fileChangeDetector will be restored. This will automatically mark the file as out of date.
+                                                              // This check, verifies if the last fast build was successful and, only in that case, will mark the file as being up to date.
+                                                              if (!isFastPreviewEnabled && lastCompilationResult == CompilationResult.Success) onSuccessfulBuild()
+                                                            }
+                                                          })
     }
   }
 
