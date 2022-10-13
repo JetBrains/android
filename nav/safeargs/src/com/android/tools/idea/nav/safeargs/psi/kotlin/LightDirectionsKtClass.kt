@@ -54,6 +54,7 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.resolve.scopes.MemberScopeImpl
 import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.storage.StorageManager
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.utils.Printer
 
 /**
@@ -132,6 +133,7 @@ class LightDirectionsKtClass(
       override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? = null
       override fun getConstructors(): Collection<ClassConstructorDescriptor> = emptyList()
       override fun getUnsubstitutedMemberScope() = companionScope()
+      override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope = unsubstitutedMemberScope
 
       private inner class CompanionObjectScope : MemberScopeImpl() {
         private val companionMethods = storageManager.createLazyValue {

@@ -51,6 +51,7 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScopeImpl
 import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.utils.Printer
 
 /**
@@ -95,6 +96,7 @@ class LightArgsKtClass(
   private val scope = storageManager.createLazyValue { ArgsClassScope() }
 
   override fun getUnsubstitutedMemberScope(): MemberScope = scope()
+
   override fun getConstructors() = listOf(_primaryConstructor())
   override fun getUnsubstitutedPrimaryConstructor() = _primaryConstructor()
   override fun getCompanionObjectDescriptor() = _companionObject()
@@ -132,6 +134,7 @@ class LightArgsKtClass(
       override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? = null
       override fun getConstructors(): Collection<ClassConstructorDescriptor> = emptyList()
       override fun getUnsubstitutedMemberScope() = companionObjectScope()
+      override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope = unsubstitutedMemberScope
 
       private inner class CompanionScope : MemberScopeImpl() {
         private val companionMethods = storageManager.createLazyValue {
