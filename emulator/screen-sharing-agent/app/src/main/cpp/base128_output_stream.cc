@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
+#include <cassert>
 #include <memory>
 
 #include "io_exception.h"
