@@ -1503,6 +1503,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> WEBSITE_ASSOCIATION_GENERATOR_V2 =
     Flag.create(APP_LINKS_ASSISTANT, "website.association.generator.v2", "Website Association Generator V2",
                 "Improvements to Website Association Generator.", false);
+  public static final Flag<String> DEEPLINKS_GRPC_SERVER =
+    Flag.create(APP_LINKS_ASSISTANT, "deeplinks.grpc.server", "Deep links gRPC server address",
+                "Deep links gRPC server address. Use a non-default value for testing purposes.",
+                "deeplinkassistant-pa.googleapis.com");
   // endregion App Links Assistant
 
   // region GOOGLE_PLAY_SDK_INDEX

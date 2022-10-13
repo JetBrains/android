@@ -3016,6 +3016,7 @@ Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/yaml/syntaxes/y
 Android Studio Preview.app/Contents/plugins/textmate/lib/textmate.jar
 Android Studio Preview.app/Contents/plugins/toml/lib/toml.jar
 Android Studio Preview.app/Contents/plugins/url-assistant/lib/url-assistant.jar
+Android Studio Preview.app/Contents/plugins/url-assistant/lib/urlassistant_proto.jar
 Android Studio Preview.app/Contents/plugins/webp/lib/libwebp/linux/libwebp_jni.so
 Android Studio Preview.app/Contents/plugins/webp/lib/libwebp/linux/libwebp_jni64.so
 Android Studio Preview.app/Contents/plugins/webp/lib/libwebp/mac/libwebp_jni64.dylib
