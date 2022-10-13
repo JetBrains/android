@@ -175,6 +175,15 @@ class AndroidDeviceSpecUtilTest {
     assertThat(specResizable.density).isNull()
   }
 
+  @Test
+  fun `test abi injection enabled for resizable emulator`() {
+    val resizeableDevice = mockDevice(version = AndroidVersion.DEFAULT, density = Density.XXHIGH, resizeable = true, abis = listOf(Abi.X86, Abi.X86_64))
+    val specResizable = createSpec(listOf(resizeableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!
+
+    assertThat(specResizable.abis).contains("x86")
+    assertThat(specResizable.abis).contains("x86_64")
+  }
+
   private fun createJsonFile(fetchLanguages: Boolean, vararg devices: AndroidDevice): File {
     val spec = createSpec(devices.asList(), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     return spec!!.writeToJsonTempFile(fetchLanguages)
