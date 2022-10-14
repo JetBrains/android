@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
+import static com.android.tools.idea.res.IdeResourcesUtil.resolveStringValue;
+
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
@@ -27,6 +30,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
@@ -241,8 +245,11 @@ public class GuidelineTarget extends BaseTarget {
     else if (percent != null) {
       myBegin = -1;
       myEnd = -1;
+      Configuration configuration = component.getModel().getConfiguration();
+      ResourceResolver resourceResolver = configuration.getResourceResolver();
+      percent = resolveStringValue(resourceResolver, percent);
       try {
-        myPercent = Float.valueOf(percent);
+        myPercent = Float.parseFloat(percent);
       } catch (NumberFormatException e) {
         myPercent = 0;
       }
