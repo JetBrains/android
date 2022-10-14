@@ -24,9 +24,9 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
 import javax.swing.JComponent
@@ -51,23 +51,23 @@ class ConfigureAndroidNativeModuleStep(val model: NewAndroidNativeModuleModel,
 
   override fun createMainPanel(): JPanel = panel {
     row(contextLabel("Module name", message("android.wizard.module.help.name"))) {
-      cell(moduleName).horizontalAlign(HorizontalAlign.FILL)
+      cell(moduleName).align(AlignX.FILL)
     }
 
     row("Package name") {
-      cell(packageName).horizontalAlign(HorizontalAlign.FILL)
+      cell(packageName).align(AlignX.FILL)
     }
 
     row("Language") {
-      cell(languageCombo).horizontalAlign(HorizontalAlign.FILL)
+      cell(languageCombo).align(AlignX.FILL)
     }
 
     row("C++ Standard") {
-      cell(cppStandard).horizontalAlign(HorizontalAlign.FILL)
+      cell(cppStandard).align(AlignX.FILL)
     }
 
     row("Minimum SDK") {
-      cell(apiLevelCombo).horizontalAlign(HorizontalAlign.FILL)
+      cell(apiLevelCombo).align(AlignX.FILL)
     }
 
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get() || model.useGradleKts.get()) {

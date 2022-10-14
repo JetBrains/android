@@ -24,10 +24,10 @@ import com.intellij.credentialStore.OneTimeString
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.selected
-import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.net.MalformedURLException
@@ -105,11 +105,11 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
   override fun createCenterPanel(): JComponent {
     return panel {
       row { comment("Please enter the Name and URL of the addon.xml for the update site") }
-      row("Name:") { cell(nameField).horizontalAlign(HorizontalAlign.FILL) }
-      row("URL:") { cell(urlField).horizontalAlign(HorizontalAlign.FILL) }
+      row("Name:") { cell(nameField).align(AlignX.FILL) }
+      row("URL:") { cell(urlField).align(AlignX.FILL) }
       row { useAuthentication = checkBox("Use Authentication").also { it.component.isSelected = existingAuth != null } }
-      row("Login:") { cell(loginField).horizontalAlign(HorizontalAlign.FILL) }.enabledIf(useAuthentication.selected)
-      row("Password:") { cell(passwordField).horizontalAlign(HorizontalAlign.FILL) }.enabledIf(useAuthentication.selected)
+      row("Login:") { cell(loginField).align(AlignX.FILL) }.enabledIf(useAuthentication.selected)
+      row("Password:") { cell(passwordField).align(AlignX.FILL) }.enabledIf(useAuthentication.selected)
     }
   }
 }
