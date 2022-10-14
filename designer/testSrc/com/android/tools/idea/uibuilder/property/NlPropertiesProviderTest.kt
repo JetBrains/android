@@ -19,6 +19,7 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ELEVATION
 import com.android.SdkConstants.ATTR_FONT_FAMILY
 import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_INPUT_TYPE
 import com.android.SdkConstants.ATTR_PADDING
 import com.android.SdkConstants.ATTR_SCALE_TYPE
 import com.android.SdkConstants.ATTR_SRC
@@ -29,6 +30,7 @@ import com.android.SdkConstants.ATTR_TEXT_ALIGNMENT
 import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.CLASS_VIEW
+import com.android.SdkConstants.EDIT_TEXT
 import com.android.SdkConstants.FD_RES_XML
 import com.android.SdkConstants.FQCN_IMAGE_VIEW
 import com.android.SdkConstants.FQCN_LINEAR_LAYOUT
@@ -37,9 +39,7 @@ import com.android.SdkConstants.PreferenceAttributes.ATTR_ENTRIES
 import com.android.SdkConstants.PreferenceAttributes.ATTR_ENTRY_VALUES
 import com.android.SdkConstants.PreferenceAttributes.ATTR_ICON
 import com.android.SdkConstants.PreferenceTags.LIST_PREFERENCE
-import com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY
 import com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN
-import com.android.SdkConstants.PreferenceTags.SWITCH_PREFERENCE
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
@@ -176,6 +176,14 @@ class NlPropertiesProviderTest : PropertyTestCase() {
     assertThat(properties[ResourceNamespace.TODO().xmlNamespaceUri, ATTR_SRC_COMPAT].componentName).isEqualTo(APPCOMPAT_IMAGE_VIEW)
     assertThat(properties[ANDROID_URI, ATTR_SCALE_TYPE].componentName).isEqualTo(FQCN_IMAGE_VIEW)
     assertThat(properties[ANDROID_URI, ATTR_VISIBILITY].componentName).isEqualTo(CLASS_VIEW)
+  }
+
+  fun testInputType() {
+    val provider = NlPropertiesProvider(myFacet)
+    val model = NlPropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(EDIT_TEXT)))
+    val property = properties[ANDROID_URI, ATTR_INPUT_TYPE]
+    assertThat(property).isInstanceOf(InputTypePropertyItem::class.java)
   }
 
   fun testPreferenceListForMinApi26() {

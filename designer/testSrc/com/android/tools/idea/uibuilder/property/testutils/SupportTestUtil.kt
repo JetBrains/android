@@ -37,17 +37,25 @@ import com.android.tools.idea.uibuilder.property.NlIdPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyType
+import com.android.tools.property.panel.api.PropertiesModel
+import com.android.tools.property.panel.api.PropertiesModelListener
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.update.MergingUpdateQueue
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.util.Arrays
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 private const val DEFAULT_FILENAME = "layout.xml"
 
 open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixture, val components: MutableList<NlComponent>) {
-  val model = NlPropertiesModel(fixture.testRootDisposable, facet)
+  private var updates = 0
+  private val queue = MergingUpdateQueue("MQ", 100, true, null, fixture.testRootDisposable).apply { isPassThrough = true }
+  val model = NlPropertiesModel(fixture.testRootDisposable, facet, queue)
   val nlModel = components.first().model
   private val frameworkResourceManager = ModuleResourceManagers.getInstance(facet).frameworkResourceManager
 
@@ -68,7 +76,23 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
     this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, component)
 
   init {
+    model.addListener(object : PropertiesModelListener<NlPropertyItem> {
+      override fun propertiesGenerated(model: PropertiesModel<NlPropertyItem>) {
+        updates++
+      }
+    })
     model.surface = (nlModel as? SyncNlModel)?.surface
+  }
+
+  fun waitForPropertiesUpdate(updatesToWaitFor: Int, timeout: Long = 10, unit: TimeUnit = TimeUnit.SECONDS) {
+    val stop = System.currentTimeMillis() + unit.toMillis(timeout)
+    while (updates < updatesToWaitFor && System.currentTimeMillis() < stop) {
+      Thread.sleep(100)
+      UIUtil.dispatchAllInvocationEvents()
+    }
+    if (updates < updatesToWaitFor) {
+      throw TimeoutException()
+    }
   }
 
   fun makeProperty(namespace: String, name: String, type: NlPropertyType): NlPropertyItem {
@@ -115,6 +139,7 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
   fun selectById(id: String): SupportTestUtil {
     components.clear()
     components.add(nlModel.find(id)!!)
+    model.surface?.selectionModel?.setSelection(components)
     return this
   }
 

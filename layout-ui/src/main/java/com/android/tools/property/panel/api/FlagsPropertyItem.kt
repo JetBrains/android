@@ -25,9 +25,9 @@ import com.android.tools.property.ptable.PTableGroupItem
  *
  * @param T the actual type of a flag item
  */
-interface FlagsPropertyItem<out T : FlagPropertyItem> : PropertyItem, PTableGroupItem {
+interface FlagsPropertyItem<out T : FlagPropertyItem> : PropertyItem {
   /** The flags representing this flag property */
-  override val children: List<T>
+  val children: List<T>
 
   /** Find a flag with a given name */
   fun flag(itemName: String): T?
@@ -35,6 +35,11 @@ interface FlagsPropertyItem<out T : FlagPropertyItem> : PropertyItem, PTableGrou
   /** The combined [maskValue] of each of the flags currently set in the [value] */
   val maskValue: Int
 }
+
+/**
+ * A [FlagsPropertyItem] that will display the flags as children in a properties table.
+ */
+interface FlagsPropertyGroupItem<out T : FlagPropertyItem> : FlagsPropertyItem<T>, PTableGroupItem
 
 /**
  * A single flag represented as a [PropertyItem].

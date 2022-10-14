@@ -19,6 +19,7 @@ import com.android.SdkConstants.ANDROID_PKG_PREFIX
 import com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_INPUT_TYPE
 import com.android.SdkConstants.ATTR_PADDING_END
 import com.android.SdkConstants.ATTR_PADDING_START
 import com.android.SdkConstants.ATTR_POPUP_BACKGROUND
@@ -298,7 +299,11 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
         return NlIdPropertyItem(model, attr, componentName, components)
       }
       if (attr != null && attr.formats.contains(AttributeFormat.FLAGS) && attr.values.isNotEmpty()) {
-        return NlFlagsPropertyItem(namespace, name, type, attr, componentName, libraryName, model, components)
+        return if (name == ATTR_INPUT_TYPE) {
+          InputTypePropertyItem(namespace, name, type, attr, componentName, libraryName, model, components)
+        } else {
+          NlFlagsPropertyGroupItem(namespace, name, type, attr, componentName, libraryName, model, components)
+        }
       }
       return NlPropertyItem(namespace, name, type, attr, componentName, libraryName, model, components)
     }

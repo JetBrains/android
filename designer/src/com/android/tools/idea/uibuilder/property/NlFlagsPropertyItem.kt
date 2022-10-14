@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.property.panel.api.FlagPropertyItem
+import com.android.tools.property.panel.api.FlagsPropertyGroupItem
 import com.android.tools.property.panel.api.FlagsPropertyItem
 import com.android.tools.property.panel.api.PropertyItem
 import com.google.common.base.Joiner
@@ -37,7 +38,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition
  * This class will generate a [NlFlagPropertyItem] for each flag for a particular flags attribute.
  * There is code to read and write a single flag as a boolean value.
  */
-class NlFlagsPropertyItem(
+open class NlFlagsPropertyItem(
   namespace: String,
   name: String,
   type: NlPropertyType,
@@ -189,6 +190,23 @@ class NlFlagsPropertyItem(
     private val VALUE_SPLITTER = Splitter.on("|").trimResults()
   }
 }
+
+/**
+ * Flags property that can be expanded in a properties table.
+ */
+class NlFlagsPropertyGroupItem(
+  namespace: String,
+  name: String,
+  type: NlPropertyType,
+  attrDefinition: AttributeDefinition,
+  componentName: String,
+  libraryName: String,
+  model: NlPropertiesModel,
+  components: List<NlComponent>,
+  optionalValue1: Any? = null,
+  optionalValue2: Any? = null
+) : NlFlagsPropertyItem(namespace, name, type, attrDefinition, componentName, libraryName, model, components, optionalValue1,
+                        optionalValue2), FlagsPropertyGroupItem<NlFlagPropertyItem>
 
 /**
  * Specifies a single flag in a flags attribute.
