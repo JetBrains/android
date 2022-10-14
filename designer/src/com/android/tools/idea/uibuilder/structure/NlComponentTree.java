@@ -559,7 +559,25 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
     private void handlePopup(MouseEvent e) {
       if (e.isPopupTrigger()) {
-        TreePath path = getPathForLocation(e.getX(), e.getY());
+        // Check if clicking on the tree node or the empty space of the same row.
+        int selectedRow = -1;
+        int mouseY = e.getY();
+        for (int row = 0; row < getRowCount(); row++) {
+          Rectangle bounds = getRowBounds(row);
+          if (bounds.y < mouseY && mouseY <= bounds.y + bounds.height) {
+            selectedRow = row;
+            break;
+          }
+        }
+        if (selectedRow == -1) {
+          return;
+        }
+        int badgeWidth = myBadgeHandler.getTotalBadgeWidth(selectedRow);
+        if (e.getX() >= getWidth() - badgeWidth) {
+          // clicking on the badge, do not show popup.
+          return;
+        }
+        TreePath path = getPathForRow(selectedRow);
         if (path != null && mySurface != null) {
           Object component = path.getLastPathComponent();
 
