@@ -90,7 +90,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
     @get:Parameterized.Parameters(name = "useEmbeddedCompiler = {0}")
-    val useEmbeddedCompilerValues = listOf(true, false)
+    val useEmbeddedCompilerValues = listOf(true) // TODO: add "false" back after compose 1.3 release
   }
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
