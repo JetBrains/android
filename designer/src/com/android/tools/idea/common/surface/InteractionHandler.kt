@@ -266,14 +266,13 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
     val selectedEditor = FileEditorManager.getInstance(surface.project).selectedEditor
     if (selectedEditor is DesignToolsSplitEditor) {
       val splitEditor = selectedEditor as DesignToolsSplitEditor?
-      if (splitEditor!!.isSplitMode()) {
-        // If we're in split mode, we want to select the component in the text editor.
-        val sceneView = surface.getSceneViewAtOrPrimary(x, y) ?: return
-        // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
-        val component = Coordinates.findComponent(sceneView, x, y)
-        if (component != null) {
-          navigateToComponent(component, false)
-        }
+      // We want the code editor scroll position to be modified,
+      // even if we are in design mode, and it is not visible at the moment.
+      val sceneView = surface.getSceneViewAtOrPrimary(x, y) ?: return
+      // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
+      val component = Coordinates.findComponent(sceneView, x, y)
+      if (component != null) {
+        navigateToComponent(component, false)
       }
     }
   }
