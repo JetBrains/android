@@ -42,7 +42,7 @@ class RuleDataPersistenceTest {
 
   @After
   fun tearDown() {
-    scope.cancel()
+    if (::scope.isInitialized) scope.cancel()
   }
 
   @Test
@@ -125,13 +125,13 @@ class RuleDataPersistenceTest {
   @Test
   fun testPersistenceInOfflineMode() {
     // Setup
-    var failTest = false
+    var isClientNotified = false
     var rulesTableView = createNewRulesTableView()
     // Rule with custom listener that will fail the test if the coroutine is executed
     val rule = RuleData(1, "First Rule", true, object: RuleDataListener {
       override fun onRuleNameChanged(ruleData: RuleData) { /* scope is not used in this listener */ }
-      override fun onRuleIsActiveChanged(ruleData: RuleData) { scope.launch { failTest = true } }
-      override fun onRuleDataChanged(ruleData: RuleData) { scope.launch { failTest = true } }
+      override fun onRuleIsActiveChanged(ruleData: RuleData) { scope.launch { isClientNotified = true } }
+      override fun onRuleDataChanged(ruleData: RuleData) { scope.launch { isClientNotified = true } }
     })
 
     rulesTableView.tableModel.addRow(rule)
@@ -149,7 +149,7 @@ class RuleDataPersistenceTest {
     items[0].isActive = false
 
     // Assert that the test did not fail due to scope.launch being executed
-    assertThat(failTest).isFalse()
+    assertThat(isClientNotified).isFalse()
 
     // Simulate an app restart
     rulesTableView = createNewRulesTableView()
