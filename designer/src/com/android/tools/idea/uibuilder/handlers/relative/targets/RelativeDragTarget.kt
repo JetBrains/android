@@ -112,7 +112,6 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
     // RTL attributes will be added (if needed) when attribute is set.
     val margin = attributes.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN)
     if (margin != null) {
-      attributes.removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN)
       MARGINS_WITHOUT_RTL
         .flatMap { getProperAttributesForLayout(myComponent, it) }
         .forEach { attributes.setAndroidAttribute(it, margin) }

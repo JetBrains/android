@@ -73,6 +73,16 @@ class RelativeLayoutHandler : ViewGroupHandler() {
         removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL)
         setAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_IN_PARENT, SdkConstants.VALUE_TRUE)
       }
+
+      val margin = getAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN)
+      if (margin != null) {
+        MARGINS_ATTRS.forEach {
+          if (margin != getAndroidAttribute(it)) {
+            return
+          }
+        }
+        removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN)
+      }
     }
   }
 
@@ -121,4 +131,11 @@ private val RESIZE_TARGETS = listOf(
   ResizeBaseTarget.Type.LEFT_BOTTOM,
   ResizeBaseTarget.Type.RIGHT_TOP,
   ResizeBaseTarget.Type.RIGHT_BOTTOM
+)
+
+val MARGINS_ATTRS = arrayOf(
+  SdkConstants.ATTR_LAYOUT_MARGIN_START,
+  SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
+  SdkConstants.ATTR_LAYOUT_MARGIN_END,
+  SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
 )
