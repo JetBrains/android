@@ -15,7 +15,85 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
+import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL;
+import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL;
+import static com.android.SdkConstants.ATTR_LAYOUT_BASELINE_CREATOR;
+import static com.android.SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_CREATOR;
+import static com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO;
+import static com.android.SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X;
+import static com.android.SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y;
+import static com.android.SdkConstants.ATTR_LAYOUT_END_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_END_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_GONE_MARGIN_BOTTOM;
+import static com.android.SdkConstants.ATTR_LAYOUT_GONE_MARGIN_END;
+import static com.android.SdkConstants.ATTR_LAYOUT_GONE_MARGIN_LEFT;
+import static com.android.SdkConstants.ATTR_LAYOUT_GONE_MARGIN_RIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_GONE_MARGIN_START;
+import static com.android.SdkConstants.ATTR_LAYOUT_GONE_MARGIN_TOP;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT_DEFAULT;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT_MAX;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT_MIN;
+import static com.android.SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS;
+import static com.android.SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE;
+import static com.android.SdkConstants.ATTR_LAYOUT_HORIZONTAL_WEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_LEFT_CREATOR;
+import static com.android.SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP;
+import static com.android.SdkConstants.ATTR_LAYOUT_MAX_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MAX_WIDTH;
+import static com.android.SdkConstants.ATTR_LAYOUT_MIN_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MIN_WIDTH;
+import static com.android.SdkConstants.ATTR_LAYOUT_RIGHT_CREATOR;
+import static com.android.SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TOP_CREATOR;
+import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS;
+import static com.android.SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE;
+import static com.android.SdkConstants.ATTR_LAYOUT_VERTICAL_WEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH_DEFAULT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH_MAX;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH_MIN;
+import static com.android.SdkConstants.ATTR_ORIENTATION;
+import static com.android.SdkConstants.ATTR_PARENT;
+import static com.android.SdkConstants.CONSTRAINT_BARRIER_BOTTOM;
+import static com.android.SdkConstants.CONSTRAINT_BARRIER_END;
+import static com.android.SdkConstants.CONSTRAINT_BARRIER_LEFT;
+import static com.android.SdkConstants.CONSTRAINT_BARRIER_RIGHT;
+import static com.android.SdkConstants.CONSTRAINT_BARRIER_START;
+import static com.android.SdkConstants.CONSTRAINT_BARRIER_TOP;
+import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
+import static com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN;
+import static com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END;
+import static com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT;
+import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.SdkConstants.PREFIX_ANDROID;
+import static com.android.SdkConstants.PREFIX_APP;
+import static com.android.SdkConstants.SHERPA_URI;
+import static com.android.SdkConstants.TAG_INCLUDE;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VALUE_MATCH_CONSTRAINT;
+import static com.android.SdkConstants.VALUE_N_DP;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.android.SdkConstants.VALUE_ZERO_DP;
 import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.BEGIN;
 import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.END;
 import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.PERCENT;
@@ -1435,9 +1513,9 @@ public final class ConstraintComponentUtilities {
 
   public static boolean hasUserResizedHorizontally(@NotNull NlComponent component) {
     String dimension = component.getAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH);
-    assert dimension != null;
+    assert dimension != null || TAG_INCLUDE.equals(component.getTagName());
 
-    if (dimension.equalsIgnoreCase(VALUE_WRAP_CONTENT)) {
+    if (dimension == null || dimension.equalsIgnoreCase(VALUE_WRAP_CONTENT)) {
       return false;
     }
 
@@ -1446,9 +1524,9 @@ public final class ConstraintComponentUtilities {
 
   public static boolean hasUserResizedVertically(@NotNull NlComponent component) {
     String dimension = component.getAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT);
-    assert dimension != null;
+    assert dimension != null || TAG_INCLUDE.equals(component.getTagName());
 
-    if (dimension.equalsIgnoreCase(VALUE_WRAP_CONTENT)) {
+    if (dimension == null || dimension.equalsIgnoreCase(VALUE_WRAP_CONTENT)) {
       return false;
     }
 
