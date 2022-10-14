@@ -17,7 +17,6 @@ package com.android.tools.idea.run.editor;
 
 
 import com.android.tools.adtui.ui.ClickableLabel;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.intellij.openapi.project.Project;
@@ -27,6 +26,7 @@ import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.components.JBTextField;
+import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.SwingHelper;
 import com.intellij.util.ui.UIUtil;
 import javax.swing.DefaultComboBoxModel;
@@ -121,12 +121,14 @@ public class AndroidProfilersPanel {
     myNativeMemoryProfilerSampleRate.getComponent().setText(Integer.toString(state.NATIVE_MEMORY_SAMPLE_RATE_BYTES));
     myNativeMemoryRateProfilerDescription.setBackground(myDescription.getBackground());
     myNativeMemoryRateProfilerDescription.setForeground(UIUtil.getContextHelpForeground());
+    myNativeMemoryRateProfilerDescription.setFont(JBFont.small());
 
     myStartupProfileCheckBox.setSelected(state.STARTUP_PROFILING_ENABLED);
     myCpuRecordingRadio.setSelected(state.STARTUP_CPU_PROFILING_ENABLED);
     myMemoryRecordingRadio.setSelected(state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED);
     myStartupCpuProfilerDescription.setBackground(myDescription.getBackground());
     myStartupCpuProfilerDescription.setForeground(UIUtil.getContextHelpForeground());
+    myStartupCpuProfilerDescription.setFont(JBFont.small());
 
     String name = state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
     CpuProfilerConfig config = CpuProfilerConfigsState.getInstance(myProject).getConfigByName(name);
@@ -157,6 +159,7 @@ public class AndroidProfilersPanel {
   private void createUIComponents() {
     myAdvancedProfilingDescription =
       SwingHelper.createHtmlViewer(true, null, UIUtil.getPanelBackground(), UIUtil.getContextHelpForeground());
+    myAdvancedProfilingDescription.setFont(JBFont.small());
     myAdvancedProfilingDescription.setText(
       "<html>Adds support for network payloads, the event timeline, allocated object count and garbage collection events on devices" +
       " running API level < 26. May slightly increase build time due to compile-time instrumentation. Has no effect on devices running" +

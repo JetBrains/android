@@ -35,7 +35,7 @@
         </constraints>
         <properties>
           <editable value="false"/>
-          <font size="11"/>
+          <font/>
         </properties>
       </component>
       <component id="918bc" class="com.android.tools.adtui.ui.ClickableLabel" binding="myStartupProfileLabel">
@@ -56,7 +56,7 @@
           <doubleBuffered value="false"/>
           <editable value="false"/>
           <enabled value="true"/>
-          <font size="11"/>
+          <font/>
           <margin top="0" left="3" bottom="0" right="3"/>
           <text value="Native memory sampling rate. This value when set will remain for both startup and non-startup recordings." noi18n="true"/>
         </properties>
@@ -143,7 +143,7 @@
           <doubleBuffered value="false"/>
           <editable value="false"/>
           <enabled value="true"/>
-          <font size="11"/>
+          <font/>
           <margin top="0" left="3" bottom="0" right="3"/>
           <text value="You must select Run &gt; Profile from the main menu and deploy your app to a device" noi18n="true"/>
         </properties>
