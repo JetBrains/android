@@ -300,9 +300,10 @@ class RuleDetailsViewTest {
       assertThat(it.ruleDetailUpdated.component).isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.URL_PORT)
     }
 
+    // A '/' prefix should be added to path automatically if not already there.
     val pathComponent = findComponentWithUniqueName(ruleDetailsView, "pathTextField") as JTextField
     assertThat(pathComponent.text).isEmpty()
-    pathComponent.text = "/path"
+    pathComponent.text = "path"
     pathComponent.onFocusLost()
     tracker.verifyLatestEvent {
       assertThat(it.type).isEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)

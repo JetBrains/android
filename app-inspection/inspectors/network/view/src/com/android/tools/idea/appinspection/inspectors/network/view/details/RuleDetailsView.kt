@@ -44,6 +44,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.table.TableView
+import com.intellij.util.applyIf
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import java.awt.BorderLayout
@@ -221,7 +222,8 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
     (portTextField.document as AbstractDocument).documentFilter = ClearWarningLabelDocumentFilter(portWarningLabel)
     val portPanel = createPanelWithTextFieldAndWarningLabel(portTextField, portWarningLabel)
 
-    val pathTextField = createTextField(rule.criteria.path, "search", "pathTextField") { text ->
+    val pathTextField = createTextField(rule.criteria.path, "search", "pathTextField") { input ->
+      val text = input.applyIf(input.isNotBlank() && !input.startsWith('/')) { "/$input" }
       rule.criteria.apply {
         if (path != text) {
           path = text
