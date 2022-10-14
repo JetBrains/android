@@ -1,4 +1,4 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -83,4 +83,42 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.emulator.integration",
+    enable_tests = False,  # Integration tests have to run alone
+    iml_files = ["intellij.android.emulator.integration.iml"],
+    test_friends = ["//tools/adt/idea/emulator:intellij.android.emulator"],
+    test_srcs = ["integration"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+    ],
+)
+
+iml_test(
+    name = "ScreenSharingAgentTest",
+    data = [
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//tools/adt/idea/emulator/screen-sharing-agent",
+        "//tools/adt/idea/emulator/screen-sharing-agent:native/x86_64/libscreen-sharing-agent.so",
+        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+    ],
+    module = ":intellij.android.emulator.integration",
+    tags = ["no_windows"],
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.device.ScreenSharingAgentTestSuite",
 )

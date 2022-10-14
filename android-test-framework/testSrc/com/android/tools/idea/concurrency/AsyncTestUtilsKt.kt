@@ -24,6 +24,12 @@ import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import kotlin.time.Duration
+
+@JvmSynthetic
+fun waitForCondition(timeout: Duration, condition: () -> Boolean) {
+  waitForCondition(timeout.inWholeMicroseconds, TimeUnit.MILLISECONDS, condition)
+}
 
 /**
  * Waits until the given condition is satisfied while processing events.

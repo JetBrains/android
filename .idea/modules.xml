@@ -178,6 +178,7 @@
       <module fileurl="file://$PROJECT_DIR$/device-monitor-toolwindow/intellij.android.device-monitor-toolwindow.iml" filepath="$PROJECT_DIR$/device-monitor-toolwindow/intellij.android.device-monitor-toolwindow.iml" />
       <module fileurl="file://$PROJECT_DIR$/device-monitor-toolwindow/intellij.android.device-monitor-toolwindow.tests.iml" filepath="$PROJECT_DIR$/device-monitor-toolwindow/intellij.android.device-monitor-toolwindow.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/emulator/intellij.android.emulator.iml" filepath="$PROJECT_DIR$/emulator/intellij.android.emulator.iml" />
+      <module fileurl="file://$PROJECT_DIR$/emulator/intellij.android.emulator.integration.iml" filepath="$PROJECT_DIR$/emulator/intellij.android.emulator.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/emulator/intellij.android.emulator.tests.iml" filepath="$PROJECT_DIR$/emulator/intellij.android.emulator.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/glance-designer/intellij.android.glance-designer.iml" filepath="$PROJECT_DIR$/glance-designer/intellij.android.glance-designer.iml" />
       <module fileurl="file://$PROJECT_DIR$/glance-designer/intellij.android.glance-designer.tests.iml" filepath="$PROJECT_DIR$/glance-designer/intellij.android.glance-designer.tests.iml" />
