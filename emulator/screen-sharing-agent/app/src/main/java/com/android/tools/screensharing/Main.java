@@ -21,7 +21,6 @@ import android.util.Log;
 public class Main {
   @SuppressLint("UnsafeDynamicallyLoadedCode")
   public static void main(String[] args) {
-    Log.d("ScreenSharing", "Main.main");
     try {
       System.load("/data/local/tmp/.studio/libscreen-sharing-agent.so");
     }
