@@ -42,4 +42,26 @@ class DownloadsAnalyzerResultMessageConverterTest {
     val resultConverted = DownloadsAnalyzerResultMessageConverter.construct(resultMessage)
     Truth.assertThat(resultConverted).isEqualTo(downloadResult)
   }
+
+  @Test
+  fun testNullFailureMessage() {
+    val repoResult = DownloadsAnalyzer.RepositoryResult(
+      DownloadsAnalyzer.OtherRepository("repository"),
+      listOf(
+        DownloadsAnalyzer.DownloadResult(
+          123,
+          DownloadsAnalyzer.OtherRepository("repository"),
+          "url",
+          DownloadsAnalyzer.DownloadStatus.SUCCESS,
+          1234,
+          5678,
+          null
+        )
+      )
+    )
+    val downloadResult = DownloadsAnalyzer.ActiveResult(listOf(repoResult))
+    val resultMessage = DownloadsAnalyzerResultMessageConverter.transform(downloadResult)
+    val resultConverted = DownloadsAnalyzerResultMessageConverter.construct(resultMessage)
+    Truth.assertThat(resultConverted).isEqualTo(downloadResult)
+  }
 }
