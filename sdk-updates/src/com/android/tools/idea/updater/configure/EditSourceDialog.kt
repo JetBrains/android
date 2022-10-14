@@ -23,9 +23,9 @@ import com.intellij.credentialStore.Credentials
 import com.intellij.credentialStore.OneTimeString
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.text
-import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.ui.layout.selected
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
@@ -119,13 +119,13 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
       row("Name:") {
         nameField = textField()
           .text(existingSource?.displayName ?: "Custom Update Site")
-          .horizontalAlign(HorizontalAlign.FILL)
+          .align(AlignX.FILL)
           .component
       }
       row("URL:") {
         urlField = textField()
           .text(existingSource?.url ?: "http://")
-          .horizontalAlign(HorizontalAlign.FILL)
+          .align(AlignX.FILL)
           .applyToComponent {
             addActionListener {
               myUrlSet = true
@@ -158,13 +158,13 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
           row("Login:") {
             loginField = textField()
               .applyToComponent { text = existingAuth?.userName }
-              .horizontalAlign(HorizontalAlign.FILL)
+              .align(AlignX.FILL)
               .component
           }
           row("Password:") {
             passwordField = passwordField()
               .applyToComponent { text = existingAuth?.let { OneTimeString(existingAuth.password, clearable = true).toString() } }
-              .horizontalAlign(HorizontalAlign.FILL)
+              .align(AlignX.FILL)
               .component
           }
         }.enabledIf(useAuthentication.selected)

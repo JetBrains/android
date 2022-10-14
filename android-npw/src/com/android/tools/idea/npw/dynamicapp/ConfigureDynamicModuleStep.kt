@@ -33,9 +33,9 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle
 import javax.swing.JCheckBox
@@ -57,28 +57,28 @@ class ConfigureDynamicModuleStep(
 
   override fun createMainPanel(): DialogPanel = panel {
     row("Base Application Module") {
-      cell(baseApplication).horizontalAlign(HorizontalAlign.FILL)
+      cell(baseApplication).align(AlignX.FILL)
     }
 
     row(contextLabel("Module name", AndroidBundle.message("android.wizard.module.help.name"))) {
-      cell(moduleName).horizontalAlign(HorizontalAlign.FILL)
+      cell(moduleName).align(AlignX.FILL)
     }
 
     row("Package name") {
-      cell(packageName).horizontalAlign(HorizontalAlign.FILL)
+      cell(packageName).align(AlignX.FILL)
     }
 
     row("Language") {
-      cell(languageCombo).horizontalAlign(HorizontalAlign.FILL)
+      cell(languageCombo).align(AlignX.FILL)
     }
 
     row("Minimum SDK") {
-      cell(apiLevelCombo).horizontalAlign(HorizontalAlign.FILL)
+      cell(apiLevelCombo).align(AlignX.FILL)
     }
 
     if (model.isInstant) {
       row(contextLabel("Module title", "This may be visible to users")) {
-        cell(moduleTitle).horizontalAlign(HorizontalAlign.FILL)
+        cell(moduleTitle).align(AlignX.FILL)
       }
     }
 
