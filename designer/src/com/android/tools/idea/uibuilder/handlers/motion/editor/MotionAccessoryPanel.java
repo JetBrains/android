@@ -22,6 +22,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlDependencyManager;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
@@ -301,7 +302,10 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     myMotionScene = motionScene;
 
     myMotionSceneFile = (motionScene == null) ? null : motionScene.mVirtualFile;
-    mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "", getSetupError());
+    final VirtualFile sceneFile = myMotionSceneFile;
+    String sceneFileName = (sceneFile == null) ? "" : sceneFile.getName();
+    String layoutFileName = getLayoutFileName(surface);
+    mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, layoutFileName, sceneFileName, getSetupError());
     if (myMotionScene == null) {
       return;
     }
@@ -319,6 +323,15 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     AndroidFacet facet = parent.getModel().getFacet();
     ResourceNotificationManager.getInstance(myProject).addListener(myResourceListener, facet, null, null);
     handleSelectionChanged(designSurfaceSelection, dsSelection);
+  }
+
+  @NotNull
+  private static String getLayoutFileName(@NotNull NlDesignSurface surface) {
+    NlModel model = surface.getModel();
+    if (model == null) {
+      return "";
+    }
+    return model.getVirtualFile().getName().replace(SdkConstants.DOT_XML, "");
   }
 
   @NotNull
