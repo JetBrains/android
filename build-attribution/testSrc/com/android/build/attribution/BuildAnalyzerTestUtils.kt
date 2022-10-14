@@ -18,6 +18,7 @@ package com.android.build.attribution
 import com.android.build.attribution.analyzers.AlwaysRunTasksAnalyzer
 import com.android.build.attribution.analyzers.AnalyzerNotRun
 import com.android.build.attribution.analyzers.AnnotationProcessorsAnalyzer
+import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.CriticalPathAnalyzer
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.GarbageCollectionAnalyzer
@@ -27,12 +28,19 @@ import com.android.build.attribution.analyzers.NoncacheableTasksAnalyzer
 import com.android.build.attribution.analyzers.ProjectConfigurationAnalyzer
 import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.analyzers.TasksConfigurationIssuesAnalyzer
+import com.android.build.attribution.data.BuildRequestHolder
+import com.android.build.attribution.data.PluginContainer
+import com.android.build.attribution.data.TaskContainer
+import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode
+import com.intellij.openapi.project.Project
 import java.io.File
+import java.util.UUID
+import java.util.concurrent.Future
 
 fun BuildAnalyzerStorageManager.getSuccessfulResult() = getLatestBuildAnalysisResults()  as BuildAnalysisResults
-fun constructEmptyBuildResultsObject(buildSessionId: String, projectRoot: File): BuildAnalysisResults {
+fun constructEmptyBuildResultsObject(buildSessionId: String, projectRoot: File, repositoryResults : List<DownloadsAnalyzer.RepositoryResult> = emptyList()): BuildAnalysisResults {
   return BuildAnalysisResults(
     GradleBuildInvoker.Request.RequestData(
       BuildMode.DEFAULT_BUILD_MODE,
@@ -57,10 +65,41 @@ fun constructEmptyBuildResultsObject(buildSessionId: String, projectRoot: File):
     TasksConfigurationIssuesAnalyzer.Result(emptyList()),
     NoIncompatiblePlugins(emptyList()),
     JetifierUsageAnalyzerResult(AnalyzerNotRun),
-    DownloadsAnalyzer.ActiveResult(repositoryResults = emptyList()),
+    DownloadsAnalyzer.ActiveResult(repositoryResults = repositoryResults),
     TaskCategoryWarningsAnalyzer.IssuesResult(emptyList()),
     buildSessionId,
     emptyMap(),
     emptyMap()
   )
+}
+
+internal fun constructBuildAnalyzerResultData(project: Project,
+                                             buildStartedTimestamp: Long = 12345,
+                                             buildFinishedTimestamp: Long = 12345,
+                                             buildID: String = UUID.randomUUID().toString()): BuildAnalyzerStorageManagerTest.BuildAnalyzerResultData {
+  val taskContainer = TaskContainer()
+  val pluginContainer = PluginContainer()
+  val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
+  val setPrivateField: (Any, String, Any) -> Unit = { classInstance: Any, fieldName: String, newValue: Any ->
+    val field = classInstance.javaClass.getDeclaredField(fieldName)
+    field.isAccessible = true
+    field.set(classInstance, newValue)
+  }
+  val criticalPathAnalyzer = analyzersProxy.criticalPathAnalyzer
+  setPrivateField(criticalPathAnalyzer, "buildStartedTimestamp", buildStartedTimestamp)
+  setPrivateField(criticalPathAnalyzer, "buildFinishedTimestamp", buildFinishedTimestamp)
+  val request = GradleBuildInvoker.Request
+    .builder(project, Projects.getBaseDirPath(project), "assembleDebug").build()
+  return BuildAnalyzerStorageManagerTest.BuildAnalyzerResultData(analyzersProxy, buildID, BuildRequestHolder(request))
+}
+
+internal fun storeBuildAnalyzerResultData(project: Project,
+                                         buildStartedTimestamp: Long = 12345,
+                                         buildFinishedTimestamp: Long = 12345,
+                                         buildID: String = UUID.randomUUID().toString()): Future<BuildAnalysisResults> {
+  val result = constructBuildAnalyzerResultData(project, buildStartedTimestamp, buildFinishedTimestamp, buildID)
+  return BuildAnalyzerStorageManager.getInstance(project).storeNewBuildResults(
+    result.analyzersProxy,
+    result.buildID,
+    result.buildRequestHolder)
 }
