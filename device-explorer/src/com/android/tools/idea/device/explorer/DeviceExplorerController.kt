@@ -18,7 +18,7 @@ package com.android.tools.idea.device.explorer
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.device.explorer.files.DeviceExplorerFilesController
+import com.android.tools.idea.device.explorer.files.DeviceFileExplorerController
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorController
 import com.android.tools.idea.device.explorer.ui.DeviceExplorerView
 import com.android.tools.idea.device.explorer.ui.DeviceExplorerViewListener
@@ -32,7 +32,7 @@ class DeviceExplorerController(
   project: Project,
   private val model: DeviceExplorerModel,
   private val view: DeviceExplorerView,
-  private val deviceFilesController: DeviceExplorerFilesController,
+  private val deviceFilesController: DeviceFileExplorerController,
   private val deviceMonitorController: DeviceMonitorController) : Disposable {
 
   private val uiThreadScope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
@@ -50,8 +50,10 @@ class DeviceExplorerController(
   fun setup() {
     uiThreadScope.launch {
       view.setup()
-      view.addTab(deviceMonitorController.getViewComponent(), "Processes")
+      deviceFilesController.setup()
+      view.addTab(deviceFilesController.getViewComponent(), "Files")
       deviceMonitorController.setup()
+      view.addTab(deviceMonitorController.getViewComponent(), "Processes")
       launch { view.trackDeviceListChanges() }
       launch { view.trackActiveDeviceChanges() }
     }
@@ -61,11 +63,13 @@ class DeviceExplorerController(
     override fun noDeviceSelected() {
       model.setActiveDevice(null)
       deviceMonitorController.activeDeviceChanged(null)
+      deviceFilesController.setActiveConnectedDevice(null, null)
     }
 
     override fun deviceSelected(deviceHandle: DeviceHandle) {
       model.setActiveDevice(deviceHandle)
       deviceMonitorController.activeDeviceChanged(deviceHandle.state.connectedDevice)
+      deviceFilesController.setActiveConnectedDevice(deviceHandle, deviceHandle.state.connectedDevice)
     }
   }
 }

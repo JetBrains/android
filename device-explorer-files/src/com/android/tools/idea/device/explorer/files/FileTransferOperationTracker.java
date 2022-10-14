@@ -16,10 +16,6 @@
 package com.android.tools.idea.device.explorer.files;
 
 import com.android.tools.adtui.util.HumanReadableUtil;
-import com.android.tools.idea.device.explorer.files.FileTransferSummary;
-import com.android.tools.idea.device.explorer.files.FileTransferWorkEstimate;
-import com.android.tools.idea.device.explorer.files.FileTransferWorkEstimator;
-import com.android.tools.idea.device.explorer.files.LongRunningOperationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ExceptionUtil;
@@ -29,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link LongRunningOperationTracker} class that tracks progress of a file transfer
- * and reports progress to a {@link DeviceExplorerView} progress panel.
+ * and reports progress to a {@link DeviceFileExplorerView} progress panel.
  *
  * <p>When the file transfer is done, the {@link #getSummary()} method returns a
  * {@link FileTransferSummary} instance containing various counters and optionally
@@ -45,7 +41,7 @@ public class FileTransferOperationTracker extends LongRunningOperationTracker {
   @SuppressWarnings("unused") private int myCurrentDirectoryCount;
   @SuppressWarnings("unused") private int myTotalDirectoryCount;
 
-  public FileTransferOperationTracker(@NotNull DeviceExplorerView view, boolean backgroundable) {
+  public FileTransferOperationTracker(@NotNull DeviceFileExplorerView view, boolean backgroundable) {
     super(view, backgroundable);
     mySummary = new FileTransferSummary();
   }

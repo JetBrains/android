@@ -15,28 +15,22 @@
  */
 package com.android.tools.idea.device.explorer.files;
 
-import com.android.tools.idea.device.explorer.files.DeviceExplorerViewListener;
-import com.android.tools.idea.device.explorer.files.DeviceExplorerViewProgressListener;
-import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode;
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem;
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystemService;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
-public interface DeviceExplorerView {
+public interface DeviceFileExplorerView {
+  JComponent getComponent();
   void addListener(@NotNull DeviceExplorerViewListener listener);
   void removeListener(@NotNull DeviceExplorerViewListener listener);
 
   void setup();
 
-  void startRefresh(@NotNull String text);
-  void stopRefresh();
-
   void showNoDeviceScreen();
 
-  void reportErrorRelatedToService(@NotNull DeviceFileSystemService service, @NotNull String message, @NotNull Throwable t);
   void reportErrorRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message, @NotNull Throwable t);
   void reportErrorRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message, @NotNull Throwable t);
-  void reportErrorGeneric(@NotNull String message, @NotNull Throwable t);
 
   void reportMessageRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message);
   void reportMessageRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message);

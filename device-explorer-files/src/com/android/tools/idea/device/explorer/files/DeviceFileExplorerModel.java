@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.device.explorer.files;
 
-import com.android.tools.idea.device.explorer.files.DeviceExplorerModelListener;
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem;
-import com.android.tools.idea.device.explorer.files.fs.DeviceState;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -31,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  * their file system and also associated state changes to via the
  * {@link DeviceExplorerModelListener} listener class.
  */
-public class DeviceExplorerModel {
+public class DeviceFileExplorerModel {
   @NotNull private final List<DeviceExplorerModelListener> myListeners = new ArrayList<>();
   @NotNull private final List<DeviceFileSystem> myDevices = new ArrayList<>();
   @Nullable private DeviceFileSystem myActiveDevice;
@@ -50,7 +48,6 @@ public class DeviceExplorerModel {
 
   public void setActiveDevice(@Nullable DeviceFileSystem activeDevice) {
     myActiveDevice = activeDevice;
-    myListeners.forEach(x -> x.activeDeviceChanged(myActiveDevice));
     setActiveDeviceTreeModel(activeDevice, null, null);
   }
 
@@ -88,25 +85,5 @@ public class DeviceExplorerModel {
     myTreeModel = treeModel;
     myTreeSelectionModel = treeSelectionModel;
     myListeners.forEach(x -> x.treeModelChanged(treeModel, treeSelectionModel));
-  }
-
-  public void addDevice(@NotNull DeviceFileSystem device) {
-    if (myDevices.contains(device))
-      return;
-    myDevices.add(device);
-    myListeners.forEach(l -> l.deviceAdded(device));
-  }
-
-  public void removeDevice(@NotNull DeviceFileSystem device) {
-    if (!myDevices.contains(device))
-      return;
-    myListeners.forEach(l -> l.deviceRemoved(device));
-    myDevices.remove(device);
-  }
-
-  public void updateDevice(@NotNull DeviceFileSystem device) {
-    if (!myDevices.contains(device))
-      return;
-    myListeners.forEach(l -> l.deviceUpdated(device));
   }
 }

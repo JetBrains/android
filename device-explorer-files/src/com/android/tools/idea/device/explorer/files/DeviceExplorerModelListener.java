@@ -24,27 +24,6 @@ import org.jetbrains.annotations.Nullable;
 public interface DeviceExplorerModelListener {
 
   /**
-   * A new device has been discovered, e.g. attached to a USB port.
-   */
-  void deviceAdded(@NotNull DeviceFileSystem device);
-
-  /**
-   * An existing device is not available anymore, e.g. disconnected
-   * from the USB port.
-   */
-  void deviceRemoved(@NotNull DeviceFileSystem device);
-
-  /**
-   * The state of an existing device has changed, e.g. online -> offline.
-   */
-  void deviceUpdated(@NotNull DeviceFileSystem device);
-
-  /**
-   * The currently active device has changed.
-   */
-  void activeDeviceChanged(@Nullable DeviceFileSystem newActiveDevice);
-
-  /**
    * The tree model of the file system has just changed, e.g. just after
    * the currently active device has changed.
    *

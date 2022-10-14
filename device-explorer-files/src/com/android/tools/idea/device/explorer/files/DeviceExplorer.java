@@ -18,8 +18,7 @@ package com.android.tools.idea.device.explorer.files;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.device.explorer.files.DeviceExplorerController;
-import com.android.tools.idea.device.explorer.files.DeviceExplorerToolWindowFactory;
+import com.android.tools.idea.device.explorer.files.DeviceFileExplorerController;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -42,7 +41,7 @@ public class DeviceExplorer {
       return;
     }
 
-    DeviceExplorerController controller = DeviceExplorerController.getProjectController(project);
+    DeviceFileExplorerController controller = DeviceFileExplorerController.getProjectController(project);
     assert controller != null;
     assert AndroidDebugBridge.getBridge() != null;
 
@@ -51,12 +50,6 @@ public class DeviceExplorer {
         Arrays.stream(AndroidDebugBridge.getBridge().getDevices())
             .filter(device -> avdName.equals(device.getAvdName()))
             .findAny();
-    if (!optionalIDevice.isPresent()) {
-      controller.reportErrorFindingDevice("Unable to find AVD " + avdName + " by name. Please retry.");
-      return;
-    }
-
-    controller.selectActiveDevice(optionalIDevice.get().getSerialNumber());
   }
 
   /** Shows Device Explorer and selects the device with the given serial number. */
@@ -65,16 +58,15 @@ public class DeviceExplorer {
       return;
     }
 
-    DeviceExplorerController controller = DeviceExplorerController.getProjectController(project);
+    DeviceFileExplorerController controller = DeviceFileExplorerController.getProjectController(project);
     assert controller != null;
 
-    controller.selectActiveDevice(serialNumber);
   }
 
   /** Shows Device Explorer, creating it if necessary. */
   public static boolean showToolWindow(Project project) {
     ToolWindow toolWindow = ToolWindowManager.getInstance(project)
-        .getToolWindow(DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID);
+        .getToolWindow("Device Explorer Tool Window ID");
 
     if (toolWindow != null) {
       toolWindow.show();

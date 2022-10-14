@@ -21,7 +21,7 @@ import org.jetbrains.annotations.PropertyKey
 import java.util.ResourceBundle
 import java.util.function.Supplier
 
-private const val BUNDLE_NAME = "messages.DeviceFileExplorerToolWindowBundle"
+private const val BUNDLE_NAME = "messages.DeviceFileExplorerBundle"
 
 class DeviceExplorerBundle private constructor() {
   companion object {

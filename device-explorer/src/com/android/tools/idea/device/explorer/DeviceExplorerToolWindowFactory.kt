@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.device.explorer
 
-import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
-import com.android.tools.idea.device.explorer.files.DeviceExplorerFilesController
-import com.android.tools.idea.device.explorer.files.DeviceExplorerFilesModel
-import com.android.tools.idea.device.explorer.files.ui.DeviceExplorerFilesViewImpl
+import com.android.tools.idea.device.explorer.files.DeviceExplorerFileManager
+import com.android.tools.idea.device.explorer.files.DeviceFileExplorerController
+import com.android.tools.idea.device.explorer.files.DeviceFileExplorerModel
+import com.android.tools.idea.device.explorer.files.adbimpl.AdbDeviceFileSystemService
+import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerViewImpl
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorController
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
+import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorViewImpl
 import com.android.tools.idea.device.explorer.ui.DeviceExplorerViewImpl
@@ -31,11 +33,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import icons.StudioIcons
+import java.nio.file.Path
 
 class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
 
   override fun isApplicable(project: Project) =
-    StudioFlags.ADB_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()  && isAndroidEnvironment(project)
+    StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()  && isAndroidEnvironment(project)
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     toolWindow.setIcon(StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER)
@@ -45,7 +48,7 @@ class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
     val model = DeviceExplorerModel(project)
     val view = DeviceExplorerViewImpl(project, model)
     val deviceMonitorController = createDeviceMonitorController(project)
-    val deviceFilesController = createDeviceFilesController()
+    val deviceFilesController = createDeviceFilesController(project)
     val deviceExplorerController = DeviceExplorerController(project, model, view, deviceFilesController, deviceMonitorController)
     deviceExplorerController.setup()
     val contentManager = toolWindow.contentManager
@@ -61,10 +64,17 @@ class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
     return DeviceMonitorController(project, model, view, adbService)
   }
 
-  private fun createDeviceFilesController(): DeviceExplorerFilesController {
-    val model = DeviceExplorerFilesModel()
-    val view = DeviceExplorerFilesViewImpl()
-    return DeviceExplorerFilesController(model, view)
+  private fun createDeviceFilesController(project: Project): DeviceFileExplorerController {
+    val adbService = project.getService(AdbDeviceFileSystemService::class.java)
+    val fileManager = project.getService(DeviceExplorerFileManager::class.java)
+    val model = DeviceFileExplorerModel()
+    val view = DeviceFileExplorerViewImpl(project, model, TOOL_WINDOW_ID)
+    return DeviceFileExplorerController(project, model, view, adbService, fileManager,
+                                        object : DeviceFileExplorerController.FileOpener {
+                                          override suspend fun openFile(localPath: Path) {
+                                            fileManager.openFile(localPath)
+                                          }
+                                        })
   }
 
   companion object {

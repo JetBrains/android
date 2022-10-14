@@ -18,15 +18,13 @@ package com.android.tools.idea.device.explorer.files.ui;
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
 
-import com.android.tools.idea.device.explorer.files.DeviceExplorerModel;
+import com.android.tools.idea.device.explorer.files.DeviceFileExplorerModel;
 import com.android.tools.idea.device.explorer.files.DeviceExplorerModelListener;
-import com.android.tools.idea.device.explorer.files.DeviceExplorerToolWindowFactory;
-import com.android.tools.idea.device.explorer.files.DeviceExplorerView;
+import com.android.tools.idea.device.explorer.files.DeviceFileExplorerView;
 import com.android.tools.idea.device.explorer.files.DeviceExplorerViewListener;
 import com.android.tools.idea.device.explorer.files.DeviceExplorerViewProgressListener;
 import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode;
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem;
-import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystemRenderer;
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystemService;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.dnd.FileCopyPasteUtil;
@@ -59,7 +57,6 @@ import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
@@ -74,34 +71,29 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-public class DeviceExplorerViewImpl implements DeviceExplorerView {
+public class DeviceFileExplorerViewImpl implements DeviceFileExplorerView {
   @NotNull private final List<DeviceExplorerViewListener> myListeners = new ArrayList<>();
   @NotNull private final List<DeviceExplorerViewProgressListener> myProgressListeners = new ArrayList<>();
-  @NotNull private final DeviceFileSystemRenderer myDeviceRenderer;
   @NotNull private final DeviceExplorerPanel myPanel;
   @NotNull private final JBLoadingPanel myLoadingPanel;
   @Nullable private ComponentPopupMenu myTreePopupMenu;
   private int myTreeLoadingCount;
+  @NotNull private final String myToolWindowID;
 
-  public DeviceExplorerViewImpl(@NotNull Project project,
-                                @NotNull DeviceFileSystemRenderer renderer,
-                                @NotNull DeviceExplorerModel model) {
+  public DeviceFileExplorerViewImpl(@NotNull Project project,
+                                    @NotNull DeviceFileExplorerModel model,
+                                    @NotNull String toolWindowID) {
     model.addListener(new ModelListener());
-    myDeviceRenderer = renderer;
     myPanel = new DeviceExplorerPanel();
     myPanel.setCancelActionListener(e -> myProgressListeners.forEach(DeviceExplorerViewProgressListener::cancellationRequested));
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project);
+    myToolWindowID = toolWindowID;
   }
 
   @NotNull
+  @Override
   public JComponent getComponent() {
     return myLoadingPanel;
-  }
-
-  @TestOnly
-  @Nullable
-  public JComboBox<DeviceFileSystem> getDeviceCombo() {
-    return myPanel.getDeviceCombo();
   }
 
   @TestOnly
@@ -154,18 +146,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   }
 
   @Override
-  public void reportErrorRelatedToService(@NotNull DeviceFileSystemService service, @NotNull String message, @NotNull Throwable t) {
-    if (t.getMessage() != null) {
-      message += ": " + t.getMessage();
-    }
-
-    // If the file system service (i.e. ADB under the hood) had an error, there are no devices
-    // to show until the user takes an action, so we show the error "layer", hiding the other
-    // controls.
-    myPanel.showErrorMessageLayer(message, false);
-  }
-
-  @Override
   public void reportErrorRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message, @NotNull Throwable t) {
     if (t.getMessage() != null) {
       message += ": " + t.getMessage();
@@ -173,39 +153,34 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
     // If there is an error related to a device, show the error "layer", hiding the other
     // controls, until the user takes some action to fix the issue.
-    myPanel.showErrorMessageLayer(message, true);
+    myPanel.showErrorMessageLayer(message);
   }
 
   @Override
   public void reportErrorRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message, @NotNull Throwable t) {
-    reportError(message, t);
-  }
-
-  @Override
-  public void reportErrorGeneric(@NotNull String message, @NotNull Throwable t) {
-    reportError(message, t);
+    reportError(message, t, myToolWindowID);
   }
 
   @Override
   public void reportMessageRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message) {
-    myPanel.showMessageLayer(message, true);
+    myPanel.showMessageLayer(message);
   }
 
   @Override
   public void reportMessageRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message) {
-    reportMessage(message);
+    reportMessage(message, myToolWindowID);
   }
 
-  private static void reportMessage(@NotNull String message) {
-    Notification notification = new Notification(DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID,
-                                                 DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID,
+  private static void reportMessage(@NotNull String message, @NotNull String toolWindowID) {
+    Notification notification = new Notification(toolWindowID,
+                                                 toolWindowID,
                                                  message,
                                                  NotificationType.INFORMATION);
 
     ApplicationManager.getApplication().invokeLater(() -> Notifications.Bus.notify(notification));
   }
 
-  private static void reportError(@NotNull String message, @NotNull Throwable t) {
+  private static void reportError(@NotNull String message, @NotNull Throwable t, @NotNull String toolWindowID) {
     if (t instanceof CancellationException) {
       return;
     }
@@ -214,8 +189,8 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
       message += ": " + t.getMessage();
     }
 
-    Notification notification = new Notification(DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID,
-                                                 DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID,
+    Notification notification = new Notification(toolWindowID,
+                                                 toolWindowID,
                                                  message,
                                                  NotificationType.WARNING);
 
@@ -224,19 +199,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
   private void setupPanel() {
     myLoadingPanel.add(myPanel.getComponent(), BorderLayout.CENTER);
-
-    myPanel.getDeviceCombo().setRenderer(myDeviceRenderer.getDeviceNameListRenderer());
-
-    myPanel.getDeviceCombo().addActionListener(actionEvent -> {
-      Object sel = myPanel.getDeviceCombo().getSelectedItem();
-      if (sel instanceof DeviceFileSystem) {
-        DeviceFileSystem device = (DeviceFileSystem)sel;
-        myListeners.forEach(x -> x.deviceSelected(device));
-      }
-      else {
-        myListeners.forEach(DeviceExplorerViewListener::noDeviceSelected);
-      }
-    });
 
     Tree tree = myPanel.getTree();
     tree.addTreeWillExpandListener(new TreeWillExpandListener() {
@@ -310,8 +272,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
 
     createTreePopupMenu();
-    myLoadingPanel.setLoadingText("Initializing ADB");
-    myLoadingPanel.startLoading();
   }
 
   private void createTreePopupMenu() {
@@ -372,22 +332,9 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   }
 
   @Override
-  public void startRefresh(@NotNull String text) {
-    myPanel.showMessageLayer("", false);
-    myLoadingPanel.setLoadingText(text);
-    myLoadingPanel.startLoading();
-  }
-
-  @Override
-  public void stopRefresh() {
-    myLoadingPanel.stopLoading();
-  }
-
-  @Override
   public void showNoDeviceScreen() {
     myPanel.showMessageLayer("Connect a device via USB cable or run an Android Virtual Device",
-                             AndroidIcons.DeviceExplorer.DevicesLineup,
-                             false);
+                             AndroidIcons.DeviceExplorer.DevicesLineup);
   }
 
   public void setRootFolder(@Nullable DefaultTreeModel model, @Nullable DefaultTreeSelectionModel treeSelectionModel) {
@@ -483,30 +430,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   }
 
   private class ModelListener implements DeviceExplorerModelListener {
-
-    @Override
-    public void deviceAdded(@NotNull DeviceFileSystem device) {
-      myPanel.getDeviceCombo().addItem(device);
-    }
-
-    @Override
-    public void deviceRemoved(@NotNull DeviceFileSystem device) {
-      myPanel.getDeviceCombo().removeItem(device);
-    }
-
-    @Override
-    public void deviceUpdated(@NotNull DeviceFileSystem device) {
-      if (myPanel.getDeviceCombo().getSelectedItem() == device) {
-        myPanel.getDeviceCombo().repaint();
-      }
-    }
-
-    @Override
-    public void activeDeviceChanged(@Nullable DeviceFileSystem newActiveDevice) {
-      if (newActiveDevice != null && !newActiveDevice.equals(myPanel.getDeviceCombo().getSelectedItem())) {
-        myPanel.getDeviceCombo().setSelectedItem(newActiveDevice);
-      }
-    }
 
     @Override
     public void treeModelChanged(@Nullable DefaultTreeModel newTreeModel, @Nullable DefaultTreeSelectionModel newTreeSelectionModel) {

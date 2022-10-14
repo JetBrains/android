@@ -21,16 +21,16 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class of all long-running operations that need to be tracked with
- * the progress panel of a {@link DeviceExplorerView} instance.
+ * the progress panel of a {@link DeviceFileExplorerView} instance.
  */
 abstract class LongRunningOperationTracker implements Disposable {
-  @Nullable private DeviceExplorerView myView;
+  @Nullable private DeviceFileExplorerView myView;
   private final boolean myBackgroundable;
   @NotNull private final DeviceExplorerViewProgressListener myProgressListener = () -> myIsCancelled = true;
   private boolean myIsCancelled;
   private long myStartNanoTime;
 
-  public LongRunningOperationTracker(@NotNull DeviceExplorerView view, boolean backgroundable) {
+  public LongRunningOperationTracker(@NotNull DeviceFileExplorerView view, boolean backgroundable) {
     myView = view;
     myBackgroundable = backgroundable;
   }

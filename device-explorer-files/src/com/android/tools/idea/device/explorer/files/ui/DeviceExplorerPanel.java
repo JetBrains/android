@@ -59,7 +59,6 @@ import org.jetbrains.annotations.TestOnly;
 public class DeviceExplorerPanel {
   private static final int TEXT_RENDERER_HORIZ_PADDING = 6;
   private static final int TEXT_RENDERER_VERT_PADDING = 4;
-  private JComboBox myDeviceCombo;
   private JComponent myColumnTreePane;
   private JPanel myComponent;
   private JPanel myToolbarPanel;
@@ -85,12 +84,6 @@ public class DeviceExplorerPanel {
   }
 
   @NotNull
-  public JComboBox<DeviceFileSystem> getDeviceCombo() {
-    //noinspection unchecked
-    return myDeviceCombo;
-  }
-
-  @NotNull
   public ProgressPanel getProgressPanel() {
     return myProgressPanel;
   }
@@ -98,23 +91,22 @@ public class DeviceExplorerPanel {
   @TestOnly
   public JBScrollPane getColumnTreePane() { return (JBScrollPane)myColumnTreePane.getComponent(0); }
 
-  public void showMessageLayer(@NotNull String message, boolean showDeviceList) {
-    showMessageLayerWorker(message, UIUtil.getInactiveTextColor(), null, showDeviceList);
+  public void showMessageLayer(@NotNull String message) {
+    showMessageLayerWorker(message, UIUtil.getInactiveTextColor(), null);
   }
 
   @SuppressWarnings("SameParameterValue")
-  public void showMessageLayer(@NotNull String message, @NotNull Icon messageIcon, boolean showDeviceList) {
-    showMessageLayerWorker(message, UIUtil.getInactiveTextColor(), messageIcon, showDeviceList);
+  public void showMessageLayer(@NotNull String message, @NotNull Icon messageIcon) {
+    showMessageLayerWorker(message, UIUtil.getInactiveTextColor(), messageIcon);
   }
 
-  public void showErrorMessageLayer(@NotNull String errorMessage, boolean showDeviceList) {
-    showMessageLayerWorker(errorMessage, JBColor.RED, null, showDeviceList);
+  public void showErrorMessageLayer(@NotNull String errorMessage) {
+    showMessageLayerWorker(errorMessage, JBColor.RED, null);
   }
 
-  private void showMessageLayerWorker(@NotNull String message, @NotNull Color color, @Nullable Icon icon, boolean showDeviceList) {
+  private void showMessageLayerWorker(@NotNull String message, @NotNull Color color, @Nullable Icon icon) {
     myErrorText.setForeground(color);
     myErrorText.setIcon(icon);
-    myDeviceCombo.setVisible(showDeviceList);
     myColumnTreePane.setVisible(false);
     // Note: In addition to having the label centered in the panel, we want the text
     // to wrap ("html") and the wrapped lines to be centered as well ("text-align").
@@ -126,7 +118,6 @@ public class DeviceExplorerPanel {
 
   public void showTree() {
     myErrorPanel.setVisible(false);
-    myDeviceCombo.setVisible(true);
     myColumnTreePane.setVisible(true);
     myErrorText.setText("");
   }

@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.device.explorer.files
 
+import com.android.adblib.ConnectedDevice
 import com.android.annotations.concurrency.UiThread
+import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.coroutineScope
+import com.android.tools.idea.device.explorer.files.adbimpl.AdbDeviceFileSystem
 import com.android.tools.idea.device.explorer.files.adbimpl.AdbPathUtil
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
@@ -57,9 +61,11 @@ import com.intellij.ui.UIBundle
 import com.intellij.util.Alarm
 import com.intellij.util.ArrayUtil
 import com.intellij.util.ExceptionUtil
+import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -67,6 +73,7 @@ import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.datatransfer.StringSelection
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -76,6 +83,7 @@ import java.util.Locale
 import java.util.Stack
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.atomic.AtomicReference
+import javax.swing.JComponent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
@@ -87,10 +95,10 @@ import javax.swing.tree.TreePath
  * Implementation of the Device File Explorer application logic
  */
 @UiThread
-class DeviceExplorerController(
+class DeviceFileExplorerController(
   private val project: Project,
-  private val model: DeviceExplorerModel,
-  private val view: DeviceExplorerView,
+  private val model: DeviceFileExplorerModel,
+  private val view: DeviceFileExplorerView,
   private val service: DeviceFileSystemService<out DeviceFileSystem>,
   private val fileManager: DeviceExplorerFileManager,
   private val fileOpener: FileOpener
@@ -109,6 +117,8 @@ class DeviceExplorerController(
   private val transferringNodesAlarms = Alarm()
   private val loadingChildrenAlarms = Alarm()
   private var longRunningOperationTracker: LongRunningOperationTracker? = null
+  private val edtExecutor = FutureCallbackExecutor(EdtExecutorService.getInstance())
+  private val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
 
   init {
     Disposer.register(project, this)
@@ -127,30 +137,7 @@ class DeviceExplorerController(
   }
 
   fun setup() {
-    scope.launch {
-      view.setup()
-      view.startRefresh("Refreshing list of devices")
-      try {
-        trackServiceChanges()
-      } finally {
-        view.stopRefresh()
-      }
-    }
-  }
-
-  fun reportErrorFindingDevice(message: String) {
-    view.reportErrorGeneric(message, IllegalStateException())
-  }
-
-  fun selectActiveDevice(serialNumber: String) {
-    scope.launch {
-      cancelOrMoveToBackgroundPendingOperations()
-
-      when (val device = model.devices.find { it.deviceSerialNumber == serialNumber }) {
-        null -> reportErrorFindingDevice("Unable to find device with serial number $serialNumber. Please retry.")
-        else -> setActiveDevice(device)
-      }
-    }
+    view.setup()
   }
 
   private fun setNoActiveDevice() {
@@ -287,44 +274,22 @@ class DeviceExplorerController(
     return model.activeDevice != null
   }
 
-
-  private fun trackServiceChanges() = scope.launch(uiThread) {
-    val devices = mutableSetOf<DeviceFileSystem>()
-    service.devices.collect { newDevices ->
-      (devices - newDevices).forEach {
-        devices.remove(it)
-        model.removeDevice(it)
-      }
-
-      for (device in newDevices) {
-        if (devices.add(device)) {
-          model.addDevice(device)
-          device.scope.launch(uiThread) {
-            device.deviceStateFlow.collect { state ->
-              model.updateDevice(device)
-              if (device == model.activeDevice) {
-                updateActiveDeviceState(device, state)
-              }
-            }
-          }
-        }
-      }
-
-      if (newDevices.isEmpty()) {
-        view.showNoDeviceScreen()
-      }
+  fun setActiveConnectedDevice(handle: DeviceHandle?, device: ConnectedDevice?) {
+    if(handle == null || device == null) {
+      setNoActiveDevice()
+    } else {
+      val fileSystem = newDeviceFileSystem(handle, device)
+      scope.launch { setActiveDevice(fileSystem) }
     }
   }
 
+  fun getViewComponent(): JComponent = view.component
+
+  private fun newDeviceFileSystem(handle: DeviceHandle, connectedDevice: ConnectedDevice) =
+    AdbDeviceFileSystem(handle, connectedDevice, edtExecutor, dispatcher)
+
   @UiThread
   private inner class ViewListener : DeviceExplorerViewListener {
-    override fun noDeviceSelected() {
-      setNoActiveDevice()
-    }
-
-    override fun deviceSelected(device: DeviceFileSystem) {
-      scope.launch { setActiveDevice(device) }
-    }
 
     override fun openNodesInEditorInvoked(treeNodes: List<DeviceFileEntryNode>) {
       if (treeNodes.isEmpty()) {
@@ -487,7 +452,7 @@ class DeviceExplorerController(
       tracker.start()
       tracker.setCalculatingText(0, 0)
       tracker.setIndeterminate(true)
-      Disposer.register(this@DeviceExplorerController, tracker)
+      Disposer.register(this@DeviceFileExplorerController, tracker)
       view.startTreeBusyIndicator()
       try {
         prepareTransfer(tracker)
@@ -1518,16 +1483,16 @@ class DeviceExplorerController(
   }
 
   companion object {
-    private val LOGGER = logger<DeviceExplorerController>()
-    private val KEY = Key.create<DeviceExplorerController>(
-      DeviceExplorerController::class.java.name
+    private val LOGGER = logger<DeviceFileExplorerController>()
+    private val KEY = Key.create<DeviceFileExplorerController>(
+      DeviceFileExplorerController::class.java.name
     )
     private const val DEVICE_EXPLORER_BUSY_MESSAGE = "Device Explorer is busy, please retry later or cancel current operation"
     private val FILE_ENTRY_CREATION_TIMEOUT = Duration.ofMillis(10000)
     private val FILE_ENTRY_DELETION_TIMEOUT = Duration.ofMillis(10000)
 
     @JvmStatic
-    fun getProjectController(project: Project?): DeviceExplorerController? {
+    fun getProjectController(project: Project?): DeviceFileExplorerController? {
       return project?.getUserData(KEY)
     }
   }

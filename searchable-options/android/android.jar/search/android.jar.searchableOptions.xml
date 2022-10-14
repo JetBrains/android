@@ -1148,6 +1148,13 @@
     <option name="download" hit="Download location" />
     <option name="location" hit="Download location" />
   </configurable>
+  <configurable id="device.file.explorer" configurable_name="Device File Explorer">
+    <option name="device" hit="Device File Explorer" />
+    <option name="explorer" hit="Device File Explorer" />
+    <option name="file" hit="Device File Explorer" />
+    <option name="download" hit="Download location" />
+    <option name="location" hit="Download location" />
+  </configurable>
   <configurable id="memory.settings" configurable_name="Memory Settings">
     <option name="" hit=" Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance." />
     <option name="allocate" hit=" Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance." />

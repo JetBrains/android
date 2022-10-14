@@ -16,8 +16,20 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup id="Device Explorer" displayType="BALLOON"/>
+
+    <applicationConfigurable groupId="tools" id="device.file.explorer"
+                             provider="com.android.tools.idea.device.explorer.files.options.DeviceFileExplorerConfigurableProvider"/>
+
     <projectService serviceImplementation="com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService"/>
     <projectService serviceImplementation="com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService"/>
+
+    <applicationService serviceImplementation="com.android.tools.idea.device.explorer.files.options.DeviceFileExplorerSettings"/>
+    <projectService serviceImplementation="com.android.tools.idea.device.explorer.files.adbimpl.AdbDeviceFileSystemService"/>
+    <projectService serviceInterface="com.android.tools.idea.device.explorer.files.DeviceExplorerFileManager"
+                    serviceImplementation="com.android.tools.idea.device.explorer.files.DeviceExplorerFileManagerImpl" />
+    <projectService serviceInterface="com.android.tools.idea.device.explorer.files.fs.DeviceFileDownloaderService"
+                    serviceImplementation="com.android.tools.idea.device.explorer.files.fs.DeviceFileDownloaderServiceImpl" />
+
     <toolWindow id="Device Explorer"
                 anchor="right"
                 secondary="true"
