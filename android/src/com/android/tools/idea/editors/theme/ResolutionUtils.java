@@ -227,13 +227,13 @@ public class ResolutionUtils {
         // not an android attribute
         return -1;
       }
-      return apiLookup.getFieldVersion("android/R$attr", name.substring(ANDROID_NS_NAME_PREFIX_LEN));
+      return apiLookup.getFieldVersions("android/R$attr", name.substring(ANDROID_NS_NAME_PREFIX_LEN)).min();
     } else {
       if (!resUrl.isFramework()) {
         // not an android value
         return -1;
       }
-      return apiLookup.getFieldVersion("android/R$" + resUrl.type, IdeResourcesUtil.getFieldNameByResourceName(resUrl.name));
+      return apiLookup.getFieldVersions("android/R$" + resUrl.type, IdeResourcesUtil.getFieldNameByResourceName(resUrl.name)).min();
     }
   }
 

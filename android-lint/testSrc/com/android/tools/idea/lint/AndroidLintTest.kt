@@ -1196,6 +1196,70 @@ class AndroidLintTest : AndroidTestCase() {
       "/res/layout/layout.xml", "xml")
   }
 
+  fun testExtensionSuppress() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 4) { ... }",
+      "/src/androidx/annotation/RequiresSdkVersion.java", "java")
+  }
+
+  fun testExtensionSuppressKotlin() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 4) { ... }",
+      "/src/androidx/annotation/RequiresSdkVersion.kt", "kt")
+  }
+
+  fun testExtensionSuppressKotlinOnR() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 4) { ... }",
+      "/src/androidx/annotation/RequiresSdkVersion.kt", "kt")
+  }
+
+  fun testRequiresSdkVersionKotlin() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Add @RequiresSdkVersion(sdk=R, version=4) Annotation",
+      "/src/androidx/annotation/RequiresSdkVersion.kt", "kt")
+  }
+
+  fun testRequiresSdkVersionKotlinSingle() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Add @RequiresSdkVersion(sdk=R, version=4) Annotation",
+      "/src/androidx/annotation/RequiresSdkVersion.kt", "kt")
+  }
+
+  fun testRequiresSdkVersionJava() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Add @RequiresSdkVersion(sdk=R, version=4) Annotation",
+      "/src/androidx/annotation/RequiresSdkVersion.java", "java")
+  }
+
+  fun testRequiresSdkVersionJavaSingle() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Add @RequiresSdkVersion(sdk=R, version=4) Annotation",
+      "/src/androidx/annotation/RequiresSdkVersion.java", "java")
+  }
+
+  fun testMissingExtension() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Add @RequiresSdkVersion(sdk=1000000, version=4) Annotation",
+      "/src/androidx/annotation/RequiresSdkVersion.kt", "kt")
+  }
+
   fun testApiCheck1f() { // Check adding a version-check conditional in a Java file
     createManifest()
     doTestWithFix(
@@ -1747,7 +1811,6 @@ class AndroidLintTest : AndroidTestCase() {
     extension: String
   ) {
     val action = doTestHighlightingAndGetQuickfix(inspection, message, copyTo, extension)
-    assertNotNull(action)
     doTestWithAction(extension, action!!)
   }
 
@@ -1779,6 +1842,7 @@ class AndroidLintTest : AndroidTestCase() {
   ): IntentionAction? {
     doTestHighlighting(inspection, copyTo, extension, false)
     return myFixture.getIntentionAction(message)
+           ?: error("Couldn't find intention action \"$message\"; options were:\n${myFixture.availableIntentions.joinToString("\n") { it.text }}")
   }
 
   private fun getQuickfixWithoutHighlightingCheck(

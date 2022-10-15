@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.lint.quickFixes
 
-import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
+import com.android.tools.idea.lint.common.LintIdeClient
+import com.android.tools.lint.detector.api.ApiConstraint
+import com.android.tools.lint.detector.api.ExtensionSdk
+import com.android.tools.lint.detector.api.ExtensionSdk.Companion.ANDROID_SDK_ID
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.generation.surroundWith.JavaWithIfSurrounder
 import com.intellij.codeInspection.JavaSuppressionUtil
@@ -25,6 +29,7 @@ import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.ScrollType
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -57,8 +62,15 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 /** Fix which surrounds an API warning with a version check  */
-class AddTargetVersionCheckQuickFix(private val api: Int) : DefaultLintQuickFix(
-  "Surround with if (VERSION.SDK_INT >= VERSION_CODES.${getVersionField(api, false)}) { ... }"
+class AddTargetVersionCheckQuickFix(
+  private val api: Int,
+  private val sdkId: Int = ANDROID_SDK_ID,
+  private val minSdk: ApiConstraint
+) : DefaultLintQuickFix(
+  if (sdkId == ANDROID_SDK_ID)
+    "Surround with if (VERSION.SDK_INT >= ${getVersionField(api, false).let { if (it[0].isDigit()) it else "VERSION_CODES.$it" }}) { ... }"
+  else
+    "Surround with if (SdkExtensions.getExtensionVersion(${ExtensionSdk.getSdkExtensionField(sdkId, false)})) >= $api) { ... }"
 ) {
 
   override fun isApplicable(startElement: PsiElement,
@@ -103,15 +115,30 @@ class AddTargetVersionCheckQuickFix(private val api: Int) : DefaultLintQuickFix(
       return
     }
 
-    val surrounder = getKotlinSurrounder(targetExpression, "\"VERSION.SDK_INT < ${getVersionField(api, false)}\"")
+    val surrounder =
+      if (sdkId == ANDROID_SDK_ID) {
+        getKotlinSurrounder(targetExpression, "\"VERSION.SDK_INT < ${getVersionField(api, false)}\"")
+      } else {
+        getKotlinSurrounder(targetExpression, "\"SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, false)}) < $api\"")
+      }
     val conditionRange = surrounder.surroundElements(project, editor, arrayOf(targetExpression)) ?: return
-    val conditionText = "android.os.Build.VERSION.SDK_INT >= ${getVersionField(api, true)}"
+    val conditionText = if (sdkId == ANDROID_SDK_ID)
+      "android.os.Build.VERSION.SDK_INT >= ${getVersionField(api, true)}"
+    else {
+      "${getExtensionCheckPrefix()}android.os.ext.SdkExtensions.getExtensionVersion(${getSdkExtensionField(project, sdkId, true)}) >= $api"
+    }
+
     document.replaceString(conditionRange.startOffset, conditionRange.endOffset, conditionText)
     documentManager.commitDocument(document)
 
     ShortenReferences.DEFAULT.process(documentManager.getPsiFile(document) as KtFile,
                                       conditionRange.startOffset,
                                       conditionRange.startOffset + conditionText.length)
+  }
+
+  private fun getExtensionCheckPrefix(): String {
+    return if (minSdk != ApiConstraint.NONE && minSdk.isAtLeast(ApiConstraint.get(AndroidVersion.VersionCodes.R, ANDROID_SDK_ID))) ""
+    else "android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R && "
   }
 
   private fun handleJava(element: PsiElement) {
@@ -131,7 +158,11 @@ class AddTargetVersionCheckQuickFix(private val api: Int) : DefaultLintQuickFix(
     }
     try {
       val textRange = JavaWithIfSurrounder().surroundElements(project, editor, elements) ?: return
-      val newText = "android.os.Build.VERSION.SDK_INT >= " + getVersionField(api, true)
+      val newText =
+        if (sdkId == ANDROID_SDK_ID)
+          "android.os.Build.VERSION.SDK_INT >= " + getVersionField(api, true)
+      else
+          "${getExtensionCheckPrefix()}android.os.ext.SdkExtensions.getExtensionVersion($sdkId) >= $api"
       document.replaceString(textRange.startOffset, textRange.endOffset, newText)
       documentManager.commitDocument(document)
 
@@ -187,13 +218,15 @@ class AddTargetVersionCheckQuickFix(private val api: Int) : DefaultLintQuickFix(
   }
 
   companion object {
-    fun getVersionField(myApi: Int, fullyQualified: Boolean): String {
-      val codeName = SdkVersionInfo.getBuildCode(myApi)
-      return when {
-        codeName == null -> myApi.toString()
-        fullyQualified -> "android.os.Build.VERSION_CODES.$codeName"
-        else -> codeName
+    fun getVersionField(api: Int, fullyQualified: Boolean): String = ExtensionSdk.getAndroidVersionField(api, fullyQualified)
+    fun getSdkExtensionField(project: Project?, sdkId: Int, fullyQualified: Boolean): String {
+      if (project != null) {
+        val apiLookup = LintIdeClient.getApiLookup(project)
+        if (apiLookup != null) {
+          return apiLookup.getSdkExtensionField(sdkId, fullyQualified)
+        }
       }
+      return ExtensionSdk.getSdkExtensionField(sdkId, fullyQualified)
     }
   }
 }

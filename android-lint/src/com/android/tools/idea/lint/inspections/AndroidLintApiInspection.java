@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.lint.inspections;
 
+import static com.android.tools.lint.detector.api.ExtensionSdk.ANDROID_SDK_ID;
 import static com.android.tools.lint.detector.api.VersionChecks.REQUIRES_API_ANNOTATION;
+import static com.android.tools.lint.detector.api.VersionChecks.REQUIRES_EXTENSION_ANNOTATION;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
@@ -26,6 +28,7 @@ import com.android.tools.idea.lint.quickFixes.AddTargetApiQuickFix;
 import com.android.tools.idea.lint.quickFixes.AddTargetVersionCheckQuickFix;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.checks.ApiDetector;
+import com.android.tools.lint.detector.api.ApiConstraint;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.openapi.application.ApplicationManager;
@@ -36,6 +39,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.intentions.OverrideResourceAction;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +56,8 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
                                          @NotNull PsiElement endElement,
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
-    int api = LintFix.getInt(fixData, ApiDetector.KEY_REQUIRES_API, -1);
+    ApiConstraint requirement = LintFix.getApiConstraint(fixData, ApiDetector.KEY_REQUIRES_API, ApiConstraint.NONE);
+    int api = requirement.min();
     if (api != -1) {
       List<LintIdeQuickFix> list = new ArrayList<>();
       PsiFile file = startElement.getContainingFile();
@@ -72,19 +77,40 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
 
       // Is the API fix limited to applying to (for example) just classes?
       boolean requireClass = LintFix.getBoolean(fixData, ApiDetector.KEY_REQUIRE_CLASS, false);
-      if (!requireClass) {
-        list.add(new AddTargetVersionCheckQuickFix(api));
+      List<ApiConstraint.SdkApiConstraint> constraints = requirement.getConstraints();
+      if (!requireClass && !isXml) {
+        ApiConstraint minSdk = LintFix.getApiConstraint(fixData, ApiDetector.KEY_MIN_API, ApiConstraint.NONE);
+        for (ApiConstraint constraint : constraints) {
+          int version = constraint.min();
+          int sdk = constraint.getSdk();
+          list.add(new AddTargetVersionCheckQuickFix(version, sdk, minSdk));
+        }
       }
 
       ApplicationManager.getApplication().assertReadAccessAllowed();
       Project project = startElement.getProject();
-      if (!isXml && requiresApiAvailable(project)) {
-        list.add(new AddTargetApiQuickFix(api, true, startElement, requireClass));
-      }
-      else {
-        // Discourage use of @TargetApi if @RequiresApi is available; see for example
-        // https://android-review.googlesource.com/c/platform/frameworks/support/+/843915/
-        list.add(new AddTargetApiQuickFix(api, false, startElement, requireClass));
+      ApiConstraint.SdkApiConstraint first = constraints.get(0);
+      if (constraints.size() > 1) {
+        // Just pick the first one: the order is significant and the first item is supposed
+        // to be the recommended one. We don't currently have an annotation mechanism to
+        // declare "you must have *all* of these APIs".
+        if (requiresSdkVersionAvailable(project)) {
+          list.add(new AddTargetApiQuickFix(Collections.singletonList(first), true, startElement, requireClass));
+        }
+      } else {
+        int sdkId = first.getSdkId();
+        if (sdkId == ANDROID_SDK_ID) {
+          if (!isXml && requiresApiAvailable(project)) {
+            list.add(new AddTargetApiQuickFix(constraints, true, startElement, requireClass));
+          }
+          else {
+            // Discourage use of @TargetApi if @RequiresApi is available; see for example
+            // https://android-review.googlesource.com/c/platform/frameworks/support/+/843915/
+            list.add(new AddTargetApiQuickFix(constraints, false, startElement, requireClass));
+          }
+        } else if (!isXml && requiresSdkVersionAvailable(project)) {
+          list.add(new AddTargetApiQuickFix(constraints, true, startElement, requireClass));
+        }
       }
 
       return list.toArray(LintIdeQuickFix.EMPTY_ARRAY);
@@ -98,5 +124,11 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
     GlobalSearchScope scope = GlobalSearchScope.allScope(project);
     return facade.findClass(REQUIRES_API_ANNOTATION.oldName(), scope) != null ||
            facade.findClass(REQUIRES_API_ANNOTATION.newName(), scope) != null;
+  }
+
+  public static boolean requiresSdkVersionAvailable(Project project) {
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+    GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+    return facade.findClass(REQUIRES_EXTENSION_ANNOTATION, scope) != null;
   }
 }

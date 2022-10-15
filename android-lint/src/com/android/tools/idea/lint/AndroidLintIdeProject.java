@@ -16,7 +16,6 @@
 package com.android.tools.idea.lint;
 
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
-import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getMainModule;
 
 import com.android.annotations.NonNull;
 import com.android.ide.common.repository.GradleCoordinate;
@@ -31,7 +30,6 @@ import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintIdeProject;
 import com.android.tools.idea.lint.model.LintModelFactory;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
@@ -39,9 +37,11 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt;
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.lint.client.api.LintClient;
+import com.android.tools.lint.detector.api.ApiConstraint;
 import com.android.tools.lint.detector.api.LintModelModuleAndroidLibraryProject;
 import com.android.tools.lint.detector.api.LintModelModuleProject;
 import com.android.tools.lint.detector.api.Project;
+import com.android.tools.lint.detector.api.ExtensionSdk;
 import com.android.tools.lint.model.LintModelAndroidLibrary;
 import com.android.tools.lint.model.LintModelDependency;
 import com.android.tools.lint.model.LintModelLibrary;
@@ -63,7 +63,6 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValueProvider.Result;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.graph.Graph;
@@ -642,6 +641,17 @@ public class AndroidLintIdeProject extends LintIdeProject {
         return version;
       }
       return super.getMinSdkVersion();
+    }
+
+    @NotNull
+    @Override
+    public ApiConstraint getMinSdkVersions() {
+      AndroidVersion version = myAndroidModel.getMinSdkVersion();
+      if (version != null) {
+        // TODO: Handle codenames better?
+        return ApiConstraint.get(version.getFeatureLevel(), ExtensionSdk.ANDROID_SDK_ID);
+      }
+      return super.getMinSdkVersions();
     }
 
     @NonNull

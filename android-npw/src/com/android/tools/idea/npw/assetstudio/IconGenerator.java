@@ -707,7 +707,7 @@ public abstract class IconGenerator implements Disposable {
             if (SdkConstants.ANDROID_URI.equals(parser.getAttributeNamespace(i))) {
               String attributeName = parser.getAttributeName(i);
               if (!attributeName.equals("fillType")) { // Exclude android:fillType since it is supported by AppCompat.
-                int attributeApiLevel = apiLookup.getFieldVersion("android/R$attr", attributeName);
+                int attributeApiLevel = apiLookup.getFieldVersions("android/R$attr", attributeName).min();
                 if (requiredApiLevel < attributeApiLevel) {
                   requiredApiLevel = attributeApiLevel;
                 }

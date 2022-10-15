@@ -202,7 +202,7 @@ public class AndroidPermissionConverter extends Converter<String> implements Cus
     }
 
     private boolean isApplicable(@NotNull PsiField field, @Nullable ApiLookup apiLookup) {
-      return apiLookup == null || apiLookup.getFieldVersion(PERMISSION_CLASS_NAME_FOR_API_LOOKUP, field.getName()) <= myMaxVersion;
+      return apiLookup == null || apiLookup.getFieldVersions(PERMISSION_CLASS_NAME_FOR_API_LOOKUP, field.getName()).min() <= myMaxVersion;
     }
   }
 }

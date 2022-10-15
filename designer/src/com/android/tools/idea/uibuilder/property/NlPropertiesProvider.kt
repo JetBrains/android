@@ -188,7 +188,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
         val namespaceUri = getNamespace(desc, tag)
         // Exclude the framework attributes that were added after the current min API level.
         if (ANDROID_URI == namespaceUri && apiLookup != null &&
-            apiLookup.getFieldVersion("android/R\$attr", name) > minApi) {
+            apiLookup.getFieldVersions("android/R\$attr", name).min() > minApi) {
           continue
         }
         val attrDefs = if (ANDROID_URI == namespaceUri) systemAttrDefs else localAttrDefs
@@ -270,7 +270,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
       val property = createProperty(namespace, attribute.name, attribute, componentClass, psiClass.qualifiedName ?: "", model, components)
                      ?: return
       if (ANDROID_URI == namespace && apiLookup != null &&
-          apiLookup.getFieldVersion("android/R\$attr", attribute.name) > minApi) {
+          apiLookup.getFieldVersions("android/R\$attr", attribute.name).min() > minApi) {
         // Exclude the framework attributes that were added after the current min API level.
         return
       }
