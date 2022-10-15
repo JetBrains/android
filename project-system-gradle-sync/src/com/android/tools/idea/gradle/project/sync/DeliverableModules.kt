@@ -59,6 +59,15 @@ sealed class DeliverableGradleModule(
   val gradleProject: BasicGradleProject,
   val projectSyncIssues: List<IdeSyncIssue>
 ) : GradleModelCollection {
+
+  final override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
+    with(ModelConsumer(consumer)) {
+      deliverModels()
+    }
+  }
+
+  protected abstract fun ModelConsumer.deliverModels()
+
   protected inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
     inline fun <reified T : Any> T.deliver() {
       buildModelConsumer.consumeProjectModel(gradleProject, this, T::class.java)
@@ -79,8 +88,8 @@ class DeliverableAndroidModule(
   val kotlinGradleModel: KotlinGradleModel?,
   val kaptGradleModel: KaptGradleModel?,
   val additionalClassifierArtifacts: AdditionalClassifierArtifactsModel?
-): DeliverableGradleModule(gradleProject, projectSyncIssues) {
-  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
+) : DeliverableGradleModule(gradleProject, projectSyncIssues) {
+  override fun ModelConsumer.deliverModels() {
 
     val ideAndroidModels = IdeAndroidModels(
       androidProject,
@@ -93,11 +102,9 @@ class DeliverableAndroidModule(
       syncedNativeVariant,
       kaptGradleModel
     )
-    with(ModelConsumer(consumer)) {
-      ideAndroidModels.deliver()
-      kotlinGradleModel?.deliver()
-      additionalClassifierArtifacts?.deliver()
-    }
+    ideAndroidModels.deliver()
+    kotlinGradleModel?.deliver()
+    additionalClassifierArtifacts?.deliver()
   }
 }
 
@@ -106,12 +113,10 @@ class DeliverableJavaModule(
   projectSyncIssues: List<IdeSyncIssue>,
   private val kotlinGradleModel: KotlinGradleModel?,
   private val kaptGradleModel: KaptGradleModel?
-): DeliverableGradleModule(gradleProject, projectSyncIssues) {
-  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
-    with(ModelConsumer(consumer)) {
-      kotlinGradleModel?.deliver()
-      kaptGradleModel?.deliver()
-    }
+) : DeliverableGradleModule(gradleProject, projectSyncIssues) {
+  override fun ModelConsumer.deliverModels() {
+    kotlinGradleModel?.deliver()
+    kaptGradleModel?.deliver()
   }
 }
 
@@ -120,10 +125,8 @@ class DeliverableNativeVariantsAndroidModule(
   projectSyncIssues: List<IdeSyncIssue>,
   private val nativeVariants: List<IdeNativeVariantAbi>? // Null means V2.
 ) : DeliverableGradleModule(gradleProject, projectSyncIssues) {
-  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
-    with(ModelConsumer(consumer)) {
-      IdeAndroidNativeVariantsModels(nativeVariants, projectSyncIssues).deliver()
-    }
+  override fun ModelConsumer.deliverModels() {
+    IdeAndroidNativeVariantsModels(nativeVariants, projectSyncIssues).deliver()
   }
 }
 
