@@ -31,70 +31,122 @@ import org.gradle.tooling.BuildController
 sealed class AndroidProjectResult {
   class V1Project(
     val modelCache: ModelCache.V1,
-    rootBuildId: BuildId,
-    buildId: BuildId,
     override val buildName: String,
-    projectPath: String,
-    androidProject: AndroidProject,
     override val legacyApplicationIdModel: LegacyApplicationIdModel?,
+    override val agpVersion: String,
+    override val ideAndroidProject: IdeAndroidProjectImpl,
+    override val allVariantNames: Set<String>,
+    override val defaultVariantName: String?,
+    val syncIssues: Collection<SyncIssue>?,
+    val ndkVersion: String?
   ) : AndroidProjectResult() {
-    override val agpVersion: String = safeGet(androidProject::getModelVersion, "")
-    override val ideAndroidProject: IdeAndroidProjectImpl =
-      modelCache.androidProjectFrom(rootBuildId, buildId, buildName, projectPath, androidProject, legacyApplicationIdModel)
-    override val allVariantNames: Set<String> = safeGet(androidProject::getVariantNames, null).orEmpty().toSet()
-    override val defaultVariantName: String? = safeGet(androidProject::getDefaultVariant, null)
-                                               ?: allVariantNames.getDefaultOrFirstItem("debug")
-    val syncIssues: Collection<SyncIssue>? = @Suppress("DEPRECATION") (safeGet(androidProject::getSyncIssues, null))
-    val ndkVersion: String? = safeGet(androidProject::getNdkVersion, null)
-
     override fun createVariantFetcher(): IdeVariantFetcher = v1VariantFetcher(modelCache, legacyApplicationIdModel)
   }
 
   class V2Project(
     val modelCache: ModelCache.V2,
-    rootBuildId: BuildId,
-    buildId: BuildId,
-    basicAndroidProject: BasicAndroidProject,
-    androidProject: com.android.builder.model.v2.models.AndroidProject,
-    modelVersions: Versions,
-    androidDsl: AndroidDsl,
     override val legacyApplicationIdModel: LegacyApplicationIdModel?,
+    override val buildName: String,
+    override val agpVersion: String,
+    override val ideAndroidProject: IdeAndroidProjectImpl,
+    private val basicVariants: List<BasicVariant>,
+    private val v2Variants: List<IdeVariantCoreImpl>,
+    override val allVariantNames: Set<String>,
+    override val defaultVariantName: String?,
+    val androidVariantResolver: AndroidVariantResolver,
   ) : AndroidProjectResult() {
-    override val buildName: String = basicAndroidProject.buildName
-    override val agpVersion: String = modelVersions.agp
-    override val ideAndroidProject: IdeAndroidProjectImpl =
-      modelCache.androidProjectFrom(
-        rootBuildId = rootBuildId,
-        buildId = buildId,
-        basicProject = basicAndroidProject,
-        project = androidProject,
-        androidVersion = modelVersions,
-        androidDsl = androidDsl,
-        legacyApplicationIdModel = legacyApplicationIdModel
-      )
-    private val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
-
-    private val v2Variants: List<IdeVariantCoreImpl> = let {
-      val v2Variants: List<Variant> = androidProject.variants.toList()
-      val basicVariantMap = basicVariants.associateBy { it.name }
-
-      v2Variants.map {
-        modelCache.variantFrom(
-          androidProject = ideAndroidProject,
-          basicVariant = basicVariantMap[it.name] ?: error("BasicVariant not found. Name: ${it.name}"),
-          variant = it,
-          legacyApplicationIdModel = legacyApplicationIdModel
-        )
-      }
-    }
-
-    override val allVariantNames: Set<String> = basicVariants.map { it.name }.toSet()
-    override val defaultVariantName: String? =
-      // Try to get the default variant based on default BuildTypes and productFlavors, otherwise get first one in the list.
-      basicVariants.getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
-    val androidVariantResolver: AndroidVariantResolver = buildVariantNameResolver(ideAndroidProject, v2Variants)
 
     override fun createVariantFetcher(): IdeVariantFetcher = v2VariantFetcher(modelCache, v2Variants)
+  }
+
+  companion object {
+    fun V1Project(
+      modelCache: ModelCache.V1,
+      rootBuildId: BuildId,
+      buildId: BuildId,
+      buildName: String,
+      projectPath: String,
+      androidProject: AndroidProject,
+      legacyApplicationIdModel: LegacyApplicationIdModel?,
+    ): V1Project {
+      val agpVersion: String = safeGet(androidProject::getModelVersion, "")
+      val ideAndroidProject: IdeAndroidProjectImpl =
+        modelCache.androidProjectFrom(rootBuildId, buildId, buildName, projectPath, androidProject, legacyApplicationIdModel)
+      val allVariantNames: Set<String> = safeGet(androidProject::getVariantNames, null).orEmpty().toSet()
+      val defaultVariantName: String? = safeGet(androidProject::getDefaultVariant, null)
+        ?: allVariantNames.getDefaultOrFirstItem("debug")
+      val syncIssues: Collection<SyncIssue>? = @Suppress("DEPRECATION") (safeGet(androidProject::getSyncIssues, null))
+      val ndkVersion: String? = safeGet(androidProject::getNdkVersion, null)
+      return V1Project(
+        modelCache = modelCache,
+        buildName = buildName,
+        legacyApplicationIdModel = legacyApplicationIdModel,
+        agpVersion = agpVersion,
+        ideAndroidProject = ideAndroidProject,
+        allVariantNames = allVariantNames,
+        defaultVariantName = defaultVariantName,
+        syncIssues = syncIssues,
+        ndkVersion = ndkVersion
+      )
+    }
+
+    fun V2Project(
+      modelCache: ModelCache.V2,
+      rootBuildId: BuildId,
+      buildId: BuildId,
+      basicAndroidProject: BasicAndroidProject,
+      androidProject: com.android.builder.model.v2.models.AndroidProject,
+      modelVersions: Versions,
+      androidDsl: AndroidDsl,
+      legacyApplicationIdModel: LegacyApplicationIdModel?,
+    ): V2Project {
+      val buildName: String = basicAndroidProject.buildName
+      val agpVersion: String = modelVersions.agp
+      val ideAndroidProject: IdeAndroidProjectImpl =
+        modelCache.androidProjectFrom(
+          rootBuildId = rootBuildId,
+          buildId = buildId,
+          basicProject = basicAndroidProject,
+          project = androidProject,
+          androidVersion = modelVersions,
+          androidDsl = androidDsl,
+          legacyApplicationIdModel = legacyApplicationIdModel
+        )
+      val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
+
+      val v2Variants: List<IdeVariantCoreImpl> = let {
+        val v2Variants: List<Variant> = androidProject.variants.toList()
+        val basicVariantMap = basicVariants.associateBy { it.name }
+
+        v2Variants.map {
+          modelCache.variantFrom(
+            androidProject = ideAndroidProject,
+            basicVariant = basicVariantMap[it.name] ?: error("BasicVariant not found. Name: ${it.name}"),
+            variant = it,
+            legacyApplicationIdModel = legacyApplicationIdModel
+          )
+        }
+      }
+
+      val allVariantNames: Set<String> = basicVariants.map { it.name }.toSet()
+      val defaultVariantName: String? =
+        // Try to get the default variant based on default BuildTypes and productFlavors, otherwise get first one in the list.
+        basicVariants.getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
+      val androidVariantResolver: AndroidVariantResolver = buildVariantNameResolver(ideAndroidProject, v2Variants)
+
+      return V2Project(
+        modelCache = modelCache,
+        legacyApplicationIdModel = legacyApplicationIdModel,
+        buildName = buildName,
+        agpVersion = agpVersion,
+        ideAndroidProject = ideAndroidProject,
+        basicVariants = basicVariants,
+        v2Variants = v2Variants,
+        allVariantNames = allVariantNames,
+        defaultVariantName = defaultVariantName,
+        androidVariantResolver = androidVariantResolver
+      )
+    }
   }
 
   abstract val buildName: String
