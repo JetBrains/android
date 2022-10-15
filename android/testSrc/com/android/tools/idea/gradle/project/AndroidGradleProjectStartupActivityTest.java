@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
@@ -75,6 +76,9 @@ public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCa
   }
 
   public void testRunActivityWithImportedProject() {
+    // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
+    if (!IdeInfo.getInstance().isAndroidStudio()) return;
+
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
 
     Project project = getProject();
