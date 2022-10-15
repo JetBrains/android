@@ -8,7 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.room" />
-    <orderEntry type="library" name="truth" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.testFramework" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="RUNTIME" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />

@@ -13,7 +13,7 @@
     <orderEntry type="library" scope="TEST" name="dexlib2" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
     <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
-    <orderEntry type="module-library" exported="">
+    <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-testutils" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.testutils:221.0.12.0" />
         <CLASSES>

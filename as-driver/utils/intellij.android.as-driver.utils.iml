@@ -7,7 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="JUnit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.repository" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />

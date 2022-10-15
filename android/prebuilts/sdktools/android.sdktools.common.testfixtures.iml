@@ -6,7 +6,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" exported="" />
     <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="module-library" exported="">
+    <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-common.testfixtures" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.common.testfixtures:221.0.12.0" />
         <CLASSES>

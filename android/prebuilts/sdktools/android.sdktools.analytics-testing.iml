@@ -11,7 +11,7 @@
     <orderEntry type="module" module-name="android.sdktools.analytics-shared" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.analytics-tracker" scope="TEST" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="module-library" exported="">
+    <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-analytics-testing" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:android.sdktools.analytics-testing:221.0.12.0" />
         <CLASSES>

@@ -24,8 +24,8 @@
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
-    <orderEntry type="library" name="mockito" level="project" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-ir" level="project" />

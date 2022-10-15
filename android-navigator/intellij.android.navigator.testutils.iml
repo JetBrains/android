@@ -11,8 +11,8 @@
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.navigator" />
     <orderEntry type="module" module-name="intellij.android.testFramework" />
-    <orderEntry type="library" name="truth" level="project" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />

@@ -16,7 +16,7 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.upgrade" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
-    <orderEntry type="library" name="truth" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.analytics-shared" scope="TEST" />

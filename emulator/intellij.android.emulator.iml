@@ -22,8 +22,8 @@
     <orderEntry type="module" module-name="intellij.android.jps.model" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="library" name="emulator-proto" level="project" />
-    <orderEntry type="library" name="ffmpeg" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="ffmpeg-platform" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="ffmpeg" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="ffmpeg-platform" level="project" />
     <orderEntry type="library" name="HdrHistogram" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="studio-grpc" level="project" />
