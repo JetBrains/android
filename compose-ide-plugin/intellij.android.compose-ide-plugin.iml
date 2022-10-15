@@ -5,6 +5,7 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/compiler-hosted-src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -15,17 +16,6 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.2.0-SNAPSHOT.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.2.0-SNAPSHOT-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
@@ -89,5 +79,6 @@
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" />
     <orderEntry type="module" module-name="kotlin.base.fe10.code-insight" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-cli" level="project" />
   </component>
 </module>
