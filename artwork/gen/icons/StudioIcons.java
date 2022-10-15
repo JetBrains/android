@@ -584,11 +584,9 @@ public final class StudioIcons {
   public static final class Logcat {
     public static final class Input {
       /** 16x16 */ public static final @NotNull Icon FAVORITE_FILLED_HOVER = load("studio/icons/logcat/input/favorite-filled-hover.svg", 1957375144, 2);
-      /** 16x16 */ public static final @NotNull Icon FAVORITE_FILLED_POPUP_HOVER = load("studio/icons/logcat/input/favorite-filled-popup-hover.svg", 2104035920, 2);
       /** 16x16 */ public static final @NotNull Icon FAVORITE_FILLED = load("studio/icons/logcat/input/favorite-filled.svg", 1826154033, 2);
       /** 16x16 */ public static final @NotNull Icon FAVORITE_OUTLINE_HOVER = load("studio/icons/logcat/input/favorite-outline-hover.svg", -976790788, 2);
       /** 16x16 */ public static final @NotNull Icon FAVORITE_OUTLINE = load("studio/icons/logcat/input/favorite-outline.svg", -1904741091, 2);
-      /** 16x16 */ public static final @NotNull Icon FAVORITE_POPUP_HOVER = load("studio/icons/logcat/input/favorite-popup-hover.svg", -384792878, 2);
       /** 16x16 */ public static final @NotNull Icon FILTER_HISTORY_DELETE = load("studio/icons/logcat/input/filter-history-delete.svg", -232609003, 2);
       /** 16x16 */ public static final @NotNull Icon FILTER_HISTORY = load("studio/icons/logcat/input/filter-history.svg", 1300239132, 2);
     }
