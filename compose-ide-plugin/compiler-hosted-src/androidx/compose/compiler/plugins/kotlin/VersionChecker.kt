@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
+@file:OptIn(FirIncompatiblePluginAPI::class)
+
 package androidx.compose.compiler.plugins.kotlin
 
+import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.expressions.IrConst
