@@ -15,7 +15,6 @@
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.lint.common" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" />
     <orderEntry type="module" module-name="intellij.android.compose-common" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module-library">
