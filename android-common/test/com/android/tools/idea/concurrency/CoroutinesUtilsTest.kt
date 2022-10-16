@@ -67,34 +67,34 @@ class CoroutinesUtilsTest {
 
   @Test
   fun androidCoroutineScopeAllowsOverridingDispatcher() {
-    runBlockingTest {
-      // Prepare
-      val disposable = Disposer.newDisposable()
-      val scope = AndroidCoroutineScope(disposable, coroutineContext)
+    val disposable = Disposer.newDisposable()
+    try {
+      runBlockingTest {
+        // Prepare
+        val scope = AndroidCoroutineScope(disposable, coroutineContext)
 
-      // Act: We launch a coroutine in the new AndroidCoroutineScope. Usually, this
-      // would result in a "leaked" coroutine exception to be thrown by runBlockingTest.
-      // However, the AndroidCoroutineScope uses the same Dispatcher as the TestCoroutineScope,
-      // so the coroutine runs in the same dispatcher, so it needs to finish before the
-      // parent scope finishes.
-      var result: Int? = 5
-      // This job never finishes because it uses the same TestDispatcher
-      val job = scope.launch {
-        result = withTimeoutOrNull(1_000) {
-          while (true) {
-            delay(50)
+        // Act: We launch a coroutine in the new AndroidCoroutineScope. Usually, this
+        // would result in a "leaked" coroutine exception to be thrown by runBlockingTest.
+        // However, the AndroidCoroutineScope uses the same Dispatcher as the TestCoroutineScope,
+        // so the coroutine runs in the same dispatcher, so it needs to finish before the
+        // parent scope finishes.
+        var result: Int? = 5
+        // This job never finishes because it uses the same TestDispatcher
+        val job = scope.launch {
+          result = withTimeoutOrNull(1_000) {
+            while (true) {
+              delay(50)
+            }
+            5
           }
-          5
         }
-      }
-      job.join()
+        job.join()
 
-      // Assert
-      try {
+        // Assert
         Assert.assertNull(result)
-      } finally {
-        Disposer.dispose(disposable);
       }
+    } finally {
+      Disposer.dispose(disposable)
     }
   }
 
