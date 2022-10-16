@@ -40,7 +40,7 @@ import java.net.InetSocketAddress
 import java.nio.file.Paths
 import java.util.Base64
 
-
+@org.junit.Ignore("b/240887542")
 class DownloadsAnalyzerTest : AndroidGradleTestCase()  {
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
