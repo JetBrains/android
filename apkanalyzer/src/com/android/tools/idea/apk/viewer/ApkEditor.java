@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.viewer;
 
 import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
+import static com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerUtil.withChecksDisabledForSupplier;
 
 import com.android.SdkConstants;
 import com.android.tools.apk.analyzer.ApkSizeCalculator;
@@ -143,7 +144,9 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
           Path copyOfApk = Files.createTempFile(apkVirtualFile.getNameWithoutExtension(), "." + apkVirtualFile.getExtension());
           FileUtils.copyFile(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk);
           myArchiveContext = Archives.open(copyOfApk, new LogWrapper(getLog()));
-          myApkViewPanel = new ApkViewPanel(ApkEditor.this.myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()));
+          // TODO(b/244771241) ApkViewPanel should be created on the UI thread
+          myApkViewPanel = withChecksDisabledForSupplier(() ->
+              new ApkViewPanel(ApkEditor.this.myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault())));
           myApkViewPanel.setListener(ApkEditor.this);
           ApplicationManager.getApplication().invokeLater(() -> {
             mySplitter.setFirstComponent(myApkViewPanel.getContainer());

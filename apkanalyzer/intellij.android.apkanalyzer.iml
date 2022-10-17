@@ -27,5 +27,6 @@
     <orderEntry type="module" module-name="intellij.android.lang" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
+    <orderEntry type="module" module-name="android.sdktools.threading-agent-callback" />
   </component>
 </module>

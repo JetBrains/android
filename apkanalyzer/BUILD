@@ -29,5 +29,6 @@ iml_module(
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module]",
     ],
 )
