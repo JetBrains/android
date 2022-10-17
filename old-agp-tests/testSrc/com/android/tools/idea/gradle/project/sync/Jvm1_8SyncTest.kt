@@ -18,19 +18,14 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
-import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Expect
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.kotlin.idea.util.projectStructure.version
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 

@@ -24,14 +24,11 @@ import com.android.tools.idea.projectsystem.gradle.getBuildAndRelativeGradleProj
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.util.PathUtil
 import com.intellij.util.text.nullize
-import org.jetbrains.android.AndroidTestBase
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
