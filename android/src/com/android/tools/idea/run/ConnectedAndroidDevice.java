@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.ddmlib.IDevice.PROP_DEVICE_BOOT_QEMU_DISPLAY_NAME;
+
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -66,6 +68,12 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
   @Override
   public int getDensity() {
     return myDevice.getDensity();
+  }
+
+  @Override
+  public boolean supportsMultipleScreenFormats() {
+    return myDevice.getVersion().isGreaterOrEqualThan(AndroidVersion.MIN_RESIZABLE_DEVICE_API)
+           && "resizable".equals(myDevice.getProperty(PROP_DEVICE_BOOT_QEMU_DISPLAY_NAME));
   }
 
   @NotNull
