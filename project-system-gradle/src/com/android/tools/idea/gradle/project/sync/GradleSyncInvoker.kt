@@ -36,6 +36,7 @@ interface GradleSyncInvoker {
 
   data class Request @JvmOverloads constructor(
     val trigger: GradleSyncStats.Trigger,
+    // Switch the current variant if not null.
     val requestedVariantChange: SwitchVariantRequest? = null,
     val dontFocusSyncFailureOutput: Boolean = false,
     val syncTestMode: SyncTestMode = SyncTestMode.PRODUCTION
@@ -44,7 +45,6 @@ interface GradleSyncInvoker {
       get() = ProgressExecutionMode.IN_BACKGROUND_ASYNC
 
     companion object {
-      // Perform a variant-only sync if not null.
       @VisibleForTesting
       @JvmStatic
       @JvmOverloads

@@ -846,7 +846,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     legacyApplicationIdModel: LegacyApplicationIdModel?,
     modelVersion: AgpVersion?,
     androidModuleId: ModuleId
-  ): IdeVariantWithPostProcessor {
+  ): ModelResult<IdeVariantWithPostProcessor> {
     val mergedFlavor = copyModel(variant.mergedFlavor, ::productFlavorFrom)
     val buildType = androidProject.buildTypes.find { it.buildType.name == variant.buildType }?.buildType
 
@@ -923,16 +923,18 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       deprecatedPreMergedTestApplicationId = mergedFlavor.testApplicationId,
       desugaredMethodsFiles = listOf()
     )
-    return IdeVariantWithPostProcessor(
-      variantCoreImpl,
-      postProcessor = fun(): IdeVariantCoreImpl {
-        return variantCoreImpl.copy(
-          mainArtifact = mainArtifact.postProcess(),
-          androidTestArtifact = androidTestArtifact?.postProcess(),
-          unitTestArtifact = unitTestArtifact?.postProcess()
-        )
-      }
-    )
+    return ModelResult.create {
+      IdeVariantWithPostProcessor(
+        variantCoreImpl,
+        postProcessor = fun(): IdeVariantCoreImpl {
+          return variantCoreImpl.copy(
+            mainArtifact = mainArtifact.postProcess(),
+            androidTestArtifact = androidTestArtifact?.postProcess(),
+            unitTestArtifact = unitTestArtifact?.postProcess()
+          )
+        }
+      )
+    }
   }
 
   fun nativeAbiFrom(nativeAbi: NativeAbi): IdeNativeAbiImpl {
@@ -1197,7 +1199,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     projectPath: String,
     project: AndroidProject,
     legacyApplicationIdModel: LegacyApplicationIdModel?
-  ): IdeAndroidProjectImpl {
+  ): ModelResult<IdeAndroidProjectImpl> {
     // Old plugin versions do not return model version.
     val parsedModelVersion = AgpVersion.tryParse(project.modelVersion)
 
@@ -1243,42 +1245,44 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       } else {
         createIdeAndroidGradlePluginProjectFlagsImpl()
       }
-    return IdeAndroidProjectImpl(
-      agpVersion = project.modelVersion,
-      projectPath = IdeProjectPathImpl(
-        rootBuildId = rootBuildId.asFile,
-        buildId = buildId.asFile,
-        buildName = buildName,
-        projectPath = projectPath
-      ),
-      defaultConfig = defaultConfigCopy,
-      buildTypes = buildTypesCopy,
-      productFlavors = productFlavorCopy,
-      basicVariants = basicVariantsCopy,
-      flavorDimensions = flavorDimensionCopy,
-      compileTarget = project.compileTarget,
-      bootClasspath = bootClasspathCopy,
-      signingConfigs = signingConfigsCopy,
-      lintOptions = lintOptionsCopy,
-      lintChecksJars = lintRuleJarsCopy,
-      javaCompileOptions = javaCompileOptionsCopy,
-      aaptOptions = aaptOptionsCopy,
-      buildFolder = project.buildFolder,
-      dynamicFeatures = dynamicFeaturesCopy,
-      baseFeature = null,
-      variantsBuildInformation = variantBuildInformation,
-      viewBindingOptions = viewBindingOptionsCopy,
-      dependenciesInfo = dependenciesInfoCopy,
-      buildToolsVersion = buildToolsVersionCopy,
-      resourcePrefix = project.resourcePrefix,
-      groupId = groupId,
-      namespace = namespace,
-      testNamespace = testNamespace,
-      projectType = getProjectType(project, parsedModelVersion),
-      isBaseSplit = isBaseSplit,
-      agpFlags = agpFlags,
-      isKaptEnabled = false
-    )
+    return ModelResult.create {
+      IdeAndroidProjectImpl(
+        agpVersion = project.modelVersion,
+        projectPath = IdeProjectPathImpl(
+          rootBuildId = rootBuildId.asFile,
+          buildId = buildId.asFile,
+          buildName = buildName,
+          projectPath = projectPath
+        ),
+        defaultConfig = defaultConfigCopy,
+        buildTypes = buildTypesCopy,
+        productFlavors = productFlavorCopy,
+        basicVariants = basicVariantsCopy,
+        flavorDimensions = flavorDimensionCopy,
+        compileTarget = project.compileTarget,
+        bootClasspath = bootClasspathCopy,
+        signingConfigs = signingConfigsCopy,
+        lintOptions = lintOptionsCopy,
+        lintChecksJars = lintRuleJarsCopy,
+        javaCompileOptions = javaCompileOptionsCopy,
+        aaptOptions = aaptOptionsCopy,
+        buildFolder = project.buildFolder,
+        dynamicFeatures = dynamicFeaturesCopy,
+        baseFeature = null,
+        variantsBuildInformation = variantBuildInformation,
+        viewBindingOptions = viewBindingOptionsCopy,
+        dependenciesInfo = dependenciesInfoCopy,
+        buildToolsVersion = buildToolsVersionCopy,
+        resourcePrefix = project.resourcePrefix,
+        groupId = groupId,
+        namespace = namespace,
+        testNamespace = testNamespace,
+        projectType = getProjectType(project, parsedModelVersion),
+        isBaseSplit = isBaseSplit,
+        agpFlags = agpFlags,
+        isKaptEnabled = false
+      )
+    }
   }
 
   return object : ModelCache.V1 {
@@ -1291,7 +1295,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       legacyApplicationIdModel: LegacyApplicationIdModel?,
       modelVersion: AgpVersion?,
       androidModuleId: ModuleId
-    ): IdeVariantWithPostProcessor =
+    ): ModelResult<IdeVariantWithPostProcessor> =
       lock.withLock { variantFrom(androidProject, variant, legacyApplicationIdModel, modelVersion, androidModuleId) }
 
     override fun androidProjectFrom(
@@ -1301,7 +1305,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       projectPath: String,
       project: AndroidProject,
       legacyApplicationIdModel: LegacyApplicationIdModel?
-    ): IdeAndroidProjectImpl {
+    ): ModelResult<IdeAndroidProjectImpl> {
       return lock.withLock { androidProjectFrom(rootBuildId, buildId, buildName, projectPath, project, legacyApplicationIdModel) }
     }
 

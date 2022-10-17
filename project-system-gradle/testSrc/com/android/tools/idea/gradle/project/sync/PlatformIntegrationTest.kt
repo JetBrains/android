@@ -23,6 +23,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
@@ -463,6 +464,28 @@ class PlatformIntegrationTest {
       |succeeded(gradle_project_2)
       |ended: SUCCESS
       """.trimMargin())
+  }
+
+
+  @Test
+  fun `exceptions can be deserialized`() {
+    val preparedProject =
+      projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(
+      CapturePlatformModelsProjectResolverExtension.TestExceptionModels(),
+      projectRule.fixture.testRootDisposable
+    )
+    preparedProject.open { project ->
+      for (module in ModuleManager.getInstance(project).modules) {
+        if (ExternalSystemApiUtil.getExternalModuleType(module) == "sourceSet") continue
+
+        val exceptionModel: TestExceptionModel? = CapturePlatformModelsProjectResolverExtension.getTestExceptionModel(module)
+        expect.that(exceptionModel).isNotNull()
+        expect.that(exceptionModel?.exception as? IllegalStateException).isNotNull()
+        expect.that((exceptionModel?.exception as? IllegalStateException)?.message).isEqualTo("expected error")
+        expect.that((exceptionModel?.exception as? IllegalStateException)?.stackTrace).isNotEmpty()
+      }
+    }
   }
 
   private fun PreparedTestProject.openProjectWithEventLogging(

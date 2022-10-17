@@ -66,7 +66,7 @@ interface ModelCache {
       legacyApplicationIdModel: LegacyApplicationIdModel?,
       modelVersion: AgpVersion?,
       androidModuleId: ModuleId
-    ): IdeVariantWithPostProcessor
+    ): ModelResult<IdeVariantWithPostProcessor>
 
     fun androidProjectFrom(
       rootBuildId: BuildId,
@@ -75,7 +75,7 @@ interface ModelCache {
       projectPath: String,
       project: AndroidProject,
       legacyApplicationIdModel: LegacyApplicationIdModel?
-    ): IdeAndroidProjectImpl
+    ): ModelResult<IdeAndroidProjectImpl>
 
     fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl
 
@@ -93,7 +93,7 @@ interface ModelCache {
       basicVariant: BasicVariant,
       variant: com.android.builder.model.v2.ide.Variant,
       legacyApplicationIdModel: LegacyApplicationIdModel?
-    ): IdeVariantCoreImpl
+    ): ModelResult<IdeVariantCoreImpl>
 
     /**
      * Supplements an incomplete instance of [IdeVariantImpl] with dependency information from a [VariantDependencies] model.
@@ -105,7 +105,7 @@ interface ModelCache {
       variantDependencies: VariantDependencies,
       androidProjectPathResolver: AndroidProjectPathResolver,
       buildNameMap: Map<String, BuildId>
-    ): IdeVariantWithPostProcessor
+    ): ModelResult<IdeVariantWithPostProcessor>
 
     fun androidProjectFrom(
       rootBuildId: BuildId,
@@ -115,7 +115,7 @@ interface ModelCache {
       androidVersion: Versions,
       androidDsl: AndroidDsl,
       legacyApplicationIdModel: LegacyApplicationIdModel?
-    ): IdeAndroidProjectImpl
+    ): ModelResult<IdeAndroidProjectImpl>
   }
 
   fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl

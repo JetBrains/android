@@ -57,11 +57,15 @@ class GradleProject(
  */
 sealed class DeliverableGradleModule(
   val gradleProject: BasicGradleProject,
-  val projectSyncIssues: List<IdeSyncIssue>
+  val projectSyncIssues: List<IdeSyncIssue>,
+  val exceptions: List<Throwable>
 ) : GradleModelCollection {
 
   final override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
     with(ModelConsumer(consumer)) {
+      if (exceptions.isNotEmpty()) {
+        IdeAndroidSyncExceptions(exceptions).deliver()
+      }
       deliverModels()
     }
   }
@@ -78,6 +82,7 @@ sealed class DeliverableGradleModule(
 class DeliverableAndroidModule(
   gradleProject: BasicGradleProject,
   projectSyncIssues: List<IdeSyncIssue>,
+  exceptions: List<Throwable>,
   val selectedVariantName: String,
   val selectedAbiName: String?,
   val androidProject: IdeAndroidProjectImpl,
@@ -88,7 +93,7 @@ class DeliverableAndroidModule(
   val kotlinGradleModel: KotlinGradleModel?,
   val kaptGradleModel: KaptGradleModel?,
   val additionalClassifierArtifacts: AdditionalClassifierArtifactsModel?
-) : DeliverableGradleModule(gradleProject, projectSyncIssues) {
+) : DeliverableGradleModule(gradleProject, projectSyncIssues, exceptions) {
   override fun ModelConsumer.deliverModels() {
 
     val ideAndroidModels = IdeAndroidModels(
@@ -111,9 +116,10 @@ class DeliverableAndroidModule(
 class DeliverableJavaModule(
   gradleProject: BasicGradleProject,
   projectSyncIssues: List<IdeSyncIssue>,
+  exceptions: List<Throwable>,
   private val kotlinGradleModel: KotlinGradleModel?,
   private val kaptGradleModel: KaptGradleModel?
-) : DeliverableGradleModule(gradleProject, projectSyncIssues) {
+) : DeliverableGradleModule(gradleProject, projectSyncIssues, exceptions) {
   override fun ModelConsumer.deliverModels() {
     kotlinGradleModel?.deliver()
     kaptGradleModel?.deliver()
@@ -123,8 +129,9 @@ class DeliverableJavaModule(
 class DeliverableNativeVariantsAndroidModule(
   gradleProject: BasicGradleProject,
   projectSyncIssues: List<IdeSyncIssue>,
+  exceptions: List<Throwable>,
   private val nativeVariants: List<IdeNativeVariantAbi>? // Null means V2.
-) : DeliverableGradleModule(gradleProject, projectSyncIssues) {
+) : DeliverableGradleModule(gradleProject, projectSyncIssues, exceptions) {
   override fun ModelConsumer.deliverModels() {
     IdeAndroidNativeVariantsModels(nativeVariants, projectSyncIssues).deliver()
   }

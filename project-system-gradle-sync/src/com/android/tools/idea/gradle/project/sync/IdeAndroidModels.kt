@@ -42,8 +42,18 @@ class IdeAndroidNativeVariantsModels(
 ) : Serializable
 
 /**
- * A model to represent errors usually passed via exceptions. This is necessary to workaround exception serialization issues across
- * different JVM versions.
+ * A model to represent unexpected exceptions/errors suppressed during sync.
+ *
+ * In the Gradle phase of sync, if an unexpected exception is suppressed it likely results in invalid/incomplete sync results, however it is
+ * likely to be a better outcome for the user than not having any result at all. [IdeAndroidSyncExceptions] module level model is used to
+ * report exceptions suppressed while building IDE models to the IDE process where they are supposed to be logged as errors. The IDE phase
+ * of sync should also generate a sync issue notifying the user about potentially incompletely synced state of the project.
+ */
+class IdeAndroidSyncExceptions(val exceptions: List<Throwable>): Serializable
+
+/**
+ * A model to represent a fatal sync error such as one that would normally be passed as an exception. This is necessary to workaround
+ * exception serialization issues across different JVM versions.
  */
 class IdeAndroidSyncError(val message: String, val stackTrace: List<String>) : Serializable
 

@@ -47,6 +47,7 @@ import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
 import com.android.tools.idea.gradle.project.sync.IdeSyncExecutionReport
 import com.android.tools.idea.gradle.project.sync.SdkSync
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
+import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncExceptions
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs
 import com.android.tools.idea.gradle.project.sync.errors.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getIdeModuleSourceSet
@@ -85,6 +86,7 @@ import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.notification.NotificationsConfiguration
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.Key
@@ -206,6 +208,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   }
 
   override fun createModule(gradleModule: IdeaModule, projectDataNode: DataNode<ProjectData>): DataNode<ModuleData>? {
+    val ideAndroidSyncExceptions = resolverCtx.getExtraProject(gradleModule, IdeAndroidSyncExceptions::class.java)
+    ideAndroidSyncExceptions?.log()
     if (!isAndroidGradleProject) {
       return nextResolver.createModule(gradleModule, projectDataNode)
     }
@@ -1027,6 +1031,14 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       } catch (e: IllegalStateException) {
         null
       }
+  }
+}
+
+private val logger = logger<AndroidGradleProjectResolver>()
+
+private fun IdeAndroidSyncExceptions.log() {
+  exceptions.forEach {
+    logger.error("Error syncing with Gradle:", it)
   }
 }
 

@@ -42,6 +42,7 @@ import java.io.Serializable
 sealed class CapturePlatformModelsProjectResolverExtension(val mode: TestGradleModelProviderMode) : AbstractProjectResolverExtension() {
   class IdeModels : CapturePlatformModelsProjectResolverExtension(TestGradleModelProviderMode.IDE_MODELS)
   class TestGradleModels : CapturePlatformModelsProjectResolverExtension(TestGradleModelProviderMode.TEST_GRADLE_MODELS)
+  class TestExceptionModels : CapturePlatformModelsProjectResolverExtension(TestGradleModelProviderMode.TEST_EXCEPTION_MODELS)
 
   companion object {
     private val kotlinModels = mutableMapOf<String, KotlinGradleModel>()
@@ -50,6 +51,7 @@ sealed class CapturePlatformModelsProjectResolverExtension(val mode: TestGradleM
     private val externalProjectModels = mutableMapOf<String, ExternalProject>()
     private val testGradleModels = mutableMapOf<String, TestGradleModel>()
     private val testParameterizedGradleModels = mutableMapOf<String, TestParameterizedGradleModel>()
+    private val testExceptionModels = mutableMapOf<String, TestExceptionModel>()
 
     fun getKotlinModel(module: Module): KotlinGradleModel? = kotlinModels[getGradleProjectPath(module)]
     fun getKaptModel(module: Module): KaptGradleModel? = kaptModels[getGradleProjectPath(module)]
@@ -58,6 +60,8 @@ sealed class CapturePlatformModelsProjectResolverExtension(val mode: TestGradleM
     fun getTestGradleModel(module: Module): TestGradleModel? = testGradleModels[getGradleProjectPath(module)]
     fun getTestParameterizedGradleModel(module: Module): TestParameterizedGradleModel? =
       testParameterizedGradleModels[getGradleProjectPath(module)]
+
+    fun getTestExceptionModel(module: Module): TestExceptionModel? = testExceptionModels[getGradleProjectPath(module)]
 
     private fun getGradleProjectPath(module: Module): String? {
       return ExternalSystemApiUtil.getExternalProjectPath(module)
@@ -71,6 +75,7 @@ sealed class CapturePlatformModelsProjectResolverExtension(val mode: TestGradleM
       externalProjectModels.clear()
       testGradleModels.clear()
       testParameterizedGradleModels.clear()
+      testExceptionModels.clear()
     }
 
     fun registerTestHelperProjectResolver(prototypeInstance: CapturePlatformModelsProjectResolverExtension, disposable: Disposable) {
@@ -113,6 +118,9 @@ sealed class CapturePlatformModelsProjectResolverExtension(val mode: TestGradleM
     resolverCtx.getExtraProject(gradleModule, TestParameterizedGradleModel::class.java)?.let {
       testParameterizedGradleModels[gradleProjectPath] = it
     }
+    resolverCtx.getExtraProject(gradleModule, TestExceptionModel::class.java)?.let {
+      testExceptionModels[gradleProjectPath] = it
+    }
     super.populateModuleExtraModels(gradleModule, ideModule)
   }
 
@@ -132,6 +140,7 @@ sealed class CapturePlatformModelsProjectResolverExtension(val mode: TestGradleM
 enum class TestGradleModelProviderMode {
   IDE_MODELS,
   TEST_GRADLE_MODELS,
+  TEST_EXCEPTION_MODELS
 }
 
 class TestGradleModelProvider(private val paramValue: String, val mode: TestGradleModelProviderMode) : ProjectImportModelProvider {
@@ -163,6 +172,11 @@ class TestGradleModelProvider(private val paramValue: String, val mode: TestGrad
           }
         testParameterizedGradleModel?.also { pluginModel -> modelConsumer.consume(pluginModel, TestParameterizedGradleModel::class.java) }
       }
+
+      TestGradleModelProviderMode.TEST_EXCEPTION_MODELS -> {
+        val testExceptionModel = controller.findModel(projectModel, TestExceptionModel::class.java)
+        testExceptionModel?.also { pluginModel -> modelConsumer.consume(pluginModel, TestExceptionModel::class.java) }
+      }
     }
   }
 }
@@ -175,16 +189,26 @@ interface TestParameterizedGradleModel {
   val message: String
 }
 
+interface TestExceptionModel {
+  val exception: Throwable
+}
+
 data class TestGradleModelImpl(override val message: String) : TestGradleModel, Serializable
 data class TestParameterizedGradleModelImpl(override val message: String) : TestParameterizedGradleModel, Serializable
+data class TestExceptionModelImpl(override val exception: Throwable) : TestExceptionModel, Serializable
 
 class TestModelBuilderService : ModelBuilderService {
   override fun canBuild(modelName: String?): Boolean {
-    return modelName == TestGradleModel::class.java.name
+    return modelName == TestGradleModel::class.java.name ||
+      modelName == TestExceptionModel::class.java.name
   }
 
   override fun buildAll(modelName: String?, project: Project?): Any {
-    return TestGradleModelImpl("Hello, ${project?.buildDir}")
+    return when (modelName) {
+      TestGradleModel::class.java.name -> TestGradleModelImpl("Hello, ${project?.buildDir}")
+      TestExceptionModel::class.java.name -> TestExceptionModelImpl(kotlin.runCatching { error("expected error") }.exceptionOrNull()!!)
+      else -> error("Unexpected model name: $modelName")
+    }
   }
 
   override fun getErrorMessageBuilder(project: Project, e: Exception): ErrorMessageBuilder {

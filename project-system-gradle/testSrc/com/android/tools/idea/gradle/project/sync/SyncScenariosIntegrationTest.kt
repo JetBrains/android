@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.gradle.model.IdeSyncIssue.Companion.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker.Request.Companion.testRequest
 import com.android.tools.idea.gradle.project.sync.internal.dump
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
@@ -298,6 +299,16 @@ class SyncScenariosIntegrationTest {
       }
       project.requestSyncAndWait()
       assertThat(ModuleManager.getInstance(project).findModuleByName(moduleName)).isNull()
+    }
+  }
+
+  @Test
+  fun `suppressed sync internal errors are logged`() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.open { project ->
+      val result = kotlin.runCatching { project.requestSyncAndWait(syncRequest = testRequest(SyncTestMode.TEST_EXCEPTION_HANDLING)) }
+      expect.that(result.exceptionOrNull()?.message).contains("TestLoggerAssertionError")
+      expect.that(result.exceptionOrNull()?.message).contains("**internal error for tests**")
     }
   }
 

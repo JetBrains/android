@@ -52,15 +52,21 @@ typealias IdeVariantFetcher = (
   androidProjectPathResolver: AndroidProjectPathResolver,
   module: AndroidModule,
   configuration: ModuleConfiguration
-) -> IdeVariantWithPostProcessor?
+) -> ModelResult<IdeVariantWithPostProcessor>
 
 sealed class GradleModule(val gradleProject: BasicGradleProject) {
   val findModelRoot: Model get() = gradleProject
   val id = createUniqueModuleId(gradleProject)
   val moduleId: ModuleId = gradleProject.toModuleId()
   var projectSyncIssues: List<IdeSyncIssue> = emptyList(); private set
+  val exceptions: MutableList<Throwable> = mutableListOf()
+
   fun setSyncIssues(issues: List<IdeSyncIssue>) {
     projectSyncIssues = issues
+  }
+
+  fun recordExceptions(throwables: List<Throwable>) {
+    exceptions += throwables
   }
 
   /**
@@ -81,7 +87,7 @@ class JavaModule(
   override fun getFetchSyncIssuesAction(): ActionToRun<Unit>?= null
 
   override fun prepare(indexedModels: IndexedModels): DeliverableGradleModule {
-    return DeliverableJavaModule(gradleProject, projectSyncIssues, kotlinGradleModel, kaptGradleModel)
+    return DeliverableJavaModule(gradleProject, projectSyncIssues, exceptions, kotlinGradleModel, kaptGradleModel)
   }
 }
 
@@ -262,6 +268,7 @@ sealed class AndroidModule constructor(
     return DeliverableAndroidModule(
       gradleProject = gradleProject,
       projectSyncIssues = projectSyncIssues,
+      exceptions = exceptions,
       selectedVariantName = selectedVariantName,
       selectedAbiName = syncedNativeVariantAbiName,
       androidProject = androidProject.patchForKapt(kaptGradleModel).populateBaseFeature(),
@@ -332,7 +339,7 @@ class NativeVariantsAndroidModule private constructor(
   }
 
   override fun prepare(indexedModels: IndexedModels): DeliverableGradleModule {
-    return DeliverableNativeVariantsAndroidModule(gradleProject, projectSyncIssues, nativeVariants)
+    return DeliverableNativeVariantsAndroidModule(gradleProject, projectSyncIssues, exceptions, nativeVariants)
   }
 }
 
