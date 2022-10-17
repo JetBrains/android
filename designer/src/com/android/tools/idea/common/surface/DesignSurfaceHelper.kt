@@ -28,9 +28,11 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.io.CharStreams
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
@@ -85,6 +87,9 @@ private fun createResourceFile(project: Project,
 
       val document = FileDocumentManager.getInstance().getDocument(directory.createChildData(project, resourceFileName))!!
 
+      if (document is DocumentImpl && SystemInfo.isWindows) {
+        document.setAcceptSlashR(true)
+      }
       document.setText(resourceFileContent)
     }
     catch (exception: IOException) {
