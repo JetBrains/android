@@ -126,7 +126,12 @@ import kotlin.concurrent.withLock
 // NOTE: The implementation is structured as a collection of nested functions to ensure no recursive dependencies are possible between
 //       models unless explicitly handled by nesting. The same structure expressed as classes allows recursive data structures and thus we
 //       cannot validate the structure at compile time.
-internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLock, agpVersion: AgpVersion): ModelCache.V2 {
+internal fun modelCacheV2Impl(
+  internedModels: InternedModels,
+  lock: ReentrantLock,
+  agpVersion: AgpVersion,
+  syncTestMode: SyncTestMode
+): ModelCache.V2 {
   fun String.deduplicate() = internedModels.intern(this)
   fun List<String>.deduplicateStrings(): List<String> = this.map { it.deduplicate() }
   fun Map<String, String>.deduplicateStrings(): Map<String, String> = map { (k, v) -> k.deduplicate() to v.deduplicate() }.toMap()

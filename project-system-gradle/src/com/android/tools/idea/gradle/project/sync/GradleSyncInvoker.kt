@@ -38,6 +38,7 @@ interface GradleSyncInvoker {
     val trigger: GradleSyncStats.Trigger,
     val requestedVariantChange: SwitchVariantRequest? = null,
     val dontFocusSyncFailureOutput: Boolean = false,
+    val syncTestMode: SyncTestMode = SyncTestMode.PRODUCTION
   ) {
     val progressExecutionMode: ProgressExecutionMode
       get() = ProgressExecutionMode.IN_BACKGROUND_ASYNC
@@ -46,7 +47,10 @@ interface GradleSyncInvoker {
       // Perform a variant-only sync if not null.
       @VisibleForTesting
       @JvmStatic
-      fun testRequest(): Request = Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)
+      @JvmOverloads
+      fun testRequest(syncTestMode: SyncTestMode = SyncTestMode.PRODUCTION): Request {
+        return Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED, syncTestMode = syncTestMode)
+      }
     }
   }
 

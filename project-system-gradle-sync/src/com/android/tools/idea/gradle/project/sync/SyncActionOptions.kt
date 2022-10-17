@@ -17,19 +17,21 @@ package com.android.tools.idea.gradle.project.sync
 
 import java.io.Serializable
 
-sealed class SyncActionOptions(val flags: GradleSyncStudioFlags) : Serializable
+sealed class SyncActionOptions(val flags: GradleSyncStudioFlags, val syncTestMode: SyncTestMode) : Serializable
 
 /**
  * A sync action fetching enough models to set up a project.
  */
-sealed class SyncProjectActionOptions(flags: GradleSyncStudioFlags) : SyncActionOptions(flags), Serializable {
+sealed class SyncProjectActionOptions(flags: GradleSyncStudioFlags, syncTestMode: SyncTestMode) :
+  SyncActionOptions(flags, syncTestMode), Serializable {
   abstract val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions
 }
 
 class AllVariantsSyncActionOptions(
   flags: GradleSyncStudioFlags,
+  syncTestMode: SyncTestMode,
   override val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions
-) : SyncProjectActionOptions(flags), Serializable
+) : SyncProjectActionOptions(flags, syncTestMode), Serializable
 
 data class SwitchVariantRequest(
   val moduleId: String,
@@ -39,17 +41,19 @@ data class SwitchVariantRequest(
 
 class SingleVariantSyncActionOptions(
   flags: GradleSyncStudioFlags,
+  syncTestMode: SyncTestMode,
   val selectedVariants: SelectedVariants,
   val switchVariantRequest: SwitchVariantRequest?,
-  override val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions
-) : SyncProjectActionOptions(flags), Serializable
+  override val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions,
+) : SyncProjectActionOptions(flags, syncTestMode), Serializable
 
 class NativeVariantsSyncActionOptions(
   flags: GradleSyncStudioFlags,
+  syncTestMode: SyncTestMode,
   /** moduleId => variantName where moduleId is by [com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId] */
   val moduleVariants: Map<String, String>,
   val requestedAbis: Set<String>
-) : SyncActionOptions(flags), Serializable
+) : SyncActionOptions(flags, syncTestMode), Serializable
 
 class AdditionalClassifierArtifactsActionOptions(
   val cachedLibraries: Collection<String>,

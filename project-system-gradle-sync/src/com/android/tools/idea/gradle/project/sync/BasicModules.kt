@@ -129,7 +129,12 @@ internal class BasicV1AndroidModuleGradleProject(
 /**
  * The container class of Android modules that can be fetched using V2 builder models.
  */
-internal class BasicV2AndroidModuleGradleProject(gradleProject: BasicGradleProject, buildName: String, val versions: Versions) :
+internal class BasicV2AndroidModuleGradleProject(
+  gradleProject: BasicGradleProject,
+  buildName: String,
+  val versions: Versions,
+  val syncTestMode: SyncTestMode
+) :
   BasicIncompleteAndroidModule(gradleProject, buildName)
 {
   override val agpVersion: String
@@ -157,7 +162,7 @@ internal class BasicV2AndroidModuleGradleProject(gradleProject: BasicGradleProje
           null
         }
 
-        val modelCache = modelCacheV2Impl(internedModels, modelCacheLock, agpVersion)
+        val modelCache = modelCacheV2Impl(internedModels, modelCacheLock, agpVersion, syncTestMode)
         val rootBuildId = buildInfo.buildNameMap[":"] ?: error("Root build (':') not found")
         val buildId = buildInfo.buildNameMap[basicAndroidProject.buildName]
           ?: error("(Included) build named '${basicAndroidProject.buildName}' not found")

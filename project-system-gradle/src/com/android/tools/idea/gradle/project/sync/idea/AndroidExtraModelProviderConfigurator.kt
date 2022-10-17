@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncStudioFlags
 import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
+import com.android.tools.idea.gradle.project.sync.SyncTestMode
 import com.android.tools.idea.gradle.project.sync.getProjectSyncRequest
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchAllVariantsMode
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchNativeVariantsMode
@@ -63,15 +64,21 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
       val request = project.getProjectSyncRequest(projectPath)
       SingleVariantSyncActionOptions(
         studioFlags,
+        syncTestMode = request?.syncTestMode ?: SyncTestMode.PRODUCTION,
         selectedVariants,
         request?.requestedVariantChange,
         getAdditionalArtifactsAction()
       )
     }
-    FetchAllVariantsMode -> AllVariantsSyncActionOptions(studioFlags, getAdditionalArtifactsAction())
+    FetchAllVariantsMode -> AllVariantsSyncActionOptions(
+      studioFlags,
+      SyncTestMode.PRODUCTION, // No request in this mode.
+      getAdditionalArtifactsAction()
+    )
     is FetchNativeVariantsMode -> {
       NativeVariantsSyncActionOptions(
         studioFlags,
+        SyncTestMode.PRODUCTION, // No request in this mode.
         projectResolutionMode.moduleVariants,
         projectResolutionMode.requestedAbis
       )

@@ -2197,8 +2197,11 @@ private fun Project.verifyModelsAttached() {
 }
 
 @JvmOverloads
-fun Project.requestSyncAndWait(ignoreSyncIssues: Set<Int> = emptySet()) {
-  AndroidGradleTests.syncProject(this, GradleSyncInvoker.Request.testRequest()) {
+fun Project.requestSyncAndWait(
+  ignoreSyncIssues: Set<Int> = emptySet(),
+  syncRequest: GradleSyncInvoker.Request = GradleSyncInvoker.Request.testRequest()
+) {
+  AndroidGradleTests.syncProject(this, syncRequest) {
     AndroidGradleTests.checkSyncStatus(this, it, ignoreSyncIssues)
   }
 
