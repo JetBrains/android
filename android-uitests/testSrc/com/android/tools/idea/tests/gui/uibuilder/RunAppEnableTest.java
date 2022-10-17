@@ -35,7 +35,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class RunAppEnableTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
-  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Activity";
+  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty View Activity";
 
   @Rule
   public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();

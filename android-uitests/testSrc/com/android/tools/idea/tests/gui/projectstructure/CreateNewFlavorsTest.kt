@@ -103,9 +103,9 @@ class CreateNewFlavorsTest {
 
     // For b/143102526:
     // Additional check: Check if able to add new Product Flavor specific Activity.
-    ide.invokeMenuPath("File", "New", "Activity", "Empty Activity")
+    ide.invokeMenuPath("File", "New", "Activity", "Empty View Activity")
     NewActivityWizardFixture.find(ide)
-      .getConfigureActivityStep("Empty Activity")
+      .getConfigureActivityStep("Empty View Activity")
       .selectLauncherActivity()
       .setTargetSourceSet(FLAVOR1)
       .wizard()
