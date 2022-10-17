@@ -1,27 +1,26 @@
 <component name="libraryTable">
   <library name="studio-plugin-Kotlin">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/javaslang.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/javax-inject.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-common.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlin-plugin.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc-lib.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc_allopen-compiler-plugin.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc_android-extensions-compiler-plugin.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc_kotlin-compiler-common.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc_kotlin-compiler-fe10.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc_kotlin-compiler-ir.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc_kotlin-jps-common.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc_kotlinx-serialization-compiler-plugin.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc_lombok-compiler-plugin.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc_noarg-compiler-plugin.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc_parcelize-compiler-plugin.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinc_sam-with-receiver-compiler-plugin.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/Kotlin/lib/kotlinx-collections-immutable-jvm.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlin-base-jps.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlinx-collections-immutable-jvm.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlin-plugin.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlinc.lombok-compiler-plugin.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlinc.allopen-compiler-plugin.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlin-gradle-tooling.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/javax-inject.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlinc.kotlin-compiler-ir.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlinc.noarg-compiler-plugin.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlinc.kotlin-compiler-common.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlinc-lib.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlinc.parcelize-compiler-plugin.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlinc.android-extensions-compiler-plugin.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlinc.sam-with-receiver-compiler-plugin.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlinc.kotlin-jps-common.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlinc.kotlinx-serialization-compiler-plugin.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/javaslang.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Kotlin/lib/kotlinc.kotlin-compiler-fe10.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/kotlin-plugin/kotlin-plugin-sources.jar!/" />
-    </SOURCES>
+    <SOURCES />
   </library>
 </component>

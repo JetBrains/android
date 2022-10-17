@@ -115,7 +115,7 @@ maven_repository(
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.core.core-ktx_1.0.1",
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
-        "@maven//:androidx.test.ext.junit_1.1.1",
+        "@maven//:androidx.test.ext.junit_1.1.2",
         "@maven//:com.android.support.appcompat-v7_28.0.0",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
         "@maven//:com.android.support.constraint.constraint-layout_1.1.0",

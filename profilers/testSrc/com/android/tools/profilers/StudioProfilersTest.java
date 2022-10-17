@@ -641,6 +641,7 @@ public final class StudioProfilersTest {
 
   @Test
   public void shouldOpenCpuProfileStageIfStartupProfilingStarted() {
+    Assume.assumeTrue(myNewEventPipeline);
     Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
     Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
 

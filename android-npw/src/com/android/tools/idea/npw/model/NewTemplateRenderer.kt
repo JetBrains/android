@@ -319,7 +319,8 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.THINGS_MODULE,
     TemplateRenderer.ML_MODEL_BINDING_IMPORT_WIZARD,
     TemplateRenderer.ML_MODEL_BINDING_FEATURE_OFF_NOTIFICATION,
-    TemplateRenderer.ANDROID_NATIVE_MODULE -> throw RuntimeException("Invalid Template Title")
+    TemplateRenderer.ANDROID_NATIVE_MODULE,
+    TemplateRenderer.GOOGLE_WALLET_ACTIVITY -> throw RuntimeException("Invalid Template Title")
   }
 }
 

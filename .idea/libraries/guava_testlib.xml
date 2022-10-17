@@ -6,7 +6,7 @@
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$WORKSPACE_ROOT$/prebuilts/tools/common/m2/repository/com/google/guava/guava-testlib/25.1-jre/guava-testlib-25.1-jre-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/guava/guava-testlib/25.1-jre/guava-testlib-25.1-jre-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

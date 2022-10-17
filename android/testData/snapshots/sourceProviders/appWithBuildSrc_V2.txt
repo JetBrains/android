@@ -698,11 +698,11 @@ MODULE: project.app
 Build configuration files:
     file://./build.gradle : Project: project [0]
     file://./app/build.gradle : Module :app [2000004]
-    file://./app/proguard-rules.pro : ProGuard Rules for ":app" [2000004]
     file://./buildSrc/build.gradle : Module :buildSrc [2000007]
     file://./buildSrc/settings.gradle : Module :buildSrc [2000007]
     file://./buildSrc/lib1/build.gradle : Module :buildSrc:lib1 [2000010]
     file://./buildSrc/lib2/build.gradle : Module :buildSrc:lib2 [2000013]
+    file://./app/proguard-rules.pro : ProGuard Rules for ":app" [2500004]
     file://./settings.gradle : Project Settings [3000000]
     file://./gradle.properties : Project Properties [3000000]
     file://./gradle/wrapper/gradle-wrapper.properties : Gradle Version [3000000]

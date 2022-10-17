@@ -151,72 +151,80 @@ void JObject::DeleteRef() noexcept {
 }
 
 void JObject::IllegalGlobalReferenceUse() {
-  Log::Fatal("JNIEnv pointer has to be provided when using a global reference");
+  Log::E("JNIEnv pointer has to be provided when using a global reference");
+  abort();
 }
 
-jfieldID JClass::GetStaticFieldId(const char* name, const char* signature) const {
-  auto field = GetJni()->GetStaticFieldID(ref(), name, signature);
+jfieldID JClass::GetStaticFieldId(JNIEnv* jni_env, const char* name, const char* signature) const {
+  auto field = jni_env->GetStaticFieldID(ref(), name, signature);
   if (field == nullptr) {
-    Log::Fatal("Unable to find the static %s.%s field with signature %s", GetName().c_str(), name, signature);
+    Log::Fatal("Unable to find the static %s.%s field with signature %s", GetName(jni_env).c_str(), name, signature);
   }
   return field;
 }
 
-jfieldID JClass::GetFieldId(const char* name, const char* signature) const {
-  auto field = GetJni()->GetFieldID(ref(), name, signature);
+jfieldID JClass::GetFieldId(JNIEnv* jni_env, const char* name, const char* signature) const {
+  auto field = jni_env->GetFieldID(ref(), name, signature);
   if (field == nullptr) {
-    Log::Fatal("Unable to find the %s.%s field with signature %s", GetName().c_str(), name, signature);
+    Log::Fatal("Unable to find the %s.%s field with signature %s", GetName(jni_env).c_str(), name, signature);
   }
   return field;
 }
 
-jmethodID JClass::GetStaticMethodId(const char* name, const char* signature) const {
-  auto method = GetJni()->GetStaticMethodID(ref(), name, signature);
+jmethodID JClass::GetStaticMethodId(JNIEnv* jni_env, const char* name, const char* signature) const {
+  auto method = jni_env->GetStaticMethodID(ref(), name, signature);
   if (method == nullptr) {
-    Log::Fatal("Unable to find the static %s.%s method with signature %s", GetName().c_str(), name, signature);
+    Log::Fatal("Unable to find the static %s.%s method with signature %s", GetName(jni_env).c_str(), name, signature);
   }
   return method;
 }
 
-jmethodID JClass::GetMethodId(const char* name, const char* signature) const {
-  auto method = GetJni()->GetMethodID(ref(), name, signature);
+jmethodID JClass::GetMethodId(JNIEnv* jni_env, const char* name, const char* signature) const {
+  auto method = jni_env->GetMethodID(ref(), name, signature);
   if (method == nullptr) {
-    Log::Fatal("Unable to find the %s.%s method with signature %s", GetName().c_str(), name, signature);
+    Log::Fatal("Unable to find the %s.%s method with signature %s", GetName(jni_env).c_str(), name, signature);
   }
   return method;
 }
 
-jmethodID JClass::GetConstructorId(const char* signature) const {
-  auto constructor = GetJni()->GetMethodID(ref(), "<init>", signature);
+jmethodID JClass::GetConstructorId(JNIEnv* jni_env, const char* signature) const {
+  auto constructor = jni_env->GetMethodID(ref(), "<init>", signature);
   if (constructor == nullptr) {
-    Log::Fatal("Unable to find the %s constructor with signature %s", GetName().c_str(), signature);
+    Log::Fatal("Unable to find the %s constructor with signature %s", GetName(jni_env).c_str(), signature);
   }
   return constructor;
 }
 
-jmethodID JClass::GetDeclaredOrInheritedMethodId(const char* name, const char* signature) const {
-  jmethodID method = GetJni()->GetMethodID(ref(), name, signature);
+jmethodID JClass::GetDeclaredOrInheritedMethodId(JNIEnv* jni_env, const char* name, const char* signature) const {
+  jmethodID method = jni_env->GetMethodID(ref(), name, signature);
   if (method != nullptr) {
     return method;
   }
   GetJni()->ExceptionClear();
-  for (JClass clazz = GetSuperclass(); !clazz.IsNull(); clazz = clazz.GetSuperclass()) {
-    method = GetJni()->GetMethodID(ref(), name, signature);
+  for (JClass clazz = GetSuperclass(jni_env); !clazz.IsNull(); clazz = clazz.GetSuperclass(jni_env)) {
+    method = jni_env->GetMethodID(ref(), name, signature);
     if (method != nullptr) {
       return method;
     }
-    GetJni()->ExceptionClear();
+    jni_env->ExceptionClear();
   }
-  Log::Fatal("Unable to find the declared or inherited %s.%s method with signature %s", GetName().c_str(), name, signature);
+  Log::Fatal("Unable to find the declared or inherited %s.%s method with signature %s", GetName(jni_env).c_str(), name, signature);
 }
 
-JClass JClass::GetSuperclass() const {
-  JNIEnv* jni_env = GetJni();
+jmethodID JClass::FindMethod(JNIEnv* jni_env, const char* name, const char* signature) const {
+  jmethodID method = jni_env->GetMethodID(ref(), name, signature);
+  jboolean exception_thrown = jni_env->ExceptionCheck();
+  if (exception_thrown) {
+    jni_env->ExceptionClear();
+  }
+  return method;
+}
+
+JClass JClass::GetSuperclass(JNIEnv* jni_env) const {
   return JClass(jni_env, jni_env->GetSuperclass(ref()));
 }
 
-string JClass::GetName() const {
-  JNIEnv* jni_env = GetJni();
+string JClass::GetName(JNIEnv* jni_env) const {
   if (Jvm::class_get_name_method_ == nullptr) {
     // class_get_name_method_ is not initialized yet. This means that GetName was called indirectly by Jvm::Initialize.
     return "java.lang.Class";

@@ -70,7 +70,7 @@ enum class TestAGPVersion(
   V_4_2("4.2.0", CompatibleGradleVersion.VERSION_6_7_1),
   V_7_0("7.0.0", CompatibleGradleVersion.VERSION_7_0_2),
   V_7_1("7.1.0", CompatibleGradleVersion.VERSION_7_2),
-  LATEST(null, CompatibleGradleVersion.VERSION_FOR_DEV, "1.5.21"),
+  LATEST(null, CompatibleGradleVersion.VERSION_FOR_DEV, "1.6.21"),
 }
 
 /**

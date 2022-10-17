@@ -48,9 +48,9 @@ internal object EmptyIssueSource : IssueSource {
 internal class IssueSourceWithFile(override val file: VirtualFile, override val displayText: String = "") : IssueSource
 
 internal class DesignerCommonIssueTestProvider(private val issues: List<Issue>) : DesignerCommonIssueProvider<Any> {
-  override var filter: (Issue) -> Boolean = { true }
+  override var viewOptionFilter: DesignerCommonIssueProvider.Filter = EmptyFilter
 
-  override fun getFilteredIssues(): List<Issue> = issues.filter(filter)
+  override fun getFilteredIssues(): List<Issue> = issues.filter(viewOptionFilter)
 
   override fun registerUpdateListener(listener: Runnable) = Unit
 
@@ -65,7 +65,7 @@ internal class CommonIssueTestParentNode(project: Project) : DesignerCommonIssue
 
   override fun getName(): String = ""
 
-  override fun getChildren(): Collection<DesignerCommonIssueNode> = emptyList()
+  override fun getChildren(): List<DesignerCommonIssueNode> = emptyList()
 
   override fun getLeafState(): LeafState = LeafState.ALWAYS
 }

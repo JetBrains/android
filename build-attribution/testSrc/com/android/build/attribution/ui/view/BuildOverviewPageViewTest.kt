@@ -145,17 +145,19 @@ class BuildOverviewPageViewTest {
     }
     val model = BuildOverviewPageModel(mockData, warningSuppressions)
     val view = BuildOverviewPageView(model, mockHandlers)
-    val infoPanel = TreeWalker(view.component).descendants().single { it.name == "info" }
-    val html = TreeWalker(infoPanel).descendants()
-      .filterIsInstance<JEditorPane>()
-      .mapNotNull { it.text }
-      .joinToString(separator = "\n")
-    val extracted = html.substring(html.indexOf("Files download:")).substringBeforeLast("</body>").trimEnd()
-    Truth.assertThat(extracted).isEqualTo("""
-      Files download: 1.5s <icon alt="<html>
-      This build had 8 network requests,<br/>
+    val html = view.generateInfoPanelHtml()
+
+    Truth.assertThat(html).isEqualTo("""
+      <b>Build finished on 1/30/20, 12:21 PM</b><br/>
+      Total build duration was 20.0s<br/>
+      <br/>
+      Includes:<br/>
+      Build configuration: 4.0s - <a href='configuration-cache'>Optimize this</a><br/>
+      Critical path tasks execution: 15.0s<br/>
+      <a href='downloads-view'>Files download</a>: 1.5s <icon alt='&lt;html&gt;
+      This build had 8 network requests,&lt;br/&gt;
       downloaded in total 310 kB in 1.5s.
-      </html>" src="AllIcons.General.ContextHelp"><br>
+      &lt;/html&gt;' src='AllIcons.General.ContextHelp'><br/>
     """.trimIndent())
   }
 
@@ -186,11 +188,16 @@ class BuildOverviewPageViewTest {
   private fun verifyFileDownloadsInfoNotVisible(mockData: MockUiData) {
     val model = BuildOverviewPageModel(mockData, warningSuppressions)
     val view = BuildOverviewPageView(model, mockHandlers)
-    val infoPanel = TreeWalker(view.component).descendants().single { it.name == "info" }
-    val text = TreeWalker(infoPanel).descendants()
-      .mapNotNull { visibleText(it) }
-      .joinToString(separator = "\n")
-    Truth.assertThat(text).doesNotContain("Files download:")
+    val html = view.generateInfoPanelHtml()
+
+    Truth.assertThat(html).isEqualTo("""
+      <b>Build finished on 1/30/20, 12:21 PM</b><br/>
+      Total build duration was 20.0s<br/>
+      <br/>
+      Includes:<br/>
+      Build configuration: 4.0s - <a href='configuration-cache'>Optimize this</a><br/>
+      Critical path tasks execution: 15.0s<br/>
+    """.trimIndent())
   }
 
   private fun visibleText(component: Component): String? = when (component) {
@@ -200,7 +207,7 @@ class BuildOverviewPageViewTest {
     else -> null
   }
 
-  private fun clearHtml(html: String): String = UIUtil.getHtmlBody(html).also { println(it) }
+  private fun clearHtml(html: String): String = UIUtil.getHtmlBody(html)
     .trimIndent()
     .replace("\n","")
     .replace("<br>","\n")

@@ -71,7 +71,7 @@ class LambdaPropertyItem(
           invokeLater {
             // Execute this via invokeLater to avoid painting errors by JBTable (hover line) when focus is removed
             it.navigate(true)
-            LayoutInspector.get(event)?.stats?.gotoSourceFromPropertyValue(lookup.selection)
+            LayoutInspector.get(event)?.currentClient?.stats?.gotoSourceFromPropertyValue(lookup.selection)
             if (location.source.endsWith(":unknown")) {
               showBalloonError("Could not determine exact source location", event)
             }

@@ -15,32 +15,37 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
+import static com.android.tools.idea.uibuilder.NlModelBuilderUtil.getSyncLayoutlibSceneManagerForModel;
+
 import com.android.SdkConstants.PreferenceTags;
-import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.common.api.DragType;
-import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.fixtures.ComponentDescriptor;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.util.XmlTagUtil;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
+import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
+import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.common.fixtures.ComponentDescriptor;
+import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.util.XmlTagUtil;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
 public final class PreferenceScreenDragHandlerLayoutTest extends PreferenceScreenTestCase {
   public void testCommit() {
     SyncNlModel model = buildModel();
     ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
-    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model);
+    SyncLayoutlibSceneManager builder = getSyncLayoutlibSceneManagerForModel(model);
+    builder.setIgnoreRenderRequests(true);
     Scene scene = builder.getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 

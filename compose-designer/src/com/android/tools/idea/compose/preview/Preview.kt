@@ -25,7 +25,7 @@ import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
-import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
+import com.android.tools.idea.compose.preview.actions.BuildAndRefresh
 import com.android.tools.idea.compose.preview.actions.PinAllPreviewElementsAction
 import com.android.tools.idea.compose.preview.actions.UnpinAllPreviewElementsAction
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
@@ -33,13 +33,12 @@ import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationM
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
-import com.android.tools.idea.compose.preview.util.PreviewLifecycleManager
+import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.containsOffset
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
-import com.android.tools.idea.compose.preview.util.toDisplayString
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -52,7 +51,7 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.documentChangeFlow
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.FastPreviewSurface
+import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.editors.fast.fastCompile
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
@@ -80,6 +79,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.android.tools.idea.util.toDisplayString
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.PowerSaveMode
 import com.intellij.notification.Notification
@@ -756,7 +756,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           }
         )
           .conflate()
-          .collectLatest {
+          .collect {
             if (FastPreviewManager.getInstance(project).isEnabled) {
               try {
                 requestFastPreviewRefresh()
@@ -764,7 +764,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
               catch (_: Throwable) {
                 // Ignore any cancellation exceptions
               }
-              return@collectLatest
+              return@collect
             }
 
             if (!PreviewPowerSaveManager.isInPowerSaveMode && interactiveMode.isStoppingOrDisabled() && !animationInspection.get()) requestRefresh()
@@ -1152,7 +1152,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {
-    ForceCompileAndRefreshAction(surface).registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
+    BuildAndRefresh(this).registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
   }
 
   /**
@@ -1212,7 +1212,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           result = fastCompile(this@ComposePreviewRepresentation, it, requestTracker = requestTracker)
           if (result is CompilationResult.Success) {
             val refreshStartMs = System.currentTimeMillis()
-            forceRefresh()?.invokeOnCompletion { throwable ->
+            val refreshJob = forceRefresh()
+            refreshJob?.invokeOnCompletion { throwable ->
               if (throwable == null) {
                 requestTracker.refreshSucceeded(System.currentTimeMillis() - refreshStartMs)
               }
@@ -1221,6 +1222,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
               }
               composeWorkBench.updateVisibilityAndNotifications()
             }
+            refreshJob?.join()
           }
           else {
             // Compilation failed, report the refresh as failed too

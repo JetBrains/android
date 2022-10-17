@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.adblib.DevicePropertyNames
 import com.android.ddmlib.IDevice
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.PaneEntry
@@ -26,10 +27,12 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.idea.avdmanager.AvdLaunchListener
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.DeviceHeadsUpListener
+import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.ide.ui.LafManager
@@ -46,12 +49,13 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.ContentManager
+import com.intellij.util.ConcurrencyUtil.awaitQuiescence
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.After
 import org.junit.Before
@@ -59,6 +63,8 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
 import java.awt.Point
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import javax.swing.JViewport
 import javax.swing.UIManager
@@ -70,8 +76,9 @@ import javax.swing.UIManager
 class EmulatorToolWindowManagerTest {
   private val agentRule = FakeScreenSharingAgentRule()
   private val emulatorRule = FakeEmulatorRule()
+  private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   @get:Rule
-  val ruleChain = RuleChain(agentRule, emulatorRule, SetPortableUiFontRule(), EdtRule())
+  val ruleChain = RuleChain(agentRule, emulatorRule, androidExecutorsRule, SetPortableUiFontRule(), EdtRule())
 
   private val windowFactory: EmulatorToolWindowFactory by lazy { EmulatorToolWindowFactory() }
   private val toolWindow: ToolWindow by lazy { createToolWindow() }
@@ -102,7 +109,7 @@ class EmulatorToolWindowManagerTest {
   @After
   fun tearDown() {
     toolWindow.hide()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Finish asynchronous processing triggered by hiding the tool window.
+    dispatchAllEventsInIdeEventQueue() // Finish asynchronous processing triggered by hiding the tool window.
     DeviceMirroringSettings.getInstance().deviceMirroringEnabled = savedMirroringEnabledState
   }
 
@@ -136,7 +143,7 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).hasLength(1)
     waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
     emulator1.getNextGrpcCall(2, TimeUnit.SECONDS) { true } // Wait for the initial "getVmState" call.
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != "No Running Emulators" }
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
 
     // Start the third emulator.
@@ -165,7 +172,7 @@ class EmulatorToolWindowManagerTest {
     emulator3.stop()
 
     // The panel corresponding to the second emulator goes away.
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 }
+    waitForCondition(5, TimeUnit.SECONDS) { contentManager.contents.size == 1 }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
     assertThat(contentManager.contents[0].isSelected).isTrue()
 
@@ -228,7 +235,7 @@ class EmulatorToolWindowManagerTest {
     waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
     val emulatorController = RunningEmulatorCatalog.getInstance().emulators.first()
     waitForCondition(4, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != "No Running Emulators" }
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator.avdName)
 
     assertThat(emulator.extendedControlsVisible).isFalse()
@@ -270,14 +277,14 @@ class EmulatorToolWindowManagerTest {
     waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
     val emulatorController = RunningEmulatorCatalog.getInstance().emulators.first()
     waitForCondition(4, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != "No Running Emulators" }
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator.avdName)
 
     val panel = contentManager.contents[0].component as EmulatorToolWindowPanel
     panel.setSize(250, 500)
     val ui = FakeUi(panel)
     val emulatorView = ui.getComponent<EmulatorView>()
-    waitForCondition(2, TimeUnit.SECONDS) { emulatorView.frameNumber > 0 }
+    waitForCondition(2, TimeUnit.SECONDS) { renderAndGetFrameNumber(ui, emulatorView) > 0 }
 
     // Zoom in.
     emulatorView.zoom(ZoomType.IN)
@@ -316,13 +323,60 @@ class EmulatorToolWindowManagerTest {
     val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
     toolWindow.show()
 
-    waitForCondition(10, TimeUnit.SECONDS) { device.agent.running }
-    assertThat(toolWindow.isVisible).isTrue()
-    assertThat(contentManager.contents.size).isEqualTo(1)
+    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Google Pixel 4")
 
     agentRule.disconnectDevice(device)
-    waitForCondition(2, TimeUnit.SECONDS) { !device.agent.running }
+    waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+  }
+
+  @Test
+  fun testUnsupportedPhysicalPhone() {
+    if (SystemInfo.isWindows) {
+      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
+    }
+    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
+      return // FFmpeg library requires Mac OS 10.15+.
+    }
+    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
+    windowFactory.createToolWindowContent(project, toolWindow)
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+
+    val device = agentRule.connectDevice("Pixel", 25, Dimension(1080, 1920), "armeabi-v7a")
+    toolWindow.show()
+
+    dispatchAllEventsInIdeEventQueue()
+    awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    dispatchAllEventsInIdeEventQueue()
+    assertThat(contentManager.contents.size == 1).isTrue()
+    assertThat(contentManager.contents[0].displayName).isNull()
+    agentRule.disconnectDevice(device)
+  }
+
+  @Test
+  fun testUnsupportedPhysicalWatch() {
+    if (SystemInfo.isWindows) {
+      return // For some unclear reason the test fails on Windows with java.lang.UnsatisfiedLinkError: no jniavcodec in java.library.path.
+    }
+    if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("10.15")) {
+      return // FFmpeg library requires Mac OS 10.15+.
+    }
+    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
+    windowFactory.createToolWindowContent(project, toolWindow)
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+
+    val device = agentRule.connectDevice("LG Watch Sport", 29, Dimension(480, 480), "armeabi-v7a",
+                                         mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
+    toolWindow.show()
+
+    dispatchAllEventsInIdeEventQueue()
+    awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    dispatchAllEventsInIdeEventQueue()
+    assertThat(contentManager.contents.size == 1).isTrue()
+    assertThat(contentManager.contents[0].displayName).isNull()
+    agentRule.disconnectDevice(device)
   }
 
   @Test
@@ -361,6 +415,11 @@ class EmulatorToolWindowManagerTest {
     val windowManager = TestToolWindowManager(project)
     project.replaceService(ToolWindowManager::class.java, windowManager, testRootDisposable)
     return windowManager.toolWindow
+  }
+
+  private fun renderAndGetFrameNumber(fakeUi: FakeUi, emulatorView: EmulatorView): Int {
+    fakeUi.render() // The frame number may get updated as a result of rendering.
+    return emulatorView.frameNumber
   }
 
   private class TestToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {

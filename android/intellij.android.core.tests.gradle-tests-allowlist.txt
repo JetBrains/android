@@ -20,7 +20,6 @@ com.android.tools.idea.gradle.project.importing.TopLevelModuleFactoryTest
 com.android.tools.idea.gradle.project.model.IdeAndroidProjectImplTest
 com.android.tools.idea.gradle.project.model.ModelSerializationTest
 com.android.tools.idea.gradle.project.sync.AllVariantsSyncWithGradleSyncExecutorTest
-com.android.tools.idea.gradle.project.sync.DependencySetupTest
 com.android.tools.idea.gradle.project.sync.GradleSyncExecutorTest
 com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTest
 com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTestCase
@@ -56,13 +55,9 @@ com.android.tools.idea.gradle.structure.model.PsModuleCollectionTest
 com.android.tools.idea.gradle.structure.model.PsModuleTest
 com.android.tools.idea.gradle.structure.model.PsProjectImplTest
 com.android.tools.idea.gradle.structure.model.PsVariablesTest
-com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptorsTest
 com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
-com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefaultConfigDescriptorsTest
 com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleTest
-com.android.tools.idea.gradle.structure.model.android.PsBuildTypeTest
 com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependencyTest
-com.android.tools.idea.gradle.structure.model.android.PsProductFlavorTest
 com.android.tools.idea.gradle.structure.model.android.PsResolvedVariantCollectionTest
 com.android.tools.idea.gradle.structure.model.android.PsSigningConfigTest
 com.android.tools.idea.gradle.structure.model.helpers.ExtractVariableWorkerTest
@@ -71,8 +66,6 @@ com.android.tools.idea.gradle.structure.model.java.PsJavaModuleTest
 com.android.tools.idea.gradle.structure.model.pom.MavenPomsTest
 com.android.tools.idea.gradle.util.BuildFileProcessorTest
 com.android.tools.idea.gradle.util.GradleProjectSettingsFinderTest
-com.android.tools.idea.gradle.util.GradleUtilAndroidGradleTest
-com.android.tools.idea.gradle.util.GradleVersionsTest
 com.android.tools.idea.imports.AndroidMavenImportFixTest
 com.android.tools.idea.navigator.AndroidProjectViewTest
 com.android.tools.idea.rendering.NamespacedRenderTest
@@ -93,7 +86,6 @@ com.android.tools.idea.sdk.IdeSdksAndroidTest
 com.android.tools.idea.sdk.wizard.SdkQuickfixUtilsTest
 com.android.tools.idea.testartifacts.gradle.AndroidGradleConfigurationProducersTest
 com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducerTest
-com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationTest
 com.android.tools.idea.testartifacts.instrumented.AndroidTestRunnerTest
 com.android.tools.idea.testartifacts.scopes.AndroidTestAndGradleConfigurationConflictsTest
 com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopesRoomTest

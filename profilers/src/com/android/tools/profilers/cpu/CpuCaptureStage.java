@@ -93,6 +93,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import kotlin.Unit;
 import kotlin.collections.CollectionsKt;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
@@ -366,7 +367,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     myMinimapModel = new CpuCaptureMinimapModel(getStudioProfilers(), capture, getTimeline().getViewRange());
     if (!capture.getRange().isEmpty()) {
       initTrackGroupList(capture);
-      addPinnedCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, getTimeline().getViewRange()));
+      addPinnedCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, getTimeline().getViewRange(), this::runInBackground));
 
       CpuAnalysisModel<?> jankModel = AndroidFrameTimelineAnalysisModel.of(capture);
       CpuAnalysisModel<?> framesModel = FramesAnalysisModel.of(capture);
@@ -709,7 +710,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
       // Since thread tracks display multiple elements with different tooltip we don't set a default tooltip model here but defer to the
       // track renderer to switch between its various tooltip models.
       threads.addTrackModel(
-        TrackModel.newBuilder(new CpuThreadTrackModel(capture, threadInfo, myTrackGroupTimeline, myMultiSelectionModel),
+        TrackModel.newBuilder(new CpuThreadTrackModel(capture, threadInfo, myTrackGroupTimeline, myMultiSelectionModel,
+                                                      this::runInBackground),
                               ProfilerTrackRendererType.CPU_THREAD, title)
           .setCollapsible(true)
           .setCollapsed(collapseThreads));
@@ -763,5 +765,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
       }
     );
     return memory;
+  }
+
+  private Unit runInBackground(Runnable work) {
+    getStudioProfilers().getIdeServices().getPoolExecutor().execute(work);
+    return Unit.INSTANCE;
   }
 }

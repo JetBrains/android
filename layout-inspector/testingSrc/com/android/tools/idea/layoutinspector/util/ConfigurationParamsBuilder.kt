@@ -35,6 +35,8 @@ class ConfigurationParamsBuilder(private val strings: TestStringTable) {
     val packageName = runInEdtAndGet { getAppPackageName(project) }
     return AppContext(
       theme = strings.add(ResourceReference.style(ResourceNamespace.fromPackageName(packageName), "AppTheme"))!!,
+      screenWidth = 1080,
+      screenHeight = 1920
     )
   }
 

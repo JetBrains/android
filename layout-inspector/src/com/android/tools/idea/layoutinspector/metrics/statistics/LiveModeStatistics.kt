@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.metrics.statistics
 
-import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorLiveMode
 
 /**
@@ -37,15 +36,16 @@ class LiveModeStatistics {
    */
   private var clicksWithoutLiveUpdates = 0
 
-  @VisibleForTesting
+  /**
+   * Inspector is receiving live updates
+   */
   var currentModeIsLive = false
-    private set
 
   /**
    * Start a new session by resetting all counters.
    */
-  fun start(isCapturing: Boolean) {
-    currentModeIsLive = isCapturing
+  fun start() {
+    currentModeIsLive = false
     refreshButtonClicks = 0
     clicksWithLiveUpdates = 0
     clicksWithoutLiveUpdates = 0
@@ -54,10 +54,14 @@ class LiveModeStatistics {
   /**
    * Save the session data recorded since [start].
    */
-  fun save(data: DynamicLayoutInspectorLiveMode.Builder) {
-    data.refreshButtonClicks = refreshButtonClicks
-    data.clicksWithLiveUpdates = clicksWithLiveUpdates
-    data.clicksWithoutLiveUpdates = clicksWithoutLiveUpdates
+  fun save(dataSupplier: () -> DynamicLayoutInspectorLiveMode.Builder) {
+    if (refreshButtonClicks > 0 || clicksWithLiveUpdates > 0 || clicksWithoutLiveUpdates > 0) {
+      dataSupplier().let {
+        it.refreshButtonClicks = refreshButtonClicks
+        it.clicksWithLiveUpdates = clicksWithLiveUpdates
+        it.clicksWithoutLiveUpdates = clicksWithoutLiveUpdates
+      }
+    }
   }
 
   /**
@@ -65,20 +69,6 @@ class LiveModeStatistics {
    */
   fun refreshButtonClicked() {
     refreshButtonClicks++
-  }
-
-  /**
-   * Log that the user switched to live mode.
-   */
-  fun toggledToLive() {
-    currentModeIsLive = true
-  }
-
-  /**
-   * Log that the user switched to manual refresh mode.
-   */
-  fun toggledToRefresh() {
-    currentModeIsLive = false
   }
 
   /**

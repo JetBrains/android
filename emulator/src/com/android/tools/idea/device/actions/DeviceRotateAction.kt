@@ -24,13 +24,13 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  */
 internal sealed class DeviceRotateAction(
   private val rotationQuadrants: Int,
-) : AbstractDeviceAction() {
+) : AbstractDeviceAction(configFilter = { it.hasOrientationSensors && !it.isWatch }) {
 
   @UiThread
   override fun actionPerformed(event: AnActionEvent) {
     val deviceController = getDeviceController(event) ?: return
     val deviceView = getDeviceView(event) ?: return
-    val orientation = (deviceView.displayRotationQuadrants + rotationQuadrants) and 0x03
+    val orientation = (deviceView.displayOrientationQuadrants + rotationQuadrants) and 0x03
     val controlMessage = SetDeviceOrientationMessage(orientation)
     deviceController.sendControlMessage(controlMessage)
   }

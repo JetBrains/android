@@ -125,9 +125,9 @@ PROJECT                       : withGradleMetadata
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/withGradleMetadata.app.androidTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/withGradleMetadata.app.androidTest [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : withGradleMetadata.app.main
@@ -236,9 +236,9 @@ PROJECT                       : withGradleMetadata
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/withGradleMetadata.app.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/withGradleMetadata.app.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/withGradleMetadata.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -336,9 +336,9 @@ PROJECT                       : withGradleMetadata
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/withGradleMetadata.app.unitTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/withGradleMetadata.app.unitTest [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : withGradleMetadata.app.main

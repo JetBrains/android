@@ -28,6 +28,7 @@ abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: Lo
   enum class ReferenceResolution {
     ALL_REFERENCES,
     ONLY_STRONG_REFERENCES,
+    STRONG_EXCLUDING_INNER_CLASS,
     NO_REFERENCES
   }
 

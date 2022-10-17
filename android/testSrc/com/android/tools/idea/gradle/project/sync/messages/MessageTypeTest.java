@@ -15,16 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages;
 
-import static com.android.tools.idea.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
-import static com.android.tools.idea.gradle.model.IdeSyncIssue.SEVERITY_WARNING;
-import static com.android.tools.idea.project.messages.MessageType.findFromSyncIssue;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.android.ide.common.blame.Message;
-import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.project.messages.MessageType;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import org.junit.Test;
@@ -66,19 +60,5 @@ public class MessageTypeTest {
     assertSame(NotificationCategory.WARNING, MessageType.WARNING.convertToCategory());
     assertSame(NotificationCategory.INFO, MessageType.INFO.convertToCategory());
     assertSame(NotificationCategory.SIMPLE, MessageType.SIMPLE.convertToCategory());
-  }
-
-  @Test
-  public void findFromSyncIssueWithWarning() {
-    IdeSyncIssue syncIssue = mock(IdeSyncIssue.class);
-    when(syncIssue.getSeverity()).thenReturn(SEVERITY_WARNING);
-    assertSame(MessageType.WARNING, findFromSyncIssue(syncIssue));
-  }
-
-  @Test
-  public void findFromSyncIssueWithERROR() {
-    IdeSyncIssue syncIssue = mock(IdeSyncIssue.class);
-    when(syncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
-    assertSame(MessageType.ERROR, findFromSyncIssue(syncIssue));
   }
 }

@@ -85,7 +85,7 @@ interface CompositeBuildMap {
   }
 }
 
-private fun IdeCompositeBuildMap.toCompositeBuildMap(): CompositeBuildMap {
+fun IdeCompositeBuildMap.toCompositeBuildMap(): CompositeBuildMap {
   val byName = builds.associate { it.buildName to it.buildId }
   val byId = builds.associate { it.buildId to it.buildName }
   return object : CompositeBuildMap {

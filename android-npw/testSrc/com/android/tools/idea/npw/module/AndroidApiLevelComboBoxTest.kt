@@ -19,37 +19,18 @@ import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.sdklib.SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION
 import com.android.tools.adtui.device.FormFactor
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.google.common.collect.Lists
-import com.intellij.ide.util.AppPropertyService
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.mock.MockApplication
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Disposer
-import org.junit.After
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Test
 
 class AndroidApiLevelComboBoxTest {
-  private lateinit var disposable: Disposable
-
-  @Before
-  fun setUp() {
-    disposable = Disposable { }
-    val instance = MockApplication(disposable)
-    instance.registerService(PropertiesComponent::class.java, AppPropertyService::class.java)
-    ApplicationManager.setApplication(instance, disposable)
-  }
-
-  @After
-  fun tearDown() {
-    Disposer.dispose(disposable)
-  }
 
   @Test
-  fun testDefaultSelectedItem() {
+  fun testDefaultSelectedItem() = runBlocking(AndroidDispatchers.uiThread) {
     val formFactor = FormFactor.MOBILE
     assertEquals("none", PropertiesComponent.getInstance().getValue(getPropertiesComponentMinSdkKey(formFactor), "none"))
     val items: MutableList<VersionItem> = mutableListOf(

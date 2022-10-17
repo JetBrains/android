@@ -100,7 +100,7 @@ public abstract class DesignerEditor extends UserDataHolderBase implements FileE
     // of all the inspections on the XML file. However, it doesn't look like there is an API to obtain this for a file
     // (there are test APIs). So we add a single highlighter which uses lint.
     if (myBackgroundHighlighter == null) {
-      myBackgroundHighlighter = new BackgroundEditorHighlighter(myEditorPanel);
+      myBackgroundHighlighter = new BackgroundEditorHighlighter(myEditorPanel, myEditorPanel.getModelLintIssueAnnotator());
     }
     return myBackgroundHighlighter;
   }

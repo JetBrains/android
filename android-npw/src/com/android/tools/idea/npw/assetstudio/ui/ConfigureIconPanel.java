@@ -55,6 +55,7 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.ColorPanel;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
@@ -141,9 +142,9 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myPaddingRowPanel;
   private JPanel myForegroundRowPanel;
-  private AssetColorPanel myForegroundColorPanel;
+  private ColorPanel myForegroundColorPanel;
   private JPanel myBackgroundRowPanel;
-  private AssetColorPanel myBackgroundColorPanel;
+  private ColorPanel myBackgroundColorPanel;
   private JPanel myScalingRowPanel;
   private JPanel myShapeRowPanel;
   private JPanel myScalingRadioButtonsPanel;
@@ -160,7 +161,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   private JBScrollPane myScrollPane;
   private JComboBox<Shape> myShapeComboBox;
   private JPanel myCustomThemeRowPanel;
-  private AssetColorPanel myCustomThemeColorPanel;
+  private ColorPanel myCustomThemeColorPanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myAssetPanels;
   private JPanel myImageAssetRowPanel;

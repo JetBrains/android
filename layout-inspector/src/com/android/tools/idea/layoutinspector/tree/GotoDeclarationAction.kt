@@ -35,7 +35,7 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
     val inspector = LayoutInspector.get(event) ?: return
     executeOnPooledThread {
       runReadAction {
-        inspector.stats.gotoSourceFromTreeActionMenu(event)
+        inspector.currentClient.stats.gotoSourceFromTreeActionMenu(event)
         val navigatable = findNavigatable(event)
         invokeLater { navigatable?.navigate(true) }
       }

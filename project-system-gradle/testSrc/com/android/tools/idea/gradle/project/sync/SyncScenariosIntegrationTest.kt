@@ -218,7 +218,13 @@ class SyncScenariosIntegrationTest : GradleIntegrationTest {
       }
     """.trimIndent())
 
-    openPreparedProject("project", OpenPreparedProjectOptions({ }, { }, { fail() })) { project ->
+    openPreparedProject(
+      "project",
+      OpenPreparedProjectOptions(
+        verifyOpened = { },
+        outputHandler = { },
+        syncExceptionHandler = { fail() }
+      )) { project ->
       val abis = GradleAndroidModel.get(project.findAppModule())!!.supportedAbis
       assertThat(abis).containsExactly(Abi.X86)
     }

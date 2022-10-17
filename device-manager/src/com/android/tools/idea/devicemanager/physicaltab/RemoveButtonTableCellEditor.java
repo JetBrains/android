@@ -38,7 +38,7 @@ final class RemoveButtonTableCellEditor extends IconButtonTableCellEditor {
 
   @VisibleForTesting
   RemoveButtonTableCellEditor(@NotNull PhysicalDevicePanel panel, @NotNull BiPredicate<@NotNull Object, @NotNull Project> askToRemove) {
-    super(RemoveValue.INSTANCE, AllIcons.Actions.GC);
+    super(RemoveValue.INSTANCE, AllIcons.Actions.GC, "Remove this offline device from the list.");
 
     myButton.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
@@ -73,12 +73,7 @@ final class RemoveButtonTableCellEditor extends IconButtonTableCellEditor {
                                                         int viewRowIndex,
                                                         int viewColumnIndex) {
     super.getTableCellEditorComponent(table, value, selected, viewRowIndex, viewColumnIndex);
-
     myDevice = ((PhysicalDeviceTable)table).getDeviceAt(viewRowIndex);
-    boolean online = myDevice.isOnline();
-
-    myButton.setEnabled(!online);
-    myButton.setToolTipText(online ? "Connected devices can not be removed from the list." : "Remove this offline device from the list.");
 
     return myButton;
   }

@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
+import static com.android.tools.idea.testing.AndroidGradleTests.getMainJavaModule;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.APP_WITH_BUILDSRC;
 import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
@@ -111,7 +111,6 @@ import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -328,7 +327,7 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
 
     // DEPENDENT_MODULES project has two modules, app and lib, app module has dependency on lib module.
-    prepareProjectForImport(DEPENDENT_MODULES, null, null, null, null);
+    prepareProjectForImport(DEPENDENT_MODULES, null, null, null, null, null);
     // Define new buildType qa in app module.
     // This causes sync issues, because app depends on lib module, but lib module doesn't have buildType qa.
     File appBuildFile = getBuildFilePath("app");
@@ -615,9 +614,10 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     );
 
     // Verify that buildSrc/lib1 has dependency on buildSrc/lib2.
-    Module lib1Module = AndroidGradleTests.getMainJavaModule(getProject(), "lib1");
-    assertAbout(moduleDependencies()).that(lib1Module)
-      .hasDependency(AndroidGradleTests.getMainJavaModule(getProject(), "lib2").getName(), DependencyScope.COMPILE, false);
+    Module lib1Module = getMainJavaModule(getProject(), "lib1");
+
+    Module[] lib1ModuleDependencies = ModuleRootManager.getInstance(lib1Module).getModuleDependencies(false);
+    assertThat(lib1ModuleDependencies).asList().contains(getMainJavaModule(getProject(), "lib2"));
   }
 
   public void testViewBindingOptionsAreCorrectlyVisibleFromIDE() throws Exception {
@@ -745,7 +745,7 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
   }
 
   public void testUnresolvedDependency() throws Exception {
-    prepareProjectForImport(SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY, null, null, null, null);
+    prepareProjectForImport(SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY, null, null, null, null, null);
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 
     Project project = getProject();

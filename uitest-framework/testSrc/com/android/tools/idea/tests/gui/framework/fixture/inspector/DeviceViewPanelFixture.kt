@@ -169,7 +169,7 @@ class DeviceViewPanelFixture(
     val size = GuiQuery.get { scrollPane.viewport.view.size }!!
     size.width -= JBUI.scale(MARGIN)
     size.height -= JBUI.scale(MARGIN)
-    val rootBounds = GuiQuery.get { contentPanel.inspectorModel.root.transformedBounds.bounds }!!
+    val rootBounds = GuiQuery.get { contentPanel.inspectorModel.root.renderBounds.bounds }!!
     return Point(((pos.x - size.getWidth() / 2.0) / scaleFraction + rootBounds.getWidth() / 2.0).toInt(),
                  ((pos.y - size.getHeight() / 2.0) / scaleFraction + rootBounds.getHeight() / 2.0).toInt())
   }
@@ -179,7 +179,7 @@ class DeviceViewPanelFixture(
     val scrollPane = scrollPane
     val contentPanel = contentPanel
     val size = GuiQuery.get { scrollPane.viewport.view.size }!!
-    val rootBounds = GuiQuery.get { contentPanel.inspectorModel.root.transformedBounds.bounds }!!
+    val rootBounds = GuiQuery.get { contentPanel.inspectorModel.root.renderBounds.bounds }!!
     return Point(((pos.x - rootBounds.width / 2) * scaleFraction + size.width.toDouble() / 2.0).toInt(),
                  ((pos.y - rootBounds.height / 2) * scaleFraction + size.height.toDouble() / 2.0).toInt())
   }

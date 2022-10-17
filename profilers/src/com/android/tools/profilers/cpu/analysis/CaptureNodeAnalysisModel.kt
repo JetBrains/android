@@ -20,7 +20,9 @@ import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
 import kotlin.streams.toList
 
-data class CaptureNodeAnalysisModel(val node: CaptureNode, private val capture: CpuCapture) : CpuAnalyzable<CaptureNodeAnalysisModel> {
+data class CaptureNodeAnalysisModel constructor(val node: CaptureNode,
+                                    private val capture: CpuCapture,
+                                    private val runModelUpdate: (Runnable) -> Unit) : CpuAnalyzable<CaptureNodeAnalysisModel> {
   val nodeRange: Range get() = Range(node.start.toDouble(), node.end.toDouble())
 
   /**
@@ -53,13 +55,13 @@ data class CaptureNodeAnalysisModel(val node: CaptureNode, private val capture: 
       add(CaptureNodeAnalysisSummaryTabModel(capture.range, capture.type))
 
       // Flame Chart
-      add(CpuAnalysisChartModel(CpuAnalysisTabModel.Type.FLAME_CHART, nodeRange, capture) { nodes })
+      add(CpuAnalysisChartModel(CpuAnalysisTabModel.Type.FLAME_CHART, nodeRange, capture, { nodes }, runModelUpdate))
 
       // Top Down
-      add(CpuAnalysisChartModel(CpuAnalysisTabModel.Type.TOP_DOWN, nodeRange, capture) { nodes })
+      add(CpuAnalysisChartModel(CpuAnalysisTabModel.Type.TOP_DOWN, nodeRange, capture, { nodes }, runModelUpdate))
 
       // Bottom Up
-      add(CpuAnalysisChartModel(CpuAnalysisTabModel.Type.BOTTOM_UP, nodeRange, capture) { nodes })
+      add(CpuAnalysisChartModel(CpuAnalysisTabModel.Type.BOTTOM_UP, nodeRange, capture, { nodes }, runModelUpdate))
 
       // Events
       add(CaptureNodeAnalysisEventsTabModel(capture.range))

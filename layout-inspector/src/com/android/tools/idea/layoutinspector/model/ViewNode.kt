@@ -42,11 +42,9 @@ private val systemPackagePrefixes = setOf("android.", "androidx.", "com.android.
  * @param drawId the View.getUniqueDrawingId which is also the id found in the skia image
  * @param qualifiedName the qualified class name of the view
  * @param layout reference to the layout xml containing this view
- * @param x the left edge of the view from the device left edge, ignoring any post-layout transformations
- * @param y the top edge of the view from the device top edge, ignoring any post-layout transformations
- * @param width the width of this view, ignoring any post-layout transformations
- * @param height the height of this view, ignoring any post-layout transformations
- * @param bounds the actual bounds of this view as shown on the screen, including any post-layout transformations.
+ * @param layoutBounds the bounds used by android for layout. Always a rectangle.
+ * x and y are the left and top edges of the view from the device left and top edge, ignoring post-layout transformations
+ * @param renderBounds the actual bounds of this view as shown on the screen, including any post-layout transformations.
  * @param viewId the id set by the developer in the View.id attribute
  * @param textValue the text value if present
  * @param layoutFlags flags from WindowManager.LayoutParams
@@ -55,21 +53,23 @@ open class ViewNode(
   var drawId: Long,
   var qualifiedName: String,
   var layout: ResourceReference?,
-  var x: Int,
-  var y: Int,
-  var width: Int,
-  var height: Int,
-  bounds: Shape?,
+  var layoutBounds: Rectangle,
+  var renderBounds: Shape,
   var viewId: ResourceReference?,
   var textValue: String,
   var layoutFlags: Int
 ) {
-  /** constructor for synthetic nodes */
-  constructor(qualifiedName: String): this(-1, qualifiedName, null, 0, 0, 0, 0, null, null, "", 0)
+  @TestOnly
+  constructor(drawId: Long,
+              qualifiedName: String,
+              layout: ResourceReference?,
+              layoutBounds: Rectangle,
+              viewId: ResourceReference?,
+              textValue: String,
+              layoutFlags: Int) : this(drawId, qualifiedName, layout, layoutBounds, layoutBounds, viewId, textValue, layoutFlags)
 
-  /** The bounds used by android for layout. Always a rectangle. */
-  val layoutBounds: Rectangle
-    get() = Rectangle(x, y, width, height)
+  /** constructor for synthetic nodes */
+  constructor(qualifiedName: String): this(-1, qualifiedName, null, Rectangle(), Rectangle(), null, "", 0)
 
   @Suppress("LeakingThis")
   val treeNode = TreeViewNode(this)
@@ -106,15 +106,6 @@ open class ViewNode(
 
   /** Returns true if the node represents a call from a parent node with a single call and it itself is making a single call */
   open fun isSingleCall(treeSettings: TreeSettings): Boolean = false
-
-  private var _transformedBounds = bounds
-
-  val transformedBounds: Shape
-    get() = _transformedBounds ?: layoutBounds
-
-  fun setTransformedBounds(bounds: Shape?) {
-    _transformedBounds = bounds
-  }
 
   /**
    *  The rectangular bounds of this node's transformed bounds plus the transitive bounds of all children.
@@ -175,62 +166,53 @@ open class ViewNode(
   fun calculateTransitiveBounds() {
     readAccess {
       flatten().forEach {
-        it.transitiveBounds = it.children.map(ViewNode::transitiveBounds).plus(it.transformedBounds.bounds)
+        it.transitiveBounds = it.children.map(ViewNode::transitiveBounds).plus(it.renderBounds.bounds)
           .reduce { r1, r2 -> r1.union(r2) }
       }
     }
   }
 
   /**
-   * For reading from a [ViewNode] with a read lock. See [readAccess].
+   * Interface used for traversing the [ViewNode] tree with a read lock. See [readAccess].
+   * This interface provides a limited access view of a [ViewNode],
+   * so that users of [readAccess] are limited in what methods of [ViewNode] they can invoke.
    */
   interface ReadAccess {
-    val ViewNode.children: List<ViewNode>
-    val ViewNode.drawChildren: List<DrawViewNode>
-    val ViewNode.parent: ViewNode?
-    val ViewNode.parentSequence: Sequence<ViewNode>
-    fun ViewNode.flatten(): Sequence<ViewNode>
-    fun ViewNode.preOrderFlatten(): Sequence<ViewNode>
+    val ViewNode.children: MutableList<ViewNode> get() = children
+    val ViewNode.parent: ViewNode? get() = parent
+    val ViewNode.drawChildren: MutableList<DrawViewNode> get() = drawChildren
+    val ViewNode.parentSequence: Sequence<ViewNode> get() = parentSequence
+    fun ViewNode.flatten(): Sequence<ViewNode> = flatten()
+    fun ViewNode.preOrderFlatten(): Sequence<ViewNode> = preOrderFlatten()
   }
 
   /**
-   * For modifying a [ViewNode] with a write lock. See [writeAccess].
+   * Interface used for modifying a [ViewNode] with a write lock. See [writeAccess].
    */
-  interface WriteAccess {
-    val ViewNode.children: MutableList<ViewNode>
-    val ViewNode.drawChildren: MutableList<DrawViewNode>
-    var ViewNode.parent: ViewNode?
-    val ViewNode.parentSequence: Sequence<ViewNode>
-    fun ViewNode.flatten(): Sequence<ViewNode>
-    fun ViewNode.preOrderFlatten(): Sequence<ViewNode>
+  interface WriteAccess : ReadAccess {
+    override var ViewNode.parent: ViewNode?
+      get() = parent
+      set(value) { parent = value }
   }
 
   companion object {
     private val lock = ReentrantReadWriteLock()
-    private val reader = object : ReadAccess {
-      override val ViewNode.children get() = children
-      override val ViewNode.drawChildren get() = drawChildren
-      override val ViewNode.parent get() = parent
-      override val ViewNode.parentSequence get() = parentSequence
-      override fun ViewNode.flatten() = flatten()
-      override fun ViewNode.preOrderFlatten() = preOrderFlatten()
-    }
-    private val writer = object : WriteAccess {
-      override val ViewNode.children get() = children
-      override val ViewNode.drawChildren get() = drawChildren
-      override var ViewNode.parent
-        get() = parent
-        set(value) { this.parent = value }
-      override val ViewNode.parentSequence get() = parentSequence
-      override fun ViewNode.flatten() = flatten()
-      override fun ViewNode.preOrderFlatten() = preOrderFlatten()
-    }
+    private val reader = object : ReadAccess {}
+    private val writer = object : WriteAccess {}
 
+    /**
+     * Allows to safely perform read actions on the [ViewNode].
+     * Preventing other threads to change the tree structure while we are reading it.
+     */
     fun <T> readAccess(operation: ReadAccess.() -> T): T =
       lock.read {
         reader.operation()
       }
 
+    /**
+     * Allows to safely perform write actions on the [ViewNode].
+     * Preventing multiple threads to change the tree structure at the same time.
+     */
     fun <T> writeAccess(operation: WriteAccess.() -> T) =
       lock.write {
         writer.operation()

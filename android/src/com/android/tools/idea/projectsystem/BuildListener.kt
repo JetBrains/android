@@ -62,6 +62,14 @@ private fun forEachNonDisposedBuildListener(project: Project, method: (BuildList
 
 interface BuildListener {
   /**
+   * Called when the [BuildListener] is fully setup. Other methods in the [BuildListener] might be
+   * called before this method if the build is already completed when calling [setupBuildListener].
+   *
+   * This method must not be block.
+   */
+  fun startedListening() {}
+
+  /**
    * Called when a build has completed except for clean builds.
    */
   fun buildSucceeded() {}
@@ -146,6 +154,13 @@ fun setupBuildListener(
     ApplicationManager.getApplication().assertIsDispatchThread() // To verify parentDisposable is not disposed during the method execution
     if (Disposer.isDisposed(parentDisposable)) return
 
+    val lastResult = buildManager.getLastBuildResult()
+    if (lastResult.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
+      // This is called from runWhenSmartAndSyncedOnEdt callback which should not be called if parentDisposable is disposed
+      buildable.buildStarted()
+      buildable.buildSucceeded()
+    }
+
     projectSubscriptionsLock.withLock {
       val subscription = projectSubscriptions.computeIfAbsent(project) {
         val projectSubscription = ProjectSubscription()
@@ -154,6 +169,7 @@ fun setupBuildListener(
           projectSubscription.projectSystemListenerDisposable,
           project.createBuildListener()
         )
+        buildable.startedListening()
         projectSubscription
       }
       subscription.listenersMap[parentDisposable] = buildable
@@ -167,13 +183,6 @@ fun setupBuildListener(
           }
         }
       }
-    }
-
-    val lastResult = buildManager.getLastBuildResult()
-    if (lastResult.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
-      // This is called from runWhenSmartAndSyncedOnEdt callback which should not be called if parentDisposable is disposed
-      buildable.buildStarted()
-      buildable.buildSucceeded()
     }
   }
 

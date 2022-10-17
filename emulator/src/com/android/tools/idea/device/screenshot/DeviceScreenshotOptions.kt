@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.device.screenshot
 
-import com.android.adblib.DevicePropertyNames
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.resources.ScreenRound
-import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.devices.DeviceManager.DeviceFilter
@@ -27,6 +25,7 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.avdmanager.SkinUtils
+import com.android.tools.idea.device.DeviceConfiguration
 import com.android.tools.idea.device.DeviceView
 import com.android.tools.idea.ui.screenshot.FramingOption
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
@@ -51,24 +50,24 @@ private const val MIN_TABLET_DIAGONAL_SIZE = 7.0 // In inches.
  */
 internal class DeviceScreenshotOptions(
   override val serialNumber: String,
-  deviceProperties: Map<String, String>,
+  deviceConfiguration: DeviceConfiguration,
   private val deviceView: DeviceView,
 ) : ScreenshotAction.ScreenshotOptions {
 
-  override val apiLevel: Int = deviceProperties[DevicePropertyNames.RO_BUILD_VERSION_SDK]?.toInt() ?: HIGHEST_KNOWN_STABLE_API
+  override val apiLevel: Int = deviceConfiguration.apiLevel
 
   override val screenshotViewerOptions: EnumSet<ScreenshotViewer.Option> = EnumSet.noneOf(ScreenshotViewer.Option::class.java)
 
   override val screenshotPostprocessor: ScreenshotPostprocessor = DeviceScreenshotPostprocessor()
-  private val deviceModel: String? = deviceProperties[DevicePropertyNames.RO_PRODUCT_MODEL]
-  private val isWatch: Boolean = deviceProperties[DevicePropertyNames.RO_BUILD_CHARACTERISTICS]?.contains("watch") ?: false
-  private val isAutomotive: Boolean = deviceProperties[DevicePropertyNames.RO_BUILD_CHARACTERISTICS]?.contains("automotive") ?: false
+  private val deviceModel: String? = deviceConfiguration.deviceModel
+  private val isWatch: Boolean = deviceConfiguration.isWatch
+  private val isAutomotive: Boolean = deviceConfiguration.isAutomotive
   private val skinHome: Path? = DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath()
   private var defaultFrameIndex: Int = 0
 
   override fun createScreenshotImage(image: BufferedImage, displayInfo: String, isTv: Boolean): ScreenshotImage {
-    val rotatedImage = ImageUtils.rotateByQuadrants(image, deviceView.displayRotationCorrectionQuadrants)
-    return ScreenshotImage(rotatedImage, deviceView.displayRotationQuadrants, displayInfo, isTv)
+    val rotatedImage = ImageUtils.rotateByQuadrants(image, deviceView.displayOrientationCorrectionQuadrants)
+    return ScreenshotImage(rotatedImage, deviceView.displayOrientationQuadrants, displayInfo, isTv)
   }
 
   override fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption> {

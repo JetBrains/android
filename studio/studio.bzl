@@ -21,6 +21,19 @@ PluginInfo = provider(
     },
 )
 
+# Valid types (and their corresponding channels) which can be specified
+# by the android_studio rule.
+type_channel_mappings = {
+    "Canary": "Canary",
+    "Beta": "Beta",
+    "RC": "Beta",
+    "Stable": "Stable",
+}
+
+# Types considered to be EAP. This should be a subset of
+# type_channel_mappings.keys().
+eap_types = ["Canary", "Beta"]
+
 def _zipper(ctx, desc, map, out, deps = []):
     files = [f for (p, f) in map if f]
     zipper_files = [r + "=" + (f.path if f else "") + "\n" for r, f in map]
@@ -433,15 +446,47 @@ def studio_data(name, files = [], files_linux = [], files_mac = [], files_mac_ar
         **kwargs
     )
 
+def _split_version(version):
+    """Splits a version string into its constituent parts."""
+    index_of_period = version.find(".")
+    if index_of_period == -1:
+        fail('Cannot split version "%s" because no "." was found in it' % version)
+
+    micro = version[0:index_of_period]
+    patch = version[index_of_period + 1:]
+    return (micro, patch)
+
+def _get_channel_info(version_type):
+    """Maps a version type to information about a channel."""
+    if version_type not in type_channel_mappings:
+        fail('Invalid type "%s"; must be one of %s' % (version_type, str(type_channel_mappings.keys())))
+
+    channel = type_channel_mappings[version_type]
+    is_eap = version_type in eap_types
+
+    return channel, is_eap
+
+def _form_version_full(ctx):
+    """Forms version_full based on code name, channel, and release number"""
+    (channel, _) = _get_channel_info(ctx.attr.version_type)
+    return (ctx.attr.version_code_name +
+            " | " +
+            "{0}.{1}.{2} " +
+            channel +
+            " " +
+            str(ctx.attr.version_release_number))
+
 def _stamp(ctx, platform, zip, extra, srcs, out):
     args = ["--platform", zip.path]
     args += ["--os", platform.name]
     args += ["--version_file", ctx.version_file.path]
     args += ["--info_file", ctx.info_file.path]
-    args += ["--eap", "true" if ctx.attr.version_eap else "false"]
-    args += ["--version_micro", str(ctx.attr.version_micro)]
-    args += ["--version_patch", str(ctx.attr.version_patch)]
-    args += ["--version_full", ctx.attr.version_full]
+    (_, is_eap) = _get_channel_info(ctx.attr.version_type)
+    args += ["--eap", "true" if is_eap else "false"]
+    (micro, patch) = _split_version(ctx.attr.version_micro_patch)
+    args += ["--version_micro", micro]
+    args += ["--version_patch", patch]
+    args += ["--version_full", _form_version_full(ctx)]
     args += extra
     ctx.actions.run(
         inputs = [zip, ctx.info_file, ctx.version_file] + srcs,
@@ -450,6 +495,39 @@ def _stamp(ctx, platform, zip, extra, srcs, out):
         arguments = args,
         progress_message = "Stamping %s file..." % zip.basename,
         mnemonic = "stamper",
+    )
+
+def _produce_manifest(ctx, platform):
+    out = ctx.outputs.manifest
+    platform_zip = platform.get(ctx.attr.platform.data)[0]
+
+    args = ["--produce_manifest", out.path]
+    args += ["--platform", platform_zip.path]
+    args += ["--os", platform.name]
+    args += ["--version_file", ctx.version_file.path]
+    args += ["--info_file", ctx.info_file.path]
+    (channel, is_eap) = _get_channel_info(ctx.attr.version_type)
+    args += ["--eap", "true" if is_eap else "false"]
+    (micro, patch) = _split_version(ctx.attr.version_micro_patch)
+    args += ["--version_micro", micro]
+    args += ["--version_patch", patch]
+    args += ["--version_full", _form_version_full(ctx)]
+    args += ["--channel", channel]
+    args += ["--code_name", ctx.attr.version_code_name]
+
+    ctx.actions.run(
+        inputs = [platform_zip, ctx.info_file, ctx.version_file],
+        outputs = [out],
+        executable = ctx.executable._stamper,
+        arguments = args,
+        progress_message = "Producing manifest from %s..." % platform_zip.path,
+        mnemonic = "stamper",
+    )
+
+def _produce_update_message_html(ctx):
+    ctx.actions.write(
+        output = ctx.outputs.update_message,
+        content = ctx.attr.version_update_message,
     )
 
 def _stamp_platform(ctx, platform, zip, out):
@@ -528,7 +606,7 @@ def _android_studio_os(ctx, platform, out):
         if platform == WIN and platform.jre != "jre":
             jre_bin = ctx.actions.declare_file(ctx.attr.name + ".jre.marker")
             ctx.actions.write(jre_bin, "")
-            files += [( platform.base_path + "jre/bin/.marker", jre_bin)]
+            files += [(platform.base_path + "jre/bin/.marker", jre_bin)]
 
     # Stamp the platform and its plugins
     platform_stamp = ctx.actions.declare_file(ctx.attr.name + ".%s.platform.stamp.zip" % platform.name)
@@ -595,6 +673,9 @@ def _android_studio_impl(ctx):
     _android_studio_os(ctx, MAC_ARM, ctx.outputs.mac_arm)
     _android_studio_os(ctx, WIN, ctx.outputs.win)
 
+    _produce_manifest(ctx, LINUX)
+    _produce_update_message_html(ctx)
+
     vmoptions = ctx.actions.declare_file("%s-debug.vmoption" % ctx.label.name)
     ctx.actions.write(vmoptions, "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005")
 
@@ -609,23 +690,24 @@ def _android_studio_impl(ctx):
     # Leave everything that is not the main zips as implicit outputs
     return DefaultInfo(
         executable = script,
-        files = depset([ctx.outputs.linux, ctx.outputs.mac, ctx.outputs.mac_arm, ctx.outputs.win]),
+        files = depset([ctx.outputs.linux, ctx.outputs.mac, ctx.outputs.mac_arm, ctx.outputs.win, ctx.outputs.manifest, ctx.outputs.update_message]),
         runfiles = runfiles,
     )
 
 _android_studio = rule(
     attrs = {
-        "platform": attr.label(),
+        "codesign_entitlements": attr.label(allow_single_file = True),
+        "codesign_filelist": attr.label(allow_single_file = True),
+        "compress": attr.bool(),
         "jre": attr.label(),
+        "platform": attr.label(),
         "plugins": attr.label_list(providers = [PluginInfo]),
         "searchable_options": attr.label(),
-        "version_micro": attr.int(),
-        "version_patch": attr.int(),
-        "version_eap": attr.bool(),
-        "version_full": attr.string(),
-        "compress": attr.bool(),
-        "codesign_filelist": attr.label(allow_single_file = True),
-        "codesign_entitlements": attr.label(allow_single_file = True),
+        "version_code_name": attr.string(),
+        "version_micro_patch": attr.string(),
+        "version_release_number": attr.int(),
+        "version_type": attr.string(),
+        "version_update_message": attr.string(),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "host",
@@ -663,6 +745,8 @@ _android_studio = rule(
         "mac_arm": "%{name}.mac_arm.zip",
         "win": "%{name}.win.zip",
         "plugins": "%{name}.plugin.lst",
+        "manifest": "%{name}_build_manifest.textproto",
+        "update_message": "%{name}_update_message.html",
     },
     executable = True,
     implementation = _android_studio_impl,

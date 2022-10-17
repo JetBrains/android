@@ -38,6 +38,7 @@ open class MemoryProbe(
   private val includedPackagePrefixes: List<String> = emptyList(),
   private val includedClasses: List<Class<*>> = emptyList(),
   private val excludedClasses: List<Class<*>> = emptyList(),
+  private val excludeStaticFields: Boolean = false,
   private val cancelled: () -> Boolean = { false }
 ) {
   private val fieldCountMap = mutableMapOf<Class<*>, Int>()
@@ -96,14 +97,32 @@ open class MemoryProbe(
     val fields = fields(obj.javaClass)
     val arraySize = arraySize(obj)
     size += ESTIMATED_OBJECT_OVERHEAD + fields * REFERENCE_SIZE + arraySize
+    if (excludeStaticFields) {
+      excludeStaticFields(obj, obj.javaClass)
+    }
     return true
   }
 
   private fun fields(javaClass: Class<*>): Int {
     fieldCountMap[javaClass]?.let { return it }
-    val size = javaClass.declaredFields.count { (it.modifiers.and(Modifier.STATIC)) == 0 } + (javaClass.superclass?.let { fields(it) } ?: 0)
+    val size = javaClass.declaredFields.count { !Modifier.isStatic(it.modifiers) } + (javaClass.superclass?.let { fields(it) } ?: 0)
     fieldCountMap[javaClass] = size
     return size
+  }
+
+  private fun excludeStaticFields(obj: Any, javaClass: Class<*>) {
+    visited.addAll(javaClass.declaredFields
+                     .filter { Modifier.isStatic(it.modifiers) }
+                     .mapNotNull {
+                       try {
+                         System.identityHashCode(it.apply { it.isAccessible = true }.get(obj))
+                       }
+                       catch (ex: Exception) {
+                         null
+                       }
+                     }
+    )
+    javaClass.superclass?.let { excludeStaticFields(obj, it) }
   }
 
   private fun arraySize(obj: Any): Int {

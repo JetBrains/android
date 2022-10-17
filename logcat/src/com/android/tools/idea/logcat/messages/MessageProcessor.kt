@@ -68,11 +68,12 @@ internal class MessageProcessor @TestOnly constructor(
     }
   }
 
-  internal suspend fun appendMessages(messages: List<LogcatMessage>) {
+  internal suspend fun appendMessages(messages: List<LogcatMessage>): List<LogcatMessage> {
     val filteredMessages = LogcatMasterFilter(logcatFilter).filter(messages)
     if (filteredMessages.isNotEmpty()) {
       messageChannel.send(filteredMessages)
     }
+    return filteredMessages
   }
 
   // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for details.

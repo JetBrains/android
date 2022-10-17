@@ -24,7 +24,6 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
@@ -118,7 +117,7 @@ fun LegacyClientProvider(
   }
 ) = InspectorClientProvider { params, inspector ->
   LegacyClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel,
-               LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process, inspector.stats),
+               LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process),
                parentDisposable, treeLoaderOverride)
 }
 
@@ -131,8 +130,7 @@ fun LegacyClientProvider(
  * call [TestProcessDiscovery.fireConnected] (with a process that has a preferred process name) or
  * [ProcessesModel.selectedProcess] directly, to trigger a new client to get created.
  *
- * @param projectRule A rule providing access to a test project. This shouldn't be annotated with `@Rule` by the caller,
- *     as this class will handle it.
+ * @param projectRule A rule providing access to a test project.
  *
  * @param isPreferredProcess Optionally provide a process selector that, when connected via [TestProcessDiscovery],
  *     will be automatically attached to. This simulates the experience when the user presses the "Run" button for example.
@@ -140,7 +138,7 @@ fun LegacyClientProvider(
  */
 class LayoutInspectorRule(
   private val clientProviders: List<InspectorClientProvider>,
-  val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk(),
+  private val projectRule: AndroidProjectRule,
   isPreferredProcess: (ProcessDescriptor) -> Boolean = { false }
 ) : TestRule {
 
@@ -254,8 +252,7 @@ class LayoutInspectorRule(
 
     // This factory will be triggered when LayoutInspector is created
     val treeSettings = FakeTreeSettings()
-    val stats = SessionStatistics(inspectorModel, treeSettings)
-    inspector = LayoutInspector(launcher, inspectorModel, stats, treeSettings, MoreExecutors.directExecutor())
+    inspector = LayoutInspector(launcher, inspectorModel, treeSettings, MoreExecutors.directExecutor())
     launcher.addClientChangedListener {
       inspectorClient = it
     }
@@ -276,7 +273,7 @@ class LayoutInspectorRule(
 
   override fun apply(base: Statement, description: Description): Statement {
     // List of rules that will be applied in order, with this rule being last
-    val innerRules = listOf(adbService, adbRule, projectRule)
+    val innerRules = listOf(adbService, adbRule)
     val coreStatement = object : Statement() {
       override fun evaluate() {
         before()

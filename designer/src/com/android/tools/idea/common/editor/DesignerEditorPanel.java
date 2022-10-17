@@ -461,6 +461,11 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   }
 
   @NotNull
+  public ModelLintIssueAnnotator getModelLintIssueAnnotator() {
+    return myModelLintIssueAnnotator;
+  }
+
+  @NotNull
   private XmlFile getFile() {
     XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, myFile);
     assert file != null;

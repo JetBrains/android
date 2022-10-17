@@ -149,6 +149,54 @@ def _stamp_plugin(platform, os, build_info, overwrite_plugin_version, src, dst):
   _write_file(dst, "w", content, jar_name, "META-INF/plugin.xml")
 
 
+def _produce_manifest(platform, os, build_info, build_version, channel,
+                      code_name, eap, micro, patch, full, out):
+  """Produces a manifest with build information.
+
+  The manifest follows the proto defined at
+  wireless/android/devtools/infra/release/studio/proto/build_metadata.proto.
+
+  The build manifest should be platform-independent, but much of the
+  information in the manifest has to come from platform files.
+  """
+  resource_path = RES_PATH[os]
+  base_path = BASE_PATH[os]
+  bid = _get_build_id(build_info)
+
+  build_txt = _read_file(platform, resource_path + "build.txt")
+  app_info = _read_file(platform, base_path + "lib/resources.jar",
+                        "idea/AndroidStudioApplicationInfo.xml")
+
+  m = re.search(r'version.*major="(\d+)"', app_info)
+  major = m.group(1)
+
+  m = re.search(r'version.*minor="(\d+)"', app_info)
+  minor = m.group(1)
+
+  build_txt = build_txt.replace("__BUILD_NUMBER__", bid)
+  build_date = _format_build_date(build_version)
+
+  # Remove the product code (e.g. "AI-")
+  build_number = build_txt[3:]
+
+  channel = "CHANNEL_" + channel.upper()
+
+  contents = ('major: {major}\n'
+             'minor: {minor}\n'
+             'micro: {micro}\n'
+             'patch: {patch}\n'
+             'build_number: "{build_number}"\n'
+             'code_name: "{code_name}"\n'
+             'full_name: "{full_name}"\n'
+             'channel: {channel}\n'
+  ).format(major=major, minor=minor, micro=micro, patch=patch,
+           build_number=build_number, code_name=code_name,
+           full_name=full, channel=channel)
+
+  with open(out, "a") as f:
+    f.write(contents)
+
+
 def _stamp_platform(platform, os, build_info, build_version, eap, micro, patch, full, out):
   resource_path = RES_PATH[os]
   base_path = BASE_PATH[os]
@@ -236,6 +284,21 @@ def main(argv):
       dest="version_file",
       required=True,
       help="Path to the bazel version file (bazel-out/volatile-status.txt).")
+  parser.add_argument(
+      "--produce_manifest",
+      default="",
+      dest="produce_manifest",
+      help="Path at which this will produce a standalone manifest with build information.")
+  parser.add_argument(
+      "--channel",
+      default="",
+      dest="channel",
+      help="One of the release channels, e.g. Canary or Beta.")
+  parser.add_argument(
+      "--code_name",
+      default="",
+      dest="code_name",
+      help="The code name, e.g. Bumblebee or Dolphin.")
   args = parser.parse_args(argv)
   build_info = _read_status_file(args.info_file)
   build_version = _read_status_file(args.version_file)
@@ -253,6 +316,19 @@ def main(argv):
         out = args.stamp_platform)
   if args.stamp_plugin:
     _stamp_plugin(args.platform, args.os, build_info, args.overwrite_plugin_version, args.stamp_plugin[0], args.stamp_plugin[1])
+  if args.produce_manifest:
+    _produce_manifest(
+        platform = args.platform,
+        os = args.os,
+        build_info = build_info,
+        build_version = build_version,
+        channel = args.channel,
+        code_name = args.code_name,
+        eap = args.eap,
+        micro = args.version_micro,
+        patch = args.version_patch,
+        full = args.version_full,
+        out = args.produce_manifest)
 
 if __name__ == "__main__":
   main(sys.argv[1:])

@@ -25,6 +25,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIn
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.util.ListenerCollection
@@ -45,6 +46,7 @@ import org.jetbrains.annotations.TestOnly
 abstract class AbstractInspectorClient(
   final override val process: ProcessDescriptor,
   final override val isInstantlyAutoConnected: Boolean,
+  final override val stats: SessionStatistics,
   parentDisposable: Disposable
 ) : InspectorClient {
   init {

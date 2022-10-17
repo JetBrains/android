@@ -1,0 +1,5 @@
+compose-runtime-1.3.0-SNAPSHOT.jar:
+
+This JAR is only used in Live Edit unit test since the Compose compiler
+would not compile @Composable code without the runtime being in the
+input CLASSPATH.

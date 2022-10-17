@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.api.GradlePropertiesModel;
 import com.intellij.openapi.diagnostic.ControlFlowException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -153,6 +154,12 @@ public interface GradleBuildModel extends GradleFileModel, PluginsModel {
    */
   @NotNull
   File getModuleRootDirectory();
+
+  /**
+   * @return a model for the properties file associated with this build model (typically only the root module's model), or null if
+   * no such properties file exists.
+   */
+  @Nullable GradlePropertiesModel getPropertiesModel();
 
   /**
    * Removes repository property.

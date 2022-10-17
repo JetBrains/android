@@ -25,6 +25,7 @@ import com.intellij.openapi.options.newEditor.SettingsDialog;
 import com.intellij.openapi.options.newEditor.SettingsTreeView;
 import com.intellij.ui.TabbedPaneWrapper;
 import com.intellij.ui.components.JBTextField;
+import com.intellij.ui.tabs.impl.TabLabel;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.filtered.FilteringTreeStructure;
 import java.awt.event.KeyEvent;
@@ -52,6 +53,7 @@ import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 
@@ -143,6 +145,25 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
     return new JCheckBoxFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(JCheckBox.class, text)));
   }
 
+  @NotNull
+  public List<JCheckBoxFixture> findAllCheckBoxes(@NotNull String text) {
+    List<JCheckBoxFixture> checkBoxFixtures = Lists.newArrayList();
+
+    Collection<JCheckBox> allFound = robot()
+      .finder()
+      .findAll(Matchers.byText(JCheckBox.class, text));
+
+    if (allFound == null || allFound.size() == 0) {
+      throw new ComponentLookupException("'" + text + "' checkbox not found");
+    }
+
+    for (JCheckBox jCheckBox : allFound) {
+      checkBoxFixtures.add(new JCheckBoxFixture(robot(), jCheckBox));
+    }
+    return checkBoxFixtures;
+  }
+
+
   private IdeSettingsDialogFixture selectPage(@NotNull String path) {
     JPanel optionsEditor = field("myEditor").ofType(JPanel.class).in(getDialogWrapper()).get();
     List<JComponent> trees = findComponentsOfType(optionsEditor, "com.intellij.openapi.options.newEditor.SettingsTreeView");
@@ -171,6 +192,21 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
 
   public void clickButton(@NotNull String buttonText) {
     findAndClickButton(this, buttonText);
+    // Wait for processing project usages to finish as running in background.
+    GuiTests.waitForBackgroundTasks(robot());
+    robot().waitForIdle();
+  }
+
+  public void clickTab(@NotNull String tabName) {
+
+    TabLabel tab = waitUntilShowing(robot(), new GenericTypeMatcher<TabLabel>(TabLabel.class) {
+      @Override
+      protected boolean isMatching(@NotNull TabLabel tabLabel) {
+        return tabName.equals(tabLabel.getAccessibleContext().getAccessibleName());
+      }
+    });
+    robot().click(tab);
+
     // Wait for processing project usages to finish as running in background.
     GuiTests.waitForBackgroundTasks(robot());
     robot().waitForIdle();

@@ -20,14 +20,16 @@ import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.RenderSequence
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 
-data class JankAnalysisModel(val event: AndroidFrameTimelineEvent, val capture: SystemTraceCpuCapture): CpuAnalyzable<JankAnalysisModel> {
+data class JankAnalysisModel(val event: AndroidFrameTimelineEvent,
+                             val capture: SystemTraceCpuCapture,
+                             private val runModelUpdate: (Runnable) -> Unit): CpuAnalyzable<JankAnalysisModel> {
 
   override fun getAnalysisModel() =
     CpuAnalysisModel<JankAnalysisModel>("Frame ${event.surfaceFrameToken}").also { model ->
       val eventRange = Range(event.expectedStartUs.toDouble(), event.actualEndUs.toDouble())
       val nodes = capture.captureNodes.filter { eventRange.intersectsWith(it.startGlobal.toDouble(), it.endGlobal.toDouble()) }
       fun chart(type: CpuAnalysisTabModel.Type) =
-        CpuAnalysisChartModel<JankAnalysisModel>(type, eventRange, capture, { nodes }).also {
+        CpuAnalysisChartModel<JankAnalysisModel>(type, eventRange, capture, { nodes }, runModelUpdate).also {
           it.dataSeries.add(this)
         }
 

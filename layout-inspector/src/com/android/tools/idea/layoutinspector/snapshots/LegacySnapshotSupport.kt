@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
@@ -47,7 +48,7 @@ class LegacySnapshotLoader : SnapshotLoader {
 
   override val capabilities = mutableSetOf<InspectorClient.Capability>()
 
-  override fun loadFile(file: Path, model: InspectorModel): SnapshotMetadata {
+  override fun loadFile(file: Path, model: InspectorModel, stats: SessionStatistics): SnapshotMetadata {
     val options = LayoutInspectorCaptureOptions()
 
     ObjectInputStream(Files.newInputStream(file)).use { input ->

@@ -20,13 +20,16 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
+import com.intellij.analysis.problemsView.toolWindow.HighlightingPanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import org.junit.After
@@ -34,6 +37,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
+import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -58,14 +62,16 @@ class IssuePanelServiceTest {
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
     val contentManager = toolWindow.contentManager
-    val content = contentManager.factory.createContent(null, "Current File", true).apply {
+    val content = contentManager.factory.createContent(TestContentComponent(HighlightingPanel.ID), "Current File", true).apply {
       isCloseable = false
     }
     contentManager.addContent(content)
     contentManager.setSelectedContent(content)
 
-    service = IssuePanelService.getInstance(rule.project)
-    service.initIssueTabs(toolWindow)
+    runInEdtAndWait {
+      service = IssuePanelService.getInstance(rule.project)
+      service.initIssueTabs(toolWindow)
+    }
   }
 
   @After
@@ -155,7 +161,7 @@ class IssuePanelServiceTest {
   fun testSetVisibility() {
     val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(ProblemsView.ID)!!
     toolWindow.hide()
-    val service = IssuePanelService.getInstance(rule.project).apply { initIssueTabs(toolWindow) }
+    val service = IssuePanelService.getInstance(rule.project).apply { runInEdtAndWait { initIssueTabs(toolWindow) } }
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
 
     runInEdtAndWait {
@@ -180,12 +186,13 @@ class IssuePanelServiceTest {
     rule.projectRule.initAndroid(true)
     val messageBus = rule.project.messageBus
     val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(ProblemsView.ID)!!
-    runInEdtAndWait {
-      val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
-      rule.fixture.openFileInEditor(layoutFile.virtualFile)
+    val layoutFile = runInEdtAndGet {
+      val file = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />").virtualFile
+      rule.fixture.openFileInEditor(file)
       service.setSharedIssuePanelVisibility(true)
+      file
     }
-
+    val issueSource = IssueSourceWithFile(layoutFile)
     val content = toolWindow.contentManager.selectedContent!!
     val source = Any()
 
@@ -196,12 +203,13 @@ class IssuePanelServiceTest {
     assertEquals("Layout and Qualifiers", content.displayName)
 
     runInEdtAndWait {
-      messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf(TestIssue()))
+      messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf(TestIssue(source = issueSource)))
     }
     assertEquals("<html><body>Layout and Qualifiers <font color=\"#999999\">1</font></body></html>", content.displayName)
 
     runInEdtAndWait {
-      messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf(TestIssue(summary = "1"), TestIssue(summary = "2")))
+      messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf(TestIssue(summary = "1", source = issueSource),
+                                                                                        TestIssue(summary = "2", source = issueSource)))
     }
     assertEquals("<html><body>Layout and Qualifiers <font color=\"#999999\">2</font></body></html>", content.displayName)
 
@@ -211,6 +219,7 @@ class IssuePanelServiceTest {
     assertEquals("Layout and Qualifiers", content.displayName)
   }
 
+  @RunsInEdt
   @Test
   fun testSelectFirstTabWhenSharedIssuePanelIsRemoved() {
     service.setSharedIssuePanelVisibility(true)
@@ -224,14 +233,14 @@ class IssuePanelServiceTest {
     }
 
     service.setSharedIssuePanelVisibility(true)
-    // It should select the shared issue panel, which should be the last content.
+    // It should select the shared issue panel.
     assertEquals(contentManager.selectedContent,
-                 contentManager.getContent(contentManager.contentCount - 1))
+                 contentManager.findContent("Designer"))
 
     service.removeSharedIssueTabFromProblemsPanel()
-    // It should select the first tab, because the shared issue panel is gone.
+    // It should select the first tab, which is the "Current File" tab.
     assertEquals(contentManager.selectedContent,
-                 contentManager.getContent(0))
+                 contentManager.findContent("Current File"))
   }
 
   @RunsInEdt
@@ -255,12 +264,13 @@ class IssuePanelServiceTest {
     assertEquals("Layout and Qualifiers", service.getSharedIssuePanelTabTitle())
   }
 
+  @RunsInEdt
   @Test
   fun testIssuePanelNotPinnable() {
     service.setSharedIssuePanelVisibility(true)
 
     val manager = toolWindow.contentManager
-    val tab = manager.getContent(manager.contentCount - 1)!!
+    val tab = manager.findContent("Designer")
     assertFalse(tab.isPinnable)
   }
 
@@ -276,6 +286,31 @@ class IssuePanelServiceTest {
     // Hide issue panel will lose the focus because the component is no longer visible.
     service.setSharedIssuePanelVisibility(false)
     assertFalse(window.isFocused())
+  }
+
+  @Test
+  fun testSetIssuePanelVisibility() {
+    val window = toolWindow as TestToolWindow
+    val contentManager = window.contentManager
+    val additionalContent = contentManager.factory.createContent(null, "Additional Content", false)
+      .apply {
+        tabName = "Additional Content"
+        isCloseable = false
+      }
+    window.hide()
+    contentManager.setSelectedContent(additionalContent)
+
+    service.setIssuePanelVisibility(true, null)
+    assertTrue(window.isVisible)
+    assertEquals(additionalContent, window.contentManager.selectedContent)
+
+    service.setIssuePanelVisibility(false, null)
+    assertFalse(window.isVisible)
+    assertEquals(additionalContent, window.contentManager.selectedContent)
+
+    service.setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
+    assertTrue(window.isVisible)
+    assertTrue(contentManager.selectedContent?.isTab(IssuePanelService.Tab.CURRENT_FILE) ?: false)
   }
 }
 
@@ -353,4 +388,10 @@ class TestToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolW
   override fun isDisposed(): Boolean {
     return contentManager.isDisposed
   }
+}
+
+private class TestContentComponent(private val id: String) : JComponent(), ProblemsViewTab {
+  override fun getName(count: Int): String = id
+
+  override fun getTabId(): String = id
 }

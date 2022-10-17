@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.tools.idea.common.BackedTestFile
 import com.android.tools.idea.testing.AndroidProjectRule
 import junit.framework.Assert.assertEquals
 import org.junit.Rule
@@ -28,26 +29,38 @@ class DesignerCommonIssueRootTest {
 
   @Test
   fun testCreateNoFileNode() {
-    val provider = DesignerCommonIssueTestProvider(listOf(TestIssue(), TestIssue(), TestIssue()))
+    val issue1 = TestIssue("a")
+    val issue2 = TestIssue("b")
+    val issue3 = TestIssue("c")
+    val issues = listOf(issue1, issue2, issue3)
+    val provider = DesignerCommonIssueTestProvider(listOf(issue1, issue2, issue3))
     val root = DesignerCommonIssueRoot(null, provider)
+    root.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true))
 
     // The issues have no source file results NoFileNode
-    val expected = listOf(NoFileNode(listOf(TestIssue(), TestIssue(), TestIssue()), root))
-    assertEquals(expected, root.getChildren())
+    val noFileNode = NoFileNode(root)
+    val issueNodes = issues.map { IssueNode(null, it, noFileNode) }.toList()
+
+    assertEquals(listOf(noFileNode), root.getChildren())
+    assertEquals(issueNodes, noFileNode.getChildren())
   }
 
   @Test
   fun testCreateIssuedFileNode() {
     val file = projectRule.fixture.addFileToProject("path/to/file", "").virtualFile
-    val issues = listOf(TestIssue(summary = "issue1", source = (IssueSourceWithFile(file))),
-                        TestIssue(summary = "issue2", source = (IssueSourceWithFile(file))))
+    val issue1 = TestIssue(summary = "issue1", source = (IssueSourceWithFile(file)))
+    val issue2 = TestIssue(summary = "issue2", source = (IssueSourceWithFile(file)))
+    val issues = listOf(issue1, issue2)
 
     val provider = DesignerCommonIssueTestProvider(issues)
     val root = DesignerCommonIssueRoot(null, provider)
 
-    val expected = listOf(IssuedFileNode(file, issues, root))
+    val issuedFileNode = IssuedFileNode(file, root)
+    val child1 = IssueNode(file, issue1, issuedFileNode)
+    val child2 = IssueNode(file, issue2, issuedFileNode)
 
-    assertEquals(expected, root.getChildren())
+    assertEquals(listOf(issuedFileNode), root.getChildren())
+    assertEquals(listOf(child1, child2), issuedFileNode.getChildren())
   }
 
   @Test
@@ -64,12 +77,11 @@ class DesignerCommonIssueRootTest {
     val provider = DesignerCommonIssueTestProvider(issues)
 
     val root = DesignerCommonIssueRoot(null, provider)
+    root.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true))
 
     // The order of node is sorted by the file name alphabetically.
     // And the NoFileNode will always be the last one.
-    val expected = listOf(IssuedFileNode(file1, listOf(file1Issue), root),
-                          IssuedFileNode(file2, listOf(file2Issue), root),
-                          NoFileNode(listOf(noFileIssue), root))
+    val expected = listOf(IssuedFileNode(file1, root), IssuedFileNode(file2, root), NoFileNode(root))
     assertEquals(expected, root.getChildren())
   }
 
@@ -85,10 +97,13 @@ class DesignerCommonIssueRootTest {
 
     val provider = DesignerCommonIssueTestProvider(issues)
     val root = DesignerCommonIssueRoot(null, provider)
+    root.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true))
 
     // The order of issues in same child node is same as the given order from IssueProvider
-    val expected = listOf(IssuedFileNode(file, listOf(issue3, issue1, issue2), root))
-    assertEquals(expected, root.getChildren())
+    val fileNode = IssuedFileNode(file, root)
+    assertEquals(listOf(fileNode), root.getChildren())
+    val children = issues.map { IssueNode(file, it, fileNode) }.toList()
+    assertEquals(children, fileNode.getChildren())
   }
 
   @Test
@@ -96,17 +111,17 @@ class DesignerCommonIssueRootTest {
     val file1 = projectRule.fixture.addFileToProject("path/to/file1", "").virtualFile
     val file2 = projectRule.fixture.addFileToProject("path/to/file2", "").virtualFile
 
-    val file1IssueA = TestIssue(summary = "issueA", source = (IssueSourceWithFile(file1)))
-    val file1IssueB = TestIssue(summary = "issueB", source = (IssueSourceWithFile(file1)))
-    val file1IssueC = TestIssue(summary = "issueC", source = (IssueSourceWithFile(file1)))
+    val file1IssueA = TestIssue(summary = "file1 issueA", source = (IssueSourceWithFile(file1)))
+    val file1IssueB = TestIssue(summary = "file1 issueB", source = (IssueSourceWithFile(file1)))
+    val file1IssueC = TestIssue(summary = "file1 issueC", source = (IssueSourceWithFile(file1)))
 
-    val file2IssueC = TestIssue(summary = "issueC", source = (IssueSourceWithFile(file2)))
-    val file2IssueB = TestIssue(summary = "issueB", source = (IssueSourceWithFile(file2)))
-    val file2IssueA = TestIssue(summary = "issueA", source = (IssueSourceWithFile(file2)))
+    val file2IssueC = TestIssue(summary = "file2 issueC", source = (IssueSourceWithFile(file2)))
+    val file2IssueB = TestIssue(summary = "file2 issueB", source = (IssueSourceWithFile(file2)))
+    val file2IssueA = TestIssue(summary = "file2 issueA", source = (IssueSourceWithFile(file2)))
 
-    val noFileIssueA = TestIssue(summary = "issueA")
-    val noFileIssueB = TestIssue(summary = "issueB")
-    val noFileIssueC = TestIssue(summary = "issueC")
+    val noFileIssueA = TestIssue(summary = "no file issueA")
+    val noFileIssueB = TestIssue(summary = "no file issueB")
+    val noFileIssueC = TestIssue(summary = "no file issueC")
 
     val allIssues = listOf(
       file1IssueA,
@@ -123,9 +138,39 @@ class DesignerCommonIssueRootTest {
     val provider = DesignerCommonIssueTestProvider(allIssues)
     val root = DesignerCommonIssueRoot(null, provider)
 
-    val expected = listOf(IssuedFileNode(file1, listOf(file1IssueA, file1IssueB, file1IssueC), root),
-                          IssuedFileNode(file2, listOf(file2IssueC, file2IssueA, file2IssueB), root),
-                          NoFileNode(listOf(noFileIssueA, noFileIssueC, noFileIssueB), root))
-    assertEquals(expected, root.getChildren())
+    val fileNode1 = IssuedFileNode(file1, root)
+    val fileNode1Children = listOf(file1IssueA, file1IssueB, file1IssueC).map { IssueNode(file1, it, fileNode1) }.toList()
+
+    val fileNode2 = IssuedFileNode(file2, root)
+    val fileNode2Children = listOf(file2IssueC, file2IssueA, file2IssueB).map { IssueNode(file2, it, fileNode2) }.toList()
+
+    val noFileNode = NoFileNode(root)
+    val noFileNodeChildren = listOf(noFileIssueA, noFileIssueC, noFileIssueB).map { IssueNode(null, it, noFileNode) }.toList()
+
+    assertEquals(listOf(fileNode1, fileNode2, noFileNode), root.getChildren())
+    assertEquals(fileNode1Children, fileNode1.getChildren())
+    assertEquals(fileNode2Children, fileNode2.getChildren())
+    assertEquals(noFileNodeChildren, noFileNode.getChildren())
+  }
+
+  @Test
+  fun testCreateFileNodeWithBackedFile() {
+    val file = projectRule.fixture.addFileToProject("path/to/file", "").virtualFile
+
+    val backedFile1 = BackedTestFile("path/to/backed/file1", file)
+    val backedFile2 = BackedTestFile("path/to/backed/file2", file)
+
+    val file1Issue = TestIssue(summary = "issue1", source = (IssueSourceWithFile(backedFile1, "")))
+    val file2Issue = TestIssue(summary = "issue2", source = (IssueSourceWithFile(backedFile2, "")))
+
+    val provider = DesignerCommonIssueTestProvider(listOf(file1Issue, file2Issue))
+    val root = DesignerCommonIssueRoot(null, provider)
+
+    // File from same backed file should belong to same parent node.
+    assertEquals(1, root.getChildren().size)
+    val childrenNodes = root.getChildren().single().getChildren().toList()
+    assertEquals(2, childrenNodes.size)
+    assertEquals("issue1", (childrenNodes[0] as IssueNode).issue.summary)
+    assertEquals("issue2", (childrenNodes[1] as IssueNode).issue.summary)
   }
 }

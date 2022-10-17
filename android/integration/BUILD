@@ -53,8 +53,7 @@ iml_test(
     module = ":intellij.android.core.integration",
     tags = [
         "block-network",
-        "no_mac",  # Path issues, probably easily fixable.
-        "no_windows",  # Path issues, probably easily fixable.
+        "no_windows",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
     test_class = "com.android.tools.idea.EmulatorTest",
 )
@@ -165,6 +164,9 @@ iml_test(
         "@platforms//os:macos": [
             "//tools/adt/idea/studio:android-studio.mac.zip",
         ],
+        "@platforms//os:windows": [
+            "//tools/adt/idea/studio:android-studio.win.zip",
+        ],
     }) + [
         ":buildproject_deps",
         ":minapp",
@@ -174,8 +176,6 @@ iml_test(
     module = ":intellij.android.core.integration",
     tags = [
         "block-network",
-        "no_mac",
-        "no_windows",
     ],
     test_class = "com.android.tools.idea.BuildProjectTest",
 )

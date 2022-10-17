@@ -28,7 +28,13 @@
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.run.deviceNameRenderer"
                     interface="com.android.tools.idea.ddms.DeviceNameRendererEx"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.deviceProvisioner"
+                    interface="com.android.tools.idea.deviceprovisioner.DeviceProvisionerFactory"/>
   </extensionPoints>
+
+  <extensions defaultExtensionNs="com.android.tools.idea">
+    <deviceProvisioner implementation="com.android.tools.idea.deviceprovisioner.PhysicalDeviceProvisionerFactory"/>
+  </extensions>
 
   <actions>
     <action id="Android.AdbDevicePairing"

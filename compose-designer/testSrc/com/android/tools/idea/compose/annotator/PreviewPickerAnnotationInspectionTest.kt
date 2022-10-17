@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.namespaceVariations
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInspection.InspectionProfileEntry
@@ -152,6 +153,35 @@ Parameter: orientation should be one of: portrait, landscape.
 
 Missing parameter: height.""",
       replaceWithMessage = "Replace with spec:width=1080dp,isRound=false,chinSize=30dp,orientation=portrait,height=891dp"
+    )
+  }
+
+  @RunsInEdt
+  @Test
+  fun withErrorAndApplyFixForConcatenatedDeviceSpec() {
+    fixture.configureByText(
+      KotlinFileType.INSTANCE,
+      // language=kotlin
+      """
+        import $composableAnnotationFqName
+        import $previewToolingPackage.Preview
+
+        const val heightPx = "1900ABCpx"
+
+        @Preview(
+          device = "spec:width=1080px," + "${caret}height=" + heightPx
+        )
+        @Composable
+        fun preview1() {}
+      """.trimIndent()
+    )
+
+    checkInspectionErrorAndApplyFix(
+      affectedText = "\"spec:width=1080px,\" + \"height=\" + heightPx",
+      errorDescription = """Bad value type for: height.
+
+Parameter: height should have Float(dp/px) value.""",
+      replaceWithMessage = "Replace with spec:width=1080px,height=1900px"
     )
   }
 

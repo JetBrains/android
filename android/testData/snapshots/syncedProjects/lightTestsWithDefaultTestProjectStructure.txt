@@ -42,6 +42,9 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
             GradlePath                    : :
+        CONENT_ENTRY                  : file://<PROJECT>
+            EXCLUDE_FOLDER                : file://<PROJECT>/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/build [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -92,7 +95,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithDefaultTestProjectStructureTest.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -176,14 +179,13 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithDefaultTestProjectStructureTest.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
-        CONENT_ENTRY                  : file://<PROJECT>
-            EXCLUDE_FOLDER                : file://<PROJECT>/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/build [-]
+        CONENT_ENTRY                  : file://<PROJECT>/AndroidManifest.xml [-]
+        CONENT_ENTRY                  : file://<PROJECT>/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/renderscript_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/res/resValues/debug [-]
@@ -191,7 +193,6 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         CONENT_ENTRY                  : file://<PROJECT>/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/res [-]
         CONENT_ENTRY                  : file://<PROJECT>/src [-]
-        CONENT_ENTRY                  : file://<PROJECT>/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/srcKotlin [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/build/generated/aidl_source_output_dir/debug/out [-]
             Generated                     : true
@@ -266,7 +267,7 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithDefaultTestProjectStructureTest.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE

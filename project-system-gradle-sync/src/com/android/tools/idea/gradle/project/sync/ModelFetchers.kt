@@ -29,7 +29,6 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
-import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 
@@ -97,7 +96,7 @@ internal fun BuildController.findNativeVariantAbiModel(
   module: AndroidModule,
   variantName: String,
   abiToRequest: String
-): AndroidExtraModelProviderWorker.NativeVariantAbiResult {
+): NativeVariantAbiResult {
   return if (module.nativeModelVersion == AndroidModule.NativeModelVersion.V2) {
     // V2 model is available, trigger the sync with V2 API
     // NOTE: Even though we drop the value returned the side effects of this code are important. Native sync creates file on the disk
@@ -106,7 +105,7 @@ internal fun BuildController.findNativeVariantAbiModel(
       parameter.variantsToGenerateBuildInformation = listOf(variantName)
       parameter.abisToGenerateBuildInformation = listOf(abiToRequest)
     }
-    if (model != null) AndroidExtraModelProviderWorker.NativeVariantAbiResult.V2(abiToRequest) else AndroidExtraModelProviderWorker.NativeVariantAbiResult.None
+    if (model != null) NativeVariantAbiResult.V2(abiToRequest) else NativeVariantAbiResult.None
   }
   else {
     // Fallback to V1 models otherwise.
@@ -114,7 +113,7 @@ internal fun BuildController.findNativeVariantAbiModel(
       parameter.setVariantName(variantName)
       parameter.setAbiName(abiToRequest)
     }
-    if (model != null) AndroidExtraModelProviderWorker.NativeVariantAbiResult.V1(modelCache.nativeVariantAbiFrom(model)) else AndroidExtraModelProviderWorker.NativeVariantAbiResult.None
+    if (model != null) NativeVariantAbiResult.V1(modelCache.nativeVariantAbiFrom(model)) else NativeVariantAbiResult.None
   }
 }
 
@@ -147,15 +146,15 @@ internal fun BuildController.findNativeModuleModel(
 
 private val androidArtifactSuffixes = listOf("", "unitTest", "androidTest")
 
-internal fun BuildController.findKotlinGradleModelForAndroidProject(root: Model, variantName: String): KotlinGradleModel? {
-  return findModel(root, KotlinGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
+/** Kotlin related models that are fetched when importing Android projects. */
+internal data class AllKotlinModels(val kotlinModel: KotlinGradleModel?, val kaptModel: KaptGradleModel?)
+
+internal fun BuildController.findKotlinModelsForAndroidProject(root: Model, variantName: String): AllKotlinModels {
+  val kotlinModel = findModel(root, KotlinGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
     it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> variantName.appendCapitalized(artifactSuffix) }
   }
-}
-
-internal fun BuildController.findKaptGradleModelForAndroidProject(root: Model, variantName: String): KaptGradleModel? {
-  return findModel(root, KaptGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
+  val kaptModel = findModel(root, KaptGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
     it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> variantName.appendCapitalized(artifactSuffix) }
   }
+  return AllKotlinModels(kotlinModel, kaptModel)
 }
-

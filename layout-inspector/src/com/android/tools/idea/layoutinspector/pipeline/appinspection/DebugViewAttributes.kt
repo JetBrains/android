@@ -16,6 +16,8 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.annotations.concurrency.Slow
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.pipeline.adb.AbortAdbCommandRunnable
@@ -28,12 +30,48 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 
 /**
+ * Command that will be run on the device through adb shell.
+ * Used to put, delete and get the settings value.
+ */
+private sealed class Command(val setting: String) {
+  class Put(setting: String, val value: String) : Command(setting)
+  class Delete(setting: String) : Command(setting)
+  class Get(setting: String) : Command(setting)
+
+  fun get(): String {
+    return when (this) {
+      is Put -> "settings put global ${this.setting} ${this.value}"
+      is Delete -> "settings delete global ${this.setting}"
+      is Get -> "settings get global ${this.setting}"
+    }
+  }
+}
+
+private const val PER_DEVICE_SETTING = "debug_view_attributes"
+private const val PER_APP_SETTING = "debug_view_attributes_application_package"
+
+/**
  * Helper class that handles setting debug settings on the device via ADB.
  *
  * These debug settings, when set, tell the system to expose some debug data (e.g. Composables)
  * that it normally would hide.
+ *
+ * The View inspector works without the flag.
+ * The Compose inspector without the flag works in a limited capacity, it can only show images
+ * and the bounds of the root views, which on its own is not very useful.
  */
-class DebugViewAttributes(private val project: Project, private val process: ProcessDescriptor) {
+class DebugViewAttributes(
+  private val project: Project,
+  private val usePerDeviceSettings: Boolean = false
+) {
+
+  /**
+   * The type of debug_view_attributes to be used
+   */
+  private val setting: String
+    get() {
+      return if (usePerDeviceSettings) PER_DEVICE_SETTING else PER_APP_SETTING
+    }
 
   private var abortDeleteRunnable: AbortAdbCommandRunnable? = null
 
@@ -44,38 +82,35 @@ class DebugViewAttributes(private val project: Project, private val process: Pro
    * @return true if the global attributes were changed.
    */
   @Slow
-  fun set(): Boolean {
+  fun set(process: ProcessDescriptor): Boolean {
+    // flag was already set - no need to set twice
     if (abortDeleteRunnable != null) return false
 
     var errorMessage: String
     var settingsUpdated = false
+
+    val putValue = if (usePerDeviceSettings) "1" else process.name
+    val putCommand = Command.Put(setting, putValue)
+
     try {
       val adb = AdbUtils.getAdbFuture(project).get() ?: return false
-      if (adb.executeShellCommand(process.device, "settings get global debug_view_attributes") !in listOf("null", "0")) {
-        // A return value of "null" or "0" means: "debug_view_attributes" is not currently turned on for all processes on the device.
+      if (!shouldSetFlag(adb, process.device, process.name)) {
         return false
       }
-      val app = adb.executeShellCommand(process.device, "settings get global debug_view_attributes_application_package")
-      if (app == process.name) {
-        // A return value of process.name means: the debug_view_attributes are already turned on for this process.
-        return false
-      }
-      errorMessage =
-        adb.executeShellCommand(process.device, "settings put global debug_view_attributes_application_package ${process.name}")
+      errorMessage = executePut(adb, process.device, putCommand)
 
       if (errorMessage.isEmpty()) {
-        // A return value of "" means: "debug_view_attributes_application_package" were successfully overridden.
         settingsUpdated = true
 
-        // Later, we'll try to clear the setting via `clear`, but we also register additional logic to trigger
-        // automatically if the user forcefully closes the connection under us (e.g. closing the emulator or
+        // Later, we'll try to clear the setting via `clear`, but we also register additional logic to trigger automatically
+        // (a trap command) if the user forcefully closes the connection under us (e.g. closing the emulator or
         // pulling their USB cable).
         abortDeleteRunnable = AbortAdbCommandRunnable(
           adb,
           process.device,
           // This works by spawning a subshell which hangs forever (waiting for a read that never gets satisfied)
-          // but trips the delete request when that shell is forcefully exited.
-          "sh -c 'trap \"settings delete global debug_view_attributes_application_package\" EXIT; read'"
+          // but triggers the delete request when that shell is forcefully exited.
+          "sh -c 'trap \"${Command.Delete(setting).get()}\" EXIT; read'"
         ).also {
           AndroidExecutors.getInstance().workerThreadExecutor.execute(it)
         }
@@ -88,8 +123,8 @@ class DebugViewAttributes(private val project: Project, private val process: Pro
     if (errorMessage.isNotEmpty()) {
       val encoder = HtmlEscapers.htmlEscaper()
       val text = encoder.escape("Unable to set the global setting:") + "<br/>" +
-                 encoder.escape("\"debug_view_attributes_application_package\"") + "<br/>" +
-                 encoder.escape("to: \"${process.name}\"") + "<br/><br/>" +
+                 encoder.escape("\"${putCommand.setting}\"") + "<br/>" +
+                 encoder.escape("to: \"${putCommand.value}\"") + "<br/><br/>" +
                  encoder.escape("Error: $errorMessage")
       AndroidNotification.getInstance(project).showBalloon("Could not enable resolution traces",
                                                            text, NotificationType.WARNING)
@@ -103,21 +138,68 @@ class DebugViewAttributes(private val project: Project, private val process: Pro
    * Return true if the debug view attributes were successfully disabled.
    */
   @Slow
-  fun clear() {
+  fun clear(process: ProcessDescriptor) {
+    // the flag was not set using this class, we should not turn it off
     if (abortDeleteRunnable == null) return
 
     try {
       val adb = AdbUtils.getAdbFuture(project).get() ?: return
-      val app = adb.executeShellCommand(process.device, "settings get global debug_view_attributes_application_package")
-      if (app == process.name) {
-        adb.executeShellCommand(process.device, "settings delete global debug_view_attributes_application_package")
+      if (shouldExecuteDelete(adb, process.device, process.name)) {
+        executeDelete(adb, process.device)
       }
     }
-    catch (ex: Exception) {
-      abortDeleteRunnable!!.stop()
-    }
+    catch (_: Exception) { }
     finally {
+      abortDeleteRunnable?.stop()
       abortDeleteRunnable = null
     }
+  }
+
+  private fun shouldSetFlag(adb: AndroidDebugBridge, device: DeviceDescriptor, processName: String): Boolean {
+    // never turn on the setting if the per-device setting is on.
+    if (isPerDeviceSettingOn(adb, device)) {
+      return false
+    }
+
+    if (!usePerDeviceSettings) {
+      // don't turn on the per-app setting, if it's already on.
+      if(isPerAppSettingOn(adb, device, processName)) {
+        return false
+      }
+    }
+
+    return true
+  }
+
+  private fun shouldExecuteDelete(adb: AndroidDebugBridge, device: DeviceDescriptor, processName: String): Boolean {
+    return if (usePerDeviceSettings) {
+      isPerDeviceSettingOn(adb, device)
+    }
+    else {
+      isPerAppSettingOn(adb, device, processName)
+    }
+  }
+
+  /**
+   * Turns on the [setting] flag.
+   * @return empty string in case of success, or error message otherwise.
+   */
+  private fun executePut(adb: AndroidDebugBridge, device: DeviceDescriptor, putCommand: Command.Put): String {
+    return adb.executeShellCommand(device, putCommand.get())
+  }
+
+  private fun executeDelete(adb: AndroidDebugBridge, device: DeviceDescriptor) {
+    adb.executeShellCommand(device, Command.Delete(setting).get())
+  }
+
+  private fun isPerAppSettingOn(adb: AndroidDebugBridge, device: DeviceDescriptor, processName: String): Boolean {
+    // A return value of process.name means: the debug_view_attributes are already turned on for this process.
+    val app = adb.executeShellCommand(device, Command.Get(PER_APP_SETTING).get())
+    return app == processName
+  }
+
+  private fun isPerDeviceSettingOn(adb: AndroidDebugBridge, device: DeviceDescriptor): Boolean {
+    // A return value of "null" or "0" means: "debug_view_attributes" is not currently turned on for all processes on the device.
+    return adb.executeShellCommand(device, Command.Get(PER_DEVICE_SETTING).get()) !in listOf("null", "0")
   }
 }

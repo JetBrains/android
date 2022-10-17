@@ -24,14 +24,11 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture;
-import com.google.common.annotations.VisibleForTesting;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,9 +57,6 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
   @SuppressWarnings("FieldCanBeLocal")
   @NotNull private final AspectObserver myAspectObserver;
 
-  @VisibleForTesting
-  protected final HashMap<Integer, RangedCpuThread> myThreadIdToCpuThread;
-
   public CpuThreadsModel(@NotNull Range range,
                          @NotNull StudioProfilers profilers,
                          @NotNull Common.Session session) {
@@ -70,7 +64,6 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     myProfilers = profilers;
     mySession = session;
     myAspectObserver = new AspectObserver();
-    myThreadIdToCpuThread = new HashMap<>();
     myRange.addDependency(myAspectObserver)
       .onChange(Range.Aspect.RANGE, this::nonImportRangeChanged);
 
@@ -95,39 +88,20 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     long maxNs = TimeUnit.MICROSECONDS.toNanos((long)myRange.getMax());
     Map<Integer, RangedCpuThread> requestedThreadsRangedCpuThreads = new HashMap<>();
 
-    if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      GetEventGroupsResponse response = myProfilers.getClient().getTransportClient().getEventGroups(
-        GetEventGroupsRequest.newBuilder()
-          .setStreamId(mySession.getStreamId())
-          .setPid(mySession.getPid())
-          .setKind(Common.Event.Kind.CPU_THREAD)
-          .setFromTimestamp(minNs)
-          .setToTimestamp(maxNs)
-          .build());
+    GetEventGroupsResponse response = myProfilers.getClient().getTransportClient().getEventGroups(
+      GetEventGroupsRequest.newBuilder()
+        .setStreamId(mySession.getStreamId())
+        .setPid(mySession.getPid())
+        .setKind(Common.Event.Kind.CPU_THREAD)
+        .setFromTimestamp(minNs)
+        .setToTimestamp(maxNs)
+        .build());
 
-      // Merge the two lists.
-      for (EventGroup eventGroup : response.getGroupsList()) {
-        if (eventGroup.getEventsCount() > 0) {
-          Cpu.CpuThreadData threadData = eventGroup.getEvents(0).getCpuThread();
-          requestedThreadsRangedCpuThreads.put(threadData.getTid(), myThreadIdToCpuThread
-            .computeIfAbsent(threadData.getTid(), id -> new RangedCpuThread(myRange, threadData.getTid(), threadData.getName())));
-        }
-      }
-    }
-    else {
-      CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
-        .setSession(mySession)
-        .setStartTimestamp(minNs)
-        .setEndTimestamp(maxNs);
-      CpuServiceGrpc.CpuServiceBlockingStub client = myProfilers.getClient().getCpuClient();
-      CpuProfiler.GetThreadsResponse response = client.getThreads(request.build());
-
-      // Merge the two lists.
-      for (CpuProfiler.GetThreadsResponse.Thread newThread : response.getThreadsList()) {
-        RangedCpuThread cpuThread = myThreadIdToCpuThread.computeIfAbsent(newThread.getTid(),
-                                                                          id -> new RangedCpuThread(myRange, newThread.getTid(),
-                                                                                                    newThread.getName()));
-        requestedThreadsRangedCpuThreads.put(newThread.getTid(), cpuThread);
+    // Merge the two lists.
+    for (EventGroup eventGroup : response.getGroupsList()) {
+      if (eventGroup.getEventsCount() > 0) {
+        Cpu.CpuThreadData threadData = eventGroup.getEvents(0).getCpuThread();
+        requestedThreadsRangedCpuThreads.put(threadData.getTid(), new RangedCpuThread(myRange, threadData.getTid(), threadData.getName()));
       }
     }
 
@@ -168,11 +142,6 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     for (RangedCpuThread element : elements) {
       insertOrderedElement(element);
     }
-  }
-
-  void updateTraceThreadsForCapture(@NotNull CpuCapture capture) {
-    // In the import case we do not have a thread list so we build it.
-    myThreadIdToCpuThread.forEach((key, value) -> value.applyCapture(key, capture));
   }
 
   private void contentsChanged() {
@@ -228,13 +197,11 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
      */
     private boolean applyCapture(int threadId, @Nullable CpuCapture capture) {
       boolean isMainThread;
-      mySeries = myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled() ?
-                 new CpuThreadStateDataSeries(myProfilers.getClient().getTransportClient(),
+      mySeries = new CpuThreadStateDataSeries(myProfilers.getClient().getTransportClient(),
                                               mySession.getStreamId(),
                                               mySession.getPid(),
                                               threadId,
-                                              capture) :
-                 new LegacyCpuThreadStateDataSeries(myProfilers.getClient().getCpuClient(), mySession, threadId, capture);
+                                              capture);
       // If we have an Atrace capture selected then we need to create a MergeCaptureDataSeries
       if (capture != null && capture.getSystemTraceData() != null) {
         mySeries = new MergeCaptureDataSeries<>(

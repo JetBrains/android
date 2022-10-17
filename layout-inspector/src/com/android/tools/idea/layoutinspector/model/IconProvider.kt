@@ -35,6 +35,8 @@ import icons.StudioIcons.LayoutEditor.Palette.VIEW
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import javax.swing.Icon
 
+const val ROOT_NAME = "root"
+
 object IconProvider {
 
   fun getIconForView(qualifiedName: String, isCompose: Boolean): Icon =
@@ -44,6 +46,9 @@ object IconProvider {
     // Remove "AppCompat" and "Material" prefixes from the simple tag name such that we get
     // e.g. the ImageView icon for an AppCompatImageIcon etc.
     val simpleName = viewName.substringAfterLast('.').removePrefix("AppCompat").removePrefix("Material")
+    if (simpleName == ROOT_NAME) {
+      return UNKNOWN_VIEW
+    }
     return AndroidDomElementDescriptorProvider.getIconForViewTag(simpleName) ?: UNKNOWN_VIEW
   }
 

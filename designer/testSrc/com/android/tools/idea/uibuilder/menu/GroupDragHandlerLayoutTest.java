@@ -15,16 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ORDER_IN_CATEGORY;
-import static com.android.SdkConstants.ATTR_SHOW_AS_ACTION;
-import static com.android.SdkConstants.AUTO_URI;
-import static com.android.SdkConstants.TAG_ITEM;
-import static com.android.SdkConstants.TAG_MENU;
-import static com.android.SdkConstants.VALUE_ALWAYS;
-
 import com.android.ide.common.rendering.api.ViewType;
-import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
@@ -37,21 +28,22 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.common.LayoutTestUtilities;
+import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.api.*;
 import com.intellij.psi.xml.XmlTag;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
   public void testCommitConsecutiveOrders() {
@@ -151,13 +143,14 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
   private static DragHandler newGroupDragHandler(@NotNull NlComponent menu, @NotNull NlComponent item) {
     SyncNlModel model = (SyncNlModel)menu.getModel();
 
-    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model);
-    Scene scene = builder.getScene();
+    SyncLayoutlibSceneManager manager = NlModelBuilderUtil.getSyncLayoutlibSceneManagerForModel(model);
+    manager.setIgnoreRenderRequests(true);
+    Scene scene = manager.getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 
     SceneComponent sceneComponent = scene.getSceneComponent(item);
     if (sceneComponent == null) {
-      sceneComponent = builder.createTemporaryComponent(item);
+      sceneComponent = manager.createTemporaryComponent(item);
     }
     List<NlComponent> itemAsList = Collections.singletonList(sceneComponent.getNlComponent());
     return new GroupDragHandler(mockViewEditor(model), new ViewGroupHandler(), scene.getSceneComponent(menu), itemAsList, DragType.MOVE);

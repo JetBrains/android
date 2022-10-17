@@ -15,16 +15,23 @@
  */
 package com.android.tools.idea.logcat.filters
 
+import com.android.tools.idea.logcat.BUNDLE_NAME
+import com.android.tools.idea.logcat.LogcatBundle.message
 import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogLevel.ASSERT
 import com.android.tools.idea.logcat.message.LogLevel.ERROR
 import com.android.tools.idea.logcat.message.LogcatMessage
+import com.intellij.openapi.util.TextRange
+import com.intellij.openapi.util.text.Strings
 import com.intellij.psi.impl.source.tree.PsiErrorElementImpl
+import org.jetbrains.annotations.PropertyKey
+import org.jetbrains.annotations.VisibleForTesting
 import java.time.Clock
 import java.time.Duration
 import java.time.ZoneId
+import java.util.concurrent.TimeUnit
 import java.util.regex.PatternSyntaxException
 
 /**
@@ -44,65 +51,76 @@ internal class LogcatMasterFilter(private val logcatFilter: LogcatFilter?) {
 /**
  * Matches a [LogcatMessage]
  */
-internal interface LogcatFilter {
+internal abstract class LogcatFilter(open val textRange: TextRange) {
+  open val filterName: String? = null
+
+  abstract val displayText: String
+
   /**
    * Prepare the filter.
    *
    * Some filters need to perform some initial setup before running. To avoid doing the setup for each message, the [LogcatMasterFilter]
    * wil call [#prepare] once for each batch of messages.
    */
-  fun prepare() {}
+  open fun prepare() {}
 
-  fun matches(message: LogcatMessageWrapper): Boolean
+  abstract fun matches(message: LogcatMessageWrapper): Boolean
 
-  fun getFilterName(): String? = null
+  open fun findFilterForOffset(offset: Int): LogcatFilter? {
+    return if (textRange.contains(offset)) this else null
+  }
 
   companion object {
     const val MY_PACKAGE = "package:mine"
   }
 }
 
-internal data class AndLogcatFilter(val filters: List<LogcatFilter>) : LogcatFilter {
-  constructor(vararg filters: LogcatFilter) : this(filters.asList())
+internal abstract class ParentFilter(children: List<LogcatFilter>)
+  : LogcatFilter(TextRange(children.first().textRange.startOffset, children.last().textRange.endOffset)) {
+  open val filters: List<LogcatFilter> = children
+
+  override val filterName: String? = children.mapNotNull { it.filterName }.lastOrNull()
+
+  override val displayText: String = ""
 
   override fun prepare() {
     filters.forEach(LogcatFilter::prepare)
   }
+
+  override fun findFilterForOffset(offset: Int): LogcatFilter? {
+    return if (textRange.contains(offset)) filters.firstNotNullOfOrNull { it.findFilterForOffset(offset) } else null
+  }
+}
+
+internal data class AndLogcatFilter(override val filters: List<LogcatFilter>) : ParentFilter(filters) {
+  constructor(vararg filters: LogcatFilter) : this(filters.asList())
 
   override fun matches(message: LogcatMessageWrapper) = filters.all { it.matches(message) }
-
-  override fun getFilterName(): String? = filters.mapNotNull { it.getFilterName() }.lastOrNull()
 }
 
-internal data class OrLogcatFilter(val filters: List<LogcatFilter>) : LogcatFilter {
+internal data class OrLogcatFilter(override val filters: List<LogcatFilter>) : ParentFilter(filters) {
   constructor(vararg filters: LogcatFilter) : this(filters.asList())
 
-  override fun prepare() {
-    filters.forEach(LogcatFilter::prepare)
-  }
-
   override fun matches(message: LogcatMessageWrapper) = filters.any { it.matches(message) }
-
-  override fun getFilterName(): String? = filters.mapNotNull { it.getFilterName() }.lastOrNull()
 }
 
-internal enum class LogcatFilterField {
-  TAG {
+internal enum class LogcatFilterField(val displayName: String) {
+  TAG(message("logcat.filter.completion.hint.key.tag")) {
     override fun getValue(message: LogcatMessageWrapper) = message.logcatMessage.header.tag
   },
-  APP {
+  APP(message("logcat.filter.completion.hint.key.package")) {
     override fun getValue(message: LogcatMessageWrapper) = message.logcatMessage.header.applicationId
   },
-  MESSAGE {
+  MESSAGE(message("logcat.filter.completion.hint.key.message")) {
     override fun getValue(message: LogcatMessageWrapper) = message.logcatMessage.message
   },
-  LINE {
+  LINE(message("logcat.filter.completion.hint.key.line")) {
     override fun getValue(message: LogcatMessageWrapper) = message.logLine
   },
-  IMPLICIT_LINE {
+  IMPLICIT_LINE(message("logcat.filter.completion.hint.key.line")) {
     override fun getValue(message: LogcatMessageWrapper) = message.logLine
   },
-  PROCESS {
+  PROCESS(message("logcat.filter.completion.hint.key.process")) {
     override fun getValue(message: LogcatMessageWrapper) = message.logcatMessage.header.processName
   },
   ;
@@ -110,23 +128,53 @@ internal enum class LogcatFilterField {
   abstract fun getValue(message: LogcatMessageWrapper): String
 }
 
-internal data class StringFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
+internal abstract class FieldFilter(
+  string: String,
+  field: LogcatFilterField,
+  override val textRange: TextRange,
+  @PropertyKey(resourceBundle = BUNDLE_NAME) stringResource: String,
+) : LogcatFilter(textRange) {
+  override val displayText: String = message(stringResource, field.displayName, "'${string}'")
+
+}
+
+internal data class StringFilter(
+  val string: String,
+  val field: LogcatFilterField,
+  override val textRange: TextRange,
+) : FieldFilter(string, field, textRange, "logcat.filter.completion.hint.key") {
   override fun matches(message: LogcatMessageWrapper) = field.getValue(message).contains(string, ignoreCase = true)
 }
 
-internal data class NegatedStringFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
+internal data class NegatedStringFilter(
+  val string: String,
+  val field: LogcatFilterField,
+  override val textRange: TextRange,
+) : FieldFilter(string, field, textRange, "logcat.filter.completion.hint.key.negated") {
   override fun matches(message: LogcatMessageWrapper) = !field.getValue(message).contains(string, ignoreCase = true)
 }
 
-internal data class ExactStringFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
+internal data class ExactStringFilter(
+  val string: String,
+  val field: LogcatFilterField,
+  override val textRange: TextRange,
+) : FieldFilter(string, field, textRange, "logcat.filter.completion.hint.key.exact") {
   override fun matches(message: LogcatMessageWrapper) = field.getValue(message) == string
 }
 
-internal data class NegatedExactStringFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
+internal data class NegatedExactStringFilter(
+  val string: String,
+  val field: LogcatFilterField,
+  override val textRange: TextRange,
+) : FieldFilter(string, field, textRange, "logcat.filter.completion.hint.key.exact.negated") {
   override fun matches(message: LogcatMessageWrapper) = field.getValue(message) != string
 }
 
-internal data class RegexFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
+internal data class RegexFilter(
+  val string: String,
+  val field: LogcatFilterField,
+  override val textRange: TextRange,
+) : FieldFilter(string, field, textRange, "logcat.filter.completion.hint.key.regex") {
   private val regex = try {
     string.toRegex()
   }
@@ -137,7 +185,11 @@ internal data class RegexFilter(val string: String, val field: LogcatFilterField
   override fun matches(message: LogcatMessageWrapper) = regex.containsMatchIn(field.getValue(message))
 }
 
-internal data class NegatedRegexFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
+internal data class NegatedRegexFilter(
+  val string: String,
+  val field: LogcatFilterField,
+  override val textRange: TextRange,
+) : FieldFilter(string, field, textRange, "logcat.filter.completion.hint.key.regex.negated") {
   private val regex = try {
     string.toRegex()
   }
@@ -148,11 +200,48 @@ internal data class NegatedRegexFilter(val string: String, val field: LogcatFilt
   override fun matches(message: LogcatMessageWrapper) = !regex.containsMatchIn(field.getValue(message))
 }
 
-internal data class LevelFilter(val level: LogLevel) : LogcatFilter {
+internal data class LevelFilter(
+  val level: LogLevel,
+  override val textRange: TextRange,
+) : LogcatFilter(textRange) {
+  override val displayText: String = message("logcat.filter.completion.hint.level.value", level.name)
   override fun matches(message: LogcatMessageWrapper) = message.logcatMessage.header.logLevel >= level
 }
 
-internal data class AgeFilter(val age: Duration, private val clock: Clock) : LogcatFilter {
+internal data class AgeFilter(
+  private val text: String,
+  private val clock: Clock,
+  override val textRange: TextRange,
+) : LogcatFilter(textRange) {
+  @VisibleForTesting
+  val age: Duration
+
+  override val displayText: String
+
+  init {
+    if (!text.isValidLogAge()) {
+      throw IllegalArgumentException("Invalid age: $text")
+    }
+    val count = try {
+      text.substring(0, text.length - 1).toLong()
+    }
+    catch (e: NumberFormatException) {
+      throw LogcatFilterParseException(PsiErrorElementImpl("Invalid duration: $text"))
+    }
+
+    fun pluralize(word: String, count: Long): String = if (count == 1L) word else Strings.pluralize(word)
+
+    val (seconds, display) = when (text.last()) {
+      's' -> Pair(count, pluralize(message("logcat.filter.completion.hint.age.second"), count))
+      'm' -> Pair(TimeUnit.MINUTES.toSeconds(count), pluralize(message("logcat.filter.completion.hint.age.minute"), count))
+      'h' -> Pair(TimeUnit.HOURS.toSeconds(count), pluralize(message("logcat.filter.completion.hint.age.hour"), count))
+      'd' -> Pair(TimeUnit.DAYS.toSeconds(count), pluralize(message("logcat.filter.completion.hint.age.day"), count))
+      else -> throw LogcatFilterParseException(PsiErrorElementImpl("Invalid duration: $text")) // should not happen
+    }
+    age = Duration.ofSeconds(seconds)
+    displayText = message("logcat.filter.completion.hint.age.value", count, display)
+  }
+
   override fun matches(message: LogcatMessageWrapper) =
     clock.millis() - message.logcatMessage.header.timestamp.toEpochMilli() <= age.toMillis()
 }
@@ -160,9 +249,20 @@ internal data class AgeFilter(val age: Duration, private val clock: Clock) : Log
 /**
  * A special filter that matches the appName field in a [LogcatMessage] against a list of package names from the project.
  */
-internal class ProjectAppFilter(private val packageNamesProvider: PackageNamesProvider) : LogcatFilter {
+internal class ProjectAppFilter(
+  private val packageNamesProvider: PackageNamesProvider,
+  override val textRange: TextRange,
+) : LogcatFilter(textRange) {
   private var packageNames: Set<String> = emptySet()
   private var packageNamesRegex: Regex? = null
+
+  override val displayText: String
+    get() = when (packageNamesProvider.getPackageNames().size) {
+      0 -> message("logcat.filter.completion.hint.package.mine.empty")
+      else -> message(
+        "logcat.filter.completion.hint.package.mine.items",
+        packageNamesProvider.getPackageNames().joinToString("<br/>&nbsp;&nbsp;"))
+    }
 
   override fun prepare() {
     packageNames = packageNamesProvider.getPackageNames()
@@ -200,7 +300,9 @@ internal class ProjectAppFilter(private val packageNamesProvider: PackageNamesPr
   2022-04-19 10:24:34.095 13474-13474/? A/DEBUG: Timestamp: 2022-04-19 10:24:34-0700
   etc
 */
-internal object CrashFilter : LogcatFilter {
+internal data class CrashFilter(override val textRange: TextRange) : LogcatFilter(textRange) {
+  override val displayText: String = message("logcat.filter.completion.hint.is.crash")
+
   override fun matches(message: LogcatMessageWrapper): Boolean {
     val header = message.logcatMessage.header
     val level = header.logLevel
@@ -210,14 +312,21 @@ internal object CrashFilter : LogcatFilter {
   }
 }
 
-internal data class NameFilter(val name: String) : LogcatFilter {
-  override fun matches(message: LogcatMessageWrapper): Boolean = true
+internal data class NameFilter(
+  val name: String,
+  override val textRange: TextRange,
+) : LogcatFilter(textRange) {
+  override val filterName: String = name
 
-  override fun getFilterName(): String = name
+  override val displayText: String = message("logcat.filter.completion.hint.name.value", name)
+
+  override fun matches(message: LogcatMessageWrapper): Boolean = true
 }
 
 private val EXCEPTION_LINE_PATTERN = Regex("\n\\s*at .+\\(.+\\)\n")
 
-internal object StackTraceFilter : LogcatFilter {
+internal data class StackTraceFilter(override val textRange: TextRange) : LogcatFilter(textRange) {
+  override val displayText: String = message("logcat.filter.completion.hint.is.stacktrace")
+
   override fun matches(message: LogcatMessageWrapper): Boolean = EXCEPTION_LINE_PATTERN.find(message.logcatMessage.message) != null
 }

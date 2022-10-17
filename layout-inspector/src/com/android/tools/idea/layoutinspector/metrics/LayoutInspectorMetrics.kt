@@ -31,7 +31,6 @@ import com.intellij.openapi.project.Project
 class LayoutInspectorMetrics(
   private val project: Project?,
   private var process: ProcessDescriptor? = null,
-  val stats: SessionStatistics? = null,
   private val snapshotMetadata: SnapshotMetadata? = null
 ) {
 
@@ -45,6 +44,7 @@ class LayoutInspectorMetrics(
 
   fun logEvent(
     eventType: DynamicLayoutInspectorEventType,
+    stats: SessionStatistics,
     errorState: AttachErrorState? = null,
     errorCode: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE,
     autoConnectInfo: DynamicLayoutInspectorAutoConnectInfo? = null
@@ -55,13 +55,16 @@ class LayoutInspectorMetrics(
       DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS -> if (loggedInitialRender) return else loggedInitialRender = true
       DynamicLayoutInspectorEventType.ATTACH_REQUEST,
       DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST -> if (loggedInitialConnect) return else loggedInitialConnect = true
+      DynamicLayoutInspectorEventType.ATTACH_ERROR -> stats.attachError(errorState, errorCode)
+      DynamicLayoutInspectorEventType.ATTACH_SUCCESS -> stats.attachSuccess()
+      DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS -> stats.attachSuccess()
       else -> {} // continue
     }
     val builder = AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
       dynamicLayoutInspectorEventBuilder.apply {
         type = eventType
-        if (stats != null && eventType == DynamicLayoutInspectorEventType.SESSION_DATA) {
+        if (eventType == DynamicLayoutInspectorEventType.SESSION_DATA) {
           stats.save(sessionBuilder)
         }
         snapshotMetadata?.toSnapshotInfo()?.let { snapshotInfo = it }

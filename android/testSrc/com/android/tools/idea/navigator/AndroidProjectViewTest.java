@@ -28,8 +28,11 @@ import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.android.utils.FileUtils;
 import com.google.common.io.Files;
+import com.intellij.ide.projectView.ProjectViewSettings;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
+import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase;
+import com.intellij.ide.projectView.impl.ProjectViewState;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -117,6 +120,24 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
     Set<List<String>> allNodes = getAllNodes(structure);
     assertThat(allNodes).contains(Arrays.asList("app (Android)", "res (generated)", "raw", "sample_raw_resource"));
+  }
+
+  public void testShowVisibilityIconsWhenOptionIsSelected() {
+    ProjectViewState projectViewState = getProject().getService(ProjectViewState.class);
+    projectViewState.setShowVisibilityIcons(true);
+
+    myPane = createPane();
+    ProjectAbstractTreeStructureBase structure = myPane.createStructure();
+    assertTrue(((ProjectViewSettings)structure).isShowVisibilityIcons());
+  }
+
+  public void testShowVisibilityIconsWhenOptionIsUnselected() {
+    ProjectViewState projectViewState = getProject().getService(ProjectViewState.class);
+    projectViewState.setShowVisibilityIcons(false);
+
+    myPane = createPane();
+    ProjectAbstractTreeStructureBase structure = myPane.createStructure();
+    assertFalse(((ProjectViewSettings)structure).isShowVisibilityIcons());
   }
 
   private static Set<List<String>> getAllNodes(TestAndroidTreeStructure structure) {

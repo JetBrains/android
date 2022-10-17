@@ -31,7 +31,6 @@ import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth
 import org.junit.Ignore
 import org.junit.Rule
@@ -50,8 +49,7 @@ class SessionItemTest {
     FakeProfilerService(myTimer),
     myMemoryService,
     FakeCpuService(),
-    FakeEventService(),
-    FakeNetworkService.newBuilder().build()
+    FakeEventService()
   )
 
   private val myIdeServices = FakeIdeProfilerServices().apply {
@@ -121,12 +119,12 @@ class SessionItemTest {
     sessionsManager.update()
     Truth.assertThat(sessionsManager.sessionArtifacts.size).isEqualTo(1)
     val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
-    Truth.assertThat(sessionItem.subtitle).isEqualTo(SessionItem.SESSION_LOADING)
+    Truth.assertThat(sessionItem.getSubtitle()).isEqualTo(SessionItem.SESSION_LOADING)
 
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build()
     myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
     sessionsManager.update()
-    Truth.assertThat(sessionItem.subtitle).isEqualTo("Heap Dump")
+    Truth.assertThat(sessionItem.getSubtitle()).isEqualTo("Heap Dump")
   }
 
   @Test
@@ -140,11 +138,11 @@ class SessionItemTest {
                                           Common.SessionMetaData.newBuilder().setType(Common.SessionMetaData.SessionType.FULL).build())
     finishedSessionItem.addDependency(observer1)
       .onChange(SessionItem.Aspect.MODEL) { aspectChangeCount1++ }
-    Truth.assertThat(finishedSessionItem.subtitle).isEqualTo("5 sec")
+    Truth.assertThat(finishedSessionItem.getSubtitle()).isEqualTo("5 sec")
     Truth.assertThat(aspectChangeCount1).isEqualTo(0)
     // Updating should not affect finished sessions.
     finishedSessionItem.update(TimeUnit.SECONDS.toNanos(1))
-    Truth.assertThat(finishedSessionItem.subtitle).isEqualTo("5 sec")
+    Truth.assertThat(finishedSessionItem.getSubtitle()).isEqualTo("5 sec")
     Truth.assertThat(aspectChangeCount1).isEqualTo(0)
 
     var aspectChangeCount2 = 0
@@ -156,10 +154,10 @@ class SessionItemTest {
                                          Common.SessionMetaData.newBuilder().setType(Common.SessionMetaData.SessionType.FULL).build())
     ongoingSessionItem.addDependency(observer2)
       .onChange(SessionItem.Aspect.MODEL) { aspectChangeCount2++ }
-    Truth.assertThat(ongoingSessionItem.subtitle).isEqualTo("0 sec")
+    Truth.assertThat(ongoingSessionItem.getSubtitle()).isEqualTo("0 sec")
     Truth.assertThat(aspectChangeCount2).isEqualTo(0)
     ongoingSessionItem.update(TimeUnit.SECONDS.toNanos(2))
-    Truth.assertThat(ongoingSessionItem.subtitle).isEqualTo("2 sec")
+    Truth.assertThat(ongoingSessionItem.getSubtitle()).isEqualTo("2 sec")
     Truth.assertThat(aspectChangeCount2).isEqualTo(1)
   }
 }

@@ -28,15 +28,6 @@ import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
-import com.intellij.testFramework.UsefulTestCase.assertEmpty
-import com.intellij.testFramework.UsefulTestCase.assertSameElements
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNotSame
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertSame
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
@@ -80,14 +71,14 @@ class InspectorModelTest {
     model.update(newWindow, listOf(ROOT), 0)
     // property change doesn't count as "modified."
     // TODO: confirm this behavior is as desired
-    assertFalse(isModified)
+    assertThat(isModified).isFalse()
 
     for ((id, orig) in origNodes) {
-      assertSame(orig, model[id])
+      assertThat(model[id]).isSameAs(orig)
     }
-    assertEquals(2, model[ROOT]?.x)
-    assertEquals(6, model[VIEW3]?.height)
-    assertSame(origRoot, newRootReported)
+    assertThat(model[ROOT]?.layoutBounds?.x).isEqualTo(2)
+    assertThat(model[VIEW3]?.layoutBounds?.height).isEqualTo(6)
+    assertThat(newRootReported).isSameAs(origRoot)
     assertSingleRoot(model, FakeTreeSettings())
   }
 
@@ -119,14 +110,14 @@ class InspectorModelTest {
     ViewNode.writeAccess { origNodes.values.forEach { it.drawChildren.clear() } }
 
     model.update(newWindow, listOf(ROOT), 0)
-    assertTrue(isModified)
+    assertThat(isModified).isTrue()
     val view1 = model[VIEW1]!!
-    assertSame(view1, model.selection)
-    assertSame(view1, model.hoveredNode)
+    assertThat(model.selection).isSameAs(view1)
+    assertThat(model.hoveredNode).isSameAs(view1)
 
     val newNodes = model.root.flattenedList().associateBy { it.drawId }
-    assertSameElements(newNodes.keys, origNodes.keys.plus(VIEW3))
-    assertSameElements(children(origNodes[VIEW1]!!), newNodes[VIEW3] ?: fail())
+    assertThat(newNodes.keys).containsExactlyElementsIn(origNodes.keys.plus(VIEW3))
+    assertThat(children(origNodes[VIEW1]!!)).containsExactly(newNodes[VIEW3] ?: fail())
     assertSingleRoot(model, FakeTreeSettings())
   }
 
@@ -152,13 +143,13 @@ class InspectorModelTest {
     val origNodes = model.root.flattenedList().associateBy { it.drawId }
 
     model.update(newWindow, listOf(ROOT), 0)
-    assertTrue(isModified)
-    assertNull(model.selection)
-    assertNull(model.hoveredNode)
+    assertThat(isModified).isTrue()
+    assertThat(model.selection).isNull()
+    assertThat(model.hoveredNode).isNull()
 
     val newNodes = model.root.flattenedList().associateBy { it.drawId }
-    assertSameElements(newNodes.keys.plus(VIEW3), origNodes.keys)
-    assertEquals(true, children(origNodes[VIEW1]!!).isEmpty())
+    assertThat(newNodes.keys.plus(VIEW3)).containsExactlyElementsIn(origNodes.keys)
+    assertThat(children(origNodes[VIEW1]!!).isEmpty()).isTrue()
     assertSingleRoot(model, FakeTreeSettings())
   }
 
@@ -198,25 +189,25 @@ class InspectorModelTest {
     model.update(newWindow, listOf(ROOT), 0)
     assertThat(model.maxRecomposition.count).isEqualTo(35)
     assertThat(model.maxRecomposition.skips).isEqualTo(52)
-    assertTrue(isModified)
-    assertNull(model.selection)
-    assertNull(model.hoveredNode)
+    assertThat(isModified).isTrue()
+    assertThat(model.selection).isNull()
+    assertThat(model.hoveredNode).isNull()
 
-    assertSame(origNodes[ROOT], model[ROOT])
-    assertSame(origNodes[VIEW2], model[VIEW2])
+    assertThat(model[ROOT]).isSameAs(origNodes[ROOT])
+    assertThat(model[VIEW2]).isSameAs(origNodes[VIEW2])
 
-    assertNotSame(origNodes[VIEW1], model[VIEW4])
-    assertSameElements(children(model[ROOT]!!).map { it.drawId }, VIEW4, VIEW2)
-    assertEquals("v4Type", model[VIEW4]?.qualifiedName)
-    assertEquals("v3Type", model[VIEW3]?.qualifiedName)
-    assertEquals(8, model[VIEW3]?.y)
+    assertThat(model[VIEW4]).isNotSameAs(origNodes[VIEW1])
+    assertThat(children(model[ROOT]!!).map { it.drawId }).containsExactly(VIEW4, VIEW2)
+    assertThat(model[VIEW4]?.qualifiedName).isEqualTo("v4Type")
+    assertThat(model[VIEW3]?.qualifiedName).isEqualTo("v3Type")
+    assertThat(model[VIEW3]?.layoutBounds?.y).isEqualTo(8)
     assertSingleRoot(model, FakeTreeSettings())
   }
 
   @Test
   fun testWindows() {
     val model = InspectorModel(mock())
-    assertTrue(model.isEmpty)
+    assertThat(model.isEmpty).isTrue()
 
     // add first window
     val newWindow = window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
@@ -225,21 +216,21 @@ class InspectorModelTest {
     model.update(newWindow, listOf(ROOT), 0)
     model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW1]
-    assertFalse(model.isEmpty)
-    assertNotNull(model[VIEW1])
-    assertEquals(listOf(ROOT), children(model.root).map { it.drawId })
+    assertThat(model.isEmpty).isFalse()
+    assertThat(model[VIEW1]).isNotNull()
+    assertThat(children(model.root).map { it.drawId }).isEqualTo(listOf(ROOT))
 
     // add second window
     var window2 = window(VIEW2, VIEW2, 2, 4, 6, 8, rootViewQualifiedName = "root2Type") {
       view(VIEW3, 8, 6, 4, 2, qualifiedName = "v3Type")
     }
     model.update(window2, listOf(ROOT, VIEW2), 0)
-    assertFalse(model.isEmpty)
-    assertNotNull(model[VIEW1])
-    assertNotNull(model[VIEW3])
-    assertSame(model[VIEW1], model.selection)
-    assertSame(model[VIEW1], model.hoveredNode)
-    assertEquals(listOf(ROOT, VIEW2), children(model.root).map { it.drawId })
+    assertThat(model.isEmpty).isFalse()
+    assertThat(model[VIEW1]).isNotNull()
+    assertThat(model[VIEW3]).isNotNull()
+    assertThat(model.selection).isSameAs(model[VIEW1])
+    assertThat(model.hoveredNode).isSameAs(model[VIEW1])
+    assertThat(children(model.root).map { it.drawId }).isEqualTo(listOf(ROOT, VIEW2))
 
     // reverse order of windows
     // same content but new instances, so model.update sees a change
@@ -247,20 +238,20 @@ class InspectorModelTest {
       view(VIEW3, 8, 6, 4, 2, qualifiedName = "v3Type")
     }
     model.update(window2, listOf(VIEW2, ROOT), 1)
-    assertEquals(listOf(VIEW2, ROOT), children(model.root).map { it.drawId })
+    assertThat(children(model.root).map { it.drawId }).isEqualTo(listOf(VIEW2, ROOT))
 
     // remove a window
     model.update(null, listOf(VIEW2), 0)
-    assertEquals(listOf(VIEW2), children(model.root).map { it.drawId })
-    assertNull(model[VIEW1])
-    assertNotNull(model[VIEW3])
-    assertNull(model.selection)
-    assertNull(model.hoveredNode)
+    assertThat(children(model.root).map { it.drawId }).isEqualTo(listOf(VIEW2))
+    assertThat(model[VIEW1]).isNull()
+    assertThat(model[VIEW3]).isNotNull()
+    assertThat(model.selection).isNull()
+    assertThat(model.hoveredNode).isNull()
 
     // clear
     model.update(null, listOf<Any>(), 0)
-    assertEmpty(children(model.root))
-    assertTrue(model.isEmpty)
+    assertThat(children(model.root)).isEmpty()
+    assertThat(model.isEmpty).isTrue()
     assertSingleRoot(model, FakeTreeSettings())
   }
 

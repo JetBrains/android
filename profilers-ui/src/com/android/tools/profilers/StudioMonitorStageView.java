@@ -44,10 +44,6 @@ import com.android.tools.profilers.memory.MemoryMonitor;
 import com.android.tools.profilers.memory.MemoryMonitorTooltip;
 import com.android.tools.profilers.memory.MemoryMonitorTooltipView;
 import com.android.tools.profilers.memory.MemoryMonitorView;
-import com.android.tools.profilers.network.NetworkMonitor;
-import com.android.tools.profilers.network.NetworkMonitorTooltip;
-import com.android.tools.profilers.network.NetworkMonitorTooltipView;
-import com.android.tools.profilers.network.NetworkMonitorView;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.KeyAdapter;
@@ -72,13 +68,10 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
   @SuppressWarnings("FieldCanBeLocal") // We need to keep a reference to the sub-views. If they got collected, they'd stop updating the UI.
   private final List<ProfilerMonitorView> myViews;
 
-  private static final String NETWORK_INSPECTOR = "Network Inspector";
-
   public StudioMonitorStageView(@NotNull StudioProfilersView profilersView, @NotNull StudioMonitorStage stage) {
     super(profilersView, stage);
 
     ViewBinder<StudioProfilersView, ProfilerMonitor, ProfilerMonitorView> binder = new ViewBinder<>();
-    binder.bind(NetworkMonitor.class, NetworkMonitorView::new);
     binder.bind(CpuMonitor.class, CpuMonitorView::new);
     binder.bind(MemoryMonitor.class, MemoryMonitorView::new);
     binder.bind(EventMonitor.class, EventMonitorView::new);
@@ -113,7 +106,6 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     RangeTooltipComponent tooltipComponent =
       new RangeTooltipComponent(getStage().getTimeline(), getTooltipPanel(), getProfilersView().getComponent(), () -> true);
 
-    getTooltipBinder().bind(NetworkMonitorTooltip.class, NetworkMonitorTooltipView::new);
     getTooltipBinder().bind(CpuMonitorTooltip.class, CpuMonitorTooltipView::new);
     getTooltipBinder().bind(MemoryMonitorTooltip.class, MemoryMonitorTooltipView::new);
     getTooltipBinder().bind(LifecycleTooltip.class, (stageView, tooltip) -> new LifecycleTooltipView(stageView.getComponent(), tooltip));

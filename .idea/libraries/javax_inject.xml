@@ -6,7 +6,7 @@
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$WORKSPACE_ROOT$/prebuilts/tools/common/m2/repository/javax/inject/javax.inject/1/javax.inject-1-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/javax/inject/javax.inject/1/javax.inject-1-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

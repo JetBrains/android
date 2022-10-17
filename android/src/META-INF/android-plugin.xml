@@ -275,13 +275,11 @@
     <applicationService serviceImplementation="com.android.tools.idea.project.AndroidRunConfigurations"/>
     <applicationService serviceImplementation="com.android.tools.idea.project.CustomProjectTypeImporter$MainImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.EmbeddedDistributionPaths"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.common.GradleInitScripts"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.importing.GradleProjectImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.service.repo.ExternalRepository"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.SdkSync"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.SupportedModuleChecker"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.BuildFileProcessor"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleVersions"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleProjectSettingsFinder"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleLocalCache"/>
     <applicationService serviceImplementation="com.android.tools.idea.res.AarResourceRepositoryCache"/>
@@ -719,6 +717,8 @@
     <extensionPoint qualifiedName="com.android.run.androidDebugger" interface="com.android.tools.idea.run.editor.AndroidDebugger" />
     <extensionPoint qualifiedName="com.android.tools.idea.run.editor.androidDebuggerInfoProvider"
                     interface="com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.sendFeedbackDescriptionProvider"
+                    interface="com.android.tools.idea.actions.SendFeedbackDescriptionProvider" />
     <extensionPoint qualifiedName="com.android.logcat.filterProvider"
                     interface="com.android.tools.idea.logcat.LogcatFilterProvider" />
     <extensionPoint qualifiedName="org.jetbrains.android.actions.newResourceCreationHandler"
@@ -794,12 +794,10 @@
   <projectListeners>
     <listener class="com.android.tools.idea.stats.ToolWindowTrackerService$Companion$LazyListener"
               topic="com.intellij.openapi.wm.ex.ToolWindowManagerListener"/>
-    <listener class="com.android.tools.idea.gradle.project.sync.StateChangeNotification"
-              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
     <listener class="com.android.tools.idea.project.SyncTimestampListener"
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
     <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
-              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+              topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
     <listener class="com.android.tools.idea.stats.ProjectSizeUsageTrackerListener"
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
   </projectListeners>

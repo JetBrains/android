@@ -20,4 +20,4 @@ import com.android.tools.idea.device.AKEYCODE_POWER
 /**
  * Simulates pressing the Power button on an Android device.
  */
-internal class DevicePowerButtonAction : DevicePushButtonAction(AKEYCODE_POWER)
+internal class DevicePowerButtonAction : DevicePushButtonAction(AKEYCODE_POWER, configFilter = { !it.isWatch })

@@ -27,6 +27,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
@@ -94,6 +95,9 @@ class ResourcePickerDialog(
     init()
     doValidate()
     onWindowIfNotNull { it.addWindowFocusListener(explorerUpdater) }
+
+    // Disable OK until a resource is selected
+    this.isOKActionEnabled = false
   }
 
   override fun createCenterPanel() = resourceExplorerPanel.apply {
@@ -112,6 +116,8 @@ class ResourcePickerDialog(
 
   private fun updateSelectedResource(resource: ResourceItem) {
     pickedResourceName = resource.getReferenceString()
+
+    this.isOKActionEnabled = pickedResourceName != null
   }
 
   private fun doSelectResource(resource: ResourceItem) {

@@ -81,7 +81,10 @@ abstract class BaseAnalyzer<T : AnalyzerResult> {
            // This task is not cacheable and runs all the time intentionally on invoking "clean". We should not surface this as an issue.
            !(task.taskName == "clean" && task.originPlugin.idName == LifecycleBasePlugin::class.java.canonicalName) &&
            // ignore custom delete tasks
-           task.taskType != org.gradle.api.tasks.Delete::class.java.canonicalName
+           task.taskType != org.gradle.api.tasks.Delete::class.java.canonicalName &&
+           // Workaround for using configuration caching as gradle doesn't send plugin information with task-finished events
+           // TODO(b/244314356) patch plugin information from the build attribution file in builds with configuration cache
+          !task.isAndroidTask() && !task.isGradleTask()
   }
 
   class ResultComputationLoopException : Exception("Loop detected in build analyzer computation dependencies, see stacktrace.")

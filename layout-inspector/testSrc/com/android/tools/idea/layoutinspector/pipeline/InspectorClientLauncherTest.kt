@@ -416,7 +416,7 @@ class InspectorClientLauncherMetricsTest {
         { params ->
           object : FakeInspectorClient("Exploding client #1", params.process, disposableRule.disposable) {
             override fun doConnect(): ListenableFuture<Nothing> {
-              metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST)
+              metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST, stats)
               throw IllegalStateException()
             }
           }
@@ -424,7 +424,7 @@ class InspectorClientLauncherMetricsTest {
         { params ->
           object : FakeInspectorClient("Exploding client #2", params.process, disposableRule.disposable) {
             override fun doConnect(): ListenableFuture<Nothing> {
-              metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST)
+              metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST, stats)
               throw IllegalStateException()
             }
           }
@@ -432,8 +432,8 @@ class InspectorClientLauncherMetricsTest {
         { params ->
           object : FakeInspectorClient("Fallback client", params.process, disposableRule.disposable) {
             override fun doConnect(): ListenableFuture<Nothing> {
-              metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST)
-              metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS)
+              metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST, stats)
+              metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS, stats)
               return immediateFuture(null)
             }
           }
@@ -469,7 +469,7 @@ class InspectorClientLauncherMetricsTest {
       listOf { params ->
         object : FakeInspectorClient("Hangs on initial connect", params.process, disposableRule.disposable) {
           override fun doConnect(): ListenableFuture<Nothing> {
-            metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST)
+            metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST, stats)
             if (params.process == process1) {
               startedWaitingLatch.countDown()
               changedProcessLatch.await(1, TimeUnit.SECONDS)
@@ -504,7 +504,7 @@ class InspectorClientLauncherMetricsTest {
 
 private open class FakeInspectorClient(
   val name: String, process: ProcessDescriptor, parentDisposable: Disposable
-) : AbstractInspectorClient(process, isInstantlyAutoConnected = false, parentDisposable) {
+) : AbstractInspectorClient(process, isInstantlyAutoConnected = false, DisconnectedClient.stats, parentDisposable) {
 
   override fun startFetching() = throw NotImplementedError()
   override fun stopFetching() = throw NotImplementedError()
@@ -517,6 +517,6 @@ private open class FakeInspectorClient(
   override val capabilities
     get() = throw NotImplementedError()
   override val treeLoader: TreeLoader get() = throw NotImplementedError()
-  override val isCapturing: Boolean get() = throw NotImplementedError()
+  override val isCapturing: Boolean get() = false
   override val provider: PropertiesProvider get() = throw NotImplementedError()
 }

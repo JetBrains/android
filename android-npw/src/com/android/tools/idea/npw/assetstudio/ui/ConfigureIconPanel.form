@@ -221,7 +221,7 @@
                           <text value="Foreground:"/>
                         </properties>
                       </component>
-                      <component id="28c1d" class="com.android.tools.idea.npw.assetstudio.ui.AssetColorPanel" binding="myForegroundColorPanel">
+                      <component id="28c1d" class="com.intellij.ui.ColorPanel" binding="myForegroundColorPanel">
                         <constraints>
                           <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
                             <minimum-size width="78" height="-1"/>
@@ -249,7 +249,7 @@
                           <text value="Background:"/>
                         </properties>
                       </component>
-                      <component id="c66f0" class="com.android.tools.idea.npw.assetstudio.ui.AssetColorPanel" binding="myBackgroundColorPanel">
+                      <component id="c66f0" class="com.intellij.ui.ColorPanel" binding="myBackgroundColorPanel">
                         <constraints>
                           <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
                             <minimum-size width="78" height="-1"/>
@@ -461,7 +461,7 @@
                           <text value="Custom color:"/>
                         </properties>
                       </component>
-                      <component id="86299" class="com.android.tools.idea.npw.assetstudio.ui.AssetColorPanel" binding="myCustomThemeColorPanel">
+                      <component id="86299" class="com.intellij.ui.ColorPanel" binding="myCustomThemeColorPanel">
                         <constraints>
                           <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="8" fill="0" indent="0" use-parent-layout="false">
                             <minimum-size width="78" height="-1"/>

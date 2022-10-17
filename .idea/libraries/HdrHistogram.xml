@@ -6,7 +6,7 @@
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$WORKSPACE_ROOT$/prebuilts/tools/common/m2/repository/org/hdrhistogram/HdrHistogram/2.1.12/HdrHistogram-2.1.12-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/hdrhistogram/HdrHistogram/2.1.12/HdrHistogram-2.1.12-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

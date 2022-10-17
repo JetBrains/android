@@ -434,7 +434,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     return ActionToolbarUtil.findActionButton(actionToolbar, actionToolbar.getActions().get(0));
   }
 
-  @VisibleForTesting
+  @Override
   public void updateActions() {
     if (myActionToolbar != null) {
       myActionToolbar.updateActionsImmediately();

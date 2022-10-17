@@ -28,7 +28,6 @@ import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.ui.BuildAttributionUiManager
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
-import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.build.attribution.ui.invokeLaterIfNotDisposed
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.ide.common.repository.GradleVersion
@@ -42,6 +41,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
+import java.io.File
 import java.util.UUID
 
 class BuildAttributionManagerImpl(
@@ -76,21 +76,20 @@ class BuildAttributionManagerImpl(
     var agpVersion: GradleVersion? = null
 
     BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
-      analyticsManager.runLoggingPerformanceStats(buildFinishedTimestamp - analyzersProxy.getBuildFinishedTimestamp()) {
+      analyticsManager.runLoggingPerformanceStats(
+        buildFinishedTimestamp - analyzersProxy.criticalPathAnalyzer.result.buildFinishedTimestamp) {
         try {
           val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
           agpVersion = attributionData?.buildInfo?.agpVersion?.let { GradleVersion.tryParseAndroidGradlePluginVersion(it) }
           val pluginsData = ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).gradlePluginsData
           val studioProvidedInfo = StudioProvidedInfo.fromProject(project, buildRequestHolder, myCurrentBuildInvocationType)
+          // If there was an error in events processing already there is no need to continue.
           if (!eventsProcessingFailedFlag) {
-            // If there was an error in events processing already there is no need to continue.
             analyzersWrapper.onBuildSuccess(attributionData, pluginsData, analyzersProxy, studioProvidedInfo)
-            analyticsManager.logAnalyzersData(analyzersProxy)
+            BuildAnalyzerStorageManager.getInstance(project)
+              .storeNewBuildResults(analyzersProxy, buildSessionId, BuildRequestHolder(currentBuildRequest))
+            analyticsManager.logAnalyzersData(BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults())
             analyticsManager.logBuildSuccess(myCurrentBuildInvocationType)
-            BuildAttributionUiManager.getInstance(project).showNewReport(
-              BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp, buildRequestHolder).build(),
-              buildSessionId
-            )
           }
           else {
             analyticsManager.logAnalysisFailure(myCurrentBuildInvocationType)
@@ -104,7 +103,7 @@ class BuildAttributionManagerImpl(
           BuildAttributionUiManager.getInstance(project).onBuildFailure(buildSessionId)
         }
         finally {
-          FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
+          cleanup(attributionFileDir)
         }
       }
     }
@@ -113,17 +112,23 @@ class BuildAttributionManagerImpl(
   }
 
   override fun onBuildFailure(request: GradleBuildInvoker.Request) {
-    val buildSessionId = UUID.randomUUID().toString()
-    val attributionFileDir = getAgpAttributionFileDir(request)
-    FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
+    cleanup(getAgpAttributionFileDir(request))
     project.invokeLaterIfNotDisposed {
+      val buildSessionId = UUID.randomUUID().toString()
       BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
         analyticsManager.logBuildFailure(myCurrentBuildInvocationType)
         analyzersWrapper.onBuildFailure()
         BuildAttributionUiManager.getInstance(project).onBuildFailure(buildSessionId)
       }
     }
+  }
 
+  private fun cleanup(attributionFileDir: File) {
+    try {
+      FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
+    } catch (t: Throwable) {
+      log.error("Error during build attribution files cleanup", t)
+    }
   }
 
   override fun statusChanged(event: ProgressEvent?) {

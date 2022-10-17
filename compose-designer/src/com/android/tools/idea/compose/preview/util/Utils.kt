@@ -19,9 +19,7 @@ import com.intellij.openapi.util.Segment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
-import org.apache.commons.lang.time.DurationFormatUtils
 import org.jetbrains.uast.UElement
-import java.time.Duration
 
 fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
   val bodyPsiElement = this?.sourcePsi ?: return null
@@ -31,13 +29,3 @@ fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
 fun Segment?.containsOffset(offset: Int) = this?.let {
   it.startOffset <= offset && offset <= it.endOffset
 } ?: false
-
-/**
- * Converts the given duration to a display string that contains minutes (if the duration is greater than 60s), seconds and
- * milliseconds.
- */
-internal fun Duration.toDisplayString(): String {
-  val durationMs = toMillis()
-  val durationFormat = if (durationMs >= 60_000) "mm 'm' ss 's' SSS 'ms'" else "ss 's' SSS 'ms'"
-  return DurationFormatUtils.formatDuration(durationMs, durationFormat, false)
-}

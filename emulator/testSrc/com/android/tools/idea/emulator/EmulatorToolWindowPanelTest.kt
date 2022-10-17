@@ -152,7 +152,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(400, 600)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
-    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
     assertAppearance(ui, "AppearanceAndToolbarActions1", maxPercentDifferentWindows = 0.03, maxPercentDifferentMac = 0.03)
 
@@ -230,7 +230,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(430, 450)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
-    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 320 height: 320")
     assertAppearance(ui, "WearToolbarActions1", maxPercentDifferentWindows = 0.04, maxPercentDifferentMac = 0.04)
 
@@ -368,18 +368,18 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(1200, 1200)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
-    var streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+    var streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 1080 height: 1171")
     assertAppearance(ui, "ChangeDisplayMode1", maxPercentDifferentWindows = 0.002, maxPercentDifferentMac = 0.002)
 
     // Set the desktop display mode.
-    executeDeviceAction("android.emulator.display.mode.desktop", emulatorView, project)
+    executeDeviceAction("android.emulator.display.mode.tablet", emulatorView, project)
     val setDisplayModeCall = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(setDisplayModeCall.methodName).isEqualTo("android.emulation.control.EmulatorController/setDisplayMode")
-    assertThat(shortDebugString(setDisplayModeCall.request)).isEqualTo("value: DESKTOP")
+    assertThat(shortDebugString(setDisplayModeCall.request)).isEqualTo("value: TABLET")
 
-    streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 1200 height: 1080")
+    streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 1200 height: 1171")
     assertAppearance(ui, "ChangeDisplayMode2", maxPercentDifferentWindows = 0.002, maxPercentDifferentMac = 0.002)
   }
 
@@ -398,7 +398,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(400, 600)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
-    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
 
     // Zoom in.
@@ -442,7 +442,7 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(400, 600)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
-    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumbers[PRIMARY_DISPLAY_ID])
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumbers[PRIMARY_DISPLAY_ID])
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
 
     emulator.changeSecondaryDisplays(listOf(DisplayConfiguration.newBuilder().setDisplay(1).setWidth(1080).setHeight(2340).build(),
@@ -691,10 +691,10 @@ class EmulatorToolWindowPanelTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
-  private fun getStreamScreenshotCallAndWaitForFrame(panel: EmulatorToolWindowPanel, frameNumber: Int): GrpcCallRecord {
+  private fun getStreamScreenshotCallAndWaitForFrame(fakeUi: FakeUi, panel: EmulatorToolWindowPanel, frameNumber: Int): GrpcCallRecord {
     val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamScreenshot")
-    panel.waitForFrame(frameNumber, 2, TimeUnit.SECONDS)
+    panel.waitForFrame(fakeUi, frameNumber, 2, TimeUnit.SECONDS)
     return call
   }
 
@@ -723,15 +723,16 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Throws(TimeoutException::class)
-  private fun EmulatorToolWindowPanel.waitForFrame(frame: Int, timeout: Long, unit: TimeUnit) {
-    waitForCondition(timeout, unit) { primaryEmulatorView!!.frameNumber >= frame }
+  private fun EmulatorToolWindowPanel.waitForFrame(fakeUi: FakeUi, frame: Int, timeout: Long, unit: TimeUnit) {
+    waitForCondition(timeout, unit) { renderAndGetFrameNumber(fakeUi, primaryEmulatorView!!) >= frame }
   }
 
   @Throws(TimeoutException::class)
-  private fun waitForNextFrameInAllDisplays(ui: FakeUi, frameNumbers: IntArray) {
-    val displayViews = ui.findAllComponents<EmulatorView>()
+  private fun waitForNextFrameInAllDisplays(fakeUi: FakeUi, frameNumbers: IntArray) {
+    val displayViews = fakeUi.findAllComponents<EmulatorView>()
     assertThat(displayViews.size).isEqualTo(frameNumbers.size)
     waitForCondition(2, TimeUnit.SECONDS) {
+      fakeUi.render()
       for (view in displayViews) {
         if (view.frameNumber <= frameNumbers[view.displayId]) {
           return@waitForCondition false
@@ -742,6 +743,11 @@ class EmulatorToolWindowPanelTest {
       }
       return@waitForCondition true
     }
+  }
+
+  private fun renderAndGetFrameNumber(fakeUi: FakeUi, emulatorView: EmulatorView): Int {
+    fakeUi.render() // The frame number may get updated as a result of rendering.
+    return emulatorView.frameNumber
   }
 
   private val EmulatorToolWindowPanel.primaryEmulatorView

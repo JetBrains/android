@@ -43,3 +43,7 @@ interface WearSurfaceLaunchOptions : ComponentLaunchOptions {
 interface RunConfigurationWithDebugger : ModuleRunConfiguration {
   val androidDebuggerContext: AndroidDebuggerContext
 }
+
+interface AppRunConfiguration : ModuleRunConfiguration {
+  val appId: String?
+}

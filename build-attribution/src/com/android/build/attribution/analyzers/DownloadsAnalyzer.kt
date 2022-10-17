@@ -90,7 +90,7 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
     currentAgpVersionFromBuild = androidGradlePluginAttributionData.buildInfo?.agpVersion?.let { GradleVersion.tryParse(it) }
   }
 
-  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult, studioProvidedInfo: StudioProvidedInfo) {
+  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalyzersProxy, studioProvidedInfo: StudioProvidedInfo) {
     val doesCurrentAgpRequireGradleThatProvidesEvents = currentAgpVersionFromBuild?.let { it >= minAgpVersionGuaranteesGradle_7_3 } == true
     val canGradleVersionFromSettingsProvideEvents = studioProvidedInfo.gradleVersion?.let { it >= minGradleVersionProvidingDownloadEvents } == true
     gradleCanProvideDownloadEvents = doesCurrentAgpRequireGradleThatProvidesEvents || canGradleVersionFromSettingsProvideEvents

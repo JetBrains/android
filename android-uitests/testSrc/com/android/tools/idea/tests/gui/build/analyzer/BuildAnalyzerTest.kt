@@ -101,7 +101,6 @@ class BuildAnalyzerTest {
     tasksPage.tree.selectPath(":app:sample1")
     tasksPage.findDetailsPanel(":app:sample1").also { detailsPanel ->
       detailsPanel.requireVisible()
-      detailsPanel.findWarningPanel("ALWAYS_RUN_TASKS").requireVisible()
       detailsPanel.clickGenerateReport()
       guiTest.ideFrame().waitForDialog("Plugin Issue Report").also { dialog ->
         findAndClickButton(dialog, "Copy")

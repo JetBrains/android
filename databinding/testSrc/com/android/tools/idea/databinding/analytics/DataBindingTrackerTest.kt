@@ -19,9 +19,12 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.databinding.DataBindingMode
+import com.android.tools.idea.databinding.DataBindingTrackerSyncListener
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
@@ -76,7 +79,7 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
     val tracker = TestUsageTracker(VirtualTimeScheduler())
       try {
         UsageTracker.setWriterForTest(tracker)
-        projectRule.project.messageBus.syncPublisher(GradleSyncState.GRADLE_SYNC_TOPIC).syncSucceeded(projectRule.project)
+        DataBindingTrackerSyncListener(projectRule.project).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
         val dataBindingPollMetadata = tracker.usages
           .map { it.studioEvent }
           .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }

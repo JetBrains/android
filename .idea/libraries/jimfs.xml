@@ -6,7 +6,7 @@
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$WORKSPACE_ROOT$/prebuilts/tools/common/m2/repository/com/google/jimfs/jimfs/1.1/jimfs-1.1-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/jimfs/jimfs/1.1/jimfs-1.1-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

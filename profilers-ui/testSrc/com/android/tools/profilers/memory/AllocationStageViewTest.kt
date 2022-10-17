@@ -26,7 +26,6 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import icons.StudioIcons
@@ -48,8 +47,7 @@ class AllocationStageViewTest(private val isLive: Boolean) {
   @Rule
   @JvmField
   val grpcChannel = FakeGrpcChannel("LiveAllocationStageTestChannel", service, transportService,
-                                    FakeProfilerService(timer), FakeCpuService(), FakeEventService(),
-                                    FakeNetworkService.newBuilder().build())
+                                    FakeProfilerService(timer), FakeCpuService(), FakeEventService())
 
   @get:Rule
   val applicationRule = ApplicationRule()

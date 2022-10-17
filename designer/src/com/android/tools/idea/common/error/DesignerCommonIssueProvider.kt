@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
@@ -26,117 +27,93 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 
 interface DesignerCommonIssueProvider<T> : Disposable {
-  var filter: (Issue) -> Boolean
+  var viewOptionFilter: Filter
   fun getFilteredIssues(): List<Issue>
   fun registerUpdateListener(listener: Runnable)
+
+  fun interface Filter : (Issue) -> Boolean
 }
 
-class DesignToolsIssueProvider(project: Project) : DesignerCommonIssueProvider<Any> {
+object EmptyFilter : DesignerCommonIssueProvider.Filter {
+  override fun invoke(p1: Issue): Boolean = true
+}
 
-  private val fileEditorManager: FileEditorManager
+object NotSuppressedFilter : DesignerCommonIssueProvider.Filter {
+  override fun invoke(issue: Issue): Boolean {
+    return !((issue as? VisualLintRenderIssue)?.isSuppressed() ?: false)
+  }
+}
 
+class SelectedEditorFilter(project: Project) : DesignerCommonIssueProvider.Filter {
+  private val editorManager: FileEditorManager = FileEditorManager.getInstance(project)
+  override fun invoke(issue: Issue): Boolean {
+    return if (issue is VisualLintRenderIssue) {
+      val files = issue.source.models.map { it.virtualFile.name }.distinct()
+      editorManager.selectedEditor?.file?.let { files.contains(it.name) } ?: false
+    }
+    else {
+      @Suppress("UnstableApiUsage")
+      val issuedFile = issue.source.file?.let { BackedVirtualFile.getOriginFileIfBacked(it) }
+      editorManager.selectedEditor?.file?.let { it == issuedFile } ?: false
+    }
+  }
+}
+
+operator fun DesignerCommonIssueProvider.Filter.plus(filter: DesignerCommonIssueProvider.Filter) : DesignerCommonIssueProvider.Filter {
+  return DesignerCommonIssueProvider.Filter { issue -> this@plus.invoke(issue) && filter.invoke(issue) }
+}
+
+/**
+ * [issueFilter] is the filter that always applies for when calling [getFilteredIssues].
+ */
+class DesignToolsIssueProvider(project: Project, private val issueFilter: DesignerCommonIssueProvider.Filter)
+  : DesignerCommonIssueProvider<Any> {
+  private val mapLock = Any()
+  @GuardedBy("mapLock")
   private val sourceToIssueMap = mutableMapOf<Any, List<Issue>>()
 
   private val listeners = mutableListOf<Runnable>()
   private val messageBusConnection = project.messageBus.connect()
 
-  private var _filter: (Issue) -> Boolean = { true }
-  override var filter: (Issue) -> Boolean
-    get() = _filter
-    set(value) { _filter = value }
+  private var _viewOptionFilter: DesignerCommonIssueProvider.Filter = EmptyFilter
+  override var viewOptionFilter: DesignerCommonIssueProvider.Filter
+    get() = _viewOptionFilter
+    set(value) {
+      _viewOptionFilter = value
+      listeners.forEach { it.run() }
+    }
 
   init {
     Disposer.register(project, this)
-    fileEditorManager = FileEditorManager.getInstance(project)
-    messageBusConnection.subscribe(IssueProviderListener.TOPIC, object : IssueProviderListener {
-      override fun issueUpdated(source: Any, issues: List<Issue>) {
-        val selectedFiles = fileEditorManager.selectedFiles.toList()
-        var changed = false
-        if (issues != sourceToIssueMap[source]) {
-          changed = true
+    messageBusConnection.subscribe(IssueProviderListener.TOPIC, IssueProviderListener { source, issues ->
+      synchronized(mapLock) {
+        if (issues.isEmpty()) {
+          sourceToIssueMap.remove(source)
+        }
+        else {
           sourceToIssueMap[source] = issues
         }
-        if (cleanUpFileIssues(selectedFiles) || changed) {
-          listeners.forEach { it.run() }
-        }
       }
+      listeners.forEach { it.run() }
     })
 
-    // This is a workaround to remove the issues if [IssueModel.deactivate()] is not called when the selected editor is changed.
-    // This may happen in compose preview, which calls [DesignSurface.deactivate()] delayed when editor is changed.
+    // This is a workaround to make issue panel update the tree, because the displaying issues need to be updated after switching the file.
     // TODO(b/222110455): Make [DesignSurface] deactivate the IssueModel when it is no longer visible.
     messageBusConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
       override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
-        if (!source.hasOpenFiles() && sourceToIssueMap.isNotEmpty()) {
-          sourceToIssueMap.clear()
-          listeners.forEach { it.run() }
-        }
+        listeners.forEach { it.run() }
       }
 
       override fun selectionChanged(event: FileEditorManagerEvent) {
-        if (cleanUpFileIssues(listOfNotNull(event.newFile))) {
-          listeners.forEach { it.run() }
-        }
+        listeners.forEach { it.run() }
       }
     })
   }
 
-  /**
-   * Remove the file issues or visual lint issue if the associated file is not visible(selected).
-   * Return true if [sourceToIssueMap] is changed, false otherwise.
-   */
-  private fun cleanUpFileIssues(selectedFiles: List<VirtualFile>): Boolean {
-    var changed = false
-    for ((source, issues) in sourceToIssueMap.toMap()) {
-      val filteredIssues = filterSelectedOrNoFileIssues(issues).filterVisualLintIssues(selectedFiles)
-      if (filteredIssues.isEmpty()) {
-        sourceToIssueMap.remove(source)
-        changed = true
-      }
-      else {
-        if (filteredIssues != issues) {
-          sourceToIssueMap[source] = filteredIssues
-          changed = true
-        }
-      }
-    }
-    return changed
-
+  override fun getFilteredIssues(): List<Issue> {
+    val values = synchronized(mapLock) { sourceToIssueMap.values.toList() }
+    return values.flatten().filter(issueFilter).filter(viewOptionFilter)
   }
-
-  /**
-   * Remove the file issues if their editors are not selected.
-   * If an issue is not from the file (which its [Issue.source.file] is null), it will NOT be removed.
-   */
-  @Suppress("UnstableApiUsage")
-  private fun filterSelectedOrNoFileIssues(issues: List<Issue>): List<Issue> {
-    val files = fileEditorManager.selectedEditors.mapNotNull { it.file }
-    val ret = mutableListOf<Issue>()
-    for (issue in issues) {
-      val issueFile = issue.source.file?.let { BackedVirtualFile.getOriginFileIfBacked(it) }
-      if (issueFile == null || files.contains(issueFile)) {
-        ret.add(issue)
-      }
-    }
-    return ret
-  }
-
-  /**
-   * Remove the [VisualLintRenderIssue]s which are not related to the given [files]
-   */
-  private fun List<Issue>.filterVisualLintIssues(files: List<VirtualFile>): List<Issue> {
-    return this.filter {
-      if (it is VisualLintRenderIssue) {
-        it.source.models.map { model -> model.virtualFile }.any { file -> files.contains(file) }
-      }
-      else true
-    }
-  }
-
-  override fun getFilteredIssues(): List<Issue> = sourceToIssueMap.values.flatten()
-    .filterNot { (it as? VisualLintRenderIssue)?.isSuppressed() ?: false }
-    .filter(filter)
-    .toList()
 
   override fun registerUpdateListener(listener: Runnable) {
     listeners.add(listener)

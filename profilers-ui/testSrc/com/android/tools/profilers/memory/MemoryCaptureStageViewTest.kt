@@ -31,7 +31,6 @@ import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.ApplicationRule
@@ -59,8 +58,7 @@ class MemoryCaptureStageViewTest {
   @JvmField
   val grpcChannel = FakeGrpcChannel("MemoryProfilerStageViewTestChannel", transportService, service,
                                     FakeProfilerService(myTimer),
-                                    FakeCpuService(), FakeEventService(),
-                                    FakeNetworkService.Builder().build())
+                                    FakeCpuService(), FakeEventService())
 
   @Before
   fun setupBase() {

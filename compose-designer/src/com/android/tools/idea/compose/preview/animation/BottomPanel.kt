@@ -44,6 +44,15 @@ class BottomPanel(val previewState: AnimationPreviewState,
   BorderLayout()) {
 
   var clockTimeMs = 0
+    set(value) {
+      field = value
+      westToolbar.updateActionsImmediately()
+    }
+
+  private val westToolbar = DefaultToolbarImpl(
+    surface, "ResetCoordinationTimeline",
+    DefaultActionGroup(listOf(ClockTimeLabel(), Separator()) +
+                       if (COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()) listOf(ResetTimelineAction()) else emptyList()))
 
   private val resetListeners: MutableList<() -> Unit> = mutableListOf()
   fun addResetListener(listener: () -> Unit) {
@@ -51,14 +60,8 @@ class BottomPanel(val previewState: AnimationPreviewState,
   }
 
   init {
-    border = MatteBorder(1, 0, 0, 0, JBColor.border())
-    val actions = listOf(ClockTimeLabel(), Separator()).let {
-      if (COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()) it + ResetTimelineAction()
-      else it
-    }
-    // West toolbar
-    val westToolbar = DefaultToolbarImpl(surface, "ResetCoordinationTimeline", DefaultActionGroup(actions))
     add(westToolbar, BorderLayout.WEST)
+    border = MatteBorder(1, 0, 0, 0, JBColor.border())
     preferredSize = Dimension(width, InspectorLayout.BOTTOM_PANEL_HEIGHT)
   }
 

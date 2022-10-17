@@ -32,9 +32,8 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="library" name="layoutinspector-skia-proto" level="project" />
-    <orderEntry type="library" name="layout_inspector_snapshot_java_proto" level="project" />
-    <orderEntry type="library" name="layout_inspector_view_java_proto" level="project" />
-    <orderEntry type="library" name="layout_inspector_compose_java_proto" level="project" />
+    <orderEntry type="library" name="layoutinspector-view-proto" level="project" />
+    <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
@@ -42,8 +41,9 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.transport" />
-    <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="kotlinx-coroutines-jdk8" level="project" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
@@ -77,8 +77,8 @@
     <orderEntry type="module" module-name="kotlin.base.scripting" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="kotlin.base.util" />
-    <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.platform.execution" />
+    <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.java.execution" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.extensions" />

@@ -50,6 +50,7 @@ import com.android.builder.model.ProductFlavorContainer
 import com.android.builder.model.SigningConfig
 import com.android.builder.model.SourceProvider
 import com.android.builder.model.SourceProviderContainer
+import com.android.builder.model.SyncIssue
 import com.android.builder.model.TestOptions
 import com.android.builder.model.TestedTargetVariant
 import com.android.builder.model.Variant
@@ -71,6 +72,7 @@ import com.android.tools.idea.gradle.model.IdeFilterData
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeMavenCoordinates
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
@@ -102,6 +104,7 @@ import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
@@ -128,6 +131,8 @@ import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import java.io.File
 import java.io.FileFilter
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -778,7 +783,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       ),
       codeShrinker = convertCodeShrinker(copyNewProperty(artifact::getCodeShrinker)),
       isTestArtifact = artifact.name == AndroidProject.ARTIFACT_ANDROID_TEST,
-      modelSyncFiles = listOf()
+      modelSyncFiles = listOf(),
+      privacySandboxSdkInfo = null
     )
     return IdeModelWithPostProcessor(
       androidArtifactCoreImpl,
@@ -1314,7 +1320,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
 
 val MODEL_VERSION_3_2_0 = GradleVersion.parse("3.2.0")
 
-private inline fun <T> safeGet(original: () -> T, default: T): T = try {
+internal inline fun <T> safeGet(original: () -> T, default: T): T = try {
   original()
 } catch (ignored: UnsupportedOperationException) {
   default
@@ -1429,3 +1435,30 @@ fun isLocalAarModule(buildFolderPaths: BuildFolderPaths, androidLibrary: Android
     // Comparing two absolute paths received from Gradle and thus they don't need canonicalization.
     !androidLibrary.bundle.path.startsWith(buildFolderPath.path))
 }
+
+internal fun Collection<SyncIssue>.toSyncIssueData(): List<IdeSyncIssue> {
+  return map { syncIssue ->
+    IdeSyncIssueImpl(
+      message = syncIssue.message,
+      data = syncIssue.data,
+      multiLineMessage = safeGet(syncIssue::multiLineMessage, null)?.toList(),
+      severity = syncIssue.severity,
+      type = syncIssue.type
+    )
+  }
+}
+
+internal fun LegacyApplicationIdModel?.getProblemsAsSyncIssues(): List<IdeSyncIssue> {
+  return this?.problems.orEmpty().map { problem ->
+    IdeSyncIssueImpl(
+      message = problem.message ?: "Unknown error in LegacyApplicationIdModelBuilder",
+      data = null,
+      multiLineMessage = problem.stackTraceAsMultiLineMessage(),
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_APPLICATION_ID_MUST_NOT_BE_DYNAMIC
+    )
+  }
+}
+
+private fun Throwable.stackTraceAsMultiLineMessage(): List<String> =
+  StringWriter().use { stringWriter -> PrintWriter(stringWriter).use { printStackTrace(it) }; stringWriter.toString().split(System.lineSeparator()) }

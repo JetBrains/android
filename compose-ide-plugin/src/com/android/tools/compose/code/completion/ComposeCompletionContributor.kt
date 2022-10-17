@@ -56,6 +56,7 @@ import org.jetbrains.kotlin.idea.core.completion.DescriptorBasedDeclarationLooku
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.CallType
 import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
+import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBlockExpression
@@ -109,17 +110,24 @@ private val List<ValueParameterDescriptor>.isLastRequiredLambdaWithNoParameters:
   }
 
 
+private fun InsertionContext.getParent(): PsiElement? = file.findElementAt(startOffset)?.parent
+
 /**
  * Find the [CallType] from the [InsertionContext]. The [CallType] can be used to detect if the completion is being done in a regular
  * statement, an import or some other expression and decide if we want to apply the [ComposeInsertHandler].
  */
-private fun InsertionContext.inferCallType(): CallType<*> {
+private fun PsiElement?.inferCallType(): CallType<*> {
   // Look for an existing KtSimpleNameExpression to pass to CallTypeAndReceiver.detect so we can infer the call type.
-  val namedExpression = (file.findElementAt(startOffset)?.parent as? KtSimpleNameExpression)?.mainReference?.expression
-                        ?: return CallType.DEFAULT
-
+  val namedExpression = (this as? KtSimpleNameExpression)?.mainReference?.expression ?: return CallType.DEFAULT
   return CallTypeAndReceiver.detect(namedExpression).callType
 }
+
+/**
+ * Return true if element is a KDoc.
+ *
+ * Ideally, we would use [inferCallType] but there doesn't seem to be a [CallType] for a KDoc element.
+ */
+private fun PsiElement?.isKdoc() = this is KDocName
 
 /**
  * Modifies [LookupElement]s for composable functions, to improve Compose editing UX.
@@ -185,10 +193,12 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
 
   override fun handleInsert(context: InsertionContext) {
     val descriptor = getFunctionDescriptor()
-    val callType by lazy { context.inferCallType() }
+    val parent = context.getParent()
+    val callType by lazy { parent.inferCallType() }
     return when {
       !COMPOSE_COMPLETION_INSERT_HANDLER.get() -> super.handleInsert(context)
       !ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled -> super.handleInsert(context)
+      parent.isKdoc() -> super.handleInsert(context)
       descriptor == null -> super.handleInsert(context)
       !validCallTypes.contains(callType) -> super.handleInsert(context)
       else -> ComposeInsertHandler(descriptor, callType).handleInsert(context, this)

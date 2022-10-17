@@ -16,12 +16,5 @@
   </component>
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../analytics-library" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../base" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../data-binding" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../studio/google/cloud/testing" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../studio/google/cloud/tools" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../studio/google/samples" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../swing-testing" vcs="Git" />
   </component>
 </project>

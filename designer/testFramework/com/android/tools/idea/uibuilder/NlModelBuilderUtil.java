@@ -36,6 +36,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -85,5 +86,17 @@ public class NlModelBuilderUtil {
     assertThat(file.getRootTag()).isNotNull();
     infos.add(root.createViewInfo(null, file.getRootTag()));
     return infos;
+  }
+
+  @NotNull
+  public static List<SyncLayoutlibSceneManager> getSyncLayoutlibSceneManagersForModel(@NotNull SyncNlModel model) {
+    return model.getSurface().getSceneManagers().stream()
+      .map(SyncLayoutlibSceneManager.class::cast)
+      .collect(Collectors.toList());
+  }
+
+  @NotNull
+  public static SyncLayoutlibSceneManager getSyncLayoutlibSceneManagerForModel(@NotNull SyncNlModel model) {
+    return getSyncLayoutlibSceneManagersForModel(model).get(0);
   }
 }

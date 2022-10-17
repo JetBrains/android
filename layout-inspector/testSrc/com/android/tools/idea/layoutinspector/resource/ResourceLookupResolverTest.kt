@@ -44,6 +44,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.awt.Rectangle
 import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 @RunsInEdt
@@ -304,13 +305,13 @@ class ResourceLookupResolverTest {
     val frameId = ResourceReference(exampleNS, ResourceType.ID, "frameLayout")
     val titleId = ResourceReference(exampleNS, ResourceType.ID, "title")
     val buttonId = ResourceReference(exampleNS, ResourceType.ID, "button")
-    val relativeLayout = ViewNode(1, "RelativeLayout", demo, 0, 0, 300, 900, null, relativeId, "", 0)
-    val title = ViewNode(2, "TextView", demo, 30, 60, 300, 100, null, titleId, "Hello Folks", 0)
-    val frameLayout = ViewNode(3, "RelativeLayout", demo, 0, 200, 300, 700, null, frameId, "", 0)
-    val textView1 = ViewNode(4, "TextView", demo, 400, 60, 300, 100, null, null, "TextView without an ID", 0)
-    val textView2 = ViewNode(5, "TextView", demo, 0, 200, 300, 700, null, null, "TextView without an ID", 0)
-    val button = ViewNode(6, "Button", demo, 30, 400, 300, 100, null, buttonId, "OK", 0)
-    val singleTextView = ViewNode(7, "TextView", designText, 0, 0, 400, 50, null, null, "Tab3", 0)
+    val relativeLayout = ViewNode(1, "RelativeLayout", demo, Rectangle(0, 0, 300, 900), relativeId, "", 0)
+    val title = ViewNode(2, "TextView", demo, Rectangle(30, 60, 300, 100), titleId, "Hello Folks", 0)
+    val frameLayout = ViewNode(3, "RelativeLayout", demo, Rectangle(0, 200, 300, 700), frameId, "", 0)
+    val textView1 = ViewNode(4, "TextView", demo, Rectangle(400, 60, 300, 100), null, "TextView without an ID", 0)
+    val textView2 = ViewNode(5, "TextView", demo, Rectangle(0, 200, 300, 700), null, "TextView without an ID", 0)
+    val button = ViewNode(6, "Button", demo, Rectangle(30, 400, 300, 100), buttonId, "OK", 0)
+    val singleTextView = ViewNode(7, "TextView", designText, Rectangle(0, 0, 400, 50), null, "Tab3", 0)
     val context = object : ViewNodeAndResourceLookup {
       override val resourceLookup: ResourceLookup = mock()
       override val selection: ViewNode? = null

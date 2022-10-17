@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,11 +43,22 @@ public class RefreshLinkedCppProjectsAction extends SyncProjectAction {
 
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
-    if (GradleProjects.containsExternalCppProjects(project)) {
+    if (containsExternalCppProjects(project)) {
       super.doUpdate(e, project);
     }
     else {
       e.getPresentation().setEnabled(false);
     }
+  }
+
+  /** Checks if the given project contains a module that contains code built by Android Studio's C++ support. */
+  private static boolean containsExternalCppProjects(@NotNull Project project) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+      if (ndkModuleModel != null) {
+        return true;
+      }
+    }
+    return false;
   }
 }

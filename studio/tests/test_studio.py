@@ -167,18 +167,6 @@ class StudioTests(unittest.TestCase):
           self.assertFalse(is_symlink, f.filename + " should not be a symlink")
       self.assertTrue(found, "Android Studio.*.app/Contents/jbr/Contents/MacOS/libjli.dylib not found")
 
-  def test_mac_arm_symlinks(self):
-    with zipfile.ZipFile("tools/adt/idea/studio/android-studio.mac_arm.zip") as zfile:
-      app_name = zfile.namelist()[0].split('/')[0]
-      jre_frameworks_home = app_name + "/Contents/jbr/Contents/Home/Frameworks/JavaNativeFoundation.framework/"
-      # directory symbolic links
-      self.assertTrue(_is_symlink(zfile.getinfo(jre_frameworks_home + "Headers")))
-      self.assertTrue(_is_symlink(zfile.getinfo(jre_frameworks_home + "Modules")))
-      # file symbolic links
-      self.assertTrue(_is_symlink(zfile.getinfo(jre_frameworks_home + "JavaNativeFoundation")))
-      # regular file
-      self.assertFalse(_is_symlink(zfile.getinfo(jre_frameworks_home + "Versions/A/Resources/Info.plist")))
-
   def test_all_files_writable(self):
     for platform in PLATFORMS:
       name = "tools/adt/idea/studio/android-studio.%s.zip" % platform

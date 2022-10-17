@@ -341,7 +341,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
         workbench.repaint() // Repaint the workbench, otherwise the text and link will keep displaying if the mouse is hovering the link
       }
     }
-  private lateinit var actionsToolbar: ActionsToolbar
+  private val actionsToolbar: ActionsToolbar
 
   init {
     mainSurface.name = "Compose"

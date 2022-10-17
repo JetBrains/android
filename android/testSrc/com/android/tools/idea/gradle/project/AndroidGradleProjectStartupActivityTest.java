@@ -76,22 +76,11 @@ public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCa
 
   public void testRunActivityWithImportedProject() {
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
-    when(myGradleProjectInfo.isImportedProject()).thenReturn(true);
 
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
     assertThat(myRequest).isNotNull();
-  }
-
-  public void testRunActivityWithSkipStartupProject() {
-    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
-    when(myGradleProjectInfo.isSkipStartupActivity()).thenReturn(true);
-
-    Project project = getProject();
-    myStartupActivity.runActivity(project);
-
-    assertThat(myRequest).isNull();
   }
 
   public void testRunActivityWithExistingGradleProject() {

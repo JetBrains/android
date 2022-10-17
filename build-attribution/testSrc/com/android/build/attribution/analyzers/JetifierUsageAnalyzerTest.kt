@@ -16,9 +16,9 @@
 package com.android.build.attribution.analyzers
 
 import com.android.SdkConstants
-import com.android.build.attribution.BuildAttributionManagerImpl
-import com.android.build.attribution.data.BuildInvocationType
+import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.data.BuildRequestHolder
+import com.android.build.attribution.data.BuildInvocationType
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.ui.controllers.createCheckJetifierTaskRequest
 import com.android.builder.model.PROPERTY_CHECK_JETIFIER_RESULT_FILE
@@ -29,7 +29,6 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.Projects
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Request.Companion.builder
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -70,8 +69,9 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
 
     Truth.assertThat(result.isBuildSuccessful).isTrue()
 
-    val buildAttributionManager = project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
-    val jetifierUsageResult = buildAttributionManager.analyzersProxy.getJetifierUsageResult()
+    val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val jetifierUsageResult = results.getJetifierUsageResult()
     Truth.assertThat(jetifierUsageResult).isEqualTo(JetifierUsageAnalyzerResult(JetifierNotUsed))
   }
 
@@ -83,8 +83,9 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
 
     Truth.assertThat(result.isBuildSuccessful).isTrue()
 
-    val buildAttributionManager = project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
-    val jetifierUsageResult = buildAttributionManager.analyzersProxy.getJetifierUsageResult()
+    val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val jetifierUsageResult = results.getJetifierUsageResult()
     Truth.assertThat(jetifierUsageResult).isEqualTo(JetifierUsageAnalyzerResult(AnalyzerNotRun))
   }
 
@@ -100,8 +101,9 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
 
     Truth.assertThat(result.isBuildSuccessful).isTrue()
 
-    val buildAttributionManager = project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
-    val jetifierUsageResult = buildAttributionManager.analyzersProxy.getJetifierUsageResult()
+    val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val jetifierUsageResult = results.getJetifierUsageResult()
     Truth.assertThat(jetifierUsageResult).isEqualTo(expectedResult)
   }
 
@@ -159,8 +161,9 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     }
     Truth.assertThat(result.isBuildSuccessful).isTrue()
 
-    val buildAttributionManager = project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
-    val jetifierUsageResult = buildAttributionManager.analyzersProxy.getJetifierUsageResult()
+    val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val jetifierUsageResult = results.getJetifierUsageResult()
     Truth.assertThat(jetifierUsageResult.projectStatus).isEqualTo(expectedProjectStatus)
     Truth.assertThat(jetifierUsageResult.checkJetifierBuild).isEqualTo(true)
     Truth.assertThat(jetifierUsageResult.lastCheckJetifierBuildTimestamp).isNotNull()
@@ -169,7 +172,9 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     // Verify running normal build after preserves the result.
     val result2 = invokeGradleTasks(project, "assembleDebug")
     Truth.assertThat(result2.isBuildSuccessful).isTrue()
-    val jetifierUsageResult2 = buildAttributionManager.analyzersProxy.getJetifierUsageResult()
+
+    val results2 = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val jetifierUsageResult2 = results2.getJetifierUsageResult()
     Truth.assertThat(jetifierUsageResult2.projectStatus).isEqualTo(expectedProjectStatus)
     Truth.assertThat(jetifierUsageResult2.checkJetifierBuild).isEqualTo(false)
     Truth.assertThat(jetifierUsageResult2.lastCheckJetifierBuildTimestamp).isEqualTo(jetifierUsageResult.lastCheckJetifierBuildTimestamp)
@@ -243,7 +248,7 @@ class JetifierUsageAnalyzerUnitTest {
       useAndroidXPropertyState = true,
       buildRequestHolder = MockitoKt.mock()
     )
-    val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
+    val analysisResult = Mockito.mock(BuildEventsAnalyzersProxy::class.java)
 
     val analyzer = JetifierUsageAnalyzer()
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
@@ -264,7 +269,7 @@ class JetifierUsageAnalyzerUnitTest {
       useAndroidXPropertyState = true,
       buildRequestHolder = BuildRequestHolder(builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build())
     )
-    val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
+    val analysisResult = Mockito.mock(BuildEventsAnalyzersProxy::class.java)
 
     val analyzer = JetifierUsageAnalyzer()
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)

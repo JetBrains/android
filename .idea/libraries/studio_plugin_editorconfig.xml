@@ -1,11 +1,9 @@
 <component name="libraryTable">
   <library name="studio-plugin-editorconfig">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-221/$SDK_PLATFORM$/plugins/editorconfig/lib/editorconfig.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/editorconfig/lib/editorconfig.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-221/android-studio-sources.zip!/" />
-    </SOURCES>
+    <SOURCES />
   </library>
 </component>

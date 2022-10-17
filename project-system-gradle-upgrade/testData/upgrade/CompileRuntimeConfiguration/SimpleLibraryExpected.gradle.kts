@@ -41,6 +41,6 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.1.0")
     api("com.google.android.material:material:1.1.0")
     testImplementation("junit:junit:4.13")
-    androidTestImplementation("androidx.test.ext:junit:1.1.1")
+    androidTestImplementation("androidx.test.ext:junit:1.1.2")
     androidTestRuntimeOnly("androidx.test.espresso:espresso-core:3.2.0")
 }

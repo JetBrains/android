@@ -22,6 +22,11 @@
                     overrides="true"
     />
     <actionConfigurationCustomizer id="Startup.GradleSpecificInitializer" order="after Startup.AndroidStudioInitializer" implementation="com.android.tools.idea.startup.GradleSpecificInitializer" />
+    <directoryProjectConfigurator
+      implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectConfigurator"
+      order="after PlatformProjectConfigurator"
+    />
+    <directoryIndexExcludePolicy implementation="com.android.tools.idea.gradle.project.importing.InitialImportExcludeDirectoryPolicy" />
   </extensions>
   <actions>
     <action id="WelcomeScreen.Configure.ProjectStructure" class="com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction" overrides="true" />

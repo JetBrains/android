@@ -1,15 +1,15 @@
 <component name="libraryTable">
   <library name="mockito">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/mockito/mockito-core/3.4.6/mockito-core-3.4.6.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.10.13/byte-buddy-1.10.13.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.10.13/byte-buddy-agent-1.10.13.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/mockito/mockito-core/3.12.4/mockito-core-3.12.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.11.13/byte-buddy-1.11.13.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.11.13/byte-buddy-agent-1.11.13.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/mockito/mockito-core/3.4.6/mockito-core-3.4.6-sources.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.10.13/byte-buddy-1.10.13-sources.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.10.13/byte-buddy-agent-1.10.13-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/mockito/mockito-core/3.12.4/mockito-core-3.12.4-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.11.13/byte-buddy-1.11.13-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.11.13/byte-buddy-agent-1.11.13-sources.jar!/" />
     </SOURCES>
   </library>
-</component>
+</component>    

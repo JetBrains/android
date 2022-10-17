@@ -57,6 +57,7 @@ public class ProfilerState {
 
   public static final String ENABLE_UNIFIED_PIPELINE_NAME = "android.profiler.unifiedpipeline.enabled";
 
+  public static final String ENABLE_KEYBOARD_EVENT_NAME = "android.profiler.keyboard.event.enabled";
   private boolean myCheckAdvancedProfiling;
 
   /**
@@ -86,6 +87,7 @@ public class ProfilerState {
     result.setProperty(ENABLE_ADVANCED_PROFILING_NAME, String.valueOf(ADVANCED_PROFILING_ENABLED));
     result.setProperty(ENABLE_STARTUP_PROFILING_NAME, String.valueOf(STARTUP_PROFILING_ENABLED));
     result.setProperty(ENABLE_UNIFIED_PIPELINE_NAME, String.valueOf(StudioFlags.PROFILER_UNIFIED_PIPELINE.get()));
+    result.setProperty(ENABLE_KEYBOARD_EVENT_NAME, String.valueOf(StudioFlags.PROFILER_KEYBOARD_EVENT.get()));
     result.setProperty(ENABLE_ADVANCED_OKHTTP_PROFILING_NAME, String.valueOf(PROFILING_OKHTTP_ENABLED));
     result.setProperty(STARTUP_MEMORY_PROFILING_NAME, String.valueOf(STARTUP_NATIVE_MEMORY_PROFILING_ENABLED));
     result.setProperty(NATIVE_MEMORY_SAMPLE_RATE_NAME, String.valueOf(NATIVE_MEMORY_SAMPLE_RATE_BYTES));

@@ -88,14 +88,6 @@ public class GradleProjectInfo {
     mySkipStartupActivity = skipStartupActivity;
   }
 
-  public boolean isImportedProject() {
-    return myImportedProject;
-  }
-
-  public void setImportedProject(boolean importedProject) {
-    myImportedProject = importedProject;
-  }
-
   /**
    * Indicates whether Gradle is used to build at least one module in this project.
    * Note: {@link AndroidProjectInfo#requiresAndroidModel())} indicates whether a project requires an {@link AndroidModel}.

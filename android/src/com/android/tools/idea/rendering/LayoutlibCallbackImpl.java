@@ -132,7 +132,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   /** Maximum number of getParser calls in a render before we suspect and investigate potential include cycles */
   private static final int MAX_PARSER_INCLUDES = 50;
   private static final AndroidxName CLASS_WINDOR_DECOR_ACTION_BAR =
-    AndroidxName.of("android.support.v7.internal.app.", "WindowDecorActionBar");
+    new AndroidxName("android.support.v7.internal.app.WindowDecorActionBar", "androidx.appcompat.internal.app.WindowDecorActionBar");
   /** Class names that are not a view. When instantiating them, errors should be logged by LayoutLib. */
   private static final Set<String> NOT_VIEW = ImmutableSet.of(CLASS_RECYCLER_VIEW_ADAPTER.oldName(),
                                                               CLASS_RECYCLER_VIEW_ADAPTER.newName(),

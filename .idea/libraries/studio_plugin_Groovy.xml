@@ -1,15 +1,14 @@
 <component name="libraryTable">
   <library name="studio-plugin-Groovy">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-221/$SDK_PLATFORM$/plugins/Groovy/lib/Groovy.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-221/$SDK_PLATFORM$/plugins/Groovy/lib/groovy-constants-rt.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-221/$SDK_PLATFORM$/plugins/Groovy/lib/groovy-jps.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-221/$SDK_PLATFORM$/plugins/Groovy/lib/groovy-rt-class-loader.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-221/$SDK_PLATFORM$/plugins/Groovy/lib/groovy-rt.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Groovy/lib/groovy-spock-rt.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Groovy/lib/groovy-rt-class-loader.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Groovy/lib/groovy-constants-rt.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Groovy/lib/Groovy.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Groovy/lib/groovy-jps.jar!/" />
+      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/Groovy/lib/groovy-rt.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-221/android-studio-sources.zip!/" />
-    </SOURCES>
+    <SOURCES />
   </library>
 </component>

@@ -61,11 +61,11 @@ class FromProtoConversionTest {
       navigation = NAVIGATION_WHEEL
       navigationHidden = NAVIGATIONHIDDEN_NO
       uiMode = UI_MODE_TYPE_NORMAL or UI_MODE_NIGHT_NO
-      smallestScreenWidth = 200
+      smallestScreenWidthDp = 200
       density = 0
       orientation = ORIENTATION_PORTRAIT
-      screenWidth = 480
-      screenHeight = 800
+      screenWidthDp = 480
+      screenHeightDp = 800
     }.build()
 
     val folderConfiguration = proto.convert(29)

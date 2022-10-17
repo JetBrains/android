@@ -433,7 +433,7 @@ android-studio/jbr/lib/jvm.lib
 android-studio/jbr/lib/modules
 android-studio/jbr/lib/psfont.properties.ja
 android-studio/jbr/lib/psfontj2d.properties
-android-studio/jbr/lib/security/blacklisted.certs
+android-studio/jbr/lib/security/blocked.certs
 android-studio/jbr/lib/security/cacerts
 android-studio/jbr/lib/security/default.policy
 android-studio/jbr/lib/security/public_suffix_list.dat
@@ -532,6 +532,10 @@ android-studio/license/eclipse_license.txt
 android-studio/license/eclipse_license2.txt
 android-studio/license/fest-NOTICE
 android-studio/license/fetchasgoogle.jar-NOTICE
+android-studio/license/ffmpeg-LICENSE.md
+android-studio/license/ffmpeg-LICENSE.openh264
+android-studio/license/ffmpeg-LICENSE.TXT
+android-studio/license/ffmpeg-SOURCE_CODE.TXT
 android-studio/license/freemarker-NOTICE
 android-studio/license/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar-NOTICE
 android-studio/license/google-api-services-debugger.jar-NOTICE
@@ -550,6 +554,7 @@ android-studio/license/gson_license.txt
 android-studio/license/hdrhistogram_license.txt
 android-studio/license/imgscalr_license.txt
 android-studio/license/instantapps-api-NOTICE
+android-studio/license/javacpp-NOTICE
 android-studio/license/javahelp_license.txt
 android-studio/license/javolution_license.txt
 android-studio/license/jaxb_license.txt
@@ -1335,7 +1340,6 @@ android-studio/plugins/android/lib/commons-lang-2.6.jar
 android-studio/plugins/android/lib/compilerCommon.antlr.shaded_jar.jar
 android-studio/plugins/android/lib/compilerCommon.antlr_runtime.shaded_jar.jar
 android-studio/plugins/android/lib/core-3.4.0.jar
-android-studio/plugins/android/lib/core-proto-0.0.8-alpha08.jar
 android-studio/plugins/android/lib/data-binding.jar
 android-studio/plugins/android/lib/deploy_java_proto.jar
 android-studio/plugins/android/lib/dexlib2-2.5.2.jar
@@ -1405,9 +1409,11 @@ android-studio/plugins/android/lib/studio-grpc.jar
 android-studio/plugins/android/lib/studio-proto.jar
 android-studio/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
 android-studio/plugins/android/lib/traceprocessor_protos.jar
+android-studio/plugins/android/lib/tracing-perfetto-common-1.0.0-alpha01.jar
 android-studio/plugins/android/lib/transport_java_proto.jar
 android-studio/plugins/android/lib/ui-animation-tooling-internal.jar
 android-studio/plugins/android/lib/util-2.5.2.jar
+android-studio/plugins/android/lib/utp-core-proto-jarjar.jar
 android-studio/plugins/android/lib/utp.jar
 android-studio/plugins/android/lib/wizard-template.jar
 android-studio/plugins/android/lib/workmanager_inspector_proto.jar
@@ -1982,6 +1988,10 @@ android-studio/plugins/design-tools/resources/layoutlib/data/win/lib64/libicuuc-
 android-studio/plugins/design-tools/resources/layoutlib/data/win/lib64/libicuuc_stubdata.dll
 android-studio/plugins/devkit/lib/devkit-jps.jar
 android-studio/plugins/devkit/lib/devkit.jar
+android-studio/plugins/directaccess/lib/directaccess-client.jar
+android-studio/plugins/directaccess/lib/directaccess.jar
+android-studio/plugins/directaccess/lib/ftl_client_java_proto.jar
+android-studio/plugins/directaccess/resources/reverse_daemon.dex
 android-studio/plugins/editorconfig/lib/editorconfig.jar
 android-studio/plugins/firebase-testing/lib/firebase-testing.jar
 android-studio/plugins/firebase-testing/lib/google-api-services-storage-v1-rev1-1.18.0-rc.jar

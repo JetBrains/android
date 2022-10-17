@@ -31,5 +31,6 @@
   <xi:include href="/META-INF/compose-designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/customview.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/layoutlib.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/glance-designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 </idea-plugin>

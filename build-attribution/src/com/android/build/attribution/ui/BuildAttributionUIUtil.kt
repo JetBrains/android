@@ -68,6 +68,7 @@ fun htmlTextLabelWithLinesWrap(htmlBodyContent: String, linksHandler: HtmlLinksH
     if (linksHandler != null) {
       addHyperlinkListener(linksHandler)
     }
+    caretPosition = 0
   }
 
 fun htmlTextLabelWithFixedLines(htmlBodyContent: String, linksHandler: HtmlLinksHandler? = null): JEditorPane =
@@ -78,14 +79,12 @@ fun htmlTextLabelWithFixedLines(htmlBodyContent: String, linksHandler: HtmlLinks
     if (linksHandler != null) {
       addHyperlinkListener(linksHandler)
     }
+    caretPosition = 0
   }
 
-/**
- * Wraps long path to spans to make it possible to auto-wrap to a new line
- */
-fun wrapPathToSpans(text: String): String = "<p>${text.replace("/", "<span>/</span>")}</p>"
 fun String.insertBRTags(): String = replace("\n", "<br/>\n")
-fun helpIcon(text: String): String = "<icon alt='$text' src='AllIcons.General.ContextHelp'>"
+internal fun helpIcon(text: String): String = "<icon alt='$text' src='AllIcons.General.ContextHelp'>"
+internal const val warnIconHtml: String = "<icon alt='Warning' src='AllIcons.General.BalloonWarning'>"
 
 class HtmlLinksHandler(val actionHandlers: ViewActionHandlers) : HyperlinkListener {
   private val registeredLinkActions = mutableMapOf<String, Runnable>()

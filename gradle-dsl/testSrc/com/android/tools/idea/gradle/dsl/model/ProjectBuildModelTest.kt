@@ -455,6 +455,19 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testGetGradlePropertiesModel() {
+    writeToBuildFile("")
+    writeToSettingsFile("")
+    writeToPropertiesFile("abc.foo=bar")
+    val pbm = projectBuildModel
+    val propertiesModel = pbm.projectBuildModel?.propertiesModel!!
+    assertSize(1, propertiesModel.declaredProperties)
+    assertEquals("abc.foo", propertiesModel.declaredProperties[0].name)
+    assertEquals("abc\\.foo", propertiesModel.declaredProperties[0].fullyQualifiedName)
+    assertEquals("bar", propertiesModel.declaredProperties[0].getValue(STRING_TYPE))
+  }
+
+  @Test
   fun testNoVersionCatalogResolutionIfSettingIsOff() {
     StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
     GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled = false

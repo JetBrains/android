@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.DrawViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -49,7 +48,6 @@ private data class LevelListItem(val node: DrawViewNode, val isCollapsed: Boolea
 
 class DeviceViewPanelModel(
   private val model: InspectorModel,
-  private val stats: SessionStatistics,
   val treeSettings: TreeSettings,
   private val client: (() -> InspectorClient?)? = null
 ) {
@@ -65,8 +63,11 @@ class DeviceViewPanelModel(
       }
     }
 
+  /** The distance the image was moved in x direction to rotate the image */
   @VisibleForTesting
   var xOff = 0.0
+
+  /** The distance the image was moved in y direction to rotate the image */
   @VisibleForTesting
   var yOff = 0.0
 
@@ -153,12 +154,7 @@ class DeviceViewPanelModel(
   }
 
   fun refresh() {
-    if (xOff == 0.0 && yOff == 0.0) {
-      stats.rotation.toggledTo2D()
-    }
-    else {
-      stats.rotation.toggledTo3D()
-    }
+    client?.invoke()?.stats?.currentMode3D = isRotated
     if (model.isEmpty) {
       visibleBounds = Rectangle()
       maxDepth = 0
@@ -191,14 +187,14 @@ class DeviceViewPanelModel(
           return if (model.isVisible(node)) sequenceOf(node) else node.children.asSequence().flatMap { lowestVisible(it) }
         }
 
-        rootBounds = model.root.children.flatMap { lowestVisible(it) }.map { it.transformedBounds.bounds }
+        rootBounds = model.root.children.flatMap { lowestVisible(it) }.map { it.renderBounds.bounds }
           .reduceOrNull { acc, bounds -> acc.apply { add(bounds) } } ?: Rectangle()
       }
 
-      root.x = rootBounds.x
-      root.y = rootBounds.y
-      root.width = rootBounds.width
-      root.height = rootBounds.height
+      root.layoutBounds.x = rootBounds.x
+      root.layoutBounds.y = rootBounds.y
+      root.layoutBounds.width = rootBounds.width
+      root.layoutBounds.height = rootBounds.height
 
       // Don't allow rotation to completely edge-on, since some rendering can have problems in that situation. See issue 158452416.
       // You might say that this is ( •_•)>⌐■-■ / (⌐■_■) an edge-case.
@@ -329,7 +325,7 @@ class DeviceViewPanelModel(
         viewTransform.rotate(-angle)
         viewTransform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
-        val rect = viewTransform.createTransformedShape(view.unfilteredOwner.transformedBounds)
+        val rect = viewTransform.createTransformedShape(view.unfilteredOwner.renderBounds)
         newHitRects.add(ViewDrawInfo(rect, viewTransform, view, hitLevel, isCollapsed))
       }
     }

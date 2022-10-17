@@ -25,7 +25,6 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.actions.ComposeNotificationGroup
-import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
@@ -68,9 +67,7 @@ import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 
-/**
- * [ToolbarActionGroups] that includes the [ForceCompileAndRefreshAction]
- */
+/** [ToolbarActionGroups] that includes the actions that can be applied to Compose Previews. */
 private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
   ToolbarActionGroups(surface) {
 

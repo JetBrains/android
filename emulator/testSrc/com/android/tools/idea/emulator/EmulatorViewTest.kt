@@ -117,7 +117,7 @@ class EmulatorViewTest {
     assertThat(frameNumber).isEqualTo(0)
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
-    var call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    var call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 363 height: 547")
     assertAppearance(ui, "EmulatorView1")
     assertThat(call.completion.isCancelled).isFalse() // The call has not been cancelled.
@@ -127,7 +127,7 @@ class EmulatorViewTest {
     val previousCall = call
     container.size = Dimension(250, 200)
     ui.layoutAndDispatchEvents()
-    call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
     assertAppearance(ui, "EmulatorView2")
     assertThat(previousCall.completion.isCancelled).isTrue() // The previous call is cancelled.
@@ -144,7 +144,7 @@ class EmulatorViewTest {
 
     view.zoom(ZoomType.IN)
     ui.layoutAndDispatchEvents()
-    call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo(
       // Available space is slightly wider on Mac due to a narrower scrollbar.
       if (UIUtil.isRetina()) "format: RGB888 width: 427 height: 740" else "format: RGB888 width: 423 height: 740")
@@ -155,7 +155,7 @@ class EmulatorViewTest {
 
     view.zoom(ZoomType.ACTUAL)
     ui.layoutAndDispatchEvents()
-    call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 1440 height: 2960")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
@@ -164,7 +164,7 @@ class EmulatorViewTest {
 
     view.zoom(ZoomType.OUT)
     ui.layoutAndDispatchEvents()
-    call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 720 height: 1481")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
@@ -173,7 +173,7 @@ class EmulatorViewTest {
 
     view.zoom(ZoomType.FIT)
     ui.layoutAndDispatchEvents()
-    call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isFalse()
@@ -185,7 +185,7 @@ class EmulatorViewTest {
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 90.0 }")
-    call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 456 height: 363")
     assertAppearance(ui, "EmulatorView3")
 
@@ -258,7 +258,7 @@ class EmulatorViewTest {
     // Check clockwise rotation in a zoomed-in state.
     view.zoom(ZoomType.IN)
     ui.layoutAndDispatchEvents()
-    call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo(
       // Available space is slightly wider on Mac due to a narrower scrollbar.
       if (SystemInfo.isMac) "format: RGB888 width: 740 height: 360" else "format: RGB888 width: 740 height: 360")
@@ -268,9 +268,9 @@ class EmulatorViewTest {
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 0.0 }")
-    getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     ui.layoutAndDispatchEvents()
-    call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
     assertThat(view.canZoomOut()).isFalse() // zoom-in mode cancelled by the rotation.
     assertThat(view.canZoomToFit()).isFalse()
@@ -292,7 +292,7 @@ class EmulatorViewTest {
 
     // Check hiding the device frame.
     view.deviceFrameVisible = false
-    call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 500 height: 400")
     assertAppearance(ui, "EmulatorView4")
   }
@@ -309,7 +309,7 @@ class EmulatorViewTest {
     assertThat(frameNumber).isEqualTo(0)
     container.size = Dimension(250, 250)
     ui.layoutAndDispatchEvents()
-    val call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    val call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 320 height: 320")
     assertAppearance(ui, "LargeScale")
     assertThat(call.completion.isCancelled).isFalse() // The latest call has not been cancelled.
@@ -328,7 +328,7 @@ class EmulatorViewTest {
     assertThat(frameNumber).isEqualTo(0)
     container.size = Dimension(200, 200)
     ui.layoutAndDispatchEvents()
-    getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     assertAppearance(ui, "Unfolded")
 
     ui.mouse.press(135, 190)
@@ -342,7 +342,7 @@ class EmulatorViewTest {
 
     val config = view.emulator.emulatorConfig
     emulator.setFoldedDisplay(FoldedDisplay.newBuilder().setWidth(config.displayWidth / 2).setHeight(config.displayHeight).build())
-    view.waitForFrame(++frameNumber, 2, TimeUnit.SECONDS)
+    view.waitForFrame(ui, ++frameNumber, 2, TimeUnit.SECONDS)
     assertAppearance(ui, "Folded")
 
     // Check that in a folded state mouse coordinates are interpreted differently.
@@ -382,7 +382,7 @@ class EmulatorViewTest {
     assertThat(frameNumber).isEqualTo(0)
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
-    getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     ui.render()
 
     ui.mouse.press(100, 100)
@@ -411,7 +411,7 @@ class EmulatorViewTest {
     assertThat(frameNumber).isEqualTo(0)
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
-    getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
 
     val mousePosition = Point(150, 75)
     val pointerInfo = mock<PointerInfo>()
@@ -424,10 +424,13 @@ class EmulatorViewTest {
     ui.keyboard.press(VK_CONTROL)
     ui.layoutAndDispatchEvents()
     assertAppearance(ui, "MultiTouch1")
+    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 1272 y: 741")
 
     ui.mouse.press(mousePosition)
     assertAppearance(ui, "MultiTouch2")
-    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendTouch")
     assertThat(shortDebugString(call.request)).isEqualTo(
         "touches { x: 1272 y: 741 pressure: 1024 expiration: NEVER_EXPIRE }" +
@@ -486,7 +489,7 @@ class EmulatorViewTest {
 
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
-    getStreamScreenshotCallAndWaitForFrame(view, 1)
+    getStreamScreenshotCallAndWaitForFrame(ui, view, 1)
     ui.render()
 
     ui.mouse.moveTo(135, 190)
@@ -505,7 +508,7 @@ class EmulatorViewTest {
 
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
-    getStreamScreenshotCallAndWaitForFrame(view, 1)
+    getStreamScreenshotCallAndWaitForFrame(ui, view, 1)
     ui.render()
 
     ui.keyboard.setFocus(view)
@@ -533,7 +536,7 @@ class EmulatorViewTest {
     val ui = FakeUi(container.rootPane, 1.0)
 
     ui.layoutAndDispatchEvents()
-    getStreamScreenshotCallAndWaitForFrame(view, 1)
+    getStreamScreenshotCallAndWaitForFrame(ui, view, 1)
     ui.render()
 
     // Activate the virtual scene camera
@@ -572,7 +575,7 @@ class EmulatorViewTest {
 
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
-    getStreamScreenshotCallAndWaitForFrame(view, 1)
+    getStreamScreenshotCallAndWaitForFrame(ui, view, 1)
     ui.render()
 
     val params = listOf(Pair(FakeMouse.Button.RIGHT, "buttons: 2"), Pair(FakeMouse.Button.MIDDLE, "buttons: 4"))
@@ -602,7 +605,7 @@ class EmulatorViewTest {
 
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
-    getStreamScreenshotCallAndWaitForFrame(view, 1)
+    getStreamScreenshotCallAndWaitForFrame(ui, view, 1)
     ui.render()
 
     ui.mouse.press(135, 190, FakeMouse.Button.RIGHT)
@@ -634,17 +637,22 @@ class EmulatorViewTest {
     }
   }
 
-  private fun getStreamScreenshotCallAndWaitForFrame(view: EmulatorView, frameNumber: Int): GrpcCallRecord {
+  private fun getStreamScreenshotCallAndWaitForFrame(fakeUi: FakeUi, view: EmulatorView, frameNumber: Int): GrpcCallRecord {
     val emulator = emulatorViewRule.getFakeEmulator(view)
     val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamScreenshot")
-    view.waitForFrame(frameNumber, 2, TimeUnit.SECONDS)
+    view.waitForFrame(fakeUi, frameNumber, 2, TimeUnit.SECONDS)
     return call
   }
 
   @Throws(TimeoutException::class)
-  private fun EmulatorView.waitForFrame(frame: Int, timeout: Long, unit: TimeUnit) {
-    waitForCondition(timeout, unit) { frameNumber >= frame }
+  private fun EmulatorView.waitForFrame(fakeUi: FakeUi, frame: Int, timeout: Long, unit: TimeUnit) {
+    waitForCondition(timeout, unit) { renderAndGetFrameNumber(fakeUi) >= frame }
+  }
+
+  private fun EmulatorView.renderAndGetFrameNumber(fakeUi: FakeUi): Int {
+    fakeUi.render() // The frame number may get updated as a result of rendering.
+    return frameNumber
   }
 
   private fun assertAppearance(ui: FakeUi, goldenImageName: String) {

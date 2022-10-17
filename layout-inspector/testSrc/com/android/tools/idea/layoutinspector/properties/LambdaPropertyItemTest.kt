@@ -21,9 +21,10 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
-import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -44,6 +45,7 @@ import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.isNull
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 
@@ -63,7 +65,7 @@ class LambdaPropertyItemTest {
     val link = property.link
     val selection = property.lookup.selection
     val balloon = mockBalloonBuilder()
-    val inspector = LayoutInspector(DisconnectedClient, model {}, mock(), mock())
+    val inspector = createInspector()
 
     assertThat(link.templateText).isEqualTo("Text.kt:34")
 
@@ -71,7 +73,7 @@ class LambdaPropertyItemTest {
     UIUtil.dispatchAllInvocationEvents() // wait for invokeLater
 
     verify(navigatable).navigate(true)
-    verify(inspector.stats).gotoSourceFromPropertyValue(eq(selection))
+    verify(inspector.currentClient.stats).gotoSourceFromPropertyValue(eq(selection))
     verifyNoInteractions(balloon)
     assertThat(link.templateText).isEqualTo("Text.kt:34")
     assertThat(link.templatePresentation.isEnabled).isTrue()
@@ -83,12 +85,12 @@ class LambdaPropertyItemTest {
     val property = createProperty(location)
     val link = property.link
     val balloon = mockBalloonBuilder()
-    val inspector = LayoutInspector(DisconnectedClient, model {}, mock(), mock())
+    val inspector = createInspector()
     link.actionPerformed(event(inspector))
     UIUtil.dispatchAllInvocationEvents() // wait for invokeLater
 
     assertThat(link.templateText).isEqualTo("Text.kt:34")
-    verifyNoInteractions(inspector.stats)
+    verify(inspector.currentClient.stats, never()).gotoSourceFromPropertyValue(any())
     verify(balloon).show(any(RelativePoint::class.java), any())
     assertThat(getBalloonText()).isEqualTo("Could not determine source location")
   }
@@ -105,12 +107,12 @@ class LambdaPropertyItemTest {
     assertThat(link.templateText).isEqualTo("Text.kt:34")
 
     val balloon = mockBalloonBuilder()
-    val inspector = LayoutInspector(DisconnectedClient, model {}, mock(), mock())
+    val inspector = createInspector()
     link.actionPerformed(event(inspector))
     UIUtil.dispatchAllInvocationEvents() // wait for invokeLater
 
     verify(navigatable).navigate(true)
-    verify(inspector.stats).gotoSourceFromPropertyValue(eq(selection))
+    verify(inspector.currentClient.stats).gotoSourceFromPropertyValue(eq(selection))
     assertThat(link.templateText).isEqualTo("Text.kt:34")
     verify(balloon).show(any(RelativePoint::class.java), any())
     assertThat(getBalloonText()).isEqualTo("Could not determine exact source location")
@@ -145,6 +147,13 @@ class LambdaPropertyItemTest {
     whenever(lookup.selection).thenReturn(selection)
     whenever(resourceLookup.findLambdaLocation("com.example", "Text.kt", "f1$1", "", 34, 34)).thenReturn(location)
     return LambdaPropertyItem("onText", -2, "com.example", "Text.kt", "f1$1", "", 34, 34, lookup)
+  }
+
+  private fun createInspector(): LayoutInspector {
+    val client: InspectorClient = mock()
+    val stats: SessionStatistics = mock()
+    whenever(client.stats).thenReturn(stats)
+    return LayoutInspector(client, model {}, mock())
   }
 
   private fun event(inspector: LayoutInspector): AnActionEvent {

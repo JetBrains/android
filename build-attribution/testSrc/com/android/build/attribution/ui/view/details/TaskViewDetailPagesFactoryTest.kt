@@ -15,31 +15,31 @@
  */
 package com.android.build.attribution.ui.view.details
 
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
+import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.MockUiData
-import com.android.build.attribution.ui.data.PluginSourceType
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
+import com.android.build.attribution.ui.model.PluginDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksDataPageModelImpl
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.tools.adtui.TreeWalker
-import com.google.common.truth.Truth
-import com.intellij.testFramework.ApplicationRule
+import com.android.tools.adtui.swing.FakeUi
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
-import com.intellij.ui.HyperlinkLabel
-import com.intellij.util.ui.UIUtil
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import java.awt.Dimension
 import javax.swing.JEditorPane
 import javax.swing.JLabel
-import javax.swing.JPanel
+import javax.swing.text.Document
 
 class TaskViewDetailPagesFactoryTest {
-
-  @get:Rule
-  val applicationRule: ApplicationRule = ApplicationRule()
 
   @get:Rule
   val edtRule = EdtRule()
@@ -54,94 +54,8 @@ class TaskViewDetailPagesFactoryTest {
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
 
     val detailsPage = factory.createDetailsPage(TasksPageId.task(taskData, TasksDataPageModel.Grouping.UNGROUPED))
-
-    TreeWalker(detailsPage).descendants().filter { it is JEditorPane || it is JLabel }.let { textElements ->
-      Truth.assertThat(clearHtml((textElements[0] as JEditorPane).text)).isEqualTo("<b>:module1:task1</b>")
-      Truth.assertThat(clearHtml((textElements[1] as JEditorPane).text)).isEqualTo("""
-        This task frequently determines build duration because of dependencies between its inputs/outputs and other tasks.<br>
-        <br>
-        <b>Duration:</b> 0.1s / 10.0%<br>
-        Sub-project: :module1<br>
-        Plugin: myPlugin<br>
-        Type: CompilationType<br>
-        <br>
-      """.trimIndent())
-      Truth.assertThat(clearHtml((textElements[2] as JEditorPane).text)).isEqualTo("""
-        <b>Warnings</b><br>
-        No warnings found
-      """.trimIndent())
-    }
-  }
-
-  @Test
-  fun testAllWarningsForTaskInlined() {
-    val taskData = mockTask(":module1", "task1", "myPlugin", 100, criticalPathDurationMs = 1000)
-    val task2 = mockTask(":module1", "task2", "myPlugin2", 100, criticalPathDurationMs = 1000)
-    taskData.issues = listOf(
-      TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(taskData),
-      TaskIssueUiDataContainer.AlwaysRunUpToDateOverride(taskData),
-      TaskIssueUiDataContainer.TaskSetupIssue(taskData, task2, "")
-    )
-    val data = MockUiData(tasksList = listOf(taskData), criticalPathDurationMs = 1000)
-    val model = TasksDataPageModelImpl(data)
-    val factory = TaskViewDetailPagesFactory(model, mockHandlers)
-
-    val detailsPage = factory.createDetailsPage(TasksPageId.task(taskData, TasksDataPageModel.Grouping.UNGROUPED))
-
-    Truth.assertThat(
-      TreeWalker(detailsPage).descendants()
-        .filter { it.name?.startsWith("warning-") ?: false }
-        .map { it.name }
-        .toList()
-    ).containsExactly("warning-ALWAYS_RUN_TASKS", "warning-ALWAYS_RUN_TASKS", "warning-TASK_SETUP_ISSUE")
-  }
-
-  @Test
-  fun testBuildSrcPluginTaskDoesNotHaveReportLink() {
-    val taskData = mockTask(":module1", "task1", "myPlugin", 100, criticalPathDurationMs = 1000)
-      .apply {
-        sourceType = PluginSourceType.BUILD_SRC
-        issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
-      }
-
-    val data = MockUiData(tasksList = listOf(taskData), criticalPathDurationMs = 1000)
-    val model = TasksDataPageModelImpl(data)
-    val factory = TaskViewDetailPagesFactory(model, mockHandlers)
-
-    val detailsPage = factory.createDetailsPage(TasksPageId.task(taskData, TasksDataPageModel.Grouping.UNGROUPED))
-
-    Truth.assertThat(TreeWalker(detailsPage).descendants().filter { it is HyperlinkLabel && it.text == "Generate report" })
-      .isEmpty()
-  }
-
-  @Test
-  fun testTaskOnExtendedCriticalPathMessage() {
-    val taskData = mockTask(":module1", "task1", "myPlugin", 100, criticalPathDurationMs = 1000)
-      .apply {
-        onLogicalCriticalPath = false
-      }
-
-    val data = MockUiData(tasksList = listOf(taskData), criticalPathDurationMs = 1000)
-    val model = TasksDataPageModelImpl(data)
-    val factory = TaskViewDetailPagesFactory(model, mockHandlers)
-
-    val detailsPage = factory.createDetailsPage(TasksPageId.task(taskData, TasksDataPageModel.Grouping.UNGROUPED))
-
-    Truth.assertThat(clearHtml(TreeWalker(detailsPage).descendants().filterIsInstance<JEditorPane>()[1].text))
-      .startsWith("This task occasionally determines build duration because of parallelism constraints introduced by number of cores or other tasks in the same module.")
-  }
-
-  @Test
-  fun testTaskWhenNoPluginInfoBecauseOfConfigCache() {
-    val taskData = mockTask(":module1", "task1", "Unknown plugin", 100, pluginUnknownBecauseOfCC = true)
-    val data = MockUiData(tasksList = listOf(taskData), criticalPathDurationMs = 1000)
-    val model = TasksDataPageModelImpl(data)
-    val factory = TaskViewDetailPagesFactory(model, mockHandlers)
-
-    val detailsPage = factory.createDetailsPage(TasksPageId.task(taskData, TasksDataPageModel.Grouping.UNGROUPED))
-    val expectedHelpText = "Gradle did not provide plugin information for this task due to Configuration cache being enabled and its entry being reused."
-    Truth.assertThat(clearHtml(TreeWalker(detailsPage).descendants().filterIsInstance<JEditorPane>()[1].text))
-      .contains("Plugin: N/A <icon alt=\"$expectedHelpText\" src=\"AllIcons.General.ContextHelp\"><br>")
+    assertThat(TreeWalker(detailsPage).descendants().filterIsInstance<JEditorPane>()).hasSize(1)
+    // Just checking that page is created as expected, Content of the html for this page is tested in TaskDetailsPageTest.kt
   }
 
   @Test
@@ -151,30 +65,17 @@ class TaskViewDetailPagesFactoryTest {
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
     val pluginData = data.criticalPathPlugins.plugins.first { it.name == "myPlugin" }
+    val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as PluginDetailsNodeDescriptor
 
-    val detailsPage = factory.createDetailsPage(TasksPageId.plugin(pluginData))
-
-    Truth.assertThat(detailsPage.name).isEqualTo("myPlugin")
-    TreeWalker(detailsPage).descendants().filterIsInstance<JEditorPane>().first().text.let {
-      Truth.assertThat(clearHtml(it)).isEqualTo("""
-        <b>myPlugin</b><br>
-        Total duration: 0.1s<br>
-        Number of tasks: 1 task<br>
-        <br>
-      """.trimIndent())
-    }
-
-    TreeWalker(detailsPage).descendants().filterIsInstance<JPanel>().first { it.name == "plugin-warnings" }.let {
-      TreeWalker(it).descendants().filterIsInstance<JEditorPane>().first().text.let { headerText ->
-        Truth.assertThat(clearHtml(headerText)).isEqualTo("""
-          <b>Warnings</b><br>
-          No warnings detected for this plugin.
-        """.trimIndent())
-      }
-      TreeWalker(it).descendants().filterIsInstance<JPanel>().first { it.name == "plugin-warnings-list" }.let { warningsListPanel ->
-        Truth.assertThat(warningsListPanel.components).isEmpty()
-      }
-    }
+    val htmlBody = factory.pluginDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
+    assertThat(htmlBody).isEqualTo("""
+      <B>myPlugin</B><BR/>
+      Total duration: 0.1s<BR/>
+      Number of tasks: 1 task<BR/>
+      <BR/>
+      <B>Warnings</B><BR/>
+      No warnings detected for this plugin.
+    """.trimIndent())
   }
 
   @Test
@@ -190,20 +91,24 @@ class TaskViewDetailPagesFactoryTest {
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
     val pluginData = data.criticalPathPlugins.plugins.first { it.name == "myPlugin" }
+    val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as PluginDetailsNodeDescriptor
 
-    val detailsPage = factory.createDetailsPage(TasksPageId.plugin(pluginData))
+    val htmlBody = factory.pluginDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
 
-    TreeWalker(detailsPage).descendants().filterIsInstance<JPanel>().first { it.name == "plugin-warnings" }.let {
-      TreeWalker(it).descendants().filterIsInstance<JEditorPane>().first().text.let { headerText ->
-        Truth.assertThat(clearHtml(headerText)).isEqualTo("""
-          <b>Warnings</b><br>
-          3 tasks with warnings associated with this plugin.<br>
-        """.trimIndent())
-      }
-      TreeWalker(it).descendants().filterIsInstance<JPanel>().first { it.name == "plugin-warnings-list" }.let { warningsListPanel ->
-        Truth.assertThat(warningsListPanel.components).hasLength(3)
-      }
-    }
+    assertThat(htmlBody).isEqualTo("""
+<B>myPlugin</B><BR/>
+Total duration: 0.3s<BR/>
+Number of tasks: 3 tasks<BR/>
+<BR/>
+<B>Warnings</B><BR/>
+3 tasks with warnings associated with this plugin.<BR/>
+
+${expectedTaskSection(":module1:task1")}
+
+${expectedTaskSection(":module2:task1")}
+
+${expectedTaskSection(":module3:task1")}
+    """.trim())
   }
 
   @Test
@@ -213,25 +118,118 @@ class TaskViewDetailPagesFactoryTest {
         issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
       }
     })
+
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
     val pluginData = data.criticalPathPlugins.plugins.first { it.name == "myPlugin" }
+    val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as PluginDetailsNodeDescriptor
 
-    val detailsPage = factory.createDetailsPage(TasksPageId.plugin(pluginData))
+    val htmlBody = factory.pluginDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
+    assertThat(htmlBody).isEqualTo("""
+<B>myPlugin</B><BR/>
+Total duration: 2.0s<BR/>
+Number of tasks: 20 tasks<BR/>
+<BR/>
+<B>Warnings</B><BR/>
+20 tasks with warnings associated with this plugin.<BR/>
+Top 10 tasks shown below, you can find the full list in the tree on the left.<BR/>
 
-    TreeWalker(detailsPage).descendants().filterIsInstance<JPanel>().first { it.name == "plugin-warnings" }.let {
-      TreeWalker(it).descendants().filterIsInstance<JEditorPane>().first().text.let { headerText ->
-        Truth.assertThat(clearHtml(headerText)).isEqualTo("""
-          <b>Warnings</b><br>
-          20 tasks with warnings associated with this plugin.<br>
-          Top 10 tasks shown below, you can find the full list in the tree on the left.<br>
-        """.trimIndent())
-      }
-      TreeWalker(it).descendants().filterIsInstance<JPanel>().first { it.name == "plugin-warnings-list" }.let { warningsListPanel ->
-        Truth.assertThat(warningsListPanel.components).hasLength(10)
-      }
+${expectedTaskSection(":module1:task1")}
+
+${expectedTaskSection(":module2:task1")}
+
+${expectedTaskSection(":module3:task1")}
+
+${expectedTaskSection(":module4:task1")}
+
+${expectedTaskSection(":module5:task1")}
+
+${expectedTaskSection(":module6:task1")}
+
+${expectedTaskSection(":module7:task1")}
+
+${expectedTaskSection(":module8:task1")}
+
+${expectedTaskSection(":module9:task1")}
+
+${expectedTaskSection(":module10:task1")}
+    """.trim())
+  }
+
+  private fun expectedTaskSection(taskPath: String) = """
+<table><tr><td><icon alt='Warning' src='AllIcons.General.BalloonWarning'></td><td><a href='$taskPath'>$taskPath</a></td></tr>
+<tr><td></td><td>Type: CompilationType<BR/>
+Duration: 0.1s</td></tr>
+</table>
+This task runs on every build because it declares no outputs,<BR/>
+which it must do in order to support incremental builds.<BR/>
+<a href='NO_OUTPUTS_DECLARED_ISSUE'>Learn more</a><icon src='AllIcons.Ide.External_link_arrow'><BR/>
+    """.trim()
+
+  @Test
+  @RunsInEdt
+  fun testTaskNavigationLinkClicked() {
+    val data = MockUiData(tasksList = "myPlugin".let { pluginName ->
+      listOf(mockTask(":module1", "task1", pluginName, 100L).apply {
+        issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
+      })
+    })
+    val model = TasksDataPageModelImpl(data)
+    val factory = TaskViewDetailPagesFactory(model, mockHandlers)
+    model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
+    val pluginData = data.criticalPathPlugins.plugins.first { it.name == "myPlugin" }
+    val page = factory.createDetailsPage(TasksPageId.plugin(pluginData))
+    val pane = TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single()
+
+    page.size = Dimension(600, 600)
+    val ui = FakeUi(page)
+    ui.layoutAndDispatchEvents()
+
+    fun FakeUi.clickOnLink(linkText: String) {
+      val document: Document = pane.getDocument()
+      val text = document.getText(0, document.length)
+      val index: Int = text.indexOf(linkText)
+      val location = pane.modelToView2D(index).bounds.location
+      location.translate(2, 2)
+      clickRelativeTo(pane, location.x, location.y)
     }
+
+    ui.clickOnLink(":module1:task1")
+    Mockito.verify(mockHandlers).tasksDetailsLinkClicked(TasksPageId.task(data.tasksList[0], TasksDataPageModel.Grouping.BY_PLUGIN))
+  }
+
+  @Test
+  @Ignore("Currently does not work because can not open browser in test, needs refactoring, will address in the following CL")
+  @RunsInEdt
+  fun testLearnMoreLinkClicked() {
+    val data = MockUiData(tasksList = "myPlugin".let { pluginName ->
+      listOf(mockTask(":module1", "task1", pluginName, 100L).apply {
+          issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
+        })
+    })
+    val model = TasksDataPageModelImpl(data)
+    val factory = TaskViewDetailPagesFactory(model, mockHandlers)
+    model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
+    val pluginData = data.criticalPathPlugins.plugins.first { it.name == "myPlugin" }
+    val page = factory.createDetailsPage(TasksPageId.plugin(pluginData))
+    val pane = TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single()
+
+    page.size = Dimension(600, 600)
+    val ui = FakeUi(page)
+    ui.layoutAndDispatchEvents()
+
+    fun FakeUi.clickOnLink(linkText: String) {
+      val document: Document = pane.getDocument()
+      val text = document.getText(0, document.length)
+      val index: Int = text.indexOf(linkText)
+      val location = pane.modelToView2D(index).bounds.location
+      location.translate(2, 2)
+      clickRelativeTo(pane, location.x, location.y)
+    }
+
+    ui.clickOnLink("Learn more")
+    Mockito.verify(mockHandlers).helpLinkClicked(BuildAnalyzerBrowserLinks.NO_OUTPUTS_DECLARED_ISSUE)
   }
 
   @Test
@@ -241,13 +239,14 @@ class TaskViewDetailPagesFactoryTest {
 
     val detailsPage = factory.createDetailsPage(TasksPageId.emptySelection(TasksDataPageModel.Grouping.UNGROUPED))
 
-    Truth.assertThat(detailsPage.name).isEqualTo("empty-details")
-    Truth.assertThat((detailsPage.components.single() as JLabel).text).isEqualTo("Select page for details")
+    assertThat(detailsPage.name).isEqualTo("empty-details")
+    assertThat((detailsPage.components.single() as JLabel).text).isEqualTo("Select page for details")
   }
 
-  private fun clearHtml(html: String): String = UIUtil.getHtmlBody(html)
-    .trimIndent()
-    .replace("\n", "")
-    .replace("<br>", "<br>\n")
+  private fun String.clearHtml(): String = trimIndent()
+    .replace("<BR/>", "<BR/>\n")
+    .replace("<table>", "\n<table>")
+    .replace("</table>", "</table>\n")
+    .replace("</tr>", "</tr>\n")
     .trim()
 }

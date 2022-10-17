@@ -1,0 +1,19 @@
+plugins {
+  id 'org.jetbrains.kotlin.multiplatform'
+  id 'com.android.library'
+}
+
+android {
+    compileSdkVersion 30
+}
+
+kotlin {
+  android()
+  sourceSets {
+    commonMain {
+      dependencies {
+        implementation project(':common')
+      }
+    }
+  }
+}

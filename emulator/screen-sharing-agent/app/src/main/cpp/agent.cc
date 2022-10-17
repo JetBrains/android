@@ -65,7 +65,7 @@ Agent::Agent(const vector<string>& args)
   instance_ = this;
 
   for (int i = 1; i < args.size(); i++) {
-    auto arg = args[i];
+    const string& arg = args[i];
     if (arg.rfind("--log=", 0) == 0) {
       auto value = arg.substr(sizeof("--log=") - 1, arg.size());
       if (value == "verbose") {

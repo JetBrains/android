@@ -43,6 +43,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.containers.getIfSingle
@@ -82,10 +83,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
 
   private lateinit var surface: NlDesignSurface
 
-  private val animations = listOf(createComposeAnimation("animation1", type = ComposeAnimationType.ANIMATED_VISIBILITY),
-                                  createComposeAnimation("animation2", type = ComposeAnimationType.TRANSITION_ANIMATION),
-                                  createComposeAnimation("animation3", type = ComposeAnimationType.ANIMATED_VALUE),
-                                  createComposeAnimation("animation4", type = ComposeAnimationType.TRANSITION_ANIMATION))
+  private val animations = ComposeAnimationType.values().map { createComposeAnimation(it.toString(), type = it) }
 
   companion object {
     @JvmStatic
@@ -155,7 +153,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
   @Test
   fun noAnimationsPanelShownWhenNoAnimationsAreSubscribed() {
     val inspector = createAndOpenInspector()
-
+    UIUtil.pump() // Wait for UI to dispatch all events
     // When first opening the inspector, we show the panel informing there are no supported animations to be displayed
     assertNotNull(inspector.noAnimationsPanel())
     assertNull(inspector.tabbedPane.parent)
@@ -251,30 +249,32 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     }
 
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
 
-    // We can get any of the combo boxes, since "from" and "to" states should be the same.
-    val stateComboBoxes = TreeWalker(inspector.component).descendantStream().filter { it is ComboBox<*> }.collect(Collectors.toList())
-    assertEquals(2, stateComboBoxes.size) // "start" combobox and  "end" combobox.
-    val startStateComboBox = stateComboBoxes[0] as ComboBox<*>
-    val endStateComboBox = stateComboBoxes[1] as ComboBox<*>
+    invokeAndWaitIfNeeded {
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+      // We can get any of the combo boxes, since "from" and "to" states should be the same.
+      val stateComboBoxes = TreeWalker(inspector.component).descendantStream().filter { it is ComboBox<*> }.collect(Collectors.toList())
+      assertEquals(2, stateComboBoxes.size) // "start" combobox and  "end" combobox.
+      val startStateComboBox = stateComboBoxes[0] as ComboBox<*>
+      val endStateComboBox = stateComboBoxes[1] as ComboBox<*>
 
-    assertEquals(3, startStateComboBox.itemCount)
-    assertEquals("State1", startStateComboBox.getItemAt(0))
-    assertEquals("State2", startStateComboBox.getItemAt(1))
-    assertEquals("State3", startStateComboBox.getItemAt(2))
+      assertEquals(3, startStateComboBox.itemCount)
+      assertEquals("State1", startStateComboBox.getItemAt(0))
+      assertEquals("State2", startStateComboBox.getItemAt(1))
+      assertEquals("State3", startStateComboBox.getItemAt(2))
 
-    assertEquals("State1", startStateComboBox.selectedItem)
-    // The "end" combo box does not display the same state as the "start" combo box if possible
-    assertEquals("State2", endStateComboBox.selectedItem)
+      assertEquals("State1", startStateComboBox.selectedItem)
+      // The "end" combo box does not display the same state as the "start" combo box if possible
+      assertEquals("State2", endStateComboBox.selectedItem)
 
-    // Change state of the comboBox.
-    startStateComboBox.selectedItem = "State2"
-    UIUtil.pump() // Wait for all changes in UI thread
+      // Change state of the comboBox.
+      startStateComboBox.selectedItem = "State2"
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
 
-    // Change state of the comboBox back to previous state - cached transition info should be used.
-    startStateComboBox.selectedItem = "State1"
-    UIUtil.pump() // Wait for all changes in UI thread
+      // Change state of the comboBox back to previous state - cached transition info should be used.
+      startStateComboBox.selectedItem = "State1"
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+    }
   }
 
   @Test
@@ -321,17 +321,18 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
       override val states = setOf("State1", "State2", "State3")
     }
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
-
-    // We can get any of the combo boxes, since "from" and "to" states should be the same.
-    val sliders = TreeWalker(inspector.component).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
-    assertEquals(1, sliders.size) //
-    val timelineSlider = sliders[0] as JSlider
-    timelineSlider.value = 100
-    UIUtil.pump() // Wait for all changes in UI thread
-    timelineSlider.value = 200
-    UIUtil.pump() // Wait for all changes in UI thread
+    invokeAndWaitIfNeeded {
+      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for the tab to be added on the UI thread
+      // We can get any of the combo boxes, since "from" and "to" states should be the same.
+      val sliders = TreeWalker(inspector.component).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
+      assertEquals(1, sliders.size) //
+      val timelineSlider = sliders[0] as JSlider
+      timelineSlider.value = 100
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      timelineSlider.value = 200
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+    }
   }
 
   @Test
@@ -348,36 +349,38 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
       override val states = setOf("State1", "State2", "State3")
     }
 
-    ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
+    invokeAndWaitIfNeeded {
+      ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for the tab to be added on the UI thread
 
-    val toolbars = TreeWalker(inspector.component).descendantStream().filter { it is ActionToolbarImpl }.collect(
-      Collectors.toList()).map { it as ActionToolbarImpl }
-    val playbackControls = toolbars.firstOrNull { it.place == "Animation Preview" }
-    assertNotNull(playbackControls)
-    assertEquals(numberOfPlaybackControls, playbackControls!!.actions.size)
-    val actionEvent = Mockito.mock(AnActionEvent::class.java)
-    // Press loop
-    val loopAction = playbackControls.actions[0] as ToggleAction
-    loopAction.setSelected(actionEvent, true)
-    UIUtil.pump() // Wait for all changes in UI thread
-    // Play and pause
-    val playAction = playbackControls.actions[2]
-    playAction.actionPerformed(actionEvent)
-    UIUtil.pump() // Wait for all changes in UI thread
-    playAction.actionPerformed(actionEvent)
-    UIUtil.pump() // Wait for all changes in UI thread
-    // Go to start.
-    val goToStart = playbackControls.actions[1]
-    goToStart.actionPerformed(actionEvent)
-    UIUtil.pump() // Wait for all changes in UI thread
-    // Go to end.
-    val toToEnd = playbackControls.actions[3]
-    toToEnd.actionPerformed(actionEvent)
-    UIUtil.pump() // Wait for all changes in UI thread
-    // Un-press loop
-    loopAction.setSelected(actionEvent, false)
-    UIUtil.pump() // Wait for all changes in UI thread
+      val toolbars = TreeWalker(inspector.component).descendantStream().filter { it is ActionToolbarImpl }.collect(
+        Collectors.toList()).map { it as ActionToolbarImpl }
+      val playbackControls = toolbars.firstOrNull { it.place == "Animation Preview" }
+      assertNotNull(playbackControls)
+      assertEquals(numberOfPlaybackControls, playbackControls!!.actions.size)
+      val actionEvent = Mockito.mock(AnActionEvent::class.java)
+      // Press loop
+      val loopAction = playbackControls.actions[0] as ToggleAction
+      loopAction.setSelected(actionEvent, true)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      // Play and pause
+      val playAction = playbackControls.actions[2]
+      playAction.actionPerformed(actionEvent)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      playAction.actionPerformed(actionEvent)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      // Go to start.
+      val goToStart = playbackControls.actions[1]
+      goToStart.actionPerformed(actionEvent)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      // Go to end.
+      val toToEnd = playbackControls.actions[3]
+      toToEnd.actionPerformed(actionEvent)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      // Un-press loop
+      loopAction.setSelected(actionEvent, false)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+    }
   }
 
   @Test
@@ -460,18 +463,18 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     val inspector = createAndOpenInspector()
     val clock = getClock()
     animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it) }
-    UIUtil.pump() // Wait for cards to be added on the UI thread
-    val cards = TestUtils.findAllCards(inspector.component)
-    val timeline = TestUtils.findTimeline(inspector.component)
 
     invokeAndWaitIfNeeded {
-      // 4 cards and 4 TimelineElements are added to coordination panel.
-      assertEquals(4, cards.size)
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+      val cards = TestUtils.findAllCards(inspector.component)
+      val timeline = TestUtils.findTimeline(inspector.component)
+      // 11 cards and 11 TimelineElements are added to coordination panel.
+      assertEquals(11, cards.size)
       assertInstanceOf<AnimationCard>(cards[0])
-      assertInstanceOf<AnimationCard>(cards[1])
-      assertInstanceOf<LabelCard>(cards[2])
-      assertInstanceOf<AnimationCard>(cards[3])
-      assertEquals(4, timeline.sliderUI.elements.size)
+      assertInstanceOf<LabelCard>(cards[1])
+      assertInstanceOf<AnimationCard>(cards[2])
+      for(i in 3 until ComposeAnimationType.values().size) assertInstanceOf<LabelCard>(cards[i])
+      assertEquals(11, timeline.sliderUI.elements.size)
       // Only coordination tab is opened.
       assertEquals(1, inspector.tabbedPane.tabCount)
     }
@@ -482,11 +485,11 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     val clock = getClock()
     animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it) }
     UIUtil.pump() // Wait for cards to be added on the UI thread
-    assertEquals(4, inspector.animations.size)
+    assertEquals(11, inspector.animations.size)
     assertInstanceOf<AnimationManager>(inspector.animations[0])
-    assertInstanceOf<AnimationManager>(inspector.animations[1])
-    assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[2])
-    assertInstanceOf<AnimationManager>(inspector.animations[3])
+    assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[1])
+    assertInstanceOf<AnimationManager>(inspector.animations[2])
+    for(i in 3 until ComposeAnimationType.values().size) assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[i])
   }
   @Test
   fun `preview inspector`() {

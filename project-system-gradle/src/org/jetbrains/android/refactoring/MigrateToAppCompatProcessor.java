@@ -118,16 +118,15 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   static final String ANDROID_WIDGET_SHARE_PROVIDER_CLASS = "android.widget.ShareActionProvider";
   static final String ATTR_ACTION_PROVIDER_CLASS = "actionProviderClass";
   static final String CLASS_SUPPORT_FRAGMENT_ACTIVITY = "android.support.v4.app.FragmentActivity";
-  static final AndroidxName ANDROID_SUPPORT_V7_APP_ALERT_DIALOG =
-    AndroidxName.of("android.support.v7.app.", "AlertDialog");
-  static final AndroidxName ANDROID_SUPPORT_V7_WIDGET_SEARCH_VIEW = AndroidxName.of("android.support.v7.widget.", "SearchView");
-  static final AndroidxName ANDROID_SUPPORT_V7_WIDGET_SHARE_ACTION_PROVIDER = AndroidxName.of("android.support.v7.widget.", "ShareActionProvider");
-  static final AndroidxName ANDROID_SUPPORT_V4_VIEW_ACTION_PROVIDER = AndroidxName.of("android.support.v4.view.", "ActionProvider");
-  static final AndroidxName ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT = AndroidxName.of("android.support.v4.view.", "MenuItemCompat");
-  static final AndroidxName ANDROID_SUPPORT_V7_WIDGET_LIST_POPUP_WINDOW = AndroidxName.of("android.support.v7.widget.", "ListPopupWindow");
-  static final AndroidxName ANDROID_SUPPORT_V7_APP_ACTION_BAR = AndroidxName.of("android.support.v7.app.", "ActionBar");
-  static final AndroidxName ANDROID_SUPPORT_V4_APP_FRAGMENT_TRANSACTION = AndroidxName.of("android.support.v4.app.", "FragmentTransaction");
-  static final AndroidxName ANDROID_SUPPORT_V4_APP_FRAGMENT_MANAGER = AndroidxName.of("android.support.v4.app.", "FragmentManager");
+  static final AndroidxName ANDROID_SUPPORT_V7_APP_ALERT_DIALOG = new AndroidxName("android.support.v7.app.AlertDialog", "androidx.appcompat.app.AlertDialog");
+  static final AndroidxName ANDROID_SUPPORT_V7_WIDGET_SEARCH_VIEW = new AndroidxName("android.support.v7.widget.SearchView", "androidx.appcompat.widget.SearchView");
+  static final AndroidxName ANDROID_SUPPORT_V7_WIDGET_SHARE_ACTION_PROVIDER = new AndroidxName("android.support.v7.widget.ShareActionProvider", "androidx.appcompat.widget.ShareActionProvider");
+  static final AndroidxName ANDROID_SUPPORT_V4_VIEW_ACTION_PROVIDER = new AndroidxName("android.support.v4.view.ActionProvider", "androidx.core.view.ActionProvider");
+  static final AndroidxName ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT = new AndroidxName("android.support.v4.view.MenuItemCompat", "androidx.core.view.MenuItemCompat");
+  static final AndroidxName ANDROID_SUPPORT_V7_WIDGET_LIST_POPUP_WINDOW = new AndroidxName("android.support.v7.widget.ListPopupWindow", "androidx.appcompat.widget.ListPopupWindow");
+  static final AndroidxName ANDROID_SUPPORT_V7_APP_ACTION_BAR = new AndroidxName("android.support.v7.app.ActionBar", "androidx.appcompat.app.ActionBar");
+  static final AndroidxName ANDROID_SUPPORT_V4_APP_FRAGMENT_TRANSACTION = new AndroidxName("android.support.v4.app.FragmentTransaction", "androidx.fragment.app.FragmentTransaction");
+  static final AndroidxName ANDROID_SUPPORT_V4_APP_FRAGMENT_MANAGER = new AndroidxName("android.support.v4.app.FragmentManager", "androidx.fragment.app.FragmentManager");
 
   /**
    * Dependency to add to build.gradle

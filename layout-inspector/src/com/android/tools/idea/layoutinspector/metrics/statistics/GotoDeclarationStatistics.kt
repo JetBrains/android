@@ -50,10 +50,14 @@ class GotoDeclarationStatistics {
   /**
    * Save the session data recorded since [start].
    */
-  fun save(data: DynamicLayoutInspectorGotoDeclaration.Builder) {
-    data.clicksMenuAction = menuActionClicks
-    data.keyStrokesShortcut = actionShortcutKeyStrokes
-    data.doubleClicks = doubleClicks
+  fun save(dataSupplier: () -> DynamicLayoutInspectorGotoDeclaration.Builder) {
+    if (menuActionClicks > 0 || actionShortcutKeyStrokes > 0 || doubleClicks > 0) {
+      dataSupplier().let {
+        it.clicksMenuAction = menuActionClicks
+        it.keyStrokesShortcut = actionShortcutKeyStrokes
+        it.doubleClicks = doubleClicks
+      }
+    }
   }
 
   fun gotoSourceFromTreeActionMenu(event: AnActionEvent) {

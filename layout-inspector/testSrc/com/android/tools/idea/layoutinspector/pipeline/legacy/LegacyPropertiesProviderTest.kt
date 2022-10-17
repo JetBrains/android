@@ -40,6 +40,7 @@ import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import java.awt.Rectangle
 
 class LegacyPropertiesProviderTest {
   @get:Rule
@@ -102,7 +103,7 @@ class LegacyPropertiesProviderTest {
   fun testExample() {
     val lookup = Mockito.mock(ViewNodeAndResourceLookup::class.java)
     whenever(lookup.resourceLookup).thenReturn(Mockito.mock(ResourceLookup::class.java))
-    val root = ViewNode(1234, "TextView", null, 0, 0, 0, 0, null, null, "", 0)
+    val root = ViewNode(1234, "TextView", null, Rectangle(), null, "", 0)
     val provider = LegacyPropertiesProvider()
     val propertyLoader = LegacyPropertiesProvider.Updater(lookup)
     propertyLoader.parseProperties(root, example)
@@ -111,10 +112,10 @@ class LegacyPropertiesProviderTest {
     provider.resultListeners.add { _, _, table -> properties = table}
     provider.requestProperties(root)
     assertThat(root.drawId).isEqualTo(1234)
-    assertThat(root.x).isEqualTo(4)
-    assertThat(root.y).isEqualTo(350)
-    assertThat(root.width).isEqualTo(1432)
-    assertThat(root.height).isEqualTo(123)
+    assertThat(root.layoutBounds.x).isEqualTo(4)
+    assertThat(root.layoutBounds.y).isEqualTo(350)
+    assertThat(root.layoutBounds.width).isEqualTo(1432)
+    assertThat(root.layoutBounds.height).isEqualTo(123)
     assertThat(root.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=textView}")
     // TODO(171901393): assertThat(root.isDimBehind).isTrue()
     assertThat(properties.getOrNull(ANDROID_URI, ATTR_DIM_BEHIND)).isNull()

@@ -31,6 +31,7 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCaptureParser
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
@@ -64,7 +65,7 @@ class CallChartDetailsViewTest {
   fun showsContentWhenNodeIsNotNull() {
     val callChart = CaptureDetails.Type.CALL_CHART.build(ClockType.GLOBAL, Range(),
                                                          listOf(capture.getCaptureNode(capture.mainThreadId)!!),
-                                                         capture) as CaptureDetails.CallChart
+                                                         capture, Utils::runOnUi) as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(profilersView, callChart)
 
     val noDataInstructionsList = TreeWalker(callChartView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
@@ -87,7 +88,7 @@ class CallChartDetailsViewTest {
 
     val callChart = CaptureDetails.Type.CALL_CHART.build(ClockType.GLOBAL, Range(Double.MIN_VALUE, Double.MAX_VALUE),
                                                          listOf(aTraceCapture.getCaptureNode(aTraceCapture.mainThreadId)!!),
-                                                         aTraceCapture) as CaptureDetails.CallChart
+                                                         aTraceCapture, Utils::runOnUi) as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(profilersView, callChart)
     val treeChart = TreeWalker(callChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()
     assertThat(treeChart.mouseMotionListeners[2]).isInstanceOf(CpuTraceEventTooltipView::class.java)
@@ -99,7 +100,7 @@ class CallChartDetailsViewTest {
     val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
     val callChart = CaptureDetails.Type.CALL_CHART.build(ClockType.GLOBAL, range,
                                                          listOf(capture.getCaptureNode(capture.mainThreadId)!!),
-                                                         capture) as CaptureDetails.CallChart
+                                                         capture, Utils::runOnUi) as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(profilersView, callChart)
 
     val noDataInstructions = TreeWalker(callChartView.component).descendants().filterIsInstance<InstructionsPanel>().first {

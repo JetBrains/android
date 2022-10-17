@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
-  <component name="FacetManager">
+<component name="FacetManager">
     <facet type="kotlin-language" name="Kotlin">
       <configuration version="3" platform="11" allPlatforms="JVM [11]" useProjectSettings="false">
         <compilerSettings>
@@ -16,6 +16,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module-library" exported="">
       <library name="compose-desktop-animation">
@@ -95,6 +97,5 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
   </component>
 </module>

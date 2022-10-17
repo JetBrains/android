@@ -20,11 +20,9 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getDependencyDisplay
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
-import com.android.SdkConstants;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.util.PathString;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
@@ -34,7 +32,6 @@ import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.FilenameConstants;
@@ -86,6 +83,7 @@ import com.intellij.util.ui.HTMLEditorKitBuilder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.tree.TreeUtil;
+import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
@@ -103,6 +101,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.swing.Icon;
 import javax.swing.JEditorPane;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -458,43 +457,34 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     HtmlBuilder sb = new HtmlBuilder();
     prepareReportHeader(sb);
 
-    // See if there are errors; if so, show the merging report instead of node selection report
-    if (!myManifest.getLoggingRecords().isEmpty()) {
-      for (MergingReport.Record record : myManifest.getLoggingRecords()) {
-        if (record.getSeverity() == MergingReport.Record.Severity.ERROR) {
-          node = null;
-          break;
-        }
-      }
-    }
-
+    // If a node is selected, show relevant info, otherwise show any general errors.
     if (node != null) {
       prepareSelectedNodeReport(node, sb);
     }
-    else if (!myManifest.getLoggingRecords().isEmpty()) {
-      prepareMergingErrorsReport(sb);
+    else {
+      prepareMergingErrorsReportForEverything(sb);
     }
 
     sb.closeHtmlBody();
     return sb;
   }
 
-  private void prepareMergingErrorsReport(@NotNull HtmlBuilder sb) {
-    sb.add("Merging Errors:").newline();
-    for (MergingReport.Record record : myManifest.getLoggingRecords()) {
-      sb.addHtml(getHtml(record.getSeverity()));
-      sb.add(" ");
-      try {
-        sb.addHtml(getErrorHtml(myFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager,
-                                LocalFileSystem.getInstance().findFileByIoFile(myFiles.get(0).getFile()), myManifestEditable));
-      }
-      catch (Exception ex) {
-        Logger.getInstance(ManifestPanel.class).error("error getting error html", ex);
-        sb.add(record.getMessage());
-      }
-      sb.add(" ");
-      sb.addHtml(getHtml(myFacet, record.getSourceLocation()));
-      sb.newline();
+  private void prepareMergingErrorsReportForEverything(@NotNull HtmlBuilder sb) {
+    List<MergingReport.Record> errors =
+      myManifest.getLoggingRecords().stream()
+        .filter(record -> record.getSeverity().equals(MergingReport.Record.Severity.ERROR))
+        .collect(Collectors.toList());
+    if (!errors.isEmpty()) {
+      appendMergeRecordTitle(sb, "Merge Errors");
+      errors.forEach((record) -> prepareErrorRecord(sb, record));
+    }
+
+    List<MergingReport.Record> warnings = myManifest.getLoggingRecords().stream()
+      .filter(record -> record.getSeverity().equals(MergingReport.Record.Severity.WARNING))
+      .collect(Collectors.toList());
+    if (!warnings.isEmpty()) {
+      appendMergeRecordTitle(sb, "Merge Warnings");
+      warnings.forEach((record) -> prepareErrorRecord(sb, record));
     }
   }
 
@@ -540,6 +530,50 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       }
       sb.newline();
     }
+    prepareMergingErrorsForNode(manifestNode, sb, records);
+  }
+
+  private void prepareMergingErrorsForNode(@NotNull Node manifestNode,
+                                           @NotNull HtmlBuilder sb,
+                                           List<? extends Actions.Record> actionRecords) {
+    if (doesNodeHaveRecordOfSeverity(manifestNode, MergingReport.Record.Severity.WARNING)) {
+      appendMergeRecordTitle(sb, "Merge Warnings");
+      myManifest.getLoggingRecords().stream()
+        .filter(record ->
+                  actionRecords.stream().anyMatch(actionRecord -> record.getSourceLocation().equals(actionRecord.getActionLocation())))
+        .forEach(record -> prepareErrorRecord(sb, record));
+    }
+    if (doesNodeHaveRecordOfSeverity(manifestNode, MergingReport.Record.Severity.ERROR)) {
+      appendMergeRecordTitle(sb, "Merge Errors");
+      myManifest.getLoggingRecords().stream()
+        .filter(record ->
+                  actionRecords.stream().anyMatch(actionRecord -> record.getSourceLocation().equals(actionRecord.getActionLocation())))
+        .forEach(record -> prepareErrorRecord(sb, record));
+    }
+  }
+
+
+  private void appendMergeRecordTitle(@NotNull HtmlBuilder sb, String title) {
+    sb.newline();
+    sb.beginUnderline().beginBold();
+    sb.add(title);
+    sb.endBold().endUnderline().newline();
+  }
+
+  private void prepareErrorRecord(@NotNull HtmlBuilder sb, MergingReport.Record record) {
+    sb.addHtml(getHtmlForErrorRecord(record.getSeverity()));
+    sb.add(" ");
+    try {
+      sb.addHtml(getErrorHtml(myFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager,
+                              LocalFileSystem.getInstance().findFileByIoFile(myFiles.get(0).getFile()), myManifestEditable));
+    }
+    catch (Exception ex) {
+      Logger.getInstance(ManifestPanel.class).error("error getting error html", ex);
+      sb.add(record.getMessage());
+    }
+    sb.add(" ");
+    sb.addHtml(getHtml(myFacet, record.getSourceLocation()));
+    sb.newline();
   }
 
   private void prepareReportHeader(@NotNull HtmlBuilder sb) {
@@ -594,6 +628,33 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       }
     }
     return myBackgroundColor;
+  }
+
+  private boolean doesNodeHaveRecordOfSeverity(@NotNull Node node, MergingReport.Record.Severity severity) {
+    List<? extends Actions.Record> actionRecords = ManifestUtils.getRecords(myManifest, node);
+    return myManifest.getLoggingRecords().stream().filter(record -> record.getSeverity().equals(severity)).anyMatch(
+      record -> {
+        for (Actions.Record actionRecord : actionRecords) {
+          if (record.getSourceLocation().equals(actionRecord.getActionLocation())) {
+            return true;
+          }
+        }
+        return false;
+      }
+    );
+  }
+
+  @Nullable
+  private Icon getNodeIcon(@NotNull Node node) {
+    if (doesNodeHaveRecordOfSeverity(node, MergingReport.Record.Severity.ERROR)) {
+      return StudioIcons.Common.ERROR;
+    }
+    else if (doesNodeHaveRecordOfSeverity(node, MergingReport.Record.Severity.WARNING)) {
+      return StudioIcons.Common.WARNING;
+    }
+    else {
+      return null;
+    }
   }
 
   @NotNull
@@ -756,95 +817,62 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
      */
     HtmlBuilder sb = new HtmlBuilder();
 
-    GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(facet.getModule().getProject());
-    if (gradleVersion != null && gradleVersion.isAtLeast(3, 0, 0)) {
-      String versionPrefix = "to at least ";
-      int start = message.indexOf(versionPrefix) + versionPrefix.length();
-      if (start < 0) {
-        throw new IllegalArgumentException("unexpected use suggestion format " + message);
-      }
-      int end = message.indexOf(',', start);
-      if (end < 0) {
-        throw new IllegalArgumentException("unexpected use suggestion format " + message);
-      }
-      final String minSdkVersionString = message.substring(start, end);
-      int minSdkVersion;
-      try {
-        minSdkVersion = Integer.parseInt(minSdkVersionString);
-      } catch (NumberFormatException e) {
-        // Ignore this and just add the message, we don't want to add a link
-        sb.add(message);
-        return sb.getHtml();
-      }
+    String versionPrefix = "to at least ";
+    int start = message.indexOf(versionPrefix) + versionPrefix.length();
+    if (start < 0) {
+      throw new IllegalArgumentException("unexpected use suggestion format " + message);
+    }
+    int end = message.indexOf(',', start);
+    if (end < 0) {
+      throw new IllegalArgumentException("unexpected use suggestion format " + message);
+    }
+    final String minSdkVersionString = message.substring(start, end);
+    int minSdkVersion;
+    try {
+      minSdkVersion = Integer.parseInt(minSdkVersionString);
+    }
+    catch (NumberFormatException e) {
+      // Ignore this and just add the message, we don't want to add a link
+      sb.add(message);
+      return sb.getHtml();
+    }
 
-      final int finalMinSdk = minSdkVersion;
+    final int finalMinSdk = minSdkVersion;
 
-      Runnable link =
-        () -> {
-          Runnable linkAction = () -> {
-            // We reparse the buildModel as it is possible that it has change since this link was created.
-            ProjectBuildModel pbm = ProjectBuildModel.get(facet.getModule().getProject());
-            GradleBuildModel gbm = pbm.getModuleBuildModel(facet.getModule());
+    Runnable link =
+      () -> {
+        Runnable linkAction = () -> {
+          // We reparse the buildModel as it is possible that it has change since this link was created.
+          ProjectBuildModel pbm = ProjectBuildModel.get(facet.getModule().getProject());
+          GradleBuildModel gbm = pbm.getModuleBuildModel(facet.getModule());
 
-            if (gbm == null) {
-              return;
-            }
+          if (gbm == null) {
+            return;
+          }
 
-            gbm.android().defaultConfig().minSdkVersion().setValue(finalMinSdk);
-            ApplicationManager.getApplication().invokeAndWait(() -> WriteCommandAction
-              .runWriteCommandAction(facet.getModule().getProject(), "Update build file minSdkVersion", null, () -> pbm.applyChanges(),
-                                     gbm.getPsiFile()));
-            // We must make sure that the files have been updated before we sync, we block above but not here.
-            Runnable syncRunnable = () -> requestSync(facet.getModule().getProject());
-            if (ApplicationManager.getApplication().isUnitTestMode()) {
-              syncRunnable.run();
-            }
-            else {
-              ApplicationManager.getApplication().invokeLater(syncRunnable);
-            }
-          };
-
+          gbm.android().defaultConfig().minSdkVersion().setValue(finalMinSdk);
+          ApplicationManager.getApplication().invokeAndWait(() -> WriteCommandAction
+            .runWriteCommandAction(facet.getModule().getProject(), "Update build file minSdkVersion", null, () -> pbm.applyChanges(),
+                                   gbm.getPsiFile()));
+          // We must make sure that the files have been updated before we sync, we block above but not here.
+          Runnable syncRunnable = () -> requestSync(facet.getModule().getProject());
           if (ApplicationManager.getApplication().isUnitTestMode()) {
-            linkAction.run();
+            syncRunnable.run();
           }
           else {
-            ApplicationManager.getApplication().executeOnPooledThread(linkAction);
+            ApplicationManager.getApplication().invokeLater(syncRunnable);
           }
         };
-      sb.addLink(message.substring(0, end), htmlLinkManager.createRunnableLink(link));
-      sb.add(message.substring(end));
-    } else {
-      // use tools override suggestion.
-      int eq = message.indexOf('=');
-      if (eq < 0) {
-        throw new IllegalArgumentException("unexpected use suggestion format " + message);
-      }
-      int end = message.indexOf('"', eq + 2);
-      if (end < 0 || message.charAt(eq + 1) != '\"') {
-        throw new IllegalArgumentException("unexpected use suggestion format " + message);
-      }
-      final String suggestion = message.substring(message.indexOf(' ') + 1, end + 1);
-      if (!SourcePosition.UNKNOWN.equals(position.getPosition())) {
-        XmlFile mainManifest = ManifestUtils.getMainManifest(facet);
-        Element element = getElementAt(mainManifest, position.getPosition().getStartLine(), position.getPosition().getStartColumn());
-        if (element != null && SdkConstants.TAG_USES_SDK.equals(element.getTagName())) {
-          sb.addLink(message.substring(0, end + 1), htmlLinkManager.createRunnableLink(() -> {
-            int eq1 = suggestion.indexOf('=');
-            String attributeName = suggestion.substring(suggestion.indexOf(':') + 1, eq1);
-            String attributeValue = suggestion.substring(eq1 + 2, suggestion.length() - 1);
-            addToolsAttribute(mainManifest, element, attributeName, attributeValue);
-          }));
-          sb.add(message.substring(end + 1));
+
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+          linkAction.run();
         }
         else {
-          Logger.getInstance(ManifestPanel.class).warn("Can not find uses-sdk tag " + element);
-          sb.add(message);
+          ApplicationManager.getApplication().executeOnPooledThread(linkAction);
         }
-      } else {
-        sb.add(message);
-      }
-      sb.newlineIfNecessary().newline();
-    }
+      };
+    sb.addLink(message.substring(0, end), htmlLinkManager.createRunnableLink(link));
+    sb.add(message.substring(end));
     return sb.getHtml();
   }
 
@@ -864,11 +892,11 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   @NotNull
-  static String getHtml(@NotNull MergingReport.Record.Severity severity) {
+  static String getHtmlForErrorRecord(@NotNull MergingReport.Record.Severity severity) {
     String severityString = StringUtil.capitalize(StringUtil.toLowerCase(severity.toString()));
-    if (severity == MergingReport.Record.Severity.ERROR) {
+    if (severity == MergingReport.Record.Severity.ERROR || severity == MergingReport.Record.Severity.WARNING) {
       return new HtmlBuilder().addHtml("<font color=\"#" + ColorUtil.toHex(JBColor.RED) + "\">")
-        .addBold(severityString).addHtml("</font>:").getHtml();
+        .addBold(severityString).addHtml("</font>").endBold().addHtml(":").getHtml();
     }
     return severityString;
   }
@@ -1197,7 +1225,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       if (value instanceof ManifestTreeNode) {
         ManifestTreeNode node = (ManifestTreeNode)value;
 
-        setIcon(null);
+        setIcon(getNodeIcon(node.getUserObject()));
 
         if (node.getUserObject() instanceof Element) {
           Element element = (Element)node.getUserObject();

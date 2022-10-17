@@ -112,7 +112,7 @@ class AndroidProjectRule private constructor(
    * Default is the test class' short name.
    */
   private var fixtureName: String? = null
-) : NamedExternalResource() {
+) : NamedExternalResource(), IntegrationTestEnvironment {
 
   private var userHome: String? = null
   lateinit var fixture: CodeInsightTestFixture
@@ -405,9 +405,15 @@ class AndroidProjectRule private constructor(
   fun waitForResourceRepositoryUpdates() {
     waitForResourceRepositoryUpdates(module)
   }
+
+  override fun getBaseTestPath(): String {
+    return fixture.tempDirPath
+  }
 }
 
-class EdtAndroidProjectRule(val projectRule: AndroidProjectRule) : TestRule by RuleChain.outerRule(projectRule).around(EdtRule())!! {
+class EdtAndroidProjectRule(val projectRule: AndroidProjectRule) :
+  IntegrationTestEnvironment by projectRule,
+  TestRule by RuleChain.outerRule(projectRule).around(EdtRule())!! {
   val project: Project get() = projectRule.project
   val fixture: CodeInsightTestFixture get() = projectRule.fixture
   val testRootDisposable: Disposable get() = projectRule.testRootDisposable

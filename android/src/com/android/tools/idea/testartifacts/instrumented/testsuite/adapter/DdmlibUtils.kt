@@ -43,6 +43,7 @@ fun convertIDeviceToAndroidDevice(device: IDevice): AndroidDevice {
                        },
                        device.version,
                        Collections.synchronizedMap(LinkedHashMap())).apply {
+    additionalInfo["SerialNumber"] = device.serialNumber
     CoroutineScope(AndroidDispatchers.workerThread + androidCoroutineExceptionHandler).launch {
       executeShellCommandSync(device, "cat /proc/meminfo") { output ->
         output.lineSequence().map {

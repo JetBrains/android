@@ -22,8 +22,8 @@ import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
 
 /**
- * The Device Explorer model class: encapsulates the list of devices,
- * their file system and also associated state changes to via the
+ * The Device Monitor model class: encapsulates the list of devices,
+ * their list of processes and also associated state changes to via the
  * [DeviceMonitorModelListener] listener class.
  */
 class DeviceMonitorModel {

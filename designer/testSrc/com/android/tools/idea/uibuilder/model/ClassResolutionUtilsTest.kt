@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.tools.idea.SIMPLE_DESIGN_PROJECT_PATH
-import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ReadAction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -27,18 +25,26 @@ import org.junit.Test
 
 class ClassResolutionUtilsTest {
   @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  val projectRule = AndroidProjectRule.withSdk()
 
   @Before
   fun setUp() {
-    projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/designer/testData").toString()
+    projectRule.fixture.addFileToProject("src/google/simpleapplication/CustomView.java", """
+      package google.simpleapplication;
+
+      import android.content.Context;
+      import android.widget.TextView;
+
+      public class CustomView extends TextView {
+        public CustomView(Context context) {
+          super(context);
+        }
+      }
+    """.trimIndent())
   }
 
   @Test
   fun checkFindClassesForViewTag() {
-    projectRule.load(SIMPLE_DESIGN_PROJECT_PATH)
-    projectRule.requestSyncAndWait()
-
     ReadAction.run<Throwable> {
       val textViewClass = findClassForViewTag(projectRule.project, "TextView")
       assertNotNull(textViewClass)

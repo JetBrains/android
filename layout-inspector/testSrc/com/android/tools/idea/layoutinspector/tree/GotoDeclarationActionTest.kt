@@ -21,20 +21,22 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.runInEdtAndGet
 import org.junit.Before
@@ -62,7 +64,7 @@ class GotoDeclarationActionTest {
     val stats = runInEdtAndGet {
       val model = createModel()
       model.setSelection(model["title"], SelectionOrigin.INTERNAL)
-      val stats = SessionStatistics(model, FakeTreeSettings())
+      val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, model)
       val event = createEvent(model, stats)
       GotoDeclarationAction.actionPerformed(event)
       stats
@@ -76,7 +78,7 @@ class GotoDeclarationActionTest {
     val stats = runInEdtAndGet {
       val model = createModel()
       model.setSelection(model[-2], SelectionOrigin.INTERNAL)
-      val stats = SessionStatistics(model, FakeTreeSettings())
+      val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, model)
       val event = createEvent(model, stats, fromShortcut = true)
       GotoDeclarationAction.actionPerformed(event)
       stats
@@ -91,7 +93,7 @@ class GotoDeclarationActionTest {
     val stats = runInEdtAndGet {
       val model = createModel()
       model.setSelection(model[-5], SelectionOrigin.INTERNAL)
-      val stats = SessionStatistics(model, FakeTreeSettings())
+      val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, model)
       val event = createEvent(model, stats)
       GotoDeclarationAction.actionPerformed(event)
       stats
@@ -120,20 +122,12 @@ class GotoDeclarationActionTest {
     })
 
   private fun createEvent(model: InspectorModel, stats: SessionStatistics, fromShortcut: Boolean = false): AnActionEvent {
-    val inspector: LayoutInspector = mock()
-    whenever(inspector.layoutInspectorModel).thenReturn(model)
-    whenever(inspector.stats).thenReturn(stats)
-    val dataContext = object : DataContext {
-      override fun getData(dataId: String): Any? {
-        return null
-      }
-
-      override fun <T> getData(key: DataKey<T>): T? {
-        @Suppress("UNCHECKED_CAST")
-        return if (key == LAYOUT_INSPECTOR_DATA_KEY) inspector as T else null
-      }
-    }
-    val actionManager:ActionManager = mock()
+    val client: InspectorClient = mock()
+    whenever(client.stats).thenReturn(stats)
+    val inspector = LayoutInspector(client, model, mock())
+    val dataContext: DataContext = mock()
+    whenever(dataContext.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(inspector)
+    val actionManager: ActionManager = mock()
     val inputEvent = if (fromShortcut) mock<KeyEvent>() else mock<InputEvent>()
     return AnActionEvent(inputEvent, dataContext, ActionPlaces.UNKNOWN, Presentation(), actionManager, 0)
   }

@@ -23,7 +23,6 @@ import com.android.tools.adtui.stdui.CommonTabbedPaneUI
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.APP_PROGUARDED_MESSAGE
-import com.android.tools.idea.appinspection.ide.AppInspectionToolWindowControl
 import com.android.tools.idea.appinspection.ide.AppInspectorTabLaunchSupport
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.ide.InspectorJarTarget
@@ -98,7 +97,7 @@ class AppInspectionView @VisibleForTesting constructor(
   private val uiDispatcher: CoroutineDispatcher,
   private val artifactService: InspectorArtifactService,
   isPreferredProcess: (ProcessDescriptor) -> Boolean = { false }
-) : AppInspectionToolWindowControl, Disposable {
+) : Disposable {
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
 
   @VisibleForTesting
@@ -495,26 +494,9 @@ class AppInspectionView @VisibleForTesting constructor(
     inspectorTabs.forEach { Disposer.dispose(it) }
   }
 
-  /**
-   * This allows selection of inspector tab by components outside of App Inspection.
-   *
-   * Allows other parts of Studio to open App Inspection tool window and select
-   * a tab of their choice on demand. If the tool window is not yet populated, it
-   * will set [selectedTabName] so that when it does populate with tabs, it will set
-   * the right one.
-   */
-  override fun setTab(tabName: String) {
-    scope.launch(uiDispatcher) {
-      if (inspectorTabs.isEmpty()) {
-        selectedTabName = tabName
-      }
-      else {
-        val tabIndex = inspectorTabs.indexOfFirst { it.provider.displayName == tabName }
-        if (tabIndex >= 0) {
-          val pane = inspectorPanel.getComponent(0) as CommonTabbedPane
-          pane.selectedIndex = tabIndex
-        }
-      }
-    }
+  fun isTabSelected(inspectorId: String): Boolean {
+    val inspectorTabIndex = inspectorTabs.indexOfFirst { tab -> tab.provider.launchConfigs.find { it.id == inspectorId } != null }
+    val pane = inspectorPanel.getComponent(0) as CommonTabbedPane
+    return pane.selectedIndex == inspectorTabIndex
   }
 }

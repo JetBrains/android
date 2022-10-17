@@ -104,7 +104,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     Module appModule = TestModuleUtil.findAppModule(project);
     VirtualFile buildFile = getGradleBuildFile(appModule);
     assertThat(buildFile).isNotNull();
-    reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)));
+    reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)), "/");
 
     verify(myStrategy1, never())
       .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
@@ -112,7 +112,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     verify(myStrategy2)
       .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
                  any());
-    verify(usageReporter).reportToUsageTracker();
+    verify(usageReporter).reportToUsageTracker("/");
   }
 
   public void testReportWarning() throws Exception {
@@ -133,7 +133,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     Module appModule = TestModuleUtil.findAppModule(project);
     VirtualFile buildFile = getGradleBuildFile(appModule);
     assertThat(buildFile).isNotNull();
-    reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)));
+    reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)), "/");
 
     verify(myStrategy1, never())
       .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
@@ -141,7 +141,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     verify(myStrategy2)
       .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
                  any());
-    verify(usageReporter).reportToUsageTracker();
+    verify(usageReporter).reportToUsageTracker("/");
   }
 
   public void testReportUsingDefaultStrategy() throws Exception {
@@ -204,7 +204,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     Module libModule = TestModuleUtil.findModule(project, "lib");
     VirtualFile buildFile = getGradleBuildFile(appModule);
     assertThat(buildFile).isNotNull();
-    reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue), libModule, Lists.newArrayList(syncIssue2)));
+    reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue), libModule, Lists.newArrayList(syncIssue2)), "/");
 
 
     assertSize(1, mySyncMessagesStub.getNotifications());
@@ -218,7 +218,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     verify(myStrategy2, never())
       .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
                  any());
-    verify(usageReporter).reportToUsageTracker();
+    verify(usageReporter).reportToUsageTracker("/");
   }
 
   public void testStrategiesSetInConstructor() throws Exception {
@@ -314,7 +314,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
-    reporter.report(ImmutableMap.of(appModule, ImmutableList.of(mySyncIssue, syncIssue2, syncIssue3)));
+    reporter.report(ImmutableMap.of(appModule, ImmutableList.of(mySyncIssue, syncIssue2, syncIssue3)), "/");
 
     InOrder inOrder = inOrder(myStrategy1, myStrategy2);
 

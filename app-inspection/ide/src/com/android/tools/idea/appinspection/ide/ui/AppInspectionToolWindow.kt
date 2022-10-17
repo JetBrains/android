@@ -16,7 +16,6 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
-import com.android.tools.idea.appinspection.ide.AppInspectionToolWindowService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -26,7 +25,6 @@ import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
@@ -50,7 +48,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
       ToolWindowManagerEx.getInstanceEx(project).getToolWindow(APP_INSPECTION_ID)?.show(callback)
   }
 
-  private val ideServices = object : AppInspectionIdeServices {
+  private val ideServices: AppInspectionIdeServices = object : AppInspectionIdeServices {
     private val notificationGroup =
       NotificationGroup.toolWindowGroup(APP_INSPECTION_ID, APP_INSPECTION_ID, true, PluginId.getId("org.jetbrains.android"))
 
@@ -94,6 +92,10 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
         }
       }
     }
+
+    override fun isTabSelected(inspectorId: String): Boolean {
+      return appInspectionView.isTabSelected(inspectorId)
+    }
   }
 
   // Coroutine scope tied to the lifecycle of this tool window. It will be cancelled when the tool window is disposed.
@@ -113,7 +115,6 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
     Disposer.register(this, appInspectionView)
     project.messageBus.connect(this).subscribe(ToolWindowManagerListener.TOPIC,
                                                AppInspectionToolWindowManagerListener(project, ideServices, toolWindow, appInspectionView))
-    project.service<AppInspectionToolWindowService>().appInspectionToolWindowControl = appInspectionView
   }
 
   override fun dispose() {

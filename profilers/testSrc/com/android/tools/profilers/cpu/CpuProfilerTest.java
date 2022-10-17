@@ -37,7 +37,6 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.energy.FakeEnergyService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
-import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testFramework.ApplicationRule;
@@ -64,7 +63,7 @@ public final class CpuProfilerTest {
   @Rule
   public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("CpuProfilerTest", myTransportService, myProfilerService, new FakeMemoryService(), myCpuService,
-                        new FakeEventService(), new FakeNetworkService.Builder().build(), new FakeEnergyService());
+                        new FakeEventService(), new FakeEnergyService());
 
   @Rule public final ExpectedException myExpectedException = ExpectedException.none();
   @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
@@ -87,18 +86,18 @@ public final class CpuProfilerTest {
     myCpuProfiler = new CpuProfiler(myProfilers);
 
     myCpuProfiler.stopProfiling(FAKE_SESSION);
-      StopCpuTrace stopCpuTrace = (StopCpuTrace)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
-      assertThat(stopCpuTrace.getLastTraceInfo()).isEqualTo(Cpu.CpuTraceInfo.getDefaultInstance());
+    StopCpuTrace stopCpuTrace = (StopCpuTrace)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
+    assertThat(stopCpuTrace.getLastTraceInfo()).isEqualTo(Cpu.CpuTraceInfo.getDefaultInstance());
 
-      myTransportService.addEventToStream(
-        FAKE_SESSION.getStreamId(),
-        Common.Event.newBuilder()
-          .setTimestamp(1).setGroupId(1).setPid(FAKE_SESSION.getPid()).setKind(Common.Event.Kind.CPU_TRACE)
-          .setCpuTrace(Cpu.CpuTraceData.newBuilder().setTraceStarted(
-            Cpu.CpuTraceData.TraceStarted.newBuilder().setTraceInfo(Cpu.CpuTraceInfo.newBuilder().setTraceId(1).setToTimestamp(-1))))
-          .build());
-      myCpuProfiler.stopProfiling(FAKE_SESSION);
-      assertThat(stopCpuTrace.getLastTraceInfo()).isNotEqualTo(Cpu.CpuTraceInfo.getDefaultInstance());
+    myTransportService.addEventToStream(
+      FAKE_SESSION.getStreamId(),
+      Common.Event.newBuilder()
+        .setTimestamp(1).setGroupId(1).setPid(FAKE_SESSION.getPid()).setKind(Common.Event.Kind.CPU_TRACE)
+        .setCpuTrace(Cpu.CpuTraceData.newBuilder().setTraceStarted(
+          Cpu.CpuTraceData.TraceStarted.newBuilder().setTraceInfo(Cpu.CpuTraceInfo.newBuilder().setTraceId(1).setToTimestamp(-1))))
+        .build());
+    myCpuProfiler.stopProfiling(FAKE_SESSION);
+    assertThat(stopCpuTrace.getLastTraceInfo()).isNotEqualTo(Cpu.CpuTraceInfo.getDefaultInstance());
   }
 
   @Test
@@ -166,7 +165,7 @@ public final class CpuProfilerTest {
         .setIsEnded(true).setKind(Common.Event.Kind.CPU_TRACE).setTimestamp(1)
         .setCpuTrace(Cpu.CpuTraceData.newBuilder().setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(info1))).build());
 
-    List<Cpu.CpuTraceInfo> infos = CpuProfiler.getTraceInfoFromSession(myProfilers.getClient(), session, true);
+    List<Cpu.CpuTraceInfo> infos = CpuProfiler.getTraceInfoFromSession(myProfilers.getClient(), session);
     assertThat(infos).containsExactly(info1);
 
     // Insert a not yet completed info followed up by a generic end event.
@@ -183,7 +182,7 @@ public final class CpuProfilerTest {
       session.getStreamId(),
       Common.Event.newBuilder()
         .setTimestamp(10).setGroupId(5).setKind(Common.Event.Kind.CPU_TRACE).setPid(session.getPid()).setIsEnded(true).build());
-    infos = CpuProfiler.getTraceInfoFromSession(myProfilers.getClient(), session, true);
+    infos = CpuProfiler.getTraceInfoFromSession(myProfilers.getClient(), session);
     assertThat(infos)
       .containsExactly(info1, info2.toBuilder().setToTimestamp(session.getEndTimestamp())
         .setStopStatus(Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.APP_PROCESS_DIED)).build());

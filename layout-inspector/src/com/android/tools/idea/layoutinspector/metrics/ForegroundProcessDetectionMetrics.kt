@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.metrics
 
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import layout_inspector.LayoutInspector
@@ -31,6 +32,7 @@ class ForegroundProcessDetectionMetrics(private val layoutInspectorMetrics: Layo
   fun logHandshakeResult(handshakeInfo: LayoutInspector.TrackingForegroundProcessSupported) {
     layoutInspectorMetrics.logEvent(
       DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.AUTO_CONNECT_INFO,
+      DisconnectedClient.stats,
       autoConnectInfo = buildAutoConnectInfo(handshakeInfo)
     )
   }
@@ -41,6 +43,7 @@ class ForegroundProcessDetectionMetrics(private val layoutInspectorMetrics: Layo
   fun logConversion(conversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion) {
     layoutInspectorMetrics.logEvent(
       DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.AUTO_CONNECT_INFO,
+      DisconnectedClient.stats,
       autoConnectInfo = buildAutoConnectInfo(conversion)
     )
   }

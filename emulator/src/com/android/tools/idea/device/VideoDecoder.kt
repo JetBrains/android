@@ -150,7 +150,7 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
       val displaySize: Dimension,
       val orientation: Int,
       val orientationCorrection: Int,
-      val frameNumber: Long,
+      val frameNumber: Int,
       val originationTime: Long)
 
   private inner class DecodingContext(codecName: String) : AutoCloseable {
@@ -178,7 +178,8 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
 
     init {
       thisLogger().debug { "Receiving $codecName video stream" }
-      codec = avcodec_find_decoder_by_name(codecName) ?: throw VideoDecoderException("$codecName decoder not found")
+      val ffmpegCodecName = if (codecName == "avc") "h264" else codecName
+      codec = avcodec_find_decoder_by_name(ffmpegCodecName) ?: throw VideoDecoderException("$ffmpegCodecName decoder not found")
       codecContext = avcodec_alloc_context3(codec) ?: throw VideoDecoderException("Could not allocate decoder context")
       parserContext = av_parser_init(codec.id())?.apply {
         flags(flags() or PARSER_FLAG_COMPLETE_FRAMES)
@@ -339,12 +340,11 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
           val buffer = DataBufferInt(imagePixels, imagePixels.size)
           val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, imageSize.width, imageSize.height, SAMPLE_MODEL_BIT_MASKS)
           val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
-          @Suppress("UndesirableClassUsage")
           image = BufferedImage(COLOR_MODEL, raster, false, null)
         }
 
-        displayFrame = VideoFrame(image, header.displaySize, header.displayOrientation, header.displayOrientationCorrection, header.frameNumber,
-                                  header.originationTimestampUs / 1000)
+        displayFrame = VideoFrame(image, header.displaySize, header.displayOrientation, header.displayOrientationCorrection,
+                                  header.frameNumber.toInt(), header.originationTimestampUs / 1000)
       }
 
       onNewFrameAvailable()

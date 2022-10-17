@@ -42,8 +42,8 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             ExternalSource                : GRADLE
             GradlePath                    : :
         CONENT_ENTRY                  : file://<TEMP>
-            JavaSource                    : file://<TEMP>/gen
-            JavaSource                    : file://<TEMP>/src
+            EXCLUDE_FOLDER                : file://<TEMP>/.gradle [-]
+            EXCLUDE_FOLDER                : file://<TEMP>/build [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -98,7 +98,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         LinkedProjectPath             : <TEMP>
         RootProjectPath               : <TEMP>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/.idea/modules/testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -182,14 +182,13 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         LinkedProjectPath             : <TEMP>
         RootProjectPath               : <TEMP>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/.idea/modules/testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
-        CONENT_ENTRY                  : file://<TEMP>
-            EXCLUDE_FOLDER                : file://<TEMP>/.gradle [-]
-            EXCLUDE_FOLDER                : file://<TEMP>/build [-]
+        CONENT_ENTRY                  : file://<TEMP>/AndroidManifest.xml
+        CONENT_ENTRY                  : file://<TEMP>/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<TEMP>/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<TEMP>/build/generated/renderscript_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<TEMP>/build/generated/res/resValues/debug [-]
@@ -199,7 +198,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             JavaResource                  : file://<TEMP>/res
         CONENT_ENTRY                  : file://<TEMP>/src
             JavaSource                    : file://<TEMP>/src
-        CONENT_ENTRY                  : file://<TEMP>/src/debug [-]
         CONENT_ENTRY                  : file://<TEMP>/srcKotlin [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/build/generated/aidl_source_output_dir/debug/out [-]
             Generated                     : true
@@ -276,7 +274,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         LinkedProjectPath             : <TEMP>
         RootProjectPath               : <TEMP>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/.idea/modules/testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE

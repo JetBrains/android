@@ -1,0 +1,10 @@
+plugins {
+  id 'org.jetbrains.kotlin.js'
+}
+
+kotlin {
+  js {
+    // To build distributions for and run tests on browser or Node.js use one or both of:
+    browser()
+  }
+}

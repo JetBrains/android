@@ -1070,7 +1070,7 @@ private object AndroidTestAggregatedResultsColumnCellRenderer : DefaultTableCell
       getColorFor(stats.getSummaryResult())
     }
     background = UIUtil.getTableBackground(isSelected, table.hasFocus())
-    setValue("${stats.passed + stats.skipped}/${stats.total}")
+    setValue("${stats.passed}/${stats.total - stats.skipped}")
     return this
   }
 }
@@ -1285,7 +1285,7 @@ private class AggregationRow(override val packageName: String = "",
 
   override fun getTestResultSummaryText(devices: List<AndroidDevice>): String {
     val stats = getResultStats(devices)
-    return "${stats.passed + stats.skipped}/${stats.total}"
+    return "${stats.passed}/${stats.total - stats.skipped}"
   }
 
   override fun getResultStats(): AndroidTestResultStats {

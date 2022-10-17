@@ -37,6 +37,7 @@ import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
+import com.intellij.util.text.nullize
 import kotlinx.coroutines.cancel
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersCommand
@@ -54,8 +55,11 @@ import java.util.EnumSet
 
 const val COMPOSE_LAYOUT_INSPECTOR_ID = "layoutinspector.compose.inspection"
 
-private val DEV_JAR = AppInspectorJar("compose-ui-inspection.jar",
-                                      developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/compose/ui/")
+private val DEV_JAR = AppInspectorJar(
+  "compose-ui-inspection.jar",
+  developmentDirectory = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER.get(),
+  releaseDirectory = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.get().nullize()
+)
 private val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate(
   "androidx.compose.ui", "ui", "1.0.0-beta02", ArtifactCoordinate.Type.AAR
 )

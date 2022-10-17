@@ -33,7 +33,6 @@ import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
-import com.android.tools.profilers.network.FakeNetworkService;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -49,8 +48,7 @@ public final class AllocStatsDataSeriesTest {
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocStatsDataSeriesTest", myTransportService, myService,
                                                                    new FakeProfilerService(myTimer),
                                                                    new FakeEventService(),
-                                                                   new FakeCpuService(),
-                                                                   new FakeNetworkService.Builder().build());
+                                                                   new FakeCpuService());
 
   public AllocStatsDataSeriesTest() {
     myIdeProfilerServices.enableEventsPipeline(true);

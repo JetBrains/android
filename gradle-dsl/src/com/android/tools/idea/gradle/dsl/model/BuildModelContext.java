@@ -279,7 +279,7 @@ public final class BuildModelContext {
     if (parsedProperties == null) {
       return;
     }
-    GradlePropertiesModel propertiesModel = new GradlePropertiesModel(parsedProperties);
+    GradlePropertiesModelImpl propertiesModel = new GradlePropertiesModelImpl(parsedProperties);
 
     GradlePropertiesFile propertiesDslFile = propertiesModel.myGradlePropertiesFile;
     buildDslFile.setPropertiesFile(propertiesDslFile);

@@ -362,13 +362,13 @@ internal fun IdeModuleDependency.getGradleProjectPath(): GradleProjectPath =
 class ResolvedLibraryTableBuilder(
   private val getGradlePathBy: (moduleId: String) -> GradleProjectPath?,
   private val getModuleDataNode: (GradleProjectPath) -> DataNode<out ModuleData>?,
-  private val resolveArtifact: (File) -> GradleProjectPath?
+  private val resolveArtifact: (File) -> List<GradleSourceSetProjectPath>?
 ) {
   fun buildResolvedLibraryTable(
     ideLibraryTable: IdeUnresolvedLibraryTable,
   ): IdeResolvedLibraryTable {
     return ideLibraryTable.resolve(
-      artifactResolver = { resolveArtifact(it) as? GradleSourceSetProjectPath },
+      artifactResolver = { resolveArtifact(it) },
       moduleDependencyExpander = ::resolveAdditionalKmpSourceSets
     )
   }
@@ -397,7 +397,7 @@ class ResolvedLibraryTableBuilder(
 }
 
 private fun IdeUnresolvedLibraryTable.resolve(
-  artifactResolver: (File) -> GradleSourceSetProjectPath?,
+  artifactResolver: (File) -> List<GradleSourceSetProjectPath>?,
   moduleDependencyExpander: (GradleSourceSetProjectPath) -> List<GradleSourceSetProjectPath>
 ): IdeResolvedLibraryTable {
 
@@ -421,7 +421,7 @@ private fun IdeUnresolvedLibraryTable.resolve(
   }
 
   fun resolve(unresolved: IdeUnresolvedModuleLibrary): List<IdeLibrary> {
-    val target = artifactResolver(unresolved.artifact)
+    val targets = artifactResolver(unresolved.artifact)
       ?: return listOf(
         IdeJavaLibraryImpl(
           unresolved.artifact.path,
@@ -430,21 +430,27 @@ private fun IdeUnresolvedLibraryTable.resolve(
         )
       )
 
-    if (target.buildRoot != unresolved.buildId) {
-      error("Unexpected resolved module build id ${target.buildRoot} != ${unresolved.buildId}")
+    val unresolvedModuleBuilds = targets.filter { it.buildRoot != unresolved.buildId }
+    if (unresolvedModuleBuilds.isNotEmpty()) {
+      error("Unexpected resolved modules build id ${unresolvedModuleBuilds.map { it.buildRoot }.toSet()} != ${unresolved.buildId}")
     }
-    if (target.path != unresolved.projectPath) {
-      error("Unexpected resolved module project path ${target.path} != ${unresolved.projectPath}")
+
+    val unresolvedModulePaths = targets.filter { it.path != unresolved.projectPath }
+    if (unresolvedModulePaths.isNotEmpty()) {
+      error("Unexpected resolved modules project path ${unresolvedModulePaths.map { it.path }.toSet()} != ${unresolved.projectPath}")
     }
-    return resolve(
-      IdePreResolvedModuleLibraryImpl(
-        buildId = unresolved.buildId,
-        projectPath = unresolved.projectPath,
-        variant = unresolved.variant,
-        lintJar = unresolved.lintJar,
-        sourceSet = target.sourceSet
+
+    return targets.flatMap {
+      resolve(
+        IdePreResolvedModuleLibraryImpl(
+          buildId = unresolved.buildId,
+          projectPath = unresolved.projectPath,
+          variant = unresolved.variant,
+          lintJar = unresolved.lintJar,
+          sourceSet = it.sourceSet
+        )
       )
-    )
+    }
   }
 
   return IdeResolvedLibraryTableImpl(

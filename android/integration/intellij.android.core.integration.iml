@@ -11,11 +11,11 @@
     <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>
-          <root url="jar://$WORKSPACE_ROOT$/prebuilts/tools/common/m2/repository/junit/junit/4.12/junit-4.12.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../prebuilts/tools/common/m2/repository/junit/junit/4.12/junit-4.12.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$WORKSPACE_ROOT$/prebuilts/tools/common/m2/repository/junit/junit/4.12/junit-4.12-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../prebuilts/tools/common/m2/repository/junit/junit/4.12/junit-4.12-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>

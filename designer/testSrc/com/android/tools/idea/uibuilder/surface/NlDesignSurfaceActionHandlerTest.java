@@ -32,20 +32,17 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
-import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.google.common.collect.ImmutableList;
-import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
@@ -75,17 +72,10 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
     // If using a lambda, it can be reused by the JVM and causing a Exception because the Disposable is already disposed.
     myDisposable = Disposer.newDisposable();
     mySurface = NlDesignSurface.builder(getProject(), myDisposable)
-      .setSceneManagerProvider((surface, model) -> new SyncLayoutlibSceneManager(surface, (SyncNlModel) model) {
-        protected @NotNull CompletableFuture<RenderResult> renderAsync(LayoutEditorRenderResult.@Nullable Trigger trigger) {
-          // This test does not need Layoutlib renders
-          return CompletableFuture.completedFuture(null);
-        }
-
-        @NotNull
-        @Override
-        public SceneView getSceneView() {
-          return myScreen;
-        }
+      .setSceneManagerProvider((surface, model) -> {
+        SyncLayoutlibSceneManager manager = NlModelBuilderUtil.getSyncLayoutlibSceneManagerForModel((SyncNlModel)model);
+        manager.setIgnoreRenderRequests(true);
+        return manager;
       })
     .build();
     mySurface.setModel(myModel);

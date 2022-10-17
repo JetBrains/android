@@ -67,6 +67,7 @@ public class StartUpTest {
         "Eclipse Keymap",
         "EditorConfig",
         "Firebase App Indexing",
+        "Firebase Direct Access",
         "Firebase Services",
         "Firebase Testing",
         "Git",

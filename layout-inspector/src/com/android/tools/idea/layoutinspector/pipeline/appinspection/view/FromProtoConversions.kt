@@ -129,7 +129,9 @@ fun LayoutInspectorViewProtocol.Locale.convert(): Locale {
 
 fun LayoutInspectorViewProtocol.AppContext.convert(): AppContext {
   return AppContext(
-    theme.convert()
+    theme.convert(),
+    screenWidth,
+    screenHeight
   )
 }
 
@@ -193,9 +195,9 @@ fun LayoutInspectorViewProtocol.Configuration.convert(apiLevel: Int): FolderConf
   config.screenRatioQualifier = ScreenRatioQualifier(screenRatioFromRawValue(screenLayout))
   config.screenRoundQualifier = ScreenRoundQualifier(screenRoundFromRawValue(screenLayout))
   config.screenSizeQualifier = ScreenSizeQualifier(screenSizeFromRawValue(screenLayout))
-  config.smallestScreenWidthQualifier = SmallestScreenWidthQualifier(smallestScreenWidth)
-  config.screenWidthQualifier = ScreenWidthQualifier(screenWidth)
-  config.screenHeightQualifier = ScreenHeightQualifier(screenHeight)
+  config.smallestScreenWidthQualifier = SmallestScreenWidthQualifier(smallestScreenWidthDp)
+  config.screenWidthQualifier = ScreenWidthQualifier(screenWidthDp)
+  config.screenHeightQualifier = ScreenHeightQualifier(screenHeightDp)
   config.wideColorGamutQualifier = wideColorGamutFromRawValue(colorMode)
   config.highDynamicRangeQualifier = highDynamicRangeFromRawValue(colorMode)
   config.screenOrientationQualifier = orientationFromRawValue(orientation)
@@ -207,8 +209,6 @@ fun LayoutInspectorViewProtocol.Configuration.convert(apiLevel: Int): FolderConf
   config.keyboardStateQualifier = keyboardStateFromRawValue(keyboardHidden, hardKeyboardHidden)
   config.navigationMethodQualifier = navigationMethodFromRawValue(navigation)
   config.navigationStateQualifier = navigationStateFromRawValue(navigationHidden)
-  config.screenWidthQualifier = ScreenWidthQualifier(screenWidth)
-  config.screenHeightQualifier = ScreenHeightQualifier(screenHeight)
   config.versionQualifier = VersionQualifier(apiLevel)
   return config
 }

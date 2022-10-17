@@ -135,7 +135,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       consoleViewImpl.flushDeferredText()
       consoleOutputPromise.complete(consoleViewImpl.editor.document.text)
     }
-    val consoleOutput = consoleOutputPromise.get(4, TimeUnit.SECONDS)
+    val consoleOutput = consoleOutputPromise.get(10, TimeUnit.SECONDS)
     assertThat(consoleOutput)
       .contains("Warning: Launch was successful, but you may need to bring up the tile manually.")
   }

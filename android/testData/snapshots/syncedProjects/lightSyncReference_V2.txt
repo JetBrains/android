@@ -117,9 +117,9 @@ PROJECT                       : reference
         LinkedProjectPath             : <PROJECT>/androidlibrary
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/reference.androidlibrary.androidTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/reference.androidlibrary.androidTest [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/androidlibrary/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/androidlibrary/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : reference.androidlibrary.main
@@ -176,11 +176,11 @@ PROJECT                       : reference
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
+        LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.2@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test:core:1.2.0@aar [=]
+        LIBRARY                       : Gradle: androidx.test:core:1.3.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test:monitor:1.2.0@aar [=]
+        LIBRARY                       : Gradle: androidx.test:monitor:1.3.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.test:runner:1.2.0@aar [=]
             Scope                         : Test
@@ -205,7 +205,7 @@ PROJECT                       : reference
         ORDER_ENTRY                   : reference.javalib.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/build/classes/test/reference.androidlibrary.androidTest
+            -                             : file://<PROJECT>/androidlibrary/build/intermediates/javac/debugUnitTest/classes
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :androidlibrary:createMockableJar, :androidlibrary:generateDebugAndroidTestSources, :androidlibrary:generateDebugSources
@@ -242,9 +242,9 @@ PROJECT                       : reference
         LinkedProjectPath             : <PROJECT>/androidlibrary
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/reference.androidlibrary.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/reference.androidlibrary.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/androidlibrary/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/androidlibrary/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/androidlibrary/reference.androidlibrary.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -328,9 +328,9 @@ PROJECT                       : reference
         LinkedProjectPath             : <PROJECT>/androidlibrary
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/reference.androidlibrary.unitTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/reference.androidlibrary.unitTest [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/androidlibrary/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/androidlibrary/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : reference.androidlibrary.main
@@ -373,7 +373,7 @@ PROJECT                       : reference
         ORDER_ENTRY                   : reference.javalib.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/build/classes/test/reference.androidlibrary.unitTest
+            -                             : file://<PROJECT>/androidlibrary/build/intermediates/javac/debugUnitTest/classes
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :androidlibrary:createMockableJar, :androidlibrary:generateDebugAndroidTestSources, :androidlibrary:generateDebugSources
@@ -499,9 +499,9 @@ PROJECT                       : reference
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/reference.app.androidTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/reference.app.androidTest [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : reference.app.main
@@ -558,11 +558,11 @@ PROJECT                       : reference
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
+        LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.2@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test:core:1.2.0@aar [=]
+        LIBRARY                       : Gradle: androidx.test:core:1.3.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test:monitor:1.2.0@aar [=]
+        LIBRARY                       : Gradle: androidx.test:monitor:1.3.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.test:runner:1.2.0@aar [=]
             Scope                         : Test
@@ -587,7 +587,7 @@ PROJECT                       : reference
         ORDER_ENTRY                   : reference.app.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/build/classes/test/reference.app.androidTest
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -632,9 +632,9 @@ PROJECT                       : reference
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/reference.app.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/reference.app.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/reference.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -683,7 +683,7 @@ PROJECT                       : reference
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : reference.androidlibrary.main
         Classes
-            -                             : file://<PROJECT>/build/classes/production/reference.app.main
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debug/classes
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -728,9 +728,9 @@ PROJECT                       : reference
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/reference.app.unitTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/reference.app.unitTest [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : reference.app.main
@@ -773,7 +773,7 @@ PROJECT                       : reference
         ORDER_ENTRY                   : reference.app.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/build/classes/test/reference.app.unitTest
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -939,15 +939,15 @@ PROJECT                       : reference
         LIBRARY                       : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.1@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.test:core:1.2.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.test:monitor:1.2.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.2@aar
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test:core:1.3.0@aar
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test:monitor:1.3.0@aar
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test:runner:1.2.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar!/

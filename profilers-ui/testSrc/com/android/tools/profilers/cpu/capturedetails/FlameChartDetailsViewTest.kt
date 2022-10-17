@@ -31,6 +31,7 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCaptureParser
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
@@ -62,7 +63,7 @@ class FlameChartDetailsViewTest {
 
   @Test
   fun showsNoDataForThreadMessageWhenNodeIsEmpty() {
-    val flameChart = CaptureDetails.Type.FLAME_CHART.build(ClockType.GLOBAL, Range(), emptyList(), capture)
+    val flameChart = CaptureDetails.Type.FLAME_CHART.build(ClockType.GLOBAL, Range(), emptyList(), capture, Utils::runOnUi)
       as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
 
@@ -83,7 +84,7 @@ class FlameChartDetailsViewTest {
 
     val flameChart = CaptureDetails.Type.FLAME_CHART.build(ClockType.GLOBAL, Range(Double.MIN_VALUE, Double.MAX_VALUE),
                                                            listOf(atraceCapture.getCaptureNode(atraceCapture.mainThreadId)!!),
-                                                           atraceCapture) as CaptureDetails.FlameChart
+                                                           atraceCapture, Utils::runOnUi) as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
     val treeChart = TreeWalker(flameChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()
     assertThat(treeChart.mouseMotionListeners[2]).isInstanceOf(CpuTraceEventTooltipView::class.java)
@@ -93,7 +94,7 @@ class FlameChartDetailsViewTest {
   fun showsContentWhenNodeIsNotNull() {
     val flameChart = CaptureDetails.Type.FLAME_CHART.build(ClockType.GLOBAL, Range(Double.MIN_VALUE, Double.MAX_VALUE),
                                                            listOf(capture.getCaptureNode(capture.mainThreadId)!!),
-                                                           capture) as CaptureDetails.FlameChart
+                                                           capture, Utils::runOnUi) as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
 
     val noDataInstructionsList = TreeWalker(flameChartView.component).descendants().filterIsInstance<InstructionsPanel>().filter {

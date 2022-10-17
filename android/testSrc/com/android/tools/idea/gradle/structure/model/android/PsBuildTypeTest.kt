@@ -22,20 +22,38 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.testResolve
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.openPreparedProject
+import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.requestSyncAndWait
+import com.google.common.truth.Expect
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.RunsInEdt
+import junit.framework.Assert.assertTrue
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.plugins.groovy.GroovyLanguage
+import org.junit.Rule
+import org.junit.Test
 import java.io.File
 
-class PsBuildTypeTest : AndroidGradleTestCase() {
+@RunsInEdt
+class PsBuildTypeTest : GradleIntegrationTest {
 
-  private fun doTestDescriptor() {
-    val resolvedProject = myFixture.project
+  @get:Rule
+  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+
+  @get:Rule
+  val expect = Expect.createAndEnableStackTrace()!!
+
+  private fun doTestDescriptor(resolvedProject: Project) {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -47,18 +65,23 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     assertThat(buildType.descriptor.testEnumerateProperties(), equalTo(PsBuildType.BuildTypeDescriptors.testEnumerateProperties()))
   }
 
+  @Test
   fun testDescriptorGroovy() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    doTestDescriptor()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      doTestDescriptor(resolvedProject)
+    }
   }
 
+  @Test
   fun testDescriptorKotlin() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
-    doTestDescriptor()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      doTestDescriptor(resolvedProject)
+    }
   }
 
-  private fun doTestProperties() {
-    val resolvedProject = myFixture.project
+  private fun doTestProperties(resolvedProject: Project) {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     run {
@@ -166,18 +189,23 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     }
   }
 
+  @Test
   fun testPropertiesGroovy() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    doTestProperties()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      doTestProperties(resolvedProject)
+    }
   }
 
+  @Test
   fun testPropertiesKotlin() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
-    doTestProperties()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      doTestProperties(resolvedProject)
+    }
   }
 
-  private fun doTestDefaultResolvedProperties() {
-    val resolvedProject = myFixture.project
+  private fun doTestDefaultResolvedProperties(resolvedProject: Project) {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -230,18 +258,23 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf()))
   }
 
+  @Test
   fun testDefaultResolvedPropertiesGroovy() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    doTestDefaultResolvedProperties()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      doTestDefaultResolvedProperties(resolvedProject)
+    }
   }
 
+  @Test
   fun testDefaultResolvedPropertiesKotlin() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
-    doTestDefaultResolvedProperties()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      doTestDefaultResolvedProperties(resolvedProject)
+    }
   }
 
-  private fun doTestSetProperties() {
-    val resolvedProject = myFixture.project
+  private fun doTestSetProperties(resolvedProject: Project) {
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByName("app") as PsAndroidModule
@@ -349,25 +382,30 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     verifyValues(buildType)
 
     appModule.applyChanges()
-    requestSyncAndWait()
+    resolvedProject.requestSyncAndWait()
     project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findBuildType("release")!!, afterSync = true)
   }
 
+  @Test
   fun testSetPropertiesGroovy() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    doTestSetProperties()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      doTestSetProperties(resolvedProject)
+    }
   }
 
+  @Test
   fun testSetPropertiesKotlin() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
-    doTestSetProperties()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      doTestSetProperties(resolvedProject)
+    }
   }
 
-  private fun doTestUndeclaredDebugSetProperties() {
-    val resolvedProject = myFixture.project
+  private fun doTestUndeclaredDebugSetProperties(resolvedProject: Project) {
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByName("app") as PsAndroidModule
@@ -393,25 +431,30 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     verifyValues(buildType)
 
     appModule.applyChanges()
-    requestSyncAndWait()
+    resolvedProject.requestSyncAndWait()
     project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findBuildType("debug")!!, afterSync = true)
   }
 
+  @Test
   fun testUndeclaredDebugSetPropertiesGroovy() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    doTestUndeclaredDebugSetProperties()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      doTestUndeclaredDebugSetProperties(resolvedProject)
+    }
   }
 
+  @Test
   fun testUndeclaredDebugSetPropertiesKotlin() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
-    doTestUndeclaredDebugSetProperties()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      doTestUndeclaredDebugSetProperties(resolvedProject)
+    }
   }
 
-  private fun doTestUndeclaredDebugEditLists() {
-    val resolvedProject = myFixture.project
+  private fun doTestUndeclaredDebugEditLists(resolvedProject: Project) {
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByName("app") as PsAndroidModule
@@ -440,25 +483,30 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     verifyValues(buildType)
 
     appModule.applyChanges()
-    requestSyncAndWait()
+    resolvedProject.requestSyncAndWait()
     project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findBuildType("debug")!!, afterSync = true)
   }
 
+  @Test
   fun testUndeclaredDebugEditListsGroovy() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    doTestUndeclaredDebugEditLists()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      doTestUndeclaredDebugEditLists(resolvedProject)
+    }
   }
 
+  @Test
   fun testUndeclaredDebugEditListsKotlin() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
-    doTestUndeclaredDebugEditLists()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      doTestUndeclaredDebugEditLists(resolvedProject)
+    }
   }
 
-  private fun doTestUndeclaredDebugEditMaps() {
-    val resolvedProject = myFixture.project
+  private fun doTestUndeclaredDebugEditMaps(resolvedProject: Project) {
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByName("app") as PsAndroidModule
@@ -486,25 +534,30 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     verifyValues(buildType)
 
     appModule.applyChanges()
-    requestSyncAndWait()
+    resolvedProject.requestSyncAndWait()
     project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findBuildType("debug")!!, afterSync = true)
   }
 
+  @Test
   fun testUndeclaredDebugEditMapsGroovy() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    doTestUndeclaredDebugEditMaps()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      doTestUndeclaredDebugEditMaps(resolvedProject)
+    }
   }
 
+  @Test
   fun testUndeclaredDebugEditMapsKotlin() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
-    doTestUndeclaredDebugEditMaps()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      doTestUndeclaredDebugEditMaps(resolvedProject)
+    }
   }
 
-  private fun doTestInsertingProguardFiles() {
-    val resolvedProject = myFixture.project
+  private fun doTestInsertingProguardFiles(resolvedProject: Project) {
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByName("app") as PsAndroidModule
@@ -553,72 +606,84 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     verifyValues(buildType)
 
     appModule.applyChanges()
-    requestSyncAndWait()
+    resolvedProject.requestSyncAndWait()
     project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findBuildType("release")!!, afterSync = true)
   }
 
+  @Test
   fun testInsertingProguardFilesGroovy() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    doTestInsertingProguardFiles()
-  }
-
-  fun testInsertingProguardFilesKotlin() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
-    doTestInsertingProguardFiles()
-  }
-
-  /** TODO(b/72853928): Enable this test */
-  fun /*test*/SetListReferences() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-
-    val resolvedProject = myFixture.project
-    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-
-    var appModule = project.findModuleByName("app") as PsAndroidModule
-    assertThat(appModule, notNullValue())
-
-    val buildType = appModule.findBuildType("release")
-    assertThat(buildType, notNullValue()); buildType!!
-
-    PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).setParsedValue(
-      ParsedValue.Set.Parsed(
-        dslText = DslText.Reference("varProGuardFiles"),
-        value = null
-      )
-    )
-
-    fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
-      val proGuardFilesValue = PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).getValue()
-      val parsedProGuardFilesValue = proGuardFilesValue.parsedValue.value as? ParsedValue.Set.Parsed
-      val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).getEditableValues().map { it.getValue() }
-
-      assertThat(parsedProGuardFilesValue?.dslText, equalTo<DslText?>(DslText.Reference("varProGuardFiles")))
-
-      assertThat(proGuardFiles.size, equalTo(2))
-      // TODO(b/72814329): Resolved values are not yet supported on list properties.
-      assertThat(proGuardFiles[0].resolved.asTestValue(), nullValue())
-      assertThat(proGuardFiles[0].parsedValue.asTestValue(), equalTo(File("proguard-rules.txt")))
-
-      // TODO(b/72814329): Resolved values are not yet supported on list properties.
-      assertThat(proGuardFiles[1].resolved.asTestValue(), nullValue())
-      assertThat(proGuardFiles[1].parsedValue.asTestValue(), equalTo(File("proguard-rules2.txt")))
-
-      if (afterSync) {
-        // TODO(b/72814329): assertThat(proGuardFiles[0].parsedValue.asTestValue(), equalTo(proGuardFiles[0].resolved.asTestValue()))
-        // TODO(b/72814329): assertThat(proGuardFiles[1].parsedValue.asTestValue(), equalTo(proGuardFiles[1].resolved.asTestValue()))
-      }
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      doTestInsertingProguardFiles(resolvedProject)
     }
-
-    verifyValues(buildType)
-
-    appModule.applyChanges()
-    requestSyncAndWait()
-    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-    appModule = project.findModuleByName("app") as PsAndroidModule
-    // Verify nothing bad happened to the values after the re-parsing.
-    verifyValues(appModule.findBuildType("release")!!, afterSync = true)
   }
+
+  @Test
+  fun testInsertingProguardFilesKotlin() {
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      doTestInsertingProguardFiles(resolvedProject)
+    }
+  }
+
+  // TODO(b/240693165): Enable this test
+  //@Test
+  fun testSetListReferences() {
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+
+      var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+      var appModule = project.findModuleByName("app") as PsAndroidModule
+      assertThat(appModule, notNullValue())
+
+      val buildType = appModule.findBuildType("release")
+      assertThat(buildType, notNullValue()); buildType!!
+
+      PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).setParsedValue(
+        ParsedValue.Set.Parsed(
+          dslText = DslText.Reference("varProGuardFiles"),
+          value = null
+        )
+      )
+
+      fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
+        val proGuardFilesValue = PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).getValue()
+        val parsedProGuardFilesValue = proGuardFilesValue.parsedValue.value as? ParsedValue.Set.Parsed
+        val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).getEditableValues().map { it.getValue() }
+
+        assertThat(parsedProGuardFilesValue?.dslText, equalTo<DslText?>(DslText.Reference("varProGuardFiles")))
+
+        assertThat(proGuardFiles.size, equalTo(2))
+        // TODO(b/72814329): Resolved values are not yet supported on list properties.
+        assertThat(proGuardFiles[0].resolved.asTestValue(), nullValue())
+        assertThat(proGuardFiles[0].parsedValue.asTestValue(), equalTo(File("proguard-rules.txt")))
+
+        // TODO(b/72814329): Resolved values are not yet supported on list properties.
+        assertThat(proGuardFiles[1].resolved.asTestValue(), nullValue())
+        assertThat(proGuardFiles[1].parsedValue.asTestValue(), equalTo(File("proguard-rules2.txt")))
+
+        if (afterSync) {
+          // TODO(b/72814329): assertThat(proGuardFiles[0].parsedValue.asTestValue(), equalTo(proGuardFiles[0].resolved.asTestValue()))
+          // TODO(b/72814329): assertThat(proGuardFiles[1].parsedValue.asTestValue(), equalTo(proGuardFiles[1].resolved.asTestValue()))
+        }
+      }
+
+      verifyValues(buildType)
+
+      appModule.applyChanges()
+      resolvedProject.requestSyncAndWait()
+      project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      appModule = project.findModuleByName("app") as PsAndroidModule
+      // Verify nothing bad happened to the values after the re-parsing.
+      verifyValues(appModule.findBuildType("release")!!, afterSync = true)
+    }
+  }
+
+  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
+  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
+  override fun getAdditionalRepos(): Collection<File> = listOf()
 }

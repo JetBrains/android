@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.adtui.webp.WebpMetadata
+import com.android.tools.idea.device.DeviceConfiguration
 import com.android.tools.idea.device.DeviceView
 import com.android.tools.idea.ui.screenshot.FramingOption
 import com.google.common.truth.Truth.assertThat
@@ -40,32 +41,32 @@ class DeviceScreenshotOptionsTest {
   @Before
   fun setUp() {
     WebpMetadata.ensureWebpRegistered()
-    whenever(deviceView.displayRotationQuadrants).thenReturn(0)
-    whenever(deviceView.displayRotationCorrectionQuadrants).thenReturn(0)
+    whenever(deviceView.displayOrientationQuadrants).thenReturn(0)
+    whenever(deviceView.displayOrientationCorrectionQuadrants).thenReturn(0)
   }
 
   @Test
   fun testApiLevelProperty() {
-    assertThat(DeviceScreenshotOptions(serialNumber, mapOf(DevicePropertyNames.RO_BUILD_VERSION_SDK to "26"), deviceView).apiLevel)
-        .isEqualTo(26)
+    val deviceConfiguration = DeviceConfiguration(mapOf(DevicePropertyNames.RO_BUILD_VERSION_SDK to "26"))
+    assertThat(DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView).apiLevel).isEqualTo(26)
   }
 
   @Test
   fun testScreenshotViewerOptionsProperty() {
-    assertThat(DeviceScreenshotOptions(serialNumber, mapOf(), deviceView).screenshotViewerOptions).isEmpty()
+    assertThat(DeviceScreenshotOptions(serialNumber, DeviceConfiguration(mapOf()), deviceView).screenshotViewerOptions).isEmpty()
   }
 
   @Test
   fun testScreenshotPostprocessorProperty() {
-    assertThat(DeviceScreenshotOptions(serialNumber, mapOf(), deviceView).screenshotPostprocessor)
+    assertThat(DeviceScreenshotOptions(serialNumber, DeviceConfiguration(mapOf()), deviceView).screenshotPostprocessor)
         .isInstanceOf(DeviceScreenshotPostprocessor::class.java)
   }
 
   @Test
   fun testCreateScreenshotImage() {
-    whenever(deviceView.displayRotationQuadrants).thenReturn(0)
-    whenever(deviceView.displayRotationCorrectionQuadrants).thenReturn(1)
-    val screenshotOptions = DeviceScreenshotOptions(serialNumber, mapOf(), deviceView)
+    whenever(deviceView.displayOrientationQuadrants).thenReturn(0)
+    whenever(deviceView.displayOrientationCorrectionQuadrants).thenReturn(1)
+    val screenshotOptions = DeviceScreenshotOptions(serialNumber, DeviceConfiguration(mapOf()), deviceView)
     val image = createImage(1080, 2400, Color.WHITE)
     val displayInfo = "DisplayDeviceInfo{..., 1080 x 2400, ..., density 560, ...}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, false)
@@ -78,8 +79,8 @@ class DeviceScreenshotOptionsTest {
 
   @Test
   fun testGetFramingOptionsKnownPhone() {
-    val screenshotOptions =
-        DeviceScreenshotOptions(serialNumber, mapOf(DevicePropertyNames.RO_PRODUCT_MODEL to "Pixel 4 XL"), deviceView)
+    val deviceConfiguration = DeviceConfiguration(mapOf(DevicePropertyNames.RO_PRODUCT_MODEL to "Pixel 4 XL"))
+    val screenshotOptions = DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView)
     val image = createImage(1440, 3040, Color.WHITE)
     val displayInfo = "DisplayDeviceInfo{..., 1440 x 3040, ..., density 560, ...}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, false)
@@ -90,8 +91,8 @@ class DeviceScreenshotOptionsTest {
 
   @Test
   fun testGetFramingOptionsUnknownPhone() {
-    val screenshotOptions =
-        DeviceScreenshotOptions(serialNumber, mapOf(DevicePropertyNames.RO_PRODUCT_MODEL to "Samsung Galaxy S22"), deviceView)
+    val deviceConfiguration = DeviceConfiguration(mapOf(DevicePropertyNames.RO_PRODUCT_MODEL to "Samsung Galaxy S22"))
+    val screenshotOptions = DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView)
     val image = createImage(1080, 2340, Color.WHITE)
     val displayInfo = "DisplayDeviceInfo{..., 1080 x 2340, ..., density 420, ...}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, false)
@@ -102,8 +103,8 @@ class DeviceScreenshotOptionsTest {
 
   @Test
   fun testGetFramingOptionsTablet() {
-    val screenshotOptions =
-        DeviceScreenshotOptions(serialNumber, mapOf(DevicePropertyNames.RO_PRODUCT_MODEL to "Xiaomi Pad 5"), deviceView)
+    val deviceConfiguration = DeviceConfiguration(mapOf(DevicePropertyNames.RO_PRODUCT_MODEL to "Xiaomi Pad 5"))
+    val screenshotOptions = DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView)
     val image = createImage(1600, 2560, Color.WHITE)
     val displayInfo = "DisplayDeviceInfo{..., 1600 x 2560, ..., density 280, ...}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, false)
@@ -114,8 +115,8 @@ class DeviceScreenshotOptionsTest {
 
   @Test
   fun testGetFramingOptionsAutomotive() {
-    val screenshotOptions =
-        DeviceScreenshotOptions(serialNumber, mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "automotive"), deviceView)
+    val deviceConfiguration = DeviceConfiguration(mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "automotive"))
+    val screenshotOptions = DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView)
     val image = createImage(1280, 768, Color.WHITE)
     val displayInfo = "DisplayDeviceInfo{..., 1280 x 768, ..., density 180, ...}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, false)
@@ -126,8 +127,7 @@ class DeviceScreenshotOptionsTest {
 
   @Test
   fun testGetFramingOptionsTv() {
-    val screenshotOptions =
-        DeviceScreenshotOptions(serialNumber, mapOf(), deviceView)
+    val screenshotOptions = DeviceScreenshotOptions(serialNumber, DeviceConfiguration(mapOf()), deviceView)
     val image = createImage(1920, 1080, Color.GRAY)
     val displayInfo = "DisplayDeviceInfo{..., 1920 x 1080, ..., density 480, ...}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, true)
@@ -138,8 +138,8 @@ class DeviceScreenshotOptionsTest {
 
   @Test
   fun testGetFramingOptionsWatch() {
-    val screenshotOptions =
-        DeviceScreenshotOptions(serialNumber, mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"), deviceView)
+    val deviceConfiguration = DeviceConfiguration(mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
+    val screenshotOptions = DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView)
     val image = createImage(384, 384, Color.DARK_GRAY)
     val displayInfo = "DisplayDeviceInfo{..., 384 x 384, ..., density 200, ..., FLAG_ROUND}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, false)

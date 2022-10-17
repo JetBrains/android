@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run.tasks;
 
-import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
-
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.logcat.LogCatMessage;
@@ -29,10 +27,6 @@ import com.android.tools.idea.logcat.LogcatHeaderFormat;
 import com.android.tools.idea.logcat.LogcatHeaderFormat.TimestampFormat;
 import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
 import com.android.tools.idea.logcat.output.LogcatOutputSettings;
-import com.android.tools.idea.run.AndroidDebugState;
-import com.android.tools.idea.run.AndroidProcessText;
-import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler;
-import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ApplicationLogListener;
 import com.android.tools.idea.run.LaunchInfo;
@@ -40,25 +34,15 @@ import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
 import com.android.tools.idea.run.debug.StartJavaDebuggerKt;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestSuiteConstantsKt;
-import com.intellij.debugger.ui.DebuggerPanelsManager;
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.RemoteConnection;
-import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
-import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.execution.ui.RunContentDescriptor;
-import com.intellij.execution.ui.RunContentManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.time.ZoneId;
-import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
@@ -72,10 +56,10 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
   }
 
   @Override
-  public ProcessHandler launchDebugger(@NotNull LaunchInfo currentLaunchInfo,
-                                       @NotNull final Client client,
-                                       @NotNull ProcessHandlerLaunchStatus launchStatus,
-                                       @NotNull ProcessHandlerConsolePrinter printer) {
+  public void launchDebugger(@NotNull LaunchInfo currentLaunchInfo,
+                             @NotNull final Client client,
+                             @NotNull ProcessHandlerLaunchStatus launchStatus,
+                             @NotNull ProcessHandlerConsolePrinter printer) {
     Logger logger = Logger.getInstance(ConnectJavaDebuggerTask.class);
 
     ProcessHandler processHandler = launchStatus.getProcessHandler();
@@ -101,7 +85,6 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
       captureLogcatOutput(client, debugProcessHandler);
       session.showSessionTab();
     });
-    return null;
   }
 
   private static void captureLogcatOutput(@NotNull Client client,

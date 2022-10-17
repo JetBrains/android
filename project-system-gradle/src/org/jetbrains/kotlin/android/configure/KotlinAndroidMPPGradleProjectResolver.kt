@@ -143,27 +143,27 @@ fun IdeVariantCoreImpl.patchFromMppModel(
     val sourceProviders = sourceProvidersFor(artifact)
 
     val missingSourceDirs = sourceSets.flatMap { it.sourceDirs }.toSet() -
-                            sourceProviders.flatMap { it.javaDirectories + it.kotlinDirectories }.toSet()
+      sourceProviders.flatMap { it.javaDirectories + it.kotlinDirectories }.toSet()
 
     val missingResourceDirs = sourceSets.flatMap { it.resourceDirs }.toSet() -
-                              sourceProviders.flatMap { it.resourcesDirectories }.toSet()
+      sourceProviders.flatMap { it.resourcesDirectories }.toSet()
 
     if (missingSourceDirs.isEmpty() && missingResourceDirs.isEmpty()) return this
 
     val thisOrNewProvider = this
-                            ?: IdeSourceProviderImpl().copy(
-                              // We cannot use [variantName] directly because it is likely to clash with its build type if the variant specific source provider
-                              // is null
-                              myName = "${variantName}_KotlinMPP",
-                              // The location of this root folder does not really matter. It is used as an anchor for relative paths stored inside the object,
-                              // but paths returned are absolute anyway. Redirecting it to a non-existent subdirectory allows us to avoid conflicting content
-                              // roots set up for non-existent manifest files.
-                              myFolder = root?.resolve("__KotlinMPP__"),
+      ?: IdeSourceProviderImpl().copy(
+        // We cannot use [variantName] directly because it is likely to clash with its build type if the variant specific source provider
+        // is null
+        myName = "${variantName}_KotlinMPP",
+        // The location of this root folder does not really matter. It is used as an anchor for relative paths stored inside the object,
+        // but paths returned are absolute anyway. Redirecting it to a non-existent subdirectory allows us to avoid conflicting content
+        // roots set up for non-existent manifest files.
+        myFolder = root?.resolve("__KotlinMPP__"),
 
-                              // This is unfortunately a required property, and it is already meaningless in unit test artifacts. Here, we return a second copy
-                              // of the same file returned by the default configuration to avoid NPEs in various places.
-                              myManifestFile = "AndroidManifest.xml"
-                            )
+        // This is unfortunately a required property, and it is already meaningless in unit test artifacts. Here, we return a second copy
+        // of the same file returned by the default configuration to avoid NPEs in various places.
+        myManifestFile = "AndroidManifest.xml"
+      )
 
     return thisOrNewProvider.appendDirectories(
       javaDirectories = missingSourceDirs,
@@ -273,14 +273,14 @@ private fun KotlinMPPGradleModel.removeWrongCompilationsAndMergeNonNeededSourceS
 
   val orphanAndroidSourceSetNames =
     sourceSetsByName.values
-      .filter { sourceSet -> sourceSet.actualPlatforms.any { it == KotlinPlatform.ANDROID } }
+      .filter { sourceSet -> sourceSet.actualPlatforms.any { it == KotlinPlatform.ANDROID} }
       .map { it.name }
       .toSet() -
-    targets
-      .flatMap { it.compilations }
-      .flatMap { it.allSourceSets }
-      .map { it.name }
-      .toSet()
+      targets
+        .flatMap { it.compilations }
+        .flatMap { it.allSourceSets }
+        .map { it.name }
+        .toSet()
 
   val wrongSourceSetNames = pureAndroidSourceSetNames - validAndroidSourceSetNames + orphanAndroidSourceSetNames
 
@@ -312,6 +312,7 @@ private fun IdeModuleWellKnownSourceSet.androidCompilationNameSuffix() = when (t
   IdeModuleWellKnownSourceSet.TEST_FIXTURES -> "TestFixtures"
 }
 
+// TODO(b/246924347): Add an integration test for KMP v2 source layout.
 private fun IdeModuleWellKnownSourceSet.kmpSourceSetSuffixes() = when (this) {
   IdeModuleWellKnownSourceSet.MAIN -> setOf("main")
   IdeModuleWellKnownSourceSet.ANDROID_TEST -> setOf("androidTest", "instrumentedTest")

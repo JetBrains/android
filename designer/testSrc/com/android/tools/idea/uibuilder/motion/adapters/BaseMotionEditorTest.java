@@ -20,25 +20,26 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.Bas
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.motion.adapters.samples.layout_16_xml;
 import com.android.tools.idea.uibuilder.motion.adapters.samples.motion_scene_16_xml;
+import javax.swing.UIManager;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.text.JTextComponent;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.UIManager;
-import javax.swing.text.JTextComponent;
-import junit.framework.TestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 /**
  * Base class for MotionEditor Test providing a Mock Layout and MotionScene to test against
  */
-public class BaseMotionEditorTest extends TestCase {
+public class BaseMotionEditorTest extends AndroidTestCase {
 
   {
     try {

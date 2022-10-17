@@ -29,7 +29,6 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.CaptureDataSeries.ofHeapDumpSamples
-import com.android.tools.profilers.network.FakeNetworkService
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -51,8 +50,7 @@ class HprofSessionArtifactTest {
     FakeProfilerService(timer),
     FakeMemoryService(),
     FakeCpuService(),
-    FakeEventService(),
-    FakeNetworkService.newBuilder().build()
+    FakeEventService()
   )
 
   private lateinit var myProfilers: StudioProfilers

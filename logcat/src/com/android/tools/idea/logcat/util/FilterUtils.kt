@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.logcat.util
 
+import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
+import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
+import com.intellij.openapi.project.Project
 
 /**
  * Modifies an existing filter by adding or removing a specified term.
@@ -32,4 +35,13 @@ internal fun toggleFilterTerm(logcatFilterParser: LogcatFilterParser, filter: St
   }
 
   return if (logcatFilterParser.isValid(newFilter)) newFilter else null
+}
+
+internal fun getDefaultFilter(project: Project, androidProjectDetector: AndroidProjectDetector): String {
+  val logcatSettings = AndroidLogcatSettings.getInstance()
+  val filter = when {
+    logcatSettings.mostRecentlyUsedFilterIsDefault -> AndroidLogcatFilterHistory.getInstance().mostRecentlyUsed
+    else -> logcatSettings.defaultFilter
+  }
+  return if (!androidProjectDetector.isAndroidProject(project) && filter.contains("package:mine")) "" else filter
 }

@@ -21,7 +21,6 @@ import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.android.tools.lint.checks.GooglePlaySdkIndex.Companion.GOOGLE_PLAY_SDK_INDEX_KEY
-import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.detector.api.LintFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_CACHING_ERROR
@@ -32,6 +31,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_IN
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LINK_FOLLOWED
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LOADED_CORRECTLY
 import com.google.wireless.android.sdk.stats.SdkIndexLibraryDetails
+import com.google.wireless.android.sdk.stats.SdkIndexLoadingDetails
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
@@ -44,7 +44,9 @@ import java.net.URL
 import java.nio.file.Path
 import java.nio.file.Paths
 
-object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
+object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
+  val logger = Logger.getInstance(this::class.java)
+
   override fun readUrlData(url: String, timeout: Int): ByteArray? = HttpRequests
     .request(URL(url).toExternalForm())
     .connectTimeout(timeout)
@@ -52,36 +54,58 @@ object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
     .readBytes(null)
 
   override fun error(throwable: Throwable, message: String?) =
-    Logger.getInstance(this::class.java).error(message, throwable)
+    logger.error(message, throwable)
 
   override fun logNonCompliant(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logNonCompliant(groupId, artifactId, versionString, file)
+    logger.warn(generatePolicyMessage(groupId, artifactId, versionString))
     logTrackerEventForLibraryVersion(groupId, artifactId, versionString, file, SDK_INDEX_LIBRARY_IS_NON_COMPLIANT)
   }
 
   override fun logHasCriticalIssues(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logHasCriticalIssues(groupId, artifactId, versionString, file)
+    val warnMsg =
+      if (hasLibraryBlockingIssues(groupId, artifactId, versionString))
+        generateBlockingCriticalMessage(groupId, artifactId, versionString)
+      else
+        generateCriticalMessage(groupId, artifactId, versionString)
+    logger.warn(warnMsg)
     logTrackerEventForLibraryVersion(groupId, artifactId, versionString, file, SDK_INDEX_LIBRARY_HAS_CRITICAL_ISSUES)
   }
 
   override fun logOutdated(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logOutdated(groupId, artifactId, versionString, file)
+    val warnMsg =
+      if (hasLibraryBlockingIssues(groupId, artifactId, versionString))
+        generateBlockingOutdatedMessage(groupId, artifactId, versionString)
+      else
+        generateOutdatedMessage(groupId, artifactId, versionString)
+    logger.warn(warnMsg)
     logTrackerEventForLibraryVersion(groupId, artifactId, versionString, file, SDK_INDEX_LIBRARY_IS_OUTDATED)
   }
 
-  override fun logIndexLoadedCorrectly() {
-    super.logIndexLoadedCorrectly()
-    logTrackerEvent(SDK_INDEX_LOADED_CORRECTLY)
+  override fun logIndexLoadedCorrectly(dataSourceType: DataSourceType) {
+    super.logIndexLoadedCorrectly(dataSourceType)
+    logger.info("SDK Index data loaded correctly from $dataSourceType")
+    val event = createTrackerEvent(null, SDK_INDEX_LOADED_CORRECTLY)
+    event.setSdkIndexLoadingDetails(
+      SdkIndexLoadingDetails.newBuilder().setSourceType(dataSourceType.toTrackerType())
+    )
+    UsageTracker.log(event)
   }
 
-  override fun logCachingError(message: String?) {
-    super.logCachingError(message)
-    logTrackerEvent(SDK_INDEX_CACHING_ERROR)
+  override fun logCachingError(readResult: ReadDataResult, dataSourceType: DataSourceType) {
+    super.logCachingError(readResult, dataSourceType)
+    val warnMsg = if (readResult.exception?.message.isNullOrEmpty()) "" else ": ${readResult.exception?.message}"
+    logger.warn("Could not use data from cache$warnMsg (error: ${readResult.readDataErrorType}, source: $dataSourceType)")
+    logTrackerEventForIndexLoadingError(SDK_INDEX_CACHING_ERROR, readResult, dataSourceType)
   }
 
-  override fun logErrorInDefaultData(message: String?) {
-    super.logErrorInDefaultData(message)
-    logTrackerEvent(SDK_INDEX_DEFAULT_DATA_ERROR)
+  override fun logErrorInDefaultData(readResult: ReadDataResult) {
+    super.logErrorInDefaultData(readResult)
+    val warnMsg = if (readResult.exception?.message.isNullOrEmpty()) "" else ": ${readResult.exception?.message}"
+    logger.warn("Could not use default SDK Index$warnMsg (${readResult.readDataErrorType})")
+    logTrackerEventForIndexLoadingError(SDK_INDEX_DEFAULT_DATA_ERROR, readResult, DataSourceType.DEFAULT_DATA)
   }
 
   override fun generateSdkLinkLintFix(groupId: String, artifactId: String, versionString: String, buildFile: File?): LintFix? {
@@ -98,7 +122,7 @@ object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
    * Initialize the SDK index and set flags according to StudioFlags
    */
   fun initializeAndSetFlags() {
-    initialize();
+    initialize()
     showCriticalIssues = StudioFlags.SHOW_SDK_INDEX_CRITICAL_ISSUES.get()
     showMessages = StudioFlags.SHOW_SDK_INDEX_MESSAGES.get()
     showLinks = StudioFlags.INCLUDE_LINKS_TO_SDK_INDEX.get()
@@ -126,8 +150,13 @@ object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
     UsageTracker.log(event)
   }
 
-  private fun logTrackerEvent(kind: AndroidStudioEvent.EventKind) {
+  private fun logTrackerEventForIndexLoadingError(kind: AndroidStudioEvent.EventKind, readResult: ReadDataResult, dataSource: DataSourceType) {
     val event = createTrackerEvent(null, kind)
+    event.setSdkIndexLoadingDetails(
+      SdkIndexLoadingDetails.newBuilder()
+        .setReadErrorType(readResult.readDataErrorType.toTrackerType())
+        .setSourceType(dataSource.toTrackerType())
+    )
     UsageTracker.log(event)
   }
 
@@ -146,6 +175,30 @@ object IdeGooglePlaySdkIndex: GooglePlaySdkIndex(getCacheDir()) {
       event.withProjectId(project)
     }
     return event
+  }
+
+  private fun DataSourceType.toTrackerType(): SdkIndexLoadingDetails.SourceType {
+    return when (this) {
+      DataSourceType.UNKNOWN_SOURCE -> SdkIndexLoadingDetails.SourceType.UNKNOWN_SOURCE
+      DataSourceType.TEST_DATA -> SdkIndexLoadingDetails.SourceType.TEST_DATA
+      DataSourceType.CACHE_FILE_EXPIRED_NO_NETWORK -> SdkIndexLoadingDetails.SourceType.CACHE_FILE_EXPIRED_NO_NETWORK
+      DataSourceType.CACHE_FILE_EXPIRED_NETWORK_ERROR -> SdkIndexLoadingDetails.SourceType.CACHE_FILE_EXPIRED_NETWORK_ERROR
+      DataSourceType.CACHE_FILE_EXPIRED_UNKNOWN -> SdkIndexLoadingDetails.SourceType.CACHE_FILE_EXPIRED_UNKNOWN
+      DataSourceType.CACHE_FILE_RECENT -> SdkIndexLoadingDetails.SourceType.CACHE_FILE_RECENT
+      DataSourceType.CACHE_FILE_NEW -> SdkIndexLoadingDetails.SourceType.CACHE_FILE_NEW
+      DataSourceType.DEFAULT_DATA -> SdkIndexLoadingDetails.SourceType.DEFAULT_DATA
+    }
+  }
+
+  private fun ReadDataErrorType.toTrackerType(): SdkIndexLoadingDetails.ReadErrorType {
+    return when (this) {
+      ReadDataErrorType.NO_ERROR -> SdkIndexLoadingDetails.ReadErrorType.NO_ERROR
+      ReadDataErrorType.DATA_FUNCTION_EXCEPTION -> SdkIndexLoadingDetails.ReadErrorType.DATA_FUNCTION_EXCEPTION
+      ReadDataErrorType.DATA_FUNCTION_NULL_ERROR -> SdkIndexLoadingDetails.ReadErrorType.DATA_FUNCTION_NULL_ERROR
+      ReadDataErrorType.GZIP_EXCEPTION -> SdkIndexLoadingDetails.ReadErrorType.GZIP_EXCEPTION
+      ReadDataErrorType.INDEX_PARSE_EXCEPTION -> SdkIndexLoadingDetails.ReadErrorType.INDEX_PARSE_EXCEPTION
+      ReadDataErrorType.INDEX_PARSE_NULL_ERROR -> SdkIndexLoadingDetails.ReadErrorType.INDEX_PARSE_NULL_ERROR
+    }
   }
 }
 

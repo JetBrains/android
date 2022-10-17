@@ -52,6 +52,20 @@ iml_module(
 iml_module(
     name = "intellij.android.designer.tests",
     iml_files = ["intellij.android.designer.tests.iml"],
+    split_test_targets = {
+        "common": {
+            "test_filter": "com.android.tools.idea.common",
+        },
+        "motion": {
+            "test_filter": "com.android.tools.idea.uibuilder.motion",
+        },
+        "visual": {
+            "test_filter": "com.android.tools.idea.uibuilder.visual",
+        },
+        "designer": {
+            "shard_count": 4,
+        },
+    },
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.DesignerTestSuite",
     test_data = [
@@ -73,7 +87,6 @@ iml_module(
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
-    test_shard_count = 4,
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",

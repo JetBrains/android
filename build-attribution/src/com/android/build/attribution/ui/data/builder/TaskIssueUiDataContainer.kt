@@ -27,7 +27,6 @@ import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
-import com.android.build.attribution.ui.wrapPathToSpans
 import java.util.EnumMap
 
 
@@ -110,14 +109,13 @@ class TaskIssueUiDataContainer(
     override val type = TaskIssueType.TASK_SETUP_ISSUE
     override val bugReportTitle = type.uiName
     override val bugReportBriefDescription =
-      "Task declares the same output directory as task ${connectedTask.name} from " +
-      (if (connectedTask.sourceType == PluginSourceType.BUILD_SRC) "build script" else connectedTask.pluginName) +
-      ": '${outputFolder}'."
+      "Task declares the same output directory as task ${connectedTask.name} from ${connectedTask.pluginUiName()}: '$outputFolder'."
     override val explanation = """
-This task declares the same output directory as task '${connectedTask.taskPath}': ${wrapPathToSpans(outputFolder)}
-As a result, these tasks are not able to take advantage of incremental build optimizations,
-and might need to run with each subsequent build.
-"""
+This task declares the same output directory as task '${connectedTask.taskPath}':
+$outputFolder
+As a result, these tasks are not able to take advantage of incremental
+build optimizations and might need to run with each subsequent build.
+""".trimIndent()
     override val helpLink = BuildAnalyzerBrowserLinks.DUPLICATE_OUTPUT_FOLDER_ISSUE
     override val buildSrcRecommendation = "Edit the plugin(s) to ensure each task specifies a unique output directory."
   }
@@ -128,11 +126,15 @@ and might need to run with each subsequent build.
     override val type = TaskIssueType.ALWAYS_RUN_TASKS
     override val bugReportTitle = "${type.uiName} No Output Declared"
     override val bugReportBriefDescription = "Task runs on every build because it declares no outputs."
-    override val explanation: String =
-      "This task runs on every build because it declares no outputs, which it must do in order to support incremental builds."
+    override val explanation: String = """
+      This task runs on every build because it declares no outputs,
+      which it must do in order to support incremental builds.
+    """.trimIndent()
     override val helpLink = BuildAnalyzerBrowserLinks.NO_OUTPUTS_DECLARED_ISSUE
-    override val buildSrcRecommendation =
-      "Annotate the task output fields with one of: OutputDirectory, OutputDirectories, OutputFile, OutputFiles"
+    override val buildSrcRecommendation = """
+      Annotate the task output fields with one of:
+      OutputDirectory, OutputDirectories, OutputFile, OutputFiles
+    """.trimIndent()
   }
 
   class AlwaysRunUpToDateOverride(
@@ -146,8 +148,13 @@ This task might be setting its up-to-date check to always return <code>false</co
 which means that it must regenerate its output during every build.
 For example, the task might set the following: <code>outputs.upToDateWhen { false }</code>.
 To optimize task execution with up-to-date checks, remove the <code>upToDateWhen</code> enclosure.
-"""
+""".trimIndent()
     override val helpLink = BuildAnalyzerBrowserLinks.UP_TO_DATE_EQUALS_FALSE_ISSUE
     override val buildSrcRecommendation = "Ensure that you don't automatically override up-to-date checks."
   }
+}
+
+private fun TaskUiData.pluginUiName(): String = when(sourceType) {
+  PluginSourceType.BUILD_SRC -> "build script"
+  else -> pluginName
 }

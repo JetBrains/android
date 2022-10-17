@@ -39,6 +39,7 @@ import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.LowMemoryWatcher;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SmartList;
 import com.intellij.util.concurrency.SameThreadExecutor;
@@ -114,6 +115,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   MultiResourceRepository(@NotNull String displayName) {
     super(displayName);
+    LowMemoryWatcher.register(this::onLowMemory, this);
+    ResourceUpdateTracer.logDirect(() -> "Created " + TraceUtils.getSimpleId(this) + " " + displayName);
   }
 
   protected void setChildren(@NotNull List<? extends LocalResourceRepository> localResources,
@@ -401,12 +404,24 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
    */
   @GuardedBy("ITEM_MAP_LOCK")
   public void invalidateCache() {
-    myCachedMaps.clear();
-    myResourceNames.clear();
-    myUnreconciledResources.clear();
+    clearCachedData();
     setModificationCount(ourModificationCounter.incrementAndGet());
 
     invalidateParentCaches();
+  }
+
+  @GuardedBy("ITEM_MAP_LOCK")
+  private void clearCachedData() {
+    myCachedMaps.clear();
+    myResourceNames.clear();
+    myUnreconciledResources.clear();
+  }
+
+  private void onLowMemory() {
+    synchronized (ITEM_MAP_LOCK) {
+      clearCachedData();
+    }
+    LOG.warn(getDisplayName() + ": Cached data cleared due to low memory");
   }
 
   /**

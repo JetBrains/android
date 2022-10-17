@@ -40,7 +40,6 @@ import com.android.tools.profilers.memory.adapters.FakeInstanceObject
 import com.android.tools.profilers.memory.adapters.InstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -68,8 +67,7 @@ class MemoryClassifierViewFindSuperSetNodeTest {
                                     FakeTransportService(timer),
                                     FakeProfilerService(timer),
                                     FakeMemoryService(),
-                                    FakeEventService(),
-                                    FakeNetworkService.newBuilder().build())
+                                    FakeEventService())
 
   @Before
   fun init() {

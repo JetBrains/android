@@ -26,7 +26,10 @@ import javax.swing.event.TreeModelListener
 import javax.swing.tree.TreeModel
 import javax.swing.tree.TreePath
 
-class CpuTreeModel<T: Aggregate<T>>(val clockType: ClockType, private val range: Range, base: T): TreeModel {
+class CpuTreeModel<T: Aggregate<T>>(val clockType: ClockType,
+                                    private val range: Range,
+                                    base: T,
+                                    runModelUpdate: (Runnable) -> Unit): TreeModel {
   private var treeRange = Range(range)
   private var order: Comparator<CpuTreeNode<T>> = compareBy({ it.base.isUnmatched }, { -it.total })
   val aspect = AspectModel<Aspect>()
@@ -44,7 +47,7 @@ class CpuTreeModel<T: Aggregate<T>>(val clockType: ClockType, private val range:
 
   private val rangeChanged =
     AsyncUpdater.by(ApplicationManager.getApplication()::invokeAndWait,
-                    ApplicationManager.getApplication()::executeOnPooledThread,
+                    runModelUpdate,
                     { root },
                     { it.withRange(clockType, range, treeRange, order) },
                     { newRoot ->

@@ -141,8 +141,7 @@ public abstract class StudioProgramRunner extends AndroidProgramRunner {
 
       RunProfile runProfile = env.getRunProfile();
       RunConfiguration runConfiguration = runProfile instanceof RunConfiguration ? (RunConfiguration)runProfile : null;
-      AndroidSessionInfo.create(processHandler, runConfiguration, executorId, executor.getActionName(),
-                                env.getExecutionTarget());
+      AndroidSessionInfo.create(processHandler, runConfiguration, executorId, env.getExecutionTarget());
     }
 
     return descriptor;

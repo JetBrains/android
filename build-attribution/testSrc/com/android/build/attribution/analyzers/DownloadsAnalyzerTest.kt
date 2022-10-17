@@ -16,6 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.SdkConstants
+import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAttributionManagerImpl
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
@@ -194,9 +195,10 @@ class DownloadsAnalyzerTest : AndroidGradleTestCase()  {
     """.trimIndent().split("\n"))
 
     // Verify analyzer result.
-    val result = (project.getService(
-      BuildAttributionManager::class.java
-    ) as BuildAttributionManagerImpl).analyzersProxy.getDownloadsAnalyzerResult()
+    val buildAttributionManager = project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val result = results.getDownloadsAnalyzerResult()
 
     val testRepositoryResult = (result as DownloadsAnalyzer.ActiveResult).repositoryResults.map { TestingRepositoryResult(it) }
     Truth.assertThat(testRepositoryResult).containsExactly(

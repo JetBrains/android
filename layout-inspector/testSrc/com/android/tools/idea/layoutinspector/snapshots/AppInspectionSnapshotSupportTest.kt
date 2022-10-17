@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
-import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -41,7 +40,6 @@ import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
@@ -58,14 +56,15 @@ class AppInspectionSnapshotSupportTest {
 
   private val projectRule = AndroidProjectRule.withSdk()
   private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) { it.name == PROCESS.name }
+  private val inspectorRule = LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) {
+    it.name == PROCESS.name
+  }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(appInspectorRule).around(inspectorRule).around(disposableRule)!!
 
   @Before
   fun setUp() {
-    inspectorRule.projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     inspectorRule.attachDevice(MODERN_DEVICE)
   }
 
@@ -96,7 +95,7 @@ class AppInspectionSnapshotSupportTest {
     inspectorRule.inspectorClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(inspectorRule.project)
-    snapshotLoader.loadFile(savePath, newModel)
+    snapshotLoader.loadFile(savePath, newModel, inspectorRule.inspectorClient.stats)
     checkSnapshot(newModel, snapshotLoader)
   }
 
@@ -129,7 +128,7 @@ class AppInspectionSnapshotSupportTest {
     inspectorRule.inspectorClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(inspectorRule.project)
-    snapshotLoader.loadFile(savePath, newModel)
+    snapshotLoader.loadFile(savePath, newModel, inspectorRule.inspectorClient.stats)
     checkSnapshot(newModel, snapshotLoader)
   }
 
@@ -211,7 +210,7 @@ class AppInspectionSnapshotSupportTest {
     // Ensure the snapshot was saved correctly
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(inspectorRule.project)
-    snapshotLoader.loadFile(savePath, newModel)
+    snapshotLoader.loadFile(savePath, newModel, inspectorRule.inspectorClient.stats)
     checkSnapshot(newModel, snapshotLoader)
   }
 

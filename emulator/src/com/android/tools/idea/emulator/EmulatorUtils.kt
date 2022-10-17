@@ -19,15 +19,21 @@ import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.ThemingStyle
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.util.concurrency.SameThreadExecutor
+import kotlinx.coroutines.cancelFutureOnCancellation
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.Point
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.min
@@ -50,6 +56,31 @@ internal fun getEmulatorUiTheme(lafManager: LafManager): ThemingStyle.Style {
  */
 internal fun invokeLaterInAnyModalityState(@UiThread action: () -> Unit) {
   ApplicationManager.getApplication().invokeLater(action, ModalityState.any())
+}
+
+/**
+ * Coroutine-friendly version of [ListenableFuture.get].
+ */
+suspend fun <T> ListenableFuture<T>.suspendingGet(): T {
+  if (isDone) {
+    @Suppress("BlockingMethodInNonBlockingContext")
+    return get()
+  }
+
+  return suspendCancellableCoroutine { continuation ->
+    continuation.cancelFutureOnCancellation(this)
+    val listener = Runnable {
+      val value = try {
+        get()
+      }
+      catch (e: Throwable) {
+        continuation.resumeWithException(e)
+        return@Runnable
+      }
+      continuation.resume(value)
+    }
+    addListener(listener, SameThreadExecutor.INSTANCE)
+  }
 }
 
 /**

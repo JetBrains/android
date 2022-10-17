@@ -66,27 +66,34 @@ internal class DeviceClient(
   private val coroutineScope = AndroidCoroutineScope(this)
   private lateinit var controlChannel: SuspendingSocketChannel
   private lateinit var videoChannel: SuspendingSocketChannel
+  lateinit var videoDecoder: VideoDecoder
   lateinit var deviceController: DeviceController
     private set
-  internal var startTime = 0L
-  internal var pushTime = 0L
-  internal var startAgentTime = 0L
-  internal var connectionTime = 0L
+  internal var startTime = 0L // Time when startAgentAndConnect was called.
+  internal var pushEndTime = 0L // Time when the agent push completed.
+  internal var startAgentTime = 0L // Time when the command to start the agent was issued.
+  internal var videoChannelConnectedTime = 0L // Time when the video channel was connected.
   private val logger = thisLogger()
 
   init {
     Disposer.register(disposableParent, this)
   }
 
-  suspend fun startAgentAndConnect(initialDisplayOrientation: Int) {
+  suspend fun startAgentAndConnect(
+      maxVideoSize: Dimension,
+      initialDisplayOrientation: Int,
+      frameListener: VideoDecoder.FrameListener,
+      agentTerminationListener: AgentTerminationListener) {
     startTime = System.currentTimeMillis()
     val adb = AdbLibService.getSession(project).deviceServices
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
-    val agentPushed = coroutineScope { async {
-      pushAgent(deviceSelector, adb)
-    }}
-    pushTime = System.currentTimeMillis()
+    val agentPushed = coroutineScope {
+      async {
+        pushAgent(deviceSelector, adb)
+      }
+    }
     val deviceSocket = SocketSpec.LocalAbstract("screen-sharing-agent")
+
     @Suppress("BlockingMethodInNonBlockingContext")
     val asyncChannel = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(0))
     val port = (asyncChannel.localAddress as InetSocketAddress).port
@@ -95,26 +102,19 @@ internal class DeviceClient(
       ClosableReverseForwarding(deviceSelector, deviceSocket, SocketSpec.Tcp(port), adb).use {
         it.startForwarding()
         agentPushed.await()
-        startAgent(deviceSelector, adb, initialDisplayOrientation)
+        startAgent(deviceSelector, adb, maxVideoSize, initialDisplayOrientation, agentTerminationListener)
         videoChannel = serverSocketChannel.accept()
-        connectionTime = System.currentTimeMillis()
+        videoChannelConnectedTime = System.currentTimeMillis()
         controlChannel = serverSocketChannel.accept()
         controlChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
         // Port forwarding can be removed since the already established connections will continue to work without it.
       }
     }
     deviceController = DeviceController(this, controlChannel)
+    videoDecoder = VideoDecoder(videoChannel, maxVideoSize)
+    videoDecoder.addFrameListener(frameListener)
+    videoDecoder.start(coroutineScope)
   }
-
-  fun createVideoDecoder(maxOutputSize: Dimension) : VideoDecoder =
-      VideoDecoder(videoChannel, maxOutputSize)
-
-  /**
-   * Starts decoding of the video stream. Video decoding continues until the video socket
-   * connection is closed, for example, by a [disconnect] call.
-   */
-  fun startVideoDecoding(decoder: VideoDecoder) =
-      decoder.start(coroutineScope)
 
   override fun dispose() {
     // Disconnect socket channels asynchronously.
@@ -157,7 +157,7 @@ internal class DeviceClient(
         val facet = project.allModules().firstNotNullOfOrNull { AndroidFacet.getInstance(it) }
         val buildVariant = facet?.properties?.SELECTED_BUILD_VARIANT ?: "debug"
         soFile = projectDir.resolve(
-            "app/build/intermediates/stripped_native_libs/$buildVariant/out/lib/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
+          "app/build/intermediates/stripped_native_libs/$buildVariant/out/lib/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
         val apkName = if (buildVariant == "debug") "app-debug.apk" else "app-release-unsigned.apk"
         jarFile = projectDir.resolve("app/build/outputs/apk/$buildVariant/$apkName")
       }
@@ -191,13 +191,20 @@ internal class DeviceClient(
       adb.syncSend(deviceSelector, jarFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME", permissions)
       nativeLibraryPushed.await()
     }
+    pushEndTime = System.currentTimeMillis()
   }
 
-  private suspend fun startAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices, initialDisplayOrientation: Int) {
+  private suspend fun startAgent(
+      deviceSelector: DeviceSelector,
+      adb: AdbDeviceServices,
+      maxVideoSize: Dimension,
+      initialDisplayOrientation: Int,
+      agentTerminationListener: AgentTerminationListener) {
     startAgentTime = System.currentTimeMillis()
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
     val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
                   " com.android.tools.screensharing.Main" +
+                  " --max_size=${maxVideoSize.width},${maxVideoSize.height}" +
                   orientationArg +
                   " --log=${StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get()}" +
                   " --codec=${StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()}"
@@ -211,8 +218,10 @@ internal class DeviceClient(
           when (it) {
             is ShellCommandOutputElement.StdoutLine -> if (it.contents.isNotBlank()) log.info(it.contents)
             is ShellCommandOutputElement.StderrLine -> if (it.contents.isNotBlank()) log.warn(it.contents)
-            is ShellCommandOutputElement.ExitCode ->
+            is ShellCommandOutputElement.ExitCode -> {
               if (it.exitCode == 0) log.info("terminated") else log.warn("terminated with code ${it.exitCode}")
+              agentTerminationListener.agentTerminated(it.exitCode)
+            }
           }
         }
       }
@@ -222,12 +231,16 @@ internal class DeviceClient(
     }
   }
 
+  interface AgentTerminationListener {
+    fun agentTerminated(exitCode: Int)
+  }
+
   private class ClosableReverseForwarding(
     val deviceSelector: DeviceSelector,
     val deviceSocket: SocketSpec,
     val localSocket: SocketSpec,
     val adb: AdbDeviceServices,
-    ) : SuspendingCloseable {
+  ) : SuspendingCloseable {
 
     var opened = false
 

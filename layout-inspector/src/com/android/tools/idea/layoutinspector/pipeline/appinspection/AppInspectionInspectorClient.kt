@@ -30,6 +30,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
@@ -55,6 +56,7 @@ import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
@@ -98,7 +100,7 @@ class AppInspectionInspectorClient(
   parentDisposable: Disposable,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-) : AbstractInspectorClient(process, isInstantlyAutoConnected, parentDisposable) {
+) : AbstractInspectorClient(process, isInstantlyAutoConnected, SessionStatisticsImpl(APP_INSPECTION_CLIENT, model), parentDisposable) {
 
   private var viewInspector: ViewLayoutInspectorClient? = null
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider
@@ -127,7 +129,7 @@ class AppInspectionInspectorClient(
     )
   }
 
-  private val debugViewAttributes = DebugViewAttributes(model.project, process)
+  private val debugViewAttributes = DebugViewAttributes(model.project)
   private var debugViewAttributesChanged = false
 
   override val capabilities =
@@ -143,7 +145,7 @@ class AppInspectionInspectorClient(
 
   override val treeLoader: TreeLoader = AppInspectionTreeLoader(
     model.project,
-    logEvent = metrics::logEvent,
+    logEvent = ::logEvent,
     skiaParser
   )
   override val provider: PropertiesProvider
@@ -166,21 +168,21 @@ class AppInspectionInspectorClient(
       future.setException(t)
     }
     scope.launch(exceptionHandler) {
-      metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
+      logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
       // Create the app inspection connection now, so we can log that it happened.
       apiServices.attachToProcess(process, model.project.name)
       launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS)
 
       composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model, treeSettings, capabilities, launchMonitor)
-      val viewIns = ViewLayoutInspectorClient.launch(apiServices, process, model, scope, composeInspector, ::fireError, ::fireTreeEvent,
-                                                     launchMonitor)
+      val viewIns = ViewLayoutInspectorClient.launch(apiServices, process, model, stats, scope, composeInspector,
+                                                     ::fireError, ::fireTreeEvent, launchMonitor)
       propertiesProvider = AppInspectionPropertiesProvider(viewIns.propertiesCache, composeInspector?.parametersCache, model)
       viewInspector = viewIns
 
-      metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
+      logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
-      debugViewAttributesChanged = debugViewAttributes.set()
+      debugViewAttributesChanged = debugViewAttributes.set(process)
       if (debugViewAttributesChanged && !isInstantlyAutoConnected) {
         showActivityRestartedInBanner(model.project, process)
       }
@@ -206,12 +208,12 @@ class AppInspectionInspectorClient(
     // Create a new scope since we might be disconnecting because the original one died.
     model.project.coroutineScope.createChildScope(true).launch(loggingExceptionHandler) {
       if (debugViewAttributesChanged) {
-        debugViewAttributes.clear()
+        debugViewAttributes.clear(process)
       }
       viewInspector?.disconnect()
       composeInspector?.disconnect()
       skiaParser.shutdown()
-      metrics.logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
+      logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
 
       future.set(null)
     }
@@ -224,7 +226,7 @@ class AppInspectionInspectorClient(
     }.asCompletableFuture()
 
   private suspend fun startFetchingInternal() {
-    metrics.stats?.live?.toggledToLive()
+    stats.currentModeIsLive = true
     viewInspector?.startFetching(continuous = true)
   }
 
@@ -237,7 +239,7 @@ class AppInspectionInspectorClient(
       else {
         viewInspector?.updateScreenshotType(null, 1.0f)
       }
-      metrics.stats?.live?.toggledToRefresh()
+      stats.currentModeIsLive = false
       viewInspector?.stopFetching()
     }.asCompletableFuture()
 
@@ -247,8 +249,12 @@ class AppInspectionInspectorClient(
     }
   }
 
+  private fun logEvent(eventType: DynamicLayoutInspectorEventType) {
+    metrics.logEvent(eventType, stats)
+  }
+
   private suspend fun refreshInternal() {
-    metrics.stats?.live?.toggledToRefresh()
+    stats.currentModeIsLive = false
     viewInspector?.startFetching(continuous = false)
   }
 
@@ -275,7 +281,7 @@ class AppInspectionInspectorClient(
     metadata?.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
     val saveMetrics = LayoutInspectorMetrics(model.project, snapshotMetadata = metadata)
-    saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED)
+    saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED, stats)
   }
 
   private fun checkApi29Version(

@@ -106,6 +106,7 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
       ActionPlaces.ANDROID_TEST_SUITE_RAW_LOG,
       DefaultActionGroup(*rawTestLogConsoleView.createConsoleActions()),
       false)
+    rawTestLogToolbar.setTargetComponent(rawTestLogConsoleView.component)
     add(rawTestLogToolbar.component, BorderLayout.EAST)
   }
 

@@ -34,24 +34,16 @@ public class DetailedCpuUsage extends CpuUsage {
 
     myThreadRange = new Range(0, 8);
 
-    DataSeries<Long> others;
-    DataSeries<Long> threads;
-    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      long streamId = profilers.getSession().getStreamId();
-      int pid = profilers.getSession().getPid();
-      others = new UnifiedEventDataSeries<>(
-        profilers.getClient().getTransportClient(),
-        streamId,
-        pid,
-        Common.Event.Kind.CPU_USAGE,
-        pid,
-        events -> extractData(events, true));
-      threads = new CpuThreadCountDataSeries(profilers.getClient().getTransportClient(), streamId, pid);
-    }
-    else {
-      others = new LegacyCpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), true);
-      threads = new LegacyCpuThreadCountDataSeries(profilers.getClient().getCpuClient(), profilers.getSession());
-    }
+    long streamId = profilers.getSession().getStreamId();
+    int pid = profilers.getSession().getPid();
+    DataSeries<Long> others = new UnifiedEventDataSeries<>(
+      profilers.getClient().getTransportClient(),
+      streamId,
+      pid,
+      Common.Event.Kind.CPU_USAGE,
+      pid,
+      events -> extractData(events, true));
+    DataSeries<Long> threads = new CpuThreadCountDataSeries(profilers.getClient().getTransportClient(), streamId, pid);
     myOtherCpuSeries = new RangedContinuousSeries("Others", profilers.getTimeline().getViewRange(), getCpuRange(), others);
     myThreadsCountSeries = new RangedContinuousSeries("Threads", profilers.getTimeline().getViewRange(), myThreadRange, threads);
     add(myOtherCpuSeries);

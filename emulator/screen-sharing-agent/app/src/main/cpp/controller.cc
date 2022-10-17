@@ -19,7 +19,6 @@
 #include <unistd.h>
 
 #include <cstdio>
-#include <thread>
 
 #include "accessors/input_manager.h"
 #include "accessors/key_event.h"
@@ -90,10 +89,6 @@ Point AdjustedDisplayCoordinates(int32_t x, int32_t y, const DisplayInfo& displa
 void RemoveAgentFiles() {
   remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_JAR_NAME);
   remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_SO_NAME);
-  // TODO: Remove the following three lines after July 1, 2022.
-  // Remove files at the old locations to clean devices of early device mirroring adopters.
-  remove("/data/local/tmp/" SCREEN_SHARING_AGENT_JAR_NAME);
-  remove("/data/local/tmp/" SCREEN_SHARING_AGENT_SO_NAME);
 }
 
 }  // namespace

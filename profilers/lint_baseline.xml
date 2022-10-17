@@ -22,7 +22,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuProfiler.java"
-            line="182"/>
+            line="180"/>
     </issue>
 
     <issue
@@ -207,14 +207,6 @@
         <location
             file="src/com/android/tools/profilers/energy/EnergyUsage.java"
             line="31"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/profilers/network/NetworkUsage.java"
-            line="35"/>
     </issue>
 
 </issues>

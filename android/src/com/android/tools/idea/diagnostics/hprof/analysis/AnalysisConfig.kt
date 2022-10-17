@@ -21,7 +21,8 @@ class AnalysisConfig(
   val disposerOptions: DisposerOptions = DisposerOptions(),
   val traverseOptions: TraverseOptions = TraverseOptions(),
   val metaInfoOptions: MetaInfoOptions = MetaInfoOptions(),
-  val dominatorTreeOptions: DominatorTreeOptions = DominatorTreeOptions()
+  val dominatorTreeOptions: DominatorTreeOptions = DominatorTreeOptions(),
+  val innerClassOptions: InnerClassOptions = InnerClassOptions()
 ) {
 
   class PerClassOptions(
@@ -98,6 +99,11 @@ class AnalysisConfig(
     val maxDepth: Int = 30,
     val headLimit: Int = 5_000,
     val diskSpaceThreshold: Long = 500_000_000L
+  )
+
+  class InnerClassOptions(
+    val includeInnerClassSection: Boolean = true,
+    val histogramEntries: Int = 30
   )
 
   companion object {

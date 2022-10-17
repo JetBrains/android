@@ -40,6 +40,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.module.impl.scopes.ModuleWithDependenciesScope;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -79,6 +81,20 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
   public void performPreRunActivities(@NotNull List<Tools> globalTools,
                                       @NotNull List<Tools> localTools,
                                       @NotNull final GlobalInspectionContext context) {
+    try {
+      doAnalyze(globalTools, localTools, context);
+    }
+    catch (ProcessCanceledException | IndexNotReadyException e) {
+      throw e;
+    }
+    catch (Throwable e) {
+      Logger.getInstance(LintGlobalInspectionContext.class).error(e);
+    }
+  }
+
+  private void doAnalyze(@NotNull List<Tools> globalTools,
+                         @NotNull List<Tools> localTools,
+                         @NotNull final GlobalInspectionContext context) {
     final Project project = context.getProject();
     LintIdeSupport ideSupport = LintIdeSupport.get();
     if (!ideSupport.canAnalyze(project)) {

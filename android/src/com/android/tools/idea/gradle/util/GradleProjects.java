@@ -19,13 +19,11 @@ import static com.android.tools.idea.gradle.project.ProjectImportUtil.findGradle
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -106,18 +104,6 @@ public final class GradleProjects {
     return isRootProject ? ":" : linkedProjectId;
   }
 
-  /**
-   * Indicates whether the project in the given folder can be imported as a Gradle project.
-   *
-   * @param importSource the folder containing the project.
-   * @return {@code true} if the project can be imported as a Gradle project, {@code false} otherwise.
-   */
-  public static boolean canImportAsGradleProject(@NotNull VirtualFile importSource) {
-    VirtualFile target = findGradleTarget(importSource);
-    return target != null && (GradleConstants.EXTENSION.equals(target.getExtension()) ||
-                              target.getName().endsWith(GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION));
-  }
-
   public static boolean isIdeaAndroidModule(@NotNull Module module) {
     if (GradleFacet.getInstance(module) != null) {
       return true;
@@ -129,14 +115,15 @@ public final class GradleProjects {
     return false;
   }
 
-  /** Checks if the given project contains a module that contains code built by Android Studio's C++ support. */
-  public static boolean containsExternalCppProjects(@NotNull Project project) {
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-      if (ndkModuleModel != null) {
-        return true;
-      }
-    }
-    return false;
+  /**
+   * Indicates whether the project in the given folder can be imported as a Gradle project.
+   *
+   * @param importSource the folder containing the project.
+   * @return {@code true} if the project can be imported as a Gradle project, {@code false} otherwise.
+   */
+  public static boolean canImportAsGradleProject(@NotNull VirtualFile importSource) {
+    VirtualFile target = findGradleTarget(importSource);
+    return target != null && (GradleConstants.EXTENSION.equals(target.getExtension()) ||
+                              target.getName().endsWith(GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION));
   }
 }

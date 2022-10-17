@@ -17,13 +17,14 @@ package com.android.tools.idea.common.lint;
 
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.intellij.codeHighlighting.HighlightingPass;
+import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 
 public class BackgroundEditorHighlighter implements com.intellij.codeHighlighting.BackgroundEditorHighlighter {
   private final HighlightingPass[] myHighlightingPasses;
 
-  public BackgroundEditorHighlighter(@NotNull DesignerEditorPanel editorPanel) {
-    myHighlightingPasses = new HighlightingPass[]{};
+  public BackgroundEditorHighlighter(@NotNull DesignerEditorPanel editorPanel, @NotNull ModelLintIssueAnnotator annotator) {
+    myHighlightingPasses = new HighlightingPass[]{ new DesignerEditorBackgroundHighlightingPass(editorPanel, annotator) };
   }
 
   @NotNull

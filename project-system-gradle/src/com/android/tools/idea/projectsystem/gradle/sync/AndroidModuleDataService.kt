@@ -195,7 +195,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     modelsProvider: IdeModelsProvider
   ) {
     GradleProjectInfo.getInstance(project).isNewProject = false
-    GradleProjectInfo.getInstance(project).isImportedProject = false
 
     if (imported.isEmpty() && !IdeInfo.getInstance().isAndroidStudio){
       // in IDEA Android Plugin should not do anything, if there are no Android Modules in the project.

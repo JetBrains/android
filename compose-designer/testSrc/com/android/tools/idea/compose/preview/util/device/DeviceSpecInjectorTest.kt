@@ -21,16 +21,19 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.intellij.lang.LanguageParserDefinitions
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.psi.LanguageInjector
+import com.intellij.lang.injection.general.LanguageInjectionContributor
+import com.intellij.lang.injection.general.LanguageInjectionPerformer
 import com.intellij.testFramework.fixtures.InjectionTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFails
 
 internal class DeviceSpecInjectorTest {
@@ -39,7 +42,7 @@ internal class DeviceSpecInjectorTest {
 
   val fixture get() = rule.fixture
 
-  val injectionFixture: InjectionTestFixture
+  private val injectionFixture: InjectionTestFixture
     get() = InjectionTestFixture(fixture)
 
   @Before
@@ -48,9 +51,15 @@ internal class DeviceSpecInjectorTest {
     fixture.stubPreviewAnnotation()
     fixture.stubComposableAnnotation()
     fixture.registerLanguageExtensionPoint(LanguageParserDefinitions.INSTANCE, DeviceSpecParserDefinition(), DeviceSpecLanguage)
-    ApplicationManager.getApplication().extensionArea.getExtensionPoint(LanguageInjector.EXTENSION_POINT_NAME).registerExtension(
-      DeviceSpecInjector(),
-      fixture.testRootDisposable
+    fixture.registerLanguageExtensionPoint(
+      LanguageInjectionContributor.INJECTOR_EXTENSION,
+      DeviceSpecInjectionContributor(),
+      KotlinLanguage.INSTANCE
+    )
+    fixture.registerLanguageExtensionPoint(
+      LanguageInjectionPerformer.INJECTOR_EXTENSION,
+      DeviceSpecInjectionPerformer(),
+      KotlinLanguage.INSTANCE
     )
   }
 
@@ -60,7 +69,7 @@ internal class DeviceSpecInjectorTest {
   }
 
   @Test
-  fun languageIsInjectedInDevice() {
+  fun injectedForDeviceParameter() {
     rule.fixture.configureByText(
       "test.kt",
       // language=kotlin
@@ -80,10 +89,89 @@ internal class DeviceSpecInjectorTest {
   }
 
   @Test
-  fun languageNotInjectedInNonDevice() {
+  fun notInjectedForNonDeviceParameters() {
     assertFailsOnPreviewParameter("name")
     assertFailsOnPreviewParameter("group")
     assertFailsOnPreviewParameter("locale")
+  }
+
+  @Test
+  fun injectedInConcatenatedExpressionForDeviceParameter() {
+    rule.fixture.configureByText(
+      KotlinFileType.INSTANCE,
+      // language=kotlin
+      """
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        const val heightDp = "841dp"
+        const val specPref = "spec:"
+        const val heightPx = "1900px"
+
+        @Preview(device = "spec:width=673.5dp," + "height=" + heightDp + "" + ""${'"'},chinSize=11dp""${'"'})
+        @Preview(device = specPref + "width=10dp,height=" + heightDp)
+        @Preview(device = "spec:width=1080px," + "height=" + heightPx)
+        @Composable
+        fun preview1() {}
+      """.trimIndent()
+    )
+    val injectedElementsAndTexts = runReadAction {
+      injectionFixture.getAllInjections().map {
+        Pair(
+          it.first.text,
+          it.second.text
+        )
+      }
+    }
+    assertEquals(3, injectedElementsAndTexts.size)
+    // Assert the text of the elements marked for Injection
+    assertEquals(""""spec:width=673.5dp,"""", injectedElementsAndTexts[0].first)
+    assertEquals(""""width=10dp,height="""", injectedElementsAndTexts[1].first)
+    assertEquals(""""spec:width=1080px,"""", injectedElementsAndTexts[2].first)
+
+    // Assert the contents of the Injected file, should reflect the resolved text in the `device` parameter
+    assertEquals("spec:width=673.5dp,height=841dp,chinSize=11dp", injectedElementsAndTexts[0].second)
+    assertEquals("spec:width=10dp,height=841dp", injectedElementsAndTexts[1].second)
+    assertEquals("spec:width=1080px,height=1900px", injectedElementsAndTexts[2].second)
+  }
+
+  @Test
+  fun onlyOneExpressionInjectedInConcatenatedDeviceSpec() {
+    rule.fixture.configureByText(
+      KotlinFileType.INSTANCE,
+      // language=kotlin
+      """
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        const val heightPx = "1900px"
+
+        @Preview(device = "spec$caret:width=1080px," + "height=" + heightPx)
+        @Composable
+        fun preview1() {}
+      """.trimIndent()
+    )
+    runReadAction {
+      injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id)
+    }
+
+    rule.fixture.configureByText(
+      KotlinFileType.INSTANCE,
+      // language=kotlin
+      """
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        const val heightPx = "1900px"
+
+        @Preview(device = "spec:width=1080px," + "height$caret=" + heightPx)
+        @Composable
+        fun preview1() {}
+      """.trimIndent()
+    )
+    runReadAction {
+      assertFails { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) }
+    }
   }
 
   private fun assertFailsOnPreviewParameter(parameterName: String) {

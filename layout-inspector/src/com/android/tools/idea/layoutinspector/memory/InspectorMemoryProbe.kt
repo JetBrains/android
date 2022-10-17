@@ -75,7 +75,7 @@ class InspectorMemoryProbe(
   private fun checkMemory(generation: Int) {
     val startTime = System.currentTimeMillis()
     val cancelled = { model.updating || model.lastGeneration != generation }
-    val probe = MemoryProbe(includedPackagePrefixes, excludedClasses = excludedClasses, cancelled = cancelled)
+    val probe = MemoryProbe(includedPackagePrefixes, excludedClasses = excludedClasses, excludeStaticFields = true, cancelled = cancelled)
     val size = probe.check(model.root)
     val elapsed = System.currentTimeMillis() - startTime
     if (!probe.wasCancelled) {

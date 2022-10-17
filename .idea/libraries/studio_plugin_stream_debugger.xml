@@ -1,11 +1,8 @@
 <component name="libraryTable">
   <library name="studio-plugin-stream-debugger">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-221/$SDK_PLATFORM$/plugins/stream-debugger/lib/stream-debugger.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-221/android-studio-sources.zip!/" />
-    </SOURCES>
+    <SOURCES />
   </library>
 </component>

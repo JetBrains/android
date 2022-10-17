@@ -37,6 +37,7 @@ import com.intellij.openapi.util.Key
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
 import javax.swing.tree.MutableTreeNode
@@ -105,18 +106,6 @@ class DeviceMonitorController(
 
   private fun reportErrorFindingDevice(message: String) {
     view.reportErrorGeneric(message, IllegalStateException())
-  }
-
-  fun selectActiveDevice(serialNumber: String) {
-    uiThreadScope.launch {
-      // This is called shortly after setup; wait for setup to complete
-      setupJob.await()
-
-      when (val device = model.devices.find { it.serialNumber == serialNumber }) {
-        null -> refreshDeviceList(serialNumber)
-        else -> setActiveDevice(device)
-      }
-    }
   }
 
   private suspend fun refreshDeviceList(serialNumberToSelect: String?) {
@@ -346,10 +335,7 @@ class DeviceMonitorController(
           return node.processInfo == entry
         }
 
-        override fun updateNode(
-          node: ProcessInfoTreeNode,
-          entry: ProcessInfo
-        ) {
+        override fun updateNode(node: ProcessInfoTreeNode, entry: ProcessInfo) {
           node.processInfo = entry
         }
       }
@@ -376,6 +362,24 @@ class DeviceMonitorController(
         else {
           o1.safeProcessName.compareTo(o2.safeProcessName)
         }
+      }
+    }
+  }
+
+  @TestOnly
+  fun hasActiveDevice(): Boolean {
+    return model.activeDevice != null
+  }
+
+  @TestOnly
+  fun selectActiveDevice(serialNumber: String) {
+    uiThreadScope.launch {
+      // This is called shortly after setup; wait for setup to complete
+      setupJob.await()
+
+      when (val device = model.devices.find { it.serialNumber == serialNumber }) {
+        null -> refreshDeviceList(serialNumber)
+        else -> setActiveDevice(device)
       }
     }
   }

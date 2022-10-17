@@ -45,6 +45,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.util.ThreeState
 import org.apache.commons.io.FileUtils
@@ -258,18 +259,18 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     setUpTestProject("3.5.0", ":" to AndroidProjectBuilder())
     val syncState = IdeComponents(myProject).mockProjectService(GradleSyncState::class.java)
     whenever(syncState.isSyncNeeded()).thenReturn(ThreeState.YES)
-    val provider = MakeBeforeRunTaskProvider(myProject)
+    val provider = MakeBeforeRunTaskProvider()
     // Gradle sync should not be invoked.
-    assertThat(provider.isSyncNeeded(listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(myProject, listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
   }
 
   fun testRunGradleSyncWithBuildOutputFileSupported() {
     setUpTestProject("4.1.0", ":" to AndroidProjectBuilder())
     val syncState = IdeComponents(myProject).mockProjectService(GradleSyncState::class.java)
     whenever(syncState.isSyncNeeded()).thenReturn(ThreeState.YES)
-    val provider = MakeBeforeRunTaskProvider(myProject)
+    val provider = MakeBeforeRunTaskProvider()
     // Gradle sync should not be invoked since the build output file is expected to be available.
-    assertThat(provider.isSyncNeeded(listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(myProject, listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
   }
 
   fun testRunGradleSyncWithV1Project() {
@@ -289,25 +290,25 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
         )
       }
     ))
-    val provider = MakeBeforeRunTaskProvider(myProject)
+    val provider = MakeBeforeRunTaskProvider()
     // Don't trigger sync if it is already synced
-    assertThat(provider.isSyncNeeded(selected)).isEqualTo(SyncNeeded.NOT_NEEDED)
-    assertThat(provider.isSyncNeeded(synced)).isEqualTo(SyncNeeded.NOT_NEEDED)
-    assertThat(provider.isSyncNeeded(selected, synced)).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(myProject, selected)).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(myProject, synced)).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(myProject, selected, synced)).isEqualTo(SyncNeeded.NOT_NEEDED)
     // Trigger sync if it is available and not already synced
-    assertThat(provider.isSyncNeeded(availableNotSynced1)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
-    assertThat(provider.isSyncNeeded(availableNotSynced1, availableNotSynced2)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
+    assertThat(provider.isSyncNeeded(myProject, availableNotSynced1)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
+    assertThat(provider.isSyncNeeded(myProject, availableNotSynced1, availableNotSynced2)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
     // Trigger sync even if only one of the devices ABIs is available and not already synced
-    assertThat(provider.isSyncNeeded(availableNotSynced1, notAvailable1)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
-    assertThat(provider.isSyncNeeded(availableNotSynced1, selected)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
+    assertThat(provider.isSyncNeeded(myProject, availableNotSynced1, notAvailable1)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
+    assertThat(provider.isSyncNeeded(myProject, availableNotSynced1, selected)).isEqualTo(SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED)
     // Don't trigger sync if the model is not available
-    assertThat(provider.isSyncNeeded(notAvailable1)).isEqualTo(SyncNeeded.NOT_NEEDED)
-    assertThat(provider.isSyncNeeded(notAvailable1, notAvailable2)).isEqualTo(SyncNeeded.NOT_NEEDED)
-    assertThat(provider.isSyncNeeded(notAvailable1, selected)).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(myProject, notAvailable1)).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(myProject, notAvailable1, notAvailable2)).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(myProject, notAvailable1, selected)).isEqualTo(SyncNeeded.NOT_NEEDED)
 
   }
 
-  private fun MakeBeforeRunTaskProvider.isSyncNeeded(vararg abi: Abi) = isSyncNeeded(abi.map { it.toString() })
+  private fun MakeBeforeRunTaskProvider.isSyncNeeded(project: Project, vararg abi: Abi) = isSyncNeeded(project, abi.map { it.toString() })
 
   private fun v1NativeModel(selectedAbi: Abi, syncedAbis: List<Abi>, allAbis: List<Abi>): V1NdkModel {
     assertThat(syncedAbis).contains(selectedAbi)

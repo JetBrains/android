@@ -41,7 +41,11 @@ import javax.swing.Icon
 import javax.swing.JComponent
 
 class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
-  override val inspectorId = "androidx.sqlite.inspection"
+  companion object {
+    const val DATABASE_INSPECTOR_ID = "androidx.sqlite.inspection"
+  }
+
+  override val inspectorId = DATABASE_INSPECTOR_ID
   override val displayName = "Database Inspector"
   override val icon: Icon = StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR
 

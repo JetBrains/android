@@ -32,6 +32,7 @@ import com.intellij.util.ui.UIUtil;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,6 +40,11 @@ import org.jetbrains.annotations.Nullable;
  * {@link LayoutlibSceneManager} used for tests that performs all operations synchronously.
  */
 public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
+  /**
+   * Number of seconds to wait for the render to complete in any of the render calls.
+   */
+  private final static int RENDER_TIMEOUT_SECS = 60;
+
   private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
   private boolean myIgnoreRenderRequests;
 
@@ -69,19 +75,22 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     if (myIgnoreRenderRequests) {
       return CompletableFuture.completedFuture(null);
     }
-    return CompletableFuture.completedFuture(super.renderAsync(trigger).join());
+    return CompletableFuture.completedFuture(super.renderAsync(trigger).orTimeout(RENDER_TIMEOUT_SECS, TimeUnit.SECONDS).join());
   }
 
   @NotNull
   @Override
   final public CompletableFuture<Void> requestRenderAsync() {
-    return CompletableFuture.completedFuture(super.requestRenderAsync().join());
+    if (myIgnoreRenderRequests) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return CompletableFuture.completedFuture(super.requestRenderAsync().orTimeout(RENDER_TIMEOUT_SECS, TimeUnit.SECONDS).join());
   }
 
   @NotNull
   @Override
   public CompletableFuture<Void> updateModelAsync() {
-    return CompletableFuture.completedFuture(super.updateModelAsync().join());
+    return CompletableFuture.completedFuture(super.updateModelAsync().orTimeout(RENDER_TIMEOUT_SECS, TimeUnit.SECONDS).join());
   }
 
   @Override

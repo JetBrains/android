@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.NativeVariantAbi
-import com.android.builder.model.v2.ide.Variant
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
@@ -29,6 +28,7 @@ import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
+import com.android.tools.idea.projectsystem.gradle.sync.Counter
 import org.gradle.api.Action
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
@@ -88,7 +88,6 @@ data class ActionToRun<T>(
       Versions::class.java -> fetchesV2Models
       BasicAndroidProject::class.java -> fetchesV2Models
       AndroidProject::class.java -> fetchesV2Models
-      Variant::class.java -> fetchesV2Models
       VariantDependencies::class.java -> fetchesV2Models
       AndroidDsl::class.java -> fetchesV2Models
       ProjectSyncIssues::class.java -> fetchesV2Models
@@ -118,7 +117,7 @@ data class ActionToRun<T>(
    */
   private fun BuildController.toSafeController(): BuildController {
     val delegate = this
-    return object: BuildController {
+    return object : BuildController {
       override fun <T> getModel(modelType: Class<T>): T {
         validateModelType(modelType)
         return delegate.getModel(modelType)
@@ -170,22 +169,37 @@ data class ActionToRun<T>(
   }
 }
 
+/**
+ * The class that controls parallel fetching of build models in Android Gradle sync.
+ *
+ * Each [ActionToRun] used in Gradle sync to get build models declares which kinds of models it processes.  [SyncActionRunner] knows the
+ * capabilities of the Gradle version and of the Android Gradle plugin in use.
+ *
+ * [runActions] method separates models that can be fetched in parallel and those that cannot and runs them in the appropriate mode.
+ *
+ * Also [SyncActionRunner] measures time it took to fetch models using [syncCounters].
+ */
 class SyncActionRunner private constructor(
   private val controller: BuildController,
+  private val syncCounters: SyncCounters,
   private val parallelActionsSupported: Boolean,
   private val canFetchV2ModelsInParallel: Boolean = false,
   private val canFetchPlatformModelsInParallel: Boolean = false,
   private val canFetchKotlinModelsInParallel: Boolean = false,
-  ): GradleInjectedSyncActionRunner {
+) : GradleInjectedSyncActionRunner {
 
   companion object {
-    fun create(controller: BuildController, parallelActionsSupported: Boolean) =
-      SyncActionRunner(controller, parallelActionsSupported)
+    fun create(
+      controller: BuildController,
+      syncCounters: SyncCounters,
+      parallelActionsSupported: Boolean
+    ) = SyncActionRunner(controller, syncCounters, parallelActionsSupported)
   }
 
   fun enableParallelFetchForV2Models(enable: Boolean = true): SyncActionRunner =
     SyncActionRunner(
       controller = controller,
+      syncCounters = syncCounters,
       parallelActionsSupported = parallelActionsSupported,
       canFetchV2ModelsInParallel = enable,
       canFetchPlatformModelsInParallel = canFetchPlatformModelsInParallel,
@@ -204,23 +218,28 @@ class SyncActionRunner private constructor(
   override fun <T> runActions(actionsToRun: List<ActionToRun<T>>): List<T> {
     return when (actionsToRun.size) {
       0 -> emptyList()
-      1 -> listOf(runAction {actionsToRun[0].run(it)})
+      1 -> listOf(runAction { actionsToRun[0].run(it.toMeasuringController(syncCounters)) })
       else ->
         if (parallelActionsSupported) {
-          val indexedActions = actionsToRun.mapIndexed { index, action -> index to action}.toMap()
+          val indexedActions = actionsToRun.mapIndexed { index, action -> index to action }.toMap()
           val parallelActions = indexedActions.filter { it.value.canRunInParallel }
           val sequentialAction = indexedActions.filter { !it.value.canRunInParallel }
           val executionResults =
             parallelActions.keys.zip(
               @Suppress("UnstableApiUsage")
-              controller.run(parallelActions.map { indexedActionToRun -> BuildAction { indexedActionToRun.value.run(it) } }) as List<T>
+              controller.run(parallelActions.map { indexedActionToRun ->
+                BuildAction {
+                  indexedActionToRun.value.run(it.toMeasuringController(syncCounters))
+                }
+              }) as List<T>
             ).toMap() +
-            sequentialAction.map { it.key to runAction {controller -> it.value.run(controller)} }.toMap()
+              sequentialAction.map {
+                it.key to runAction { controller -> it.value.run(controller.toMeasuringController(syncCounters)) }
+              }.toMap()
 
           executionResults.toSortedMap().values.toList()
-        }
-        else {
-          actionsToRun.map { runAction{controller -> it.run(controller)} }
+        } else {
+          actionsToRun.map { runAction { controller -> it.run(controller.toMeasuringController(syncCounters)) } }
         }
     }
   }
@@ -228,4 +247,81 @@ class SyncActionRunner private constructor(
   override fun <T> runAction(action: (BuildController) -> T): T {
     return action(controller)
   }
+}
+
+/**
+ * Wraps this [BuildController] and records time it takes to build each model.
+ */
+private fun BuildController.toMeasuringController(syncCounters: SyncCounters): BuildController {
+  val delegate = this
+  return object : BuildController {
+    override fun <T> getModel(modelType: Class<T>): T {
+      return syncCounters.measure(modelType) { delegate.getModel(modelType) }
+    }
+
+    override fun <T> getModel(target: Model?, modelType: Class<T>): T {
+      return syncCounters.measure(modelType) { delegate.getModel(target, modelType) }
+    }
+
+    override fun <T, P> getModel(modelType: Class<T>, parameterType: Class<P>, parameterInitializer: Action<in P>): T {
+      return syncCounters.measure(modelType) { delegate.getModel(modelType, parameterType, parameterInitializer) }
+    }
+
+    override fun <T, P> getModel(target: Model?, modelType: Class<T>, parameterType: Class<P>, parameterInitializer: Action<in P>): T {
+      return syncCounters.measure(modelType) { delegate.getModel(target, modelType, parameterType, parameterInitializer) }
+    }
+
+    override fun <T> findModel(modelType: Class<T>): T? {
+      return syncCounters.measure(modelType) { delegate.findModel(modelType) }
+    }
+
+    override fun <T> findModel(target: Model?, modelType: Class<T>): T? {
+      return syncCounters.measure(modelType) { delegate.findModel(target, modelType) }
+    }
+
+    override fun <T, P> findModel(modelType: Class<T>, parameterType: Class<P>, parameterInitializer: Action<in P>): T? {
+      return syncCounters.measure(modelType) { delegate.findModel(modelType, parameterType, parameterInitializer) }
+    }
+
+    override fun <T, P> findModel(target: Model?, modelType: Class<T>, parameterType: Class<P>, parameterInitializer: Action<in P>): T? {
+      return syncCounters.measure(modelType) { delegate.findModel(target, modelType, parameterType, parameterInitializer) }
+    }
+
+    override fun getBuildModel(): GradleBuild = error("Not intended to be used")
+
+    @Suppress("UnstableApiUsage")
+    override fun <T : Any?> run(p0: Collection<out BuildAction<out T>>?): List<T> = error("Not intended to be used")
+
+    @Suppress("UnstableApiUsage")
+    override fun getCanQueryProjectModelInParallel(p0: Class<*>?): Boolean = error("Not intended to be used")
+  }
+}
+
+/**
+ * Maps a [modelType] to a [Counter] to be used to measure the time it takes to build models of this type.
+ */
+private fun <T> SyncCounters.measure(modelType: Class<*>, block: () -> T): T {
+  val counter = when (modelType) {
+    Versions::class.java -> otherModel
+    BasicAndroidProject::class.java -> projectModel
+    AndroidProject::class.java -> projectModel
+    VariantDependencies::class.java -> variantDependenciesModel
+    AndroidDsl::class.java -> projectModel
+    ProjectSyncIssues::class.java -> otherModel
+    AndroidProjectV1::class.java -> projectModel
+    VariantV1::class.java -> variantDependenciesModel
+    ProjectSyncIssuesV1::class.java -> otherModel
+    KotlinGradleModel::class.java -> kotlinModel
+    KaptGradleModel::class.java -> kaptModel
+    KotlinMPPGradleModel::class.java -> mppModel
+    LegacyApplicationIdModel::class.java -> otherModel
+    NativeModule::class.java -> nativeModel
+    NativeAndroidProject::class.java -> nativeModel
+    NativeVariantAbi::class.java -> nativeModel
+    AdditionalClassifierArtifactsModel::class.java -> additionalArtifactsModel
+    LegacyV1AgpVersionModel::class.java -> otherModel
+    GradlePluginModel::class.java -> otherModel
+    else -> error("Unexpected model type: $modelType. ActionToRun.SyncCounters.measure needs to be updated.")
+  }
+  return counter(block)
 }

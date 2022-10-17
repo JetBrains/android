@@ -72,15 +72,23 @@ public class IdePermissionTest {
       }
     });
 
-    String editorContents = editor.moveBetween("getSystemService", "")
-      .invokeQuickfixActionWithoutBulb("Add Permission ACCESS_FINE_LOCATION")
-      .moveBetween("getSystemService", "")
-      .invokeQuickfixActionWithoutBulb("Add permission check")
-      .getCurrentFileContents();
+    Wait.seconds(10).expecting("Permission options to be showing.").until(() -> {
+      try {
+        editor.moveBetween("getSystemService", "")
+          .invokeQuickfixActionWithoutBulb("Add Permission ACCESS_FINE_LOCATION");
+        return true;
+      } catch (AssertionError e) {
+        return false;
+      }
+    });
 
-    assertThat(editorContents)
+    editor.moveBetween("getSystemService", "")
+      .invokeQuickfixActionWithoutBulb("Add permission check");
+
+
+    assertThat(editor.getCurrentFileContents())
       .contains("checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)");
-    assertThat(editorContents)
+    assertThat(editor.getCurrentFileContents())
       .contains("checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)");
   }
 }

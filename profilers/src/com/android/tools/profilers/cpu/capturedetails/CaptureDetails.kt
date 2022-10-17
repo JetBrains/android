@@ -43,7 +43,8 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
                                               range: Range,
                                               nodes: List<CaptureNode>,
                                               cpuCapture: CpuCapture,
-                                              rootNode: (CaptureNode) -> A)
+                                              rootNode: (CaptureNode) -> A,
+                                              runModelUpdate: (Runnable) -> Unit)
     : CaptureDetails(clockType, cpuCapture) {
     val model: CpuTreeModel<A>? = when {
       nodes.isEmpty() -> null
@@ -55,7 +56,7 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
           startThread = nodes.minOf(CaptureNode::startThread)
           endThread = nodes.maxOf(CaptureNode::endThread)
         }
-        CpuTreeModel(clockType, range, rootNode(visual))
+        CpuTreeModel(clockType, range, rootNode(visual), runModelUpdate)
       }
     }
 
@@ -68,13 +69,21 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
     }
   }
 
-  class TopDown internal constructor(clockType: ClockType, range: Range, nodes: List<CaptureNode>, cpuCapture: CpuCapture)
-    : Aggregate<TopDownTree>(clockType, range, nodes, cpuCapture, TopDownTree::rootAt) {
+  class TopDown internal constructor(clockType: ClockType,
+                                     range: Range,
+                                     nodes: List<CaptureNode>,
+                                     cpuCapture: CpuCapture,
+                                     runModelUpdate: (Runnable) -> Unit)
+    : Aggregate<TopDownTree>(clockType, range, nodes, cpuCapture, TopDownTree::rootAt, runModelUpdate) {
     override val type get() = Type.TOP_DOWN
   }
 
-  class BottomUp internal constructor(clockType: ClockType, range: Range, nodes: List<CaptureNode>, cpuCapture: CpuCapture)
-    : Aggregate<BottomUpTree>(clockType, range, nodes, cpuCapture, BottomUpTree::rootAt) {
+  class BottomUp internal constructor(clockType: ClockType,
+                                      range: Range,
+                                      nodes: List<CaptureNode>,
+                                      cpuCapture: CpuCapture,
+                                      runModelUpdate: (Runnable) -> Unit)
+    : Aggregate<BottomUpTree>(clockType, range, nodes, cpuCapture, BottomUpTree::rootAt, runModelUpdate) {
     override val type get() = Type.BOTTOM_UP
   }
 
@@ -87,7 +96,8 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
   class FlameChart internal constructor(clockType: ClockType,
                                         private val selectionRange: Range,
                                         captureNodes: List<CaptureNode>,
-                                        cpuCapture: CpuCapture)
+                                        cpuCapture: CpuCapture,
+                                        private val runModelUpdate: (Runnable) -> Unit)
     : ChartDetails(clockType, cpuCapture) {
     override val type get() = Type.FLAME_CHART
 
@@ -133,7 +143,7 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
         val selectionRangeChanged =
           AsyncUpdater.by(
             ApplicationManager.getApplication()::invokeAndWait,
-            ApplicationManager.getApplication()::executeOnPooledThread,
+            runModelUpdate,
             { node to topDownNode },
             { (_, oldTopDownNode) ->
               // This range needs to account for the multiple children,
@@ -209,10 +219,10 @@ sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
     }
   }
 
-  enum class Type(val build: (ClockType, Range, List<CaptureNode>, CpuCapture) -> CaptureDetails) {
+  enum class Type(val build: (ClockType, Range, List<CaptureNode>, CpuCapture, (Runnable) -> Unit) -> CaptureDetails) {
     TOP_DOWN(::TopDown),
     BOTTOM_UP(::BottomUp),
-    CALL_CHART(::CallChart),
+    CALL_CHART({ clockType, range, captureNodes, cpuCapture, _ ->  CallChart(clockType, range, captureNodes, cpuCapture) }),
     FLAME_CHART(::FlameChart)
   }
 }

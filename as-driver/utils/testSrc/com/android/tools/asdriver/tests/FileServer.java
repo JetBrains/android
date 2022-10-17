@@ -22,11 +22,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
@@ -43,8 +46,11 @@ public class FileServer implements AutoCloseable {
    */
   private final Map<String, Path> fileMap;
 
+  private final Map<String, List<URI>> requestHistory;
+
   public FileServer() {
     fileMap = new HashMap<>();
+    requestHistory = new HashMap<>();
   }
 
   public void start() throws IOException {
@@ -57,6 +63,10 @@ public class FileServer implements AutoCloseable {
     server.start();
 
     System.out.println("FileServer listening on port " + server.getAddress().getPort());
+  }
+
+  public List<URI> getRequestHistoryForPath(String httpPath) {
+    return requestHistory.get(httpPath);
   }
 
   public String getOrigin() {
@@ -88,6 +98,7 @@ public class FileServer implements AutoCloseable {
     public void handle(HttpExchange exchange) throws IOException {
       String path = exchange.getRequestURI().getPath();
       System.out.println("FileServer request received for " + path);
+      addHistory(path, exchange.getRequestURI());
       Path path1 = fileServer.fileMap.get(path);
       if (path1 == null) {
         String response = "404 - file not found from test server";
@@ -96,6 +107,13 @@ public class FileServer implements AutoCloseable {
       else {
         respondWithFile(exchange, path1);
       }
+    }
+
+    private void addHistory(String path, URI requestUri) {
+      if (!fileServer.requestHistory.containsKey(path)) {
+        fileServer.requestHistory.put(path, new ArrayList<>());
+      }
+      fileServer.requestHistory.get(path).add(requestUri);
     }
 
     /**

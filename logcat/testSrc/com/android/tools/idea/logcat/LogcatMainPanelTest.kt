@@ -85,6 +85,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.TextRange
+import com.intellij.openapi.util.TextRange.EMPTY_RANGE
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -134,13 +136,14 @@ class LogcatMainPanelTest {
   private val mockFoldingDetector = mock<FoldingDetector>()
   private val fakeAdbSession = FakeAdbSession()
   private val androidLogcatFormattingOptions = AndroidLogcatFormattingOptions()
+  private val project get() = projectRule.project
 
   @Before
   fun setUp() {
     ApplicationManager.getApplication().replaceService(
       AndroidLogcatFormattingOptions::class.java,
       androidLogcatFormattingOptions,
-      projectRule.project)
+      project)
   }
 
   @RunsInEdt
@@ -159,9 +162,9 @@ class LogcatMainPanelTest {
     assertThat(logcatMainPanel.componentCount).isEqualTo(3)
     assertThat(borderLayout.getLayoutComponent(NORTH)).isInstanceOf(LogcatHeaderPanel::class.java)
     val centerComponent: JPanel = borderLayout.getLayoutComponent(CENTER) as JPanel
-    assertThat(centerComponent.components[0]).isInstanceOf(EditorNotificationPanel::class.java)
-    assertThat(centerComponent.components[0].isVisible).isFalse()
-    assertThat(centerComponent.components[1]).isSameAs(logcatMainPanel.editor.component)
+    assertThat(logcatMainPanel.findBanner("Logcat is paused").isVisible).isFalse()
+    assertThat(logcatMainPanel.findBanner("Could not detect project package names. Is the project synced?").isVisible).isFalse()
+    assertThat(centerComponent.components.find { it === logcatMainPanel.editor.component }).isNotNull()
     assertThat(borderLayout.getLayoutComponent(WEST)).isInstanceOf(ActionToolbar::class.java)
     val toolbar = borderLayout.getLayoutComponent(WEST) as ActionToolbar
     assertThat(toolbar.actions.mapToStrings()).containsExactly(
@@ -237,7 +240,7 @@ class LogcatMainPanelTest {
     ))
 
     logcatMainPanel.messageProcessor.onIdle {
-      logcatMainPanel.applyFilter(StringFilter("tag1", LINE))
+      logcatMainPanel.applyFilter(StringFilter("tag1", LINE, EMPTY_RANGE))
     }
 
     ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, SECONDS)
@@ -250,7 +253,7 @@ class LogcatMainPanelTest {
   }
 
   @Test
-  fun appendMessages_disposedEditor() = runBlocking {
+  fun appendMessages_disposedEditor(): Unit = runBlocking {
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel().also {
         Disposer.dispose(it)
@@ -375,7 +378,7 @@ class LogcatMainPanelTest {
       }
     }
 
-    projectRule.project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat("device1")
+    project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat("device1")
 
     ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, TIMEOUT_SEC, SECONDS)
     runInEdtAndWait { }
@@ -397,7 +400,7 @@ class LogcatMainPanelTest {
       }
     }
 
-    projectRule.project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat("device2")
+    project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat("device2")
 
     ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, TIMEOUT_SEC, SECONDS)
     runInEdtAndWait { }
@@ -501,13 +504,13 @@ class LogcatMainPanelTest {
       state = LogcatPanelConfig(
         device = null,
         FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(17))),
-        "filter",
+        filter = "foo",
         isSoftWrap = true))
 
     // TODO(aalbert) : Also assert on device field when the combo is rewritten to allow testing.
     assertThat(logcatMainPanel.formattingOptions.tagFormat.maxLength).isEqualTo(17)
-    assertThat(logcatMainPanel.messageProcessor.logcatFilter).isEqualTo(StringFilter("filter", IMPLICIT_LINE))
-    assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("filter")
+    assertThat(logcatMainPanel.messageProcessor.logcatFilter).isEqualTo(StringFilter("foo", IMPLICIT_LINE, TextRange(0, "foo".length)))
+    assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("foo")
     assertThat(logcatMainPanel.editor.settings.isUseSoftWraps).isTrue()
   }
 
@@ -608,7 +611,7 @@ class LogcatMainPanelTest {
 
     logcatService.logMessages(message1)
 
-    assertThat(logcatMainPanel.logcatServiceJob).isNotNull()
+    waitForCondition { logcatMainPanel.logcatServiceJob != null }
     waitForCondition { logcatMainPanel.messageBacklog.get().messages.isNotEmpty() }
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.text).isEqualTo("""
@@ -983,10 +986,112 @@ class LogcatMainPanelTest {
 
     logcatMainPanel.pauseLogcat()
 
-    val banner = TreeWalker(logcatMainPanel).descendants().first { it is EditorNotificationPanel } as EditorNotificationPanel
+    assertThat(logcatMainPanel.findBanner("Logcat is paused").isVisible).isTrue()
+  }
+
+  @Test
+  fun missingApplicationIds_showsBanner(): Unit = runBlocking {
+    val fakePackageNamesProvider = FakeProjectApplicationIdsProvider(project)
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(projectApplicationIdsProvider = fakePackageNamesProvider, filter = "package:mine")
+    }
+
+    assertThat(logcatMainPanel.findBanner("Could not detect project package names. Is the project synced?").isVisible).isTrue()
+  }
+
+  @Test
+  fun hasApplicationIds_doesNotShowBanner(): Unit = runBlocking {
+    val fakePackageNamesProvider = FakeProjectApplicationIdsProvider(project, "app1")
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(projectApplicationIdsProvider = fakePackageNamesProvider, filter = "package:mine")
+    }
+
+    assertThat(logcatMainPanel.findBanner("Could not detect project package names. Is the project synced?").isVisible).isFalse()
+  }
+
+  @Test
+  fun applicationIdsChange_bannerUpdates(): Unit = runBlocking {
+    val fakePackageNamesProvider = FakeProjectApplicationIdsProvider(project)
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(projectApplicationIdsProvider = fakePackageNamesProvider, filter = "package:mine")
+    }
+    val banner = logcatMainPanel.findBanner("Could not detect project package names. Is the project synced?")
 
     assertThat(banner.isVisible).isTrue()
-    assertThat(banner.text).isEqualTo("Logcat is paused")
+
+    runInEdtAndWait { fakePackageNamesProvider.setApplicationIds("app1") }
+    assertThat(banner.isVisible).isFalse()
+
+    runInEdtAndWait {
+      fakePackageNamesProvider.setApplicationIds()
+    }
+    assertThat(banner.isVisible).isTrue()
+  }
+
+  @Test
+  fun noLogsBanner_appearsAndDisappearsWhenAddingLogs(): Unit = runBlocking {
+    val logcatMainPanel = runInEdtAndGet(::logcatMainPanel)
+    val noLogsBanner = logcatMainPanel.findBanner("All logs entries are hidden by the filter")
+    logcatMainPanel.processMessages(listOf(
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+    ))
+    waitForCondition {
+      logcatMainPanel.editor.document.text.trim() == """
+        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
+      """.trimIndent()
+    }
+    runInEdtAndWait {
+      logcatMainPanel.setFilter("no-match")
+    }
+    waitForCondition { noLogsBanner.isVisible }
+    logcatMainPanel.processMessages(listOf(
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "no-match"),
+    ))
+    waitForCondition { !noLogsBanner.isVisible }
+  }
+
+  @Test
+  fun noLogsBanner_appearsAndDisappearsWhenChangingFilter(): Unit = runBlocking {
+    val logcatMainPanel = runInEdtAndGet(::logcatMainPanel)
+    val noLogsBanner = logcatMainPanel.findBanner("All logs entries are hidden by the filter")
+    logcatMainPanel.processMessages(listOf(
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+    ))
+    waitForCondition {
+      logcatMainPanel.editor.document.text.trim() == """
+        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
+      """.trimIndent()
+    }
+    runInEdtAndWait {
+      logcatMainPanel.setFilter("no-match")
+    }
+    waitForCondition { noLogsBanner.isVisible }
+    runInEdtAndWait {
+      logcatMainPanel.setFilter("tag:tag1")
+    }
+    waitForCondition { !noLogsBanner.isVisible }
+  }
+
+  @Test
+  fun noLogsBanner_doesNotShowIfNoMessagesExist(): Unit = runBlocking {
+    val logcatMainPanel = runInEdtAndGet(::logcatMainPanel)
+    val noLogsBanner = logcatMainPanel.findBanner("All logs entries are hidden by the filter")
+    logcatMainPanel.processMessages(listOf(
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+    ))
+    waitForCondition {
+      logcatMainPanel.editor.document.text.trim() == """
+        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
+      """.trimIndent()
+    }
+    runInEdtAndWait {
+      logcatMainPanel.setFilter("no-match")
+    }
+    waitForCondition { noLogsBanner.isVisible }
+    runInEdtAndWait {
+      logcatMainPanel.clearMessageView()
+    }
+    waitForCondition { !noLogsBanner.isVisible }
   }
 
   @Test
@@ -994,9 +1099,9 @@ class LogcatMainPanelTest {
     val testDevice = TestDevice("device1", DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
     fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
     fakeAdbSession.hostServices.setDevices(testDevice)
-    val fakePackageNamesProvider = FakePackageNamesProvider("myapp")
+    val fakePackageNamesProvider = FakeProjectApplicationIdsProvider(project, "myapp")
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(adbSession = fakeAdbSession, packageNamesProvider = fakePackageNamesProvider).also {
+      logcatMainPanel(adbSession = fakeAdbSession, projectApplicationIdsProvider = fakePackageNamesProvider).also {
         waitForCondition { it.getConnectedDevice() != null }
       }
     }
@@ -1026,21 +1131,55 @@ class LogcatMainPanelTest {
     assertThat(AndroidDebugBridge.getDeviceChangeListenerCount() == 0)
   }
 
+  @Test
+  fun projectApplicationIdsChange_withPackageMine_reloadsMessages() = runBlocking {
+    val fakeProjectApplicationIdsProvider = FakeProjectApplicationIdsProvider(project)
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(projectApplicationIdsProvider = fakeProjectApplicationIdsProvider)
+    }
+    logcatMainPanel.processMessages(listOf(
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogcatMessage(LogcatHeader(WARN, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    ))
+    runInEdtAndWait {
+      logcatMainPanel.setFilter("package:mine | tag:tag2")
+    }
+    waitForCondition {
+      logcatMainPanel.editor.document.text.trim() == """
+        1970-01-01 04:00:01.000     1-2     tag2                    app2                                 W  message2
+      """.trimIndent()
+    }
+
+    runInEdtAndWait {
+      fakeProjectApplicationIdsProvider.setApplicationIds("app1")
+    }
+
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, TIMEOUT_SEC, SECONDS)
+    logcatMainPanel.messageProcessor.onIdle {
+      assertThat(logcatMainPanel.editor.document.text.trim()).isEqualTo("""
+        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
+        1970-01-01 04:00:01.000     1-2     tag2                    app2                                 W  message2
+      """.trimIndent())
+    }
+  }
+
   private fun logcatMainPanel(
     splitterPopupActionGroup: ActionGroup = EMPTY_GROUP,
     logcatColors: LogcatColors = LogcatColors(),
-    state: LogcatPanelConfig? = LogcatPanelConfig(device = null, FormattingConfig.Preset(STANDARD), filter = "", isSoftWrap = false),
+    filter: String = "",
+    state: LogcatPanelConfig? = LogcatPanelConfig(device = null, FormattingConfig.Preset(STANDARD), filter = filter, isSoftWrap = false),
     logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings(),
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
     hyperlinkDetector: HyperlinkDetector? = null,
     foldingDetector: FoldingDetector? = null,
-    packageNamesProvider: PackageNamesProvider = FakePackageNamesProvider(),
+    projectApplicationIdsProvider: ProjectApplicationIdsProvider = FakeProjectApplicationIdsProvider(project),
     adbSession: AdbSession = FakeAdbSession(),
     logcatService: LogcatService = FakeLogcatService(),
     zoneId: ZoneId = ZoneId.of("Asia/Yerevan"),
-  ) =
-    LogcatMainPanel(
-      projectRule.project,
+  ): LogcatMainPanel {
+    project.replaceService(ProjectApplicationIdsProvider::class.java, projectApplicationIdsProvider, project)
+    return LogcatMainPanel(
+      project,
       splitterPopupActionGroup,
       logcatColors,
       state,
@@ -1048,13 +1187,13 @@ class LogcatMainPanelTest {
       androidProjectDetector,
       hyperlinkDetector,
       foldingDetector,
-      packageNamesProvider,
       adbSession,
       logcatService,
       zoneId,
     ).also {
-      Disposer.register(projectRule.project, it)
+      Disposer.register(project, it)
     }
+  }
 }
 
 private fun LogcatMessage.length() = FormattingOptions().getHeaderWidth() + message.length
@@ -1086,3 +1225,6 @@ private fun List<AnAction>.mapToStrings(indent: String = ""): List<String> {
 }
 
 private fun waitForCondition(condition: () -> Boolean) = waitForCondition(TIMEOUT_SEC, SECONDS, condition)
+
+private fun LogcatMainPanel.findBanner(text: String) =
+  TreeWalker(this).descendants().first { it is EditorNotificationPanel && it.text == text } as EditorNotificationPanel

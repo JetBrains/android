@@ -51,37 +51,47 @@ class BuildOverviewPageView(
   val model: BuildOverviewPageModel,
   val actionHandlers: ViewActionHandlers
 ) : BuildAnalyzerDataPageView {
+  val linksHandler = HtmlLinksHandler(actionHandlers)
 
   private val buildInformationPanel = JPanel().apply {
     name = "info"
     layout = VerticalLayout(0, SwingConstants.LEFT)
+    val infoPanelHtml = generateInfoPanelHtml()
+    add(htmlTextLabelWithFixedLines(infoPanelHtml, linksHandler))
+  }
+
+  fun generateInfoPanelHtml(): String {
     val buildSummary = model.reportUiData.buildSummary
     val buildFinishedTime = DateFormatUtil.formatDateTime(buildSummary.buildFinishedTimestamp)
-    val linksHandler = HtmlLinksHandler(actionHandlers)
+
     val optionalConfigurationCacheLink = if (model.reportUiData.confCachingData.shouldShowWarning())
       linksHandler.actionLink("Optimize this", "configuration-cache") {
         actionHandlers.openConfigurationCacheWarnings()
       }.let { " - $it" }
     else ""
-    val text = """
-      <b>Build finished on ${buildFinishedTime}</b><br/>
-      Total build duration was ${buildSummary.totalBuildDuration.durationStringHtml()}<br/>
-      <br/>
-      Includes:<br/>
-      Build configuration: ${buildSummary.configurationDuration.durationStringHtml()}$optionalConfigurationCacheLink<br/>
-      Critical path tasks execution: ${buildSummary.criticalPathDuration.durationStringHtml()}<br/>
-      ${optionalDownloadsOverviewSection(model.downloadsSummaryUiData)}
-    """.trimIndent()
-    add(htmlTextLabelWithFixedLines(text, linksHandler))
+    return """
+<b>Build finished on ${buildFinishedTime}</b><br/>
+Total build duration was ${buildSummary.totalBuildDuration.durationStringHtml()}<br/>
+<br/>
+Includes:<br/>
+Build configuration: ${buildSummary.configurationDuration.durationStringHtml()}$optionalConfigurationCacheLink<br/>
+Critical path tasks execution: ${buildSummary.criticalPathDuration.durationStringHtml()}<br/>
+${optionalDownloadsOverviewSection(model.downloadsSummaryUiData)}
+    """.trim()
   }
 
   private fun optionalDownloadsOverviewSection(downloadsData: DownloadsSummaryUIData?):String {
     if (downloadsData == null || downloadsData.isEmpty) return ""
-    val tooltipDetails = StringUtil.escapeXmlEntities("""<html>
-    This build had ${downloadsData.sumOfRequests} network ${pluralize("request", downloadsData.sumOfRequests)},<br/>
-    downloaded in total ${Formats.formatFileSize(downloadsData.sumOfDataBytes)} in ${durationStringHtml(downloadsData.sumOfTimeMs)}.
-    </html>""")
-    return "Files download: ${durationStringHtml(downloadsData.sumOfTimeMs)} ${helpIcon(tooltipDetails)}<br/>"
+    val tooltipDetails = StringUtil.escapeXmlEntities("""
+<html>
+This build had ${downloadsData.sumOfRequests} network ${pluralize("request", downloadsData.sumOfRequests)},<br/>
+downloaded in total ${Formats.formatFileSize(downloadsData.sumOfDataBytes)} in ${durationStringHtml(downloadsData.sumOfTimeMs)}.
+</html>
+    """.trim())
+    val filesDownloadLink = linksHandler.actionLink("Files download", "downloads-view") {
+      actionHandlers.changeViewToDownloadsLinkClicked()
+    }
+    return "$filesDownloadLink: ${durationStringHtml(downloadsData.sumOfTimeMs)} ${helpIcon(tooltipDetails)}<br/>"
   }
 
   private val linksPanel = JPanel().apply {
@@ -124,7 +134,6 @@ class BuildOverviewPageView(
     }
     val icon = if (model.shouldWarnAboutGC) warningIcon() else AllIcons.General.Information
 
-    val linksHandler = HtmlLinksHandler(actionHandlers)
     val defaultGCUsageWarning = htmlTextLabelWithFixedLines("", linksHandler)
     val fineTuneYourJvmLink = linksHandler.externalLink("Fine tune your JVM", BuildAnalyzerBrowserLinks.CONFIGURE_GC)
     val dontShowThisAgainLink = linksHandler.actionLink("Don't show this again", "suppress") {

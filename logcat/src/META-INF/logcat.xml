@@ -57,6 +57,9 @@
     <applicationService serviceImplementation="com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions"/>
     <applicationService serviceImplementation="com.android.tools.idea.logcat.filters.AndroidLogcatNamedFilters"/>
     <applicationService serviceImplementation="com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory"/>
+    <projectService
+        serviceInterface="com.android.tools.idea.logcat.ProjectApplicationIdsProvider"
+        serviceImplementation="com.android.tools.idea.logcat.ProjectApplicationIdsProviderImpl"/>
 
     <additionalTextAttributes scheme="Default" file="colorSchemes/LogcatColorSchemeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorSchemes/LogcatColorSchemeDarcula.xml"/>

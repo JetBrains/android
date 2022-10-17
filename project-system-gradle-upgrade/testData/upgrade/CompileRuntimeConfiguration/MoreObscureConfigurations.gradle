@@ -41,6 +41,6 @@ dependencies {
     apk 'androidx.navigation:navigation-fragment-ktx:2.2.1'
     publish 'androidx.navigation:navigation-ui-ktx:2.2.1'
     testApk 'junit:junit:4.13'
-    androidTestApk 'androidx.test.ext:junit:1.1.1'
+    androidTestApk 'androidx.test.ext:junit:1.1.2'
     androidTestPublish 'androidx.test.espresso:espresso-core:3.2.0'
 }

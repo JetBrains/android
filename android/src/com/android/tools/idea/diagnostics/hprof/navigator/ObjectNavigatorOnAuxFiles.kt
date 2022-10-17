@@ -164,6 +164,7 @@ class ObjectNavigatorOnAuxFiles(
     var isSoftReference = false
     var isWeakReference = false
     val includeSoftWeakReferences = referenceResolution == ReferenceResolution.ALL_REFERENCES
+    val includeInnerClassRefs = referenceResolution != ReferenceResolution.STRONG_EXCLUDING_INNER_CLASS
     do {
       isSoftReference = isSoftReference || classStore.softReferenceClass == c
       isWeakReference = isWeakReference || classStore.weakReferenceClass == c
@@ -171,7 +172,11 @@ class ObjectNavigatorOnAuxFiles(
       fields.forEach {
         val reference = aux.readId()
         if (!(isSoftReference || isWeakReference) || it.name != "referent") {
-          references.add(reference.toLong())
+          if (it.name == "this$0" && !includeInnerClassRefs) {
+            references.add(0L)
+          } else {
+            references.add(reference.toLong())
+          }
         }
         else {
           softWeakReferenceId = reference.toLong()

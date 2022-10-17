@@ -15,81 +15,23 @@
  */
 package com.android.tools.idea.customview.preview
 
-import com.android.testutils.MockitoKt.whenever
-import com.android.tools.adtui.workbench.DetachedToolWindowManager
-import com.android.tools.adtui.workbench.WorkBenchManager
-import com.android.tools.idea.common.error.IssuePanelService
-import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.concurrency.AndroidIoManager
-import com.android.tools.idea.projectsystem.AndroidProjectSystem
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
-import com.intellij.testFramework.registerServiceInstance
 import junit.framework.TestCase
-import org.mockito.AdditionalAnswers.returnsSecondArg
-import org.mockito.Mock
-import org.mockito.Mockito.anyString
-import org.mockito.MockitoAnnotations
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import org.junit.Rule
+import org.junit.Test
 
-class CustomViewPreviewRepresentationTest : LightJavaCodeInsightFixtureTestCase() {
+class CustomViewPreviewRepresentationTest {
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory()
 
-  @Mock
-  private lateinit var persistenceManager : PropertiesComponent
-
-  @Mock
-  private lateinit var detachedToolWindowManager: DetachedToolWindowManager
-
-  @Mock
-  private lateinit var workbenchManager: WorkBenchManager
-
-  @Mock
-  private lateinit var projectSystemService: ProjectSystemService
-
-  @Mock
-  private lateinit var androidProjectSystem: AndroidProjectSystem
-
-  @Mock
-  private lateinit var syncManager: ProjectSystemSyncManager
-
-  @Mock
-  private lateinit var buildManager: ProjectSystemBuildManager
-
-  private lateinit var representation: CustomViewPreviewRepresentation
-
-  override fun setUp() {
-    super.setUp()
-
-    MockitoAnnotations.initMocks(this)
-
-    whenever(persistenceManager.getValue(anyString(), anyString())).then(returnsSecondArg<String>())
-    // For workbench
-    project.registerServiceInstance(DetachedToolWindowManager::class.java, detachedToolWindowManager)
-    ApplicationManager.getApplication().registerServiceInstance(WorkBenchManager::class.java, workbenchManager)
-    // For co-routine execution
-    ApplicationManager.getApplication().registerServiceInstance(AndroidIoManager::class.java, AndroidIoManager())
-    ApplicationManager.getApplication().registerServiceInstance(AndroidExecutors::class.java, AndroidExecutors())
-    // For setupBuildListener
-    project.registerServiceInstance(ProjectSystemService::class.java, projectSystemService)
-    project.registerServiceInstance(IssuePanelService::class.java, IssuePanelService(project))
-    whenever(projectSystemService.projectSystem).thenReturn(androidProjectSystem)
-    whenever(androidProjectSystem.getSyncManager()).thenReturn(syncManager)
-    whenever(syncManager.getLastSyncResult()).thenReturn(ProjectSystemSyncManager.SyncResult.FAILURE)
-    whenever(androidProjectSystem.getBuildManager()).thenReturn(buildManager)
-  }
-
-  override fun tearDown() {
-    // CustomViewPreviewRepresentation keeps a reference to a project, so it should get disposed before.
-    Disposer.dispose(representation)
-    super.tearDown()
-  }
-
+  @Test
   fun test() {
-    val file = myFixture.addFileToProject("src/com/example/CustomView.java", """
+    val file = projectRule.fixture.addFileToProject("src/com/example/CustomView.java", """
       package com.example;
 
       import android.view.View;
@@ -101,11 +43,17 @@ class CustomViewPreviewRepresentationTest : LightJavaCodeInsightFixtureTestCase(
       }
     """.trimIndent())
 
-    representation = CustomViewPreviewRepresentation(
-      file,
-      persistenceProvider = { persistenceManager },
-      buildStateProvider = { CustomViewVisualStateTracker.BuildState.SUCCESSFUL })
-
-    TestCase.assertNotNull(representation)
+    runBlocking {
+      listOf(uiThread, workerThread).forEach { scope ->
+        val representation = withContext(scope) {
+          CustomViewPreviewRepresentation(
+            file,
+            buildStateProvider = { CustomViewVisualStateTracker.BuildState.SUCCESSFUL }).also {
+            Disposer.register(projectRule.fixture.testRootDisposable, it)
+          }
+        }
+        TestCase.assertNotNull("failed to instantiate with scope $scope", representation)
+      }
+    }
   }
 }

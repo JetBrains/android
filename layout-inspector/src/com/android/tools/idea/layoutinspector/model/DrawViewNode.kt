@@ -75,7 +75,7 @@ sealed class DrawViewNode(owner: ViewNode) {
     unfilteredOwner.findClosestUnfilteredNode(treeSettings)
 
   val bounds: Shape
-    get() = unfilteredOwner.transformedBounds
+    get() = unfilteredOwner.renderBounds
 
   // Children at the start of the child list that have canCollapse = true will be drawn as part of the parent rather than as separate nodes.
   abstract fun canCollapse(treeSettings: TreeSettings): Boolean
@@ -343,10 +343,10 @@ class Dimmer(val root: ViewNode) : DrawViewNode(root) {
   override fun canCollapse(treeSettings: TreeSettings) = false
 
   override fun paint(g2: Graphics2D, model: InspectorModel) {
-    if (root.width > 0 && root.height > 0) {
+    if (root.layoutBounds.width > 0 && root.layoutBounds.height > 0) {
       val color = g2.color
       g2.color = Color(0.2f, 0.2f, 0.2f, 0.5f)
-      g2.fillRect(0, 0, root.width, root.height)
+      g2.fillRect(0, 0, root.layoutBounds.width, root.layoutBounds.height)
       g2.color = color
     }
   }
@@ -359,10 +359,10 @@ class Dimmer(val root: ViewNode) : DrawViewNode(root) {
     viewSettings: DeviceViewSettings,
     treeSettings: TreeSettings
   ) {
-    if (root.width > 0 && root.height > 0) {
+    if (root.layoutBounds.width > 0 && root.layoutBounds.height > 0) {
       g2.color = NORMAL_LINE_COLOR
       g2.stroke = getNormalImageLineStroke(viewSettings.scaleFraction)
-      g2.drawRect(0, 0, root.width, root.height)
+      g2.drawRect(0, 0, root.layoutBounds.width, root.layoutBounds.height)
     }
   }
 }

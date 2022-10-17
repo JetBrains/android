@@ -24,7 +24,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemIndependent
-import org.junit.AssumptionViolatedException
 import org.junit.Ignore
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
@@ -94,7 +93,7 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
     preLoad: ((projectRoot: File) -> Unit)? = null
   ) {
     if (preLoad != null) {
-      val rootFile = delegateTestCase.prepareProjectForImport(projectPath, gradleVersion, agpVersion, kotlinVersion, ndkVersion)
+      val rootFile = delegateTestCase.prepareProjectForImport(projectPath, gradleVersion, agpVersion, kotlinVersion, ndkVersion, null)
 
       preLoad(rootFile)
       delegateTestCase.importProject()
@@ -150,7 +149,7 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
 }
 
 private fun gradleModuleNotFound(gradlePath: String): Nothing =
-  throw AssumptionViolatedException("No module with Gradle path: $gradlePath")
+  throw RuntimeException("No module with Gradle path: $gradlePath")
 
 class EdtAndroidGradleProjectRule(val projectRule: AndroidGradleProjectRule) :
   TestRule by RuleChain.outerRule(projectRule).around(EdtRule())!! {

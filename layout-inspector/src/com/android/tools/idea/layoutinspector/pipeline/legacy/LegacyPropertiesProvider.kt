@@ -104,10 +104,10 @@ class LegacyPropertiesProvider : PropertiesProvider {
       val parentTable: PropertiesTable<InspectorPropertyItem>? = parent?.let { temp[parent.drawId] }
       val parentScrollX = parentTable?.getOrNull(ANDROID_URI, ATTR_SCROLL_X)?.dimensionValue ?: 0
       val parentScrollY = parentTable?.getOrNull(ANDROID_URI, ATTR_SCROLL_Y)?.dimensionValue ?: 0
-      view.x = (table.remove(ANDROID_URI, ATTR_LEFT)?.dimensionValue ?: 0) - parentScrollX
-      view.y = (table.remove(ANDROID_URI, ATTR_TOP)?.dimensionValue ?: 0) - parentScrollY
-      view.width = table.remove(ANDROID_URI, SdkConstants.ATTR_WIDTH)?.dimensionValue ?: 0
-      view.height = table.remove(ANDROID_URI, SdkConstants.ATTR_HEIGHT)?.dimensionValue ?: 0
+      view.layoutBounds.x = (table.remove(ANDROID_URI, ATTR_LEFT)?.dimensionValue ?: 0) - parentScrollX
+      view.layoutBounds.y = (table.remove(ANDROID_URI, ATTR_TOP)?.dimensionValue ?: 0) - parentScrollY
+      view.layoutBounds.width = table.remove(ANDROID_URI, SdkConstants.ATTR_WIDTH)?.dimensionValue ?: 0
+      view.layoutBounds.height = table.remove(ANDROID_URI, SdkConstants.ATTR_HEIGHT)?.dimensionValue ?: 0
       view.textValue = table[ANDROID_URI, SdkConstants.ATTR_TEXT]?.value ?: ""
       val url = table[ANDROID_URI, ATTR_ID]?.value?.let { ResourceUrl.parse(it) }
       view.viewId = url?.let { ResourceReference(ResourceNamespace.TODO(), ResourceType.ID, it.name) }

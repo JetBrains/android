@@ -114,7 +114,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         LinkedProjectPath             : <TEMP>/app
         RootProjectPath               : <TEMP>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/.idea/modules/app/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -209,7 +209,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         LinkedProjectPath             : <TEMP>/app
         RootProjectPath               : <TEMP>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/.idea/modules/app/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -301,7 +301,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         LinkedProjectPath             : <TEMP>/app
         RootProjectPath               : <TEMP>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/.idea/modules/app/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -466,7 +466,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         LinkedProjectPath             : <TEMP>/lib
         RootProjectPath               : <TEMP>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/.idea/modules/lib/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -559,7 +559,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         LinkedProjectPath             : <TEMP>/lib
         RootProjectPath               : <TEMP>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/.idea/modules/lib/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -651,7 +651,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         LinkedProjectPath             : <TEMP>/lib
         RootProjectPath               : <TEMP>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/.idea/modules/lib/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.lib.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE

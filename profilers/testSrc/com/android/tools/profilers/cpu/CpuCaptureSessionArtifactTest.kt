@@ -16,57 +16,51 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.TransportServiceTestImpl
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.network.FakeNetworkService
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.registerServiceInstance
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.ExpectedException
 
 class CpuCaptureSessionArtifactTest {
-
-  private val myCpuService = FakeCpuService()
-  private val myTimer = FakeTimer()
-
-  @get:Rule
-  val myThrown = ExpectedException.none()
+  private val timer = FakeTimer()
+  private val transportService = FakeTransportService(timer)
 
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel(
-    "CpuCaptureSessionArtifactTestChannel",
-    FakeTransportService(myTimer, false),
-    FakeProfilerService(myTimer),
-    FakeMemoryService(),
-    myCpuService,
-    FakeEventService(),
-    FakeNetworkService.newBuilder().build()
-  )
+  var grpcChannel = FakeGrpcChannel("CpuCaptureSessionArtifactTestChannel", transportService)
 
-  private lateinit var mySessionsManager: SessionsManager
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
-  private lateinit var mySessionItem: SessionItem
+  private lateinit var sessionsManager: SessionsManager
+  private lateinit var sessionItem: SessionItem
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), FakeIdeProfilerServices(), myTimer)
-    mySessionsManager = profilers.sessionsManager
-    mySessionsManager.createImportedSessionLegacy("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0)
-    mySessionsManager.update()
-    assertThat(mySessionsManager.sessionArtifacts.size).isEqualTo(1)
-    mySessionItem = mySessionsManager.sessionArtifacts[0] as SessionItem
-    myCpuService.clearTraceInfo()
+    ApplicationManager.getApplication().registerServiceInstance(TransportService::class.java, TransportServiceTestImpl(transportService))
+    val ideProfilerServices = FakeIdeProfilerServices().also {
+      it.enableEventsPipeline(true)
+    }
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
+    sessionsManager = profilers.sessionsManager
+    sessionsManager.beginSession(FakeTransportService.FAKE_DEVICE.deviceId, FakeTransportService.FAKE_DEVICE,
+                                 FakeTransportService.FAKE_PROCESS)
+    sessionsManager.update()
+    assertThat(sessionsManager.sessionArtifacts.size).isEqualTo(1)
+    sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
   }
 
   @Test
@@ -77,9 +71,10 @@ class CpuCaptureSessionArtifactTest {
                                             .setTraceType(Cpu.CpuTraceType.ART)
                                             .setTraceMode(Cpu.CpuTraceMode.SAMPLED)))
       .build()
-    myCpuService.addTraceInfo(artSampledTraceInfo)
-    mySessionsManager.update()
-    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingTechnology.ART_SAMPLED.getName())
+    addTraceInfo(artSampledTraceInfo)
+    sessionsManager.update()
+    assertThat(sessionItem.getChildArtifacts()).hasSize(1)
+    assertThat(sessionItem.getChildArtifacts()[0].name).isEqualTo(ProfilingTechnology.ART_SAMPLED.getName())
   }
 
   @Test
@@ -90,10 +85,10 @@ class CpuCaptureSessionArtifactTest {
                                             .setTraceType(Cpu.CpuTraceType.ART)
                                             .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)))
       .build()
-    myCpuService.clearTraceInfo()
-    myCpuService.addTraceInfo(artInstrumentedTraceInfo)
-    mySessionsManager.update()
-    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingTechnology.ART_INSTRUMENTED.getName())
+    addTraceInfo(artInstrumentedTraceInfo)
+    sessionsManager.update()
+    assertThat(sessionItem.getChildArtifacts()).hasSize(1)
+    assertThat(sessionItem.getChildArtifacts()[0].name).isEqualTo(ProfilingTechnology.ART_INSTRUMENTED.getName())
   }
 
   @Test
@@ -103,10 +98,10 @@ class CpuCaptureSessionArtifactTest {
                           .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
                                             .setTraceType(Cpu.CpuTraceType.ART)))
       .build()
-    myCpuService.clearTraceInfo()
-    myCpuService.addTraceInfo(artImportedTraceInfo)
-    mySessionsManager.update()
-    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingTechnology.ART_UNSPECIFIED.getName())
+    addTraceInfo(artImportedTraceInfo)
+    sessionsManager.update()
+    assertThat(sessionItem.getChildArtifacts()).hasSize(1)
+    assertThat(sessionItem.getChildArtifacts()[0].name).isEqualTo(ProfilingTechnology.ART_UNSPECIFIED.getName())
   }
 
   @Test
@@ -116,10 +111,10 @@ class CpuCaptureSessionArtifactTest {
                           .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
                                             .setTraceType(Cpu.CpuTraceType.SIMPLEPERF)))
       .build()
-    myCpuService.clearTraceInfo()
-    myCpuService.addTraceInfo(simpleperfTraceInfo)
-    mySessionsManager.update()
-    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingTechnology.SIMPLEPERF.getName())
+    addTraceInfo(simpleperfTraceInfo)
+    sessionsManager.update()
+    assertThat(sessionItem.getChildArtifacts()).hasSize(1)
+    assertThat(sessionItem.getChildArtifacts()[0].name).isEqualTo(ProfilingTechnology.SIMPLEPERF.getName())
   }
 
   @Test
@@ -129,19 +124,25 @@ class CpuCaptureSessionArtifactTest {
                           .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
                                             .setTraceType(Cpu.CpuTraceType.ATRACE)))
       .build()
-    myCpuService.clearTraceInfo()
-    myCpuService.addTraceInfo(atraceInfo)
-    mySessionsManager.update()
-    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingTechnology.SYSTEM_TRACE.getName())
+    addTraceInfo(atraceInfo)
+    sessionsManager.update()
+    assertThat(sessionItem.getChildArtifacts()).hasSize(1)
+    assertThat(sessionItem.getChildArtifacts()[0].name).isEqualTo(ProfilingTechnology.SYSTEM_TRACE.getName())
   }
 
-  @Test
-  fun testUnexpectedTraceInfoCpuCaptureSessionName() {
-    val unexpectedTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance()
-    myCpuService.clearTraceInfo()
-    myCpuService.addTraceInfo(unexpectedTraceInfo)
-    mySessionsManager.update()
-    myThrown.expect(IllegalStateException::class.java)
-    assertThat(mySessionItem.subtitle).isEqualTo("Anything")
+  private fun addTraceInfo(cpuTraceInfo: Cpu.CpuTraceInfo) {
+    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
+                                      Common.Event.newBuilder()
+                                        .setPid(FakeTransportService.FAKE_PROCESS.pid)
+                                        .setKind(Common.Event.Kind.CPU_TRACE)
+                                        .setCpuTrace(Cpu.CpuTraceData.newBuilder().setTraceStarted(
+                                          Cpu.CpuTraceData.TraceStarted.newBuilder().setTraceInfo(cpuTraceInfo))).build())
+    transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
+                                      Common.Event.newBuilder()
+                                        .setPid(FakeTransportService.FAKE_PROCESS.pid)
+                                        .setKind(Common.Event.Kind.CPU_TRACE)
+                                        .setIsEnded(true)
+                                        .setCpuTrace(Cpu.CpuTraceData.newBuilder().setTraceEnded(
+                                          Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo))).build())
   }
 }

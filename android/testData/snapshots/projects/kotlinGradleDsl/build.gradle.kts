@@ -11,3 +11,8 @@ allprojects {
   repositories {
   }
 }
+
+
+// Do not remove. This is used to ensure that the class which is searched for in SyncedProjectTest still exists.
+
+println(org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompilerArgumentsProvider::class.java.simpleName)

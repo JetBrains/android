@@ -20,64 +20,28 @@ MODULE                        : project
                 tasks
                     testBasicBarDebugUnitTest     : testBasicBarDebugUnitTest (DefaultExternalTask)
                         qName                         : :app:testBasicBarDebugUnitTest
-                        description                   : Run unit tests for the basicBarDebug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testBasicBarReleaseUnitTest   : testBasicBarReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testBasicBarReleaseUnitTest
-                        description                   : Run unit tests for the basicBarRelease build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testBasicBarSpecialReleaseUnitTest      : testBasicBarSpecialReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testBasicBarSpecialReleaseUnitTest
-                        description                   : Run unit tests for the basicBarSpecialRelease build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testBasicOtherBarDebugUnitTest          : testBasicOtherBarDebugUnitTest (DefaultExternalTask)
                         qName                         : :app:testBasicOtherBarDebugUnitTest
-                        description                   : Run unit tests for the basicOtherBarDebug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testBasicOtherBarReleaseUnitTest        : testBasicOtherBarReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testBasicOtherBarReleaseUnitTest
-                        description                   : Run unit tests for the basicOtherBarRelease build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testBasicOtherBarSpecialReleaseUnitTest : testBasicOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testBasicOtherBarSpecialReleaseUnitTest
-                        description                   : Run unit tests for the basicOtherBarSpecialRelease build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testPaidBarDebugUnitTest      : testPaidBarDebugUnitTest (DefaultExternalTask)
                         qName                         : :app:testPaidBarDebugUnitTest
-                        description                   : Run unit tests for the paidBarDebug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testPaidBarReleaseUnitTest    : testPaidBarReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testPaidBarReleaseUnitTest
-                        description                   : Run unit tests for the paidBarRelease build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testPaidBarSpecialReleaseUnitTest       : testPaidBarSpecialReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testPaidBarSpecialReleaseUnitTest
-                        description                   : Run unit tests for the paidBarSpecialRelease build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testPaidOtherBarDebugUnitTest : testPaidOtherBarDebugUnitTest (DefaultExternalTask)
                         qName                         : :app:testPaidOtherBarDebugUnitTest
-                        description                   : Run unit tests for the paidOtherBarDebug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testPaidOtherBarReleaseUnitTest         : testPaidOtherBarReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testPaidOtherBarReleaseUnitTest
-                        description                   : Run unit tests for the paidOtherBarRelease build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testPaidOtherBarSpecialReleaseUnitTest  : testPaidOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testPaidOtherBarSpecialReleaseUnitTest
-                        description                   : Run unit tests for the paidOtherBarSpecialRelease build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     _internal_aapt2_binary        : <empty>
@@ -834,14 +798,8 @@ MODULE                        : project
                 tasks
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                         qName                         : :dyn_feature:testDebugUnitTest
-                        description                   : Run unit tests for the debug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :dyn_feature:testReleaseUnitTest
-                        description                   : Run unit tests for the release build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     _internal_aapt2_binary        : <empty>
@@ -968,9 +926,6 @@ MODULE                        : project
                 tasks
                     test                          : test (DefaultExternalTask)
                         qName                         : :jav:test
-                        description                   : Runs the unit tests.
-                        group                         : verification
-                        type                          : org.gradle.api.tasks.testing.Test
                 sourceSets
                     main                          : main (DefaultExternalSourceSet)
                         sources
@@ -1048,14 +1003,8 @@ MODULE                        : project
                 tasks
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                         qName                         : :lib:testDebugUnitTest
-                        description                   : Run unit tests for the debug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :lib:testReleaseUnitTest
-                        description                   : Run unit tests for the release build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     _internal_aapt2_binary        : <empty>
@@ -1196,14 +1145,8 @@ MODULE                        : project
                         tasks
                             testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                 qName                         : :nested1:deep:testDebugUnitTest
-                                description                   : Run unit tests for the debug build.
-                                group                         : verification
-                                type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                             testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                                 qName                         : :nested1:deep:testReleaseUnitTest
-                                description                   : Run unit tests for the release build.
-                                group                         : verification
-                                type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                         externalSystemId              : GRADLE
                         artifactsByConfiguration
                             _internal_aapt2_binary        : <empty>
@@ -1329,14 +1272,8 @@ MODULE                        : project
                 tasks
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                         qName                         : :nested1:testDebugUnitTest
-                        description                   : Run unit tests for the debug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :nested1:testReleaseUnitTest
-                        description                   : Run unit tests for the release build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     _internal_aapt2_binary        : <empty>
@@ -1477,14 +1414,8 @@ MODULE                        : project
                         tasks
                             testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                 qName                         : :nested2:deep:testDebugUnitTest
-                                description                   : Run unit tests for the debug build.
-                                group                         : verification
-                                type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                             testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                                 qName                         : :nested2:deep:testReleaseUnitTest
-                                description                   : Run unit tests for the release build.
-                                group                         : verification
-                                type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                         externalSystemId              : GRADLE
                         artifactsByConfiguration
                             _internal_aapt2_binary        : <empty>
@@ -1623,14 +1554,8 @@ MODULE                        : project
                                 tasks
                                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                                         qName                         : :nested2:trans:deep2:testDebugUnitTest
-                                        description                   : Run unit tests for the debug build.
-                                        group                         : verification
-                                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                                         qName                         : :nested2:trans:deep2:testReleaseUnitTest
-                                        description                   : Run unit tests for the release build.
-                                        group                         : verification
-                                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                                 externalSystemId              : GRADLE
                                 artifactsByConfiguration
                                     _internal_aapt2_binary        : <empty>
@@ -1760,24 +1685,12 @@ MODULE                        : project
                 tasks
                     testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)
                         qName                         : :nested2:testBasicDebugUnitTest
-                        description                   : Run unit tests for the basicDebug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testBasicReleaseUnitTest      : testBasicReleaseUnitTest (DefaultExternalTask)
                         qName                         : :nested2:testBasicReleaseUnitTest
-                        description                   : Run unit tests for the basicRelease build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testPaidDebugUnitTest         : testPaidDebugUnitTest (DefaultExternalTask)
                         qName                         : :nested2:testPaidDebugUnitTest
-                        description                   : Run unit tests for the paidDebug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testPaidReleaseUnitTest       : testPaidReleaseUnitTest (DefaultExternalTask)
                         qName                         : :nested2:testPaidReleaseUnitTest
-                        description                   : Run unit tests for the paidRelease build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     _internal_aapt2_binary        : <empty>

@@ -57,10 +57,11 @@ class ViewInspectorTreeLoader(
 
   fun loadComponentTree(): AndroidWindow? {
     val configuration = viewEvent.configuration
-    if (configuration !== LayoutInspectorViewProtocol.Configuration.getDefaultInstance()) {
+    val appContext = viewEvent.appContext
+    if (configuration !== LayoutInspectorViewProtocol.Configuration.getDefaultInstance() ||
+        appContext !== LayoutInspectorViewProtocol.AppContext.getDefaultInstance()) {
       folderConfig = configuration.convert(process.device.apiLevel)
-      resourceLookup.updateConfiguration(folderConfig, configuration.fontScale, viewEvent.appContext.convert(), viewNodeCreator.strings,
-                                         process)
+      resourceLookup.updateConfiguration(folderConfig, configuration.fontScale, appContext.convert(), viewNodeCreator.strings, process)
     }
     val rootView = viewNodeCreator.createRootViewNode { isInterrupted } ?: return null
     return ViewAndroidWindow(project, skiaParser, rootView, viewEvent, folderConfig, { isInterrupted }, logEvent)

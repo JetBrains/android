@@ -17,6 +17,9 @@ package com.android.tools.profilers
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common
+import com.intellij.openapi.application.ApplicationManager
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 interface WithFakeTimer {
   val timer: FakeTimer
@@ -37,4 +40,7 @@ object Utils {
     state = Common.Process.State.ALIVE
     setUp()
   }.build()
+
+  @JvmStatic
+  fun runOnUi(work: Runnable): Unit = ApplicationManager.getApplication().invokeAndWait(work)
 }

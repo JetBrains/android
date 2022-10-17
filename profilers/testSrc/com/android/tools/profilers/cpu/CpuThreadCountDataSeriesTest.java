@@ -26,47 +26,26 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
 public class CpuThreadCountDataSeriesTest {
-  @Parameterized.Parameters(name = "isUnifiedPipeline={0}")
-  public static Collection<Boolean> useNewEventPipelineParameter() {
-    return Arrays.asList(false, true);
-  }
-
   private final FakeTransportService myTransportService = new FakeTransportService(new FakeTimer(), false);
   @Rule
   public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("CpuThreadCountDataSeriesTest", new FakeCpuService(), myTransportService);
-
-  private boolean myIsUnifiedPipeline;
   private DataSeries<Long> myDataSeries;
-
-  public CpuThreadCountDataSeriesTest(boolean isUnifiedPipeline) {
-    myIsUnifiedPipeline = isUnifiedPipeline;
-  }
 
   @Before
   public void setUp() {
-    if (myIsUnifiedPipeline) {
-      ProfilersTestData.populateThreadData(myTransportService, ProfilersTestData.SESSION_DATA.getStreamId());
+    ProfilersTestData.populateThreadData(myTransportService, ProfilersTestData.SESSION_DATA.getStreamId());
 
-      myDataSeries = new CpuThreadCountDataSeries(new ProfilerClient(myGrpcChannel.getChannel()).getTransportClient(),
-                                                  ProfilersTestData.SESSION_DATA.getStreamId(),
-                                                  ProfilersTestData.SESSION_DATA.getPid());
-    }
-    else {
-      myDataSeries = new LegacyCpuThreadCountDataSeries(new ProfilerClient(myGrpcChannel.getChannel()).getCpuClient(), ProfilersTestData.SESSION_DATA);
-    }
+    myDataSeries = new CpuThreadCountDataSeries(new ProfilerClient(myGrpcChannel.getChannel()).getTransportClient(),
+                                                ProfilersTestData.SESSION_DATA.getStreamId(),
+                                                ProfilersTestData.SESSION_DATA.getPid());
   }
 
   @Test
@@ -100,7 +79,7 @@ public class CpuThreadCountDataSeriesTest {
     assertNotNull(seriesData);
     // In the new pipeline, we only return the -1 thread state, so the timestamp of that event is 8 instead of the first thread state
     // activity at t = 6.
-    long timestamp = myIsUnifiedPipeline ? TimeUnit.SECONDS.toMicros(8) : TimeUnit.SECONDS.toMicros(6);
+    long timestamp = TimeUnit.SECONDS.toMicros(8);
     assertEquals(timestamp, seriesData.x, 0);
     assertEquals(1, (long)seriesData.value);
 
@@ -108,16 +87,10 @@ public class CpuThreadCountDataSeriesTest {
     seriesData = seriesDataList.get(1);
     assertNotNull(seriesData);
 
-    if (myIsUnifiedPipeline) {
-      // In the new pipeline, we only return the +1 thread state, so we wouldn't reach the dead thread state at t = 15, but rather the
-      // series count to the end of the query range.
-      assertEquals(TimeUnit.SECONDS.toMicros(11), seriesData.x, 0);
-      assertEquals(1, (long)seriesData.value);
-    }
-    else {
-      assertEquals(TimeUnit.SECONDS.toMicros(15), seriesData.x, 0);
-      assertEquals(0, (long)seriesData.value);
-    }
+    // In the new pipeline, we only return the +1 thread state, so we wouldn't reach the dead thread state at t = 15, but rather the
+    // series count to the end of the query range.
+    assertEquals(TimeUnit.SECONDS.toMicros(11), seriesData.x, 0);
+    assertEquals(1, (long)seriesData.value);
   }
 
   @Test
@@ -147,17 +120,10 @@ public class CpuThreadCountDataSeriesTest {
     // Threads count by thread2 state change to DEAD
     seriesData = seriesDataList.get(3);
     assertNotNull(seriesData);
-    if (myIsUnifiedPipeline) {
-      // In the new pipeline, we only return the +1 thread state, so we wouldn't reach the dead thread state at t = 15, but rather the
-      // series count to the end of the query range.
-      assertEquals(TimeUnit.SECONDS.toMicros(10), seriesData.x, 0);
-      assertEquals(1, (long)seriesData.value);
-    }
-    else {
-      assertEquals(TimeUnit.SECONDS.toMicros(15), seriesData.x, 0);
-      assertEquals(0, (long)seriesData.value); // Both threads are dead now
-    }
-
+    // In the new pipeline, we only return the +1 thread state, so we wouldn't reach the dead thread state at t = 15, but rather the
+    // series count to the end of the query range.
+    assertEquals(TimeUnit.SECONDS.toMicros(10), seriesData.x, 0);
+    assertEquals(1, (long)seriesData.value);
   }
 
   @Test
@@ -171,7 +137,7 @@ public class CpuThreadCountDataSeriesTest {
     assertNotNull(seriesData);
     // In the new pipeline, we only return the -1 thread state, so the timestamp of that event is 8 instead of the first thread state
     // activity at t = 6.
-    long timestamp = myIsUnifiedPipeline ? TimeUnit.SECONDS.toMicros(8) : TimeUnit.SECONDS.toMicros(6);
+    long timestamp = TimeUnit.SECONDS.toMicros(8);
     assertEquals(timestamp, seriesData.x, 0);
     assertEquals(1, (long)seriesData.value); // thread2 is alive
 

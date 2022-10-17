@@ -21,6 +21,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.SystemIndependent
 
 private val LOG = Logger.getInstance(SyncIssueUsageReporterImpl::class.java)
 
@@ -29,12 +30,12 @@ class SyncIssueUsageReporterImpl(private val project: Project) : SyncIssueUsageR
   private val collectedQuickFixes = mutableListOf<AndroidStudioEvent.GradleSyncQuickFix>()
   private var collectedFailure: AndroidStudioEvent.GradleSyncFailure? = null
 
-  override fun reportToUsageTracker() {
+  override fun reportToUsageTracker(rootProjectPath: @SystemIndependent String) {
     if (collectedIssues.isNotEmpty()) {
       UsageTracker.log(
           GradleSyncStateHolder
               .getInstance(project)
-              .generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES)
+              .generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES, rootProjectPath)
               .addAllGradleSyncIssues(collectedIssues))
       collectedIssues.clear()
     }
@@ -43,7 +44,7 @@ class SyncIssueUsageReporterImpl(private val project: Project) : SyncIssueUsageR
       UsageTracker.log(
           GradleSyncStateHolder
               .getInstance(project)
-              .generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS)
+              .generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS, rootProjectPath)
               .addAllOfferedQuickFixes(collectedQuickFixes)
               .setGradleSyncFailure(collectedFailure ?: AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE))
 

@@ -76,6 +76,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   private ISystemImage mySnapshotSystemImage;
   private final Map<String, String> myPropertiesMap = new HashMap<>();
   private Device myFoldable;
+  private Device myDesktop;
   private Device myAutomotive;
 
   @Override
@@ -169,6 +170,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     DeviceManager devMgr = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
     myFoldable = devMgr.getDevice("7.6in Foldable", "Generic");
+    myDesktop = devMgr.getDevice("desktop_small", "Google");
     myAutomotive = devMgr.getDevice("automotive_1024p_landscape", "Google");
 
     myQAvdInfo =
@@ -254,6 +256,25 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     assertFalse(box.isSelected());
     SkinChooser skinChooser = optionsStep.getSkinComboBox();
     assertFalse(skinChooser.isEnabled());
+  }
+
+  public void testDesktopDevice() {
+    ensureSdkManagerAvailable();
+    AvdOptionsModel optionsModel = new AvdOptionsModel(myQAvdInfo);
+    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
+    optionsStep.addListeners();
+    Disposer.register(getTestRootDisposable(), optionsStep);
+    optionsModel.device().setNullableValue(myDesktop);
+
+    JBLabel label = optionsStep.getDeviceFrameTitle();
+    assertFalse(label.isEnabled());
+    label = optionsStep.getSkinDefinitionLabel();
+    assertTrue(label.isEnabled());
+    JCheckBox box = optionsStep.getDeviceFrameCheckbox();
+    assertFalse(box.isEnabled());
+    assertFalse(box.isSelected());
+    SkinChooser skinChooser = optionsStep.getSkinComboBox();
+    assertTrue(skinChooser.isEnabled());
   }
 
   public void testUpdateSystemImageData() {

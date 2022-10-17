@@ -18,7 +18,7 @@ package com.android.tools.idea.debug;
 import com.android.support.AndroidxName;
 
 public class SupportArrayMapRenderer extends ArrayMapRendererBase {
-  static final AndroidxName ARRAY_MAP_NAME = AndroidxName.of("android.support.v4.util.", "ArrayMap");
+  static final AndroidxName ARRAY_MAP_NAME = new AndroidxName("android.support.v4.util.ArrayMap", "androidx.collection.ArrayMap");
 
   public SupportArrayMapRenderer() {
     super(ARRAY_MAP_NAME.oldName());

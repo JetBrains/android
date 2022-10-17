@@ -24,7 +24,6 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS;
-import static com.android.testutils.TestUtils.getEmbeddedJdk8Path;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
@@ -108,7 +107,9 @@ public class AndroidGradleTests {
   private static final Pattern MAVEN_CENTRAL_REPOSITORY_PATTERN = Pattern.compile("mavenCentral\\(\\)");
   private static final Pattern GRADLE_PLUGIN_PORTAL_REPOSITORY_PATTERN = Pattern.compile("gradlePluginPortal\\(\\)");
   private static final Pattern MAVEN_REPOSITORY_PATTERN = Pattern.compile("maven \\{.*http.*\\}");
-  /** Property name that allows adding multiple local repositories via JVM properties */
+  /**
+   * Property name that allows adding multiple local repositories via JVM properties
+   */
   private static final String ADDITIONAL_REPOSITORY_PROPERTY = "idea.test.gradle.additional.repositories";
   private static final long DEFAULT_TIMEOUT_MILLIS = 1000;
   private static final String NDK_VERSION_PLACEHOLDER = "// ndkVersion \"{placeholder}\"";
@@ -149,11 +150,11 @@ public class AndroidGradleTests {
    */
   @Deprecated
   public static void updateGradleVersions(@NotNull File folderRootPath) throws IOException {
-    updateToolingVersionsAndPaths(folderRootPath, null, null, null, null);
+    updateToolingVersionsAndPaths(folderRootPath, null, null, null, null, null);
   }
 
   public static void updateToolingVersionsAndPaths(@NotNull File folderRootPath) throws IOException {
-    updateToolingVersionsAndPaths(folderRootPath, null, null, null, null);
+    updateToolingVersionsAndPaths(folderRootPath, null, null, null, null, null);
   }
 
   public static void updateToolingVersionsAndPaths(@NotNull File path,
@@ -161,9 +162,11 @@ public class AndroidGradleTests {
                                                    @Nullable String gradlePluginVersion,
                                                    @Nullable String kotlinVersion,
                                                    @Nullable String ndkVersion,
+                                                   @Nullable String compileSdkVersion,
                                                    File... localRepos)
     throws IOException {
-    internalUpdateToolingVersionsAndPaths(path, true, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, localRepos);
+    internalUpdateToolingVersionsAndPaths(path, true, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, compileSdkVersion,
+                                          localRepos);
   }
 
   private static void internalUpdateToolingVersionsAndPaths(@NotNull File path,
@@ -172,6 +175,7 @@ public class AndroidGradleTests {
                                                             @Nullable String gradlePluginVersion,
                                                             @Nullable String kotlinVersion,
                                                             @Nullable String ndkVersion,
+                                                            @Nullable String compileSdkVersion,
                                                             File... localRepos) throws IOException {
     String toolsBaseVersion;
     if (gradlePluginVersion != null) {
@@ -179,7 +183,8 @@ public class AndroidGradleTests {
       int firstSeparator = gradlePluginVersion.indexOf('.');
       int majorVersion = Integer.parseInt(gradlePluginVersion.substring(0, firstSeparator)) + 23;
       toolsBaseVersion = majorVersion + gradlePluginVersion.substring(firstSeparator);
-    } else {
+    }
+    else {
       toolsBaseVersion = Version.ANDROID_TOOLS_BASE_VERSION;
     }
 
@@ -206,7 +211,8 @@ public class AndroidGradleTests {
         createGradleWrapper(path, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
       }
       for (File child : notNullize(path.listFiles())) {
-        internalUpdateToolingVersionsAndPaths(child, false, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, localRepos);
+        internalUpdateToolingVersionsAndPaths(child, false, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion,
+                                              compileSdkVersion, localRepos);
       }
     }
     else if (fileAttributes.isRegularFile()) {
@@ -229,8 +235,12 @@ public class AndroidGradleTests {
 
         contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-api:(.+)['\"]", toolsBaseVersion);
         contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-checks:(.+)['\"]", toolsBaseVersion);
+
+        if (compileSdkVersion == null) {
+          compileSdkVersion = buildEnvironment.getCompileSdkVersion();
+        }
         // App compat version needs to match compile SDK
-        String appCompatMainVersion = BuildEnvironment.getInstance().getCompileSdkVersion();
+        String appCompatMainVersion = compileSdkVersion;
         // TODO(145548476): convert to androidx
         try {
           if (Integer.parseInt(appCompatMainVersion) < 29) {
@@ -242,9 +252,10 @@ public class AndroidGradleTests {
         }
 
         contents = updateBuildToolsVersion(contents);
-        contents = updateCompileSdkVersion(contents);
+        contents = updateCompileSdkVersion(contents, compileSdkVersion);
         contents = updateTargetSdkVersion(contents);
-        contents = updateMinSdkVersion(contents);
+        contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdkVersion[ (](\\d+)");
+        contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdk *= *(\\d+)");
         contents = updateLocalRepositories(contents, localRepositories);
 
         if (ndkVersion != null) {
@@ -265,6 +276,9 @@ public class AndroidGradleTests {
         if (kotlinVersion == null) {
           kotlinVersion = KOTLIN_VERSION_FOR_TESTS;
         }
+        if (compileSdkVersion == null) {
+          compileSdkVersion = buildEnvironment.getCompileSdkVersion();
+        }
 
         String pluginVersion = gradlePluginVersion != null ? gradlePluginVersion : buildEnvironment.getGradlePluginVersion();
         contents = replaceRegexGroup(contents, "classpath\\(['\"]com.android.tools.build:gradle:(.+)['\"]", pluginVersion);
@@ -281,9 +295,12 @@ public class AndroidGradleTests {
         contents = replaceRegexGroup(contents, "\\(\"com.android.application\"\\) version \"(.+)\"", pluginVersion);
         contents = replaceRegexGroup(contents, "\\(\"com.android.library\"\\) version \"(.+)\"", pluginVersion);
         contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", buildEnvironment.getBuildToolsVersion());
-        contents = replaceRegexGroup(contents, "compileSdkVersion\\((.+)\\)", buildEnvironment.getCompileSdkVersion());
+        contents = replaceRegexGroup(contents, "compileSdkVersion\\((.+)\\)", compileSdkVersion);
+        contents = replaceRegexGroup(contents, "compileSdk *= *(\\d+)", compileSdkVersion);
         contents = replaceRegexGroup(contents, "targetSdkVersion\\((.+)\\)", buildEnvironment.getTargetSdkVersion());
-        contents = replaceRegexGroup(contents, "minSdkVersion\\((.*)\\)", buildEnvironment.getMinSdkVersion());
+        contents = replaceRegexGroup(contents, "targetSdk *= *(\\d+)", buildEnvironment.getTargetSdkVersion());
+        contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdkVersion[ (](\\d+)");
+        contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdk *= *(\\d+)");
         contents = updateLocalRepositories(contents, localRepositories);
 
         if (ndkVersion != null) {
@@ -303,18 +320,21 @@ public class AndroidGradleTests {
   }
 
   @NotNull
-  public static String updateCompileSdkVersion(@NotNull String contents) {
-    return replaceRegexGroup(contents, "compileSdkVersion[ (]([0-9]+)", BuildEnvironment.getInstance().getCompileSdkVersion());
+  public static String updateCompileSdkVersion(@NotNull String contents, @NotNull String compileSdkVersion) {
+    contents = replaceRegexGroup(contents, "compileSdkVersion[ (]([0-9]+)", compileSdkVersion);
+    contents = replaceRegexGroup(contents, "compileSdk *[(=]? *([0-9]+)", compileSdkVersion);
+    return contents;
   }
 
   @NotNull
   public static String updateTargetSdkVersion(@NotNull String contents) {
-    return replaceRegexGroup(contents, "targetSdkVersion[ (]([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
+    contents = replaceRegexGroup(contents, "targetSdkVersion[ (]([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
+    contents = replaceRegexGroup(contents, "targetSdk *[(=]? *([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
+    return contents;
   }
 
   @NotNull
-  public static String updateMinSdkVersion(@NotNull String contents) {
-    String regex = "minSdkVersion[ (](\\d+)";
+  public static String updateMinSdkVersionOnlyIfGreaterThanExisting(@NotNull String contents, String regex) {
     Pattern pattern = Pattern.compile(regex);
     Matcher matcher = pattern.matcher(contents);
     String minSdkVersion = BuildEnvironment.getInstance().getMinSdkVersion();
@@ -614,7 +634,8 @@ public class AndroidGradleTests {
 
     Sdk currentJdk = ideSdks.getJdk();
     TestCase.assertNotNull(currentJdk);
-    TestCase.assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(), IdeSdks.getInstance().isJdkCompatible(currentJdk, JDK_1_8));
+    TestCase.assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(),
+                        IdeSdks.getInstance().isJdkCompatible(currentJdk, JDK_1_8));
 
     // IntelliJ uses project jdk for gradle import by default, see GradleProjectSettings.myGradleJvm
     // Android Studio overrides GradleInstallationManager.getGradleJdk() using AndroidStudioGradleInstallationManager
@@ -716,10 +737,11 @@ public class AndroidGradleTests {
                                                  @Nullable String gradlePluginVersion,
                                                  @Nullable String kotlinVersion,
                                                  @Nullable String ndkVersion,
+                                                 @Nullable String compileSdkVersion,
                                                  File... localRepos) throws IOException {
     preCreateDotGradle(projectRoot);
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-    updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, localRepos);
+    updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, compileSdkVersion, localRepos);
   }
 
   /**
@@ -764,6 +786,11 @@ public class AndroidGradleTests {
   public static void restoreJdk() {
     IdeSdks.getInstance().cleanJdkEnvVariableInitialization();
   }
+
+  public static String getEmbeddedJdk8Path() throws IOException {
+    return TestUtils.getEmbeddedJdk8Path();
+  }
+
 
   /**
    * Returns the main module for the Java module under the given moduleName.

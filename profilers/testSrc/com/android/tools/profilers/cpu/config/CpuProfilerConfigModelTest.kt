@@ -31,7 +31,6 @@ import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -46,8 +45,7 @@ class CpuProfilerConfigModelTest {
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel("CpuProfilerConfigModelTest", FakeCpuService(), FakeTransportService(myTimer),
-                                      FakeProfilerService(myTimer), FakeMemoryService(), FakeEventService(),
-                                      FakeNetworkService.newBuilder().build())
+                                      FakeProfilerService(myTimer), FakeMemoryService(), FakeEventService())
 
   @Before
   fun setup() {

@@ -34,6 +34,18 @@ namespace screensharing {
 using namespace std;
 using namespace std::chrono;
 
+struct CodecInfo {
+  string name;
+  Size max_resolution;
+  Size size_alignment;
+
+  CodecInfo(string name, Size max_resolution, Size size_alignment)
+    : name(move(name)),
+      max_resolution(max_resolution),
+      size_alignment(size_alignment) {
+  }
+};
+
 namespace {
 
 constexpr int MAX_SUBSEQUENT_ERRORS = 10;
@@ -93,37 +105,16 @@ struct CodecOutputBuffer {
 
 int CodecOutputBuffer::consequent_error_count = 0;
 
-struct CodecDescriptor {
-  const char* name;
-  const char* mime_type;
-};
-
-CodecDescriptor supported_codecs[] = {
-    { "vp8", "video/x-vnd.on2.vp8" },  // See android.media.MediaFormat.MIMETYPE_VIDEO_VP8
-    { "vp9", "video/x-vnd.on2.vp9" },  // See android.media.MediaFormat.MIMETYPE_VIDEO_VP9
-    { "h264", "video/avc" }  // See See android.media.MediaFormat.MIMETYPE_VIDEO_AVC
-};
-
+constexpr int MIN_VIDEO_RESOLUTION = 128;
 constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
 constexpr int BIT_RATE = 8000000;
 constexpr int I_FRAME_INTERVAL_SECONDS = 10;
 constexpr int REPEAT_FRAME_DELAY_MILLIS = 100;
 constexpr int CHANNEL_HEADER_LENGTH = 20;
 
-CodecDescriptor* FindCodecDescriptor(const string& codec_name) {
-  int n = sizeof(supported_codecs) / sizeof(*supported_codecs);
-  for (int i = 0; i < n; ++i) {
-    CodecDescriptor* codec = supported_codecs + i;
-    if (codec->name == codec_name) {
-      return codec;
-    }
-  }
-  return nullptr;
-}
-
-AMediaFormat* createMediaFormat(const char* mimetype) {
+AMediaFormat* CreateMediaFormat(const char* mime_type) {
   AMediaFormat* media_format = AMediaFormat_new();
-  AMediaFormat_setString(media_format, AMEDIAFORMAT_KEY_MIME, mimetype);
+  AMediaFormat_setString(media_format, AMEDIAFORMAT_KEY_MIME, mime_type);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_COLOR_FORMAT, COLOR_FormatSurface);
   // Does not affect the actual frame rate, but must be present.
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_FRAME_RATE, 60);
@@ -133,18 +124,49 @@ AMediaFormat* createMediaFormat(const char* mimetype) {
   return media_format;
 }
 
-int32_t RoundUpToMultipleOf8(int32_t value) {
-  return (value + 7) & ~7;
+unique_ptr<CodecInfo> SelectCodec(Jni jni, const string& mime_type) {
+  JClass clazz = jni.GetClass("com/android/tools/screensharing/CodecInfo");
+  jmethodID method = clazz.GetStaticMethodId("selectVideoEncoderForType",
+                                             "(Ljava/lang/String;)Lcom/android/tools/screensharing/CodecInfo;");
+  JObject codec_info = clazz.CallStaticObjectMethod(method, JString(jni, mime_type).ref());
+  if (codec_info.IsNull()) {
+    Log::Fatal("No video encoder is available for %s", mime_type.c_str());
+  }
+  string name = JString(codec_info.GetObjectField(clazz.GetFieldId("name", "Ljava/lang/String;"))).GetValue();
+  int max_width = codec_info.GetIntField(clazz.GetFieldId("maxWidth", "I"));
+  int max_height = codec_info.GetIntField(clazz.GetFieldId("maxHeight", "I"));
+  int width_alignment = codec_info.GetIntField(clazz.GetFieldId("widthAlignment", "I"));
+  int height_alignment = codec_info.GetIntField(clazz.GetFieldId("heightAlignment", "I"));
+  return make_unique<CodecInfo>(name, Size(max_width, max_height), Size(width_alignment, height_alignment));
 }
 
-Size ComputeVideoSize(Size rotated_display_size, Size max_resolution) {
-  auto width = rotated_display_size.width;
-  auto height = rotated_display_size.height;
+int32_t RoundUpToMultipleOf(int32_t value, int32_t power_of_two) {
+  return (value + power_of_two - 1) & ~(power_of_two - 1);
+}
+
+Size ComputeVideoSize(Size rotated_display_size, Size max_resolution, Size size_alignment) {
+  auto width = max(rotated_display_size.width, MIN_VIDEO_RESOLUTION);
+  auto height = max(rotated_display_size.height, MIN_VIDEO_RESOLUTION);
   double scale = min(1.0, min(static_cast<double>(max_resolution.width) / width, static_cast<double>(max_resolution.height) / height));
   if (scale == 0) {
     scale = 1.;
   }
-  return Size { RoundUpToMultipleOf8(lround(width * scale)), RoundUpToMultipleOf8(lround(height * scale)) };
+  return Size { RoundUpToMultipleOf(lround(width * scale), max(size_alignment.width, 8)),
+                RoundUpToMultipleOf(lround(height * scale), max(size_alignment.height, 8)) };
+}
+
+Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_video_resolution, AMediaFormat* media_format,
+                    const DisplayInfo& display_info, int32_t rotation_correction) {
+  Size max_resolution = Size(min(max_video_resolution.width, codec_info.max_resolution.width),
+                             min(max_video_resolution.height, codec_info.max_resolution.height));
+  Size video_size = ComputeVideoSize(display_info.logical_size.Rotated(rotation_correction), max_resolution, codec_info.size_alignment);
+  AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_WIDTH, video_size.width);
+  AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_HEIGHT, video_size.height);
+  media_status_t status = AMediaCodec_configure(codec, media_format, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
+  if (status != AMEDIA_OK) {
+    Log::Fatal("AMediaCodec_configure returned %d for video_size=%dx%d", status, video_size.width, video_size.height);
+  }
+  return video_size;
 }
 
 // The display area defined by display_info.logical_size is mapped to projected size and then
@@ -177,20 +199,18 @@ DisplayStreamer::DisplayStreamer(int display_id, string codec_name, Size max_vid
 void DisplayStreamer::Run() {
   Jni jni = Jvm::GetJni();
 
-  const CodecDescriptor* codec_descriptor = FindCodecDescriptor(codec_name_);
-  if (codec_descriptor == nullptr) {
-    Log::Fatal("Codec %s is not supported", codec_name_.c_str());
-  }
-  AMediaCodec* codec = AMediaCodec_createEncoderByType(codec_descriptor->mime_type);
+  string mime_type = (codec_name_.compare(0, 2, "vp") == 0 ? "video/x-vnd.on2." : "video/") + codec_name_;
+  unique_ptr<CodecInfo> codec_info = SelectCodec(jni, mime_type);
+  AMediaCodec* codec = AMediaCodec_createCodecByName(codec_info->name.c_str());
   if (codec == nullptr) {
-    Log::Fatal("Unable to create a %s encoder", codec_descriptor->name);
+    Log::Fatal("Unable to create a %s video encoder", codec_info->name.c_str());
   }
-  Log::D("Using %s video encoder", codec_descriptor->name);
-  AMediaFormat* media_format = createMediaFormat(codec_descriptor->mime_type);
+  Log::D("Using %s video encoder", codec_info->name.c_str());
+  AMediaFormat* media_format = CreateMediaFormat(mime_type.c_str());
 
   string header;
   header.reserve(CHANNEL_HEADER_LENGTH);
-  header.append(codec_descriptor->name);
+  header.append(codec_name_);
   // Pad with spaces to the fixed length.
   while (header.length() < CHANNEL_HEADER_LENGTH) {
     header.insert(header.end(), ' ');
@@ -198,14 +218,15 @@ void DisplayStreamer::Run() {
   write(socket_fd_, header.c_str(), header.length());
 
   WindowManager::WatchRotation(jni, &display_rotation_watcher_);
+  DisplayManager::RegisterDisplayListener(jni, this);
   SurfaceControl surface_control(jni);
   VideoPacketHeader packet_header = { .frame_number = 1 };
 
   while (!stopped_) {
     if (codec == nullptr) {
-      codec = AMediaCodec_createEncoderByType(codec_descriptor->mime_type);
+      codec = AMediaCodec_createCodecByName(codec_info->name.c_str());
       if (codec == nullptr) {
-        Log::Fatal("Unable to create a %s encoder", codec_descriptor->name);
+        Log::Fatal("Unable to create a %s video encoder", codec_info->name.c_str());
       }
     }
     bool secure = android_get_device_api_level() < 31;  // Creation of secure displays is not allowed on API 31+.
@@ -220,15 +241,8 @@ void DisplayStreamer::Run() {
       scoped_lock lock(mutex_);
       display_info_ = display_info;
       int32_t rotation_correction = video_orientation_ >= 0 ? NormalizeRotation(video_orientation_ - display_info.rotation) : 0;
-      Size video_size = ComputeVideoSize(display_info.logical_size.Rotated(rotation_correction), max_video_resolution_);
-      Log::D("DisplayStreamer::Run: video_size=%dx%d, video_orientation=%d, display_orientation=%d",
-             video_size.width, video_size.height, video_orientation_, display_info.rotation);
-      AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_WIDTH, video_size.width);
-      AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_HEIGHT, video_size.height);
-      media_status_t status = AMediaCodec_configure(codec, media_format, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
-      if (status != AMEDIA_OK) {
-        Log::Fatal("AMediaCodec_configure returned %d", status);
-      }
+      media_status_t status;
+      Size video_size = ConfigureCodec(codec, *codec_info, max_video_resolution_, media_format, display_info, rotation_correction);
       status = AMediaCodec_createInputSurface(codec, &surface);  // Requires API 26.
       if (status != AMEDIA_OK) {
         Log::Fatal("AMediaCodec_createInputSurface returned %d", status);
@@ -291,10 +305,24 @@ DisplayInfo DisplayStreamer::GetDisplayInfo() {
   return display_info_;
 }
 
+void DisplayStreamer::OnDisplayAdded(int32_t display_id) {
+}
+
+void DisplayStreamer::OnDisplayRemoved(int32_t display_id) {
+}
+
+void DisplayStreamer::OnDisplayChanged(int32_t display_id) {
+  Log::D("DisplayStreamer::OnDisplayChanged(%d)", display_id);
+  if (display_id == DEFAULT_DISPLAY) {
+    StopCodec();
+  }
+}
+
 void DisplayStreamer::Shutdown() {
   if (socket_fd_ > 0) {
     close(socket_fd_);
     StopCodec();
+    DisplayManager::UnregisterDisplayListener( Jvm::GetJni(), this);
   }
 }
 
@@ -348,6 +376,7 @@ void DisplayStreamer::StopCodecUnlocked() {
     Log::D("DisplayStreamer::StopCodecUnlocked: stopping codec");
     AMediaCodec_stop(running_codec_);
     running_codec_ = nullptr;
+    CodecOutputBuffer::consequent_error_count = 0;
   }
 }
 
@@ -374,3 +403,4 @@ void DisplayStreamer::DisplayRotationWatcher::OnRotationChanged(int32_t new_rota
 }
 
 }  // namespace screensharing
+

@@ -7,7 +7,7 @@
     ]]>
   </description>
   <category>Android</category>
-  <version>2022.1.1 Canary 9</version>
+  <version>2022.1.1 Beta 2</version>
   <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java</depends>
@@ -19,6 +19,7 @@
   <xi:include href="/META-INF/database-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-lang.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-lang-databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/android-navigator.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-room.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-dagger.xml" xpointer="xpointer(/idea-plugin/*)"/>

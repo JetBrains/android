@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.BuildAttributionManagerImpl
+import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.data.BuildInvocationType
 import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginContainer
@@ -23,7 +23,6 @@ import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
@@ -108,7 +107,7 @@ class CriticalPathAnalyzerTest {
     wrapper.onBuildSuccess(
       null,
       GradlePluginsData.emptyData,
-      Mockito.mock(BuildEventsAnalysisResult::class.java),
+      Mockito.mock(BuildEventsAnalyzersProxy::class.java),
       studioProvidedInfo
     )
 
@@ -163,7 +162,7 @@ class CriticalPathAnalyzerTest {
       null,
       GradlePluginsData.emptyData,
 
-      Mockito.mock(BuildEventsAnalysisResult::class.java),
+      Mockito.mock(BuildEventsAnalyzersProxy::class.java),
       studioProvidedInfo
     )
 
@@ -190,9 +189,10 @@ class CriticalPathAnalyzerTest {
     myProjectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug").also { assertThat(it.isBuildSuccessful).isTrue() }
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug").also { assertThat(it.isBuildSuccessful).isTrue() }
-    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    assertThat(results.getTasksDeterminingBuildDuration().isEmpty())
+    assertThat(results.getPluginsDeterminingBuildDuration().isEmpty())
 
-    assertThat(buildAttributionManager.analyzersProxy.getTasksDeterminingBuildDuration()).isEmpty()
-    assertThat(buildAttributionManager.analyzersProxy.getPluginsDeterminingBuildDuration()).isEmpty()
   }
 }

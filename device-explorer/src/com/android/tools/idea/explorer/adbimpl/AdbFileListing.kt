@@ -30,7 +30,7 @@ class AdbFileListing(
     private val myDeviceCapabilities: AdbDeviceCapabilities,
     private val dispatcher: CoroutineDispatcher) {
   private val LOGGER = thisLogger()
-  private val myShellCommandsUtil = AdbShellCommandsUtil(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get())
+  private val myShellCommandsUtil = AdbShellCommandsUtil.create(myDevice, StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get())
 
   val root: AdbFileListingEntry = AdbFileListingEntryBuilder().setPath("/").setKind(EntryKind.DIRECTORY).build()
 
@@ -45,7 +45,7 @@ class AdbFileListing(
     return withContext(dispatcher) {
       // Run "ls -al" command and process matching output lines
       val command = getCommand(runAs, "ls -al ").withDirectoryEscapedPath(parentEntry.fullPath).build() //$NON-NLS-1$
-      val commandResult = myShellCommandsUtil.executeCommand(myDevice, command)
+      val commandResult = myShellCommandsUtil.executeCommand(command)
       val escaping = myDeviceCapabilities.hasEscapingLs()
       val entries = commandResult.output
         .mapNotNull { line -> processLsOutputLine(line, escaping, parentEntry) }
@@ -80,7 +80,7 @@ class AdbFileListing(
       // directory, we'll see the normal directory listing.  Otherwise, we'll see an
       // error of some sort.
       val command = getCommand(runAs, "ls -l -d ").withDirectoryEscapedPath(entry.fullPath).build()
-      val commandResult = myShellCommandsUtil.executeCommandNoErrorCheck(myDevice, command)
+      val commandResult = myShellCommandsUtil.executeCommandNoErrorCheck(command)
 
       // Look for at least one line matching the expected output
       var lineCount = 0

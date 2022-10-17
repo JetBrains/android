@@ -70,7 +70,7 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
     val ddmClient = client.selectedDdmClient ?: return null
     val hierarchyHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VURT)
     ddmClient.dumpViewHierarchy(windowName, false, true, false, hierarchyHandler)
-    propertiesUpdater.lookup.resourceLookup.dpi = ddmClient.device.density
+    propertiesUpdater.lookup.resourceLookup.updateLegacyConfiguration(ddmClient.device.density)
     val hierarchyData = hierarchyHandler.getData() ?: return null
     client.launchMonitor.updateProgress(AttachErrorState.LEGACY_HIERARCHY_RECEIVED)
     client.latestData[windowName] = hierarchyData

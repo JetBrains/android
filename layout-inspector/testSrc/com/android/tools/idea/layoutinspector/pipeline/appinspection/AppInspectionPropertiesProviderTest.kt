@@ -85,7 +85,7 @@ class AppInspectionPropertiesProviderTest {
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule).around(disposableRule)!!
 
   private lateinit var inspectorState: FakeInspectorState
 
@@ -180,7 +180,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun canQueryPropertiesForViewsWithoutResourceResolver() {
-    val facet = AndroidFacet.getInstance(inspectorRule.projectRule.module)!!
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
     AndroidModel.set(facet, TestAndroidModel(applicationId = "com.nonmatching.app"))
 
     InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand

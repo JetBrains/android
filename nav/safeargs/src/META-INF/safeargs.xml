@@ -46,6 +46,6 @@
 
   <projectListeners>
     <listener class="com.android.tools.idea.nav.safeargs.tracker.SafeArgsTrackerSyncListener"
-              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+              topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
   </projectListeners>
 </idea-plugin>

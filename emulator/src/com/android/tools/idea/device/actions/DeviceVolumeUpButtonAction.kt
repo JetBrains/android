@@ -20,4 +20,4 @@ import com.android.tools.idea.device.AKEYCODE_VOLUME_UP
 /**
  * Simulates pressing the Volume Up button on an Android device.
  */
-internal class DeviceVolumeUpButtonAction : DevicePushButtonAction(AKEYCODE_VOLUME_UP)
+internal class DeviceVolumeUpButtonAction : DevicePushButtonAction(AKEYCODE_VOLUME_UP, configFilter = { !it.isWatch })

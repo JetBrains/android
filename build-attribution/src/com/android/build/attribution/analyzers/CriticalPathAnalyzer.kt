@@ -357,7 +357,7 @@ class CriticalPathAnalyzer(
     buildFinishedTimestamp = Long.MIN_VALUE
   }
 
-  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult, studioProvidedInfo: StudioProvidedInfo) {
+  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalyzersProxy, studioProvidedInfo: StudioProvidedInfo) {
     ensureResultCalculated()
   }
 

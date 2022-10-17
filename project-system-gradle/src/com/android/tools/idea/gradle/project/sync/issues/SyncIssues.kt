@@ -60,7 +60,8 @@ class SyncIssueDataService : AbstractProjectDataService<IdeSyncIssue, Void>() {
       val module = modelsProvider.findIdeModule(moduleNode.data) ?: return@forEach
       moduleToSyncIssueMap[module] = syncIssues.map { it.data }
     }
-    SyncIssuesReporter.getInstance().report(moduleToSyncIssueMap)
+    val rootProjectPath = projectData?.linkedExternalProjectPath ?: error("projectData required")
+    SyncIssuesReporter.getInstance().report(moduleToSyncIssueMap, rootProjectPath)
   }
 
   override fun getTargetDataKey(): Key<IdeSyncIssue> {

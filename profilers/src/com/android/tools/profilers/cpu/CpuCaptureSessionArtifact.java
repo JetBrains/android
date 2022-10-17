@@ -173,9 +173,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceIn
     }
 
     // TODO b/133324501 handle the case where a CpuTraceInfo is still ongoing after a session has ended.
-    List<Cpu.CpuTraceInfo> traceInfoList =
-      CpuProfiler.getTraceInfoFromRange(profilers.getClient(), session, requestRange,
-                                        profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
+    List<Cpu.CpuTraceInfo> traceInfoList = CpuProfiler.getTraceInfoFromRange(profilers.getClient(), session, requestRange);
     List<SessionArtifact<?>> artifacts = new ArrayList<>();
     for (Cpu.CpuTraceInfo info : traceInfoList) {
       artifacts.add(new CpuCaptureSessionArtifact(profilers, session, sessionMetaData, info));

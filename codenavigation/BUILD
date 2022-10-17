@@ -13,5 +13,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/native-symbolizer[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
     ],
 )

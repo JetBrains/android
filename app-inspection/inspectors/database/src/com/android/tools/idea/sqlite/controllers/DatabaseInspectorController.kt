@@ -27,6 +27,8 @@ import com.android.tools.idea.concurrency.transformNullable
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
+import com.android.tools.idea.sqlite.DatabaseInspectorTabProvider
+import com.android.tools.idea.sqlite.settings.DatabaseInspectorSettings
 import com.android.tools.idea.sqlite.FileDatabaseManager
 import com.android.tools.idea.sqlite.OfflineModeManager
 import com.android.tools.idea.sqlite.OfflineModeManager.DownloadProgress
@@ -47,7 +49,6 @@ import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.model.getAllDatabaseIds
 import com.android.tools.idea.sqlite.model.isInMemoryDatabase
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
-import com.android.tools.idea.sqlite.settings.DatabaseInspectorSettings
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.mainView.AddColumns
 import com.android.tools.idea.sqlite.ui.mainView.AddTable
@@ -270,12 +271,24 @@ class DatabaseInspectorControllerImpl(
    * To cancel this operation users should cancel [downloadAndOpenOfflineDatabasesJob].
    */
   private fun enterOfflineMode(databasesToDownload: List<SqliteDatabaseId>, appPackageName: String?, processDescriptor: ProcessDescriptor) {
+    val isDatabaseInspectorSelected = appInspectionIdeServices?.isTabSelected(DatabaseInspectorTabProvider.DATABASE_INSPECTOR_ID) ?: false
+    // Don't enter offline mode if DBI is not currently being used.
+    // This prevents downloading files for no reason but also prevents the offline mode permissions
+    // dialog to show up when the user does not expect it.
+    if (!isDatabaseInspectorSelected) {
+      return
+    }
+
     downloadAndOpenOfflineDatabasesJob = projectScope.launch {
       // metrics
       val stopwatch = Stopwatch.createStarted()
       var totalSizeDownloaded = 0L
 
-      val flow = offlineModeManager.downloadFiles(databasesToDownload, processDescriptor, appPackageName) { message, throwable ->
+      val flow = offlineModeManager.downloadFiles(
+        databasesToDownload,
+        processDescriptor,
+        appPackageName,
+      ) { message, throwable ->
         view.reportError(message, throwable)
       }
 
@@ -596,7 +609,14 @@ class DatabaseInspectorControllerImpl(
     databaseId: LiveSqliteDatabaseId,
     onError: (String, Throwable?) -> Unit,
     processDescriptor: ProcessDescriptor
-  ): Flow<DownloadProgress> = offlineModeManager.downloadFiles(listOf(databaseId), processDescriptor, appPackageName, onError)
+  ): Flow<DownloadProgress> {
+    return offlineModeManager.downloadFiles(
+      listOf(databaseId),
+      processDescriptor,
+      appPackageName,
+      onError
+    )
+  }
 
   private inner class SqliteViewListenerImpl : DatabaseInspectorView.Listener {
     override fun tableNodeActionInvoked(databaseId: SqliteDatabaseId, table: SqliteTable) {

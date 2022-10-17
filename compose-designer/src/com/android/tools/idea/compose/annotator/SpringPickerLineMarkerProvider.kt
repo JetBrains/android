@@ -16,10 +16,10 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.SdkConstants
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.DECLARATION_FLOAT_SPEC
 import com.android.tools.idea.compose.preview.DECLARATION_SPRING
 import com.android.tools.idea.compose.preview.DECLARATION_SPRING_SPEC
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.pickers.PsiPickerManager
 import com.android.tools.idea.compose.preview.pickers.properties.SpringPickerPropertyModel
 import com.android.tools.idea.projectsystem.getModuleSystem

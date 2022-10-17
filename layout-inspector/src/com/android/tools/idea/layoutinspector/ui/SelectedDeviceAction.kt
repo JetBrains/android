@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.Toggleable
 import icons.StudioIcons
+import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.Icon
 import javax.swing.JComponent
 
@@ -44,7 +45,7 @@ class SelectDeviceAction(
   private val onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
   private val onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
   private val detachPresentation: DetachPresentation = DetachPresentation(),
-  private val onDetachAction: ((ProcessDescriptor) -> Unit)? = null,
+  private val onDetachAction: (() -> Unit) = { },
   private val customDeviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = { _, _ -> }
 ) :
   DropDownAction(
@@ -100,28 +101,41 @@ class SelectDeviceAction(
       add(NO_DEVICE_ACTION)
     }
 
-    // For consistency, always add a detach action, but only enable it if there's a current process
-    // that can actually be detached.
-    val detachInspectionAction = object : AnAction(detachPresentation.text,
-                                                   detachPresentation.desc,
-                                                   StudioIcons.Shell.Toolbar.STOP) {
-      override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = (deviceModel.selectedProcess?.isRunning == true)
-      }
-
-      override fun actionPerformed(e: AnActionEvent) {
-        onDetachAction?.invoke(deviceModel.selectedProcess!!)
-      }
-    }
-    add(detachInspectionAction)
+    // always add a detach action.
+    add(DetachInspectorAction())
 
     return true
   }
 
   override fun displayTextInToolbar() = true
 
-  class DetachPresentation(val text: String = "Detach Inspector",
-                           val desc: String = "Detach the inspector from the process being inspected.")
+  class DetachPresentation(val text: String = "Stop Inspector",
+                           val desc: String = "Stop running the layout inspector against the current device.")
+
+  /**
+   * Action used to detach the inspector.
+   */
+  @VisibleForTesting
+  inner class DetachInspectorAction : AnAction(detachPresentation.text,
+                                               detachPresentation.desc,
+                                               StudioIcons.Shell.Toolbar.STOP) {
+
+    /**
+     * This action is enabled each time a device is selected.
+     */
+    @VisibleForTesting
+    fun isEnabled(): Boolean {
+      return deviceModel.selectedDevice != null || deviceModel.selectedProcess != null
+    }
+
+    override fun update(e: AnActionEvent) {
+      e.presentation.isEnabled = isEnabled()
+    }
+
+    override fun actionPerformed(e: AnActionEvent) {
+      onDetachAction.invoke()
+    }
+  }
 
   /**
    * A device which the user can select.

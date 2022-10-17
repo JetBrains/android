@@ -40,6 +40,7 @@ import com.intellij.psi.util.ClassUtil
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
 import org.jetbrains.android.facet.AndroidFacet
+import java.awt.Dimension
 import javax.swing.Icon
 
 const val DEFAULT_FONT_SCALE = 1.0f
@@ -64,11 +65,19 @@ class ResourceLookup(private val project: Project) {
    * The dpi of the device we are currently inspecting or -1 if unknown.
    */
   var dpi: Int = DEFAULT_DENSITY
+    @VisibleForTesting set
 
   /**
    * The fontScale currently used on the device.
    */
   var fontScale: Float = DEFAULT_FONT_SCALE
+    @VisibleForTesting set
+
+  /**
+   * The screen dimension in pixels
+   */
+  var screenDimension: Dimension = Dimension()
+    private set
 
   /**
    * Updates the configuration after a possible configuration change detected on the device.
@@ -84,6 +93,17 @@ class ResourceLookup(private val project: Project) {
     dpi = folderConfig.densityQualifier?.value?.dpiValue ?: DEFAULT_DENSITY
     fontScale = if (fontScaleFromConfig != 0.0f) fontScaleFromConfig else DEFAULT_FONT_SCALE
     resolver = createResolver(folderConfig, appContext, stringTable, process)
+    screenDimension = Dimension(appContext.screenWidth, appContext.screenHeight)
+  }
+
+  /**
+   * Update the configuration after a legacy reload.
+   */
+  fun updateLegacyConfiguration(deviceDpi: Int) {
+    dpi = deviceDpi
+    fontScale = DEFAULT_FONT_SCALE
+    resolver = null
+    screenDimension = Dimension()
   }
 
   @Slow

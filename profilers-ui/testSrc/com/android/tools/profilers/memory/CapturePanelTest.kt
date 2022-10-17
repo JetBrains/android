@@ -34,7 +34,6 @@ import com.android.tools.profilers.memory.adapters.FakeCaptureObject
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
@@ -54,8 +53,7 @@ class CapturePanelTest {
   @JvmField
   val grpcChannel = FakeGrpcChannel("MemoryProfilerStageViewTestChannel", transportService, service,
                                     FakeProfilerService(myTimer),
-                                    FakeCpuService(), FakeEventService(),
-                                    FakeNetworkService.Builder().build())
+                                    FakeCpuService(), FakeEventService())
 
   @get:Rule
   val applicationRule = ApplicationRule()

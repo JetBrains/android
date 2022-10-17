@@ -41,7 +41,7 @@ import java.io.IOException
 class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: IDevice) {
   private val logger = thisLogger()
 
-  private val shellCommandsUtil = AdbShellCommandsUtil(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get())
+  private val shellCommandsUtil = AdbShellCommandsUtil.create(device, StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get())
 
   suspend fun supportsTestCommand() = supportsTestCommand.await()
   private val supportsTestCommand = coroutineScope.async(start = CoroutineStart.LAZY) {
@@ -52,7 +52,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
 
       // Try the "test" command on it (it should succeed if the command is supported)
       val command = AdbShellCommandBuilder().withText("test -e ").withEscapedPath(tempFile.remotePath).build()
-      val commandResult = shellCommandsUtil.executeCommand(device, command)
+      val commandResult = shellCommandsUtil.executeCommand(command)
       try {
         commandResult.throwIfError()
         true
@@ -75,7 +75,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
 
       // Try to delete it with "rm -f" (it should work if th command is supported)
       val command = AdbShellCommandBuilder().withText("rm -f ").withEscapedPath(tempFile.remotePath).build()
-      val commandResult = shellCommandsUtil.executeCommand(device, command)
+      val commandResult = shellCommandsUtil.executeCommand(command)
       try {
         commandResult.throwIfError()
         // If no error, "rm -f" is supported and test file has been deleted, so no need to delete it again.
@@ -97,7 +97,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
 
       // Try to create the file with the "touch" command
       val command = AdbShellCommandBuilder().withText("touch ").withEscapedPath(tempFile.remotePath).build()
-      val commandResult = shellCommandsUtil.executeCommand(device, command)
+      val commandResult = shellCommandsUtil.executeCommand(command)
       try {
         commandResult.throwIfError()
 
@@ -119,7 +119,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
     assertNotDispatchThread()
     // Try a "su" command ("id") that should always succeed, unless "su" is not supported
     val command = AdbShellCommandBuilder().withSuRootPrefix().withText("id").build()
-    val commandResult = shellCommandsUtil.executeCommand(device, command)
+    val commandResult = shellCommandsUtil.executeCommand(command)
     try {
       commandResult.throwIfError()
       true
@@ -157,7 +157,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
           .withText(" ")
           .withEscapedPath(dstFile.remotePath)
           .build()
-        val commandResult = shellCommandsUtil.executeCommand(device, command)
+        val commandResult = shellCommandsUtil.executeCommand(command)
         try {
           commandResult.throwIfError()
 
@@ -199,7 +199,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
 
   private suspend fun touchEscapedPath() {
     val command = AdbShellCommandBuilder().withText("touch $ESCAPING_LS_ESCAPED_PATH").build()
-    val result = shellCommandsUtil.executeCommand(device, command)
+    val result = shellCommandsUtil.executeCommand(command)
     result.throwIfError()
     if (!result.isEmpty()) {
       throw AdbShellCommandException("Unexpected output from touch")
@@ -208,7 +208,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
 
   private suspend fun lsEscapedPath(): Boolean {
     val command = AdbShellCommandBuilder().withText("ls $ESCAPING_LS_ESCAPED_PATH").build()
-    val result = shellCommandsUtil.executeCommand(device, command)
+    val result = shellCommandsUtil.executeCommand(command)
     result.throwIfError()
     return when (result.output[0]) {
       ESCAPING_LS_ESCAPED_PATH -> true
@@ -222,7 +222,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
     assertNotDispatchThread()
     // Copy source file to destination file
     val command = AdbShellCommandBuilder().withText("mktemp -p ").withEscapedPath(AdbPathUtil.DEVICE_TEMP_DIRECTORY).build()
-    val commandResult = shellCommandsUtil.executeCommand(device, command)
+    val commandResult = shellCommandsUtil.executeCommand(command)
     try {
       commandResult.throwIfError()
       if (commandResult.isEmpty()) {
@@ -288,7 +288,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val device: 
       }
       try {
         val command = AdbShellCommandBuilder().withText("rm ").withEscapedPath(remotePath).build()
-        val commandResult = shellCommandsUtil.executeCommand(device, command)
+        val commandResult = shellCommandsUtil.executeCommand(command)
         try {
           commandResult.throwIfError()
         }

@@ -18,23 +18,126 @@ package com.android.tools.idea.layoutinspector.metrics.statistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.openapi.actionSystem.AnActionEvent
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Accumulators for various actions of interest.
  */
-class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
-  val live = LiveModeStatistics()
-  val rotation = RotationStatistics()
+interface SessionStatistics {
+  /**
+   * Reset all state accumulators.
+   */
+  fun start()
+
+  /**
+   * Save all state accumulators.
+   */
+  fun save(data: DynamicLayoutInspectorSession.Builder)
+
+  /**
+   * A selection was made from the Layout Inspector Image.
+   */
+  fun selectionMadeFromImage(view: ViewNode?)
+
+  /**
+   * A selection was made from the Layout Inspector Component Tree.
+   */
+  fun selectionMadeFromComponentTree(view: ViewNode?)
+
+  /**
+   * The refresh button was activated.
+   */
+  fun refreshButtonClicked()
+
+  /**
+   * Navigate to source from a property value.
+   */
+  fun gotoSourceFromPropertyValue(view: ViewNode?)
+
+  /**
+   * Navigate to source from the component tree via a menu action.
+   */
+  fun gotoSourceFromTreeActionMenu(event: AnActionEvent)
+
+  /**
+   * Navigate to source from the component tree via a double click.
+   */
+  fun gotoSourceFromDoubleClick()
+
+  /**
+   * The recomposition numbers changed.
+   */
+  fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float)
+
+  /**
+   * The recomposition numbers were reset.
+   */
+  fun resetRecompositionCountsClick()
+
+  /**
+   * The connection succeeded in attaching to the process.
+   */
+  fun attachSuccess()
+
+  /**
+   * The connection failed to attach to the process.
+   */
+  fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode)
+
+  /**
+   * A frame was received.
+   */
+  fun frameReceived()
+
+  /**
+   * Live mode changed.
+   */
+  var currentModeIsLive: Boolean
+
+  /**
+   * 3D mode changed.
+   */
+  var currentMode3D: Boolean
+
+  /**
+   * Whether the system nodes are currently being hidden.
+   */
+  var hideSystemNodes: Boolean
+
+  /**
+   * Whether recomposition counts are currently being shown.
+   */
+  var showRecompositions: Boolean
+
+  /**
+   * The current recomposition highlight color selected.
+   */
+  var recompositionHighlightColor: Int
+
+  /**
+   * Number of memory measurements
+   */
+  @get:TestOnly
+  val memoryMeasurements: Int
+}
+
+class SessionStatisticsImpl(clientType: ClientType, model: InspectorModel) : SessionStatistics {
+  private val attach = AttachStatistics(clientType)
+  private val live = LiveModeStatistics()
+  private val rotation = RotationStatistics()
   private val memory = MemoryStatistics(model)
   private val compose = ComposeStatistics()
-  private val system = SystemViewToggleStatistics(treeSettings)
+  private val system = SystemViewToggleStatistics()
   private val goto = GotoDeclarationStatistics()
 
-  fun start(isCapturing: Boolean) {
-    live.start(isCapturing)
+  override fun start() {
+    attach.start()
+    live.start()
     rotation.start()
     memory.start()
     compose.start()
@@ -42,46 +145,87 @@ class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
     goto.start()
   }
 
-  fun save(data: DynamicLayoutInspectorSession.Builder) {
-    live.save(data.liveBuilder)
-    rotation.save(data.rotationBuilder)
-    memory.save(data.memoryBuilder)
-    compose.save(data.composeBuilder)
-    system.save(data.systemBuilder)
-    goto.save(data.gotoDeclarationBuilder)
+  override fun save(data: DynamicLayoutInspectorSession.Builder) {
+    attach.save { data.attachBuilder }
+    live.save { data.liveBuilder }
+    rotation.save { data.rotationBuilder }
+    memory.save { data.memoryBuilder }
+    compose.save { data.composeBuilder }
+    system.save { data.systemBuilder }
+    goto.save { data.gotoDeclarationBuilder }
   }
 
-  fun selectionMadeFromImage(view: ViewNode?) {
+  override fun selectionMadeFromImage(view: ViewNode?) {
     live.selectionMade()
     rotation.selectionMadeFromImage()
     compose.selectionMadeFromImage(view)
     system.selectionMade()
   }
 
-  fun selectionMadeFromComponentTree(view: ViewNode?) {
+  override fun selectionMadeFromComponentTree(view: ViewNode?) {
     live.selectionMade()
     rotation.selectionMadeFromComponentTree()
     compose.selectionMadeFromComponentTree(view)
     system.selectionMade()
   }
 
-  fun gotoSourceFromPropertyValue(view: ViewNode?) {
+  override fun refreshButtonClicked() {
+    live.refreshButtonClicked()
+  }
+
+  override fun gotoSourceFromPropertyValue(view: ViewNode?) {
     compose.gotoSourceFromPropertyValue(view)
   }
 
-  fun gotoSourceFromTreeActionMenu(event: AnActionEvent) {
+  override fun gotoSourceFromTreeActionMenu(event: AnActionEvent) {
     goto.gotoSourceFromTreeActionMenu(event)
   }
 
-  fun gotoSourceFromDoubleClick() {
+  override fun gotoSourceFromDoubleClick() {
     goto.gotoSourceFromDoubleClick()
   }
 
-  fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {
+  override fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {
     compose.updateRecompositionStats(recompositions, maxHighlight)
   }
 
-  fun resetRecompositionCountsClick() {
+  override fun resetRecompositionCountsClick() {
     compose.resetRecompositionCountsClick()
   }
+
+  override fun attachSuccess() {
+    attach.attachSuccess()
+  }
+
+  override fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode) {
+    attach.attachError(errorState, errorCode)
+  }
+
+  override fun frameReceived() {
+    compose.frameReceived()
+  }
+
+  override var currentModeIsLive : Boolean
+    get() = live.currentModeIsLive
+    set(value) { live.currentModeIsLive = value }
+
+  override var currentMode3D: Boolean
+    get() = rotation.currentMode3D
+    set(value) { rotation.currentMode3D = value }
+
+  override var hideSystemNodes: Boolean
+    get() = system.hideSystemNodes
+    set(value) { system.hideSystemNodes = value }
+
+  override var showRecompositions: Boolean
+    get() = compose.showRecompositions
+    set(value) { compose.showRecompositions = value }
+
+  override var recompositionHighlightColor: Int
+    get() = compose.recompositionHighlightColor
+    set(value) { compose.recompositionHighlightColor = value }
+
+  @get:TestOnly
+  override val memoryMeasurements: Int
+    get() = memory.measurements
 }

@@ -35,6 +35,29 @@ public class ConvertToWebpActionTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
+  /**
+   * Verifies the conversion of images from WebP to PNG.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: f1cbf728-3640-407b-a686-57c43e413e95
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import 'ImportLocalWebpProject' project
+   *   2. Go to app/src/main/res/mipmap-xhdpi folder (Verify 1, Verify 2)
+   *   3. Right click on ic_test.png and select "Convert to WebP..."
+   *   4. Select Lossless encoding
+   *   5. Select 'OK' (Verify 2)
+   *   6. Go to drawable folder (Verify 3)
+   *   Verify:
+   *   1. Webp file is not present
+   *   2. Png file is present
+   *   3. Webp file is present and not null
+   *   </pre>
+   * <p>
+   */
+
   @Test
   public void testConvertLossless() throws IOException {
     Project project = guiTest.importProjectAndWaitForProjectSyncToFinish("ImportLocalWebpProject")
@@ -50,21 +73,46 @@ public class ConvertToWebpActionTest {
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png")
-      .invokeMenuPath("Convert to WebP...");
+      .invokeContextualMenuPath("Convert to WebP...");
 
     WebpConversionDialogFixture.findDialog(guiTest.robot())
       .selectLossless()
       .clickOk();
 
+    guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
     // Check that the webp icon now exists
-    webpIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.webp");
-    assertThat(webpIcon).isNotNull();
-    assertThat(pngIcon.exists()).isFalse();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "/app/src/main/res/mipmap-xhdpi/ic_test.webp"
+    );
+
     // ..and that the .png icon doesn't
     pngIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.png");
     assertThat(pngIcon).isNull();
   }
 
+  /**
+   * Verifies the conversion of images from WebP to PNG.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: f1cbf728-3640-407b-a686-57c43e413e95
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import 'ImportLocalWebpProject' project
+   *   2. Go to app/src/main/res/mipmap-xhdpi folder (Verify 1, Verify 2)
+   *   3. Right click on ic_test.png and select "Convert to WebP..."
+   *   4. Select Lossy encoding
+   *   5. Select 'OK' (Verify 2)
+   *   6. Go to drawable folder (Verify 3)
+   *   Verify:
+   *   1. Webp file is not present
+   *   2. Png file is present
+   *   3. Webp file is present and not null
+   *   </pre>
+   * <p>
+   */
   @Test
   public void testConvertLossyWithPreviews() throws IOException {
     Project project = guiTest.importProjectAndWaitForProjectSyncToFinish("ImportLocalWebpProject")
@@ -74,7 +122,7 @@ public class ConvertToWebpActionTest {
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png")
-      .invokeMenuPath("Convert to WebP...");
+      .invokeContextualMenuPath("Convert to WebP...");
 
     // Settings dialog
     WebpConversionDialogFixture.findDialog(guiTest.robot())
@@ -83,6 +131,9 @@ public class ConvertToWebpActionTest {
 
     WebpPreviewDialogFixture.findDialog(guiTest.robot())
       .clickFinish();
+
+    guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
 
     VirtualFile webpIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.webp");
     assertThat(webpIcon).isNotNull();

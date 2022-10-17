@@ -21,6 +21,6 @@ configurations {
 }
 
 dependencies {
-    implementation project(':network-kmm')
+    implementation project(':common')
     implementation project(':jarWrapperLib')
 }

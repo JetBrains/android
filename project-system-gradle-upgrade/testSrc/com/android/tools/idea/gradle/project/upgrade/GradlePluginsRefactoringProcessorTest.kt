@@ -125,6 +125,24 @@ class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testKotlinPluginVersionInLiteral73() {
+    writeToBuildFile(TestFileName("GradlePlugins/KotlinPluginVersionInLiteral"))
+    val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("7.3.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/KotlinPluginVersionInLiteral73Expected"))
+  }
+
+  @Test
+  fun testKotlinPluginVersionInDsl73() {
+    writeToBuildFile(TestFileName("GradlePlugins/KotlinPluginVersionInDsl"))
+    val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("7.3.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/KotlinPluginVersionInDsl73Expected"))
+  }
+
+  @Test
   fun testSafeArgsVersionInLiteral() {
     writeToBuildFile(TestFileName("GradlePlugins/SafeArgsVersionInLiteral"))
     val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("7.1.0"))

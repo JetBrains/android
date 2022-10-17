@@ -20,17 +20,20 @@ import com.intellij.openapi.project.Project;
 public class RunStatsService {
 
   private RunStats myLastRunStats;
+  private Project myProject;
 
   public synchronized RunStats create() {
     if (myLastRunStats != null) {
       // If this event was logged, then this is a no-op
       myLastRunStats.abort();
     }
-    myLastRunStats = new RunStats(null);
+    myLastRunStats = new RunStats(myProject);
     return myLastRunStats;
   }
 
   public static RunStatsService get(Project project) {
-    return project.getService(RunStatsService.class);
+    RunStatsService result = project.getService(RunStatsService.class);
+    result.myProject = project;
+    return result;
   }
 }

@@ -25,6 +25,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth
+import kotlinx.collections.immutable.toImmutableMap
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.junit.Rule
 import org.junit.Test
@@ -166,13 +167,15 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
 
   private fun test(testCaseData: TestCase) {
     val analyzer = ConfigurationCachingCompatibilityAnalyzer()
-    val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
+    val analysisResult = Mockito.mock(BuildEventsAnalyzersProxy::class.java)
+    val pluginAnalyzer = Mockito.mock(ProjectConfigurationAnalyzer::class.java)
     val studioProvidedInfo = studioProvidedInfo(
       agpVersion = testCaseData.agpVersion,
       configurationCachingGradlePropertyState = null,
       buildInvocationType = BuildInvocationType.REGULAR_BUILD
     )
-    whenever(analysisResult.getAppliedPlugins()).thenReturn(mapOf(":" to testCaseData.pluginsApplied))
+    whenever(analysisResult.projectConfigurationAnalyzer).thenReturn(pluginAnalyzer)
+    whenever(pluginAnalyzer.result).thenReturn(ProjectConfigurationAnalyzer.Result(emptyMap(), emptyList(), mapOf(":" to testCaseData.pluginsApplied)))
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = testCaseData.buildscriptDependenciesInfo,
       buildInfo = AndroidGradlePluginAttributionData.BuildInfo(testCaseData.agpVersion.toString(), false)
@@ -192,12 +195,14 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
       configurationCachingGradlePropertyState = null,
       buildInvocationType = BuildInvocationType.REGULAR_BUILD
     )
-    val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
-
-    whenever(analysisResult.getAppliedPlugins()).thenReturn(mapOf(
+    val analysisResult = Mockito.mock(BuildEventsAnalyzersProxy::class.java)
+    val pluginAnalyzer = Mockito.mock(ProjectConfigurationAnalyzer::class.java)
+    whenever(analysisResult.projectConfigurationAnalyzer).thenReturn(pluginAnalyzer)
+    whenever(pluginAnalyzer.result).thenReturn(ProjectConfigurationAnalyzer.Result(emptyMap(), emptyList(), mapOf(
       ":app" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":app")),
-      ":lib" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":lib")),
-    ))
+      ":lib" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":lib"))
+    )))
+
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.1.0"),
       buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, false)
@@ -224,11 +229,12 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
       configurationCachingGradlePropertyState = "true",
       buildInvocationType = BuildInvocationType.REGULAR_BUILD
     )
-    val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
+    val analysisResult = Mockito.mock(BuildEventsAnalyzersProxy::class.java)
+    val pluginAnalyzer = Mockito.mock(ProjectConfigurationAnalyzer::class.java)
+    whenever(analysisResult.projectConfigurationAnalyzer).thenReturn(pluginAnalyzer)
+    whenever(pluginAnalyzer.result).thenReturn(ProjectConfigurationAnalyzer.Result(emptyMap(), emptyList(), mapOf(
+      ":app" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":app")))))
 
-    whenever(analysisResult.getAppliedPlugins()).thenReturn(mapOf(
-      ":app" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":app")),
-    ))
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.2.0"),
       buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, true)
@@ -248,11 +254,12 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
       configurationCachingGradlePropertyState = "false",
       buildInvocationType = BuildInvocationType.REGULAR_BUILD
     )
-    val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
+    val analysisResult = Mockito.mock(BuildEventsAnalyzersProxy::class.java)
+    val pluginAnalyzer = Mockito.mock(ProjectConfigurationAnalyzer::class.java)
+    whenever(analysisResult.projectConfigurationAnalyzer).thenReturn(pluginAnalyzer)
+    whenever(pluginAnalyzer.result).thenReturn(ProjectConfigurationAnalyzer.Result(emptyMap(), emptyList(), mapOf(
+      ":app" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":app")))))
 
-    whenever(analysisResult.getAppliedPlugins()).thenReturn(mapOf(
-      ":app" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":app")),
-    ))
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.2.0"),
       buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, false)
@@ -272,11 +279,12 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
       configurationCachingGradlePropertyState = null,
       buildInvocationType = BuildInvocationType.CONFIGURATION_CACHE_TRIAL
     )
-    val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
+    val analysisResult = Mockito.mock(BuildEventsAnalyzersProxy::class.java)
+    val pluginAnalyzer = Mockito.mock(ProjectConfigurationAnalyzer::class.java)
+    whenever(analysisResult.projectConfigurationAnalyzer).thenReturn(pluginAnalyzer)
+    whenever(pluginAnalyzer.result).thenReturn(ProjectConfigurationAnalyzer.Result(emptyMap(), emptyList(), mapOf(
+      ":app" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":app")))))
 
-    whenever(analysisResult.getAppliedPlugins()).thenReturn(mapOf(
-      ":app" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":app")),
-    ))
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.2.0"),
       buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, true)

@@ -19,8 +19,8 @@ import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.primaryPanelBackground
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
@@ -31,7 +31,6 @@ import com.android.tools.idea.layoutinspector.model.getEmphasizedBorderOutlineTh
 import com.android.tools.idea.layoutinspector.model.getFoldStroke
 import com.android.tools.idea.layoutinspector.model.getLabelFontSize
 import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
-import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.intellij.icons.AllIcons
@@ -84,12 +83,11 @@ private val HQ_RENDERING_HINTS = mapOf(
 )
 
 // We use a generic DropDownAction container because actions can be [SelectDeviceAction] or [SelectProcessAction].
-data class DropDownActionWithButton(val dropDownAction: DropDownAction, val button: JComponent?)
+data class DropDownActionWithButton(val dropDownAction: DropDownAction, val getButton: () -> JComponent?)
 
 class DeviceViewContentPanel(
   val inspectorModel: InspectorModel,
   val deviceModel: DeviceModel?,
-  val stats: SessionStatistics,
   val treeSettings: TreeSettings,
   val viewSettings: DeviceViewSettings,
   val currentClient: () -> InspectorClient?,
@@ -101,7 +99,7 @@ class DeviceViewContentPanel(
   var showEmptyText = true
   var showProcessNotDebuggableText = false
 
-  val model = DeviceViewPanelModel(inspectorModel, stats, treeSettings, currentClient)
+  val model = DeviceViewPanelModel(inspectorModel, treeSettings, currentClient)
 
   val rootLocation: Point?
     get() {
@@ -122,18 +120,21 @@ class DeviceViewContentPanel(
     processNotDebuggableText.appendLine("Application not inspectable.")
     processNotDebuggableText.appendLine("Switch to a debuggable application on your device to inspect.")
 
-    selectTargetAction?.let { selectDeviceAction ->
+    selectTargetAction?.let { selectTargetAction ->
       emptyText.appendLine("No process connected")
 
       emptyText.appendLine("Deploy your app or ")
       @Suppress("DialogTitleCapitalization")
       emptyText.appendText("select a process", SimpleTextAttributes.LINK_ATTRIBUTES) {
-        val button = selectDeviceAction.button
+        val button = selectTargetAction.getButton()
         val dataContext = DataManager.getInstance().getDataContext(button)
-        selectDeviceAction.dropDownAction.templatePresentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, button)
-        val event = AnActionEvent.createFromDataContext(ActionPlaces.TOOLWINDOW_CONTENT, selectDeviceAction.dropDownAction.templatePresentation,
-                                                        dataContext)
-        selectDeviceAction.dropDownAction.actionPerformed(event)
+        selectTargetAction.dropDownAction.templatePresentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, button)
+        val event = AnActionEvent.createFromDataContext(
+          ActionPlaces.TOOLWINDOW_CONTENT,
+          selectTargetAction.dropDownAction.templatePresentation,
+          dataContext
+        )
+        selectTargetAction.dropDownAction.actionPerformed(event)
       }
       @Suppress("DialogTitleCapitalization")
       emptyText.appendText(" to begin inspection.")
@@ -197,7 +198,7 @@ class DeviceViewContentPanel(
         if (e.isConsumed) return
         val view = nodeAtPoint(e)
         inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
-        stats.selectionMadeFromImage(view)
+        currentClient()?.stats?.selectionMadeFromImage(view)
       }
 
       override fun mouseMoved(e: MouseEvent) {

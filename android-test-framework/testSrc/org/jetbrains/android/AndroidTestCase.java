@@ -2,6 +2,7 @@
 
 package org.jetbrains.android;
 
+import static com.android.tools.idea.testing.ThreadingAgentTestUtilKt.maybeCheckThreadingAgentIsRunning;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.SdkConstants;
@@ -12,6 +13,8 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
+import com.android.tools.idea.testing.ThreadingCheckerHookTestImpl;
+import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerTrampoline;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 import com.intellij.application.options.CodeStyle;
@@ -93,6 +96,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   private ComponentStack myApplicationComponentStack;
   private ComponentStack myProjectComponentStack;
   private IdeComponents myIdeComponents;
+  private ThreadingCheckerHookTestImpl threadingCheckerHook;
 
   @Override
   protected void setUp() throws Exception {
@@ -107,6 +111,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture(), tempDirFixture);
     AndroidModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(AndroidModuleFixtureBuilder.class);
     initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, myFixture.getTempDirPath());
+    setUpThreadingChecks();
 
     ArrayList<MyAdditionalModuleData> modules = new ArrayList<>();
     configureAdditionalModules(projectBuilder, modules);
@@ -203,6 +208,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     try {
       // Finish dispatching any remaining events before shutting down everything
       UIUtil.dispatchAllInvocationEvents();
+      tearDownThreadingChecks();
 
       myApplicationComponentStack.restore();
       myApplicationComponentStack = null;
@@ -302,6 +308,29 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     // to what real AS actually uses.
     // TODO(b/110679859): figure out how to stop JavaPlatformModuleSystem from thinking the light classes are not accessible.
     return LanguageLevel.JDK_1_8;
+  }
+
+  private void setUpThreadingChecks() {
+    if (!shouldPerfomThreadingChecks()) {
+      return;
+    }
+    maybeCheckThreadingAgentIsRunning();
+    threadingCheckerHook = new ThreadingCheckerHookTestImpl();
+    ThreadingCheckerTrampoline.installHook(threadingCheckerHook);
+  }
+
+  private void tearDownThreadingChecks() {
+    if (threadingCheckerHook == null) {
+      return;
+    }
+    ThreadingCheckerTrampoline.removeHook(threadingCheckerHook);
+    if (threadingCheckerHook.getHasThreadingViolation()) {
+      addSuppressedException(new RuntimeException(threadingCheckerHook.getErrorMessage()));
+    }
+  }
+
+  protected boolean shouldPerfomThreadingChecks() {
+    return false;
   }
 
   protected static AndroidXmlCodeStyleSettings getAndroidCodeStyleSettings() {

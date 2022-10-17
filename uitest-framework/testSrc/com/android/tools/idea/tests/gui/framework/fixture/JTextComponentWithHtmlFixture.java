@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import java.awt.Point;
-import java.awt.Rectangle;
+import org.fest.swing.core.MouseButton;
+import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiTask;
+import org.fest.swing.fixture.JTextComponentFixture;
+import org.jetbrains.annotations.NotNull;
+
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLDocument;
-import org.fest.swing.core.MouseButton;
-import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JTextComponentFixture;
-import org.jetbrains.annotations.NotNull;
+import java.awt.*;
 
 public class JTextComponentWithHtmlFixture extends JTextComponentFixture {
   @NotNull
@@ -55,7 +56,14 @@ public class JTextComponentWithHtmlFixture extends JTextComponentFixture {
     }
     Rectangle bounds = target().modelToView(position);
     Point pos = new Point(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+    scrollRectToVisible(bounds);
     robot().waitForIdle();
     robot().click(target(), pos, MouseButton.LEFT_BUTTON, 1);
+  }
+
+  private void scrollRectToVisible(Rectangle bounds) {
+    GuiTask.execute(() -> {
+      target().scrollRectToVisible(bounds);
+    });
   }
 }

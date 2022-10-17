@@ -15,9 +15,18 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.SdkConstants
+import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.NlModelBuilderUtil
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
+import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.testFramework.runInEdtAndWait
 import junit.framework.Assert.assertEquals
+import junit.framework.Assert.assertFalse
+import junit.framework.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -33,22 +42,23 @@ class DesignerCommonIssueProviderTest {
   @Test
   fun testReceiveMessageFromTopic() {
     val project = projectRule.project
-    val provider = DesignToolsIssueProvider(project)
+    val provider = DesignToolsIssueProvider(project, EmptyFilter)
 
     val listener = mock(Runnable::class.java)
     provider.registerUpdateListener(listener)
 
-    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(Any(), emptyList())
+    val source = Any()
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, emptyList())
     verify(listener).run()
 
-    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(Any(), emptyList())
+    project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, emptyList())
     verify(listener, times(2)).run()
   }
 
   @Test
   fun testUpdateIssuesFromSameSource() {
     val project = projectRule.project
-    val provider = DesignToolsIssueProvider(project)
+    val provider = DesignToolsIssueProvider(project, EmptyFilter)
 
     assertEmpty(provider.getFilteredIssues())
 
@@ -78,10 +88,9 @@ class DesignerCommonIssueProviderTest {
   @Test
   fun testUpdateIssuesFromMultipleSource() {
     val project = projectRule.project
-    val provider = DesignToolsIssueProvider(project)
+    val provider = DesignToolsIssueProvider(project, EmptyFilter)
 
     assertEmpty(provider.getFilteredIssues())
-
 
     val source1 = Any()
     val source2 = Any()
@@ -108,5 +117,81 @@ class DesignerCommonIssueProviderTest {
 
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source2, emptyList())
     assertEquals(emptyList<Issue>(), provider.getFilteredIssues())
+  }
+
+  @Test
+  fun testNotSuppressFilter() {
+    val model1 = runInEdtAndGet {
+      NlModelBuilderUtil.model(
+        projectRule,
+        "layout",
+        "layout1.xml",
+        ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
+          .withBounds(0, 0, 1000, 1000)
+          .matchParentWidth()
+          .matchParentHeight()
+      ).build()
+    }
+
+    val model2 = runInEdtAndGet {
+      NlModelBuilderUtil.model(
+        projectRule,
+        "layout",
+        "layout2.xml",
+        ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
+          .withBounds(0, 0, 1000, 1000)
+          .matchParentWidth()
+          .matchParentHeight()
+          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE, VisualLintErrorType.BOUNDS.ignoredAttributeValue)
+      ).build()
+    }
+
+    val filter = NotSuppressedFilter
+
+    val visualLintIssue1 = createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model1.components, "")
+    val visualLintIssue2 = createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model2.components, "")
+
+    assertTrue(filter.invoke(visualLintIssue1))
+    assertFalse(filter.invoke(visualLintIssue2))
+  }
+
+  @RunsInEdt
+  @Test
+  fun testSelectedEditorFilter() {
+    val model1 = runInEdtAndGet {
+      NlModelBuilderUtil.model(
+        projectRule,
+        "layout",
+        "layout1.xml",
+        ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
+          .withBounds(0, 0, 1000, 1000)
+          .matchParentWidth()
+          .matchParentHeight()
+      ).build()
+    }
+
+    val model2 = runInEdtAndGet {
+      NlModelBuilderUtil.model(
+        projectRule,
+        "layout",
+        "layout2.xml",
+        ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
+          .withBounds(0, 0, 1000, 1000)
+          .matchParentWidth()
+          .matchParentHeight()
+      ).build()
+    }
+
+    val filter = SelectedEditorFilter(projectRule.project)
+    val visualLintIssue1 = createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model1.components, "")
+    val visualLintIssue2 = createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model2.components, "")
+
+    runInEdtAndWait { projectRule.fixture.openFileInEditor(model1.virtualFile) }
+    assertTrue(filter.invoke(visualLintIssue1))
+    assertFalse(filter.invoke(visualLintIssue2))
+
+    runInEdtAndWait { projectRule.fixture.openFileInEditor(model2.virtualFile) }
+    assertFalse(filter.invoke(visualLintIssue1))
+    assertTrue(filter.invoke(visualLintIssue2))
   }
 }

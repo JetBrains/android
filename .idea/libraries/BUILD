@@ -278,6 +278,21 @@ jvm_import(
 # managed by go/iml_to_build
 jvm_import(
     name = "firebase_java_proto",
-    jars = ["//tools/vendor/google/firebase/src/proto:firebase_java_proto.jar"],
+    jars = [],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "utp-core-proto-jarjar",
+    # do not sort: must match IML order
+    jars = ["//tools/base/bazel:utp-core-proto-jarjar.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "directaccess_client_proto",
+    jars = [],
     visibility = ["//visibility:public"],
 )

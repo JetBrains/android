@@ -15,35 +15,30 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
-import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.navigator.AndroidProjectViewSnapshotComparisonTestDef
 import com.android.tools.idea.navigator.SourceProvidersTestDef
 import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1
-import com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.ModelVersion
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
 import com.intellij.openapi.util.IconLoader
+import com.intellij.psi.search.FilenameIndex
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.CoreIconManager
 import com.intellij.ui.IconManager
-import com.intellij.util.PathUtil
-import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesLibraryRootProvider
 import org.junit.Assume
-import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -64,12 +59,14 @@ import kotlin.reflect.full.hasAnnotation
 abstract class SyncedProjectTest(
   val selfTest: Boolean = false,
   val agpVersion: AgpVersionSoftwareEnvironmentDescriptor
-) : GradleIntegrationTest {
+) {
 
   interface TestDef : AgpIntegrationTestDefinition {
     val testProject: TestProject
     override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): TestDef
+    fun setup(root: File) = Unit
     fun runTest(root: File, project: Project)
+    fun verifyAfterClosing(root: File) = Unit
   }
 
   companion object {
@@ -77,20 +74,20 @@ abstract class SyncedProjectTest(
       IdeModelSnapshotComparisonTestDefinition.tests() +
         SourceProvidersTestDef.tests +
         ProjectStructureSnapshotTestDef.tests +
-        AndroidProjectViewSnapshotComparisonTestDef.tests
+        AndroidProjectViewSnapshotComparisonTestDef.tests +
+        GradleSyncLoggedEventsTestDef.tests +
+        selfChecks()
       ).groupBy { it.testProject }
   }
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
-  override fun getAdditionalRepos(): Collection<File> =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
-
   @Test
   fun testSimpleApplication() = testProject(TestProject.SIMPLE_APPLICATION)
+
+  @Test
+  fun testSimpleApplication_noParallelSync() = testProject(TestProject.SIMPLE_APPLICATION_NO_PARALLEL_SYNC)
 
   @Test
   fun testSimpleApplication_viaSymLink() = testProject(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK)
@@ -114,6 +111,15 @@ abstract class SyncedProjectTest(
   fun testSimpleApplicationWithAdditionalGradleSourceSets() = testProject(TestProject.SIMPLE_APPLICATION_WITH_ADDITIONAL_GRADLE_SOURCE_SETS)
 
   @Test
+  fun testSimpleApplicationNotAtRoot() = testProject(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT)
+
+  @Test
+  fun testSimpleApplicationMultipleRoots() = testProject(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS)
+
+  @Test
+  fun testSimpleApplication_withUnnamedDimension() = testProject(TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION)
+
+  @Test
   fun testWithGradleMetadata() = testProject(TestProject.WITH_GRADLE_METADATA)
 
   @Test
@@ -130,6 +136,9 @@ abstract class SyncedProjectTest(
 
   @Test
   fun testNonStandardSourceSetDependencies() = testProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES)
+
+  @Test
+  fun testNonStandardSourceSetDependencies_manualTestFixturesWorkaround() = testProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND)
 
   @Test
   fun testNonStandardSourceSetDependencies_hierarchical() = testProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_HIERARCHICAL)
@@ -154,6 +163,9 @@ abstract class SyncedProjectTest(
 
   @Test
   fun testKotlinMultiplatform_hierarchical() = testProject(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL)
+
+  @Test
+  fun testKotlinMultiplatform_hierarchical_withJs() = testProject(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL_WITHJS)
 
   @Test
   fun testKotlinMultiplatform_jvm() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM)
@@ -235,6 +247,9 @@ abstract class SyncedProjectTest(
   @Test
   fun testBuildSrcWithComposite() = testProject(TestProject.BUILDSRC_WITH_COMPOSITE)
 
+  @Test
+  fun testPrivacySandboxSdkProject() = testProject(TestProject.PRIVACY_SANDBOX_SDK)
+
   private fun testProject(testProject: TestProject) {
     if (selfTest) throw ReportUsedProjectException(testProject)
 
@@ -249,29 +264,48 @@ abstract class SyncedProjectTest(
     if (!testProject.isCompatibleWith(agpVersion)) skipTest("Project ${testProject.name} is incompatible with $agpVersion")
     val tests = testDefinitions.entries.singleOrNull()?.value.orEmpty()
 
-    val root = prepareGradleProject(
-      testProject.template,
-      "project",
-      agpVersion,
-      ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
-    )
-    testProject.patch(agpVersion, root)
     CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
     if (agpVersion.modelVersion == ModelVersion.V1) {
       StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
     }
     try {
-      openPreparedProject("project${testProject.pathToOpen}") { project ->
-        waitForSourceFolderManagerToProcessUpdates(project)
-        val exceptions = tests.mapNotNull {
-          println("${it::class.java.simpleName}(${testProject.projectName})\n    $root")
-          kotlin.runCatching { it.runTest(root, project) }.exceptionOrNull()
+      val preparedProject = projectRule.prepareTestProject(
+        testProject,
+        agpVersion = agpVersion
+      )
+
+      fun setup(): List<Throwable> {
+        return tests.mapNotNull {
+          kotlin.runCatching { it.setup(preparedProject.root) }.exceptionOrNull()
         }
-        when {
-          exceptions.isEmpty() -> Unit
-          exceptions.size == 1 -> throw exceptions.single()
-          else -> throw MultipleFailureException(exceptions)
+      }
+
+      fun run(): List<Throwable> {
+        return preparedProject.open(
+          options = OpenPreparedProjectOptions(
+            expectedSyncIssues = testProject.expectedSyncIssues,
+            disableKtsRelatedIndexing = true
+          )
+        ) { project ->
+          tests.mapNotNull {
+            println("${it::class.java.simpleName}(${testProject.projectName})\n    $preparedProject.root")
+            kotlin.runCatching { it.runTest(preparedProject.root, project) }.exceptionOrNull()
+          }
         }
+      }
+
+      fun verify(): List<Throwable> {
+        return tests.mapNotNull {
+          kotlin.runCatching { it.verifyAfterClosing(preparedProject.root) }.exceptionOrNull()
+        }
+      }
+
+      val exceptions = setup() + run() + verify()
+
+      when {
+        exceptions.isEmpty() -> Unit
+        exceptions.size == 1 -> throw exceptions.single()
+        else -> throw MultipleFailureException(exceptions)
       }
     } finally {
       StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
@@ -280,17 +314,6 @@ abstract class SyncedProjectTest(
 
   private fun transformTest(testProject: TestDef): TestDef {
     return testProject.withAgpVersion(agpVersion)
-  }
-
-  @Before
-  fun before() {
-    // NOTE: We do not re-register the extensions since (1) we do not know whether we removed it and (2) there is no simple way to
-    //       re-register it by its class name. It means that this test might affect tests running after this one.
-
-    // [KotlinScriptDependenciesLibraryRootProvider] contributes a lot of classes/sources to index in order to provide Ctrl+Space
-    // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
-    // run faster.
-    AdditionalLibraryRootsProvider.EP_NAME.point.unregisterExtension(KotlinScriptDependenciesLibraryRootProvider::class.java)
   }
 
   init {
@@ -337,4 +360,36 @@ class SelfCheck {
     val notTestedProjects = TestProject.values().filter { it !in testedProjects }
     assertThat(notTestedProjects).isEmpty()
   }
+}
+
+private fun selfChecks(): List<SyncedProjectTest.TestDef> {
+  return listOf(
+    KotlinScriptIndexingDisabled(AGP_CURRENT)
+  )
+}
+
+/**
+ * Verifies that classes normally contributed to the project scope by Gradle Kotlin scripting support are not indexed in tests.
+ */
+data class KotlinScriptIndexingDisabled(override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor) : SyncedProjectTest.TestDef {
+  override val testProject: TestProject
+    get() = TestProject.KOTLIN_GRADLE_DSL
+
+  override fun isCompatible(): Boolean {
+    return agpVersion >= AGP_70
+  }
+
+  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTest.TestDef {
+    return copy(agpVersion = agpVersion)
+  }
+
+  override fun runTest(root: File, project: Project) {
+    assertThat(DumbService.isDumb(project)).isFalse()
+    // NOTE: This class is directly used in the test project to make sure this assertion is not outdated.
+    val files = FilenameIndex.getVirtualFilesByName("KotlinJvmCompilerArgumentsProvider.class", GlobalSearchScope.everythingScope(project))
+    assertThat(files.isEmpty()).isTrue()
+  }
+
+  override val name: String
+    get() = "KotlinScriptIndexingDisabled"
 }

@@ -274,11 +274,6 @@ final class MergedManifestInfo {
     return myModificationStamps.isCurrent(myFacet.getModule().getProject(), manifests.allFiles);
   }
 
-  public boolean hasSevereError() {
-    return myLoggingRecords != null
-           && myLoggingRecords.stream().anyMatch(record -> record.getSeverity() == MergingReport.Record.Severity.ERROR);
-  }
-
   /**
    * Returns the merged manifest as a Java DOM document if available, the primary manifest if the merge was unsuccessful,
    * or null if the merge failed and we were also unable to parse the primary manifest.
@@ -325,10 +320,9 @@ final class MergedManifestInfo {
       facet.getConfiguration().isAppOrFeature() ? ManifestMerger2.MergeType.APPLICATION : ManifestMerger2.MergeType.LIBRARY;
 
     ManifestMerger2.Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifestFile, logger, mergeType);
-    manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.SKIP_BLAME, ManifestMerger2.Invoker.Feature.SKIP_XML_STRING);
+    manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.SKIP_BLAME, ManifestMerger2.Invoker.Feature.SKIP_XML_STRING, ManifestMerger2.Invoker.Feature.KEEP_GOING_AFTER_ERRORS);
     if(!isVersionAtLeast7_4_0(facet.getModule().getProject()))
       manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.DISABLE_STRIP_LIBRARY_TARGET_SDK);
-
     manifestMergerInvoker.addFlavorAndBuildTypeManifests(VfsUtilCore.virtualToIoFiles(flavorAndBuildTypeManifests).toArray(new File[0]));
     manifestMergerInvoker.addNavigationFiles(VfsUtilCore.virtualToIoFiles(navigationFiles));
 

@@ -15,8 +15,7 @@
  */
 package com.android.build.attribution.ui.view.details
 
-import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
-import com.android.build.attribution.ui.data.TaskUiData
+import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.PluginDetailsNodeDescriptor
@@ -27,13 +26,12 @@ import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.panels.taskDetailsPage
 import com.android.build.attribution.ui.view.ViewActionHandlers
-import com.android.build.attribution.ui.warningIcon
-import com.android.tools.adtui.TabularLayout
+import com.android.build.attribution.ui.warnIconHtml
+import com.android.utils.HtmlBuilder
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.ui.HyperlinkLabel
-import com.intellij.ui.components.panels.VerticalLayout
-import com.intellij.util.ui.JBUI
+import com.intellij.ui.components.panels.VerticalBox
 import java.awt.BorderLayout
+import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -74,83 +72,57 @@ class TaskViewDetailPagesFactory(
     name = nodeDescriptor.pageId.id
   }
 
-  private fun createTaskDetailsPage(descriptor: TaskDetailsNodeDescriptor) = taskDetailsPage(
-    descriptor.taskData,
-    helpLinkListener = actionHandlers::helpLinkClicked,
-    generateReportClickedListener = actionHandlers::generateReportClicked
-  )
+  private fun createTaskDetailsPage(descriptor: TaskDetailsNodeDescriptor) = taskDetailsPage(descriptor.taskData, actionHandlers)
 
   private fun createPluginDetailsPage(descriptor: PluginDetailsNodeDescriptor): JComponent {
-    fun inlinedTaskInfo(taskUiData: TaskUiData) = JPanel().apply {
-      border = JBUI.Borders.emptyTop(5)
-      layout = BorderLayout(5, 5)
-
-      val taskInfo = JPanel().apply {
-        layout = VerticalLayout(0, SwingConstants.LEFT)
-        val taskNavigationLink = HyperlinkLabel(taskUiData.taskPath).apply {
-          addHyperlinkListener {
-            actionHandlers.tasksDetailsLinkClicked(TasksPageId.task(taskUiData, TasksDataPageModel.Grouping.BY_PLUGIN))
-          }
-        }
-        val info = htmlTextLabelWithFixedLines("""
-          Type: ${taskUiData.taskType}<br/>
-          Duration: ${taskUiData.executionTime.durationStringHtml()}
-          """.trimIndent()
-        )
-        add(taskNavigationLink)
-        add(info)
-      }
-
-      val descriptions = JPanel().apply {
-        layout = TabularLayout("*")
-        taskUiData.issues.forEachIndexed { index, issue ->
-          val description = DescriptionWithHelpLinkLabel(issue.explanation, issue.helpLink) {
-            actionHandlers.helpLinkClicked(issue.helpLink)
-          }
-          description.withBorder(JBUI.Borders.emptyTop(5))
-          add(description, TabularLayout.Constraint(index, 0))
-        }
-      }
-      add(JLabel(warningIcon()).apply { verticalAlignment = SwingConstants.TOP }, BorderLayout.WEST)
-      add(taskInfo, BorderLayout.CENTER)
-      add(descriptions, BorderLayout.SOUTH)
-    }
-
     return JPanel().apply {
-      layout = BorderLayout()
-      val tasksNumber = descriptor.filteredTaskNodes.size
-      val pluginInfoText = """
-        <b>${descriptor.pluginData.name}</b><br/>
-        Total duration: ${descriptor.filteredPluginTime.toTimeWithPercentage().durationStringHtml()}<br/>
-        Number of tasks: ${tasksNumber.withPluralization("task")}<br/>
-        <br/>
-      """.trimIndent()
-      add(htmlTextLabelWithFixedLines(pluginInfoText), BorderLayout.NORTH)
-      add(JPanel().apply {
-        name = "plugin-warnings"
-        layout = BorderLayout()
-        val tasksWithWarnings = descriptor.filteredTaskNodes.filter { it.hasWarning }
-        val warningsPanelHeaderHtml =
-          "<b>Warnings</b><br/>" +
-          if (tasksWithWarnings.isEmpty())
-            "No warnings detected for this plugin."
-          else
-            "${tasksWithWarnings.size.withPluralization("task")} with warnings associated with this plugin.<br/>" +
-            if (tasksWithWarnings.size > 10) "Top 10 tasks shown below, you can find the full list in the tree on the left.<br/>"
-            else ""
-        val warningsPanelHeader = htmlTextLabelWithFixedLines(warningsPanelHeaderHtml)
-        val warningsListPanel = JPanel().apply {
-          name = "plugin-warnings-list"
-          layout = TabularLayout("*")
-          tasksWithWarnings.take(10).forEachIndexed { index, task ->
-            add(inlinedTaskInfo(task), TabularLayout.Constraint(index, 0))
-          }
-        }
-        add(warningsPanelHeader, BorderLayout.NORTH)
-        add(warningsListPanel, BorderLayout.CENTER)
-      }, BorderLayout.CENTER)
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+      val linksHandler = HtmlLinksHandler(actionHandlers)
+      val detailsPanelHtml = pluginDetailsHtml(descriptor, linksHandler)
+      val htmlLabel = htmlTextLabelWithFixedLines(detailsPanelHtml, linksHandler)
+      htmlLabel.alignmentX = 0f
+      add(htmlLabel)
     }
   }
 
-  private fun Int.withPluralization(base: String): String = "${this} ${StringUtil.pluralize(base, this)}"
+  fun pluginDetailsHtml(
+    descriptor: PluginDetailsNodeDescriptor,
+    linksHandler: HtmlLinksHandler
+  ): String {
+    return HtmlBuilder().apply {
+      val filteredTasksNumber = descriptor.filteredTaskNodes.size
+      val filteredTasksWithWarnings = descriptor.filteredTaskNodes.filter { it.hasWarning }
+      addBold(descriptor.pluginData.name).newline()
+      add("Total duration: ").addHtml(descriptor.filteredPluginTime.toTimeWithPercentage().durationStringHtml()).newline()
+      //TODO (b/240926892): these are filtered tasks, should make it clear for the user.
+      add("Number of tasks: ${filteredTasksNumber.withPluralization("task")}").newline()
+      newline()
+      addBold("Warnings").newline()
+      if (filteredTasksWithWarnings.isEmpty()) {
+        //TODO (b/240926892): same here, these are filtered, need to make it clear on UI
+        add("No warnings detected for this plugin.")
+      }
+      else {
+        add("${filteredTasksWithWarnings.size.withPluralization("task")} with warnings associated with this plugin.").newline()
+        if (filteredTasksWithWarnings.size > 10) {
+          add("Top 10 tasks shown below, you can find the full list in the tree on the left.").newline()
+        }
+        filteredTasksWithWarnings.take(10).forEach { task ->
+          val linkToTask = linksHandler.actionLink(task.taskPath, task.taskPath) {
+            actionHandlers.tasksDetailsLinkClicked(TasksPageId.task(task, TasksDataPageModel.Grouping.BY_PLUGIN))
+          }
+          beginTable()
+          addTableRow(warnIconHtml, linkToTask)
+          addTableRow("", "Type: ${task.taskType}<BR/>Duration: ${task.executionTime.durationStringHtml()}")
+          endTable()
+          task.issues.forEach { issue ->
+            val description = "${issue.explanation}\n${linksHandler.externalLink("Learn more", issue.helpLink)}".replace("\n", "<BR/>")
+            addHtml(description).newline()
+          }
+        }
+      }
+    }.html
+  }
+
+  private fun Int.withPluralization(base: String): String = "$this ${StringUtil.pluralize(base, this)}"
 }

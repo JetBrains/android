@@ -82,6 +82,7 @@ object HighlightColorAction : DefaultActionGroup("Recomposition Highlight Color"
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
       event.getData(DEVICE_VIEW_SETTINGS_KEY)?.highlightColor = color
+      LayoutInspector.get(event)?.currentClient?.stats?.recompositionHighlightColor = color
     }
   }
 

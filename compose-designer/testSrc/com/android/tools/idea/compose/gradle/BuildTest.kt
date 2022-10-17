@@ -61,12 +61,11 @@ class BuildTest {
 
     assertTrue(psiFilePointers.none { hasBeenBuiltSuccessfully(it) })
     assertTrue(psiFiles.none { hasExistingClassFile(it) })
-    val buildsTriggered = runAndWaitForBuildToComplete(projectRule) {
+    runAndWaitForBuildToComplete(projectRule) {
       // Regression test for http://b/192223556
       val files = activityFiles + activityFiles + activityFiles
       project.requestBuild(files)
     }
-    assertEquals(1, buildsTriggered)
     assertTrue(psiFilePointers.all { hasBeenBuiltSuccessfully(it) })
     assertTrue(psiFiles.all { hasExistingClassFile(it) })
 
@@ -100,7 +99,7 @@ class BuildTest {
       val simpleComposableAppPath = projectRule.resolveTestDataPath(SIMPLE_COMPOSE_PROJECT_PATH)
       val destination = File(projectRoot, "SimpleComposeApplication")
       FileUtil.copyDir(simpleComposableAppPath, destination)
-      defaultPatchPreparedProject(File(projectRule.project.basePath!!), null, null, DEFAULT_KOTLIN_VERSION, null, *listOf<File>().toTypedArray())
+      defaultPatchPreparedProject(File(projectRule.project.basePath!!), null, null, DEFAULT_KOTLIN_VERSION, null, null, *listOf<File>().toTypedArray())
     })
     val project = projectRule.project
     val activityFile = VfsUtil.findRelativeFile("SimpleComposeApplication/${SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path}",

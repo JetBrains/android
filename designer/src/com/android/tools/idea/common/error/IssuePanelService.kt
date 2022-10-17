@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.editor.SplitEditor
@@ -29,7 +30,11 @@ import com.android.tools.idea.uibuilder.type.DrawableFileType
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.type.MenuFileType
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
+import com.google.wireless.android.sdk.stats.UniversalProblemsPanelEvent
+import com.intellij.analysis.problemsView.toolWindow.HighlightingPanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewProjectErrorsPanelProvider
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.ApplicationManager
@@ -48,12 +53,16 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.psi.PsiFile
 import com.intellij.ui.ColorUtil.toHtmlColor
 import com.intellij.ui.content.Content
+import com.intellij.ui.content.ContentManagerEvent
+import com.intellij.ui.content.ContentManagerListener
 import com.intellij.ui.tree.TreeVisitor
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.tree.TreeModelAdapter
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import javax.swing.event.TreeModelEvent
 
 private const val DEFAULT_SHARED_ISSUE_PANEL_TAB_NAME = "Designer"
 
@@ -72,7 +81,6 @@ class IssuePanelService(private val project: Project) {
   private var sharedIssueTab: Content? = null
   private var sharedIssuePanel: DesignerCommonIssuePanel? = null
 
-  private val initLock = Any()
   private var inited = false
 
   private val fileToSurfaceMap = mutableMapOf<VirtualFile, DesignSurface<*>>()
@@ -80,7 +88,7 @@ class IssuePanelService(private val project: Project) {
   init {
     val manager = ToolWindowManager.getInstance(project)
     val problemsView = manager.getToolWindow(ProblemsView.ID)
-    if (problemsView != null && !problemsView.isDisposed) {
+    if (problemsView != null) {
       // ProblemsView has registered, init the tab.
       UIUtil.invokeLaterIfNeeded { initIssueTabs(problemsView) }
     }
@@ -91,8 +99,8 @@ class IssuePanelService(private val project: Project) {
         override fun toolWindowsRegistered(ids: MutableList<String>, toolWindowManager: ToolWindowManager) {
           if (ProblemsView.ID in ids) {
             val problemsViewToolWindow = ProblemsView.getToolWindow(project)
-            if (problemsViewToolWindow != null && !problemsViewToolWindow.isDisposed) {
-              initIssueTabs(problemsViewToolWindow)
+            if (problemsViewToolWindow != null) {
+              UIUtil.invokeLaterIfNeeded { initIssueTabs(problemsViewToolWindow) }
               connection.disconnect()
             }
           }
@@ -102,35 +110,54 @@ class IssuePanelService(private val project: Project) {
     }
   }
 
+  @UiThread
   fun initIssueTabs(problemsViewWindow: ToolWindow) {
-    synchronized(initLock) {
-      if (inited) {
-        return
-      }
-      inited = true
+    if (problemsViewWindow.isDisposed) {
+      return
     }
-
+    if (inited) {
+      return
+    }
+    inited = true
     // This is the only common issue panel.
     val contentManager = problemsViewWindow.contentManager
     val contentFactory = contentManager.factory
 
     // The shared issue panel for all design tools.
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-      val issueProvider = DesignToolsIssueProvider(project)
+      val issueProvider = DesignToolsIssueProvider(project, NotSuppressedFilter + SelectedEditorFilter(project))
       val treeModel = DesignerCommonIssuePanelModelProvider.getInstance(project).model
       val issuePanel = DesignerCommonIssuePanel(project, project, treeModel, issueProvider, ::getEmptyMessage)
-      issueProvider.registerUpdateListener {
-        updateSharedIssuePanelTabName()
-      }
+      treeModel.addTreeModelListener(object : TreeModelAdapter() {
+        override fun process(event: TreeModelEvent, type: EventType) {
+          updateSharedIssuePanelTabName()
+        }
+      })
 
       sharedIssuePanel = issuePanel
       contentFactory.createContent(issuePanel.getComponent(), "Design Issue", true).apply {
+        tabName = DESIGN_TOOL_TAB_NAME
         isPinnable = false
         sharedIssueTab = this
         isCloseable = false
         contentManager.addContent(this@apply)
       }
     }
+
+    val contentManagerListener = object : ContentManagerListener {
+      override fun selectionChanged(event: ContentManagerEvent) {
+        val content = event.content
+        val selectedTab = when {
+          content.isTab(Tab.CURRENT_FILE) -> UniversalProblemsPanelEvent.ActivatedTab.CURRENT_FILE
+          content.isTab(Tab.PROJECT_ERRORS) -> UniversalProblemsPanelEvent.ActivatedTab.PROJECT_ERRORS
+          content.isTab(Tab.DESIGN_TOOLS) -> UniversalProblemsPanelEvent.ActivatedTab.DESIGN_TOOLS
+          else -> UniversalProblemsPanelEvent.ActivatedTab.UNKNOWN_TAB
+        }
+        DesignerCommonIssuePanelUsageTracker.getInstance()
+          .trackSelectingTab(selectedTab, project)
+      }
+    }
+    contentManager.addContentManagerListener(contentManagerListener)
 
     project.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
       override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
@@ -255,6 +282,28 @@ class IssuePanelService(private val project: Project) {
   }
 
   /**
+   * Set the visibility of IJ's problems pane and change the selected tab to the [selectedTab]. If [selectedTab] is not given or not
+   * found, only the visibility of problems pane is changed.
+   * @see setSharedIssuePanelVisibility
+   */
+  fun setIssuePanelVisibility(visible: Boolean, selectedTab: Tab?) {
+    if (selectedTab == Tab.DESIGN_TOOLS) {
+      setSharedIssuePanelVisibility(visible)
+      return
+    }
+    val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
+    val contentManager = problemsViewPanel.contentManager
+    val contentOfTab: Content? = if (selectedTab != null) contentManager.contents.firstOrNull { it.isTab(selectedTab) } else null
+    val runnable: Runnable? = if (contentOfTab != null) Runnable { contentManager.setSelectedContent(contentOfTab) } else null
+    if (visible) {
+      problemsViewPanel.show(runnable)
+    }
+    else {
+      problemsViewPanel.hide(runnable)
+    }
+  }
+
+  /**
    * Set the visibility of shared issue panel.
    * When [visible] is true, this opens the problem panel and switch the tab to shared issue panel tab.
    * The optional given [onAfterSettingVisibility] is executed after the visibility is changed.
@@ -262,6 +311,7 @@ class IssuePanelService(private val project: Project) {
   fun setSharedIssuePanelVisibility(visible: Boolean, onAfterSettingVisibility: Runnable? = null) {
     val tab = sharedIssueTab ?: return
     val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
+    DesignerCommonIssuePanelUsageTracker.getInstance().trackChangingCommonIssuePanelVisibility(visible, project)
     if (visible) {
       if (!isSharedIssueTabShowing(tab)) {
         problemsViewPanel.show {
@@ -468,6 +518,27 @@ class IssuePanelService(private val project: Project) {
     fun getInstance(project: Project): IssuePanelService = project.getService(IssuePanelService::class.java)
 
     val SELECTED_ISSUES = DataKey.create<List<Issue>>(DesignerCommonIssuePanel::class.java.name + "_selectedIssues")
+
+    const val DESIGN_TOOL_TAB_NAME = "Designer"
+  }
+
+  /**
+   * List of the possible tabs of Problems pane. This is used by [setIssuePanelVisibility] to assign the selected tab after changing the
+   * visibility of problems pane.
+   */
+  enum class Tab {
+    CURRENT_FILE,
+    PROJECT_ERRORS,
+    DESIGN_TOOLS
+  }
+}
+
+@VisibleForTesting
+fun Content.isTab(tab: IssuePanelService.Tab): Boolean {
+  return when (tab) {
+    IssuePanelService.Tab.DESIGN_TOOLS -> this.tabName == IssuePanelService.DESIGN_TOOL_TAB_NAME
+    IssuePanelService.Tab.CURRENT_FILE -> (this.component as? ProblemsViewTab)?.getTabId() == HighlightingPanel.ID
+    IssuePanelService.Tab.PROJECT_ERRORS -> (this.component as? ProblemsViewTab)?.getTabId() == ProblemsViewProjectErrorsPanelProvider.ID
   }
 }
 

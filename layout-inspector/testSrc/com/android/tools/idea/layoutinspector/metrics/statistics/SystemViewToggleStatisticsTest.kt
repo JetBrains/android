@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.metrics.statistics
 
-import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSystemNode
 import org.junit.Test
@@ -24,34 +23,32 @@ class SystemViewToggleStatisticsTest {
 
   @Test
   fun testStart() {
-    val treeSettings = FakeTreeSettings()
-    val systemViewToggle = SystemViewToggleStatistics(treeSettings)
+    val systemViewToggle = SystemViewToggleStatistics()
     systemViewToggle.selectionMade()
     systemViewToggle.selectionMade()
     systemViewToggle.selectionMade()
-    treeSettings.hideSystemNodes = false
+    systemViewToggle.hideSystemNodes = false
     systemViewToggle.selectionMade()
     systemViewToggle.start()
     val data = DynamicLayoutInspectorSystemNode.newBuilder()
-    systemViewToggle.save(data)
+    systemViewToggle.save { data }
     assertThat(data.clicksWithHiddenSystemViews).isEqualTo(0)
     assertThat(data.clicksWithVisibleSystemViews).isEqualTo(0)
   }
 
   @Test
   fun testToggleBackAndForth() {
-    val treeSettings = FakeTreeSettings()
-    val systemViewToggle = SystemViewToggleStatistics(treeSettings)
+    val systemViewToggle = SystemViewToggleStatistics()
     systemViewToggle.start()
 
-    treeSettings.hideSystemNodes = true
+    systemViewToggle.hideSystemNodes = true
     systemViewToggle.selectionMade()
     systemViewToggle.selectionMade()
     systemViewToggle.selectionMade()
-    treeSettings.hideSystemNodes = false
+    systemViewToggle.hideSystemNodes = false
     systemViewToggle.selectionMade()
     val data = DynamicLayoutInspectorSystemNode.newBuilder()
-    systemViewToggle.save(data)
+    systemViewToggle.save { data }
     assertThat(data.clicksWithHiddenSystemViews).isEqualTo(3)
     assertThat(data.clicksWithVisibleSystemViews).isEqualTo(1)
   }

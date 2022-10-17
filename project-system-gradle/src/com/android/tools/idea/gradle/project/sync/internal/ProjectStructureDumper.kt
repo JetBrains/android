@@ -441,9 +441,9 @@ private fun ProjectDumper.dump(kotlinFacetConfiguration: KotlinFacetConfiguratio
       dump(mergedCompilerArguments)
     }
     prop("Platform") { targetPlatform?.toString() }
-    prop("ProductionOutputPath") { productionOutputPath }
+    prop("ProductionOutputPath") { productionOutputPath?.replaceKnownPaths() }
     sourceSetNames.forEach { prop("- SourceSetName") { it } }
-    prop("TestOutputPath") { testOutputPath }
+    prop("TestOutputPath") { testOutputPath?.replaceKnownPaths() }
     prop("UseProjectSettings") { useProjectSettings.toString() }
     prop("Version") { version.toString() }
   }

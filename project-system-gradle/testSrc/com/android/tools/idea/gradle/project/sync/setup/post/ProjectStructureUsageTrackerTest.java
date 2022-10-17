@@ -105,7 +105,9 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
                    .build(), usage.getStudioEvent().getGradleBuildDetails());
   }
 
-  public void testProductStructureUsageWithWearHardware() throws Exception {
+
+  // TODO(b/240662565): Test is flaky.
+  public void /*test*/ProductStructureUsageWithWearHardware() throws Exception {
     trackGradleProject(RUN_CONFIG_WATCHFACE);
 
     List<LoggedUsage> usages = myUsageTracker.getUsages();

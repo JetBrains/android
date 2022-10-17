@@ -9,15 +9,13 @@
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" name="layout_inspector_snapshot_java_proto" level="project" />
-    <orderEntry type="library" name="layout_inspector_view_java_proto" level="project" />
-    <orderEntry type="library" name="layout_inspector_compose_java_proto" level="project" />
+    <orderEntry type="library" name="layoutinspector-view-proto" level="project" />
     <orderEntry type="library" name="layoutinspector-skia-proto" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-dynamic-layout-inspector.common" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.dynamic-layout-inspector.common:221.0.9.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.dynamic-layout-inspector.common:221.0.12.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common/221.0.9.0/studio.dynamic-layout-inspector.common-221.0.9.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common/221.0.12.0/studio.dynamic-layout-inspector.common-221.0.12.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -25,9 +23,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-dynamic-layout-inspector.common-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.dynamic-layout-inspector.common_test:221.0.9.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.dynamic-layout-inspector.common_test:221.0.12.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common_test/221.0.9.0/studio.dynamic-layout-inspector.common_test-221.0.9.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common_test/221.0.12.0/studio.dynamic-layout-inspector.common_test-221.0.12.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
+import com.android.tools.idea.gradle.dsl.api.GradlePropertiesModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -359,6 +360,13 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       .collect(Collectors.toMap(e -> e.getFile().getPath(), e -> e.getPublicNotifications()));
   }
 
+  @Override
+  public @Nullable GradlePropertiesModel getPropertiesModel() {
+    GradlePropertiesFile propertiesFile = myGradleBuildFile.getPropertiesFile();
+    if (propertiesFile == null) return null;
+    return new GradlePropertiesModelImpl(propertiesFile);
+  }
+
   /**
    * Removes property {@link RepositoriesDslElement#REPOSITORIES}.
    */
@@ -377,7 +385,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       return new GradleSettingsModelImpl((GradleSettingsFile)file);
     }
     else if (file instanceof GradlePropertiesFile) {
-      return new GradlePropertiesModel((GradlePropertiesFile)file);
+      return new GradlePropertiesModelImpl((GradlePropertiesFile)file);
     }
     throw new IllegalStateException("Unknown GradleDslFile type found!");
   }

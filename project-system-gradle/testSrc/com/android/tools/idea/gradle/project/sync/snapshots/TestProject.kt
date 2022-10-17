@@ -15,21 +15,38 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
+import com.android.SdkConstants
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
+import com.android.builder.model.v2.ide.SyncIssue
 import com.android.testutils.AssumeUtil.assumeNotWindows
+import com.android.testutils.TestUtils
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.FileSubject.file
+import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.ModelVersion
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
+import com.android.tools.idea.testing.openPreparedProject
+import com.android.tools.idea.testing.prepareGradleProject
+import com.android.utils.FileUtils
 import com.android.utils.FileUtils.writeToFile
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.util.PathUtil
+import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
+import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 import java.nio.file.Files
 
@@ -43,13 +60,29 @@ enum class TestProject(
   val pathToOpen: String = "",
   val testName: String? = null,
   val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
-  val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {}
+  val setup: () -> () -> Unit = { {} },
+  val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
+  val expectedSyncIssues: Set<Int> = emptySet()
 ) {
   APP_WITH_ML_MODELS(TestProjectToSnapshotPaths.APP_WITH_ML_MODELS),
   APP_WITH_BUILDSRC(TestProjectToSnapshotPaths.APP_WITH_BUILDSRC),
   COMPATIBILITY_TESTS_AS_36(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36, patch = { updateProjectJdk(it) }),
   COMPATIBILITY_TESTS_AS_36_NO_IML(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML, patch = { updateProjectJdk(it) }),
   SIMPLE_APPLICATION(TestProjectToSnapshotPaths.SIMPLE_APPLICATION),
+  SIMPLE_APPLICATION_NO_PARALLEL_SYNC(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "noParallelSync",
+    setup =
+    fun(): () -> Unit {
+      val oldValue = GradleExperimentalSettings.getInstance().ENABLE_PARALLEL_SYNC
+
+      GradleExperimentalSettings.getInstance().ENABLE_PARALLEL_SYNC = false
+
+      return fun() {
+        GradleExperimentalSettings.getInstance().ENABLE_PARALLEL_SYNC = oldValue
+      }
+    },
+  ),
   SIMPLE_APPLICATION_VIA_SYMLINK(
     TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
     testName = "viaSymLink",
@@ -74,7 +107,9 @@ enum class TestProject(
     }
   ),
   SIMPLE_APPLICATION_WITH_ADDITIONAL_GRADLE_SOURCE_SETS(
-    TestProjectToSnapshotPaths.SIMPLE_APPLICATION, testName = "additionalGradleSourceSets", patch = { root ->
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "additionalGradleSourceSets",
+    patch = { root ->
       val buildFile = root.resolve("app").resolve("build.gradle")
       buildFile.writeText(
         buildFile.readText() + """
@@ -83,7 +118,36 @@ enum class TestProject(
           }
         """.trimIndent()
       )
-    }),
+    }
+  ),
+  SIMPLE_APPLICATION_NOT_AT_ROOT(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "gradleNotAtRoot",
+    isCompatibleWith = { it == AGP_CURRENT },
+    patch = { moveGradleRootUnderGradleProjectDirectory(it) }
+  ),
+  SIMPLE_APPLICATION_MULTIPLE_ROOTS(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "multipleGradleRoots",
+    isCompatibleWith = { it == AGP_CURRENT },
+    patch = { moveGradleRootUnderGradleProjectDirectory(it, makeSecondCopy = true) }
+  ),
+  SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "withUnnamedDimension",
+    isCompatibleWith = { it == AGP_CURRENT },
+    patch = { root ->
+      root.resolve("app/build.gradle").replaceContent {
+        it + """
+          android.productFlavors {
+           example {
+           }
+          }
+         """
+      }
+    },
+    expectedSyncIssues = setOf(SyncIssue.TYPE_UNNAMED_FLAVOR_DIMENSION)
+  ),
   WITH_GRADLE_METADATA(TestProjectToSnapshotPaths.WITH_GRADLE_METADATA),
   BASIC_CMAKE_APP(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
   PSD_SAMPLE_GROOVY(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
@@ -100,10 +164,19 @@ enum class TestProject(
     TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
     isCompatibleWith = { it.modelVersion == ModelVersion.V2 }
   ),
+  NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND(
+    TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
+    testName = "manualTestFixturesWorkaround",
+    isCompatibleWith = { it.modelVersion == ModelVersion.V2 },
+    patch = {
+      it.resolve("app/build.gradle")
+        .replaceInContent("androidTestImplementation project(':lib')", "// androidTestImplementation project(':lib')")
+    }
+  ),
   NON_STANDARD_SOURCE_SET_DEPENDENCIES_HIERARCHICAL(
     TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
     testName = "hierarchical",
-    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    isCompatibleWith = { it == AGP_CURRENT },
     patch = { patchMppProject(it, enableHierarchicalSupport = true) }
   ),
   LINKED(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
@@ -124,32 +197,46 @@ enum class TestProject(
   KOTLIN_MULTIPLATFORM_HIERARCHICAL(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "hierarchical",
-    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    isCompatibleWith = { it == AGP_CURRENT },
     patch = { patchMppProject(it, enableHierarchicalSupport = true) }
+  ),
+  KOTLIN_MULTIPLATFORM_HIERARCHICAL_WITHJS(
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+    testName = "hierarchical_withjs",
+    isCompatibleWith = { it == AGP_CURRENT },
+    patch = { patchMppProject(it, enableHierarchicalSupport = true, addJsModule = true) }
   ),
   KOTLIN_MULTIPLATFORM_JVM(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "jvm",
-    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    isCompatibleWith = { it == AGP_CURRENT },
     patch = { patchMppProject(it, enableHierarchicalSupport = false, addJvmTo = listOf("module2")) }
   ),
   KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "jvm_hierarchical",
-    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    isCompatibleWith = { it == AGP_CURRENT },
     patch = { patchMppProject(it, enableHierarchicalSupport = true, addJvmTo = listOf("module2")) }
   ),
   KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "jvm_hierarchical_kmpapp",
-    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    isCompatibleWith = { it == AGP_CURRENT },
     patch = { patchMppProject(it, enableHierarchicalSupport = true, convertAppToKmp = true, addJvmTo = listOf("app", "module2")) }
   ),
   KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP_WITHINTERMEDIATE(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "jvm_hierarchical_kmpapp_withintermediate",
-    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
-    patch = { patchMppProject(it, enableHierarchicalSupport = true, convertAppToKmp = true, addJvmTo = listOf("app", "module2"), addIntermediateTo = listOf("module2")) }
+    isCompatibleWith = { it == AGP_CURRENT },
+    patch = {
+      patchMppProject(
+        it,
+        enableHierarchicalSupport = true,
+        convertAppToKmp = true,
+        addJvmTo = listOf("app", "module2"),
+        addIntermediateTo = listOf("module2")
+      )
+    }
   ),
   MULTI_FLAVOR(TestProjectToSnapshotPaths.MULTI_FLAVOR),
   MULTI_FLAVOR_WITH_FILTERING(
@@ -205,9 +292,25 @@ enum class TestProject(
   LIGHT_SYNC_REFERENCE(TestProjectToSnapshotPaths.LIGHT_SYNC_REFERENCE),
   PURE_JAVA_PROJECT(TestProjectToSnapshotPaths.PURE_JAVA_PROJECT),
   BUILDSRC_WITH_COMPOSITE(TestProjectToSnapshotPaths.BUILDSRC_WITH_COMPOSITE),
+  PRIVACY_SANDBOX_SDK(
+    TestProjectToSnapshotPaths.PRIVACY_SANDBOX_SDK,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+  )
   ;
 
   val projectName: String get() = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
+
+  val templateAbsolutePath: File get() = resolveTestDataPath(template)
+  val additionalRepositories: Collection<File> get() = getAdditionalRepos()
+
+  private fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
+  private fun getAdditionalRepos(): Collection<File> =
+    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
+
+  private fun resolveTestDataPath(testDataPath: @SystemIndependent String): File {
+    val testDataDirectory = TestUtils.resolveWorkspacePath(FileUtilRt.toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
+    return testDataDirectory.resolve(FileUtilRt.toSystemDependentName(testDataPath)).toFile()
+  }
 }
 
 private fun File.replaceContent(change: (String) -> String) {
@@ -230,12 +333,67 @@ private fun truncateForV2(settingsFile: File) {
   settingsFile.writeText(patchedText)
 }
 
+private fun moveGradleRootUnderGradleProjectDirectory(root: File, makeSecondCopy: Boolean = false) {
+  val testJdkName = IdeSdks.getInstance().jdk?.name ?: error("No JDK in test")
+  val newRoot = root.resolve(if (makeSecondCopy) "gradle_project_1" else "gradle_project")
+  val newRoot2 = root.resolve("gradle_project_2")
+  val tempRoot = File(root.path + "_tmp")
+  val ideaDirectory = root.resolve(".idea")
+  val gradleXml = ideaDirectory.resolve("gradle.xml")
+  val miscXml = ideaDirectory.resolve("misc.xml")
+  Files.move(root.toPath(), tempRoot.toPath())
+  Files.createDirectory(root.toPath())
+  Files.move(tempRoot.toPath(), newRoot.toPath())
+  if (makeSecondCopy) {
+    FileUtils.copyDirectory(newRoot, newRoot2)
+    newRoot2
+      .resolve("settings.gradle")
+      .replaceContent { "rootProject.name = 'gradle_project_name'\n$it" } // Give it a name not matching the directory name.
+  }
+  Files.createDirectory(ideaDirectory.toPath())
+
+  fun gradleSettingsFor(rootName: String): String {
+    return """
+      <GradleProjectSettings>
+        <option name="testRunner" value="GRADLE" />
+        <option name="distributionType" value="DEFAULT_WRAPPED" />
+        <option name="externalProjectPath" value="${'$'}PROJECT_DIR${'$'}/$rootName" />
+      </GradleProjectSettings>
+    """
+  }
+
+  gradleXml.writeText(
+    """
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GradleMigrationSettings" migrationVersion="1" />
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+        ${gradleSettingsFor(newRoot.name)}
+        ${if (makeSecondCopy) gradleSettingsFor(newRoot2.name) else ""}
+    </option>
+  </component>
+</project>        
+    """.trim()
+  )
+
+  miscXml.writeText(
+    """
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+<component name="ProjectRootManager" version="2" project-jdk-name="$testJdkName" project-jdk-type="JavaSDK" />
+</project>
+    """.trim()
+  )
+}
+
 private fun patchMppProject(
   projectRoot: File,
   enableHierarchicalSupport: Boolean,
   convertAppToKmp: Boolean = false,
   addJvmTo: List<String> = emptyList(),
-  addIntermediateTo: List<String> = emptyList()
+  addIntermediateTo: List<String> = emptyList(),
+  addJsModule: Boolean = false
 ) {
   if (enableHierarchicalSupport) {
     projectRoot.resolve("gradle.properties").replaceInContent(
@@ -283,6 +441,13 @@ private fun patchMppProject(
       """.trimMargin()
     )
   }
+  if (addJsModule) {
+    projectRoot.resolve("settings.gradle")
+      .replaceInContent("//include ':jsModule'", "include ':jsModule'")
+    // "org.jetbrains.kotlin.js" conflicts with "clean" task.
+    projectRoot.resolve("build.gradle")
+      .replaceInContent("task clean(type: Delete)", "task clean1(type: Delete)")
+  }
 }
 
 private fun AgpVersionSoftwareEnvironmentDescriptor.updateProjectJdk(projectRoot: File) {
@@ -300,7 +465,7 @@ private fun createEmptyGradleSettingsFile(projectRootPath: File) {
 }
 
 fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT -> "_"
+  AGP_CURRENT -> "_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1 -> "_NewAgp_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_32 -> "_Agp_3.2_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_35 -> "_Agp_3.5_"
@@ -311,6 +476,7 @@ fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
   AgpVersionSoftwareEnvironmentDescriptor.AGP_71 -> "_Agp_7.1_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_72_V1 -> "_Agp_7.2_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_72 -> "_Agp_7.2_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_73 -> "_Agp_7.3_"
 }
 
 fun AgpVersionSoftwareEnvironmentDescriptor.gradleSuffix(): String {
@@ -328,4 +494,44 @@ class SnapshotContext(
 
   override val snapshotDirectoryWorkspaceRelativePath: String = workspace
   override fun getName(): String = name
+}
+
+interface PreparedTestProject {
+  fun <T> open(options: OpenPreparedProjectOptions = OpenPreparedProjectOptions(), body: (Project) -> T): T
+  val root: File
+}
+
+fun IntegrationTestEnvironment.prepareTestProject(
+  testProject: TestProject,
+  name: String = "project",
+  agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT
+): PreparedTestProject {
+  val root = prepareGradleProject(
+    testProject.templateAbsolutePath,
+    testProject.additionalRepositories,
+    name,
+    agpVersion,
+    ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
+  )
+  testProject.patch(agpVersion, root)
+
+  return object: PreparedTestProject {
+    override val root: File = root
+    override fun <T> open(options: OpenPreparedProjectOptions, body: (Project) -> T): T {
+      val tearDown = testProject.setup()
+      try {
+        return openPreparedProject(
+          name = "$name${testProject.pathToOpen}",
+          options = options
+        ) { project ->
+          invokeAndWaitIfNeeded {
+            AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+          }
+          body(project)
+        }
+      } finally {
+        tearDown()
+      }
+    }
+  }
 }

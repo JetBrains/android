@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.testutils.TestUtils;
@@ -24,13 +26,19 @@ import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.FileServer;
 import com.android.tools.asdriver.tests.TestFileSystem;
+import com.intellij.openapi.util.SystemInfo;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -99,8 +107,8 @@ public class UpdateTest {
                          String.format("<product name=\"Android Studio\">%n") +
                          String.format("<code>AI</code>%n") +
                          String.format(
-                           "<channel feedback=\"https://code.google.com/p/android/issues/entry?template=Android+Studio+bug\" id=\"AI-1-eap\" majorVersion=\"1\" name=\"Android Studio updates\" status=\"eap\" url=\"https://developer.android.com/r/studio-ui/release-updates.html\">%n") +
-                         String.format("<build apiVersion=\"%s\" number=\"%s\" version=\"Dolphin | 2021.3.1 Canary 9\">%n", apiVersion,
+                           "<channel feedback=\"https://code.google.com/p/android/issues/entry?template=Android+Studio+bug\" id=\"AI-1-release\" majorVersion=\"1\" name=\"Android Studio updates\" status=\"release\" url=\"https://developer.android.com/r/studio-ui/release-updates.html\">%n") +
+                         String.format("<build apiVersion=\"%s\" number=\"%s\" version=\"Electric Eel | 2021.3.1 Stable 11\">%n", apiVersion,
                                        fakeUpdatedBuild) +
                          String.format("<message><![CDATA[<html> Fake channel for updating </html>]]></message>%n") +
                          String.format(
@@ -277,7 +285,7 @@ public class UpdateTest {
   public void updateTest() throws Exception {
     TestFileSystem fileSystem = new TestFileSystem(tempFolder.getRoot().toPath());
 
-    AndroidStudioInstallation install = null;
+    AndroidStudioInstallation install;
     try (Display display = Display.createDefault();
          FileServer fileServer = new FileServer()) {
       fileServer.start();
@@ -336,6 +344,33 @@ public class UpdateTest {
         // The first Studio process should no longer be running; wait for it to finish running and trigger the update fully.
         studio.waitForProcess();
       }
+
+      // Ensure that updates.xml was requested a single time
+      List<URI> updatesRequests = fileServer.getRequestHistoryForPath("/updates.xml");
+      assertEquals(1, updatesRequests.size());
+
+      // Ensure that updates.xml was requested with the correct query parameters
+      URI uri = updatesRequests.get(0);
+      List<NameValuePair> queryParamList = URLEncodedUtils.parse(uri, StandardCharsets.UTF_8);
+      Map<String, String> queryParams = queryParamList.stream().collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue));
+      System.out.println("Query params when requesting updates.xml: " + queryParams);
+      // The value of "uid" is random, so just ensure it exists. Note that the "mid" (machine ID)
+      // isn't guaranteed to be set.
+      assertTrue(queryParams.containsKey("uid"));
+      assertFalse(queryParams.containsKey("eap"));
+      String osParam = queryParams.get("os");
+      if (SystemInfo.isWindows) {
+        // This will look like "Windows 10 10.0" or "Windows Server 2019 10.0".
+        assertTrue(osParam.contains("Windows"));
+      } else if (SystemInfo.isLinux) {
+        // This will look like "Linux 5.4.0-1083-gcp" or "Linux 5.17.11-1rodete2-amd64".
+        assertTrue(osParam.toLowerCase().contains("linux"));
+      } else if (SystemInfo.isMac) {
+        // This will look like "Mac OS X 12.5".
+        assertTrue(osParam.contains("Mac OS X"));
+      }
+      String buildParam = queryParams.get("build");
+      assertEquals(PRODUCT_PREFIX + FAKE_CURRENT_BUILD_NUMBER, buildParam);
 
       install.getIdeaLog().waitForMatchingLine(".*run restarter:.*", 120, TimeUnit.SECONDS);
       try (AndroidStudio studio = install.attach()) {

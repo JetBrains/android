@@ -789,8 +789,15 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     runReadAction {
       _isAlwaysNoOpForProject = computeIsAlwaysNoOpForProject()
       _cachedUsages = findComponentUsages().toList()
+      initializeComponentExtraCaches()
     }
   }
+
+  /**
+   * This function should be overridden by individual component processors in order to compute (within a read action) any non-volatile
+   * state relating to their operation.
+   */
+  open fun initializeComponentExtraCaches() = Unit
 
   sealed class BlockReason(
     val shortDescription: String,

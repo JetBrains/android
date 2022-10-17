@@ -37,9 +37,9 @@ import com.android.tools.profiler.proto.Agent
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
 import kotlinx.coroutines.CoroutineDispatcher
@@ -58,12 +58,19 @@ import java.util.concurrent.ConcurrentHashMap
 */
 object ForegroundProcessDetectionInitializer {
 
+  private val logger = Logger.getInstance(ForegroundProcessDetectionInitializer::class.java)
+
   @VisibleForTesting
   fun getDefaultForegroundProcessListener(processModel: ProcessesModel): ForegroundProcessListener {
     return object : ForegroundProcessListener {
       override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
+        val foregroundProcessDescriptor = foregroundProcess.matchToProcessDescriptor(processModel)
+        if (foregroundProcessDescriptor == null) {
+          logger.info("Process descriptor not found for foreground process \"${foregroundProcess.processName}\"")
+        }
+
         // set the foreground process to be the selected process.
-        processModel.selectedProcess = foregroundProcess.matchToProcessDescriptor(processModel)
+        processModel.selectedProcess = foregroundProcessDescriptor
       }
     }
   }
@@ -120,8 +127,16 @@ class DeviceModel(private val processesModel: ProcessesModel) {
     foregroundProcessDetectionSupportedDevices.addAll(foregroundProcessDetectionSupportedDeviceTest)
   }
 
+  /**
+   * The device on which the on-device library is polling for foreground process.
+   * When null, it means that we are not polling on any device.
+   *
+   * [selectedDevice] should only be set by [ForegroundProcessDetection],
+   * this is to make sure that there is consistency between the [selectedDevice] and the device we are polling on.
+   */
   var selectedDevice: DeviceDescriptor? = null
-    internal set
+    @VisibleForTesting
+    set
 
   /**
    * The set of connected devices that support foreground process detection.
@@ -170,6 +185,26 @@ class TransportDeviceManagerListenerImpl : TransportDeviceManager.TransportDevic
           StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()
         )
       )
+  }
+}
+
+/**
+ * Stops LayoutInspector.
+ * If a device is selected, stops foreground process detection.
+ * If a device is not selected, stops process inspection by setting the selected process to null.
+ *
+ * A process can be selected when a device does not support foreground process detection.
+ */
+fun stopInspector(
+  deviceModel: DeviceModel,
+  processesModel: ProcessesModel,
+  foregroundProcessDetection: ForegroundProcessDetection?
+) {
+  if (deviceModel.selectedDevice != null) {
+    foregroundProcessDetection?.stopPollingSelectedDevice()
+  }
+  else {
+    processesModel.selectedProcess = null
   }
 }
 
@@ -374,6 +409,18 @@ class ForegroundProcessDetection(
         deviceModel.selectedDevice = newDevice
       }
     }
+  }
+
+  /**
+   * Stop listening to foreground process events from [DeviceModel.selectedDevice].
+   * Then sets [DeviceModel.selectedDevice] to null.
+   */
+  fun stopPollingSelectedDevice() {
+    val transportStreamChannel = connectedStreams.values.find { it.stream.device.serial == deviceModel.selectedDevice?.serial }
+    if (transportStreamChannel != null) {
+      sendStopOnDevicePollingCommand(transportStreamChannel.stream)
+    }
+    deviceModel.selectedDevice = null
   }
 
   fun startListeningForEvents() {

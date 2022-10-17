@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
@@ -68,16 +67,8 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
           + " already in progress. Use ProjectSystemSyncManager.isSyncInProgress to detect this scenario."))
 
       project.isInitialized -> syncResult.setFuture(requestSync(project, reason))
-
       else -> StartupManager.getInstance(project).runWhenProjectIsInitialized {
-        if (!GradleProjectInfo.getInstance(project).isImportedProject) {
-          // http://b/62543184
-          // If the project was created with the "New Project" wizard, there is no need to sync again.
           syncResult.setFuture(requestSync(project, reason))
-        }
-        else {
-          syncResult.set(SyncResult.SKIPPED)
-        }
       }
     }
 

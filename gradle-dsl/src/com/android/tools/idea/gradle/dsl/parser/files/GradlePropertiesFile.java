@@ -66,7 +66,7 @@ public final class GradlePropertiesFile extends GradleDslFile {
       return null;
     }
 
-    GradlePropertyElement propertyElement = new GradlePropertyElement(this, GradleNameElement.fake(property));
+    GradlePropertyElement propertyElement = new GradlePropertyElement(this, GradleNameElement.fake(GradleNameElement.escape(property)));
     propertyElement.setValue(value);
     return propertyElement;
   }

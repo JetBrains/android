@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel.Companion.get
 import com.android.tools.idea.gradle.project.model.VariantAbi
 import com.android.tools.idea.gradle.project.sync.idea.getVariantAndAbi
+import com.android.tools.idea.gradle.util.ModuleTypeComparator
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -103,14 +104,16 @@ private constructor(
 private fun BuildVariantTableRow.toArray(hasAbis: Boolean): Array<Any?> = if (hasAbis) arrayOf(module, variant, abi)
 else arrayOf(module, variant)
 
-private fun buildVariantTableModelRows(project: Project): List<BuildVariantTableRow> {
-  return project.getAndroidFacets().map { androidFacet ->
-    val variantAndAbi = androidFacet.getVariantAndAbi()
-    val buildVariantItems = getBuildVariantItems(androidFacet)
-    val abiItems = getAbiItems(androidFacet, variantAndAbi.variant)
-    BuildVariantTableRow(androidFacet.holderModule, variantAndAbi.variant, variantAndAbi.abi, buildVariantItems, abiItems)
-  }
-}
+private fun buildVariantTableModelRows(project: Project) =
+  project
+    .getAndroidFacets()
+    .sortedWith(compareBy(ModuleTypeComparator.INSTANCE) { it.module })
+    .map { androidFacet ->
+      val variantAndAbi = androidFacet.getVariantAndAbi()
+      val buildVariantItems = getBuildVariantItems(androidFacet)
+      val abiItems = getAbiItems(androidFacet, variantAndAbi.variant)
+      BuildVariantTableRow(androidFacet.holderModule, variantAndAbi.variant, variantAndAbi.abi, buildVariantItems, abiItems)
+    }
 
 private fun getBuildVariantItems(facet: AndroidFacet): List<BuildVariantItem> {
   return GradleAndroidModel.get(facet)?.variantNames.orEmpty().map { BuildVariantItem(it) }.sorted()
@@ -137,4 +140,3 @@ private fun getNdkModuleModelIfNotJustDummy(facet: AndroidFacet): NdkModuleModel
   val ndkFacet = getInstance(facet.holderModule) ?: return null
   return getNdkModuleModelIfNotJustDummy(ndkFacet)
 }
-

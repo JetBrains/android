@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
@@ -27,6 +28,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
+import com.android.tools.idea.sqlite.DatabaseInspectorTabProvider
 import com.android.tools.idea.sqlite.FileDatabaseException
 import com.android.tools.idea.sqlite.OfflineModeManager
 import com.android.tools.idea.sqlite.SchemaProvider
@@ -100,6 +102,7 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.Mockito.`when`
 import java.util.concurrent.Executor
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -1548,6 +1551,11 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     fileDatabaseManager.downloadTime = 100
 
+    val ideServices = mock<AppInspectionIdeServices>()
+    `when`(ideServices.isTabSelected(DatabaseInspectorTabProvider.DATABASE_INSPECTOR_ID)).thenReturn(true)
+
+    runDispatching { databaseInspectorController.startAppInspectionSession(mock(), ideServices, processDescriptor, processDescriptor.name) }
+
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
       databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
@@ -1576,6 +1584,36 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     assertTrue(offlineModeMetadata.totalDownloadTimeMs >= 300)
   }
 
+  fun testEnterOfflineAbortedWhenDatabaseInspectorNotVisible() {
+    // Prepare
+    val projectService = mock(DatabaseInspectorProjectService::class.java)
+    whenever(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
+    project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
+
+    val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
+
+    runDispatching {
+      databaseRepository.addDatabaseConnection(databaseId1, realDatabaseConnection)
+      databaseInspectorController.addSqliteDatabase(databaseId1)
+    }
+    fileDatabaseManager.downloadTime = 100
+
+    val ideServices = mock<AppInspectionIdeServices>()
+    `when`(ideServices.isTabSelected(DatabaseInspectorTabProvider.DATABASE_INSPECTOR_ID)).thenReturn(false)
+
+    runDispatching { databaseInspectorController.startAppInspectionSession(mock(), ideServices, processDescriptor, processDescriptor.name) }
+
+    // Act
+    runDispatching(edtExecutor.asCoroutineDispatcher()) {
+      databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
+      assertNull(databaseInspectorController.downloadAndOpenOfflineDatabasesJob)
+    }
+
+    // metrics
+    val offlineModeMetadata = trackerService.metadata
+    assertNull(offlineModeMetadata)
+  }
+
   fun testEnterOfflineModeJobCanceled() {
     // Prepare
     val projectService = mock(DatabaseInspectorProjectService::class.java)
@@ -1591,6 +1629,11 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseRepository.addDatabaseConnection(databaseId1, realDatabaseConnection)
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
+
+    val ideServices = mock<AppInspectionIdeServices>()
+    `when`(ideServices.isTabSelected(DatabaseInspectorTabProvider.DATABASE_INSPECTOR_ID)).thenReturn(true)
+
+    runDispatching { databaseInspectorController.startAppInspectionSession(mock(), ideServices, processDescriptor, processDescriptor.name) }
 
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
@@ -1619,6 +1662,11 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseRepository.addDatabaseConnection(databaseId1, realDatabaseConnection)
       databaseInspectorController.addSqliteDatabase(databaseId1)
     }
+
+    val ideServices = mock<AppInspectionIdeServices>()
+    `when`(ideServices.isTabSelected(DatabaseInspectorTabProvider.DATABASE_INSPECTOR_ID)).thenReturn(true)
+
+    runDispatching { databaseInspectorController.startAppInspectionSession(mock(), ideServices, processDescriptor, processDescriptor.name) }
 
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
@@ -1650,6 +1698,11 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         .thenThrow(FileDatabaseException::class.java)
     }
 
+    val ideServices = mock<AppInspectionIdeServices>()
+    `when`(ideServices.isTabSelected(DatabaseInspectorTabProvider.DATABASE_INSPECTOR_ID)).thenReturn(true)
+
+    runDispatching { databaseInspectorController.startAppInspectionSession(mock(), ideServices, processDescriptor, processDescriptor.name) }
+
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
       databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
@@ -1666,7 +1719,10 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     whenever(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
-    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
+    val ideServices = mock<AppInspectionIdeServices>()
+    `when`(ideServices.isTabSelected(DatabaseInspectorTabProvider.DATABASE_INSPECTOR_ID)).thenReturn(true)
+
+    runDispatching { databaseInspectorController.startAppInspectionSession(mock(), ideServices, processDescriptor, processDescriptor.name) }
 
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.sdk;
 
-import static com.android.testutils.TestUtils.getEmbeddedJdk8Path;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
+import static com.android.tools.idea.testing.AndroidGradleTests.getEmbeddedJdk8Path;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.spy;

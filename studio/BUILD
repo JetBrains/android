@@ -11,7 +11,6 @@ studio_plugin(
         "//prebuilts/tools/common/archive-patcher:shared",
         "//prebuilts/tools/common/m2:okio",
         "//prebuilts/tools/common/m2:moshi",
-        "//prebuilts/tools/common/m2:utp-core-proto",
         "//prebuilts/tools/common/m2:eclipse-layout-kernel",
         "//prebuilts/tools/common/m2:juniversalchardet",
         "//prebuilts/tools/common/m2:commons-lang",
@@ -20,6 +19,7 @@ studio_plugin(
         "//prebuilts/tools/common/m2:jetifier-core",
         "//prebuilts/tools/common/m2:flatbuffers-java",
         "//prebuilts/tools/common/m2:tensorflow-lite-metadata",
+        "//prebuilts/tools/common/m2:trace-perfetto-library",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/.idea/libraries:aia-proto",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
@@ -45,6 +45,7 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/.idea/libraries:transport-proto",
+        "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
         "//tools/adt/idea/.idea/libraries:zxing-core",
         "//tools/adt/idea/android:libandroid-core-proto",
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
@@ -73,6 +74,7 @@ studio_plugin(
     ],
     licenses = [
         "//prebuilts/r8:license",
+        "//prebuilts/tools/common/m2:ffmpeg-licenses",
         "//tools/adt/idea/android/lib:licenses",
     ],
     modules = {
@@ -224,6 +226,7 @@ studio_plugin(
             "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility",
             "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
             "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+            "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
             "//tools/base/deploy/deployer:studio.android.sdktools.deployer",
             "//tools/base/device_validator:studio.android.sdktools.dvlib",
             "//tools/base/draw9patch:studio.android.sdktools.draw9patch",
@@ -352,6 +355,7 @@ studio_plugin(
             "//tools/adt/idea/design-plugin:intellij.android.design-plugin",
             "//tools/adt/idea/designer/customview:intellij.android.designer.customview",
             "//tools/adt/idea/designer:intellij.android.designer",
+            "//tools/adt/idea/glance-designer:intellij.android.glance-designer",
             "//tools/adt/idea/layoutlib:intellij.android.layoutlib",
             "//tools/adt/idea/nav/editor:intellij.android.nav.editor",
         ],
@@ -393,6 +397,26 @@ studio_plugin(
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+    ],
+)
+
+studio_plugin(
+    name = "com.google.gct.directaccess",
+    directory = "directaccess",
+    libs = [
+        "//tools/adt/idea/.idea/libraries:directaccess_client_proto",
+    ],
+    modules = {
+        "directaccess.jar": ["//tools/studio/google/cloud/testing/directaccess:directaccess"],
+        "directaccess-client.jar": ["//tools/vendor/google/directaccess-client:directaccess-client"],
+    },
+    resources = {
+        "resources": ["//tools/vendor/google/directaccess-client/reverse-daemon:daemon"],
+    },
+    deps = [
+        ":com.google.gct.login",
+        ":com.google.gct.testing",
+        ":org.jetbrains.android",
     ],
 )
 
@@ -554,6 +578,7 @@ android_studio(
         ":com.android.tools.design",
         ":androidx.compose.plugins.idea",
         ":com.google.services.firebase",
+        ":com.google.gct.directaccess",
         ":com.google.gct.testing",
         ":com.google.appindexing",
         ":com.google.gct",
@@ -565,10 +590,13 @@ android_studio(
         ":com.google.urlassistant",
     ],
     searchable_options = "//tools/adt/idea/searchable-options",
-    version_eap = True,
-    version_full = "Electric Eel | {0}.{1}.{2} Canary {3}",
-    version_micro = 1,
-    version_patch = 9,
+    version_code_name = "Electric Eel",
+    version_micro_patch = "1.12",
+    # This will get added to the end of the full-version string.
+    # TODO(b/240707039): automate this.
+    version_release_number = 2,
+    version_type = "Beta",
+    # version_update_message = "<html>this is optional</html>",
     visibility = ["//visibility:public"],
 )
 
@@ -675,6 +703,7 @@ iml_module(
         "//tools/vendor/google/android-ndk[module]",
         "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as[module]",
         "//tools/vendor/google/firebase[module]",
+        "//tools/studio/google/cloud/testing/directaccess[module]",
         "//tools/studio/google/cloud/testing/firebase-testing[module]",
         "//tools/studio/google/appindexing:google-appindexing[module]",
         "//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as[module]",
@@ -805,3 +834,6 @@ iml_test(
     module = ":intellij.android.studio.integration",
     test_class = "com.android.tools.idea.UpdateTest",
 )
+
+# TODO(b/239839457): Remove this export when a real metadata file is generated.
+exports_files(["metadata.textproto.template"])

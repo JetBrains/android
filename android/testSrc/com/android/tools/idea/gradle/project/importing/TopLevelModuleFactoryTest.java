@@ -50,11 +50,12 @@ public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
     File projectRootFolderPath = prepareProjectForImport(SIMPLE_APPLICATION);
 
     Project project = getProject();
+    GradleProjectImporter.Companion.configureNewProject(project);
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     Module[] modules = moduleManager.getModules();
     assertThat(modules).isEmpty(); // Just make sure we start with a project with no modules.
 
-    ApplicationManager.getApplication().runWriteAction(() -> myTopLevelModuleFactory.createTopLevelModule(project));
+    ApplicationManager.getApplication().runWriteAction(() -> { myTopLevelModuleFactory.createOrConfigureTopLevelModule(project); });
 
     modules = moduleManager.getModules();
 

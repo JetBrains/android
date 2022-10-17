@@ -973,6 +973,25 @@ class AndroidTestResultsTableViewTest {
   }
 
   @Test
+  fun countSkippedTestCases() {
+    val table = AndroidTestResultsTableView(
+      mockListener, mockJavaPsiFacade, mockModule, mockTestArtifactSearchScopes, mockLogger, mockAndroidTestResultsUserPreferencesManager)
+    val device1 = device("deviceId1", "deviceName1")
+
+    table.addDevice(device1)
+
+    val testCase1 = AndroidTestCase("testid1", "method1", "class1", "package1")
+    val testCase2 = AndroidTestCase("testid2", "method2", "class1", "package1")
+
+    table.addTestCase(device1, testCase1)
+    table.addTestCase(device1, testCase2)
+    testCase1.result = AndroidTestCaseResult.SKIPPED
+    testCase2.result = AndroidTestCaseResult.PASSED
+
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummaryText(listOf(device1))).isEqualTo("1/1")
+  }
+
+  @Test
   fun selectAndroidTestCase() {
     val table = AndroidTestResultsTableView(
       mockListener, mockJavaPsiFacade, mockModule, mockTestArtifactSearchScopes, mockLogger, mockAndroidTestResultsUserPreferencesManager)

@@ -41,7 +41,7 @@ class GradleSyncEventLoggerTest {
   fun whenStarted() {
     eventLogger.syncStarted(GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT, GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)
 
-    val event = eventLogger.generateSyncEvent(projectRule.project, AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED)
+    val event = eventLogger.generateSyncEvent(projectRule.project, "/", AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED)
 
     expect.that(event.gradleSyncStats.syncType).named("syncType").isEqualTo(GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT)
     expect.that(event.gradleSyncStats.trigger).named("trigger").isEqualTo(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)
@@ -56,7 +56,7 @@ class GradleSyncEventLoggerTest {
     now = 2
     eventLogger.setupStarted()
 
-    val event = eventLogger.generateSyncEvent(projectRule.project, AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED)
+    val event = eventLogger.generateSyncEvent(projectRule.project, "/", AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED)
 
     expect.that(event.gradleSyncStats.syncType).named("syncType").isEqualTo(GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT)
     expect.that(event.gradleSyncStats.trigger).named("trigger").isEqualTo(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)
@@ -73,7 +73,7 @@ class GradleSyncEventLoggerTest {
     now = 5
     eventLogger.syncEnded()
 
-    val event = eventLogger.generateSyncEvent(projectRule.project, AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED)
+    val event = eventLogger.generateSyncEvent(projectRule.project, "/", AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED)
 
     expect.that(event.gradleSyncStats.syncType).named("syncType").isEqualTo(GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT)
     expect.that(event.gradleSyncStats.trigger).named("trigger").isEqualTo(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)

@@ -14,8 +14,8 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions.common" exported="" />
     <orderEntry type="module" module-name="android.sdktools.analytics-crash" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.android-extensions-compiler-plugin" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.android-extensions-compiler-plugin" level="project" />
     <orderEntry type="module" module-name="intellij.android.jps.model" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
     <orderEntry type="module" module-name="intellij.platform.lang.core" />

@@ -16,13 +16,13 @@
 package com.android.build.attribution.analyzers
 
 import com.android.SdkConstants
-import com.android.build.attribution.BuildAttributionManagerImpl
-import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
+import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil
+import kotlinx.collections.immutable.toImmutableMap
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -51,10 +51,12 @@ class AppliedPluginsTest {
 
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
-    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
 
-    assertThat(buildAttributionManager.analyzersProxy.getAppliedPlugins()).hasSize(2)
-    val appliedPluginsForAppProject = buildAttributionManager.analyzersProxy.getAppliedPlugins()[":app"]!!.map { it.displayNames().first() }
+    assertThat(results.getAppliedPlugins()).hasSize(2)
+    val appliedPluginsForAppProject =
+      results.getAppliedPlugins().toImmutableMap()[":app"]!!.map { it.displayNames().first() }
     assertThat(appliedPluginsForAppProject).containsAllIn(
       listOf("SamplePlugin", "com.android.application", "org.gradle.api.plugins.JavaBasePlugin")
     )

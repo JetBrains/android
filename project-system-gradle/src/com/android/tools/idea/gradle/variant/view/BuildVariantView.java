@@ -22,7 +22,7 @@ import static com.intellij.util.ui.UIUtil.getToolTipBackground;
 
 import com.android.tools.idea.fileTypes.AndroidIconProvider;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
@@ -76,6 +76,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 
 /**
  * The contents of the "Build Variants" tool window.
@@ -613,25 +614,30 @@ public class BuildVariantView {
     }
   }
 
-  static class SyncListener implements GradleSyncListener {
+  static class SyncListener implements GradleSyncListenerWithRoot {
     @Override
-    public void syncStarted(@NotNull Project project) {
+    public void syncStarted(@NotNull Project project, @SystemIndependent String rootProjectPath) {
       BuildVariantView.getInstance(project).projectImportStarted();
     }
 
     @Override
-    public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+    public void syncFailed(@NotNull Project project, @NotNull String errorMessage, @SystemIndependent String rootProjectPath) {
       BuildVariantView.getInstance(project).projectImportFinished();
     }
 
     @Override
-    public void syncSucceeded(@NotNull Project project) {
+    public void syncSucceeded(@NotNull Project project, @SystemIndependent String rootProjectPath) {
       BuildVariantView.getInstance(project).projectImportFinished();
     }
 
     @Override
     public void syncSkipped(@NotNull Project project) {
       BuildVariantView.getInstance(project).projectImportFinished();
+    }
+
+    @Override
+    public void syncCancelled(@NotNull Project project, @NotNull @SystemIndependent String rootProjectPath) {
+
     }
   }
 }

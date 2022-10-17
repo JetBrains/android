@@ -13,7 +13,6 @@ COMMON_DATA = [
     "//prebuilts/studio/sdk:licenses",
     "//prebuilts/studio/sdk:ndk",
     "//prebuilts/studio/sdk:platform-tools",
-    "//prebuilts/studio/sdk:platforms/latest",
     "//prebuilts/studio/sdk:sources",
     "//tools/adt/idea/android/annotations",
     "//tools/adt/idea/android/lib:sampleData",
@@ -38,6 +37,7 @@ AGP_4_2 = "4.2.0"
 AGP_7_0 = "7.0.0"
 AGP_7_1 = "7.1.0"
 AGP_7_2 = "7.2.0"
+AGP_7_3 = "7.3.0-beta05"
 
 AGP_MAVEN_REPOS = {
     AGP_3_1_4: ["//tools/base/build-system/previous-versions:3.1.4"],
@@ -49,24 +49,55 @@ AGP_MAVEN_REPOS = {
     AGP_7_0: ["//tools/base/build-system/previous-versions:7.0.0"],
     AGP_7_1: ["//tools/base/build-system/previous-versions:7.1.0"],
     AGP_7_2: ["//tools/base/build-system/previous-versions:7.2.0"],
+    AGP_7_3: ["//tools/base/build-system/previous-versions:7.3.0"],
 }
 
 AGP_DATA = {
-    AGP_3_1_4: ["//prebuilts/studio/sdk:build-tools/28.0.3"],
-    AGP_3_3_2: ["//prebuilts/studio/sdk:build-tools/28.0.3"],
+    AGP_3_1_4: [
+        "//prebuilts/studio/sdk:build-tools/28.0.3",
+        "//prebuilts/studio/sdk:platforms/android-32",
+    ],
+    AGP_3_3_2: [
+        "//prebuilts/studio/sdk:build-tools/28.0.3",
+        "//prebuilts/studio/sdk:platforms/android-32",
+    ],
     AGP_3_5: [
         "//prebuilts/studio/sdk:build-tools/28.0.3",
         "//prebuilts/studio/sdk:platforms/android-28",
+        "//prebuilts/studio/sdk:platforms/android-32",
     ],
-    AGP_4_0: ["//prebuilts/studio/sdk:build-tools/29.0.2"],
-    AGP_4_1: ["//prebuilts/studio/sdk:build-tools/29.0.2"],
-    AGP_4_2: ["//prebuilts/studio/sdk:build-tools/30.0.2"],
-    AGP_7_0: ["//prebuilts/studio/sdk:build-tools/30.0.2"],
-    AGP_7_1: ["//prebuilts/studio/sdk:build-tools/30.0.2"],
-    AGP_7_2: ["//prebuilts/studio/sdk:build-tools/30.0.2"],
+    AGP_4_0: [
+        "//prebuilts/studio/sdk:build-tools/29.0.2",
+        "//prebuilts/studio/sdk:platforms/android-32",
+    ],
+    AGP_4_1: [
+        "//prebuilts/studio/sdk:build-tools/29.0.2",
+        "//prebuilts/studio/sdk:platforms/android-32",
+    ],
+    AGP_4_2: [
+        "//prebuilts/studio/sdk:build-tools/30.0.2",
+        "//prebuilts/studio/sdk:platforms/android-32",
+    ],
+    AGP_7_0: [
+        "//prebuilts/studio/sdk:build-tools/30.0.2",
+        "//prebuilts/studio/sdk:platforms/android-32",
+    ],
+    AGP_7_1: [
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:platforms/android-32",
+    ],
+    AGP_7_2: [
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:platforms/latest",
+    ],
+    AGP_7_3: [
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:platforms/latest",
+    ],
 }
 
 GRADLE_LATEST = "LATEST"
+GRADLE_7_4 = "7.4"
 GRADLE_7_3_3 = "7.3.3"
 GRADLE_7_2 = "7.2"
 GRADLE_7_0_2 = "7.0.2"
@@ -77,6 +108,7 @@ GRADLE_5_3_1 = "5.3.1"
 
 GRADLE_DISTRIBUTIONS = {
     GRADLE_LATEST: ["//tools/base/build-system:gradle-distrib"],
+    GRADLE_7_4: ["//tools/base/build-system:gradle-distrib-7.4"],
     GRADLE_7_3_3: ["//tools/base/build-system:gradle-distrib-7.3.3"],
     GRADLE_7_2: ["//tools/base/build-system:gradle-distrib-7.2"],
     GRADLE_7_0_2: ["//tools/base/build-system:gradle-distrib-7.0.2"],

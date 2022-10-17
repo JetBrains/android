@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.common.base.Charsets
+import java.awt.Rectangle
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.InputStreamReader
@@ -76,7 +77,7 @@ object LegacyTreeParser {
     val (name, dataWithoutName) = data.split('@', limit = 2)
     val (hash, properties) = dataWithoutName.split(' ', limit = 2)
     val hashId = hash.toLongOrNull(16) ?: 0
-    val view = ViewNode(hashId, name, null, 0, 0, 0, 0, null, null, "", 0)
+    val view = ViewNode(hashId, name, null, Rectangle(), Rectangle(), null, "", 0)
     ViewNode.writeAccess {
       view.parent = parent
       parent?.children?.add(view)

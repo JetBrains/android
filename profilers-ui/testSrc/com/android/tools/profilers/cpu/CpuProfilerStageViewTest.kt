@@ -38,7 +38,6 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
@@ -72,15 +71,18 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
 
   private val myTransportService = if (isTestingProfileable) {
     FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
-  } else FakeTransportService(myTimer)
+  }
+  else FakeTransportService(myTimer)
 
   @get:Rule
   val myGrpcChannel = FakeGrpcChannel(
     "CpuCaptureViewTestChannel", myCpuService, myTransportService, FakeProfilerService(myTimer),
-    FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
+    FakeMemoryService(), FakeEventService()
   )
+
   @get:Rule
   val myEdtRule = EdtRule()
+
   @get:Rule
   val applicationRule = ApplicationRule()
 
@@ -117,7 +119,6 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
     myStage.profilerConfigModel.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
     CpuProfilerTestUtils.captureSuccessfully(
       myStage,
-      myCpuService,
       myTransportService,
       CpuProfilerTestUtils.traceFileToByteString(resolveWorkspacePath(TOOLTIP_TRACE_DATA_FILE).toFile()))
     myStage.studioProfilers.sessionsManager.endCurrentSession()
@@ -261,7 +262,8 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
     .first()
 
   companion object {
-    @Parameterized.Parameters @JvmStatic
+    @Parameterized.Parameters
+    @JvmStatic
     fun isTestingProfileable() = listOf(false, true) // whether process is profileable/debuggable, regardless of feature flag
   }
 }

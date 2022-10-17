@@ -176,10 +176,6 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
       }
     };
     myFacet.getModule().getProject().getMessageBus().connect(this).subscribe(ResourceFolderManager.TOPIC, resourceFolderListener);
-    ResourceUpdateTracer.logDirect(() ->
-      TraceUtils.getSimpleId(this) + " created for module " + facet.getModule().getName() + " with children " +
-          TraceUtils.getSimpleIds(delegates)
-    );
   }
 
   @VisibleForTesting

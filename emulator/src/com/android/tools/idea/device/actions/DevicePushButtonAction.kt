@@ -17,14 +17,19 @@ package com.android.tools.idea.device.actions
 
 import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_UP
+import com.android.tools.idea.device.DeviceConfiguration
 import com.android.tools.idea.device.KeyEventMessage
 import com.android.tools.idea.emulator.actions.PushButtonAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import java.util.function.Predicate
 
 /**
  * Simulates pressing and releasing a button on an Android device.
  */
-internal open class DevicePushButtonAction(private val keyCode: Int) : AbstractDeviceAction(), PushButtonAction {
+internal open class DevicePushButtonAction(
+  private val keyCode: Int,
+  configFilter: Predicate<DeviceConfiguration>? = null,
+) : AbstractDeviceAction(configFilter), PushButtonAction {
 
   override fun buttonPressed(event: AnActionEvent) {
     getDeviceController(event)?.sendControlMessage(KeyEventMessage(ACTION_DOWN, keyCode, metaState = 0))

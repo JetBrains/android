@@ -45,9 +45,7 @@ import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryCaptureStage;
 import com.android.tools.profilers.memory.MemoryMonitorTooltip;
-import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionsView;
-import com.android.tools.tests.memory.ReferenceWalker;
 import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
@@ -222,38 +220,6 @@ public class StudioProfilersViewTest {
     myUi.mouse.moveTo(0, 0);
     assertThat(stage.getTooltip()).isNull();
     stage.getMonitors().forEach(monitor -> Truth.assertWithMessage("No monitor should be focused.").that(monitor.isFocused()).isFalse());
-  }
-
-  @Test
-  public void testMonitorStage() throws Exception {
-    transitionStage(new StudioMonitorStage(myProfilers));
-  }
-
-  @Test
-  public void testNetworkStage() throws Exception {
-    transitionStage(new NetworkProfilerStage(myProfilers));
-  }
-
-  @Test
-  public void testMemoryStage() throws Exception {
-    transitionStage(new MainMemoryProfilerStage(myProfilers));
-  }
-
-  @Test
-  public void testCpuStage() throws Exception {
-    transitionStage(new CpuProfilerStage(myProfilers));
-  }
-
-  @Test
-  public void testEnergyStage() throws Exception {
-    transitionStage(new EnergyProfilerStage(myProfilers));
-  }
-
-  @Test
-  public void testNoStage() throws Exception {
-    StudioProfilersView view = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
-    JLayeredPane component = view.getComponent();
-    new ReferenceWalker(myProfilers).assertNotReachable(view, component);
   }
 
   @Test
@@ -579,7 +545,7 @@ public class StudioProfilersViewTest {
     menuShowsSupportedStages(CpuProfilerStage.class, MainMemoryProfilerStage.class);
   }
 
-  private void menuShowsSupportedStages(Class<?> ... expected) {
+  private void menuShowsSupportedStages(Class<?>... expected) {
     TreeWalker t = new TreeWalker(myView.getCommonToolbar());
     Predicate<ComboBoxModel<?>> itemsChecker = model ->
       model.getSize() == expected.length &&
@@ -636,23 +602,6 @@ public class StudioProfilersViewTest {
     public JComponent getToolbar() {
       return new JLabel("Hello world");
     }
-  }
-
-  public void transitionStage(Stage stage) throws Exception {
-    JLayeredPane component = myView.getComponent();
-    myProfilers.setStage(new FakeStage(myProfilers));
-    new ReferenceWalker(myProfilers).assertNotReachable(myView, component);
-    myProfilers.setStage(stage);
-    // At this point it could be reachable with standard swing listeners.
-    myProfilers.setStage(new FakeStage(myProfilers));
-    // If we leaked a listener or a component in the tree then there will be a path
-    // from the model all the way up to the main view or the main component. There could
-    // be the case that some listeners that don't point to the view/component are still
-    // leaked but it would be pretty rare that such a listener was needed in the first place.
-    new ReferenceWalker(myProfilers).assertNotReachable(myView, component);
-    // L1 and all L2 stages should support streaming.
-    assertThat(myView.getStageView().supportsStreaming()).isTrue();
-    assertThat(myView.getStageView().supportsStageNavigation()).isTrue();
   }
 
   static class FakeView extends StageView<FakeStage> {

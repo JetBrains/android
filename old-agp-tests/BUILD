@@ -1,7 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
-load(":agp_versions.bzl", "AGP_3_1_4", "AGP_3_3_2", "AGP_3_5", "AGP_4_0", "AGP_4_1", "AGP_4_2", "AGP_7_0", "AGP_7_1", "AGP_7_2", "GRADLE_5_3_1", "GRADLE_5_5", "GRADLE_6_7_1", "GRADLE_7_0_2", "GRADLE_7_2", "GRADLE_7_3_3", "GRADLE_LATEST", "local_old_agp_test")
+load(":agp_versions.bzl", "AGP_3_1_4", "AGP_3_3_2", "AGP_3_5", "AGP_4_0", "AGP_4_1", "AGP_4_2", "AGP_7_0", "AGP_7_1", "AGP_7_2", "AGP_7_3", "GRADLE_5_3_1", "GRADLE_5_5", "GRADLE_6_7_1", "GRADLE_7_0_2", "GRADLE_7_2", "GRADLE_7_3_3", "GRADLE_7_4", "GRADLE_LATEST", "local_old_agp_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -26,7 +26,6 @@ iml_module(
         "//prebuilts/studio/sdk:ndk",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/android-28",
-        "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platforms/latest-preview",
         "//prebuilts/studio/sdk:sources",
         "//prebuilts/tools/common/m2:org.jetbrains.kotlin.kotlin-gradle-plugin.1.5.21",
@@ -83,7 +82,7 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:androidx.annotation.annotation_1.2.0-beta01",
+        "@maven//:androidx.annotation.annotation_1.2.0-rc01",
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
@@ -101,7 +100,7 @@ maven_repository(
         "@maven//:androidx.savedstate.savedstate_1.1.0-rc01",
         "@maven//:androidx.test.espresso.espresso-core_3.1.0",
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
-        "@maven//:androidx.test.ext.junit_1.1.1",
+        "@maven//:androidx.test.ext.junit_1.1.2",
         "@maven//:androidx.test.ext.junit_1.1.3-alpha02",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
         "@maven//:com.android.support.constraint.constraint-layout_1.1.0",
@@ -213,7 +212,7 @@ local_old_agp_test(
 local_old_agp_test(
     agp_version = AGP_4_2,
     gradle_version = GRADLE_6_7_1,
-    shard_count = 3,
+    shard_count = 4,
     tags = [
         "block-network",
         "no_test_mac",
@@ -246,6 +245,17 @@ local_old_agp_test(
 local_old_agp_test(
     agp_version = AGP_7_2,
     gradle_version = GRADLE_7_3_3,
+    shard_count = 5,
+    tags = [
+        "block-network",
+        "no_test_mac",
+        "no_test_windows",
+    ],
+)
+
+local_old_agp_test(
+    agp_version = AGP_7_3,
+    gradle_version = GRADLE_7_4,
     shard_count = 5,
     tags = [
         "block-network",

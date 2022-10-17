@@ -6,7 +6,7 @@
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$WORKSPACE_ROOT$/prebuilts/tools/common/m2/repository/org/easymock/easymock/4.0.2/easymock-4.0.2-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/easymock/easymock/4.0.2/easymock-4.0.2-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

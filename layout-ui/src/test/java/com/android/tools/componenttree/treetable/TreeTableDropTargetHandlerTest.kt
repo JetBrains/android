@@ -31,6 +31,8 @@ import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.ColorUtil
 import com.intellij.util.ui.UIUtil
@@ -63,6 +65,7 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JScrollPane
 
+@RunsInEdt
 class TreeTableDropTargetHandlerTest {
 
   companion object {
@@ -75,7 +78,8 @@ class TreeTableDropTargetHandlerTest {
   val chain = RuleChain
     .outerRule(SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true))
     .around(MockitoCleanerRule())
-    .around(IconLoaderRule())!!
+    .around(IconLoaderRule())
+    .around(EdtRule())!!
 
   private val item1 = Item(SdkConstants.FQCN_LINEAR_LAYOUT)
   private val item2 = Item(SdkConstants.FQCN_GRID_LAYOUT)

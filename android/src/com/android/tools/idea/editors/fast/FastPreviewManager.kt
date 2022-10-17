@@ -25,6 +25,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
+import com.android.tools.idea.util.toDisplayString
 import com.google.common.cache.CacheBuilder
 import com.google.common.hash.Hashing
 import com.intellij.notification.Notification
@@ -51,7 +52,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withContext
-import org.apache.commons.lang.time.DurationFormatUtils
 import org.jetbrains.annotations.TestOnly
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -70,16 +70,6 @@ private fun Throwable.toLogString(): String {
   printStackTrace(PrintWriter(exceptionStackWriter))
 
   return exceptionStackWriter.toString()
-}
-
-/**
- * Converts the given duration to a display string that contains minutes (if the duration is greater than 60s), seconds and
- * milliseconds.
- */
-private fun Duration.toDisplayString(): String {
-  val durationMs = toMillis()
-  val durationFormat = if (durationMs >= 60_000) "mm 'm' ss 's' SSS 'ms'" else "ss 's' SSS 'ms'"
-  return DurationFormatUtils.formatDuration(durationMs, durationFormat, false)
 }
 
 data class DisableReason(val title: String, val description: String? = null, val throwable: Throwable? = null) {

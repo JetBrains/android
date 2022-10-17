@@ -67,10 +67,16 @@ interface AppInspectionIdeServices {
    * the navigation, which is why it is a suspend function and should get launched on a background thread.
    */
   suspend fun navigateTo(codeLocation: CodeLocation)
+
+  /**
+   * Returns true if the tab corresponding to [inspectorId] is currently selected in the App Inspection tool window.
+   */
+  fun isTabSelected(inspectorId: String): Boolean
 }
 
 open class AppInspectionIdeServicesAdapter : AppInspectionIdeServices {
   override fun showToolWindow(callback: () -> Unit) {}
   override fun showNotification(content: String, title: String, severity: AppInspectionIdeServices.Severity, hyperlinkClicked: () -> Unit) {}
   override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {}
+  override fun isTabSelected(inspectorId: String) = false
 }

@@ -34,6 +34,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode.Companion.readAccess
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.ui.LINES
 import com.google.common.annotations.VisibleForTesting
@@ -46,6 +47,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.SpeedSearchComparator
@@ -105,6 +107,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private var filter = ""
   private val modelModifiedListener = ::modelModified
   private val selectionChangedListener = ::selectionChanged
+  private val connectionListener = ::handleConnectionChange
   private var upAction: Action? = null
   private var downAction: Action? = null
 
@@ -160,7 +163,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       inspectorModel?.apply {
         val view = (it.firstOrNull() as? TreeViewNode)?.view
         setSelection(view, SelectionOrigin.COMPONENT_TREE)
-        layoutInspector?.stats?.selectionMadeFromComponentTree(view)
+        layoutInspector?.currentClient?.stats?.selectionMadeFromComponentTree(view)
       }
     }
     inspectorModel?.modificationListeners?.add { _, _, _ -> componentTreePanel.repaint() }
@@ -240,21 +243,23 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   private fun doubleClick() {
     val model = inspectorModel ?: return
-    layoutInspector?.stats?.gotoSourceFromDoubleClick()
+    layoutInspector?.currentClient?.stats?.gotoSourceFromDoubleClick()
     GotoDeclarationAction.findNavigatable(model)?.navigate(true)
   }
 
   fun updateRecompositionColumnVisibility() {
-    val show = layoutInspector?.treeSettings?.showRecompositions ?: false &&
-               layoutInspector?.currentClient?.isConnected ?: false
-    interactions.setHeaderVisibility(show)
-    interactions.setColumnVisibility(1, show)
-    interactions.setColumnVisibility(2, show)
+    invokeLater {
+      val show = layoutInspector?.treeSettings?.showRecompositions ?: false &&
+                 layoutInspector?.currentClient?.isConnected ?: false
+      interactions.setHeaderVisibility(show)
+      interactions.setColumnVisibility(1, show)
+      interactions.setColumnVisibility(2, show)
+    }
   }
 
   private fun resetRecompositionCountsFromTableHeaderClick() {
     resetRecompositionCounts()
-    layoutInspector?.stats?.resetRecompositionCountsClick()
+    layoutInspector?.currentClient?.stats?.resetRecompositionCountsClick()
   }
 
   fun resetRecompositionCounts() {
@@ -269,11 +274,13 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   override fun setToolContext(toolContext: LayoutInspector?) {
     inspectorModel?.modificationListeners?.remove(modelModifiedListener)
     inspectorModel?.selectionListeners?.remove(selectionChangedListener)
+    inspectorModel?.connectionListeners?.remove(connectionListener)
     layoutInspector = toolContext
     nodeType.model = inspectorModel
     inspectorModel?.modificationListeners?.add(modelModifiedListener)
     componentTreeModel.treeRoot = root
     inspectorModel?.selectionListeners?.add(selectionChangedListener)
+    inspectorModel?.connectionListeners?.add(connectionListener)
     inspectorModel?.windows?.values?.forEach { modelModified(null, it, true) }
     updateRecompositionColumnVisibility()
   }
@@ -380,7 +387,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     inspectorModel?.apply {
       if (node.view !== selection) {
         setSelection(node.view, SelectionOrigin.COMPONENT_TREE)
-        layoutInspector?.stats?.selectionMadeFromComponentTree(node.view)
+        layoutInspector?.currentClient?.stats?.selectionMadeFromComponentTree(node.view)
       }
     }
   }
@@ -432,8 +439,10 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     }
     updateRecompositionColumnVisibility()
     inspectorModel?.let { model ->
-      layoutInspector?.stats?.updateRecompositionStats(model.maxRecomposition, model.maxHighlight)
+      layoutInspector?.currentClient?.stats?.updateRecompositionStats(model.maxRecomposition, model.maxHighlight)
     }
+    // Make an explicit update of the toolbar now (the tree expand actions may have been enabled/disabled)
+    invokeLater { toolWindowCallback?.updateActions() }
   }
 
   private fun addToRoot(window: AndroidWindow): TreeViewNode {
@@ -484,6 +493,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   @Suppress("UNUSED_PARAMETER")
   private fun selectionChanged(oldView: ViewNode?, newView: ViewNode?, origin: SelectionOrigin) {
     componentTreeSelectionModel.currentSelection = listOfNotNull(newView?.treeNode)
+  }
+
+  @Suppress("UNUSED_PARAMETER")
+  private fun handleConnectionChange(client: InspectorClient?) {
+    updateRecompositionColumnVisibility()
   }
 
   private class TreeAction(private val action: (ActionEvent) -> Unit): AbstractAction() {

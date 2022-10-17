@@ -175,7 +175,7 @@ class DownloadsAnalyzerUnitTest {
     wrapper.onBuildSuccess(
       attributionData,
       GradlePluginsData.emptyData,
-      Mockito.mock(BuildEventsAnalysisResult::class.java),
+      Mockito.mock(BuildEventsAnalyzersProxy::class.java),
       StudioProvidedInfo(
         agpVersion = null,
         gradleVersion = GradleVersion.parse("7.3"),
@@ -244,7 +244,7 @@ class DownloadsAnalyzerUnitTest {
     wrapper.onBuildSuccess(
       attributionData,
       GradlePluginsData.emptyData,
-      Mockito.mock(BuildEventsAnalysisResult::class.java),
+      Mockito.mock(BuildEventsAnalyzersProxy::class.java),
       StudioProvidedInfo(
         agpVersion = null,
         gradleVersion = gradleVersion?.let{ GradleVersion.parse(it) },

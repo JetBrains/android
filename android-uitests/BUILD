@@ -124,14 +124,14 @@ maven_repository(
         "@maven//:android.arch.navigation.navigation-fragment_1.0.0",
         "@maven//:android.arch.navigation.navigation-ui_1.0.0",
         "@maven//:android.arch.persistence.room.runtime_1.0.0",
-        "@maven//:androidx.annotation.annotation_1.2.0-beta01",
+        "@maven//:androidx.annotation.annotation_1.2.0-rc01",
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.appcompat.appcompat_1.4.1",
         "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.0-beta04",
-        "@maven//:androidx.compose.compiler.compiler_1.2.0-beta01",
-        "@maven//:androidx.compose.ui.ui-test-junit4_1.2.0-beta01",
-        "@maven//:androidx.compose.ui.ui-tooling_1.2.0-beta01",
+        "@maven//:androidx.compose.compiler.compiler_1.2.0",
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.2.0",
+        "@maven//:androidx.compose.ui.ui-tooling_1.2.0",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:androidx.core.core-ktx_1.0.1",
@@ -171,6 +171,8 @@ maven_repository(
         "@maven//:com.android.support.support-v13_28.0.0",
         "@maven//:com.android.support.support-v4_27.1.1",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
+        "@maven//:com.android.tools.build.gradle_7.1.0",
+        "@maven//:com.android.tools.build.gradle_7.2.0",
         "@maven//:com.android.tools.desugar_jdk_libs_1.0.5",
         "@maven//:com.android.tools.lint.lint-checks_26.5.0",
         "@maven//:com.github.bumptech.glide.glide_4.11.0",
@@ -199,13 +201,13 @@ maven_repository(
         "@maven//:javax.annotation.javax.annotation-api_1.2",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
-        "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.6.21",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.6.21",
-        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.6.21",
-        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.6.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.7.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.7.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.7.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.6.21",
-        "@maven//:org.mockito.mockito-core_3.0.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.0",
+        "@maven//:org.mockito.mockito-core_3.12.4",
     ],
 )
 
@@ -563,6 +565,23 @@ java_test(
 )
 
 java_test(
+    name = "XMLCodeStyleTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ] + glob([
+        "testData/SimpleApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.XMLCodeStyleTest"],
+    tags = COMMON_TAGS + [
+        "qa_smoke",
+        "no_mac",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "AltEnterSuggestionsTest",
     size = "large",
     data = COMMON_DATA + [
@@ -572,7 +591,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.AltEnterSuggestionsTest"],
     tags = COMMON_TAGS + [
-        "qa_fast",
+        "qa_smoke",
         "no_mac",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -650,7 +669,9 @@ java_test(
         "testData/ImportLocalWebpProject/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.ConvertToWebpActionTest"],
-    tags = COMMON_TAGS + ["manual"],  #Sanity tests passing, but other tests fail
+    tags = COMMON_TAGS + [
+        "qa_smoke",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -1044,6 +1065,24 @@ java_test(
     tags = COMMON_TAGS + [
         "qa_smoke",
     ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "AddDebugAndReleaseSourceSetToProjectTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ] + glob([
+        "testData/SimpleApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddDebugAndReleaseSourceSetToProjectTest"],
+    tags = COMMON_TAGS + [
+        "qa_fast",
+        "no_mac",
+        "very_flaky",
+    ],  # b/240730295 - Flaky Product issues.
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -1487,7 +1526,7 @@ java_test(
 java_test(
     name = "NewComposeProjectTest",
     size = "large",
-    timeout = "moderate",
+    timeout = "long",
     data = COMMON_DATA,
     flaky = True,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.compose.NewComposeProjectTest"],
@@ -2403,6 +2442,19 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.CreateFromPreexistingApkTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "AgpUpgradeFromBuildGradleFile",
+    data = COMMON_DATA + glob([
+        "testData/SimpleApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.AgpUpgradeFromBuildGradleFile"],
+    tags = COMMON_TAGS + [
+        "qa_smoke",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

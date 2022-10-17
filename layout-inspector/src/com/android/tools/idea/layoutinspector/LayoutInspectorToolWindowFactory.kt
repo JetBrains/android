@@ -26,18 +26,18 @@ import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
+import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetectionInitializer
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
-import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
-import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessListener
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.stopInspector
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
-import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
@@ -116,10 +116,9 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
         lateinit var launcher: InspectorClientLauncher
         val treeSettings = InspectorTreeSettings { launcher.activeClient }
-        val stats = SessionStatistics(model, treeSettings)
-        val metrics = LayoutInspectorMetrics(project, null, stats)
+        val metrics = LayoutInspectorMetrics(project, null)
         launcher = InspectorClientLauncher.createDefaultLauncher(processesModel, model, metrics, treeSettings, workbench)
-        val layoutInspector = LayoutInspector(launcher, model, stats, treeSettings)
+        val layoutInspector = LayoutInspector(launcher, model, treeSettings)
 
         val deviceModel = DeviceModel(processesModel)
         val foregroundProcessDetection = createForegroundProcessDetection(
@@ -131,6 +130,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
           deviceModel = deviceModel,
           onDeviceSelected = { newDevice -> foregroundProcessDetection?.startPollingDevice(newDevice) },
           onProcessSelected = { newProcess -> processesModel.selectedProcess = newProcess },
+          onStopInspector = { stopInspector(deviceModel, processesModel, foregroundProcessDetection) },
           layoutInspector = layoutInspector,
           viewSettings = viewSettings,
           disposableParent = workbench
@@ -243,7 +243,7 @@ class LayoutInspectorToolWindowManagerListener @VisibleForTesting constructor(pr
     wasWindowVisible = isWindowVisible
     if (windowVisibilityChanged) {
       if (isWindowVisible) {
-        LayoutInspectorMetrics(project).logEvent(DynamicLayoutInspectorEventType.OPEN)
+        LayoutInspectorMetrics(project).logEvent(DynamicLayoutInspectorEventType.OPEN, DisconnectedClient.stats)
       }
       else if (clientLauncher.activeClient.isConnected) {
         toolWindowManager.notifyByBalloon(

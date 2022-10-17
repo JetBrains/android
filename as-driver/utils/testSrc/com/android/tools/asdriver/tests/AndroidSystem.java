@@ -18,6 +18,7 @@ package com.android.tools.asdriver.tests;
 import com.android.testutils.TestUtils;
 import com.android.utils.PathUtils;
 import com.intellij.openapi.util.SystemInfo;
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.AccessDeniedException;
@@ -138,7 +139,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
 
   public AndroidStudio runStudio(AndroidProject project) throws IOException, InterruptedException {
     AndroidStudioInstallation install = getInstallation();
-    return install.run(display, env, project);
+    return install.run(display, env, project, sdk.getSourceDir());
   }
 
   public void runStudio(AndroidProject project, Consumer<AndroidStudio> callback) throws Exception {
@@ -155,7 +156,8 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   public Emulator runEmulator() throws IOException, InterruptedException {
     if (emulator == null) {
       emulator = "emu";
-      Emulator.createEmulator(fileSystem, emulator, TestUtils.resolveWorkspacePath("../system_image_android-29_default_x86_64"));
+      Path workspaceRoot = TestUtils.getWorkspaceRoot("system_image_android-29_default_x86_64");
+      Emulator.createEmulator(fileSystem, emulator, workspaceRoot);
     }
     return Emulator.start(fileSystem, sdk, display, emulator);
   }
@@ -188,16 +190,34 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   public void close() throws Exception {
     display.close();
     try {
-      PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
-    } catch (AccessDeniedException e) {
-      // TODO(b/240166122): on Windows, there seems to be a race condition preventing deletions, so
-      // we try again after waiting for a bit.
-      if (SystemInfo.isWindows) {
-        Thread.sleep(5000);
+      try {
         PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
-      } else {
-        throw e;
+      }
+      catch (AccessDeniedException e) {
+        // TODO(b/240166122): on Windows, there seems to be a race condition preventing deletions, so
+        // we try again after waiting for a bit.
+        if (SystemInfo.isWindows) {
+          Thread.sleep(5000);
+          PathUtils.deleteRecursivelyIfExists(fileSystem.getRoot());
+        }
+        else {
+          throw e;
+        }
       }
     }
+    catch (RuntimeException | IOException e) {
+      System.out.printf("*** Files being written while shutting down system: ***%n");
+      printContents(fileSystem.getRoot().toFile());
+      throw e;
+    }
+  }
+
+  private static void printContents(File root) throws IOException {
+    if (root.isDirectory()) {
+      for (File subPath : root.listFiles()) {
+        printContents(subPath);
+      }
+    }
+    System.out.printf("%s%n", root.getCanonicalPath());
   }
 }

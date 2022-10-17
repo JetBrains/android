@@ -1,0 +1,23 @@
+buildscript {
+
+  ext.kotlin_version = 'to-be-replaced-by-AndroidGradleTests'
+
+  repositories {
+    // This will be populated by AndroidGradleTestCase
+    google()
+    mavenCentral()
+  }
+  dependencies {
+    classpath 'com.android.tools.build:gradle:0.0.0' // The version will be populated by AndroidGradleTestCase
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+  }
+}
+
+allprojects {
+  repositories {
+    // This will be populated by AndroidGradleTestCase
+    google()
+    mavenCentral()
+  }
+}
+

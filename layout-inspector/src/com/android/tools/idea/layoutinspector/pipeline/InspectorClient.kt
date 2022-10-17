@@ -17,12 +17,19 @@ package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.RecompositionData
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_RED
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import java.util.EnumSet
@@ -96,7 +103,7 @@ interface InspectorClient: Disposable {
   /**
    * Register a handle that is triggered when this client receives a launch event.
    */
-  fun registerConnectionTimeoutCallback(callback: (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit)
+  fun registerConnectionTimeoutCallback(callback: (AttachErrorState) -> Unit)
 
   /**
    * Connect this client to the device.
@@ -108,7 +115,7 @@ interface InspectorClient: Disposable {
    */
   fun connect(project: Project)
 
-  fun updateProgress(state: DynamicLayoutInspectorErrorInfo.AttachErrorState)
+  fun updateProgress(state: AttachErrorState)
 
   /**
    * Disconnect this client.
@@ -178,6 +185,11 @@ interface InspectorClient: Disposable {
   val state: State
 
   /**
+   * Saved statistics about the current session.
+   */
+  val stats: SessionStatistics
+
+  /**
    * The process this client is associated with.
    *
    * If a new process is connected, a new client should be created to handle it.
@@ -212,14 +224,14 @@ interface InspectorClient: Disposable {
 
 object DisconnectedClient : InspectorClient {
   override fun connect(project: Project) {}
-  override fun updateProgress(state: DynamicLayoutInspectorErrorInfo.AttachErrorState) {}
+  override fun updateProgress(state: AttachErrorState) {}
 
   override fun disconnect() {}
 
   override fun registerStateCallback(callback: (InspectorClient.State) -> Unit) = Unit
   override fun registerErrorCallback(callback: (String) -> Unit) = Unit
   override fun registerTreeEventCallback(callback: (Any) -> Unit) = Unit
-  override fun registerConnectionTimeoutCallback(callback: (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit) = Unit
+  override fun registerConnectionTimeoutCallback(callback: (AttachErrorState) -> Unit) = Unit
 
   override fun startFetching(): CompletableFuture<Unit> = CompletableFuture.completedFuture(Unit)
   override fun stopFetching(): CompletableFuture<Unit> = CompletableFuture.completedFuture(Unit)
@@ -243,6 +255,7 @@ object DisconnectedClient : InspectorClient {
     override val pid: Int = 0
     override val streamId: Long = 0
   }
+  override val stats: SessionStatistics = DisconnectedSessionStatistics
   override val isInstantlyAutoConnected = false
   override val treeLoader = object : TreeLoader {
     override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, process: ProcessDescriptor): ComponentTreeData? = null
@@ -250,4 +263,27 @@ object DisconnectedClient : InspectorClient {
   }
   override val isCapturing = false
   override val provider = EmptyPropertiesProvider
+}
+
+private object DisconnectedSessionStatistics : SessionStatistics {
+  override fun start() {}
+  override fun save(data: DynamicLayoutInspectorSession.Builder) {}
+  override fun selectionMadeFromImage(view: ViewNode?) {}
+  override fun selectionMadeFromComponentTree(view: ViewNode?) {}
+  override fun refreshButtonClicked() {}
+  override fun gotoSourceFromPropertyValue(view: ViewNode?) {}
+  override fun gotoSourceFromTreeActionMenu(event: AnActionEvent) {}
+  override fun gotoSourceFromDoubleClick() {}
+  override fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {}
+  override fun resetRecompositionCountsClick() {}
+  override fun attachSuccess() {}
+  override fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode) {}
+  override fun frameReceived() {}
+
+  override var currentModeIsLive: Boolean = false
+  override var currentMode3D: Boolean = false
+  override var hideSystemNodes: Boolean = true
+  override var showRecompositions: Boolean = false
+  override var recompositionHighlightColor: Int = HIGHLIGHT_COLOR_RED
+  override val memoryMeasurements: Int = 0
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
-  <component name="FacetManager">
+<component name="FacetManager">
     <facet type="kotlin-language" name="Kotlin">
       <configuration version="3" platform="11" allPlatforms="JVM [11]" useProjectSettings="false">
         <compilerSettings>
@@ -16,12 +16,14 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.compose-samples" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="module-library">
+    <orderEntry type="library" name="mockito" level="project" />
+     <orderEntry type="module-library">
       <library name="compose-desktop-ui-test">
         <CLASSES>
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-test-junit4-desktop/1.1.1/ui-test-junit4-desktop-1.1.1.jar!/" />
@@ -31,8 +33,5 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
-    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
   </component>
 </module>

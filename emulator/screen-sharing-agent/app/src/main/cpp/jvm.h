@@ -189,12 +189,36 @@ class JClass : public JRef<JClass, jclass> {
 public:
   using JRef::JRef;
 
-  jfieldID GetStaticFieldId(const char* name, const char* signature) const;
-  jfieldID GetFieldId(const char* name, const char* signature) const;
-  jmethodID GetStaticMethodId(const char* name, const char* signature) const;
-  jmethodID GetMethodId(const char* name, const char* signature) const;
-  jmethodID GetConstructorId(const char* signature) const;
-  jmethodID GetDeclaredOrInheritedMethodId(const char* name, const char* signature) const;
+  jfieldID GetStaticFieldId(const char* name, const char* signature) const {
+    return GetStaticFieldId(GetJni(), name, signature);
+  }
+  jfieldID GetStaticFieldId(JNIEnv* jni_env, const char* name, const char* signature) const;
+  jfieldID GetFieldId(const char* name, const char* signature) const {
+    return GetFieldId(GetJni(), name, signature);
+  }
+  jfieldID GetFieldId(JNIEnv* jni_env, const char* name, const char* signature) const;
+  jmethodID GetStaticMethodId(const char* name, const char* signature) const {
+    return GetStaticMethodId(GetJni(), name, signature);
+  }
+  jmethodID GetStaticMethodId(JNIEnv* jni_env, const char* name, const char* signature) const;
+  jmethodID GetMethodId(const char* name, const char* signature) const {
+    return GetMethodId(GetJni(), name, signature);
+  }
+  jmethodID GetMethodId(JNIEnv* jni_env, const char* name, const char* signature) const;
+  jmethodID GetConstructorId(const char* signature) const {
+    return GetConstructorId(GetJni(), signature);
+  }
+  jmethodID GetConstructorId(JNIEnv* jni_env, const char* signature) const;
+  jmethodID GetDeclaredOrInheritedMethodId(const char* name, const char* signature) const {
+    return GetDeclaredOrInheritedMethodId(GetJni(), name, signature);
+  }
+  jmethodID GetDeclaredOrInheritedMethodId(JNIEnv* jni_env, const char* name, const char* signature) const;
+
+  // Similar to GetMethodId, but gracefully handles a non-existent method by returning nullptr.
+  jmethodID FindMethod(const char* name, const char* signature) const {
+    return FindMethod(GetJni(), name, signature);
+  }
+  jmethodID FindMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
 
   JObject NewObject(jmethodID constructor, ...) const;
   JObject NewObject(JNIEnv* jni_env, jmethodID constructor, ...) const;
@@ -207,15 +231,16 @@ public:
   void CallStaticVoidMethod(jmethodID method, ...) const;
   void CallStaticVoidMethod(JNIEnv* jni_env, jmethodID method, ...) const;
 
-  JClass GetSuperclass() const;
+  JClass GetSuperclass(JNIEnv* jni_env) const;
   // Returns the name of the Java class.
-  std::string GetName() const;
+  std::string GetName(JNIEnv* jni_env) const;
 };
 
 class JString : public JRef<JString, jstring> {
 public:
   using JRef::JRef;
   JString(JNIEnv* jni_env, const char* value);
+  JString(JNIEnv* jni_env, const std::string& value) : JString(jni_env, value.c_str()) {}
 
   JString& MakeGlobal() {
     return down_cast<JString&>(JRef::MakeGlobal());

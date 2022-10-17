@@ -41,22 +41,18 @@ public class ConvertFromWebpToPngTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TT ID: f1cbf728-3640-407b-a686-57c43e413e95
+   * TT ID: 716115fc-fb6e-43ec-abd4-4cc46b46a2f8
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1.Create Project with Minimum SDK 18 or above.
-   *   2.Place attached png(or any PNG) to drawable folder
-   *   3.Right click on sample.png and select "Convert to WebP..." (Verify 1)
-   *   4.Select 'OK' (Verify 2)
-   *   5.Go to drawable folder (Verify 3)
+   *   1. Import 'ImportLocalWebpProject' project
+   *   2. Go to app/src/main/res/mipmap-xhdpi folder
+   *   3. Right click on ic_test2.webp and select "Convert to png..."
+   *   4. Select 'OK' (Verify 1)
+   *   5. Go to drawable folder (Verify 2)
    *   Verify:
-   *   1.'Converting Images to WebP' alert dialog is open.(You can edit some options).
-   *   Note:
-   *   1.1 If your Application minSdkVersion 18 or above you have check box option "Skip images with transparency/alpha channel".
-   *   1.2 If your Application minSdkVersion < 18, you have no check box option 'Skip images with transparency/alpha channel'.
-   *   2.'Preview and Adjust Converted Images' Window is open and you can adjust Quality of image and select Finish button.
-   *   3.PNG image should convert into webp image
+   *   1. Webp file is not present
+   *   2. Png file is present
    *   </pre>
    * <p>
    */

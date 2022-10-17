@@ -294,47 +294,6 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     Truth.assertThat(buildAttributionUiManager.buildContent).isNotNull()
   }
 
-  fun testRequestShowWhenReadyBeforeDataExist() {
-    requestOpenWhenDataReady()
-
-    verifyBuildAnalyzerTabNotExist()
-
-    setNewReportData(reportUiData, buildSessionId)
-
-    verifyBuildAnalyzerTabExist()
-    // Since we requested to open earlier tab should be opened now.
-    verifyBuildAnalyzerTabSelected()
-
-    // Verify metrics sent
-    val buildAttributionEvents = tracker.usages
-      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-      .map { it.studioEvent.buildAttributionUiEvent.run { buildAttributionReportSessionId to eventType }}
-
-    Truth.assertThat(buildAttributionEvents).containsExactly(
-      buildSessionId to BuildAttributionUiEvent.EventType.TAB_CREATED,
-      buildSessionId to BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_WNA_BUTTON,
-    ).inOrder()
-  }
-
-  fun testRequestShowWhenReadyAfterDataExist() {
-    setNewReportData(reportUiData, buildSessionId)
-
-    requestOpenWhenDataReady()
-
-    verifyBuildAnalyzerTabExist()
-    verifyBuildAnalyzerTabSelected()
-
-    // Verify metrics sent
-    val buildAttributionEvents = tracker.usages
-      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
-      .map { it.studioEvent.buildAttributionUiEvent.run { buildAttributionReportSessionId to eventType }}
-
-    Truth.assertThat(buildAttributionEvents).containsExactly(
-      buildSessionId to BuildAttributionUiEvent.EventType.TAB_CREATED,
-      buildSessionId to BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_WNA_BUTTON,
-    ).inOrder()
-  }
-
   fun testProjectCloseBeforeAnyBuildFinished() {
     // Regression test for b/147449711.
     // Calling disposeRootDisposable() before would result in an NullPointerException exception being thrown in metrics sending logic
@@ -378,11 +337,6 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
 
   private fun sendOnBuildFailure(buildSessionId: String) {
     buildAttributionUiManager.onBuildFailure(buildSessionId)
-    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-  }
-
-  private fun requestOpenWhenDataReady() {
-    buildAttributionUiManager.requestOpenTabWhenDataReady(BuildAttributionUiAnalytics.TabOpenEventSource.WNA_BUTTON)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 

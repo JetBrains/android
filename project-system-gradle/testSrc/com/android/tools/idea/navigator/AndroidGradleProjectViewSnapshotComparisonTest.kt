@@ -93,6 +93,8 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.SIMPLE_APPLICATION),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK),
+      AndroidProjectViewSnapshotComparisonTestDef(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT),
+      AndroidProjectViewSnapshotComparisonTestDef(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.APP_WITH_ML_MODELS),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.MULTI_FLAVOR),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),

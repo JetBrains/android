@@ -11,6 +11,7 @@
     <orderEntry type="module" module-name="intellij.android.as-driver.utils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="library" scope="TEST" name="http-client" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="commons-io" level="project" />
     <orderEntry type="library" scope="TEST" name="Velocity" level="project" />

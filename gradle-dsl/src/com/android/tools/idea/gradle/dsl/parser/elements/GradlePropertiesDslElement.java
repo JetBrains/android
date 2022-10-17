@@ -53,7 +53,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsD
  * Base class for {@link GradleDslElement}s that represent a closure block or a map element. It provides the functionality to store the
  * data as key value pairs and convenient methods to access the data.
  * <p>
- * TODO: Rename this class to something different as this will be conflicting with GradlePropertiesModel
+ * TODO: Rename this class to something different as this is confusable with GradlePropertiesModelImpl
  */
 public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   @NotNull private final static Predicate<ElementList.ElementItem> VARIABLE_FILTER =

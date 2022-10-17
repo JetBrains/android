@@ -23,8 +23,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
-import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
-import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMonitor;
@@ -46,7 +44,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -57,22 +54,26 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CpuProfiler extends StudioProfiler {
+public class CpuProfiler implements StudioProfiler {
+  @NotNull
+  private final StudioProfilers profilers;
+
   public CpuProfiler(@NotNull StudioProfilers profilers) {
-    super(profilers);
+    this.profilers = profilers;
+
     registerImportedSessionListener();
     registerTraceImportHandler();
   }
 
   private void onImportSessionSelected() {
-    myProfilers.getIdeServices().runAsync(
-      () -> CpuCaptureStage.create(myProfilers, new ImportedConfiguration(), myProfilers.getSession().getStartTimestamp()),
+    profilers.getIdeServices().runAsync(
+      () -> CpuCaptureStage.create(profilers, new ImportedConfiguration(), profilers.getSession().getStartTimestamp()),
       captureStage -> {
         if (captureStage != null) {
-          myProfilers.getIdeServices().getMainExecutor().execute(() -> myProfilers.setStage(captureStage));
+          profilers.getIdeServices().getMainExecutor().execute(() -> profilers.setStage(captureStage));
         }
         else {
-          myProfilers.getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
+          profilers.getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
         }
       }
     );
@@ -87,7 +88,7 @@ public class CpuProfiler extends StudioProfiler {
    * {@link Common.SessionMetaData.SessionType#CPU_CAPTURE}.
    */
   private void registerImportedSessionListener() {
-    myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.CPU_CAPTURE, this::onImportSessionSelected);
+    profilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.CPU_CAPTURE, this::onImportSessionSelected);
   }
 
   /**
@@ -95,14 +96,14 @@ public class CpuProfiler extends StudioProfiler {
    * {@link Common.Session} and select it.
    */
   private void registerTraceImportHandler() {
-    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    SessionsManager sessionsManager = profilers.getSessionsManager();
     sessionsManager.registerImportHandler("trace", this::loadCapture);
     sessionsManager.registerImportHandler("pftrace", this::loadCapture);
     sessionsManager.registerImportHandler("perfetto-trace", this::loadCapture);
   }
 
   private void loadCapture(File file) {
-    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    SessionsManager sessionsManager = profilers.getSessionsManager();
     // The time when the session is created. Will determine the order in sessions panel.
     long startTimestampEpochMs = System.currentTimeMillis();
     Pair<Long, Long> timestampsNs = StudioProfilers.computeImportedFileStartEndTimestampsNs(file);
@@ -131,24 +132,25 @@ public class CpuProfiler extends StudioProfiler {
       return;
     }
 
-    myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.CPU_CAPTURE,
-                                                                        SessionsManager.SessionCreationSource.MANUAL);
+    profilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.CPU_CAPTURE,
+                                                                      SessionsManager.SessionCreationSource.MANUAL);
   }
 
   @Override
-  public ProfilerMonitor newMonitor() {
-    return new CpuMonitor(myProfilers);
+  public @NotNull ProfilerMonitor newMonitor() {
+    return new CpuMonitor(profilers);
   }
 
   @Override
-  public void startProfiling(Common.Session session) { }
+  public void startProfiling(@NotNull Common.Session session) { }
 
   @Override
-  public void stopProfiling(Common.Session session) {
-    List<CpuTraceInfo> traces = getTraceInfoFromSession(myProfilers.getClient(), session, true);
+  public void stopProfiling(@NotNull Common.Session session) {
+    List<CpuTraceInfo> traces = getTraceInfoFromSession(profilers.getClient(), session);
+
     CpuTraceInfo mostRecentTrace = traces.isEmpty() ? null : traces.get(traces.size() - 1);
     if (mostRecentTrace != null && mostRecentTrace.getToTimestamp() == -1) {
-      stopTracing(myProfilers,
+      stopTracing(profilers,
                   session,
                   mostRecentTrace.getConfiguration(),
                   null);
@@ -225,54 +227,41 @@ public class CpuProfiler extends StudioProfiler {
   @NotNull
   public static List<CpuTraceInfo> getTraceInfoFromRange(@NotNull ProfilerClient client,
                                                          @NotNull Common.Session session,
-                                                         @NotNull Range rangeUs,
-                                                         boolean newPipeline) {
+                                                         @NotNull Range rangeUs) {
     // Converts the range to nanoseconds before calling the service.
     long rangeMinNs = rangeUs.getMin() == Long.MIN_VALUE ? Long.MIN_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin());
     long rangeMaxNs = rangeUs.getMax() == Long.MAX_VALUE ? Long.MAX_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax());
 
-    List<CpuTraceInfo> traceInfoList = new ArrayList<>();
-    if (newPipeline) {
-      Transport.GetEventGroupsResponse response = client.getTransportClient().getEventGroups(
-        Transport.GetEventGroupsRequest.newBuilder()
-          .setStreamId(session.getStreamId())
-          .setPid(session.getPid())
-          .setKind(Common.Event.Kind.CPU_TRACE)
-          .setFromTimestamp(rangeMinNs)
-          .setToTimestamp(rangeMaxNs)
-          .build());
-      traceInfoList = response.getGroupsList().stream()
-        .map(group -> {
-          // We only care about the CpuTraceInfo stored in the very last event in the group.
-          Common.Event event = group.getEvents(group.getEventsCount() - 1);
-          CpuTraceInfo info = event.getCpuTrace().hasTraceStarted() ?
-                              event.getCpuTrace().getTraceStarted().getTraceInfo() : event.getCpuTrace().getTraceEnded().getTraceInfo();
-          if (info.equals(CpuTraceInfo.getDefaultInstance())) {
-            // A default instance means that we have a generically ended group due to device disconnect.
-            // In those case, we look for the start event and use its CpuTraceInfo instead.
-            assert group.getEventsCount() > 1;
-            info = group.getEvents(0).getCpuTrace().getTraceStarted().getTraceInfo();
-            if (info.getToTimestamp() == -1) {
-              info = info.toBuilder()
-                .setToTimestamp(session.getEndTimestamp())
-                .setStopStatus(Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.APP_PROCESS_DIED))
-                .build();
-            }
+    Transport.GetEventGroupsResponse response = client.getTransportClient().getEventGroups(
+      Transport.GetEventGroupsRequest.newBuilder()
+        .setStreamId(session.getStreamId())
+        .setPid(session.getPid())
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setFromTimestamp(rangeMinNs)
+        .setToTimestamp(rangeMaxNs)
+        .build());
+    return response.getGroupsList().stream()
+      .map(group -> {
+        // We only care about the CpuTraceInfo stored in the very last event in the group.
+        Common.Event event = group.getEvents(group.getEventsCount() - 1);
+        CpuTraceInfo info = event.getCpuTrace().hasTraceStarted() ?
+                            event.getCpuTrace().getTraceStarted().getTraceInfo() : event.getCpuTrace().getTraceEnded().getTraceInfo();
+        if (info.equals(CpuTraceInfo.getDefaultInstance())) {
+          // A default instance means that we have a generically ended group due to device disconnect.
+          // In those case, we look for the start event and use its CpuTraceInfo instead.
+          assert group.getEventsCount() > 1;
+          info = group.getEvents(0).getCpuTrace().getTraceStarted().getTraceInfo();
+          if (info.getToTimestamp() == -1) {
+            info = info.toBuilder()
+              .setToTimestamp(session.getEndTimestamp())
+              .setStopStatus(Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.APP_PROCESS_DIED))
+              .build();
           }
-          return info;
-        })
-        .sorted(Comparator.comparingLong(CpuTraceInfo::getFromTimestamp))
-        .collect(Collectors.toList());
-    }
-    else {
-      GetTraceInfoResponse response = client.getCpuClient().getTraceInfo(GetTraceInfoRequest.newBuilder()
-                                                                           .setSession(session)
-                                                                           .setFromTimestamp(rangeMinNs)
-                                                                           .setToTimestamp(rangeMaxNs)
-                                                                           .build());
-      traceInfoList.addAll(response.getTraceInfoList().stream().collect(Collectors.toList()));
-    }
-    return traceInfoList;
+        }
+        return info;
+      })
+      .sorted(Comparator.comparingLong(CpuTraceInfo::getFromTimestamp))
+      .collect(Collectors.toList());
   }
 
   /**
@@ -302,9 +291,8 @@ public class CpuProfiler extends StudioProfiler {
    */
   @NotNull
   public static List<CpuTraceInfo> getTraceInfoFromSession(@NotNull ProfilerClient client,
-                                                           @NotNull Common.Session session,
-                                                           boolean newPipeline) {
-    return getTraceInfoFromRange(client, session, new Range(Long.MIN_VALUE, Long.MAX_VALUE), newPipeline);
+                                                           @NotNull Common.Session session) {
+    return getTraceInfoFromRange(client, session, new Range(Long.MIN_VALUE, Long.MAX_VALUE));
   }
 
   /**

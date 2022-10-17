@@ -15,138 +15,104 @@
  */
 package com.android.build.attribution.ui.panels
 
-import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
-import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
+import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.data.PluginSourceType
-import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.helpIcon
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
-import com.android.build.attribution.ui.htmlTextLabelWithLinesWrap
 import com.android.build.attribution.ui.percentageStringHtml
-import com.android.build.attribution.ui.warningIcon
-import com.android.build.attribution.ui.wrapPathToSpans
-import com.android.tools.adtui.TabularLayout
-import com.intellij.openapi.ui.OnePixelDivider
-import com.intellij.ui.HyperlinkLabel
-import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBPanel
-import com.intellij.util.ui.JBUI
-import java.awt.BorderLayout
-import java.awt.FlowLayout
+import com.android.build.attribution.ui.view.ViewActionHandlers
+import com.android.build.attribution.ui.warnIconHtml
+import com.android.utils.HtmlBuilder
+import javax.swing.BoxLayout
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JPanel
 
 fun taskDetailsPage(
   taskData: TaskUiData,
-  helpLinkListener: (BuildAnalyzerBrowserLinks) -> Unit,
-  generateReportClickedListener: (TaskUiData) -> Unit
-): JPanel = JPanel().apply {
-  layout = BorderLayout()
-  add(htmlTextLabelWithFixedLines("<b>${taskData.taskPath}</b>"), BorderLayout.NORTH)
-  add(taskDetailsPanel( taskData, helpLinkListener, generateReportClickedListener), BorderLayout.CENTER)
+  actionHandlers: ViewActionHandlers
+): JComponent = JPanel().apply {
+  layout = BoxLayout(this, BoxLayout.Y_AXIS)
+  val linksHandler = HtmlLinksHandler(actionHandlers)
+  val detailsPanelHtml = taskDetailsPanelHtml(taskData, actionHandlers, linksHandler)
+  val htmlLabel = htmlTextLabelWithFixedLines(detailsPanelHtml, linksHandler)
+  htmlLabel.alignmentX = 0f
+  add(htmlLabel)
 }
 
-private const val NO_PLUGIN_INFO_HELP_TEXT = "Gradle did not provide plugin information for this task due to Configuration cache being enabled and its entry being reused."
+private const val NO_PLUGIN_INFO_HELP_TEXT =
+  "Gradle did not provide plugin information for this task due to Configuration cache being enabled and its entry being reused."
 
 private fun pluginNameHtml(taskData: TaskUiData) = when {
   taskData.pluginUnknownBecauseOfCC -> "N/A ${helpIcon(NO_PLUGIN_INFO_HELP_TEXT)}"
   else -> taskData.pluginName
 }
 
-private fun taskDetailsPanel(
+fun taskDetailsPanelHtml(
   taskData: TaskUiData,
-  helpLinkListener: (BuildAnalyzerBrowserLinks) -> Unit,
-  generateReportClickedListener: (TaskUiData) -> Unit
-): JPanel {
-  val determinesBuildDurationLine = when {
-    taskData.onLogicalCriticalPath ->
-      "This task frequently determines build duration because of dependencies between its inputs/outputs and other tasks.<br/><br/>"
-    taskData.onExtendedCriticalPath ->
-      "This task occasionally determines build duration because of parallelism constraints introduced by number of cores or other tasks in the same module.<br/><br/>"
-    else -> ""
-  }
-  val taskInfo = htmlTextLabelWithLinesWrap("""
-      $determinesBuildDurationLine
-      <b>Duration:</b>  ${taskData.executionTime.durationStringHtml()} / ${taskData.executionTime.percentageStringHtml()}<br/>
-      Sub-project: ${taskData.module}<br/>
-      Plugin: ${pluginNameHtml(taskData)}<br/>
-      Type: ${taskData.taskType}<br/>
-      <br/>
-    """.trimIndent())
+  actionHandlers: ViewActionHandlers,
+  linksHandler: HtmlLinksHandler
+): String {
+  return HtmlBuilder().apply {
+    addBold(taskData.taskPath).newline()
+    when {
+      taskData.onLogicalCriticalPath -> this
+        .add("This task frequently determines build duration because of dependencies").newline()
+        .add("between its inputs/outputs and other tasks.").newline()
+      taskData.onExtendedCriticalPath -> this
+        .add("This task occasionally determines build duration because of parallelism constraints").newline()
+        .add("introduced by number of cores or other tasks in the same module.").newline()
+    }
+    newline()
+    addBold("Duration:").addHtml("  ${taskData.executionTime.durationStringHtml()} / ${taskData.executionTime.percentageStringHtml()}").newline()
+    add("Sub-project: ${taskData.module}").newline()
+    addHtml("Plugin: ${pluginNameHtml(taskData)}").newline()
+    add("Type: ${taskData.taskType}").newline()
+    newline()
+    createWarningsSection(taskData, actionHandlers, linksHandler)
+    createReasonsSection(taskData.reasonsToRun)
+  }.html
+}
 
-  val reasonsList = htmlTextLabelWithLinesWrap("""
-    <b>Reason task ran</b><br/>
-    ${createReasonsText(taskData.reasonsToRun)}
-  """.trimIndent())
-
-  val infoPanel = JBPanel<JBPanel<*>>(TabularLayout("*"))
-  var row = 0
-  infoPanel.add(taskInfo, TabularLayout.Constraint(row++, 0))
+private fun HtmlBuilder.createWarningsSection(
+  taskData: TaskUiData,
+  actionHandlers: ViewActionHandlers,
+  linksHandler: HtmlLinksHandler
+) {
+  addBold("Warnings").newline()
   if (taskData.issues.isEmpty()) {
-    htmlTextLabelWithFixedLines("""
-      <b>Warnings</b><br/>
-      No warnings found
-    """.trimIndent()).let { infoPanel.add(it, TabularLayout.Constraint(row++, 0)) }
+    add("No warnings found").newline()
+    newline()
   }
   else {
-    htmlTextLabelWithFixedLines("<b>Warnings</b>").let { infoPanel.add(it, TabularLayout.Constraint(row++, 0)) }
     if (taskData.sourceType != PluginSourceType.BUILD_SRC) {
-      infoPanel.add(generateReportLinkLabel(taskData, generateReportClickedListener), TabularLayout.Constraint(row++, 0))
+      val generateReportLink = linksHandler.actionLink("Generate report", "generateReport") {
+        actionHandlers.generateReportClicked(taskData)
+      }
+      addHtml("Consider filing a bug to report this issue to the plugin developer. $generateReportLink")
     }
-    for ((index, issue) in taskData.issues.withIndex()) {
-      infoPanel.add(
-        taskWarningDescriptionPanel(issue, helpLinkListener, index > 0),
-        TabularLayout.Constraint(row++, 0)
-      )
+    beginTable()
+    taskData.issues.forEach { issue ->
+      val description = "${issue.explanation}\n${linksHandler.externalLink("Learn more", issue.helpLink)}"
+      addTableRow(warnIconHtml, "<B>${issue.type.uiName}</B>")
+      addTableRow("", description.replace("\n", "<BR/>"))
+      addTableRow("", "<B>Recommendation:</B> ${issue.buildSrcRecommendation.replace("\n", "<BR/>")}")
+    }
+    endTable()
+  }
+}
+
+private fun HtmlBuilder.createReasonsSection(reasons: List<String>) {
+  addBold("Reason task ran").newline()
+  if (reasons.isEmpty()) {
+    add("No info")
+  }
+  else {
+    reasons.forEach {
+      addHtml(it.replace("\n", "<BR/>")).newline()
     }
   }
-  reasonsList.border = JBUI.Borders.emptyTop(22)
-  infoPanel.add(reasonsList, TabularLayout.Constraint(row, 0))
-
-  return infoPanel
 }
 
-private fun taskWarningDescriptionPanel(
-  issue: TaskIssueUiData,
-  helpLinkClickCallback: (BuildAnalyzerBrowserLinks) -> Unit,
-  needSeparatorInFront: Boolean
-): JComponent = JPanel().apply {
-  name = "warning-${issue.type.name}"
-  border = JBUI.Borders.emptyTop(8)
-  layout = TabularLayout("Fit,*").setVGap(8)
-  if (needSeparatorInFront) {
-    add(horizontalRuler(), TabularLayout.Constraint(0, 1))
-  }
-  add(JBLabel(warningIcon()).withBorder(JBUI.Borders.emptyRight(5)), TabularLayout.Constraint(1, 0))
-  add(htmlTextLabelWithFixedLines("<b>${issue.type.uiName}</b>"), TabularLayout.Constraint(1, 1))
-  add(DescriptionWithHelpLinkLabel(issue.explanation, issue.helpLink, helpLinkClickCallback), TabularLayout.Constraint(2, 1))
-  add(htmlTextLabelWithLinesWrap("<b>Recommendation:</b> ${issue.buildSrcRecommendation}"), TabularLayout.Constraint(3, 1))
-}
-
-private fun generateReportLinkLabel(
-  taskData: TaskUiData,
-  generateReportClicked: (TaskUiData) -> Unit
-): JComponent = JPanel().apply {
-  layout = FlowLayout(FlowLayout.LEFT, 0, 0)
-  add(JLabel("Consider filing a bug to report this issue to the plugin developer. "))
-  val link = HyperlinkLabel("Generate report")
-  link.addHyperlinkListener { generateReportClicked(taskData) }
-  add(link)
-}
-
-private fun createReasonsText(reasons: List<String>): String = if (reasons.isEmpty()) {
-  "No info"
-}
-else {
-  reasons.joinToString(separator = "<br/>") { wrapPathToSpans(it).replace("\n", "<br>") }
-}
-
-private fun horizontalRuler(): JPanel = JBPanel<JBPanel<*>>()
-  .withBackground(OnePixelDivider.BACKGROUND)
-  .withPreferredHeight(1)
-  .withMaximumHeight(1)
-  .withMinimumHeight(1)
 

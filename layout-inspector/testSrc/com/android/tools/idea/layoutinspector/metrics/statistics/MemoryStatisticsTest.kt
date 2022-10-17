@@ -28,7 +28,7 @@ class MemoryStatisticsTest {
     memory.recordModelSize(true, 1000L * ONE_MB, 1000L)
     memory.start()
     val data = DynamicLayoutInspectorMemory.newBuilder()
-    memory.save(data)
+    memory.save { data }
     assertThat(data.initialSnapshot.skiaImage).isFalse()
     assertThat(data.initialSnapshot.captureSizeMb).isEqualTo(0L)
     assertThat(data.initialSnapshot.measurementDurationMs).isEqualTo(0L)
@@ -45,7 +45,7 @@ class MemoryStatisticsTest {
     memory.recordModelSize(true, 100L * ONE_MB, 10000L)
     memory.recordModelSize(false, 1000L * ONE_MB, 1000L)
     val data = DynamicLayoutInspectorMemory.newBuilder()
-    memory.save(data)
+    memory.save { data }
     assertThat(data.initialSnapshot.skiaImage).isTrue()
     assertThat(data.initialSnapshot.captureSizeMb).isEqualTo(1000L)
     assertThat(data.initialSnapshot.measurementDurationMs).isEqualTo(1000L)

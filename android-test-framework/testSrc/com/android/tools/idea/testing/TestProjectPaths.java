@@ -21,6 +21,7 @@ public final class TestProjectPaths {
   public static final String CENTRAL_BUILD_DIRECTORY = "projects/centralBuildDirectory";
   public static final String CIRCULAR_MODULE_DEPS = "projects/circularModuleDeps";
   public static final String COMPOSITE_BUILD = "projects/compositeBuild";
+  public static final String BASIC_COMPOSITE_BUILD = "projects/basicCompositeBuild";
   public static final String DATA_BINDING_COMPILATION = "projects/dataBindingCompilation";
   public static final String DEPENDENT_MODULES = "projects/dependentModules";
   public static final String DEPENDENT_NATIVE_MODULES = "projects/dependentNativeModules";
@@ -65,6 +66,7 @@ public final class TestProjectPaths {
   public static final String NESTED_MULTI_FEATURE = "projects/nestedMultiFeature";
   public static final String NEW_SYNC_KOTLIN_TEST = "projects/newSyncKotlinTest";
   public static final String PLUGIN_IN_APP = "projects/pluginInApp";
+  public static final String PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER = "projects/privacySandboxSdk/libraryAndConsumer";
   public static final String PROJECT_WITH_APPAND_LIB = "projects/projectWithAppandLib";
   public static final String PROJECT_WITH_APP_AND_LIB_DEPENDENCY = "projects/projectWithAppAndLibDependency";
   public static final String PROJECT_WITH_APP_AND_LIB_DEPENDENCY_NO_LIB_MANIFEST = "projects/projectWithAppAndLibDependencyNoLibManifest";

@@ -54,12 +54,6 @@
               icon="StudioIcons.Emulator.Toolbar.ROTATE_RIGHT" text="Rotate Right" description="Rotate clockwise by 90 degrees"/>
       <action id="android.emulator.folding.controls" class="com.android.tools.idea.emulator.actions.EmulatorShowFoldingControlsAction"
               icon="StudioIcons.Emulator.Toolbar.FOLD" text="Fold/Unfold" description="Show folding controls"/>
-      <action id="android.emulator.back.button" class="com.android.tools.idea.emulator.actions.EmulatorBackButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button"/>
-      <action id="android.emulator.home.button" class="com.android.tools.idea.emulator.actions.EmulatorHomeButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button"/>
-      <action id="android.emulator.overview.button" class="com.android.tools.idea.emulator.actions.EmulatorOverviewButtonAction"
-              icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button"/>
       <action id="android.emulator.wear1.button" class="com.android.tools.idea.emulator.actions.EmulatorWear1ButtonAction"
               icon="StudioIcons.Emulator.Wear.BUTTON_1" text="Button 1" description="Press the first button"/>
       <action id="android.emulator.wear2.button" class="com.android.tools.idea.emulator.actions.EmulatorWear2ButtonAction"
@@ -68,6 +62,12 @@
               icon="StudioIcons.Emulator.Wear.PALM" text="Palm" description="Simulate the Palm gesture"/>
       <action id="android.emulator.tilt" class="com.android.tools.idea.emulator.actions.EmulatorTiltAction"
               icon="StudioIcons.Emulator.Wear.TILT" text="Tilt" description="Simulate the Tilt gesture"/>
+      <action id="android.emulator.back.button" class="com.android.tools.idea.emulator.actions.EmulatorBackButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button"/>
+      <action id="android.emulator.home.button" class="com.android.tools.idea.emulator.actions.EmulatorHomeButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button"/>
+      <action id="android.emulator.overview.button" class="com.android.tools.idea.emulator.actions.EmulatorOverviewButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button"/>
       <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.actions.EmulatorScreenshotAction"
               icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Obtain a screenshot from the device"/>
       <action id="android.emulator.screen.record" class="com.android.tools.idea.ui.screenrecording.ScreenRecorderAction"
@@ -81,8 +81,6 @@
                 description="Change display size to match a typical foldable"/>
         <action id="android.emulator.display.mode.tablet" class="com.android.tools.idea.emulator.actions.DisplayModeAction$Tablet"
                 icon="StudioIcons.Emulator.Menu.MODE_TABLET" text="Tablet" description="Change display size to match a typical tablet"/>
-        <action id="android.emulator.display.mode.desktop" class="com.android.tools.idea.emulator.actions.DisplayModeAction$Desktop"
-                icon="StudioIcons.Emulator.Menu.MODE_DESKTOP" text="Desktop" description="Change display size to match a typical desktop"/>
         <separator/>
       </group>
       <action id="android.emulator.snapshots" class="com.android.tools.idea.emulator.actions.EmulatorManageSnapshotsAction"
@@ -101,6 +99,12 @@
               icon="StudioIcons.Emulator.Toolbar.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
       <action id="android.device.rotate.right" class="com.android.tools.idea.device.actions.DeviceRotateAction$Right"
               icon="StudioIcons.Emulator.Toolbar.ROTATE_RIGHT" text="Rotate Right" description="Rotate clockwise by 90 degrees"/>
+      <action id="android.device.wear1.button" class="com.android.tools.idea.device.actions.DeviceWear1ButtonAction"
+              icon="StudioIcons.Emulator.Wear.BUTTON_1" text="Button 1" description="Press the first button"/>
+      <action id="android.device.wear2.button" class="com.android.tools.idea.device.actions.DeviceWear2ButtonAction"
+              icon="StudioIcons.Emulator.Wear.BUTTON_2" text="Button 2" description="Press the second button"/>
+      <action id="android.device.sleep" class="com.android.tools.idea.device.actions.DevicePalmAction"
+              icon="StudioIcons.Emulator.Wear.PALM" text="Palm" description="Simulate the Palm gesture"/>
       <action id="android.device.back.button" class="com.android.tools.idea.device.actions.DeviceBackButtonAction"
               icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button"/>
       <action id="android.device.home.button" class="com.android.tools.idea.device.actions.DeviceHomeButtonAction"

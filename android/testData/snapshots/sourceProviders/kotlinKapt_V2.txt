@@ -1859,9 +1859,9 @@ MODULE: MainActivity.lib
 Build configuration files:
     file://./build.gradle : Project: MainActivity [0]
     file://./app/build.gradle : Module :app [2000004]
-    file://./app/proguard-rules.pro : ProGuard Rules for ":app" [2000004]
     file://./javaLib/build.gradle : Module :javaLib [2000007]
     file://./lib/build.gradle : Module :lib [2000011]
+    file://./app/proguard-rules.pro : ProGuard Rules for ":app" [2500004]
     file://./settings.gradle : Project Settings [3000000]
     file://./gradle.properties : Project Properties [3000000]
     file://./gradle/wrapper/gradle-wrapper.properties : Gradle Version [3000000]

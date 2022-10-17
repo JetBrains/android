@@ -64,7 +64,7 @@ internal fun Device.toDeviceConfig(): DeviceConfig {
   config.width = screen.xDimension.toFloat()
   config.height = screen.yDimension.toFloat()
   config.dpi = screen.pixelDensity.dpiValue
-  config.orientation = when(deviceState.orientation) {
+  config.orientation = when (deviceState.orientation) {
     ScreenOrientation.LANDSCAPE -> Orientation.landscape
     else -> Orientation.portrait
   }
@@ -110,10 +110,15 @@ internal fun DeviceConfig.createDeviceInstance(): Device {
     }
     hardware = Hardware().apply {
       screen = Screen().apply {
+        // For "proper" conversions, the dpi in the DeviceConfig should be updated to the resolved density. This is to guarantee that the
+        // dimension as defined by the user reflects exactly in the Device (both the value and the unit), since this change in density
+        // may introduce an error when calculating the Screen dimensions
+        val resolvedDensity = AvdScreenData.getScreenDensity(null, false, deviceConfig.dpi.toDouble(), 0)
+        deviceConfig.dpi = resolvedDensity.dpiValue
         deviceConfig.dimUnit = DimUnit.px // Transforms dimension to Pixels
         xDimension = deviceConfig.width.roundToInt()
         yDimension = deviceConfig.height.roundToInt()
-        pixelDensity = AvdScreenData.getScreenDensity(null, false, deviceConfig.dpi.toDouble(), yDimension)
+        pixelDensity = resolvedDensity
         diagonalLength =
           sqrt((1.0 * xDimension * xDimension) + (1.0 * yDimension * yDimension)) / pixelDensity.dpiValue
         screenRound = if (deviceConfig.isRound) ScreenRound.ROUND else ScreenRound.NOTROUND

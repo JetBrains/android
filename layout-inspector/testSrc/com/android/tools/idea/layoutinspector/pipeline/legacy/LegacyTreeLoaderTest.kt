@@ -33,7 +33,6 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -43,7 +42,6 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
-import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
@@ -114,8 +112,7 @@ DONE.
   private fun createSimpleLegacyClient(): LegacyClient {
     val model = model {}
     val process = LEGACY_DEVICE.createProcess()
-    return LegacyClient(process, isInstantlyAutoConnected = false, model,
-                        LayoutInspectorMetrics(model.project, process, SessionStatistics(model, FakeTreeSettings())),
+    return LegacyClient(process, isInstantlyAutoConnected = false, model, LayoutInspectorMetrics(model.project, process),
                         disposableRule.disposable).apply {
       launchMonitor = mock()
     }
@@ -149,10 +146,10 @@ DONE.
     provider.requestProperties(root)
     assertThat(hash).isEqualTo("com.android.internal.policy.DecorView@41673e3")
     assertThat(root.drawId).isEqualTo(0x41673e3)
-    assertThat(root.x).isEqualTo(0)
-    assertThat(root.y).isEqualTo(0)
-    assertThat(root.width).isEqualTo(1080)
-    assertThat(root.height).isEqualTo(1920)
+    assertThat(root.layoutBounds.x).isEqualTo(0)
+    assertThat(root.layoutBounds.y).isEqualTo(0)
+    assertThat(root.layoutBounds.width).isEqualTo(1080)
+    assertThat(root.layoutBounds.height).isEqualTo(1920)
     assertThat(root.viewId).isNull()
     assertThat(printTree(root).trim()).isEqualTo("""
           0x41673e3
@@ -171,10 +168,10 @@ DONE.
            """.trimIndent())
     val actionMenuView = findView(listOf(root), 0x29668e4)
     assertThat(actionMenuView.drawId).isEqualTo(0x29668e4)
-    assertThat(actionMenuView.x).isEqualTo(932)
-    assertThat(actionMenuView.y).isEqualTo(63)
-    assertThat(actionMenuView.width).isEqualTo(148)
-    assertThat(actionMenuView.height).isEqualTo(147)
+    assertThat(actionMenuView.layoutBounds.x).isEqualTo(932)
+    assertThat(actionMenuView.layoutBounds.y).isEqualTo(63)
+    assertThat(actionMenuView.layoutBounds.width).isEqualTo(148)
+    assertThat(actionMenuView.layoutBounds.height).isEqualTo(147)
     assertThat(actionMenuView.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=ac}")
   }
 
@@ -267,7 +264,7 @@ DONE.
       view(0x3d2ff9c)
     }
     assertDrawTreesEqual(expected, window.root)
-    verify(resourceLookup).dpi = 560
+    verify(resourceLookup).updateLegacyConfiguration(eq(560))
     verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_RECEIVED)
     verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_RECEIVED)
   }

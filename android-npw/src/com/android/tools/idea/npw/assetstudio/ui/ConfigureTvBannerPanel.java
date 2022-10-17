@@ -64,6 +64,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.ColorPanel;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
@@ -141,7 +142,7 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JLabel myForegroundTextResizeValueLabel;
   private JTextField myForegroundLayerNameTextField;
-  private AssetColorPanel myForegroundColorPanel;
+  private ColorPanel myForegroundColorPanel;
   private JBScrollPane myForegroundScrollPane;
   private ImageAssetBrowser myForegroundImageAssetBrowser;
   private JBLabel myForegroundLayerNameLabel;
@@ -178,7 +179,7 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myBackgroundResizeRowPanel;
   private JPanel myBackgroundColorRowPanel;
-  private AssetColorPanel myBackgroundColorPanel;
+  private ColorPanel myBackgroundColorPanel;
   private JBScrollPane myBackgroundScrollPane;
   private JPanel myBackgroundImageAssetRowPanel;
   private ImageAssetBrowser myBackgroundImageAssetBrowser;

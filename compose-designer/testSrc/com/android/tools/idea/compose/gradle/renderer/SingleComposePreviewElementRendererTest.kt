@@ -19,10 +19,13 @@ import com.android.flags.junit.SetFlagRule
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.preview.renderer.createRenderTaskFuture
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
+import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
+import org.jetbrains.kotlin.descriptors.runtime.components.tryLoadClass
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -85,6 +88,34 @@ class SingleComposePreviewElementRendererTest {
       0.1,
       1
     )
+  }
+
+  /**
+   * Checks that the [RenderTask#dispose] releases the `WindowRecomposer#animationScale` that could potentially cause leaks.
+   *
+   * Regression test for b/244234828.
+   */
+  @Test
+  fun testDisposeOfAnimationScale() {
+    val renderTaskFuture = createRenderTaskFuture(
+      projectRule.androidFacet(":app"),
+      SingleComposePreviewElementInstance.forTesting(
+        "google.simpleapplication.MainActivityKt.DefaultPreview",
+        showBackground = true,
+        backgroundColor = "#F00"
+      ), false)
+    val renderTask = renderTaskFuture.get()!!
+    val result = renderTask.render().get()
+    val classLoader = result!!.rootViews.first().viewObject.javaClass.classLoader
+    // Check the WindowRecomposer animationScale is empty
+    val windowRecomposer = classLoader.loadClass("androidx.compose.ui.platform.WindowRecomposer_androidKt")
+    val animationScaleField = windowRecomposer.getDeclaredField("animationScale").apply {
+      isAccessible = true
+    }
+
+    assertTrue((animationScaleField.get(windowRecomposer) as Map<*, *>).isNotEmpty())
+    renderTask.dispose().get()
+    assertTrue("animationScale should have been cleared", (animationScaleField.get(windowRecomposer) as Map<*, *>).isEmpty())
   }
 
   @Test

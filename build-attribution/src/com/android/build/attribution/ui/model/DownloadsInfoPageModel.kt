@@ -134,7 +134,7 @@ private class MyWarningIconCellRenderer : ColoredTableCellRenderer() {
         DownloadsAnalyzer.DownloadStatus.FAILURE -> "Error"
       }
       append(text, SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES)
-      toolTipText = "row: $row<br/><br/>" + value.failureMessage?.replace("\n", "<br/>")
+      toolTipText = value.failureMessage?.replace("\n", "<br/>")
 
     }
     setTextAlign(SwingConstants.RIGHT)

@@ -70,6 +70,13 @@ public class TestUtils {
   public static final String KOTLIN_VERSION_FOR_TESTS = getKotlinVersionForTests();
 
   /**
+   * The Android platform version used in the gradle-core and builder unit tests.
+   *
+   * <p>If changing this value, also update //tools/base/build-system:android_platform_for_tests
+   */
+  public static final int ANDROID_PLATFORM_FOR_AGP_UNIT_TESTS = 33;
+
+  /**
    * Unix file-mode mask indicating that the file is executable by owner, group, and other.
    *
    * <p>See https://askubuntu.com/a/485001
@@ -233,6 +240,12 @@ public class TestUtils {
     return getWorkspaceRoot().resolve(relativePath);
   }
 
+  /** Gets the path to a specific Bazel workspace. */
+  @NonNull
+  public static Path getWorkspaceRoot(@NonNull String workspaceName) throws IOException {
+    throw new UnsupportedOperationException("Multiple workspace roots are not supported");
+  }
+
   /** Returns true if the file exists in the workspace. */
   public static boolean workspaceFileExists(@NonNull String path) {
     return Files.exists(resolveWorkspacePath(path));
@@ -268,6 +281,7 @@ public class TestUtils {
 
     return createTempDirDeletedOnExit();
   }
+
   /**
    * Returns a file at {@code path} relative to the root for {@link #getLatestAndroidPlatform}.
    *
@@ -276,13 +290,29 @@ public class TestUtils {
    */
   @NonNull
   public static Path resolvePlatformPath(@NonNull String path) {
-    String latestAndroidPlatform = getLatestAndroidPlatform();
+    return resolvePlatformPath(path, TestType.OTHER);
+  }
+
+  /**
+   * Returns a file at {@code path} relative to the root for {@link #getLatestAndroidPlatform}.
+   *
+   * @throws IllegalStateException if the current OS is not supported.
+   * @throws IllegalArgumentException if the path results in a file not found.
+   */
+  @NonNull
+  public static Path resolvePlatformPath(@NonNull String path, @NonNull TestType testType) {
+    String latestAndroidPlatform = getLatestAndroidPlatform(testType);
     Path file = getSdk().resolve(FD_PLATFORMS).resolve(latestAndroidPlatform).resolve(path);
     if (Files.notExists(file)) {
       throw new IllegalArgumentException(
         "File \"" + path + "\" not found in platform " + latestAndroidPlatform);
     }
     return file;
+  }
+
+  public static enum TestType {
+    AGP,
+    OTHER,
   }
 
   /** Checks if tests were started by Bazel. */
@@ -512,6 +542,14 @@ public class TestUtils {
 
   @NonNull
   public static String getLatestAndroidPlatform() {
+    return getLatestAndroidPlatform(TestType.OTHER);
+  }
+
+  @NonNull
+  public static String getLatestAndroidPlatform(@NonNull TestType testType) {
+    if (testType == TestType.AGP) {
+      return "android-" + ANDROID_PLATFORM_FOR_AGP_UNIT_TESTS;
+    }
     return "android-32";
   }
 

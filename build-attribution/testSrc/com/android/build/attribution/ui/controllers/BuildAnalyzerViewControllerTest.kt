@@ -227,6 +227,24 @@ class BuildAnalyzerViewControllerTest {
 
   @Test
   @RunsInEdt
+  fun testOpenDownloadsLinkClicked() {
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+
+    // Act
+    controller.changeViewToDownloadsLinkClicked()
+
+    // Assert
+    assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.DOWNLOADS)
+    // Verify metrics sent
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.DOWNLOADS_INFO)
+    }
+  }
+
+  @Test
+  @RunsInEdt
   fun testTasksGroupingSelectionUpdated() {
     model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
     val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)

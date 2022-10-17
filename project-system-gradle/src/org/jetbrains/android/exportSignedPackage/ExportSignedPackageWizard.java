@@ -220,7 +220,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         assert myProject != null;
 
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
-        List<Module> modules = ImmutableList.of(myFacet.getModule());
+        List<Module> modules = ImmutableList.of(myFacet.getMainModule());
         SigningWizardEvent.SigningTargetType targetType;
         boolean isKeyExported = false;
         Consumer<ListenableFuture<AssembleInvocationResult>> buildResultHandler;

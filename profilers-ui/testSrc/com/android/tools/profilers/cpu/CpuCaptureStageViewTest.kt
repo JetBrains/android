@@ -37,6 +37,7 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
 import com.android.tools.profilers.cpu.analysis.JankAnalysisModel
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
@@ -243,7 +244,7 @@ class CpuCaptureStageViewTest {
     captureNode.endGlobal = 10
 
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isFalse()
-    stage.multiSelectionModel.setSelection(captureNode, setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
+    stage.multiSelectionModel.setSelection(captureNode, setOf(CaptureNodeAnalysisModel(captureNode, stage.capture, Utils::runOnUi)))
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isTrue()
     assertThat(profilersView.stageView.stage.timeline.selectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
 
@@ -266,7 +267,7 @@ class CpuCaptureStageViewTest {
                                           PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
                                           false, false, 0)
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isFalse()
-    stage.multiSelectionModel.setSelection(frame, setOf(JankAnalysisModel(frame, capture)))
+    stage.multiSelectionModel.setSelection(frame, setOf(JankAnalysisModel(frame, capture, Utils::runOnUi)))
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isTrue()
     assertThat(profilersView.stageView.stage.timeline.selectionRange.isSameAs(Range(0.0, 30.0))).isTrue()
   }
@@ -279,7 +280,7 @@ class CpuCaptureStageViewTest {
 
     // Label should be visible when selection changes.
     assertThat(stageView.deselectAllToolbar.isVisible).isFalse()
-    stage.multiSelectionModel.setSelection(captureNode, setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
+    stage.multiSelectionModel.setSelection(captureNode, setOf(CaptureNodeAnalysisModel(captureNode, stage.capture, Utils::runOnUi)))
     assertThat(stageView.deselectAllToolbar.isVisible).isTrue()
 
     // Clicking the label should clear the selection.

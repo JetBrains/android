@@ -33,7 +33,8 @@ import org.mockito.Mockito.eq
 import java.util.EnumSet
 
 class FragmentHandlerTest : LayoutTestCase() {
-  fun testActivateNavFragment() {
+  // http://b/242129835
+  fun ignore_testActivateNavFragment() {
     myFixture.addFileToProject("res/navigation/nav.xml", "<navigation/>")
     val model = model(
       "model.xml",

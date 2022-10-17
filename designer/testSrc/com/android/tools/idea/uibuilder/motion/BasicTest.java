@@ -24,21 +24,10 @@ public class BasicTest extends BaseMotionEditorTest {
   MTag layout = getLayout();
   MTag scene = getScene();
 
-  @Override
-  protected void setUp() throws Exception {
-    System.out.println("in setup");
-  }
-
   public void testFoo() {
     MotionEditor motionSceneUi = new MotionEditor();
     MeModel model = new MeModel(scene, layout, "foo", "bar");
     motionSceneUi.setMTag(scene, layout, "foo", "bar", null);
     motionSceneUi.setMTag(model);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    super.tearDown();
-    System.out.println("tearDown");
   }
 }

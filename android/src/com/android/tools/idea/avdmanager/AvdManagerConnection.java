@@ -597,11 +597,7 @@ public class AvdManagerConnection {
     assert myAvdManager != null;
     if (myAvdManager.isAvdRunning(avd)) {
       myAvdManager.logRunningAvdInfo(avd);
-      String message = String.format("AVD \"%1$s\" is already running.\n" +
-                                     "If that is not the case, delete\n" +
-                                     "%2$s and try again.",
-                                     avdName, avd.getDataFolderPath().resolve("*.lock"));
-      return Futures.immediateFailedFuture(new RuntimeException(message));
+      return Futures.immediateFailedFuture(new AvdIsAlreadyRunningException(avd));
     }
 
     GeneralCommandLine commandLine = newEmulatorCommand(project, emulatorBinary, avd, factory);

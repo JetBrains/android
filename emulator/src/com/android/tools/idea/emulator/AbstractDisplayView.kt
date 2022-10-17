@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.intellij.openapi.Disposable
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -34,6 +36,7 @@ import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.geom.Area
 import java.awt.geom.Ellipse2D
+import java.awt.image.BufferedImage
 import javax.swing.AbstractAction
 import javax.swing.Box
 import javax.swing.JButton
@@ -41,17 +44,27 @@ import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import kotlin.math.floor
+import kotlin.math.log2
 import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.roundToInt
-
 
 /**
  * Common base class for [EmulatorView] and [com.android.tools.idea.device.DeviceView].
  */
 abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Disposable {
 
-  private val disconnectedStateMessage = JBLabel("", SwingConstants.CENTER).apply { font = font.deriveFont(font.size * 1.2F) }
+  /** Area of the window occupied by the device display image in physical pixels. */
+  var displayRectangle: Rectangle? = null
+    protected set
+  /** Orientation of the device display in quadrants counterclockwise. */
+  abstract val displayOrientationQuadrants: Int
+  /** The number of the last rendered display frame. */
+  @get:VisibleForTesting
+  var frameNumber: Int = 0
+    protected set
+
+  private val disconnectedStateMessage = JBLabel("", SwingConstants.CENTER)
   private val reconnectButton = JButton("Reconnect")
 
   private val disconnectedStatePanel = Box.createVerticalBox().apply {
@@ -64,6 +77,8 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     add(reconnectButton)
     add(Box.createVerticalGlue())
   }
+
+  private val frameListeners = mutableListOf<FrameListener>()
 
   init {
     background = primaryPanelBackground
@@ -171,6 +186,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
 
   protected fun showDisconnectedStateMessage(message: String, reconnector: Reconnector? = null) {
     hideLongRunningOperationIndicatorInstantly()
+    zoom(ZoomType.FIT)
     disconnectedStateMessage.text = message
     reconnectButton.apply {
       if (reconnector == null) {
@@ -214,9 +230,43 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     return null
   }
 
-  /** Rounds the given value down to an integer if it is above 1, or to the nearest multiple of 1/128 if it is below 1. */
+  /**
+   * Rounds the given value down to an integer if it is above 1, or to the nearest multiple of
+   * a small fraction that is close to `value/128` and has the form of `1/2^n`.
+   */
   protected fun roundScale(value: Double): Double {
-    return if (value >= 1) floor(value) else round(value * 128) / 128
+    if (value >= 1) {
+      return floor(value)
+    }
+    val logScale = -log2(value).roundToInt() + 7
+    val multiplier = 2 shl logScale + 7
+    return round(value * multiplier) / multiplier
+  }
+
+  protected fun notifyFrameListeners(displayRectangle: Rectangle, frame: BufferedImage) {
+    for (listener in frameListeners) {
+      listener.frameRendered(frameNumber, displayRectangle, displayOrientationQuadrants, frame)
+    }
+  }
+
+  /**
+   * Adds a [listener] to receive callbacks when the display view has a new frame rendered.
+   *
+   * The [listener] must return very quickly as it is invoked on the UI thread inside the painting method
+   * of the view. The listener is not allowed to call [addFrameListener] or [removeFrameListener] from its
+   * [FrameListener.frameRendered] method.
+   */
+  internal fun addFrameListener(listener: FrameListener) {
+    frameListeners.add(listener)
+  }
+
+  /** Removes a [listener] so it no longer receives callbacks when the display view has a new frame rendered. */
+  internal fun removeFrameListener(listener: FrameListener) {
+    frameListeners.remove(listener)
+  }
+
+  internal interface FrameListener {
+    fun frameRendered(frameNumber: Int, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage)
   }
 
   /** Attempts to restore a lost device connection. */

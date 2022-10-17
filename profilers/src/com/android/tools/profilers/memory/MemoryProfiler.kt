@@ -54,34 +54,34 @@ import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
-class MemoryProfiler(profilers: StudioProfilers) : StudioProfiler(profilers) {
+class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
   private val myAspectObserver = AspectObserver()
-  private val sessionsManager get() = myProfilers.sessionsManager
-  private val featureTracker get() = myProfilers.ideServices.featureTracker
+  private val sessionsManager get() = profilers.sessionsManager
+  private val featureTracker get() = profilers.ideServices.featureTracker
 
   init {
-    myProfilers.addDependency(myAspectObserver).onChange(ProfilerAspect.AGENT, ::agentStatusChanged)
+    this.profilers.addDependency(myAspectObserver).onChange(ProfilerAspect.AGENT, ::agentStatusChanged)
     sessionsManager.registerImportHandler("hprof", Consumer(::importHprof))
     sessionsManager.registerImportHandler("alloc", Consumer(::importLegacyAllocations))
     sessionsManager.registerImportHandler("heapprofd", Consumer(::importHeapprofd))
-    myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.MEMORY_CAPTURE) {
-      val stage = MainMemoryProfilerStage(myProfilers)
-      myProfilers.stage = stage
-      stage.setPendingCaptureStartTimeGuarded(myProfilers.session.startTimestamp)
-      myProfilers.timeline.apply {
-        reset(myProfilers.session.startTimestamp, myProfilers.session.endTimestamp)
+    this.profilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.MEMORY_CAPTURE) {
+      val stage = MainMemoryProfilerStage(this.profilers)
+      this.profilers.stage = stage
+      stage.setPendingCaptureStartTimeGuarded(this.profilers.session.startTimestamp)
+      this.profilers.timeline.apply {
+        reset(this@MemoryProfiler.profilers.session.startTimestamp, this@MemoryProfiler.profilers.session.endTimestamp)
         viewRange.set(dataRange)
         setIsPaused(true)
       }
     }
   }
 
-  override fun newMonitor() = MemoryMonitor(myProfilers)
+  override fun newMonitor() = MemoryMonitor(profilers)
   override fun startProfiling(session: Common.Session) {}
   override fun stopProfiling(session: Common.Session) =
     try {
       // Stop any ongoing allocation tracking sessions (either legacy or jvmti-based).
-      trackAllocations(myProfilers, session, false, null)
+      trackAllocations(profilers, session, false, null)
     }
     catch (e: StatusRuntimeException) {
       logger.info(e)
@@ -91,16 +91,16 @@ class MemoryProfiler(profilers: StudioProfilers) : StudioProfiler(profilers) {
    * Attempts to start live allocation tracking.
    */
   private fun agentStatusChanged() {
-    val session = myProfilers.session
+    val session = profilers.session
     when {
       // Early return if the session is not valid/alive.
       Common.Session.getDefaultInstance() == session || session.endTimestamp != Long.MAX_VALUE -> {}
       // Early return if JVMTI agent is not attached.
-      !myProfilers.isAgentAttached -> {}
+      !profilers.isAgentAttached -> {}
       else -> try {
         // Attempts to stop an existing tracking session.
         // This should only happen if we are restarting Studio and reconnecting to an app that already has an agent attached.
-        trackAllocations(myProfilers, session, false, null)
+        trackAllocations(profilers, session, false, null)
       }
       catch (e: StatusRuntimeException) {
         logger.info(e)
@@ -110,7 +110,7 @@ class MemoryProfiler(profilers: StudioProfilers) : StudioProfiler(profilers) {
 
   private fun importHprof(file: File) {
     fun makeInfo(start: Long, end: Long) = HeapDumpInfo.newBuilder().setStartTime(start).setEndTime(end)
-    if (myProfilers.ideServices.featureConfig.isUnifiedPipelineEnabled) {
+    if (profilers.ideServices.featureConfig.isUnifiedPipelineEnabled) {
       import(file) { start, end ->
         makeEndedEvent(start, Common.Event.Kind.MEMORY_HEAP_DUMP) {
           setMemoryHeapdump(Memory.MemoryHeapDumpData.newBuilder().setInfo(makeInfo(start, end)))
@@ -119,7 +119,7 @@ class MemoryProfiler(profilers: StudioProfilers) : StudioProfiler(profilers) {
     }
     else {
       legacyImport(file) { session, bytes, start, end ->
-        myProfilers.client.memoryClient.importHeapDump(
+        profilers.client.memoryClient.importHeapDump(
           ImportHeapDumpRequest.newBuilder()
             .setSession(session)
             .setData(ByteString.copyFrom(bytes))
@@ -143,7 +143,7 @@ class MemoryProfiler(profilers: StudioProfilers) : StudioProfiler(profilers) {
   private fun importLegacyAllocations(file: File) {
     fun makeInfo(start: Long, end: Long) =
       AllocationsInfo.newBuilder().setStartTime(start).setEndTime(end).setLegacy(true).setSuccess(true)
-    if (myProfilers.ideServices.featureConfig.isUnifiedPipelineEnabled) {
+    if (profilers.ideServices.featureConfig.isUnifiedPipelineEnabled) {
       import(file) { start, end ->
         makeEndedEvent(start, Common.Event.Kind.MEMORY_ALLOC_TRACKING) {
           setMemoryAllocTracking(Memory.MemoryAllocTrackingData.newBuilder().setInfo(makeInfo(start, end)))
@@ -152,7 +152,7 @@ class MemoryProfiler(profilers: StudioProfilers) : StudioProfiler(profilers) {
     }
     else {
       legacyImport(file) { session, bytes, start, end ->
-        myProfilers.client.memoryClient.importLegacyAllocations(
+        profilers.client.memoryClient.importLegacyAllocations(
           ImportLegacyAllocationsRequest.newBuilder()
             .setSession(session)
             .setInfo(makeInfo(start, end))

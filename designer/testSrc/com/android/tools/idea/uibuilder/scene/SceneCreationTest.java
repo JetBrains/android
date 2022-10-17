@@ -34,6 +34,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.util.Disposer;
@@ -66,7 +67,7 @@ public class SceneCreationTest extends SceneTest {
   public void testSceneCreation() {
     ModelBuilder builder = createModel();
     SyncNlModel model = builder.build();
-    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model);
+    LayoutlibSceneManager sceneBuilder = NlModelBuilderUtil.getSyncLayoutlibSceneManagerForModel(model);
     Scene scene = sceneBuilder.getScene();
     scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
@@ -126,7 +127,7 @@ public class SceneCreationTest extends SceneTest {
   public void testSceneReparenting() {
     ModelBuilder builder = createModel();
     SyncNlModel model = builder.build();
-    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model);
+    LayoutlibSceneManager sceneBuilder = NlModelBuilderUtil.getSyncLayoutlibSceneManagerForModel(model);
     Scene scene = sceneBuilder.getScene();
     scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
@@ -160,11 +161,11 @@ public class SceneCreationTest extends SceneTest {
     Configuration config = model.getConfiguration();
     config.setDevice(config.getConfigurationManager().getDeviceById("Nexus 6P"), false);
 
-    Scene scene = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model).getScene();
+    SyncLayoutlibSceneManager manager = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model);
+    manager.setIgnoreRenderRequests(true);
+    Scene scene = manager.getScene();
     scene.setAnimated(false);
 
-    ComponentDescriptor parent = builder.findByPath(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName());
-    ComponentDescriptor textView = builder.findByPath(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName(), TEXT_VIEW);
     SceneComponent sceneTextView = scene.getRoot().getChildren().get(0);
 
     float dpiFactor =  560 / 160f;

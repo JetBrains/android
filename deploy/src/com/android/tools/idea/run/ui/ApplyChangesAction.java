@@ -22,7 +22,6 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.update.RunningApplicationUpdater;
 import com.intellij.execution.update.RunningApplicationUpdaterProvider;
@@ -86,8 +85,7 @@ public class ApplyChangesAction extends BaseAction {
       }
 
       ProcessHandler handler = findRunningProcessHandler(project, runConfig.getConfiguration());
-      if (handler != null &&
-          getExecutor(handler, DefaultRunExecutor.getRunExecutorInstance()) == DefaultDebugExecutor.getDebugExecutorInstance()) {
+      if (handler != null && getExecutor(handler) == DefaultDebugExecutor.getDebugExecutorInstance()) {
         return new DisableMessage(DisableMessage.DisableMode.DISABLED, "debug execution",
                                   "it is currently not allowed during debugging");
       }

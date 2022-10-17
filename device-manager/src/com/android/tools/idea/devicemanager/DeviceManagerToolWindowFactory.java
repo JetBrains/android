@@ -61,7 +61,9 @@ public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, 
     pane.addTab("Virtual", new VirtualDevicePanel(project, parent));
     pane.addTab("Physical", new PhysicalDevicePanel(project, parent));
     for (DeviceManagerTab tab : DeviceManagerTab.EP_NAME.getExtensions()) {
-      pane.addTab(tab.getName(), tab.getPanel(project, parent));
+      if (tab.isApplicable()) {
+        pane.addTab(tab.getName(), tab.getPanel(project, parent));
+      }
     }
 
     return pane;

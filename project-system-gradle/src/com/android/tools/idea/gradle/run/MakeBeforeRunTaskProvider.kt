@@ -94,9 +94,7 @@ import javax.swing.Icon
  *  * otherwise, invokes Gradle directly, to build the project
  *
  */
-class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskProvider<MakeBeforeRunTask>() {
-  private val gradleProjectInfo: GradleProjectInfo = GradleProjectInfo.getInstance(project)
-
+class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
   override fun getId(): Key<MakeBeforeRunTask> = ID
   override fun getIcon(): Icon = StudioIcons.Common.ANDROID_HEAD
   override fun getTaskIcon(task: MakeBeforeRunTask): Icon = StudioIcons.Common.ANDROID_HEAD
@@ -129,9 +127,9 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
   fun configurationTypeIsEnabledByDefault(runConfiguration: RunConfiguration): Boolean = runConfiguration is PreferGradleMake
 
   override fun configureTask(runConfiguration: RunConfiguration, task: MakeBeforeRunTask): Boolean {
-    val dialog = GradleEditTaskDialog(project)
+    val dialog = GradleEditTaskDialog(runConfiguration.project)
     dialog.goal = task.goal
-    dialog.setAvailableGoals(createAvailableTasks())
+    dialog.setAvailableGoals(createAvailableTasks(runConfiguration.project))
     if (!dialog.showAndGet()) {
       // since we allow tasks without any arguments (assumed to be equivalent to assembling the app),
       // we need a way to specify that a task is not valid. This is because of the current restriction
@@ -143,7 +141,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
     return true
   }
 
-  private fun createAvailableTasks(): List<String> {
+  private fun createAvailableTasks(project: Project): List<String> {
     val moduleManager = ModuleManager.getInstance(project)
     val gradleTasks: MutableList<String> = ArrayList()
     val cachedModuleDataFinder = CachedModuleDataFinder.getInstance(project) ?: return listOf()
@@ -190,7 +188,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
   }
 
   @VisibleForTesting
-  fun isSyncNeeded(abis: Collection<String>): SyncNeeded {
+  fun isSyncNeeded(project: Project, abis: Collection<String>): SyncNeeded {
     // Only trigger sync if both
     //   The project have native modules, synced with v1 (needsAbiSyncBeforeRun)
     //   The ABI is avaliable, but it hasn't been synced yet
@@ -216,7 +214,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
     return SyncNeeded.NOT_NEEDED
   }
 
-  private fun runSyncIfNeeded(syncNeeded: SyncNeeded, requestedAbis: Set<String>) {
+  private fun runSyncIfNeeded(project: Project, syncNeeded: SyncNeeded, requestedAbis: Set<String>) {
     return when (syncNeeded) {
       SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED -> GradleSyncInvoker.getInstance().fetchAndMergeNativeVariants(project, requestedAbis)
       SyncNeeded.NOT_NEEDED -> Unit
@@ -230,8 +228,8 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
     task: MakeBeforeRunTask
   ): Boolean {
     val androidRunConfiguration = if (configuration is AndroidRunConfigurationBase) configuration else null
-    if (!project.requiresAndroidModel()) {
-      val regularMake = CompileStepBeforeRun(project)
+    if (!configuration.project.requiresAndroidModel()) {
+      val regularMake = CompileStepBeforeRun(configuration.project)
       return regularMake.executeTask(context, configuration, env, CompileStepBeforeRun.MakeBeforeRunTask())
     }
 
@@ -284,9 +282,9 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
 
     // If the model needs a sync, we need to sync "synchronously" before running.
     val targetAbis: Set<String> = targetDeviceSpec?.abis?.toSet().orEmpty()
-    val syncNeeded = isSyncNeeded(targetAbis)
-    runSyncIfNeeded(syncNeeded, targetAbis)
-    return !project.isDisposed &&
+    val syncNeeded = isSyncNeeded(configuration.project, targetAbis)
+    runSyncIfNeeded(configuration.project, syncNeeded, targetAbis)
+    return !configuration.project.isDisposed &&
       buildResult != null &&
       buildResult.isBuildSuccessful &&
       buildResult.invocationResult.invocations.isNotEmpty()
@@ -297,7 +295,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
       // ModuleBasedConfiguration includes Android and JUnit run configurations, including "JUnit: Rerun Failed Tests",
       // which is AbstractRerunFailedTestsAction.MyRunProfile.
       is ModuleRunProfile -> configuration.modules
-      else -> gradleProjectInfo.getModulesToBuildFromSelection(context)
+      else -> GradleProjectInfo.getInstance(configuration.project).getModulesToBuildFromSelection(context)
     }
   }
 

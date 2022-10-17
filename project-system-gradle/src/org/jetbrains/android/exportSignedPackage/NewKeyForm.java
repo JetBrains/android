@@ -152,16 +152,12 @@ public abstract class NewKeyForm {
     String keyAlias = getKeyAlias();
     String dname = getDName();
 
-    if (keystorePassword.indexOf('"') >= 0 || keyPassword.indexOf('"') >= 0) {
-      throw new CommitStepException(AndroidBundle.message("android.export.package.passwords.cannot.contain.quote.character"));
-    }
-
     boolean createdStore = false;
     final StringBuilder errorBuilder = new StringBuilder();
     final StringBuilder outBuilder = new StringBuilder();
     try {
       createdStore = KeystoreHelper
-        .createNewStore(null, new File(keystoreLocation), keystorePassword, keyPassword, keyAlias, dname, getValidity());
+        .createNewStore(null, new File(keystoreLocation), keystorePassword, keyPassword, keyAlias, dname, getValidity(), 2048);
     }
     catch (Exception e) {
       LOG.info(e);

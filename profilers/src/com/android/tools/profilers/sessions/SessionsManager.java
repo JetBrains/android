@@ -129,8 +129,6 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    */
   private final Map<String, Consumer<File>> myImportHandlers = new HashMap<>();
 
-  private int importedSessionCount = 0;
-
   /**
    * A list of functions that should be called for each {@link Common.Session} for retrieving its data artifacts.
    */
@@ -279,7 +277,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       }
       final SessionItem item = sessionItem;
       sessionArtifacts.add(item);
-      List<SessionArtifact> artifacts = new ArrayList<>();
+      List<SessionArtifact<?>> artifacts = new ArrayList<>();
       myArtifactsFetchers.forEach(fetcher -> artifacts.addAll(fetcher.fetch(myProfilers, item.getSession(), item.getSessionMetaData())));
       item.setChildArtifacts(artifacts);
       if (item.getSessionMetaData().getType() == Common.SessionMetaData.SessionType.FULL) {
@@ -678,7 +676,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     List<SessionArtifact> sessionArtifacts = new ArrayList<>();
     for (SessionItem item : mySessionItems.values()) {
       sessionArtifacts.add(item);
-      List<SessionArtifact> artifacts = new ArrayList<>();
+      List<SessionArtifact<?>> artifacts = new ArrayList<>();
       myArtifactsFetchers.forEach(fetcher -> artifacts.addAll(fetcher.fetch(myProfilers, item.getSession(), item.getSessionMetaData())));
       item.setChildArtifacts(artifacts);
       if (item.getSessionMetaData().getType() == Common.SessionMetaData.SessionType.FULL) {

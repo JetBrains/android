@@ -503,7 +503,7 @@ public class GuiTestRule implements TestRule {
   }
 
   protected void updateGradleVersions(@NotNull File projectPath) throws IOException {
-    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, null, null, null, null);
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, null, null, null, null, null);
   }
 
   protected void updateGradleVersions(@NotNull File projectPath,
@@ -512,7 +512,7 @@ public class GuiTestRule implements TestRule {
                                       @Nullable String kotlinVersion,
                                       @Nullable String ndkVersion
                                       ) throws IOException {
-    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion,null);
   }
 
   @NotNull
@@ -563,6 +563,11 @@ public class GuiTestRule implements TestRule {
 
   public void waitForBackgroundTasks() {
     GuiTests.waitForBackgroundTasks(robot());
+  }
+
+  public void waitForAllBackgroundTasksToBeCompleted() {
+    waitForBackgroundTasks();
+    robot().waitForIdle();
   }
 
   public Robot robot() {

@@ -17,11 +17,14 @@ package com.android.tools.idea.common.error
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.profile.codeInspection.ui.DescriptionEditorPane
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.ui.UIUtil
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.event.HyperlinkListener
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class DesignerCommonIssueSidePanelTest {
 
@@ -33,9 +36,34 @@ class DesignerCommonIssueSidePanelTest {
   fun testHyperlinkListener() {
     val listener = HyperlinkListener { }
     val issue = TestIssue(hyperlinkListener = listener)
-    val panel = DesignerCommonIssueSidePanel(rule.project, issue, null, rule.testRootDisposable)
+    val panel = DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable)
+    panel.loadIssueNode(TestIssueNode(issue))
 
     val descriptionPane = UIUtil.findComponentOfType(panel, DescriptionEditorPane::class.java)
     assertEquals(listener, descriptionPane!!.hyperlinkListeners.first())
+  }
+
+  @Test
+  fun testLoadIssue() {
+    val panel = DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable)
+    assertFalse { panel.loadIssueNode(null) }
+    assertFalse(panel.hasFirstComponent())
+    assertFalse(panel.hasSecondComponent())
+
+    assertFalse { panel.loadIssueNode(TestNode()) }
+    assertFalse(panel.hasFirstComponent())
+    assertFalse(panel.hasSecondComponent())
+
+    assertTrue { panel.loadIssueNode(TestIssueNode(TestIssue())) }
+    assertTrue(panel.hasFirstComponent())
+    assertFalse(panel.hasSecondComponent())
+
+    val hasContent = runInEdtAndGet {
+      val file = rule.fixture.addFileToProject("path/to/file.xml", "")
+      panel.loadIssueNode(IssueNode(file.virtualFile, TestIssue(), null))
+    }
+    assertTrue(hasContent)
+    assertTrue(panel.hasFirstComponent())
+    assertTrue(panel.hasSecondComponent())
   }
 }

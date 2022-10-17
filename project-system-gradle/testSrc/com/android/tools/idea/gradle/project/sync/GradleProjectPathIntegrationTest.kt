@@ -54,10 +54,24 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
             .app.androidTest ==> :app/ANDROID_TEST
             .app.main ==> :app/MAIN
             .app.unitTest ==> :app/UNIT_TEST
+            .common ==> :common
+            .common.commonMain ==> :common/commonMain
+            .common.commonTest ==> :common/commonTest
+            .common.jvmMain ==> :common/jvmMain
+            .common.jvmTest ==> :common/jvmTest
+            .desktop ==> :desktop
+            .desktop.main ==> :desktop/MAIN
+            .desktop.test ==> :desktop/test
             .feature-a ==> :feature-a
             .feature-a.androidTest ==> :feature-a/ANDROID_TEST
             .feature-a.main ==> :feature-a/MAIN
             .feature-a.unitTest ==> :feature-a/UNIT_TEST
+            .feature-b ==> :feature-b
+            .feature-b.androidTest ==> :feature-b/ANDROID_TEST
+            .feature-b.commonMain ==> :feature-b/commonMain
+            .feature-b.commonTest ==> :feature-b/commonTest
+            .feature-b.main ==> :feature-b/MAIN
+            .feature-b.unitTest ==> :feature-b/UNIT_TEST
             .jarWrapperLib ==> :jarWrapperLib
             .javaLibrary ==> :javaLibrary
             .javaLibrary.main ==> :javaLibrary/MAIN
@@ -67,11 +81,6 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
             .lib.androidTest ==> :lib/ANDROID_TEST
             .lib.main ==> :lib/MAIN
             .lib.unitTest ==> :lib/UNIT_TEST
-            .network-kmm ==> :network-kmm
-            .network-kmm.commonMain ==> :network-kmm/commonMain
-            .network-kmm.commonTest ==> :network-kmm/commonTest
-            .network-kmm.jvmMain ==> :network-kmm/jvmMain
-            .network-kmm.jvmTest ==> :network-kmm/jvmTest
         """.trimIndent()
       )
       assertThatProjectPathsCanBeResolved(project)

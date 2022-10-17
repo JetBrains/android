@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.perflib.vmtrace.ClockType
+import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.google.common.truth.Truth.assertThat
@@ -33,7 +34,8 @@ class CpuAnalysisChartModelTest {
     val delta = 80000.0
     val selectionRange = Range(minRange, maxRange)
     val capture = CpuProfilerTestUtils.getValidCapture()
-    val model = CpuAnalysisChartModel<CaptureNodeAnalysisModel>(CpuAnalysisTabModel.Type.FLAME_CHART, selectionRange, capture) { listOf() }
+    val model = CpuAnalysisChartModel<CaptureNodeAnalysisModel>(CpuAnalysisTabModel.Type.FLAME_CHART, selectionRange, capture,
+                                                                { listOf() }, Utils::runOnUi)
     selectionRange.set(minRange+delta, maxRange)
     model.axisComponentModel.updateImmediately()
     assertThat(selectionRange.min).isEqualTo(minRange + delta)
@@ -47,7 +49,8 @@ class CpuAnalysisChartModelTest {
     val maxRange = 2930531342743.0
     val selectionRange = Range(minRange, maxRange)
     val capture = CpuProfilerTestUtils.getValidCapture()
-    val model = CpuAnalysisChartModel<CpuCapture>(CpuAnalysisTabModel.Type.TOP_DOWN, selectionRange, capture) { capture.captureNodes }
+    val model = CpuAnalysisChartModel<CpuCapture>(CpuAnalysisTabModel.Type.TOP_DOWN, selectionRange, capture,
+                                                  { capture.captureNodes }, Utils::runOnUi)
     model.dataSeries.add(capture)
     model.axisComponentModel.updateImmediately()
     // Test Global

@@ -45,7 +45,7 @@ enum class SelectionOrigin { INTERNAL, COMPONENT_TREE }
 /** Callback taking (oldWindow, newWindow, isStructuralChange */
 typealias InspectorModelModificationListener = (AndroidWindow?, AndroidWindow?, Boolean) -> Unit
 
-class InspectorModel(val project: Project, private val scheduler: ScheduledExecutorService? = null) : ViewNodeAndResourceLookup {
+class InspectorModel(val project: Project, val scheduler: ScheduledExecutorService? = null) : ViewNodeAndResourceLookup {
   override val resourceLookup = ResourceLookup(project)
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?, SelectionOrigin) -> Unit>()
 
@@ -166,7 +166,7 @@ class InspectorModel(val project: Project, private val scheduler: ScheduledExecu
   /**
    * In-place update of all nodes (no structural changes should be made).
    */
-  private fun updateAll(operation: (ViewNode) -> Unit) {
+  fun updateAll(operation: (ViewNode) -> Unit) {
     ViewNode.readAccess { root.flatten().forEach { operation(it) } }
   }
 
@@ -181,8 +181,8 @@ class InspectorModel(val project: Project, private val scheduler: ScheduledExecu
       root.drawChildren.clear()
       val maxWidth = windows.values.map { it.width }.maxOrNull() ?: 0
       val maxHeight = windows.values.map { it.height }.maxOrNull() ?: 0
-      root.width = maxWidth
-      root.height = maxHeight
+      root.layoutBounds.width = maxWidth
+      root.layoutBounds.height = maxHeight
       for (id in allIds) {
         val window = windows[id] ?: continue
         if (window.isDimBehind) {
@@ -212,7 +212,7 @@ class InspectorModel(val project: Project, private val scheduler: ScheduledExecu
     updateAll { node -> (node as? ComposeViewNode)?.resetRecomposeCounts() }
   }
 
-  private fun updatePropertiesPanel() {
+  fun updatePropertiesPanel() {
     setSelection(selection, SelectionOrigin.INTERNAL)
   }
 
@@ -280,13 +280,13 @@ class InspectorModel(val project: Project, private val scheduler: ScheduledExecu
         }
       }
       root.calculateTransitiveBounds()
-
-      notifyUpdateCompleted()
-      modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
     }
     finally {
       updating = false
     }
+
+    notifyUpdateCompleted()
+    modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
   }
 
   private fun decreaseHighlights() {
@@ -315,9 +315,9 @@ class InspectorModel(val project: Project, private val scheduler: ScheduledExecu
     }
   }
 
-  private fun notifyModified() {
-    if (windows.isEmpty()) modificationListeners.forEach { it(null, null, false) }
-    else windows.values.forEach { window -> modificationListeners.forEach { it(window, window, false) } }
+  fun notifyModified(structuralChange: Boolean = false) {
+    if (windows.isEmpty()) modificationListeners.forEach { it(null, null, structuralChange) }
+    else windows.values.forEach { window -> modificationListeners.forEach { it(window, window, structuralChange) } }
   }
 
   fun clear() {
@@ -363,6 +363,9 @@ class InspectorModel(val project: Project, private val scheduler: ScheduledExecu
 
   fun hasHiddenNodes() = hiddenNodes.isNotEmpty()
 
+  /**
+   * Used to update the model when the view changes on the device.
+   */
   private class Updater(
     private val oldRoot: ViewNode,
     private val newRoot: ViewNode,
@@ -380,17 +383,18 @@ class InspectorModel(val project: Project, private val scheduler: ScheduledExecu
       }
     }
 
+    /**
+     * Called when the view has changed on the device.
+     * All the information from the [newNode] is copied into the [oldNode].
+     */
     private fun ViewNode.WriteAccess.update(oldNode: ViewNode, parent: ViewNode?, newNode: ViewNode): Boolean {
       var modified = (parent != oldNode.parent) || !sameChildren(oldNode, newNode)
       // TODO: should changes below cause modified to be set to true?
       // Maybe each view should have its own modification listener that can listen for such changes?
-      oldNode.width = newNode.width
-      oldNode.height = newNode.height
+      oldNode.layoutBounds = newNode.layoutBounds
       oldNode.qualifiedName = newNode.qualifiedName
       oldNode.layout = newNode.layout
-      oldNode.x = newNode.x
-      oldNode.y = newNode.y
-      oldNode.setTransformedBounds(newNode.transformedBounds)
+      oldNode.renderBounds = newNode.renderBounds
       oldNode.layoutFlags = newNode.layoutFlags
       oldNode.parent = parent
       if (oldNode is ComposeViewNode && newNode is ComposeViewNode) {

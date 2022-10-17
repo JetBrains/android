@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.common.MostRecentExecutor
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -48,7 +47,6 @@ const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
 class LayoutInspector private constructor(
   private val currentClientAccessor: () -> InspectorClient,
   val layoutInspectorModel: InspectorModel,
-  val stats: SessionStatistics,
   val treeSettings: TreeSettings,
   val isSnapshot: Boolean,
   private val executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
@@ -63,11 +61,10 @@ class LayoutInspector private constructor(
   constructor(
     launcher: InspectorClientLauncher,
     layoutInspectorModel: InspectorModel,
-    stats: SessionStatistics,
     treeSettings: TreeSettings,
     // @TestOnly
     executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
-  ) : this({ launcher.activeClient }, layoutInspectorModel, stats, treeSettings, false, executor) {
+  ) : this({ launcher.activeClient }, layoutInspectorModel, treeSettings, false, executor) {
     launcher.addClientChangedListener(::clientChanged)
   }
 
@@ -77,9 +74,8 @@ class LayoutInspector private constructor(
   constructor(
     client: InspectorClient,
     layoutInspectorModel: InspectorModel,
-    stats: SessionStatistics,
     treeSettings: TreeSettings
-  ) : this({ client }, layoutInspectorModel, stats, treeSettings, true) {
+  ) : this({ client }, layoutInspectorModel, treeSettings, true) {
     clientChanged(client)
   }
 
@@ -93,7 +89,7 @@ class LayoutInspector private constructor(
       client.registerTreeEventCallback(::loadComponentTree)
       client.registerStateCallback { state -> if (state == InspectorClient.State.CONNECTED) updateConnection(client) }
       client.registerConnectionTimeoutCallback { state -> layoutInspectorModel.fireAttachStateEvent(state) }
-      stats.start(client.isCapturing)
+      client.stats.start()
     }
     else {
       // If disconnected, e.g. stopped, force models to clear their state and, by association, the UI
@@ -108,6 +104,9 @@ class LayoutInspector private constructor(
 
   private fun updateConnection(client: InspectorClient) {
     layoutInspectorModel.updateConnection(client)
+    client.stats.currentModeIsLive = client.isCapturing
+    client.stats.hideSystemNodes = treeSettings.hideSystemNodes
+    client.stats.showRecompositions = treeSettings.showRecompositions
   }
 
   private fun loadComponentTree(event: Any) {

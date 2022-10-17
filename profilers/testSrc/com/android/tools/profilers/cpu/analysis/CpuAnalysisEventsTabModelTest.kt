@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.Range
+import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuThreadInfo
@@ -41,7 +42,8 @@ class CpuAnalysisEventsTabModelTest {
       capture,
       CpuThreadInfo(123, "foo"),
       timeline,
-      MultiSelectionModel())
+      MultiSelectionModel(),
+      Utils::runOnUi)
     val model = CpuThreadAnalysisEventsTabModel(timeline.dataRange).apply {
       dataSeries.add(cpuThreadTrackModel)
     }
@@ -53,7 +55,7 @@ class CpuAnalysisEventsTabModelTest {
     val capture = Mockito.mock(CpuCapture::class.java).apply {
       whenever(this.range).thenReturn(Range())
     }
-    val captureNodeModel = CaptureNodeAnalysisModel(ROOT.children[0], capture)
+    val captureNodeModel = CaptureNodeAnalysisModel(ROOT.children[0], capture, Utils::runOnUi)
     val model = CaptureNodeAnalysisEventsTabModel(Range(0.0, 100.0)).apply {
       dataSeries.add(captureNodeModel)
     }

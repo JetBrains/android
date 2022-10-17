@@ -20,4 +20,4 @@ import com.android.tools.idea.device.AKEYCODE_HOME
 /**
  * Simulates pressing the Home button on an Android device.
  */
-internal class DeviceHomeButtonAction : DeviceKeypressAction(AKEYCODE_HOME)
+internal class DeviceHomeButtonAction : DeviceKeypressAction(AKEYCODE_HOME, configFilter = { !it.isWatch })

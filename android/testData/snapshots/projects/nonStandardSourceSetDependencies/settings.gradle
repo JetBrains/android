@@ -2,8 +2,10 @@
 rootProject.name = "NonStandardSourceSetDependencies"
 
 include ':app'
-include ':network-kmm'
+include ':common'
+include ':desktop'
 include ':feature-a'
+include ':feature-b'
 include ':javaLibrary'
 include ':aarWrapperLib'
 include ':jarWrapperLib'

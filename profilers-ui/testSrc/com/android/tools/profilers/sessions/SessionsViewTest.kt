@@ -48,7 +48,6 @@ import com.android.tools.profilers.memory.LegacyAllocationsArtifactView
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -81,8 +80,7 @@ class SessionsViewTest {
     FakeProfilerService(myTimer),
     myMemoryService,
     myCpuService,
-    FakeEventService(),
-    FakeNetworkService.newBuilder().build()
+    FakeEventService()
   )
   @get:Rule val myEdtRule = EdtRule()
 

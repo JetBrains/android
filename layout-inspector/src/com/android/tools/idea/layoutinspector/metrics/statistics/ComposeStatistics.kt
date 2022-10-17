@@ -18,17 +18,18 @@ package com.android.tools.idea.layoutinspector.metrics.statistics
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_BLUE
+import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_GREEN
+import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_ORANGE
+import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_PURPLE
+import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_RED
+import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_YELLOW
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorCompose
 
 /**
  * Accumulator of live mode statistics for compose related events
  */
 class ComposeStatistics {
-  /**
-   * True if the reflection library was available for a compose application
-   */
-  var reflectionLibraryAvailable = true
-
   /**
    * How many clicks on a ComposeNode from the image did the user perform
    */
@@ -55,27 +56,72 @@ class ComposeStatistics {
   private var resetRecompositionCountsClicks = 0
 
   /**
+   * The current state of Recomposition counts.
+   */
+  var showRecompositions = false
+
+  /**
+   * The currently selected recomposition highlight color.
+   */
+  var recompositionHighlightColor = HIGHLIGHT_COLOR_RED
+
+  /**
+   * Number of frames received with recomposition counts ON.
+   */
+  private var framesWithRecompositionCountsOn = 0
+
+  /**
+   * Number of frames received with recomposition counts ON and specific color selected.
+   */
+  private var framesWithRecompositionColorRed = 0
+  private var framesWithRecompositionColorBlue = 0
+  private var framesWithRecompositionColorGreen = 0
+  private var framesWithRecompositionColorYellow = 0
+  private var framesWithRecompositionColorPurple = 0
+  private var framesWithRecompositionColorOrange = 0
+
+  /**
    * Start a new session by resetting all counters.
    */
   fun start() {
-    reflectionLibraryAvailable = true
+    showRecompositions = false
+    recompositionHighlightColor = HIGHLIGHT_COLOR_RED
     imageClicks = 0
     componentTreeClicks = 0
     goToSourceFromPropertyValueClicks = 0
+    framesWithRecompositionCountsOn = 0
+    framesWithRecompositionColorRed = 0
+    framesWithRecompositionColorBlue = 0
+    framesWithRecompositionColorGreen = 0
+    framesWithRecompositionColorYellow = 0
+    framesWithRecompositionColorPurple = 0
+    framesWithRecompositionColorOrange = 0
   }
 
   /**
    * Save the session data recorded since [start].
    */
-  fun save(data: DynamicLayoutInspectorCompose.Builder) {
-    data.kotlinReflectionAvailable = reflectionLibraryAvailable
-    data.imageClicks = imageClicks
-    data.componentTreeClicks = componentTreeClicks
-    data.goToSourceFromPropertyValueClicks = goToSourceFromPropertyValueClicks
-    data.maxRecompositionCount = maxRecompositions.count
-    data.maxRecompositionSkips = maxRecompositions.skips
-    data.maxRecompositionHighlight = maxRecompositions.highlightCount
-    data.recompositionResetClicks = resetRecompositionCountsClicks
+  fun save(dataSupplier: () -> DynamicLayoutInspectorCompose.Builder) {
+    if (imageClicks > 0 || componentTreeClicks > 0 || goToSourceFromPropertyValueClicks > 0 || !maxRecompositions.isEmpty ||
+        resetRecompositionCountsClicks > 0 || framesWithRecompositionCountsOn > 0) {
+      dataSupplier().let {
+        it.kotlinReflectionAvailable = true // unused
+        it.imageClicks = imageClicks
+        it.componentTreeClicks = componentTreeClicks
+        it.goToSourceFromPropertyValueClicks = goToSourceFromPropertyValueClicks
+        it.maxRecompositionCount = maxRecompositions.count
+        it.maxRecompositionSkips = maxRecompositions.skips
+        it.maxRecompositionHighlight = maxRecompositions.highlightCount
+        it.recompositionResetClicks = resetRecompositionCountsClicks
+        it.framesWithRecompositionCountsOn = framesWithRecompositionCountsOn
+        it.framesWithRecompositionColorRed = framesWithRecompositionColorRed
+        it.framesWithRecompositionColorBlue = framesWithRecompositionColorBlue
+        it.framesWithRecompositionColorGreen = framesWithRecompositionColorGreen
+        it.framesWithRecompositionColorYellow = framesWithRecompositionColorYellow
+        it.framesWithRecompositionColorPurple = framesWithRecompositionColorPurple
+        it.framesWithRecompositionColorOrange = framesWithRecompositionColorOrange
+      }
+    }
   }
 
   /**
@@ -118,5 +164,20 @@ class ComposeStatistics {
    */
   fun resetRecompositionCountsClick() {
     resetRecompositionCountsClicks++
+  }
+
+  fun frameReceived() {
+    if (!showRecompositions) {
+      return
+    }
+    framesWithRecompositionCountsOn++
+    when (recompositionHighlightColor) {
+      HIGHLIGHT_COLOR_RED -> framesWithRecompositionColorRed++
+      HIGHLIGHT_COLOR_BLUE -> framesWithRecompositionColorBlue++
+      HIGHLIGHT_COLOR_GREEN -> framesWithRecompositionColorGreen++
+      HIGHLIGHT_COLOR_YELLOW -> framesWithRecompositionColorYellow++
+      HIGHLIGHT_COLOR_PURPLE -> framesWithRecompositionColorPurple++
+      HIGHLIGHT_COLOR_ORANGE -> framesWithRecompositionColorOrange++
+    }
   }
 }

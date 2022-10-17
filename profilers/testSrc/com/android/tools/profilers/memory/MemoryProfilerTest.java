@@ -40,7 +40,6 @@ import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
-import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.truth.Truth;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -62,8 +61,7 @@ public final class MemoryProfilerTest {
   private final FakeMemoryService myMemoryService = new FakeMemoryService();
   @Rule public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("MemoryProfilerTest", myMemoryService, myTransportService, new FakeProfilerService(myTimer), new FakeEventService(),
-                        new FakeCpuService(),
-                        FakeNetworkService.newBuilder().build());
+                        new FakeCpuService());
 
   private StudioProfilers myStudioProfiler;
   private FakeIdeProfilerServices myIdeProfilerServices;

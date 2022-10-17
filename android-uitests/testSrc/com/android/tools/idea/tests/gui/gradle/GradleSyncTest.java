@@ -28,7 +28,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.TruthJUnit.assume;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.util.io.FileUtil.createIfNotExists;
+import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;

@@ -21,6 +21,8 @@ import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.treeStructure.Tree
 import org.fest.swing.core.NameMatcher
 import org.fest.swing.core.Robot
+import org.fest.swing.edt.GuiActionRunner
+import org.fest.swing.edt.GuiTask
 import org.fest.swing.fixture.JCheckBoxFixture
 import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JPanelFixture
@@ -28,6 +30,7 @@ import org.fest.swing.fixture.JTreeFixture
 import java.awt.event.KeyEvent
 import javax.swing.JCheckBox
 import javax.swing.JPanel
+import javax.swing.text.JTextComponent
 
 class BuildAnalyzerViewFixture(robot: Robot, target: JPanel) : JPanelFixture(robot, target) {
   val pageComboBox: JComboBoxFixture
@@ -119,15 +122,15 @@ class BuildAnalyzerViewFixture(robot: Robot, target: JPanel) : JPanelFixture(rob
   }
 
   class DetailsPageFixture(robot: Robot, target: JPanel) : JPanelFixture(robot, target) {
-    fun findWarningPanel(warningTypeName: String): JPanelFixture =
-      JPanelFixture(robot(), finder().findByName(target(), "warning-$warningTypeName", JPanel::class.java, true))
 
     fun clickGenerateReport() {
-      findHyperlinkLabelByTextContains("Generate report", robot(), target()).click()
+      JTextComponentWithHtmlFixture.create(robot(), finder().findByType(target(), JTextComponent::class.java))
+        .clickOnLink("Generate report")
     }
 
     fun clickNavigationLink(linkText: String) {
-      findHyperlinkLabelByTextContains(linkText, robot(), target()).click()
+      JTextComponentWithHtmlFixture.create(robot(), finder().findByType(target(), JTextComponent::class.java))
+        .clickOnLink(linkText)
     }
   }
 }

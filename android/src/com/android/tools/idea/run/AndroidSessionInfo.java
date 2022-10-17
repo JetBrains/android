@@ -26,7 +26,6 @@ public class AndroidSessionInfo {
 
   @NotNull private final ProcessHandler myProcessHandler;
   @NotNull private final String myExecutorId;
-  @NotNull private final String myExecutorActionName;
   @Nullable private final RunConfiguration myRunConfiguration;
   @NotNull private final ExecutionTarget myExecutionTarget;
 
@@ -34,10 +33,8 @@ public class AndroidSessionInfo {
   public static AndroidSessionInfo create(@NotNull ProcessHandler processHandler,
                                           @Nullable RunConfiguration runConfiguration,
                                           @NotNull String executorId,
-                                          @NotNull String executorActionName,
                                           @NotNull ExecutionTarget executionTarget) {
-    AndroidSessionInfo result =
-      new AndroidSessionInfo(processHandler, runConfiguration, executorId, executorActionName, executionTarget);
+    AndroidSessionInfo result = new AndroidSessionInfo(processHandler, runConfiguration, executorId, executionTarget);
     processHandler.putUserData(KEY, result);
     return result;
   }
@@ -45,12 +42,10 @@ public class AndroidSessionInfo {
   private AndroidSessionInfo(@NotNull ProcessHandler processHandler,
                              @Nullable RunConfiguration runConfiguration,
                              @NotNull String executorId,
-                             @NotNull String executorActionName,
                              @NotNull ExecutionTarget executionTarget) {
     myProcessHandler = processHandler;
     myRunConfiguration = runConfiguration;
     myExecutorId = executorId;
-    myExecutorActionName = executorActionName;
     myExecutionTarget = executionTarget;
   }
 
@@ -67,11 +62,6 @@ public class AndroidSessionInfo {
   @Nullable
   public Executor getExecutor() {
     return ExecutorRegistry.getInstance().getExecutorById(getExecutorId());
-  }
-
-  @NotNull
-  public String getExecutorActionName() {
-    return myExecutorActionName;
   }
 
   @NotNull

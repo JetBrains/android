@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
@@ -51,8 +52,11 @@ class ToggleIssueDetailActionTest {
     }
     contentManager.addContent(content)
     contentManager.setSelectedContent(content)
-    service = IssuePanelService.getInstance(rule.project)
-    service.initIssueTabs(toolWindow)
+
+    invokeAndWaitIfNeeded {
+      service = IssuePanelService.getInstance(rule.project)
+      service.initIssueTabs(toolWindow)
+    }
   }
 
   @Test

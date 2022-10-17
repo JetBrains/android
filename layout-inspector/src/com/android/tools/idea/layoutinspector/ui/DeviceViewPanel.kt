@@ -37,7 +37,6 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
-import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcess
@@ -116,14 +115,15 @@ const val DEVICE_VIEW_ACTION_TOOLBAR_NAME = "DeviceViewPanel.ActionToolbar"
  * @param onDeviceSelected is only invoked when [deviceModel] is used.
  */
 class DeviceViewPanel(
-  deviceModel: DeviceModel?,
+  val deviceModel: DeviceModel?,
   val processesModel: ProcessesModel?,
   onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
   onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
+  val onStopInspector: () -> Unit,
   private val layoutInspector: LayoutInspector,
   private val viewSettings: DeviceViewSettings,
   disposableParent: Disposable,
-  @TestOnly private val backgroundExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
+  @TestOnly private val backgroundExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
 ) : JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
 
   override val scale
@@ -143,9 +143,6 @@ class DeviceViewPanel(
       deviceModel = deviceModel,
       onDeviceSelected = onDeviceSelected,
       onProcessSelected = onProcessSelected,
-      detachPresentation = SelectDeviceAction.DetachPresentation(
-        "Stop Inspector",
-        "Stop running the layout inspector against the current device"),
       onDetachAction = { stopInspectors() },
       customDeviceAttribution = ::deviceAttribution
     )
@@ -178,7 +175,7 @@ class DeviceViewPanel(
       null
     }
     else {
-      DropDownActionWithButton(selectDeviceAction, selectDeviceAction.button)
+      DropDownActionWithButton(selectDeviceAction) { selectDeviceAction.button }
     }
   }
   else {
@@ -186,14 +183,13 @@ class DeviceViewPanel(
       null
     }
     else {
-      DropDownActionWithButton(selectProcessAction, selectProcessAction.button)
+      DropDownActionWithButton(selectProcessAction) { selectProcessAction.button }
     }
   }
 
   private val contentPanel = DeviceViewContentPanel(
     inspectorModel = layoutInspector.layoutInspectorModel,
     deviceModel = deviceModel,
-    stats = layoutInspector.stats,
     treeSettings = layoutInspector.treeSettings,
     viewSettings = viewSettings,
     currentClient = { layoutInspector.currentClient },
@@ -464,6 +460,7 @@ class DeviceViewPanel(
     // Zoom to fit on initial connect
     model.modificationListeners.add { _, new, _ ->
       if (contentPanel.model.maxWidth == 0) {
+        layoutInspector.currentClient.stats.recompositionHighlightColor = viewSettings.highlightColor
         contentPanel.model.refresh()
         if (!zoom(ZoomType.FIT)) {
           // If we didn't change the zoom, we need to refresh explicitly. Otherwise the zoom listener will do it.
@@ -500,6 +497,7 @@ class DeviceViewPanel(
   fun stopInspectors() {
     loadingPane.stopLoading()
     processesModel?.stop()
+    onStopInspector.invoke()
   }
 
   private fun updateLayeredPaneSize() {
@@ -519,10 +517,9 @@ class DeviceViewPanel(
       scrollPane.viewport.revalidate()
     }
     else {
-      val root = layoutInspector.layoutInspectorModel.root
       viewportLayoutManager.currentZoomOperation = type
       when (type) {
-        ZoomType.FIT -> newZoom = getFitZoom(root)
+        ZoomType.FIT -> newZoom = getFitZoom()
         ZoomType.ACTUAL -> newZoom = 100
         ZoomType.IN -> newZoom += 10
         ZoomType.OUT -> newZoom -= 10
@@ -538,21 +535,35 @@ class DeviceViewPanel(
     return false
   }
 
-  private fun getFitZoom(root: ViewNode): Int {
+  private fun getFitZoom(): Int {
+    val size = getScreenSize()
     val availableWidth = scrollPane.width - scrollPane.verticalScrollBar.width
     val availableHeight = scrollPane.height - scrollPane.horizontalScrollBar.height
-    val desiredWidth = (root.width).toDouble()
-    val desiredHeight = (root.height).toDouble()
+    val desiredWidth = (size.width).toDouble()
+    val desiredHeight = (size.height).toDouble()
     return if (desiredHeight == 0.0 || desiredWidth == 0.0) 100
     else (90 * min(availableHeight / desiredHeight, availableWidth / desiredWidth)).toInt()
+  }
+
+  private fun getScreenSize(): Dimension {
+    // Use the screen size from the resource lookup if available.
+    // This will make sure the screen size is correct even if there are windows we don't know about yet.
+    // Example: If the initial screen has a dialog open, we may receive the dialog first. We do not want to zoom to fit the dialog size
+    // since it is often smaller than the screen size.
+    val size = layoutInspector.layoutInspectorModel.resourceLookup.screenDimension
+    if (size.width > 0 && size.height > 0) {
+      return size
+    }
+    // For the legacy inspector and for snapshots loaded from file, we do not have the screen size, but we know that all windows are loaded.
+    val root = layoutInspector.layoutInspectorModel.root
+    return Dimension(root.layoutBounds.width, root.layoutBounds.height)
   }
 
   override fun canZoomIn() = viewSettings.scalePercent < MAX_ZOOM && !layoutInspector.layoutInspectorModel.isEmpty
 
   override fun canZoomOut() = viewSettings.scalePercent > MIN_ZOOM && !layoutInspector.layoutInspectorModel.isEmpty
 
-  override fun canZoomToFit() = !layoutInspector.layoutInspectorModel.isEmpty &&
-                                getFitZoom(layoutInspector.layoutInspectorModel.root) != viewSettings.scalePercent
+  override fun canZoomToFit() = !layoutInspector.layoutInspectorModel.isEmpty && getFitZoom() != viewSettings.scalePercent
 
   override fun canZoomToActual() = viewSettings.scalePercent < 100 && canZoomIn() || viewSettings.scalePercent > 100 && canZoomOut()
 
@@ -700,14 +711,24 @@ class MyViewportLayoutManager(
         currentZoomOperation = null
       }
       else -> {
+        // Normal layout: Attempt to keep the image root location in place.
         origLayout.layoutContainer(parent)
         val lastRoot = lastRootLocation
         val currentRootLocation = rootLocation()
-        if (viewport.view.size != lastViewSize && lastRoot != null && currentRootLocation != null) {
-          val newRootLocation = SwingUtilities.convertPoint(viewport.view, currentRootLocation, viewport)
-          viewport.viewPosition = Point(viewport.viewPosition).apply {
-            translate(newRootLocation.x - lastRoot.x, newRootLocation.y - lastRoot.y)
+        val view = viewport.view
+        if (view.size != lastViewSize && lastRoot != null && currentRootLocation != null) {
+          val newRootLocation = SwingUtilities.convertPoint(view, currentRootLocation, viewport)
+          val preferredSize = view.preferredSize
+          val newPosition = viewport.viewPosition.apply { translate(newRootLocation.x - lastRoot.x, newRootLocation.y - lastRoot.y) }
+          if (view.width > preferredSize.width) {
+            // If there is room for the entire image set x position to 0 (required to remove the horizontal scrollbar).
+            newPosition.x = 0
           }
+          if (view.height > preferredSize.height) {
+            // If there is room for the entire image set y position to 0 (required to remove the vertical scrollbar).
+            newPosition.y = 0
+          }
+          viewport.viewPosition = newPosition
         }
       }
     }

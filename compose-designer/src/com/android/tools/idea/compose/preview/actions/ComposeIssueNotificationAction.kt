@@ -17,12 +17,15 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.flags.ifEnabled
 import com.android.tools.adtui.InformationPopup
-import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.error.setIssuePanelVisibilityNoTracking
+import com.android.tools.adtui.common.ColoredIconGenerator
+import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
+import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.ComposePreviewManager
+import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
@@ -30,7 +33,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.requestBuild
-import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.notification.EventLog
@@ -42,6 +44,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
@@ -75,6 +78,12 @@ import javax.swing.JToolTip
 import javax.swing.SwingConstants
 import javax.swing.border.Border
 
+private val GREEN_REFRESH_BUTTON =
+  ColoredIconGenerator.generateColoredIcon(
+    AllIcons.Actions.ForceRefresh,
+    JBColor(0x59A869, 0x499C54)
+  )
+
 /**
  * Utility getter that indicates if the project needs a build. This is the case if the previews build is not valid, like after a clean or
  * cancelled, or if it has failed.
@@ -87,8 +96,8 @@ internal val Project.needsBuild: Boolean
            lastBuildResult.mode == ProjectSystemBuildManager.BuildMode.CLEAN
   }
 
-private const val ACTION_BACKGROUND_ALPHA = 0x30
-private const val ACTION_BORDER_ALPHA = 0xC8
+private const val ACTION_BACKGROUND_ALPHA = 0x1A
+private const val ACTION_BORDER_ALPHA = 0xBF
 private const val ACTION_BORDER_ARC_SIZE = 5
 private const val ACTION_BORDER_THICKNESS = 1
 
@@ -99,7 +108,8 @@ private fun chipBorder(color: Color): Border = RoundedLineBorder(UIUtil.toAlpha(
 /**
  * Represents the Compose Preview status to be notified to the user.
  */
-private sealed class ComposePreviewStatusNotification(
+@VisibleForTesting
+internal sealed class ComposePreviewStatusNotification(
   val icon: Icon?,
   val title: String,
   val description: String,
@@ -121,8 +131,8 @@ private sealed class ComposePreviewStatusNotification(
    * Enum representing the different UI color states that the action might have for the border and background.
    */
   enum class Presentation(baseColorLight: Int, baseColorDark: Int = baseColorLight) {
-    Error(0xFF0000),
-    Warning(0xFDFF00);
+    Error(0xE53E4D),
+    Warning(0xEDA200);
 
     val color = JBColor(UIUtil.toAlpha(Color(baseColorLight), ACTION_BACKGROUND_ALPHA),
                         UIUtil.toAlpha(Color(baseColorDark), ACTION_BACKGROUND_ALPHA))
@@ -134,7 +144,7 @@ private sealed class ComposePreviewStatusNotification(
    * The Preview found a syntax error and paused the updates.
    */
   object SyntaxError : ComposePreviewStatusNotification(
-    AllIcons.Process.ProgressPauseSmall,
+    AllIcons.General.InspectionsPause,
     message("notification.syntax.errors.title"),
     message("notification.syntax.errors.description"),
     false)
@@ -147,7 +157,7 @@ private sealed class ComposePreviewStatusNotification(
     message("notification.needs.build.broken.title"),
     message("notification.needs.build.broken.description"),
     true,
-    Presentation.Warning)
+    Presentation.Error)
 
   /**
    * The Preview is refreshing.
@@ -182,7 +192,10 @@ private sealed class ComposePreviewStatusNotification(
   object RenderIssues : ComposePreviewStatusNotification(
     AllIcons.General.Warning,
     message("notification.preview.render.issues.title"),
-    message("notification.preview.render.issues.description"))
+    message("notification.preview.render.issues.description"),
+    true,
+    Presentation.Warning
+  )
 
   /**
    * The Preview has failed to compile a fast change.
@@ -203,7 +216,8 @@ private sealed class ComposePreviewStatusNotification(
     message("notification.preview.up.to.date.description"))
 }
 
-private fun ComposePreviewManager.getStatusInfo(project: Project): ComposePreviewStatusNotification {
+@VisibleForTesting
+internal fun ComposePreviewManager.getStatusInfo(project: Project): ComposePreviewStatusNotification {
   val previewStatus = status()
   val fastPreviewEnabled = project.fastPreviewManager.isEnabled
   return when {
@@ -262,9 +276,9 @@ private class ReEnableFastPreview(private val allowAutoDisable: Boolean = true) 
 }
 
 /**
- * [AnAction] that re-enable the Fast Preview if disabled.
+ * [AnAction] that requests a build of the file returned by [fileProvider] and its dependencies.
  */
-private class BuildAndRefresh(composePreviewManager: ComposePreviewManager) : AnAction() {
+class BuildAndRefresh(composePreviewManager: ComposePreviewManager) : AnAction() {
   private val composePreviewManager = WeakReference(composePreviewManager)
   override fun actionPerformed(e: AnActionEvent) {
     val file = composePreviewManager.get()?.previewedFile ?: return
@@ -278,18 +292,7 @@ private class BuildAndRefresh(composePreviewManager: ComposePreviewManager) : An
 private class ShowProblemsPanel : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    ProblemsView.getToolWindow(project)?.show()
-  }
-}
-
-/**
- * [AnAction] that shows the "Problems" panel.
- */
-private class ShowIssuesPanel : AnAction() {
-  override fun actionPerformed(e: AnActionEvent) {
-    e.getData(DESIGN_SURFACE)?.let { surface ->
-      surface.setIssuePanelVisibilityNoTracking(true, true)
-    }
+    IssuePanelService.getInstance(project).setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
   }
 }
 
@@ -324,8 +327,8 @@ fun defaultCreateInformationPopup(
             .replace("&&", "&") + getBuildAndRefreshShortcut().asString(), // Remove any ampersand escaping for tooltips (not needed in these links)
           BuildAndRefresh(composePreviewManager), dataContext),
         when (it) {
-          is ComposePreviewStatusNotification.SyntaxError -> actionLink(message("action.view.problems"), ShowProblemsPanel(), dataContext)
-          is ComposePreviewStatusNotification.RenderIssues -> actionLink(message("action.view.problems"), ShowIssuesPanel(), dataContext)
+          is ComposePreviewStatusNotification.SyntaxError, ComposePreviewStatusNotification.RenderIssues ->
+            actionLink(message("action.view.problems"), ShowProblemsPanel(), dataContext)
           else -> null
         },
         if (isAutoDisabled)
@@ -395,11 +398,19 @@ class ComposeIssueNotificationAction(
       val textAlignment: Int
         get() = myPresentation.getClientProperty(ComposePreviewStatusNotification.TEXT_ALIGNMENT) ?: SwingConstants.LEADING
 
+      private val font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL)
+
+      private val textColor = JBColor(Gray._110, Gray._187)
+
       override fun isBackgroundSet(): Boolean =
         actionPresentation != null || super.isBackgroundSet()
 
       override fun getBackground(): Color? =
         actionPresentation?.color ?: super.getBackground()
+
+      override fun getFont() = font
+
+      override fun getForeground() = textColor
 
       override fun getBorder(): Border =
         if (popState == POPPED)
@@ -412,6 +423,7 @@ class ComposeIssueNotificationAction(
       override fun addNotify() {
         super.addNotify()
         addMouseListener(mouseListener)
+        setHorizontalTextPosition(textAlignment)
       }
 
       override fun removeNotify() {
@@ -424,12 +436,6 @@ class ComposeIssueNotificationAction(
       // Do not display the regular tooltip
       override fun updateToolTipText() {}
 
-      override fun updateUI() {
-        super.updateUI()
-
-        font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL)
-        foreground = JBColor(Gray._110, Gray._187)
-      }
     }.apply {
       setHorizontalTextPosition(textAlignment)
     }
@@ -445,8 +451,9 @@ class ComposeIssueNotificationAction(
       presentation.text = it.title
       presentation.description = it.description
       presentation.putClientProperty(ComposePreviewStatusNotification.PRESENTATION, it.presentation)
+      val isErrorOrWarningIcon = it.icon == AllIcons.General.Error || it.icon == AllIcons.General.Warning
       presentation.putClientProperty(ComposePreviewStatusNotification.TEXT_ALIGNMENT,
-                                     if (it.hasRefreshIcon) SwingConstants.TRAILING else SwingConstants.LEADING)
+                                     if (isErrorOrWarningIcon) SwingConstants.TRAILING else SwingConstants.LEADING)
     }
   }
 
@@ -479,19 +486,63 @@ class ComposeIssueNotificationAction(
 }
 
 /**
- * [ForceCompileAndRefreshAction] where the visibility is controlled by the [ComposePreviewStatusNotification.hasRefreshIcon].
+ * [AnAction] that triggers a compilation of the current module. The build will automatically
+ * trigger a refresh of the surface. The action visibility is controlled by the
+ * [PreviewStatusNotification.hasRefreshIcon]
  */
-private class ForceCompileAndRefreshActionForNotification(surface: DesignSurface<*>) : ForceCompileAndRefreshAction(
-  surface), RightAlignedToolbarAction {
+private class ForceCompileAndRefreshActionForNotification(private val surface: DesignSurface<*>) :
+  AnAction(
+    message("action.build.and.refresh.title"),
+    message("action.build.and.refresh.description"),
+    GREEN_REFRESH_BUTTON
+  ),
+  RightAlignedToolbarAction,
+  CustomComponentAction {
+
+  override fun actionPerformed(e: AnActionEvent) {
+    // Each ComposePreviewManager will avoid refreshing the corresponding previews if it detects
+    // that nothing has changed. But we want to always force a refresh when this button is pressed
+    findComposePreviewManagersForContext(e.dataContext).forEach { composePreviewManager ->
+      composePreviewManager.invalidateSavedBuildStatus()
+    }
+    if (!requestBuildForSurface(surface)) {
+      // If there are no models in the surface, we can not infer which models we should trigger
+      // the build for. The fallback is to find the virtual file for the editor and trigger that.
+      LangDataKeys.VIRTUAL_FILE.getData(e.dataContext)?.let { surface.project.requestBuild(it) }
+    }
+  }
+
   override fun update(e: AnActionEvent) {
-    super.update(e)
+    val presentation = e.presentation
+    if (e.project?.let { FastPreviewManager.getInstance(it) }?.isEnabled == true) {
+      presentation.isEnabledAndVisible = false
+      return
+    }
+    val isRefreshing =
+      findComposePreviewManagersForContext(e.dataContext).any { it.status().isRefreshing }
+    presentation.isEnabled = !isRefreshing
+    templateText?.let {
+      presentation.setText("$it${getBuildAndRefreshShortcut().asString()}", false)
+    }
 
     val project = e.project ?: return
-
     e.getData(COMPOSE_PREVIEW_MANAGER)?.getStatusInfo(project)?.let {
       e.presentation.isVisible = it.hasRefreshIcon
     }
   }
+
+  override fun createCustomComponent(presentation: Presentation, place: String) =
+    ActionButtonWithToolTipDescription(this, presentation, place).apply {
+      border = JBUI.Borders.empty(1, 2)
+    }
+
+  private fun requestBuildForSurface(surface: DesignSurface<*>) =
+    surface
+      .models
+      .map { it.virtualFile }
+      .distinct()
+      .also { surface.project.requestBuild(it) }
+      .isNotEmpty()
 }
 
 /**

@@ -53,22 +53,24 @@ private const val NAME_KEY = "name:"
 
 private class StringKey(name: String, hint: String) {
   val normalKey = "$name:"
-  val normalHint = message("logcat.filter.completion.hint.key", hint)
+  val normalHint = message("logcat.filter.completion.hint.key", hint, message("logcat.filter.completion.hint.value.string"))
 
   val negatedKey = "-$name:"
-  val negatedHint = message("logcat.filter.completion.hint.key.negated", hint)
+  val negatedHint = message("logcat.filter.completion.hint.key.negated", hint,message("logcat.filter.completion.hint.value.string"))
 
   val regexKey = "$name~:"
-  val regexHint = message("logcat.filter.completion.hint.key.regex", hint)
+  val regexHint = message("logcat.filter.completion.hint.key.regex", hint, message("logcat.filter.completion.hint.value.regex"))
 
   val regexNegatedKey = "-$name~:"
-  val regexNegatedHint = message("logcat.filter.completion.hint.key.regex.negated", hint)
+  val regexNegatedHint =
+    message("logcat.filter.completion.hint.key.regex.negated", hint, message("logcat.filter.completion.hint.value.regex"))
 
   val exactKey = "$name=:"
-  val exactHint = message("logcat.filter.completion.hint.key.exact", hint)
+  val exactHint = message("logcat.filter.completion.hint.key.exact", hint, message("logcat.filter.completion.hint.value.string"))
 
   val exactNegatedKey = "-$name=:"
-  val exactNegatedHint = message("logcat.filter.completion.hint.key.exact.negated", hint)
+  val exactNegatedHint =
+    message("logcat.filter.completion.hint.key.exact.negated", hint,message("logcat.filter.completion.hint.value.string"))
 
   val keys = setOf(normalKey, negatedKey, regexKey, regexNegatedKey, exactKey, exactNegatedKey)
 }
@@ -126,10 +128,10 @@ private val ALL_KEY_LOOKUPS = BASE_KEY_LOOKUPS + LEVEL_LOOKUPS + IS_LOOKUPS + ST
 }
 
 private val AGE_LOOKUPS = listOf(
-  createLookupElement("30s ", message("logcat.filter.completion.hint.age.30s")),
-  createLookupElement("5m ", message("logcat.filter.completion.hint.age.5m")),
-  createLookupElement("3h ", message("logcat.filter.completion.hint.age.3h")),
-  createLookupElement("1d ", message("logcat.filter.completion.hint.age.1d")),
+  createLookupElement("30s ", message("logcat.filter.completion.hint.age.value", 30, message("logcat.filter.completion.hint.age.second"))),
+  createLookupElement("5m ", message("logcat.filter.completion.hint.age.value", 5, message("logcat.filter.completion.hint.age.minute"))),
+  createLookupElement("3h ", message("logcat.filter.completion.hint.age.value", 3, message("logcat.filter.completion.hint.age.hour"))),
+  createLookupElement("1d ", message("logcat.filter.completion.hint.age.value", 1, message("logcat.filter.completion.hint.age.day"))),
 )
 
 // Do not complete a key if previous char is one of these

@@ -96,7 +96,7 @@ class LayoutBindingModuleCache(private val module: Module) {
       }
     }
 
-    module.project.messageBus.connect().subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
+    module.project.messageBus.connect(module).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
       override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
         syncModeWithDependencies()
       }

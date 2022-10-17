@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.device.actions
 
+import com.android.tools.idea.device.DEVICE_CONFIGURATION_KEY
 import com.android.tools.idea.device.DEVICE_CONTROLLER_KEY
 import com.android.tools.idea.device.DEVICE_VIEW_KEY
+import com.android.tools.idea.device.DeviceConfiguration
 import com.android.tools.idea.device.DeviceController
 import com.android.tools.idea.device.DeviceView
 import com.intellij.openapi.actionSystem.AnAction
@@ -24,14 +26,21 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import java.util.function.Predicate
 
 /**
- * Common superclass for toolbar actions of the Device tool window panel.
+ * Common superclass for toolbar actions for mirrored physical devices.
+ *
+ * @param configFilter determines the types of devices the action is applicable to
  */
-internal abstract class AbstractDeviceAction : AnAction(), DumbAware {
+internal abstract class AbstractDeviceAction(private val configFilter: Predicate<DeviceConfiguration>? = null) : AnAction(), DumbAware {
 
   override fun update(event: AnActionEvent) {
-    event.presentation.isEnabled = isEnabled(event)
+    val presentation = event.presentation
+    presentation.isEnabled = isEnabled(event)
+    if (configFilter != null) {
+      presentation.isVisible = getDeviceConfig(event)?.let(configFilter::test) ?: false
+    }
   }
 
   protected open fun isEnabled(event: AnActionEvent): Boolean =
@@ -47,5 +56,8 @@ internal fun getDeviceController(event: AnActionEvent): DeviceController? =
 internal fun getDeviceView(event: AnActionEvent): DeviceView? =
   event.dataContext.getData(DEVICE_VIEW_KEY)
 
+internal fun getDeviceConfig(event: AnActionEvent): DeviceConfiguration? =
+  event.dataContext.getData(DEVICE_CONFIGURATION_KEY)
+
 internal fun isDeviceConnected(event: AnActionEvent) =
-  getDeviceController(event) != null
+  getDeviceView(event)?.isConnected == true

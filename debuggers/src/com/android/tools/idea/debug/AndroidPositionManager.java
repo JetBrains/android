@@ -33,7 +33,7 @@ import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.PositionManagerImpl;
 import com.intellij.debugger.requests.ClassPrepareRequestor;
 import com.intellij.debugger.settings.DebuggerSettings;
-import com.intellij.ide.highlighter.JavaClassFileType;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.Project;
@@ -106,7 +106,9 @@ public class AndroidPositionManager extends PositionManagerImpl {
   @Nullable
   @Override
   public Set<? extends FileType> getAcceptedFileTypes() {
-    return ImmutableSet.of(JavaClassFileType.INSTANCE);
+    // When setting breakpoints or debugging into SDK source, the Location's sourceName() method
+    // returns a string of the form "FileName.java"; this resolves into a JavaFileType.
+    return ImmutableSet.of(JavaFileType.INSTANCE);
   }
 
   @Override

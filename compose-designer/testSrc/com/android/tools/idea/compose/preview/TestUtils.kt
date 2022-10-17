@@ -35,6 +35,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import junit.framework.Assert.assertNull
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.uast.UFile
@@ -90,35 +91,31 @@ internal fun HighlightInfo.descriptionWithLineNumber() = ReadAction.compute<Stri
 internal fun runAndWaitForBuildToComplete(projectRule: AndroidGradleProjectRule, action: () -> Unit) = runBlocking(
   AndroidDispatchers.workerThread) {
   val buildComplete = CompletableDeferred<Unit>()
-  val buildsStarted = AtomicInteger(0)
   val disposable = Disposer.newDisposable(projectRule.fixture.testRootDisposable, "Build Listener disposable")
-  // If the project has already an existing build, buildStarted and buildSucceeded/buildFailed will be called immediately when
-  // setupBuildListener is called. We keep this flag to correct the returned number to the number of builds triggered by whatever
-  // happened in [action] and not any existing builds.
-  val hasExistingBuild = projectRule.project.getProjectSystem().getBuildManager()
-    .getLastBuildResult()
-    .status != ProjectSystemBuildManager.BuildStatus.UNKNOWN
+  var readyToListen = false
   try {
     setupBuildListener(projectRule.project, object : BuildListener {
-      override fun buildStarted() {
-        buildsStarted.incrementAndGet()
+      override fun startedListening() {
+        readyToListen = true
       }
 
       override fun buildFailed() {
+        if (!readyToListen) return
         buildComplete.complete(Unit)
       }
 
       override fun buildSucceeded() {
+        if (!readyToListen) return
         buildComplete.complete(Unit)
       }
     }, disposable)
+
     action()
     buildComplete.await()
   }
   finally {
     Disposer.dispose(disposable)
   }
-  return@runBlocking buildsStarted.get() - (if (hasExistingBuild) 1 else 0)
 }
 
 /**

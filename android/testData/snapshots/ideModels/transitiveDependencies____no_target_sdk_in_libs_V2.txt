@@ -21,14 +21,8 @@ MODULE                        : project
                 tasks
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                         qName                         : :app:testDebugUnitTest
-                        description                   : Run unit tests for the debug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testReleaseUnitTest
-                        description                   : Run unit tests for the release build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
@@ -146,9 +140,6 @@ MODULE                        : project
                 tasks
                     test                          : test (DefaultExternalTask)
                         qName                         : :javalib1:test
-                        description                   : Runs the test suite.
-                        group                         : verification
-                        type                          : org.gradle.api.tasks.testing.Test
                 sourceSets
                     main                          : main (DefaultExternalSourceSet)
                         sources
@@ -252,9 +243,6 @@ MODULE                        : project
                 tasks
                     test                          : test (DefaultExternalTask)
                         qName                         : :javalib2:test
-                        description                   : Runs the test suite.
-                        group                         : verification
-                        type                          : org.gradle.api.tasks.testing.Test
                 sourceSets
                     main                          : main (DefaultExternalSourceSet)
                         sources
@@ -331,14 +319,8 @@ MODULE                        : project
                 tasks
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                         qName                         : :library1:testDebugUnitTest
-                        description                   : Run unit tests for the debug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :library1:testReleaseUnitTest
-                        description                   : Run unit tests for the release build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
@@ -456,14 +438,8 @@ MODULE                        : project
                 tasks
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                         qName                         : :library2:testDebugUnitTest
-                        description                   : Run unit tests for the debug build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :library2:testReleaseUnitTest
-                        description                   : Run unit tests for the release build.
-                        group                         : verification
-                        type                          : com.android.build.gradle.tasks.factory.AndroidUnitTest
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>

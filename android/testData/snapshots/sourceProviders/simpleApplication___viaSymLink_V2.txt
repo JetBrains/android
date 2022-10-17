@@ -699,7 +699,7 @@ Build configuration files:
     file://._sm_src/build.gradle : Project: project_sm_src [0]
     file://._sm_src/settings.gradle : Project: project_sm_src [0]
     file://._sm_src/app/build.gradle : Module :app [2000004]
-    file://._sm_src/app/proguard-rules.pro : ProGuard Rules for ":app" [2000004]
+    file://._sm_src/app/proguard-rules.pro : ProGuard Rules for ":app" [2500004]
     file://./gradle.properties : Project Properties [3000000]
     file://./gradle/wrapper/gradle-wrapper.properties : Gradle Version [3000000]
     file://./settings.gradle : Project Settings [3000000]

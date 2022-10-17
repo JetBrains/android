@@ -32,9 +32,9 @@ import com.android.builder.model.v2.ide.GraphItem
 import com.android.builder.model.v2.ide.JavaArtifact
 import com.android.builder.model.v2.ide.JavaCompileOptions
 import com.android.builder.model.v2.ide.Library
-import com.android.builder.model.v2.ide.LibraryInfo
 import com.android.builder.model.v2.ide.LibraryType
 import com.android.builder.model.v2.ide.LintOptions
+import com.android.builder.model.v2.ide.ProjectInfo
 import com.android.builder.model.v2.ide.ProjectType
 import com.android.builder.model.v2.ide.SourceProvider
 import com.android.builder.model.v2.ide.SourceSetContainer
@@ -68,9 +68,9 @@ import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_IGN
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_INFORMATIONAL
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_WARNING
 import com.android.tools.idea.gradle.model.IdeModelSyncFile
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.MAIN
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.TEST_FIXTURES
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
@@ -94,12 +94,14 @@ import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeModelSyncFileImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdePrivacySandboxSdkInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedDependencyImpl
@@ -429,32 +431,21 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     return internedModels.getOrCreate(unnamed)
   }
 
-  /**
-   * [isAndroidProject] == `true` means [buildId] and [projectPath] refers to a Gradle project with Android artifacts (regular AGP or KMP).
-   */
   fun moduleLibraryFrom(
     projectPath: String,
-    ownerBuildId: BuildId,
-    ownerProjectPath: String,
-    isAndroidProject: Boolean,
     buildId: BuildId,
-    variant: String?,
     lintJar: File?,
-    isTestFixturesComponent: Boolean,
-    artifact: File?
+    artifact: ArtifactRef
   ): LibraryReference {
 
-    @Suppress("FileComparisons")
-    val isSameProject = ownerBuildId == buildId && ownerProjectPath == projectPath
-
-    fun resolved(sourceSet: IdeModuleWellKnownSourceSet): LibraryReference {
+    fun resolved(artifact: AndroidArtifactRef): LibraryReference {
       return internedModels.getOrCreate(
         IdePreResolvedModuleLibraryImpl(
           buildId = buildId.asString,
           projectPath = projectPath,
-          variant = variant,
+          variant = artifact.variantName,
           lintJar = lintJar?.path?.let(::File),
-          sourceSet = sourceSet
+          sourceSet = if (artifact.isTestFixture) TEST_FIXTURES else MAIN
         )
       )
     }
@@ -464,40 +455,16 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
         IdeUnresolvedModuleLibraryImpl(
           buildId = buildId.asString,
           projectPath = projectPath,
-          variant = variant,
+          variant = null,
           lintJar = lintJar?.path?.let(::File),
           artifact = artifact
         )
       )
     }
 
-    // In the original v2 models and corresponding model builders there might be ambiguity in source set name resolution when a dependency
-    // is on another source set of the same Gradle project, and when it is not the main Android artifact. This is because in both case we
-    // receive a not null [artifact] value and while both artifacts are not resolvable in the IDE one of them should resolve into the main
-    // Android source set and the other should resolve into an external library.
-    return when {
-      isTestFixturesComponent -> {
-        resolved(TEST_FIXTURES)
-      }
-      isSameProject -> {
-        // IMPORTANT: Current AGP versions populate [artifact] field if the target is an Android artifact within the same Gradle project
-        //            and maybe in other cases.
-        resolved(MAIN)
-      }
-      isAndroidProject -> {
-        // IMPORTANT: The AGP is expected not to populate [artifact] field when the target is an Android artifact (but see above) so for
-        //            now we since this is not test fixtures we assume it is always `main`.
-        resolved(MAIN)
-      }
-      artifact != null -> {
-        unresolved(artifact)
-      }
-      else -> {
-        error(
-          "Unresolved module dependency $projectPath ($buildId) in $ownerProjectPath ($ownerBuildId). " +
-            "Neither the source set nor the artifact property was populated by the Android Gradle plugin."
-        )
-      }
+    return when (artifact) {
+      is AndroidArtifactRef -> resolved(artifact)
+      is NonAndroidAndroidArtifactRef -> unresolved(artifact.artifactFile)
     }
   }
 
@@ -521,11 +488,9 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       visited: MutableSet<String>,
       projectPath: String,
       artifactAddress: String,
-      variant: String?,
       lintJar: File?,
       buildName: String,
-      isTestFixturesComponent: Boolean,
-      artifact: File?
+      artifact: ArtifactRef
     ) {
       if (!visited.contains(artifactAddress)) {
         visited.add(artifactAddress)
@@ -534,13 +499,8 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
           IdeDependencyCoreImpl(
             target = moduleLibraryFrom(
               projectPath = projectPath,
-              ownerBuildId = ownerBuildId,
-              ownerProjectPath = ownerProjectPath,
-              isAndroidProject = androidProjectPathResolver.resolve(buildId, projectPath) != null,
               buildId = buildId,
-              variant = variant,
               lintJar = lintJar,
-              isTestFixturesComponent = isTestFixturesComponent,
               artifact = artifact
             )
           )
@@ -548,24 +508,82 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       }
     }
 
+    fun AndroidModule.resolveVariantName(
+      projectInfo: ProjectInfo
+    ): String {
+      return this.androidVariantResolver.resolveVariant(
+        buildType = projectInfo.buildType,
+        productFlavors = { dimension ->
+          projectInfo.productFlavors[dimension]
+            ?: run {
+              // See: b/242856048 and b/242289523: Flavors in `FAKE_DIMENSION` are not reported here.
+              if (dimension == FAKE_DIMENSION) {
+                val suffix = projectInfo.buildType.orEmpty()
+                projectInfo
+                  .attributes["com.android.build.gradle.internal.attributes.VariantAttr"]
+                  ?.takeIf { it.endsWith(suffix, ignoreCase = true) }
+                  ?.let { it.substring(0, it.length - suffix.length) }
+              } else null
+            }
+            ?: error(
+              "$dimension attribute not found in a dependency model " +
+                "of $ownerProjectPath ($ownerBuildId) " +
+                "on  ${projectInfo.projectPath} (${projectInfo.buildId})"
+            )
+        }
+      )
+        ?: error(
+          "Cannot find a variant matching build type '${projectInfo.buildType}' " +
+            "and product flavors '${projectInfo.productFlavors}' " +
+            "in ${projectInfo.projectPath} (${projectInfo.buildId}) " +
+            "referred from $ownerProjectPath ($ownerBuildId)"
+        )
+    }
+
     fun populateProjectDependencies(libraries: List<Library>, visited: MutableSet<String>) {
+      /**
+       * Determines whether a dependency target is an Android component.
+       *
+       * It was initially assumed that the Android Gradle plugin should only populate `identifier.artifact` property
+       * for non-Android components. However, it happened that it is also not null in the case of dependencies of
+       * `androidTest` (or similarly of `TEST_ONLY` projects) artifact on `main` artifacts.
+       *
+       * Also, unfortunately, the artifact file returned in this case is not known to the IDE.
+       *
+       * Temporarily, detect Android components by presence of a build type or a product flavor.
+       *
+       * TODO(b/242847891): This will likely break with new KMP Android targets, which do not have build types.
+       *                    An alternative solution could be to fetch locations of all artifact files of Android modules
+       *                    and match them with `artifactFile` when it is not null.
+       */
+      fun ProjectInfo.isAndroidComponent(): Boolean = buildType != null || productFlavors.isNotEmpty()
+
       for (identifier in libraries) {
         val projectInfo = identifier.projectInfo!!
-        val androidModule = androidProjectPathResolver.resolve(buildNameToBuildId(projectInfo.buildId), projectInfo.projectPath)
         // TODO(b/203750717): Model this explicitly in the tooling model.
-        val variantName = androidModule?.androidVariantResolver?.resolveVariant(
-          projectInfo.buildType,
-          { dimension -> projectInfo.productFlavors[dimension] ?: error("$dimension attribute not found. Library: ${identifier.key}") }
-        )
+        val artifact =
+          if (projectInfo.isAndroidComponent()) {
+            val androidModule: AndroidModule =
+              androidProjectPathResolver.resolve(buildNameToBuildId(projectInfo.buildId), projectInfo.projectPath)
+                ?: error("Cannot find an Android module: ${projectInfo.projectPath} (${projectInfo.buildId})")
+            val variantName = androidModule.resolveVariantName(projectInfo)
+            AndroidArtifactRef(variantName, projectInfo.isTestFixtures)
+          } else {
+            NonAndroidAndroidArtifactRef(
+              identifier.artifact
+                ?: error(
+                  "Unresolved module dependency ${projectInfo.projectPath} (${projectInfo.buildId}) in $ownerProjectPath ($ownerBuildId). " +
+                    "Neither the source set nor the artifact property was populated by the Android Gradle plugin."
+                )
+            )
+          }
         createModuleDependency(
           visited = visited,
           projectPath = projectInfo.projectPath,
           artifactAddress = identifier.key,
-          variant = variantName,
           lintJar = identifier.lintJar,
           buildName = projectInfo.buildId, // IMPORTANT: A v2 build id is a Gradle build name and needs to be mapped to an IDE build id.
-          isTestFixturesComponent = projectInfo.isTestFixtures,
-          artifact = identifier.artifact
+          artifact = artifact
         )
       }
     }
@@ -770,6 +788,10 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       codeShrinker = convertCodeShrinker(artifact.codeShrinker),
       isTestArtifact = name == IdeArtifactName.ANDROID_TEST,
       modelSyncFiles = artifact.modelSyncFiles.map { modelSyncFileFrom(it) },
+      privacySandboxSdkInfo = if (agpVersion.isAtLeast(7, 4, 0, "alpha", 10, false))
+        artifact.privacySandboxSdkInfo?.let { IdePrivacySandboxSdkInfoImpl(it.task, it.outputListingFile) }
+      else
+        null
     )
   }
 
@@ -1129,16 +1151,6 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     else -> error("Unknown Android project type: $projectType")
   }
 
-  fun basicVariantFrom(variant: Variant, legacyApplicationIdModel: LegacyApplicationIdModel?): IdeBasicVariantImpl {
-    val variantName = variant.name
-    return IdeBasicVariantImpl(
-      variantName,
-      applicationId = variant.mainArtifact.applicationId ?: legacyApplicationIdModel?.componentToApplicationIdMap?.get(variantName),
-      testApplicationId = variant.androidTestArtifact?.applicationId
-        ?: legacyApplicationIdModel?.componentToApplicationIdMap?.get(variantName + "AndroidTest")
-    )
-  }
-
   fun androidProjectFrom(
     rootBuildId: BuildId,
     buildId: BuildId,
@@ -1288,26 +1300,18 @@ private inline fun <K, V, W, R> zip(
   return original1.map { mapper(it, original2Keyed[key1(it)]) }
 }
 
-private data class LibraryIdentity(
-  val group: String,
-  val name: String,
-  val version: String,
-  val attributesExceptUsage: Map<String, String>,
-  val capabilities: List<String>,
-)
-
-private fun Library.getJarFilesForRuntimeClasspath(): List<File> =
-  when (type) {
-    LibraryType.ANDROID_LIBRARY -> androidLibraryData?.runtimeJarFiles.orEmpty()
-    LibraryType.JAVA_LIBRARY -> listOfNotNull(artifact)
-    else -> emptyList()
+internal fun Collection<com.android.builder.model.v2.ide.SyncIssue>.toV2SyncIssueData(): List<IdeSyncIssue> {
+  return map { syncIssue ->
+    IdeSyncIssueImpl(
+      message = syncIssue.message,
+      data = syncIssue.data,
+      multiLineMessage = safeGet(syncIssue::multiLineMessage, null)?.filterNotNull()?.toList(),
+      severity = syncIssue.severity,
+      type = syncIssue.type
+    )
   }
+}
 
-private fun LibraryInfo.toIdentity() =
-  LibraryIdentity(
-    name,
-    group,
-    version,
-    attributes.filterKeys { it != "org.gradle.usage" },
-    capabilities
-  )
+private sealed class ArtifactRef
+private data class AndroidArtifactRef(val variantName: String, val isTestFixture: Boolean) : ArtifactRef()
+private data class NonAndroidAndroidArtifactRef(val artifactFile: File) : ArtifactRef()

@@ -18,9 +18,9 @@ package com.android.tools.asdriver.tests;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
-import com.google.common.collect.Sets;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -220,6 +220,7 @@ public class AndroidStudioInstallation {
 
     // This is more brittle than using XPath, but it's sufficient for now.
     xmlContent = xmlContent.replaceAll("(.*<build number=\")(.*?)(\".*)", String.format("$1%s$3", buildNumber));
+    xmlContent = xmlContent.replaceAll("(.*<version major=\".*)", "<version major=\"2022\" minor=\"1\" micro=\"2\" patch=\"3\" full=\"Electric Eel | {0}.{1}.{2} Stable 10\" eap=\"false\"/>");
     Files.write(appInfoXml, xmlContent.getBytes(charset));
     Path newJarPath = tempDir.resolve("resources.jar");
     TestUtils.zipDirectory(unzippedDir, newJarPath);
@@ -327,8 +328,9 @@ public class AndroidStudioInstallation {
     return run(display, env, new String[] {});
   }
 
-  public AndroidStudio run(Display display, Map<String, String> env, AndroidProject project) throws IOException, InterruptedException {
+  public AndroidStudio run(Display display, Map<String, String> env, AndroidProject project, Path sdkDir) throws IOException, InterruptedException {
     Path projectPath = project.install(fileSystem.getRoot());
+    project.setSdkDir(sdkDir);
     // Mark that project as trusted
     trustPath(projectPath);
     return run(display, env, new String[]{ projectPath.toString() });
@@ -372,7 +374,8 @@ public class AndroidStudioInstallation {
     boolean hasThreadingViolations =
       ideaLog.hasMatchingLine(".*Threading violation.+(@UiThread|@WorkerThread).*");
     if (hasThreadingViolations) {
-      throw new RuntimeException("One or more methods called on a wrong thread. See the idea.log for more info");
+      throw new RuntimeException("One or more methods called on a wrong thread. " +
+                                 "See go/android-studio-threading-checks for more info.");
     }
   }
 }

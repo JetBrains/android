@@ -45,6 +45,7 @@ import com.android.tools.idea.apk.viewer.ApkParser;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdePrivacySandboxSdkInfo;
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
@@ -197,6 +198,14 @@ public final class GradleApkProvider implements ApkProvider {
                                                  myFacet
                                           )));
           apkFileList.addAll(collectDependentFeaturesApks(androidModel, deviceAbis, deviceVersion));
+          if (variant.getMainArtifact().getPrivacySandboxSdkInfo() != null) {
+            apkList.addAll(getApksForPrivacySandboxSdks(
+              variant.getName(),
+              variant.getMainArtifact().getPrivacySandboxSdkInfo(),
+              variant.getMainArtifact().getAbiFilters(),
+              deviceAbis
+            ));
+          }
           apkList.add(new ApkInfo(apkFileList, pkgName));
           break;
 
@@ -366,6 +375,28 @@ public final class GradleApkProvider implements ApkProvider {
     }
     return findBestOutput(variantName, artifact.getAbiFilters(), deviceAbis, builtArtifacts);
   }
+
+  @NotNull
+  private List<ApkInfo> getApksForPrivacySandboxSdks(
+    @NotNull String variantName,
+    @NotNull IdePrivacySandboxSdkInfo privacySandboxSdkInfo,
+    @NotNull Set<String> abiFilters,
+    @NotNull List<String> deviceAbis) throws ApkProvisionException {
+
+    File outputFile = privacySandboxSdkInfo.getOutputListingFile();
+    List<GenericBuiltArtifacts> builtArtifacts = GenericBuiltArtifactsLoader.loadListFromFile(outputFile, new LogWrapper(getLogger()));
+    if (builtArtifacts.isEmpty()) {
+      throw new ApkProvisionException(String.format("Error loading build artifacts from: %s", outputFile));
+    }
+
+    List<ApkInfo> list = new ArrayList<>();
+    for (GenericBuiltArtifacts builtArtifact : builtArtifacts) {
+      ApkInfo unit = new ApkInfo(findBestOutput(variantName, abiFilters, deviceAbis, builtArtifact), builtArtifact.getApplicationId());
+      list.add(unit);
+    }
+    return list;
+  }
+
 
   @NotNull
   public static IdeAndroidArtifact getAndroidTestArtifact(@NotNull IdeVariant variant) throws ApkProvisionException {

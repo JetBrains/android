@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
@@ -32,7 +33,7 @@ class CaptureNodeAnalysisSummaryTabModelTest {
       startGlobal = 10
       endGlobal = 20
     }
-    model.dataSeries.add(CaptureNodeAnalysisModel(node, Mockito.mock(CpuCapture::class.java)))
+    model.dataSeries.add(CaptureNodeAnalysisModel(node, Mockito.mock(CpuCapture::class.java), Utils::runOnUi))
 
     assertThat(model.selectionRange.isSameAs(Range(10.0, 20.0))).isTrue()
   }
@@ -50,7 +51,7 @@ class CaptureNodeAnalysisSummaryTabModelTest {
         endGlobal = 30
       }
     )
-    nodes.forEach { model.dataSeries.add(CaptureNodeAnalysisModel(it, Mockito.mock(CpuCapture::class.java))) }
+    nodes.forEach { model.dataSeries.add(CaptureNodeAnalysisModel(it, Mockito.mock(CpuCapture::class.java), Utils::runOnUi)) }
 
     assertThat(model.selectionRange.isSameAs(Range(10.0, 30.0))).isTrue()
   }

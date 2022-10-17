@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.IdeSyncExecutionReport;
 import com.android.tools.idea.gradle.project.sync.idea.IdeAndroidNativeVariantsModelsWrapper;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataService;
@@ -82,8 +83,12 @@ public final class AndroidProjectKeys {
     Key.create(IdeAndroidNativeVariantsModelsWrapper.class, SYNC_ISSUE.getProcessingWeight() + 10);
 
   @NotNull
+  public static final Key<IdeSyncExecutionReport> SYNC_EXECUTION_REPORT =
+    Key.create(IdeSyncExecutionReport.class, NATIVE_VARIANTS.getProcessingWeight() + 10);
+
+  @NotNull
   public static final Key<ProjectCleanupModel>
-    PROJECT_CLEANUP_MODEL = Key.create(ProjectCleanupModel.class, NATIVE_VARIANTS.getProcessingWeight() + 10);
+    PROJECT_CLEANUP_MODEL = Key.create(ProjectCleanupModel.class, SYNC_EXECUTION_REPORT.getProcessingWeight() + 10);
 
   private AndroidProjectKeys() {
   }

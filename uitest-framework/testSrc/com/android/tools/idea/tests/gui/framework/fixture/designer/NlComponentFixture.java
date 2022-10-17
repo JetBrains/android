@@ -97,8 +97,8 @@ public class NlComponentFixture {
     myDragAndDrop.drop(mySurface, destination.getSceneComponent().getLeftCenterPoint());
 
     // There is no possible connection here, so expect a popup, and just close it:
-    JPopupMenuFixture menu = getSceneComponent().waitForConnectToPopup();
-    menu.target().setVisible(false);
+    //JPopupMenuFixture menu = getSceneComponent().waitForConnectToPopup();
+    //menu.target().setVisible(false);
     return this;
   }
 

@@ -249,7 +249,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
   @Test
   fun testAttachingDebuggerFails() {
-    // Use DefaultRunExecutor, equivalent of pressing debug button.
+    // Use DefaultDebugExecutor, equivalent of pressing debug button.
     val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())
 
     val debuggerManagerExMock = Mockito.mock(DebuggerManagerEx::class.java)
@@ -316,14 +316,10 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     // We expect the debugger to fail to attach, and we catch the corresponding exception. That happens only in this test as we
     // mocked DebuggerManagerEx to fail above.
-    try {
-      executor.debug().blockingGet(30, TimeUnit.SECONDS)
+    val e = assertFailsWith<Throwable> { executor.debug().blockingGet(10, TimeUnit.SECONDS) }.let {
+      ExceptionUtil.findCause(it, ExecutionException::class.java)
     }
-    catch (e: Throwable) {
-      if (e.cause !is ExecutionException || e.cause?.message != "Exception on debug start") {
-        throw e
-      }
-    }
+    assertThat(e).hasMessageThat().contains("Exception on debug start")
     if (!processTerminatedLatch.await(10, TimeUnit.SECONDS)) {
       fail("process is not terminated after debugger failed to connect")
     }

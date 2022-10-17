@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline.legacy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -25,6 +26,7 @@ import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLook
 import com.android.tools.idea.layoutinspector.snapshots.saveLegacySnapshot
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.LEGACY_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
 import java.nio.file.Path
@@ -40,7 +42,7 @@ class LegacyClient(
   private val metrics: LayoutInspectorMetrics,
   parentDisposable: Disposable,
   treeLoaderForTest: LegacyTreeLoader? = null
-) : AbstractInspectorClient(process, isInstantlyAutoConnected, parentDisposable) {
+) : AbstractInspectorClient(process, isInstantlyAutoConnected, SessionStatisticsImpl(LEGACY_CLIENT, model), parentDisposable) {
 
   private val lookup: ViewNodeAndResourceLookup = model
   private val project = model.project
@@ -55,10 +57,10 @@ class LegacyClient(
 
   fun logEvent(type: DynamicLayoutInspectorEventType) {
     if (!isRenderEvent(type)) {
-      metrics.logEvent(type)
+      metrics.logEvent(type, stats)
     }
     else if (!loggedInitialRender) {
-      metrics.logEvent(type)
+      metrics.logEvent(type, stats)
       loggedInitialRender = true
     }
   }
@@ -96,7 +98,7 @@ class LegacyClient(
    * Return <code>true</code> if windows were found otherwise false.
    */
   private fun doAttach() {
-    metrics.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST)
+    metrics.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST, stats)
     while (!reloadAllWindows()) {
       // We were killed by InspectorClientLaunchMonitor
       if (state == InspectorClient.State.DISCONNECTED) {
@@ -120,7 +122,7 @@ class LegacyClient(
     snapshotMetadata.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
     val saveMetrics = LayoutInspectorMetrics(project, process, snapshotMetadata = snapshotMetadata)
-    saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED)
+    saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED, stats)
   }
 
   /**

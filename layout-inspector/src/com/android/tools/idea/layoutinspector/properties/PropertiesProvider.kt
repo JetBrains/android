@@ -72,10 +72,10 @@ fun addInternalProperties(
   lookup: ViewNodeAndResourceLookup
 ) {
   add(table, ATTR_NAME, Type.STRING, view.qualifiedName, VIEW, view.drawId, lookup)
-  add(table, ATTR_X, Type.DIMENSION, view.x.toString(), DIMENSION, view.drawId, lookup)
-  add(table, ATTR_Y, Type.DIMENSION, view.y.toString(), DIMENSION, view.drawId, lookup)
-  add(table, ATTR_WIDTH, Type.DIMENSION, view.width.toString(), DIMENSION, view.drawId, lookup)
-  add(table, ATTR_HEIGHT, Type.DIMENSION, view.height.toString(), DIMENSION, view.drawId, lookup)
+  add(table, ATTR_X, Type.DIMENSION, view.layoutBounds.x.toString(), DIMENSION, view.drawId, lookup)
+  add(table, ATTR_Y, Type.DIMENSION, view.layoutBounds.y.toString(), DIMENSION, view.drawId, lookup)
+  add(table, ATTR_WIDTH, Type.DIMENSION, view.layoutBounds.width.toString(), DIMENSION, view.drawId, lookup)
+  add(table, ATTR_HEIGHT, Type.DIMENSION, view.layoutBounds.height.toString(), DIMENSION, view.drawId, lookup)
   attrId?.let { add(table, ATTR_ID, Type.STRING, it, VIEW, view.drawId, lookup) }
 
   (view as? ComposeViewNode)?.addComposeProperties(table, lookup)

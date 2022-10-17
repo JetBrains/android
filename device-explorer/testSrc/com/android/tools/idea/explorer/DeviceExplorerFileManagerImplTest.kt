@@ -86,6 +86,10 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     tempDirTestFixture.setUp()
   }
 
+  override fun shouldPerfomThreadingChecks(): Boolean {
+    return true
+  }
+
   override fun tearDown() {
     tempDirTestFixture.tearDown()
     super.tearDown()

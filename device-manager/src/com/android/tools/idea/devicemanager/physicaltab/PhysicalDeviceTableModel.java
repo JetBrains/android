@@ -26,7 +26,6 @@ import com.android.tools.idea.devicemanager.SerialNumber;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,13 +53,13 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   }
 
   PhysicalDeviceTableModel() {
-    this(Collections.emptyList());
+    this(List.of());
   }
 
   @VisibleForTesting
-  PhysicalDeviceTableModel(@NotNull List<@NotNull PhysicalDevice> devices) {
-    myDevices = devices;
-    myCombinedDevices = Collections.emptyList();
+  PhysicalDeviceTableModel(@NotNull Collection<@NotNull PhysicalDevice> devices) {
+    myDevices = new ArrayList<>(devices);
+    myCombinedDevices = List.of();
 
     combineDevices();
   }
@@ -84,32 +83,6 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     }
     else {
       myDevices.set(modelRowIndex, device);
-    }
-
-    combineDevices();
-    fireTableDataChanged();
-  }
-
-  void setNameOverride(@NotNull Key key, @NotNull String nameOverride) {
-    for (int i = 0, size = myDevices.size(); i < size; i++) {
-      PhysicalDevice device = myDevices.get(i);
-      Key k = device.getKey();
-
-      if (!(k.equals(key) || k.getSerialNumber().equals(key))) {
-        continue;
-      }
-
-      PhysicalDevice newDevice = new PhysicalDevice.Builder()
-        .setKey(k)
-        .setType(device.getType())
-        .setName(device.getName())
-        .setNameOverride(nameOverride)
-        .setTarget(device.getTarget())
-        .setAndroidVersion(device.getAndroidVersion())
-        .addAllConnectionTypes(device.getConnectionTypes())
-        .build();
-
-      myDevices.set(i, newDevice);
     }
 
     combineDevices();
@@ -237,7 +210,9 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       case TYPE_MODEL_COLUMN_INDEX:
         return false;
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
+        return myCombinedDevices.get(modelRowIndex).isOnline();
       case REMOVE_MODEL_COLUMN_INDEX:
+        return !myCombinedDevices.get(modelRowIndex).isOnline();
       case POP_UP_MENU_MODEL_COLUMN_INDEX:
         return true;
       default:

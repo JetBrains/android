@@ -20,6 +20,7 @@ import com.android.tools.idea.util.zipFiles
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import java.nio.file.Files
 import java.time.LocalDateTime
@@ -27,20 +28,9 @@ import java.time.format.DateTimeFormatter
 
 class DiagnosticSummaryAction : DumbAwareAction("Create Diagnostics Summary File") {
   override fun actionPerformed(e: AnActionEvent) {
-    val fileInfo = DiagnosticSummaryFileProviders.map {
-      it.getFiles(e.project).filter { file -> Files.exists(file.source) }
-    }.flatten()
-
-    val zipInfo = fileInfo.map { ZipData(it.source.toString(), it.destination.toString()) }.toTypedArray()
-
-    val datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
-
-    val dir = DiagnosticsSummaryFileProvider.getDiagnosticsDirectoryPath(PathManager.getLogPath())
-    val destination = dir.resolve("DiagnosticsReport${datetime}.zip").toString()
-
     val message =
       try {
-        zipFiles(zipInfo, destination)
+        val destination = createSummaryFile(e.project)
         "Diagnostics file created successfully. Path: $destination"
       }
       catch (e: Exception) {
@@ -48,5 +38,24 @@ class DiagnosticSummaryAction : DumbAwareAction("Create Diagnostics Summary File
       }
 
     Messages.showInfoMessage(message, "Diagnostics Summary File")
+  }
+
+  companion object {
+    @JvmStatic
+    fun createSummaryFile(project: Project?) : String {
+      val fileInfo = DiagnosticSummaryFileProviders.map {
+        it.getFiles(project).filter { file -> Files.exists(file.source) }
+      }.flatten()
+
+      val zipInfo = fileInfo.map { ZipData(it.source.toString(), it.destination.toString()) }.toTypedArray()
+
+      val datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
+
+      val dir = DiagnosticsSummaryFileProvider.getDiagnosticsDirectoryPath(PathManager.getLogPath())
+      val destination = dir.resolve("DiagnosticsReport${datetime}.zip").toString()
+
+      zipFiles(zipInfo, destination)
+      return destination
+    }
   }
 }

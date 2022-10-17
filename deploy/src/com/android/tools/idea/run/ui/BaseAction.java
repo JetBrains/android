@@ -18,7 +18,6 @@ package com.android.tools.idea.run.ui;
 import static com.android.tools.idea.run.tasks.AbstractDeployTask.MIN_API_VERSION;
 import static com.android.tools.idea.run.util.SwapInfo.SWAP_INFO_KEY;
 
-import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
@@ -26,9 +25,6 @@ import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.run.util.SwapInfo.SwapType;
 import com.android.tools.idea.util.CommonAndroidUtil;
-import com.intellij.debugger.DebuggerManagerEx;
-import com.intellij.debugger.engine.RemoteDebugProcessHandler;
-import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.Executor;
@@ -37,20 +33,17 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
-import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.ProgramRunner;
-import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.xdebugger.XDebugSession;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
@@ -256,7 +249,7 @@ public abstract class BaseAction extends AnAction {
     return handler == null
            // If we can't find an existing executor (e.g. app was started directly on device), just use the Run Executor.
            ? DefaultRunExecutor.getRunExecutorInstance()
-           : getExecutor(handler, DefaultRunExecutor.getRunExecutorInstance());
+           : getExecutor(handler);
   }
 
   @Nullable
@@ -275,58 +268,14 @@ public abstract class BaseAction extends AnAction {
       }
     }
 
-    // We may have a remote debugging session, check those as well.
-    DeployableProvider deployableProvider = DeployableProvider.getInstance(project);
-    if (deployableProvider == null) {
-      return null;
-    }
-
-    Deployable deployable;
-    try {
-      deployable = deployableProvider.getDeployable(runConfiguration);
-      if (deployable == null) {
-        return null;
-      }
-    }
-    catch (Exception e) {
-      return null;
-    }
-
-    for (DebuggerSession session : DebuggerManagerEx.getInstanceEx(project).getSessions()) {
-      String debuggerPort = session.getProcess().getConnection().getDebuggerAddress().trim();
-      Client remoteDebuggedClient = deployable
-        .searchClientsForPackage()
-        .stream()
-        .filter(client -> Integer.toString(client.getDebuggerListenPort()).equals(debuggerPort))
-        .findAny()
-        .orElse(null);
-      if (remoteDebuggedClient != null) {
-        // IDEA-239076
-        XDebugSession debugSession = session.getXDebugSession();
-        if (debugSession != null && !debugSession.isStopped()) {
-          RunContentDescriptor descriptor = debugSession.getRunContentDescriptor();
-          // IDEA-239076
-          // One of the classes implementing the interface potentially violates @NotNull annotation.
-          if (descriptor != null) {
-            return descriptor.getProcessHandler();
-          }
-        }
-      }
-    }
-
     return null;
   }
 
   @Nullable
-  protected static Executor getExecutor(@NotNull ProcessHandler processHandler, @Nullable Executor defaultExecutor) {
-    if (processHandler instanceof RemoteDebugProcessHandler) {
-      // Special case for remote debugger.
-      return DefaultDebugExecutor.getDebugExecutorInstance();
-    }
-
+  protected static Executor getExecutor(@NotNull ProcessHandler processHandler) {
     SwappableProcessHandler extension = processHandler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY);
     return processHandler.isProcessTerminated() || processHandler.isProcessTerminating() || extension == null
-           ? defaultExecutor
+           ? null
            : extension.getExecutor();
   }
 

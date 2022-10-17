@@ -93,9 +93,6 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
       // Opening a Gradle project with .idea but no .iml files or facets (Typical for AS but not in IDEA)
       if (IdeInfo.getInstance().isAndroidStudio && gradleProjectInfo.isBuildWithGradle) return true
 
-      // Opening a project without .idea directory (including a newly created).
-      if (gradleProjectInfo.isImportedProject) return true
-
       return false
     }
 

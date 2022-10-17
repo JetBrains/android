@@ -55,7 +55,6 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.border.MatteBorder
-import kotlin.math.ceil
 import kotlin.math.max
 
 private val LOG = Logger.getInstance(AnimationPreview::class.java)
@@ -232,12 +231,7 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
 
   private fun setClockTime(newValue: Int, longTimeout: Boolean = false) {
     animationClock?.apply {
-      var clockTimeMs = newValue.toLong()
-      if (clockControl.playInLoop) {
-        // When playing in loop, we need to add an offset to slide the window and take repeatable animations into account when necessary
-        clockTimeMs += timeline.maximum * clockControl.loopCount
-      }
-
+      val clockTimeMs = newValue.toLong()
       if (!executeOnRenderThread(longTimeout) {
           if (coordinationIsSupported())
             setClockTimes(animationsMap.mapValues {
@@ -289,17 +283,6 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
     if (!executeOnRenderThread(longTimeout) {
         maxDurationPerIteration = clock.getMaxDurationMsPerIteration()
       }) return
-
-    var maxDuration = DEFAULT_MAX_DURATION_MS
-    if (!executeOnRenderThread(longTimeout) { maxDuration = clock.getMaxDurationMs() }) return
-
-    clockControl.maxLoopCount = if (maxDuration > maxDurationPerIteration) {
-      // The max duration is longer than the max duration per iteration. This means that a repeatable animation has multiple iterations,
-      // so we need to add as many loops to the timeline as necessary to display all the iterations.
-      ceil(maxDuration / maxDurationPerIteration.toDouble()).toLong()
-    }
-    // Otherwise, the max duration fits the window, so we just need one loop that keeps repeating when loop mode is active.
-    else 1
   }
 
   /** Replaces the [tabbedPane] with [noAnimationsPanel]. */
@@ -327,7 +310,14 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
       ComposeAnimationType.TRANSITION_ANIMATION -> TransitionAnimationManager(animation)
       ComposeAnimationType.ANIMATED_VALUE -> UnsupportedAnimationManager(animation, tabNames.createName(animation))
       ComposeAnimationType.ANIMATED_VISIBILITY -> AnimatedVisibilityAnimationManager(animation)
-      else -> UnsupportedAnimationManager(animation, tabNames.createName(animation))
+      ComposeAnimationType.ANIMATABLE,
+      ComposeAnimationType.ANIMATE_CONTENT_SIZE,
+      ComposeAnimationType.ANIMATE_X_AS_STATE,
+      ComposeAnimationType.ANIMATED_CONTENT,
+      ComposeAnimationType.DECAY_ANIMATION,
+      ComposeAnimationType.INFINITE_TRANSITION,
+      ComposeAnimationType.TARGET_BASED_ANIMATION,
+      ComposeAnimationType.UNSUPPORTED -> UnsupportedAnimationManager(animation, tabNames.createName(animation))
     }
   }
 
@@ -551,7 +541,15 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
           loadTransitionFromCacheOrLib()
           loadProperties()
         }
-        ComposeAnimationType.ANIMATED_VALUE -> InspectorPainter.EmptyComboBox()
+        ComposeAnimationType.ANIMATED_VALUE,
+        ComposeAnimationType.ANIMATABLE,
+        ComposeAnimationType.ANIMATE_CONTENT_SIZE,
+        ComposeAnimationType.ANIMATE_X_AS_STATE,
+        ComposeAnimationType.ANIMATED_CONTENT,
+        ComposeAnimationType.DECAY_ANIMATION,
+        ComposeAnimationType.INFINITE_TRANSITION,
+        ComposeAnimationType.TARGET_BASED_ANIMATION,
+        ComposeAnimationType.UNSUPPORTED -> InspectorPainter.EmptyComboBox()
       }
     }
 

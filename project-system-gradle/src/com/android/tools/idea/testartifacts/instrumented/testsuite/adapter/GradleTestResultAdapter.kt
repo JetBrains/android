@@ -23,9 +23,9 @@ import com.android.tools.deployer.AdbClient.InstallResult
 import com.android.tools.deployer.ApkInstaller
 import com.android.tools.deployer.InstallStatus
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.idea.stats.findTestLibrariesVersions
-import com.android.tools.idea.stats.toProtoValue
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
@@ -33,7 +33,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.utp.TaskOutputProcessorListener
-import com.google.protobuf.Timestamp
+import com.android.tools.idea.protobuf.Timestamp
 import com.google.testing.platform.proto.api.core.TestCaseProto
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestStatusProto
@@ -300,5 +300,14 @@ private fun TestStatusProto.TestStatus.toAndroidTestSuiteResult(): AndroidTestSu
     TestStatusProto.TestStatus.ABORTED -> AndroidTestSuiteResult.ABORTED
     TestStatusProto.TestStatus.CANCELLED -> AndroidTestSuiteResult.CANCELLED
     else -> AndroidTestSuiteResult.ABORTED
+  }
+}
+
+private fun IdeTestOptions.Execution?.toProtoValue(): TestRun.TestExecution {
+  return when (this) {
+    null -> TestRun.TestExecution.HOST
+    IdeTestOptions.Execution.HOST -> TestRun.TestExecution.HOST
+    IdeTestOptions.Execution.ANDROID_TEST_ORCHESTRATOR -> TestRun.TestExecution.ANDROID_TEST_ORCHESTRATOR
+    IdeTestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR -> TestRun.TestExecution.ANDROID_TEST_ORCHESTRATOR
   }
 }

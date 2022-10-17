@@ -87,6 +87,8 @@ public class AndroidVectorDrawableToolTest {
 
     assertThat(contents).contains("android:width=\"48dp\"");
     assertThat(contents).contains("android:height=\"48dp\"");
+    assertThat(contents).contains("android:autoMirrored=\"true\"");
+    assertThat(contents).contains("android:alpha=\"0.5\"");
     assertThat(contents).contains("xmlns:android=\"http://schemas.android.com/apk/res/android\"");
   }
 }

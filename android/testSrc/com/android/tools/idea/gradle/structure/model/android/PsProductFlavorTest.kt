@@ -24,18 +24,36 @@ import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.testResolve
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.openPreparedProject
+import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.requestSyncAndWait
+import com.google.common.truth.Expect
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Rule
+import org.junit.Test
+import java.io.File
 
-class PsProductFlavorTest : AndroidGradleTestCase() {
+@RunsInEdt
+class PsProductFlavorTest : GradleIntegrationTest {
 
-  private fun doTestDescriptor() {
-    val resolvedProject = myFixture.project
+  @get:Rule
+  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+
+  @get:Rule
+  val expect = Expect.createAndEnableStackTrace()!!
+
+  private fun doTestDescriptor(resolvedProject: Project) {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -48,18 +66,23 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
                equalTo(PsProductFlavor.ProductFlavorDescriptors.testEnumerateProperties()))
   }
 
+  @Test
   fun testDescriptorGroovy() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    doTestDescriptor()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      doTestDescriptor(resolvedProject)
+    }
   }
 
+  @Test
   fun testDescriptorKotlin() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
-    doTestDescriptor()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      doTestDescriptor(resolvedProject)
+    }
   }
 
-  private fun doTestProperties() {
-    val resolvedProject = myFixture.project
+  private fun doTestProperties(resolvedProject: Project) {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -187,18 +210,23 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     }
   }
 
+  @Test
   fun testPropertiesGroovy() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    doTestProperties()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      doTestProperties(resolvedProject)
+    }
   }
 
+  @Test
   fun testPropertiesKotlin() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
-    doTestProperties()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      doTestProperties(resolvedProject)
+    }
   }
 
-  private fun doTestDimensions() {
-    val resolvedProject = myFixture.project
+  private fun doTestDimensions(resolvedProject: Project) {
     val project = PsProjectImpl(resolvedProject)
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -212,18 +240,23 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       hasItems(ValueDescriptor("foo", "foo"), ValueDescriptor("bar", "bar")))
   }
 
+  @Test
   fun testDimensionsGroovy() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    doTestDimensions()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      doTestDimensions(resolvedProject)
+    }
   }
 
+  @Test
   fun testDimensionsKotlin() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
-    doTestDimensions()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      doTestDimensions(resolvedProject)
+    }
   }
 
-  private fun doTestChangingDimensions() {
-    val resolvedProject = myFixture.project
+  private fun doTestChangingDimensions(resolvedProject: Project) {
     val project = PsProjectImpl(resolvedProject)
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -235,25 +268,30 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     assertThat(productFlavor.configuredDimension, equalTo("foo".asParsed()))
 
     var changed = false
-    appModule.productFlavors.onChange(testRootDisposable) { changed = true }
+    appModule.productFlavors.onChange(projectRule.testRootDisposable) { changed = true }
 
     productFlavor.configuredDimension = "bar".asParsed()
     assertThat(productFlavor.configuredDimension, equalTo("bar".asParsed()))
     assertThat(changed, equalTo(true))
   }
 
+  @Test
   fun testChangingDimensionsGroovy() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    doTestChangingDimensions()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      doTestChangingDimensions(resolvedProject)
+    }
   }
 
+  @Test
   fun testChangingDimensionsKotlin() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
-    doTestChangingDimensions()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      doTestChangingDimensions(resolvedProject)
+    }
   }
 
-  private fun doTestEffectiveDimensions() {
-    val resolvedProject = myFixture.project
+  private fun doTestEffectiveDimensions(resolvedProject: Project) {
     val project = PsProjectImpl(resolvedProject)
 
     run {
@@ -286,18 +324,23 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     }
   }
 
+  @Test
   fun testEffectiveDimensionsGroovy() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    doTestEffectiveDimensions()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      doTestEffectiveDimensions(resolvedProject)
+    }
   }
 
+  @Test
   fun testEffectiveDimensionsKotlin() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
-    doTestEffectiveDimensions()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      doTestEffectiveDimensions(resolvedProject)
+    }
   }
 
-  private fun doTestSetProperties() {
-    val resolvedProject = myFixture.project
+  private fun doTestSetProperties(resolvedProject: Project) {
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     var appModule = project.findModuleByName("app") as PsAndroidModule
@@ -411,20 +454,30 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     verifyValues(productFlavor)
 
     appModule.applyChanges()
-    requestSyncAndWait()
+    resolvedProject.requestSyncAndWait()
     project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findProductFlavor("bar", "paid")!!, afterSync = true)
   }
 
+  @Test
   fun testSetPropertiesGroovy() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    doTestSetProperties()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      doTestSetProperties(resolvedProject)
+    }
   }
 
+  @Test
   fun testSetPropertiesKotlin() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
-    doTestSetProperties()
+    prepareGradleProject(TestProjectPaths.PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      doTestSetProperties(resolvedProject)
+    }
   }
+
+  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
+  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
+  override fun getAdditionalRepos(): Collection<File> = listOf()
 }

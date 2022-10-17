@@ -22,7 +22,6 @@ import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidSessionInfo
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.google.common.truth.Truth.assertThat
@@ -32,6 +31,7 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
+import com.intellij.util.ExceptionUtil
 import com.intellij.xdebugger.XDebuggerManager
 import junit.framework.Assert.fail
 import org.junit.After
@@ -162,12 +162,8 @@ class AndroidJavaDebuggerTest {
       fail()
     }
     catch (e: Throwable) {
-      /**
-       * [e] is expected to be [java.util.concurrent.ExecutionException] for production code and
-       * [com.intellij.testFramework.TestLogger.TestLoggerAssertionError] for Unit tests.
-       **/
-      assertThat(e.cause).isInstanceOf(ExecutionException::class.java)
-      assertThat(e.cause!!.message).isEqualTo("Test execution exception in test testCatchError")
+      val cause = ExceptionUtil.findCause(e, ExecutionException::class.java)
+      assertThat(cause.message).isEqualTo("Test execution exception in test testCatchError")
     }
   }
 

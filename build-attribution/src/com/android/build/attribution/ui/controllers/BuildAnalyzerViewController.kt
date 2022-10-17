@@ -103,6 +103,13 @@ class BuildAnalyzerViewController(
     analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK, duration)
   }
 
+  override fun changeViewToDownloadsLinkClicked() {
+    val currentAnalyticsPage = analytics.getStateFromModel(model)
+    val duration = runAndMeasureDuration { model.selectedData = BuildAnalyzerViewModel.DataSet.DOWNLOADS }
+    val newAnalyticsPage = analytics.getStateFromModel(model)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK, duration)
+  }
+
   override fun tasksGroupingSelectionUpdated(grouping: Grouping) {
     val currentAnalyticsPage = analytics.getStateFromModel(model)
     val duration = runAndMeasureDuration { model.tasksPageModel.selectGrouping(grouping) }

@@ -28,7 +28,7 @@ class RotationStatisticsTest {
     rotation.selectionMadeFromComponentTree()
     rotation.start()
     val data = DynamicLayoutInspectorRotation.newBuilder()
-    rotation.save(data)
+    rotation.save { data }
     assertThat(data.imageClicksIn3D).isEqualTo(0)
     assertThat(data.imageClicksIn2D).isEqualTo(0)
     assertThat(data.componentTreeClicksIn3D).isEqualTo(0)
@@ -44,16 +44,16 @@ class RotationStatisticsTest {
     rotation.selectionMadeFromComponentTree()
     rotation.selectionMadeFromImage()
 
-    rotation.toggledTo3D()
+    rotation.currentMode3D = true
     rotation.selectionMadeFromImage()
     rotation.selectionMadeFromImage()
     rotation.selectionMadeFromImage()
 
-    rotation.toggledTo2D()
+    rotation.currentMode3D = false
     rotation.selectionMadeFromImage()
 
     val data = DynamicLayoutInspectorRotation.newBuilder()
-    rotation.save(data)
+    rotation.save { data }
     assertThat(data.imageClicksIn3D).isEqualTo(3)
     assertThat(data.imageClicksIn2D).isEqualTo(2)
     assertThat(data.componentTreeClicksIn3D).isEqualTo(0)

@@ -27,6 +27,7 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.CpuThreadTrackModel
@@ -68,7 +69,8 @@ class CpuThreadSummaryDetailsViewTest {
       Mockito.mock(CpuCapture::class.java),
       CpuThreadInfo(123, "foo"),
       timeline,
-      MultiSelectionModel())
+      MultiSelectionModel(),
+      Utils::runOnUi)
     val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply {
       dataSeries.add(cpuThreadTrackModel)
     }
@@ -89,7 +91,8 @@ class CpuThreadSummaryDetailsViewTest {
       Mockito.mock(CpuCapture::class.java),
       CpuThreadInfo(123, "foo"),
       timeline,
-      MultiSelectionModel())
+      MultiSelectionModel(),
+      Utils::runOnUi)
     val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply {
       dataSeries.add(cpuThreadTrackModel)
     }
@@ -119,7 +122,8 @@ class CpuThreadSummaryDetailsViewTest {
       sysTrace,
       CpuThreadInfo(123, "foo"),
       timeline,
-      MultiSelectionModel())
+      MultiSelectionModel(),
+      Utils::runOnUi)
     val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply {
       dataSeries.add(cpuThreadTrackModel)
     }
@@ -139,7 +143,8 @@ class CpuThreadSummaryDetailsViewTest {
       sysTrace,
       CpuThreadInfo(123, "foo"),
       timeline,
-      MultiSelectionModel())
+      MultiSelectionModel(),
+      Utils::runOnUi)
     val model = CpuThreadAnalysisSummaryTabModel(CAPTURE_RANGE, timeline.viewRange).apply {
       dataSeries.add(cpuThreadTrackModel)
     }

@@ -26,6 +26,8 @@
     <projectService serviceImplementation="com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner"/>
     <applicationService serviceInterface="com.android.build.attribution.KnownGradlePluginsService"
                         serviceImplementation="com.android.build.attribution.LocalKnownGradlePluginsServiceImpl"/>
+    <projectService  serviceInterface = "com.android.build.attribution.BuildAnalyzerStorageManager"
+        serviceImplementation="com.android.build.attribution.BuildAnalyzerStorageManagerImpl"/>
   </extensions>
   <actions>
     <action id = "com.android.build.attribution.ui.OpenBuildAnalyzerAction"
@@ -34,4 +36,9 @@
       <add-to-group group-id="BuildMenu" anchor="last"/>
     </action>
   </actions>
+  <projectListeners>
+    <listener
+        class="com.android.build.attribution.ui.BuildAnalyzerStorageManagerListenerImpl"
+        topic="com.android.build.attribution.BuildAnalyzerStorageManager$Listener"/>
+  </projectListeners>
 </idea-plugin>

@@ -26,66 +26,88 @@ import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.testResolve
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
+import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_KOTLIN
+import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.openPreparedProject
+import com.android.tools.idea.testing.prepareGradleProject
+import com.google.common.truth.Expect
+import com.intellij.openapi.project.Project
 import com.intellij.pom.java.LanguageLevel
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.notNullValue
-import org.hamcrest.CoreMatchers.nullValue
+import com.intellij.testFramework.RunsInEdt
+import junit.framework.Assert.assertNull
+import junit.framework.Assert.assertTrue
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Rule
+import org.junit.Test
+import java.io.File
 
-class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
+@RunsInEdt
+class AndroidModuleDescriptorsTest : GradleIntegrationTest {
 
+  @get:Rule
+  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+
+  @get:Rule
+  val expect = Expect.createAndEnableStackTrace()!!
+
+  @Test
   fun testDescriptor() {
-    loadProject(PSD_SAMPLE_GROOVY)
+    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-
-    val appModule = project.findModuleByName("app") as PsAndroidModule
-    assertThat(appModule.descriptor.testEnumerateProperties(), equalTo(AndroidModuleDescriptors.testEnumerateProperties()))
+      val appModule = project.findModuleByName("app") as PsAndroidModule
+      assertThat(appModule.descriptor.testEnumerateProperties(), equalTo(AndroidModuleDescriptors.testEnumerateProperties()))
+    }
   }
 
+  @Test
   fun testProperties() {
-    loadProject(PSD_SAMPLE_GROOVY)
+    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+      val appModule = project.findModuleByName("app") as PsAndroidModule
+      assertThat(appModule, notNullValue())
 
-    val appModule = project.findModuleByName("app") as PsAndroidModule
-    assertThat(appModule, notNullValue())
+      val buildToolsVersion = AndroidModuleDescriptors.buildToolsVersion.bind(appModule).getValue()
+      val ndkVersion = AndroidModuleDescriptors.ndkVersion.bind(appModule).getValue()
+      val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
+      val sourceCompatibility = AndroidModuleDescriptors.sourceCompatibility.bind(appModule).getValue()
+      val targetCompatibility = AndroidModuleDescriptors.targetCompatibility.bind(appModule).getValue()
+      val viewBindingEnabled = AndroidModuleDescriptors.viewBindingEnabled.bind(appModule).getValue()
 
-    val buildToolsVersion = AndroidModuleDescriptors.buildToolsVersion.bind(appModule).getValue()
-    val ndkVersion = AndroidModuleDescriptors.ndkVersion.bind(appModule).getValue()
-    val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
-    val sourceCompatibility = AndroidModuleDescriptors.sourceCompatibility.bind(appModule).getValue()
-    val targetCompatibility = AndroidModuleDescriptors.targetCompatibility.bind(appModule).getValue()
-    val viewBindingEnabled = AndroidModuleDescriptors.viewBindingEnabled.bind(appModule).getValue()
+      assertThat(buildToolsVersion.resolved.asTestValue(), equalTo(SdkConstants.CURRENT_BUILD_TOOLS_VERSION))
+      assertThat(buildToolsVersion.parsedValue.asTestValue(), equalTo(SdkConstants.CURRENT_BUILD_TOOLS_VERSION))
 
-    assertThat(buildToolsVersion.resolved.asTestValue(), equalTo(SdkConstants.CURRENT_BUILD_TOOLS_VERSION))
-    assertThat(buildToolsVersion.parsedValue.asTestValue(), equalTo(SdkConstants.CURRENT_BUILD_TOOLS_VERSION))
+      assertThat(ndkVersion.resolved.asTestValue(), nullValue())
+      assertThat(ndkVersion.parsedValue.asTestValue(), nullValue())
 
-    assertThat(ndkVersion.resolved.asTestValue(), nullValue())
-    assertThat(ndkVersion.parsedValue.asTestValue(), nullValue())
+      assertThat(
+        matchHashStrings(null, compileSdkVersion.resolved.asTestValue(), SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
+        equalTo(true)
+      )
+      assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()))
 
-    assertThat(matchHashStrings(null, compileSdkVersion.resolved.asTestValue(), SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
-               equalTo(true))
-    assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()))
+      assertThat(sourceCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_8))
+      assertThat(sourceCompatibility.parsedValue.asTestValue(), nullValue())
 
-    assertThat(sourceCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_8))
-    assertThat(sourceCompatibility.parsedValue.asTestValue(), nullValue())
+      assertThat(targetCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_8))
+      assertThat(targetCompatibility.parsedValue.asTestValue(), nullValue())
 
-    assertThat(targetCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_8))
-    assertThat(targetCompatibility.parsedValue.asTestValue(), nullValue())
-
-    assertThat(viewBindingEnabled.resolved.asTestValue(), equalTo(false))
-    assertThat(viewBindingEnabled.parsedValue.asTestValue(), nullValue())
+      assertThat(viewBindingEnabled.resolved.asTestValue(), equalTo(false))
+      assertThat(viewBindingEnabled.parsedValue.asTestValue(), nullValue())
+    }
   }
 
-  private fun doTestSetProperties() {
+  private fun doTestSetProperties(resolvedProject: Project) {
     // Note: this test does not attempt to sync because it won't succeed without installing older SDKs.
-    val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -112,30 +134,41 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     verifyValues(appModule)
   }
 
+  @Test
   fun testSetPropertiesKotlin() {
-    loadProject(PSD_SAMPLE_KOTLIN)
-    doTestSetProperties()
+    prepareGradleProject(PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      doTestSetProperties(resolvedProject)
+    }
   }
 
+  @Test
   fun testSetPropertiesGroovy() {
-    loadProject(PSD_SAMPLE_GROOVY)
-    doTestSetProperties()
+    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      doTestSetProperties(resolvedProject)
+    }
   }
 
+  @Test
   fun testSetListReferencesKotlin() {
-    loadProject(PSD_SAMPLE_KOTLIN)
-    val expectedKtsRawValues = listOf("localList[0]", "(rootProject.extra[\"listProp\"] as List<*>)[0] as Int")
-    doTestSetListReferences(expectedKtsRawValues)
+    prepareGradleProject(PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      val expectedKtsRawValues = listOf("localList[0]", "(rootProject.extra[\"listProp\"] as List<*>)[0] as Int")
+      doTestSetListReferences(resolvedProject, expectedKtsRawValues)
+    }
   }
 
+  @Test
   fun testSetListReferencesGroovy() {
-    loadProject(PSD_SAMPLE_GROOVY)
-    val expectedGrRawValues = listOf("localList[0]", "listProp[0]")
-    doTestSetListReferences(expectedGrRawValues)
+    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      val expectedGrRawValues = listOf("localList[0]", "listProp[0]")
+      doTestSetListReferences(resolvedProject, expectedGrRawValues)
+    }
   }
 
-  private fun doTestSetListReferences(expectedValues: List<String>) {
-    val resolvedProject = myFixture.project
+  private fun doTestSetListReferences(resolvedProject: Project, expectedValues: List<String>) {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -164,8 +197,8 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     assertThat(appModule.parsedModel?.android()?.compileSdkVersion()?.getRawValue(STRING_TYPE), equalTo<Any>(expectedValues[1]))
   }
 
-  fun doTestSetDependencyReferenceVersion(expectedValues: List<String>) {
-    var project = PsProjectImpl(myFixture.project)
+  fun doTestSetDependencyReferenceVersion(resolvedProject: Project, expectedValues: List<String>) {
+    val project = PsProjectImpl(resolvedProject)
     val appModule = project.findModuleByName("app") as PsAndroidModule
     var existingAgpDependency =
       appModule
@@ -196,7 +229,7 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
         ?.artifacts()
 
     assertTrue(existingAgpDependency != null && existingAgpDependency.size == 4)
-    assertThat(existingAgpDependency!![0].compactNotation(), equalTo<String>("com.android.support:appcompat-v7:26.1.0"))
+    assertThat(existingAgpDependency!![0].compactNotation(), equalTo("com.android.support:appcompat-v7:26.1.0"))
     assertThat(existingAgpDependency!![0].completeModel().getRawValue(STRING_TYPE),
                equalTo<String>("com.android.support:appcompat-v7:${expectedValues[0]}"))
 
@@ -216,20 +249,31 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
                equalTo<String>("com.android.support.test.espresso:espresso-core:${expectedValues[3]}"))
   }
 
+  @Test
   fun testSetDependencyReferenceVersionGroovy() {
-    loadProject(PSD_SAMPLE_GROOVY)
-    val expectedValues = listOf("${'$'}myVariable", "${'$'}versionVal", "${'$'}{localList[0]}", "${'$'}dependencyVersion")
-    doTestSetDependencyReferenceVersion(expectedValues)
+    prepareGradleProject(PSD_SAMPLE_GROOVY, "p")
+    openPreparedProject("p") { resolvedProject ->
+      val expectedValues = listOf("${'$'}myVariable", "${'$'}versionVal", "${'$'}{localList[0]}", "${'$'}dependencyVersion")
+      doTestSetDependencyReferenceVersion(resolvedProject, expectedValues)
+    }
   }
 
+  @Test
   fun testSetDependencyReferenceVersionKts() {
-    loadProject(PSD_SAMPLE_KOTLIN)
-    val expectedValues =
-      listOf(
-        "${'$'}myVariable",
-        "${'$'}{project.extra[\"versionVal\"]}",
-        "${'$'}{localList[0]}",
-        "${'$'}{rootProject.extra[\"dependencyVersion\"]}")
-    doTestSetDependencyReferenceVersion(expectedValues)
+    prepareGradleProject(PSD_SAMPLE_KOTLIN, "p")
+    openPreparedProject("p", options = OpenPreparedProjectOptions(disableKtsRelatedIndexing = true)) { resolvedProject ->
+      val expectedValues =
+        listOf(
+          "${'$'}myVariable",
+          "${'$'}{project.extra[\"versionVal\"]}",
+          "${'$'}{localList[0]}",
+          "${'$'}{rootProject.extra[\"dependencyVersion\"]}"
+        )
+      doTestSetDependencyReferenceVersion(resolvedProject, expectedValues)
+    }
   }
+
+  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
+  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
+  override fun getAdditionalRepos(): Collection<File> = listOf()
 }

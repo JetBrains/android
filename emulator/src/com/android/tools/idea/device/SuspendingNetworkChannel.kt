@@ -31,7 +31,6 @@ abstract class SuspendingNetworkChannel<T : NetworkChannel>(val networkChannel: 
 
   override suspend fun close() {
     withContext(Dispatchers.IO) {
-      @Suppress("BlockingMethodInNonBlockingContext")
       networkChannel.close()
     }
   }

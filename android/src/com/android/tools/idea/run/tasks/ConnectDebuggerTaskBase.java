@@ -15,30 +15,26 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import static com.android.tools.idea.run.debug.UtilsKt.waitForClientReadyForDebug;
+
 import com.android.ddmlib.Client;
-import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
-import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.ExecutionException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
   private int myPollTimeoutSeconds = 15;
@@ -99,86 +95,31 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
   }
 
   @Override
-  public ProcessHandler perform(@NotNull final LaunchInfo launchInfo,
-                                @NotNull IDevice device,
-                                @NotNull final ProcessHandlerLaunchStatus state,
-                                @NotNull final ProcessHandlerConsolePrinter printer) {
-    final Client client = waitForClient(device, state, printer);
-    if (client == null) {
-      logger().warn("No client found, can not launch debugger.");
-      return null;
+  public void perform(@NotNull final LaunchInfo launchInfo,
+                      @NotNull IDevice device,
+                      @NotNull final ProcessHandlerLaunchStatus state,
+                      @NotNull final ProcessHandlerConsolePrinter printer) {
+    final Client client;
+    try {
+      client = getClient(device);
+    }
+    catch (ExecutionException e) {
+      logger().error(e);
+      return;
     }
 
-    return UIUtil.invokeAndWaitIfNeeded(() -> launchDebugger(launchInfo, client, state, printer));
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> launchDebugger(launchInfo, client, state, printer));
   }
 
-  @Nullable
-  protected Client waitForClient(@NotNull IDevice device, @NotNull LaunchStatus state, @NotNull ConsolePrinter printer) {
+  @NotNull
+  protected Client getClient(@NotNull IDevice device) throws ExecutionException {
+    final Client client;
     int pollTimeoutSeconds = myPollTimeoutSeconds;
     if (pollTimeoutSeconds <= 0) {
       pollTimeoutSeconds = Integer.MAX_VALUE;
     }
-    for (int i = 0; i < pollTimeoutSeconds; i++) {
-      if (state.isLaunchTerminated()) {
-        return null;
-      }
-
-      if (!device.isOnline()) {
-        String offline = "Device went offline while trying to connect debugger";
-        printer.stderr(offline);
-        logger().warn(offline);
-        return null;
-      }
-
-      for (String name : myApplicationIds) {
-        List<Client> clients = DeploymentApplicationService.getInstance().findClient(device, name);
-        if (clients.isEmpty()) {
-          printer.stdout("Waiting for application to come online: " + Joiner.on(" | ").join(myApplicationIds));
-        }
-        else {
-          printer.stdout("Connecting to " + name);
-          // Even though multiple processes may be related to a particular application ID, we'll only connect to the first one
-          // in the list since the debugger is set up to only connect to at most one process.
-          // TODO b/122613825: improve support for connecting to multiple processes with the same application ID.
-          // This requires this task to wait for potentially multiple Clients before returning.
-          if (clients.size() > 1) {
-            logger().info("Multiple clients with same application ID: " + name);
-          }
-          Client client = clients.get(0);
-          ClientData.DebuggerStatus status = client.getClientData().getDebuggerConnectionStatus();
-          switch (status) {
-            case ERROR:
-              String message = String
-                .format(Locale.US, "Debug port (%1$d) is busy, make sure there is no other active debug connection to the same application",
-                        client.getDebuggerListenPort());
-              printer.stderr(message);
-              logger().warn(message);
-              return null;
-            case ATTACHED:
-              String attached = "A debugger is already attached";
-              printer.stderr(attached);
-              logger().warn(attached);
-              return null;
-            case WAITING:
-              if (isReadyForDebugging(client, printer)) {
-                return client;
-              }
-              break;
-            default:
-              if (myAttachToRunningProcess && isReadyForDebugging(client, printer)) {
-                return client;
-              }
-              printer.stderr("Waiting for application to start debug server");
-              break;
-          }
-        }
-      }
-      sleep(1, POLL_TIMEUNIT);
-    }
-    String timeout = "Could not connect to remote process. Aborting debug session.";
-    printer.stderr(timeout);
-    logger().warn(timeout);
-    return null;
+    client = waitForClientReadyForDebug(device, myApplicationIds, pollTimeoutSeconds);
+    return client;
   }
 
   private static @NotNull Logger logger() {
@@ -194,9 +135,8 @@ public abstract class ConnectDebuggerTaskBase implements ConnectDebuggerTask {
     return true;
   }
 
-  @Nullable
-  public abstract ProcessHandler launchDebugger(@NotNull LaunchInfo currentLaunchInfo,
-                                                @NotNull Client client,
-                                                @NotNull ProcessHandlerLaunchStatus state,
-                                                @NotNull ProcessHandlerConsolePrinter printer);
+  public abstract void launchDebugger(@NotNull LaunchInfo currentLaunchInfo,
+                                      @NotNull Client client,
+                                      @NotNull ProcessHandlerLaunchStatus state,
+                                      @NotNull ProcessHandlerConsolePrinter printer);
 }

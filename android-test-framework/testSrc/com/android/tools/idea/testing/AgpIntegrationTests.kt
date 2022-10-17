@@ -42,17 +42,23 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   /**
    * Builder model version to query.
    */
-  val modelVersion: ModelVersion = ModelVersion.V2
+  val modelVersion: ModelVersion = ModelVersion.V2,
+
+  /**
+   * The compileSdk to use in this test. `null` means the project default.
+   */
+val compileSdk: String? = null
 ) {
-  AGP_32("3.3.2", gradleVersion = "5.5", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1),
-  AGP_35("3.5.0", gradleVersion = "5.5", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1),
-  AGP_40("4.0.0", gradleVersion = "6.7.1", modelVersion = ModelVersion.V1),
-  AGP_41("4.1.0", gradleVersion = "6.7.1", modelVersion = ModelVersion.V1),
-  AGP_42("4.2.0", gradleVersion = "6.7.1", modelVersion = ModelVersion.V1),
-  AGP_70("7.0.0", gradleVersion = "7.0.2", modelVersion = ModelVersion.V1),
-  AGP_71("7.1.0", gradleVersion = "7.2", modelVersion = ModelVersion.V1),
+  AGP_32("3.3.2", gradleVersion = "5.5", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_35("3.5.0", gradleVersion = "5.5", kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_40("4.0.0", gradleVersion = "6.7.1", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_41("4.1.0", gradleVersion = "6.7.1", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_42("4.2.0", gradleVersion = "6.7.1", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_70("7.0.0", gradleVersion = "7.0.2", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_71("7.1.0", gradleVersion = "7.2", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_72_V1("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V1),
   AGP_72("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V2),
+  AGP_73("7.3.0-beta05", gradleVersion = "7.4", modelVersion = ModelVersion.V2),
   // Must be last to represent the newest version.
   AGP_CURRENT_V1(null, gradleVersion = null, modelVersion = ModelVersion.V1),
   AGP_CURRENT(null, gradleVersion = null, modelVersion = ModelVersion.V2);

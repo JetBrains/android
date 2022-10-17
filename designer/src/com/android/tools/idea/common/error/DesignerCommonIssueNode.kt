@@ -21,16 +21,16 @@ import com.android.tools.idea.uibuilder.visual.ConfigurationSet
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.isVisualLintErrorSuppressed
-import com.google.common.collect.Ordering
+import com.google.wireless.android.sdk.stats.UniversalProblemsPanelEvent
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.impl.CompoundIconProvider
 import com.intellij.ide.util.treeView.NodeDescriptor
 import com.intellij.ide.util.treeView.PresentableNodeDescriptor
-import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -39,7 +39,6 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.util.PsiUtilCore
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.tree.LeafState
-import icons.StudioIcons
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.Objects
 
@@ -68,8 +67,8 @@ import java.util.Objects
 abstract class DesignerCommonIssueNode(project: Project?, parentDescriptor: NodeDescriptor<DesignerCommonIssueNode>?)
   : PresentableNodeDescriptor<DesignerCommonIssueNode>(project, parentDescriptor), LeafState.Supplier {
 
-  protected open val comparator: Comparator<DesignerCommonIssueNode>
-    get() = (parentDescriptor?.element as? DesignerCommonIssueNode)?.comparator ?: compareBy { 0 }
+  protected open val issueComparator: Comparator<DesignerCommonIssueNode>
+    get() = (parentDescriptor?.element as? DesignerCommonIssueNode)?.issueComparator ?: compareBy { 0 }
 
   final override fun update(presentation: PresentationData) {
     if (myProject != null && myProject.isDisposed) {
@@ -84,7 +83,7 @@ abstract class DesignerCommonIssueNode(project: Project?, parentDescriptor: Node
 
   override fun toString() = name
 
-  abstract fun getChildren(): Collection<DesignerCommonIssueNode>
+  abstract fun getChildren(): List<DesignerCommonIssueNode>
 
   /**
    * The associated [VirtualFile] of this node to provide [PlatformDataKeys.VIRTUAL_FILE] data. Can be null.
@@ -106,17 +105,114 @@ abstract class DesignerCommonIssueNode(project: Project?, parentDescriptor: Node
     updatePresentation(data)
     return data.coloredText.joinToString { it.text }.trim()
   }
+
+  open fun getNodeProvider(): NodeProvider {
+    return (parentDescriptor as? DesignerCommonIssueNode)?.getNodeProvider() ?: EmptyNodeProvider
+  }
+}
+
+/**
+ * Response to create all the [DesignerCommonIssueNode]s when [updateIssues] is called.
+ */
+@VisibleForTesting
+interface NodeProvider {
+  /**
+   * Update the tree of [DesignerCommonIssueNode]
+   */
+  fun updateIssues(issueList: List<Issue>)
+
+  /**
+   * Get the [DesignerCommonIssueNode] of all nodes of all files.
+   */
+  fun getFileNodes(): List<DesignerCommonIssueNode>
+
+  /**
+   * Get the children [IssueNode]s of the given [fileNode].
+   */
+  fun getIssueNodes(fileNode: DesignerCommonIssueNode): List<IssueNode>
+}
+
+object EmptyNodeProvider : NodeProvider {
+  override fun updateIssues(issueList: List<Issue>) = Unit
+  override fun getFileNodes(): List<DesignerCommonIssueNode> = emptyList()
+  override fun getIssueNodes(fileNode: DesignerCommonIssueNode): List<IssueNode> = emptyList()
+}
+
+class NodeProviderImpl(private val rootNode: DesignerCommonIssueNode) : NodeProvider {
+  /**
+   * Store the nodes of [VirtualFile]s and their associated [DesignerCommonIssueNode]s.
+   */
+  private var fileNodeMap = mapOf<VirtualFile?, DesignerCommonIssueNode>()
+
+  /**
+   * Store the nodes of [Issue]s and their associated parent [DesignerCommonIssueNode]s to [IssueNode] pairs.
+   */
+  private var issueToNodeMap = mapOf<Issue, IssueNode>()
+
+  @Suppress("UnstableApiUsage")
+  override fun updateIssues(issueList: List<Issue>) {
+    // Construct the nodes of the whole tree. The old node is reused if it exists.
+    val fileIssuesMap: Map<VirtualFile?, List<Issue>> = issueList.groupBy {
+      it.source.file?.let { file -> BackedVirtualFile.getOriginFileIfBacked(file) }
+    }
+
+    val oldFileNodeMap = fileNodeMap
+    val oldFileIssueMap = issueToNodeMap
+
+    // Update file nodes.
+    val newFileNodeMap: MutableMap<VirtualFile?, DesignerCommonIssueNode> = mutableMapOf()
+    for ((file, _) in fileIssuesMap) {
+      val node = oldFileNodeMap[file] ?: let { if (file != null) IssuedFileNode(file, rootNode) else NoFileNode(rootNode) }
+      newFileNodeMap[file] = node
+    }
+
+    // Update issue nodes.
+    val newIssueToNodeMap = mutableMapOf<Issue, IssueNode>()
+    for ((file, issues) in fileIssuesMap) {
+      val parentNode: DesignerCommonIssueNode = newFileNodeMap[file]!!
+      for (issue in issues) {
+        val oldIssueNode: IssueNode? = oldFileIssueMap[issue]
+
+        val nodeToAdd = if (oldIssueNode == null || oldIssueNode.parent != parentNode) {
+          when (issue) {
+            is VisualLintRenderIssue -> VisualLintIssueNode(issue, parentNode)
+            else -> IssueNode(file, issue, parentNode)
+          }
+        }
+        else {
+          oldIssueNode
+        }
+        newIssueToNodeMap[issue] = nodeToAdd
+      }
+    }
+
+    fileNodeMap = newFileNodeMap
+    issueToNodeMap = newIssueToNodeMap
+  }
+
+  override fun getFileNodes(): List<DesignerCommonIssueNode> = fileNodeMap.values.toList()
+
+  override fun getIssueNodes(fileNode: DesignerCommonIssueNode): List<IssueNode> {
+    return issueToNodeMap.values.filter { it.parent == fileNode }.toList()
+  }
 }
 
 /**
  * The root of common issue panel. This is an invisible root node for simulating the multi-root tree.
  */
-class DesignerCommonIssueRoot(project: Project?, private var issueProvider: DesignerCommonIssueProvider<out Any?>)
+class DesignerCommonIssueRoot(project: Project?, private val issueProvider: DesignerCommonIssueProvider<out Any?>)
   : DesignerCommonIssueNode(project, null) {
 
   private var _comparator: Comparator<DesignerCommonIssueNode> = compareBy { 0 }
-  override val comparator: Comparator<DesignerCommonIssueNode>
+  override val issueComparator: Comparator<DesignerCommonIssueNode>
     get() = _comparator
+
+  private val nodeProvider = NodeProviderImpl(this)
+
+  init {
+    issueProvider.registerUpdateListener { nodeProvider.updateIssues(issueProvider.getFilteredIssues()) }
+    nodeProvider.updateIssues(issueProvider.getFilteredIssues())
+  }
 
   fun setComparator(comparator: Comparator<DesignerCommonIssueNode>) {
     _comparator = comparator
@@ -126,35 +222,32 @@ class DesignerCommonIssueRoot(project: Project?, private var issueProvider: Desi
 
   override fun getLeafState(): LeafState = LeafState.NEVER
 
-  override fun getChildren(): Collection<DesignerCommonIssueNode> {
-    val fileIssuesMap: MutableMap<VirtualFile?, List<Issue>> = issueProvider.getFilteredIssues().groupBy { it.source.file }.toMutableMap()
-    val otherIssues = fileIssuesMap.remove(null)
-    val fileNodes = fileIssuesMap.toSortedMap(Ordering.usingToString())
-      .map { (file, issues) -> IssuedFileNode(file!!, issues, this@DesignerCommonIssueRoot) }
-      .sortedWith(comparator)
+  override fun getChildren(): List<DesignerCommonIssueNode> {
+    return getNodeProvider().getFileNodes()
+      .sortedWith(FileNameComparator)
       .toList()
-
-    return if (otherIssues != null) fileNodes + NoFileNode(otherIssues, this) else fileNodes
   }
 
   override fun updatePresentation(presentation: PresentationData) {
     presentation.addText(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
   }
+
+  override fun getNodeProvider(): NodeProvider {
+    return nodeProvider
+  }
 }
 
 /**
- * The node represents a file, which contains the issue(s).
- *
+ * The [DesignerCommonIssueNode] represents a file.
  */
-class IssuedFileNode(val file: VirtualFile, val issues: List<Issue>, parent: DesignerCommonIssueNode?)
-  : DesignerCommonIssueNode(parent?.project, parent) {
+class IssuedFileNode(val file: VirtualFile, parent: DesignerCommonIssueNode?) : DesignerCommonIssueNode(parent?.project, parent) {
 
   override fun getLeafState() = LeafState.DEFAULT
 
   override fun getName() = getVirtualFile().name
 
   @Suppress("UnstableApiUsage")
-  override fun getVirtualFile() = file.let { BackedVirtualFile.getOriginFileIfBacked(file) }
+  override fun getVirtualFile(): VirtualFile = file.let { BackedVirtualFile.getOriginFileIfBacked(file) }
 
   override fun getNavigatable(): Navigatable? = null
 
@@ -169,21 +262,21 @@ class IssuedFileNode(val file: VirtualFile, val issues: List<Issue>, parent: Des
     )
     val url = virtualFile.parent?.presentableUrl ?: return
     presentation.addText("  ${FileUtil.getLocationRelativeToUserHome(url)}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-    val count = issues.size
+    val count = getNodeProvider().getIssueNodes(this).size
     presentation.addText("  ${createIssueCountText(count)}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
   }
 
-  override fun getChildren(): Collection<DesignerCommonIssueNode> {
-    return issues.map { IssueNode(file, it, this@IssuedFileNode) }.sortedWith(comparator)
-  }
-
-  override fun hashCode() = Objects.hash(parentDescriptor?.element, file, *(issues.toTypedArray()))
+  override fun hashCode() = Objects.hash(parentDescriptor?.element, file)
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (this.javaClass != other?.javaClass) return false
     val that = other as? IssuedFileNode ?: return false
-    return that.parentDescriptor?.element == parentDescriptor?.element && that.file == file && that.issues == issues
+    return that.parentDescriptor?.element == parentDescriptor?.element && that.file == file
+  }
+
+  override fun getChildren(): List<IssueNode> {
+    return getNodeProvider().getIssueNodes(this).sortedWith(issueComparator)
   }
 }
 
@@ -194,9 +287,9 @@ class IssuedFileNode(val file: VirtualFile, val issues: List<Issue>, parent: Des
 const val NO_FILE_NODE_NAME = "Layout Validation"
 
 /**
- * A node for the issues which do not belong to any particular file.
+ * A node which doesn't represent any file. This is used to show the issues which do not belong to any particular file.
  */
-class NoFileNode(val issues: List<Issue>, parent: DesignerCommonIssueNode?) : DesignerCommonIssueNode(parent?.project, parent) {
+class NoFileNode(parent: DesignerCommonIssueNode?) : DesignerCommonIssueNode(parent?.project, parent) {
   override fun getLeafState() = LeafState.DEFAULT
 
   override fun getName() = NO_FILE_NODE_NAME
@@ -208,33 +301,28 @@ class NoFileNode(val issues: List<Issue>, parent: DesignerCommonIssueNode?) : De
   override fun updatePresentation(presentation: PresentationData) {
     presentation.addText(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
     presentation.setIcon(AllIcons.FileTypes.Xml)
-    val count = issues.size
+    val count = getNodeProvider().getIssueNodes(this).size
     presentation.addText("  ${createIssueCountText(count)}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
   }
 
-  override fun getChildren(): Collection<DesignerCommonIssueNode> {
-    return issues.map {
-      when (it) {
-        is VisualLintRenderIssue -> VisualLintIssueNode(it, this@NoFileNode)
-        else -> IssueNode(null, it, this@NoFileNode)
-      }
-    }.sortedWith(comparator)
-  }
-
-  override fun hashCode() = Objects.hash(parentDescriptor?.element, *(issues.toTypedArray()))
+  override fun hashCode() = Objects.hash(parentDescriptor?.element)
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (this.javaClass != other?.javaClass) return false
     val that = other as? NoFileNode ?: return false
-    return that.parentDescriptor?.element == parentDescriptor?.element && that.issues == issues
+    return that.parentDescriptor?.element == parentDescriptor?.element
+  }
+
+  override fun getChildren(): List<IssueNode> {
+    return getNodeProvider().getIssueNodes(this).sortedWith(issueComparator)
   }
 }
 
 /**
  * The node represents an [Issue] in the layout file.
  */
-open class IssueNode(val file: VirtualFile?, val issue: Issue, parent: DesignerCommonIssueNode?)
+open class IssueNode(val file: VirtualFile?, val issue: Issue, val parent: DesignerCommonIssueNode?)
   : DesignerCommonIssueNode(parent?.project, parent) {
 
   private val offset: Int
@@ -247,11 +335,11 @@ open class IssueNode(val file: VirtualFile?, val issue: Issue, parent: DesignerC
   @Suppress("UnstableApiUsage")
   override fun getVirtualFile() = file?.let { BackedVirtualFile.getOriginFileIfBacked(file) }
 
-  override fun getChildren(): Collection<DesignerCommonIssueNode> = emptySet()
+  override fun getChildren(): List<DesignerCommonIssueNode> = emptyList()
 
   override fun getNavigatable(): Navigatable? {
     val targetFile = getVirtualFile()
-    return if (project != null && targetFile != null) OpenFileDescriptor(project, targetFile, offset) else null
+    return if (project != null && targetFile != null) MyOpenFileDescriptor(project, targetFile, offset) else null
   }
 
   override fun updatePresentation(presentation: PresentationData) {
@@ -313,6 +401,37 @@ class VisualLintIssueNode(private val visualLintIssue: VisualLintRenderIssue, pa
   }
 }
 
+private class MyOpenFileDescriptor(project: Project, targetFile: VirtualFile, offset: Int): OpenFileDescriptor(project, targetFile, offset) {
+
+  /**
+   * [navigate], [navigateIn], and [navigateInEditor] may call each other depending on the implementation of
+   * [com.intellij.openapi.fileEditor.FileNavigator]. Mark as tracked to avoid the duplications.
+   */
+  private var hasTracked: Boolean = false
+  override fun navigate(requestFocus: Boolean) {
+    trackOpenFileEvent()
+    super.navigate(requestFocus)
+  }
+
+  override fun navigateIn(e: Editor) {
+    trackOpenFileEvent()
+    super.navigateIn(e)
+  }
+
+  override fun navigateInEditor(project: Project, requestFocus: Boolean): Boolean {
+    trackOpenFileEvent()
+    return super.navigateInEditor(project, requestFocus)
+  }
+
+  private fun trackOpenFileEvent() {
+    if (!hasTracked) {
+      DesignerCommonIssuePanelUsageTracker.getInstance().trackNavigationFromIssue(
+        UniversalProblemsPanelEvent.IssueNavigated.OPEN_FILE, project)
+      hasTracked = true
+    }
+  }
+}
+
 @VisibleForTesting
 class SelectWindowSizeDevicesNavigatable(project: Project): OpenLayoutValidationNavigatable(project, ConfigurationSet.WindowSizeDevices)
 
@@ -320,10 +439,12 @@ class SelectWindowSizeDevicesNavigatable(project: Project): OpenLayoutValidation
 class SelectWearDevicesNavigatable(project: Project): OpenLayoutValidationNavigatable(project, ConfigurationSet.WearDevices)
 
 @VisibleForTesting
-open class OpenLayoutValidationNavigatable(project: Project, configurationSetToSelect: ConfigurationSet) : Navigatable {
+open class OpenLayoutValidationNavigatable(private val project: Project, configurationSetToSelect: ConfigurationSet) : Navigatable {
   private val task = { VisualizationToolWindowFactory.openAndSetConfigurationSet(project, configurationSetToSelect) }
 
   override fun navigate(requestFocus: Boolean) {
+    DesignerCommonIssuePanelUsageTracker.getInstance().trackNavigationFromIssue(
+      UniversalProblemsPanelEvent.IssueNavigated.OPEN_VALIDATION_TOOL, project)
     task()
   }
 
@@ -337,5 +458,22 @@ private fun createIssueCountText(issueCount: Int): String {
     0 -> "There is no problem"
     1 -> "1 problem"
     else -> "$issueCount problems"
+  }
+}
+
+/**
+ * Comparator to sort the [IssuedFileNode] and [NoFileNode].
+ * The [IssuedFileNode] is sorted alphabetically and [NoFileNode] is always the last.
+ */
+object FileNameComparator : Comparator<DesignerCommonIssueNode> {
+  override fun compare(o1: DesignerCommonIssueNode?, o2: DesignerCommonIssueNode?): Int {
+    if (o1 is NoFileNode) {
+      return if (o2 is NoFileNode) 0 else 1
+    }
+    if (o2 is NoFileNode) {
+      return -1
+    }
+
+    return if (o1 is IssuedFileNode && o2 is IssuedFileNode) o1.getVirtualFile().name.compareTo(o2.getVirtualFile().name) else 0
   }
 }

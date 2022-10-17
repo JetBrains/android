@@ -67,24 +67,9 @@ fun showViewContextMenu(views: List<ViewNode>, inspectorModel: InspectorModel, s
       if (client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true) {
         if (views.isNotEmpty()) {
           val topView = views.first()
-          result.add(object : AnAction("Hide Subtree") {
-            override fun actionPerformed(event: AnActionEvent) {
-              client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
-              inspectorModel.hideSubtree(topView)
-            }
-          })
-          result.add(object : AnAction("Show Only Subtree") {
-            override fun actionPerformed(event: AnActionEvent) {
-              client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
-              inspectorModel.showOnlySubtree(topView)
-            }
-          })
-          result.add(object : AnAction("Show Only Parents") {
-            override fun actionPerformed(event: AnActionEvent) {
-              client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
-              inspectorModel.showOnlyParents(topView)
-            }
-          })
+          result.add(HideSubtreeAction(inspectorModel, client, topView))
+          result.add(ShowOnlySubtreeAction(inspectorModel, client, topView))
+          result.add(ShowOnlyParentsAction(inspectorModel, client, topView))
         }
         result.add(showAllAction)
         result.add(GotoDeclarationAction)
@@ -122,6 +107,39 @@ fun showViewContextMenu(views: List<ViewNode>, inspectorModel: InspectorModel, s
   popupComponent.show(source, x, y)
 }
 
+private class HideSubtreeAction(
+  val inspectorModel: InspectorModel,
+  val client: InspectorClient,
+  val topView: ViewNode
+  ) : AnAction("Hide Subtree") {
+  override fun actionPerformed(event: AnActionEvent) {
+    client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
+    inspectorModel.hideSubtree(topView)
+  }
+}
+
+private class ShowOnlySubtreeAction(
+  val inspectorModel: InspectorModel,
+  val client: InspectorClient,
+  val topView: ViewNode
+  ) : AnAction("Show Only Subtree") {
+  override fun actionPerformed(event: AnActionEvent) {
+    client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
+    inspectorModel.showOnlySubtree(topView)
+  }
+}
+
+private class ShowOnlyParentsAction(
+  val inspectorModel: InspectorModel,
+  val client: InspectorClient,
+  val topView: ViewNode
+  ) : AnAction("Show Only Parents") {
+  override fun actionPerformed(event: AnActionEvent) {
+    client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
+    inspectorModel.showOnlyParents(topView)
+  }
+}
+
 private fun generateText(viewNode: ViewNode) =
   viewNode.viewId?.name.nullize() ?: viewNode.textValue.nullize() ?: viewNode.qualifiedName
 
@@ -134,6 +152,6 @@ class SelectViewAction(
     inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
 
     // This action is only performed from mouse clicks on the image
-    LayoutInspector.get(event)?.stats?.selectionMadeFromImage(view)
+    LayoutInspector.get(event)?.currentClient?.stats?.selectionMadeFromImage(view)
   }
 }

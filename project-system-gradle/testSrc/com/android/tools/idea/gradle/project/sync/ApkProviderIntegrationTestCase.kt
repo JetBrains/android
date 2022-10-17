@@ -33,6 +33,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_71
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_73
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.gradleModule
@@ -498,7 +499,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
                  -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
             """,
-        *(arrayOf(AGP_42, AGP_70, AGP_72) eachTo """
+        *(arrayOf(AGP_42, AGP_70, AGP_72, AGP_73) eachTo """
               ApplicationId: google.simpleapplication
               File: *>java.lang.IllegalArgumentException
               Files:
@@ -657,6 +658,27 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             """,
         )
       }.toMap()
+    ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        testProject = TestProjectPaths.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
+      ),
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.myrbsdk_10000
+         File: project/app/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
+         Files:
+            -> project/app/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
+         RequiredInstallationOptions: []
+
+         ApplicationId: com.example.rubidumconsumer
+         File: project/app/build/intermediates/apk/debug/app-debug.apk
+         Files:
+           project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+         RequiredInstallationOptions: []
+      """.trimIndent())
     ),
   )
 

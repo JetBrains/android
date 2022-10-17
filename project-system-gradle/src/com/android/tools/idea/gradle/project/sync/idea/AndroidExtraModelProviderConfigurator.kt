@@ -45,10 +45,11 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
   val parallelSyncPrefetchVariants = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_PREFETCH_VARIANTS.get()
 
   val studioFlags = GradleSyncStudioFlags(
-    parallelSync,
-    parallelSyncPrefetchVariants,
-    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get(),
-    AndroidGradleProjectResolver.shouldDisableForceUpgrades()
+    studioFlagParallelSyncEnabled = parallelSync,
+    studioFlagParallelSyncPrefetchVariantsEnabled = parallelSyncPrefetchVariants,
+    studioFlagUseV2BuilderModels = StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get(),
+    studioFlagDisableForcedUpgrades = AndroidGradleProjectResolver.shouldDisableForceUpgrades(),
+    studioFlagOutputSyncStats = StudioFlags.GRADLE_SYNC_OUTPUT_SYNC_STATS.get()
   )
 
   fun getAdditionalArtifactsAction() = AdditionalClassifierArtifactsActionOptions(

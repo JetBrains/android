@@ -18,8 +18,11 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeArtifactDependency
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.stats.withProjectId
@@ -28,8 +31,10 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.google.wireless.android.sdk.stats.KotlinSupport
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.SystemIndependent
 
 class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }) {
   // Negative numbers mean that the events have not finished
@@ -59,7 +64,11 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     return syncEndedTimeStamp - syncStartedTimeStamp
   }
 
-  fun generateSyncEvent(project: Project, kind: AndroidStudioEvent.EventKind): AndroidStudioEvent.Builder {
+  fun generateSyncEvent(
+    project: Project,
+    rootProjectPath: @SystemIndependent String,
+    kind: AndroidStudioEvent.EventKind
+  ): AndroidStudioEvent.Builder {
     fun generateKotlinSupport(): KotlinSupport.Builder {
       var kotlinVersion: GradleVersion? = null
       var ktxVersion: GradleVersion? = null
@@ -99,6 +108,7 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     syncStats.syncType = syncType ?: GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_UNKNOWN
     syncStats.usesBuildGradle = buildFileTypes.contains(SdkConstants.DOT_GRADLE)
     syncStats.usesBuildGradleKts = buildFileTypes.contains(SdkConstants.DOT_KTS)
+    syncStats.updateUserRequestedParallelSyncMode(project, rootProjectPath)
 
     runReadAction {
       val lastKnownVersion = GradleUtil.getLastKnownAndroidGradlePluginVersion(project)
@@ -109,13 +119,14 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
       // Set up the Android studio event
       event.category = AndroidStudioEvent.EventCategory.GRADLE_SYNC
       event.kind = kind
-      event.gradleSyncStats = syncStats.build()
 
       if (kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED) {
         event.gradleVersion = GradleVersions.getInstance().getGradleVersion(project)?.toString() ?: ""
         event.setKotlinSupport(generateKotlinSupport())
       }
       event.withProjectId(project)
+
+      event.gradleSyncStats = syncStats.build()
     }
     return event
   }
@@ -124,4 +135,25 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
 private fun Collection<IdeArtifactDependency<*>>.findVersion(artifact: String): GradleVersion? {
   val library = firstOrNull { library -> library.target.artifactAddress.startsWith(artifact) } ?: return null
   return GradleCoordinate.parseCoordinateString(library.target.artifactAddress)?.version
+}
+
+private fun GradleSyncStats.Builder.updateUserRequestedParallelSyncMode(project: Project, rootProjectPath: @SystemIndependent String) {
+  if (!StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get()) {
+    clearUserRequestedSyncType()
+    return
+  }
+
+  userRequestedSyncType = when (GradleExperimentalSettings.getInstance().ENABLE_PARALLEL_SYNC) {
+    true -> GradleSyncStats.UserRequestedExecution.USER_REQUESTED_PARALLEL
+    false -> GradleSyncStats.UserRequestedExecution.USER_REQUESTED_SEQUENTIAL
+  }
+
+  val projectData = ExternalSystemApiUtil.findProjectNode(project, GradleUtil.GRADLE_SYSTEM_ID, rootProjectPath)
+  val executionReport = projectData?.let { ExternalSystemApiUtil.find(projectData, AndroidProjectKeys.SYNC_EXECUTION_REPORT) }?.data
+  if (executionReport != null) {
+    studioRequestedSyncType = when (executionReport.parallelFetchForV2ModelsEnabled) {
+      true -> GradleSyncStats.StudioRequestedExecution.STUDIO_REQUESTD_PARALLEL
+      false -> GradleSyncStats.StudioRequestedExecution.STUDIO_REQUESTD_SEQUENTIAL
+    }
+  }
 }

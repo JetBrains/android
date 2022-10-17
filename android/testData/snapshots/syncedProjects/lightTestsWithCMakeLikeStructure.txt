@@ -101,7 +101,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithCMakeLikeStructureTest.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -194,7 +194,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithCMakeLikeStructureTest.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -285,7 +285,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/LightSyncBasedTestsWithCMakeLikeStructureTest.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE

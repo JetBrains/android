@@ -17,18 +17,11 @@
 
 package com.android.tools.idea.navigator.nodes
 
-import com.android.tools.idea.apk.ApkFacet
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
-import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode
-import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode
 import com.android.tools.idea.navigator.nodes.other.NonAndroidModuleNode
 import com.intellij.ide.projectView.ViewSettings
-import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Creates Android project view nodes for a given [project].
@@ -38,21 +31,16 @@ fun createChildModuleNodes(
   submodules: Collection<Module>,
   settings: ViewSettings
 ): MutableList<AbstractTreeNode<*>> {
+  val providers = AndroidViewNodeProvider.getProviders()
   val children = ArrayList<AbstractTreeNode<*>>(submodules.size)
   submodules.forEach { module ->
-    val apkFacet = ApkFacet.getInstance(module)
-    val androidFacet = AndroidFacet.getInstance(module)
-    val ndkFacet = NdkFacet.getInstance(module)
-    when {
-      androidFacet != null && apkFacet != null -> {
-        children.add(ApkModuleNode(project, module, androidFacet, apkFacet, settings))
-        children.add(ExternalLibrariesNode(project, settings))
-      }
-      androidFacet != null && AndroidModel.isRequired(androidFacet) ->
-        children.add(AndroidModuleNode(project, module, settings))
-      else ->
-        children.add(NonAndroidModuleNode(project, module, settings))
-    }
+    val nodeGroups = providers.mapNotNull { provider -> provider.getModuleNodes(module, settings) }
+    children.addAll(
+      if (nodeGroups.isNotEmpty()) nodeGroups.flatten()
+      else listOf(NonAndroidModuleNode(project, module, settings))
+    )
   }
   return children
 }
+
+

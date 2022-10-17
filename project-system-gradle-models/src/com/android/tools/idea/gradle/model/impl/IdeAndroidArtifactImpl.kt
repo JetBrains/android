@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
+import com.android.tools.idea.gradle.model.IdePrivacySandboxSdkInfo
 import java.io.File
 
 data class IdeAndroidArtifactCoreImpl(
@@ -45,7 +46,8 @@ data class IdeAndroidArtifactCoreImpl(
   override val abiFilters: Set<String>,
   override val buildInformation: IdeBuildTasksAndOutputInformationImpl,
   override val codeShrinker: CodeShrinker?,
-  override val modelSyncFiles: Collection<IdeModelSyncFileImpl>
+  override val modelSyncFiles: Collection<IdeModelSyncFileImpl>,
+  override val privacySandboxSdkInfo: IdePrivacySandboxSdkInfoImpl?,
 ) : IdeAndroidArtifactCore {
   override val resValues: Map<String, IdeClassFieldImpl> get() = emptyMap()
 }

@@ -64,9 +64,7 @@ import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
-import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.sessions.SessionsManager;
-import com.android.tools.tests.memory.ReferenceWalker;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -103,7 +101,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
   @Rule
   public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myTransportService, myService, new FakeProfilerService(myTimer),
-                        new FakeCpuService(), new FakeEventService(), new FakeNetworkService.Builder().build());
+                        new FakeCpuService(), new FakeEventService());
   @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
 
   private StudioProfilersView myProfilersView;
@@ -358,14 +356,6 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     MemoryProfilerTestUtils
       .stopTrackingHelper(myStage, myTransportService, myTimer, startTimeNs, Status.SUCCESS, true);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEmpty();
-  }
-
-  @Test
-  public void testLoadingTooltipViewWithStrongReference() throws Exception {
-    MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
-    myStage.setTooltip(new MemoryUsageTooltip(myStage));
-    ReferenceWalker referenceWalker = new ReferenceWalker(stageView);
-    referenceWalker.assertReachable(MemoryUsageTooltipView.class);
   }
 
   @Test

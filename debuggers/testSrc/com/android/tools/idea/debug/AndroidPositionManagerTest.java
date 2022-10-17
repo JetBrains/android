@@ -30,7 +30,9 @@ import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.requests.RequestManagerImpl;
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl;
 import com.intellij.debugger.requests.ClassPrepareRequestor;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.psi.JavaPsiFacade;
@@ -45,6 +47,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -208,6 +211,13 @@ public class AndroidPositionManagerTest extends AndroidTestCase {
     assertNotNull(file);
     SourcePosition position = createSourcePositionForOneBasedLineNumber(file, 5);
     runTestDesugaringSupportWhenDesugaringIsRequired(position, true);
+  }
+
+  public void testGetAcceptedFileTypes_acceptsJavaFiles() {
+    Set<? extends FileType> acceptedFileTypes = myPositionManager.getAcceptedFileTypes();
+
+    assertEquals(1, acceptedFileTypes.size());
+    assertTrue(acceptedFileTypes.contains(JavaFileType.INSTANCE));
   }
 
   private void runTestDesugaringSupportWhenDesugaringIsRequired(@NotNull SourcePosition position, boolean isDesugaringRequired)

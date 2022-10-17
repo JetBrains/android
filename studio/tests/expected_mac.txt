@@ -417,7 +417,7 @@ Android Studio Preview.app/Contents/jbr/Contents/Home/lib/libzip.dylib
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/modules
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/psfont.properties.ja
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/psfontj2d.properties
-Android Studio Preview.app/Contents/jbr/Contents/Home/lib/security/blacklisted.certs
+Android Studio Preview.app/Contents/jbr/Contents/Home/lib/security/blocked.certs
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/security/cacerts
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/security/default.policy
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/security/public_suffix_list.dat
@@ -513,6 +513,10 @@ Android Studio Preview.app/Contents/license/eclipse_license.txt
 Android Studio Preview.app/Contents/license/eclipse_license2.txt
 Android Studio Preview.app/Contents/license/fest-NOTICE
 Android Studio Preview.app/Contents/license/fetchasgoogle.jar-NOTICE
+Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.md
+Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.openh264
+Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.TXT
+Android Studio Preview.app/Contents/license/ffmpeg-SOURCE_CODE.TXT
 Android Studio Preview.app/Contents/license/freemarker-NOTICE
 Android Studio Preview.app/Contents/license/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar-NOTICE
 Android Studio Preview.app/Contents/license/google-api-services-debugger.jar-NOTICE
@@ -531,6 +535,7 @@ Android Studio Preview.app/Contents/license/gson_license.txt
 Android Studio Preview.app/Contents/license/hdrhistogram_license.txt
 Android Studio Preview.app/Contents/license/imgscalr_license.txt
 Android Studio Preview.app/Contents/license/instantapps-api-NOTICE
+Android Studio Preview.app/Contents/license/javacpp-NOTICE
 Android Studio Preview.app/Contents/license/javahelp_license.txt
 Android Studio Preview.app/Contents/license/javolution_license.txt
 Android Studio Preview.app/Contents/license/jaxb_license.txt
@@ -1896,7 +1901,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/commons-lang-2.6.jar
 Android Studio Preview.app/Contents/plugins/android/lib/compilerCommon.antlr.shaded_jar.jar
 Android Studio Preview.app/Contents/plugins/android/lib/compilerCommon.antlr_runtime.shaded_jar.jar
 Android Studio Preview.app/Contents/plugins/android/lib/core-3.4.0.jar
-Android Studio Preview.app/Contents/plugins/android/lib/core-proto-0.0.8-alpha08.jar
 Android Studio Preview.app/Contents/plugins/android/lib/data-binding.jar
 Android Studio Preview.app/Contents/plugins/android/lib/deploy_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/dexlib2-2.5.2.jar
@@ -1966,9 +1970,11 @@ Android Studio Preview.app/Contents/plugins/android/lib/studio-grpc.jar
 Android Studio Preview.app/Contents/plugins/android/lib/studio-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
 Android Studio Preview.app/Contents/plugins/android/lib/traceprocessor_protos.jar
+Android Studio Preview.app/Contents/plugins/android/lib/tracing-perfetto-common-1.0.0-alpha01.jar
 Android Studio Preview.app/Contents/plugins/android/lib/transport_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/ui-animation-tooling-internal.jar
 Android Studio Preview.app/Contents/plugins/android/lib/util-2.5.2.jar
+Android Studio Preview.app/Contents/plugins/android/lib/utp-core-proto-jarjar.jar
 Android Studio Preview.app/Contents/plugins/android/lib/utp.jar
 Android Studio Preview.app/Contents/plugins/android/lib/wizard-template.jar
 Android Studio Preview.app/Contents/plugins/android/lib/workmanager_inspector_proto.jar
@@ -2541,6 +2547,10 @@ Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/dat
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/mac/lib64/libc++.dylib
 Android Studio Preview.app/Contents/plugins/devkit/lib/devkit-jps.jar
 Android Studio Preview.app/Contents/plugins/devkit/lib/devkit.jar
+Android Studio Preview.app/Contents/plugins/directaccess/lib/directaccess-client.jar
+Android Studio Preview.app/Contents/plugins/directaccess/lib/directaccess.jar
+Android Studio Preview.app/Contents/plugins/directaccess/lib/ftl_client_java_proto.jar
+Android Studio Preview.app/Contents/plugins/directaccess/resources/reverse_daemon.dex
 Android Studio Preview.app/Contents/plugins/editorconfig/lib/editorconfig.jar
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/firebase-testing.jar
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/google-api-services-storage-v1-rev1-1.18.0-rc.jar

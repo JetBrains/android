@@ -34,7 +34,6 @@ import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
 import com.android.tools.componenttree.util.StyleNodeType
-import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -72,6 +71,7 @@ import javax.swing.JTable
 import javax.swing.RepaintManager
 import javax.swing.ScrollPaneConstants
 
+@RunsInEdt
 class TreeTableImplTest {
   private val disposableRule = DisposableRule()
 
@@ -188,7 +188,6 @@ class TreeTableImplTest {
     RepaintManager.setCurrentManager(null)
   }
 
-  @RunsInEdt
   @Test
   fun testContextPopup() {
     val table = createTreeTable()
@@ -199,7 +198,6 @@ class TreeTableImplTest {
     assertThat(badgeItem.lastPopupItem).isNull()
   }
 
-  @RunsInEdt
   @Test
   fun testBadgePopup() {
     val table = createTreeTable()
@@ -210,7 +208,6 @@ class TreeTableImplTest {
     assertThat(badgeItem.lastPopupItem).isEqualTo(item1)
   }
 
-  @RunsInEdt
   @Test
   fun testColumnPopup() {
     val table = createTreeTable()
@@ -225,7 +222,6 @@ class TreeTableImplTest {
     assertThat(column2.lastPopupComponent).isEqualTo(table)
   }
 
-  @RunsInEdt
   @Test
   fun testBadgePopupWhenScrolled() {
     val table = createTreeTable()
@@ -243,7 +239,6 @@ class TreeTableImplTest {
     assertThat(badgeItem.lastActionItem).isNull()
   }
 
-  @RunsInEdt
   @Test
   fun testClickOnBadge() {
     val table = createTreeTable()
@@ -257,7 +252,6 @@ class TreeTableImplTest {
     assertThat(badgeItem.lastActionBounds).isEqualTo(table.getCellRect(1, 3, true))
   }
 
-  @RunsInEdt
   @Test
   fun testClickOnBadgeWhenScrolled() {
     val table = createTreeTable()
@@ -274,7 +268,6 @@ class TreeTableImplTest {
     assertThat(badgeItem.lastActionBounds).isEqualTo(table.getCellRect(3, 3, true))
   }
 
-  @RunsInEdt
   @Test
   fun testClickOnColumn() {
     val table = createTreeTable()
@@ -289,7 +282,6 @@ class TreeTableImplTest {
     assertThat(column2.lastActionBounds).isEqualTo(table.getCellRect(1, 2, true))
   }
 
-  @RunsInEdt
   @Test
   fun testDoubleClick() {
     val tree = createTreeTable()
@@ -299,7 +291,6 @@ class TreeTableImplTest {
     assertThat(doubleClickHandler.clickCount).isEqualTo(1)
   }
 
-  @RunsInEdt
   @Test
   fun testExpandKeys() {
     val table = createTreeTable()
@@ -323,7 +314,6 @@ class TreeTableImplTest {
     assertThat(table.tree.isExpanded(0)).isTrue()
   }
 
-  @RunsInEdt
   @Test
   fun testHiddenRootIsExpanded() {
     val table = createTreeTable()
@@ -338,7 +328,6 @@ class TreeTableImplTest {
     assertThat(table.rowCount).isEqualTo(1)
   }
 
-  @RunsInEdt
   @Test
   fun testIntColumnWidthIncreasedAfterColumnDataChanged() {
     val table = createTreeTable()
@@ -363,7 +352,6 @@ class TreeTableImplTest {
     assertThat(c1Final).isEqualTo(c1Before)
   }
 
-  @RunsInEdt
   @Test
   fun testHideColumns() {
     val result = createTree()
@@ -403,7 +391,6 @@ class TreeTableImplTest {
     assertThat(table.cellWidth(3)).isEqualTo(badgeBefore)
   }
 
-  @RunsInEdt
   @Test
   fun testHideHeader() {
     val result = createTree()
@@ -434,7 +421,6 @@ class TreeTableImplTest {
     assertThat(table.tableHeader.isShowing).isFalse()
   }
 
-  @RunsInEdt
   @Test
   fun testHoverCell() {
     val table = createTreeTable()
@@ -519,7 +505,6 @@ class TreeTableImplTest {
     assertThat(table.columnModel.getColumn(3).width).isEqualTo(EmptyIcon.ICON_16.iconWidth + JBUIScale.scale(5))
   }
 
-  @RunsInEdt
   @Test
   fun testTooltipText() {
     val table = createTreeTable()
@@ -562,7 +547,6 @@ class TreeTableImplTest {
     assertThat(foregroundOf(table, 2, isSelected = true, hasFocus = true)).isEqualTo(UIUtil.getTableForeground(true, true))
   }
 
-  @RunsInEdt
   @Test
   fun testClickResultsInOnlyOneSelectionEvent() {
     val table = createTreeTable()
@@ -578,11 +562,14 @@ class TreeTableImplTest {
     assertThat(selectionEvents).isEqualTo(1)
   }
 
-  @RunsInEdt
   @Test
   fun testSelectionIsMaintainedOnUpdates() {
     val result = createTree()
     val table = result.focusComponent as TreeTableImpl
+    val selectionModel = result.selectionModel
+    val model = result.model
+    var selections = 0
+    selectionModel.addSelectionListener { selections++ }
     setScrollPaneSize(table, 400, 700)
     val ui = FakeUi(table)
     table.tree.expandRow(0)
@@ -590,15 +577,16 @@ class TreeTableImplTest {
     val cell = table.getCellRect(2, 0, true)
     ui.mouse.click(cell.centerX.toInt(), cell.centerY.toInt())
     assertThat(table.treeTableSelectionModel.currentSelection).isEqualTo(listOf(style1))
+    assertThat(selections).isEqualTo(1)
 
-    // Simulate a model change. Execute the hierarchy change on a background thread:
+    // Simulate a model change.
     item1.add(item4)
-    val future = executeOnPooledThread { result.model.hierarchyChanged(item1) }
-    future.get()
+    model.hierarchyChanged(null)
 
-    // Make sure the selection is still intact:
+    // Make sure the selection is still intact and no further selection events were fired:
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     assertThat(table.treeTableSelectionModel.currentSelection).isEqualTo(listOf(style1))
+    assertThat(selections).isEqualTo(1)
   }
 
   private fun foregroundOf(table: JTable, column: Int, isSelected: Boolean, hasFocus: Boolean): Color {

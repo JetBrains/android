@@ -40,6 +40,8 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintWriter
 import java.util.Arrays
+import java.util.BitSet
+import java.util.concurrent.TimeUnit
 import kotlin.math.max
 import kotlin.math.min
 
@@ -50,6 +52,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
   private var softWeakRefHistogram: Histogram? = null
   private var traverseReport: String? = null
   private var dominatorFlameGraph: String? = null
+  private var innerClassReport: String? = null
 
   private val parentList = analysisContext.parentList
 
@@ -93,6 +96,12 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       val perClassProgress = PartialProgressIndicator(progress, 0.5, 0.5)
       mainReport.appendln(sectionHeader("Instances of each nominated class"))
       mainReport.append(preparePerClassSection(perClassProgress))
+    }
+
+    // Inner class section
+    if (config.innerClassOptions.includeInnerClassSection) {
+      mainReport.appendln(sectionHeader("Inner classes that retain objects via this$0"))
+      mainReport.append(innerClassReport)
     }
 
     // Disposer sections
@@ -175,6 +184,17 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     appendln("Unreachable objects: ${toPaddedShortStringAsCount(
       unreachableObjectsCount)}  ${toPaddedShortStringAsSize(unreachableObjectsSize)}")
   }
+
+  private fun getReportOrExceptionString(generateReport: () -> String) =
+    try {
+      generateReport()
+    } catch (e: Exception) {
+      val baos = ByteArrayOutputStream()
+      val pw = PrintWriter(baos)
+      e.printStackTrace(pw)
+      pw.flush()
+      baos.toString()
+    }
 
   enum class WalkGraphPhase {
     StrongReferencesNonLocalVariables,
@@ -442,24 +462,14 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     if (config.dominatorTreeOptions.includeDominatorTree) {
       val usableDiskSpace = File(FileUtil.getTempDirectory()).usableSpace
       if (usableDiskSpace - estimateDominatorTempFilesSize(visitedCount, edgeCount) > config.dominatorTreeOptions.diskSpaceThreshold) {
-        try {
-          rootsSet.addAll(frameRootsSet.toArray())
+        rootsSet.addAll(frameRootsSet.toArray())
+        dominatorFlameGraph = getReportOrExceptionString {
           computeDominatorFlameGraph(nav, rootsSet, sizesList, edgeCount, report)
         }
-        catch (e: Exception) {
-          val baos = ByteArrayOutputStream()
-          val pw = PrintWriter(baos)
-          e.printStackTrace(pw)
-          pw.flush()
-          dominatorFlameGraph = baos.toString()
-        }
-      }
-      else {
+      } else {
         dominatorFlameGraph = "Omitted due to low disk space"
       }
     }
-    rootsSet.clear()
-    rootsSet.compact()
 
     // Assert that any postponed objects have been handled
     assert(cleanerObjects.isEmpty)
@@ -497,10 +507,21 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     }
     stopwatchUpdateSizes.stop()
 
+    val stopwatchInnerClasses = Stopwatch.createStarted()
+    if (config.innerClassOptions.includeInnerClassSection) {
+      innerClassReport = getReportOrExceptionString {
+        prepareInnerClassSection(analysisContext, nav, rootsSet, nav.instanceCount)
+      }
+    }
+    rootsSet.clear()
+    rootsSet.compact()
+    stopwatchInnerClasses.stop()
+
     traverseReport = buildString {
       if (config.metaInfoOptions.include) {
         appendln("Analysis completed! Visited instances: $visitedInstancesCount, time: $stopwatch")
         appendln("Update sizes time: $stopwatchUpdateSizes")
+        appendln("Inner class report time: $stopwatchInnerClasses")
         appendln("Leaves found: $leafCounter")
       }
 
@@ -532,7 +553,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     return 20L * objectCount + 10L * edgeCount
   }
 
-  private fun computeDominatorFlameGraph(nav: ObjectNavigator, rootsSet: TIntHashSet, sizesList: IntList, edgeCount: Int, report: AnalysisReport) {
+  private fun computeDominatorFlameGraph(nav: ObjectNavigator, rootsSet: TIntHashSet, sizesList: IntList, edgeCount: Int, report: AnalysisReport): String {
     val totalStopwatch = Stopwatch.createUnstarted()
     val postorderStopwatch = Stopwatch.createUnstarted()
     val incomingEdgesStopwatch = Stopwatch.createUnstarted()
@@ -927,7 +948,6 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
         appendln(it)
       }
     })
-    dominatorFlameGraph = sb.toString()
 
     flameGraphStopwatch.stop()
     totalStopwatch.stop()
@@ -956,6 +976,121 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       appendln("    depth cutoff: ${config.dominatorTreeOptions.maxDepth}")
       appendln(
         "    pruned tree contains $renderedNodes nodes ${if (renderedNodes > config.dominatorTreeOptions.headLimit) "(truncated to ${config.dominatorTreeOptions.headLimit})" else ""}")
+    }
+    return sb.toString()
+  }
+
+  private fun prepareInnerClassSection(analysisContext: AnalysisContext, nav: ObjectNavigator, rootsSet: TIntHashSet, objectCount: Long): String {
+    val marks = BitSet(objectCount.toInt())
+    val toVisit = analysisContext.visitedList // reuse this to reduce memory usage.
+    var toVisitSize = 0
+    val visited = TIntHashSet()
+    val roots = rootsSet.toArray()
+    val refList = LongArrayList()
+
+    fun popToVisit(): Int {
+      toVisitSize--
+      return toVisit[toVisitSize]
+    }
+
+    fun pushToVisit(i: Int) {
+      toVisit[toVisitSize++] = i
+    }
+
+    // first traversal: mark all visited objects
+    roots.forEach { r -> pushToVisit(r) }
+    while (toVisitSize != 0) {
+      val cur = popToVisit()
+      visited.add(cur)
+      marks.set(cur)
+      nav.goTo(cur.toLong(), ObjectNavigator.ReferenceResolution.ONLY_STRONG_REFERENCES)
+      nav.copyReferencesTo(refList)
+      for (i in 0 until refList.size) {
+        if (refList[i] != 0L && !visited.contains(refList[i].toInt())) pushToVisit(refList[i].toInt())
+      }
+    }
+
+    // second traversal: ignore enclosing instance refs, and unmark visited objects.
+    // What remains will be objects only reachable through the ignored edges.
+    visited.clear()
+    roots.forEach { r -> pushToVisit(r) }
+    while (toVisitSize != 0) {
+      val cur = popToVisit()
+      visited.add(cur)
+      marks.clear(cur)
+      nav.goTo(cur.toLong(), ObjectNavigator.ReferenceResolution.STRONG_EXCLUDING_INNER_CLASS)
+      nav.copyReferencesTo(refList)
+      for (i in 0 until refList.size) {
+        if (refList[i] != 0L && !visited.contains(refList[i].toInt())) pushToVisit(refList[i].toInt())
+      }
+    }
+
+    // scan for set bits to determine retained objects
+    val retainedObjects = TIntArrayList()
+    var index = marks.nextSetBit(0)
+    while (index != -1) {
+      retainedObjects.add(index)
+      index = marks.nextSetBit(index+1)
+    }
+    if (retainedObjects.isEmpty) return ""
+
+    // The "culprit" for an object 'id' that is in the set R of objects retained by references from inner
+    // classes to their enclosing instances is the nearest ancestor that is an inner class, is not in R,
+    // and whose child on the path to 'id' is in R. This is a reasonable but not perfect approximation
+    // to determining which objects are actually retained by each individual inner class instance.
+    fun findCulprit(id: Int): Int {
+      var parentId = analysisContext.parentList[id]
+      var curId = id
+      while (parentId != 0) {
+        nav.goTo(parentId.toLong(), ObjectNavigator.ReferenceResolution.NO_REFERENCES)
+        val parentClass = nav.getClass().name
+        if (parentClass.contains("$") && marks[curId] && !marks[parentId]) {
+          return parentId
+        }
+        curId = parentId
+        parentId = analysisContext.parentList[parentId]
+        if (curId == parentId) break // somehow we've made it up to a root. this should not happen
+      }
+      return 0
+    }
+
+    val culpritsHistogramEntries = HashMap<ClassDefinition, HistogramVisitor.InternalHistogramEntry>()
+    val objectsHistogramEntries = HashMap<ClassDefinition, HistogramVisitor.InternalHistogramEntry>()
+    for (i in 0 until retainedObjects.size()) {
+      nav.goTo(retainedObjects[i].toLong(), ObjectNavigator.ReferenceResolution.NO_REFERENCES)
+      val size = nav.getObjectSize()
+      val klass = nav.getClass()
+      objectsHistogramEntries.getOrPut(klass) {
+        HistogramVisitor.InternalHistogramEntry(klass)
+      }.addInstance(size.toLong())
+
+      val culprit = findCulprit(retainedObjects[i])
+      if (culprit != 0) {
+        nav.goTo(culprit.toLong(), ObjectNavigator.ReferenceResolution.NO_REFERENCES)
+        val culpritClass = nav.getClass()
+        culpritsHistogramEntries.getOrPut(culpritClass) {
+          HistogramVisitor.InternalHistogramEntry(culpritClass)
+        }.addInstance(size.toLong())
+      }
+    }
+
+    val culpritsHistogram = Histogram(
+      culpritsHistogramEntries
+        .values
+        .map { it.asHistogramEntry() }
+        .sortedByDescending { it.totalInstances },
+      retainedObjects.size().toLong())
+
+    val objectsHistogram = Histogram(
+      objectsHistogramEntries
+        .values
+        .map { it.asHistogramEntry() }
+        .sortedByDescending { it.totalInstances },
+      retainedObjects.size().toLong())
+
+    return buildString {
+      appendln(culpritsHistogram.prepareReport("Inner class culprits", analysisContext.config.innerClassOptions.histogramEntries))
+      appendln(objectsHistogram.prepareReport("Objects retained by enclosing instance references", analysisContext.config.innerClassOptions.histogramEntries))
     }
   }
 

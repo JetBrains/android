@@ -15,19 +15,13 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import com.android.tools.idea.devicemanager.DeviceTables;
 import com.android.tools.idea.devicemanager.SerialNumber;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
 import com.intellij.openapi.project.Project;
 import javax.swing.AbstractButton;
-import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.event.CellEditorListener;
-import javax.swing.table.TableCellEditor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,33 +75,5 @@ public final class RemoveButtonTableCellEditorTest {
     // Assert
     Mockito.verify(listener).editingStopped(editor.getChangeEvent());
     Mockito.verify(model).remove(new SerialNumber("86UX00F4R"));
-  }
-
-  @Test
-  public void getTableCellEditorComponentNotOnline() {
-    // Arrange
-    TableCellEditor editor = new RemoveButtonTableCellEditor(myPanel);
-    JTable table = DeviceTables.mock(TestPhysicalDevices.GOOGLE_PIXEL_3);
-
-    // Act
-    JComponent component = (JComponent)editor.getTableCellEditorComponent(table, RemoveValue.INSTANCE, false, 0, 4);
-
-    // Assert
-    assertTrue(component.isEnabled());
-    assertEquals("Remove this offline device from the list.", component.getToolTipText());
-  }
-
-  @Test
-  public void getTableCellEditorComponentOnline() {
-    // Arrange
-    TableCellEditor editor = new RemoveButtonTableCellEditor(myPanel);
-    JTable table = DeviceTables.mock(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3);
-
-    // Act
-    JComponent component = (JComponent)editor.getTableCellEditorComponent(table, RemoveValue.INSTANCE, false, 0, 4);
-
-    // Assert
-    assertFalse(component.isEnabled());
-    assertEquals("Connected devices can not be removed from the list.", component.getToolTipText());
   }
 }

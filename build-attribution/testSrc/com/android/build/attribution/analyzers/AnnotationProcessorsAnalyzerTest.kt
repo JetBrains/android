@@ -16,10 +16,9 @@
 package com.android.build.attribution.analyzers
 
 import com.android.SdkConstants.FN_BUILD_GRADLE
-import com.android.build.attribution.BuildAttributionManagerImpl
+import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
-import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.utils.FileUtils
@@ -52,10 +51,11 @@ class AnnotationProcessorsAnalyzerTest {
 
     myProjectRule.invokeTasksRethrowingErrors(":app:compileDebugJavaWithJavac")
 
-    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
 
     assertThat(
-      buildAttributionManager.analyzersProxy.getNonIncrementalAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
+      results.getAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
       setOf(
         "com.google.auto.value.processor.AutoAnnotationProcessor",
         "com.google.auto.value.processor.AutoValueBuilderProcessor",
@@ -78,10 +78,11 @@ class AnnotationProcessorsAnalyzerTest {
 
     myProjectRule.invokeTasksRethrowingErrors(":app:compileDebugJavaWithJavac")
 
-    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
 
     assertThat(
-      buildAttributionManager.analyzersProxy.getNonIncrementalAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
+      results.getAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
       setOf(
         "com.google.auto.value.processor.AutoValueBuilderProcessor",
         "com.google.auto.value.processor.AutoOneOfProcessor",
@@ -106,10 +107,11 @@ class AnnotationProcessorsAnalyzerTest {
       apply plugin: 'kotlin-kapt'
     """.trimIndent())
 
-    val result = myProjectRule.invokeTasksRethrowingErrors(":app:compileDebugJavaWithJavac")
+    myProjectRule.invokeTasksRethrowingErrors(":app:compileDebugJavaWithJavac")
 
-    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
+    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
 
-    assertThat(buildAttributionManager.analyzersProxy.getNonIncrementalAnnotationProcessorsData()).isEmpty()
+    assertThat(results.getAnnotationProcessorsData().isEmpty())
   }
 }

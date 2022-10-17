@@ -22,31 +22,43 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.util.Disposer
 import java.awt.EventQueue
+import java.awt.KeyboardFocusManager
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.Transferable
+import java.beans.PropertyChangeListener
 import java.io.IOException
 
 /**
  * Synchronizes clipboards between the host and a connected device.
  */
 internal class DeviceClipboardSynchronizer(
-  private val deviceController: DeviceController,
-  parentDisposable: Disposable
+  private val deviceController: DeviceController
 ) : CopyPasteManager.ContentChangedListener, DeviceController.DeviceClipboardListener, Disposable {
 
   private val copyPasteManager = CopyPasteManager.getInstance()
   private var lastClipboardText = ""
+  private val focusOwnerListener = PropertyChangeListener { event ->
+    // CopyPasteManager.ContentChangedListener doesn't receive notifications for all clipboard
+    // changes that happen outside Studio. To compensate for that we also set the device clipboard
+    // when Studio gains focus.
+    if (event.newValue != null && event.oldValue == null) {
+      // Studio gained focus.
+      setDeviceClipboard()
+    }
+  }
 
   init {
-    Disposer.register(parentDisposable, this)
+    Disposer.register(deviceController, this)
     copyPasteManager.addContentChangedListener(this, this)
     deviceController.addDeviceClipboardListener(this)
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
     setDeviceClipboard()
   }
 
   @UiThread
   override fun dispose() {
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", focusOwnerListener)
     deviceController.removeDeviceClipboardListener(this)
     val message = StopClipboardSyncMessage()
     deviceController.sendControlMessage(message)
@@ -80,12 +92,7 @@ internal class DeviceClipboardSynchronizer(
 
   @UiThread
   override fun contentChanged(oldTransferable: Transferable?, newTransferable: Transferable?) {
-    val text = try {
-      newTransferable?.getTransferData(DataFlavor.stringFlavor) as? String ?: return
-    }
-    catch (e: IOException) {
-      return
-    }
+    val text = newTransferable?.getText() ?: return
     if (text.isNotEmpty() && text != lastClipboardText) {
       lastClipboardText = text
       sendClipboardSyncMessage(text)
@@ -99,6 +106,15 @@ internal class DeviceClipboardSynchronizer(
         lastClipboardText = text
         copyPasteManager.setContents(StringSelection(text))
       }
+    }
+  }
+
+  private fun Transferable.getText(): String? {
+    return try {
+      getTransferData(DataFlavor.stringFlavor) as? String
+    }
+    catch (e: IOException) {
+      null
     }
   }
 }

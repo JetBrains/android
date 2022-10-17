@@ -33,6 +33,7 @@ import com.intellij.util.ui.SwingHelper
 import org.intellij.lang.annotations.JdkConstants
 import org.intellij.lang.annotations.MagicConstant
 import java.awt.Color
+import java.awt.Component
 import java.awt.Container
 import java.awt.Cursor
 import java.awt.Dimension
@@ -277,5 +278,16 @@ object AdtUiUtils {
     }
     return p
   }
+
+  /**
+   * Returns all the child components of container recursively.
+   */
+  @JvmStatic
+  fun allComponents(container: Container): Sequence<Component> =
+    container.components.asSequence().flatMap {
+      if (it is Container && it.componentCount != 0)
+        sequenceOf(it) + allComponents(it)
+      else sequenceOf(it)
+    }
 }
 

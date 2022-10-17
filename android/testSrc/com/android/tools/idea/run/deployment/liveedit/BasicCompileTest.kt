@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.testutils.TestUtils
+import com.android.tools.compose.ComposePluginIrGenerationExtension
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.PsiTestUtil
 import junit.framework.Assert
+import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
@@ -31,11 +36,24 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.net.URL
+import java.net.URLClassLoader
 
 @RunWith(JUnit4::class)
 class BasicCompileTest {
   private lateinit var myProject: Project
   private var files = HashMap<String, PsiFile>()
+
+  /**
+   * Path to the compose-runtime jar. Note that unlike all other dependencies, we
+   * don't need to load that into the test's runtime classpath. Instead, we just
+   * need to make sure it is in the classpath input of the compiler invocation
+   * Live Edit uses. Aside from things like references to the @Composable
+   * annotation, we actually don't need anything from that runtime during the compiler.
+   * The main reason to include that is because the compose compiler plugin expects
+   * the runtime to be path of the classpath or else it'll throw an error.
+   */
+  private val composeRuntimePath = TestUtils.resolveWorkspacePath("tools/adt/idea/compose-ide-plugin/testData/lib/compose-runtime-1.3.0-SNAPSHOT.jar").toString()
 
   @get:Rule
   var projectRule = AndroidProjectRule.inMemory()
@@ -43,15 +61,21 @@ class BasicCompileTest {
   @Before
   fun setUp() {
     myProject = projectRule.project
+
+    // Load the compose runtime into the main module's library dependency.
+    LocalFileSystem.getInstance().refreshAndFindFileByPath(composeRuntimePath)
+    PsiTestUtil.addLibrary(projectRule.fixture.getModule(), composeRuntimePath)
+
+    // Register the compose compiler plugin much like what Intellij would normally do.
+    if (IrGenerationExtension.getInstances(myProject).find { it is ComposePluginIrGenerationExtension } == null) {
+      IrGenerationExtension.registerExtension(myProject, ComposePluginIrGenerationExtension())
+    }
+
     files["A.kt"] = projectRule.fixture.configureByText("A.kt", "fun foo() : String { return \"I am foo\"} fun bar() = 1")
     files["CallA.kt"] = projectRule.fixture.configureByText("CallA.kt", "fun callA() : String { return foo() }")
 
     files["InlineTarget.kt"] = projectRule.fixture.configureByText("InlineTarget.kt", "inline fun it1() : String { return \"I am foo\"}")
     files["CallInlineTarget.kt"] = projectRule.fixture.configureByText("CallInlineTarget.kt", "fun callInlineTarget() : String { return it1() }")
-
-    files["Composable.kt"] = projectRule.fixture.configureByText("Composable.kt", "package androidx.compose.runtime \n" +
-                                                                        "@Target(AnnotationTarget.FUNCTION, AnnotationTarget.TYPE)\n" +
-                                                                        "annotation class Composable\n")
 
     files["ComposeSimple.kt"] = projectRule.fixture.configureByText("ComposeSimple.kt",
                                                              "@androidx.compose.runtime.Composable fun composableFun() : String { " +
@@ -128,9 +152,19 @@ class BasicCompileTest {
   @Test
   fun simpleComposeChange() {
     var output = compile(files["ComposeSimple.kt"], "composableFun").singleOutput()
-    // We can't really invoke any composable without the runtime libraries. At least we can check
-    // to make sure the output isn't empty.
+    // We can't really invoke any composable without a "host". Normally that host will be the
+    // Android activity. There are other hosts that we can possibly run as a Compose unit test.
+    // We could potentially look into doing that. However, for the purpose of verifying the
+    // compose compiler was invoked correctly, we can just check the output's methods.
     Assert.assertTrue(output.classData.isNotEmpty())
+    var c = loadClass(output)
+    var foundFunction = false;
+    for (m in c.methods) {
+      if (m.toString().contains("ComposeSimpleKt.composableFun(androidx.compose.runtime.Composer,int)")) {
+        foundFunction = true;
+      }
+    }
+    Assert.assertTrue(foundFunction)
   }
 
   @Test
@@ -184,14 +218,16 @@ class BasicCompileTest {
    */
   private fun loadClass(output: AndroidLiveEditCodeGenerator.CodeGeneratorOutput) : Class<*> {
     // We use a temp classloader so we can have the same class name across different classes without conflict.
-    val tempLoader = object : ClassLoader() {
+    val tempLoader = object : URLClassLoader(arrayOf(URL("jar:file:$composeRuntimePath!/"))) {
       override fun findClass(name: String): Class<*>? {
         return if (name == output.className) {
           // load it from the target
           defineClass(name, output.classData, 0, output.classData.size)
-        } else {
+        } else if (output.supportClasses.containsKey(name)) {
           // try to see if it is one of the support classes
           defineClass(name, output.supportClasses[name], 0, output.supportClasses[name]!!.size)
+        } else {
+          return super.findClass(name)
         }
       }
     }

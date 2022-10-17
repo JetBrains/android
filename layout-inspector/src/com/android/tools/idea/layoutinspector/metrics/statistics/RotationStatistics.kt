@@ -41,7 +41,10 @@ class RotationStatistics {
    */
   private var componentTreeClicksIn2D = 0
 
-  private var currentMode3D = false
+  /**
+   * Currently in 3D or 2D mode.
+   */
+  var currentMode3D = false
 
   /**
    * Start a new session by resetting all counters.
@@ -57,25 +60,15 @@ class RotationStatistics {
   /**
    * Save the session data recorded since [start].
    */
-  fun save(data: DynamicLayoutInspectorRotation.Builder) {
-    data.imageClicksIn2D = imageClicksIn2D
-    data.imageClicksIn3D = imageClicksIn3D
-    data.componentTreeClicksIn2D = componentTreeClicksIn2D
-    data.componentTreeClicksIn3D = componentTreeClicksIn3D
-  }
-
-  /**
-   * Log that the user switched to a 3D view.
-   */
-  fun toggledTo3D() {
-    currentMode3D = true
-  }
-
-  /**
-   * Log that the user switched to a 2D view.
-   */
-  fun toggledTo2D() {
-    currentMode3D = false
+  fun save(dataSupplier: () -> DynamicLayoutInspectorRotation.Builder) {
+    if (imageClicksIn2D > 0 || imageClicksIn3D > 0 || componentTreeClicksIn2D > 0 || componentTreeClicksIn3D > 0) {
+      dataSupplier().let {
+        it.imageClicksIn2D = imageClicksIn2D
+        it.imageClicksIn3D = imageClicksIn3D
+        it.componentTreeClicksIn2D = componentTreeClicksIn2D
+        it.componentTreeClicksIn3D = componentTreeClicksIn3D
+      }
+    }
   }
 
   /**

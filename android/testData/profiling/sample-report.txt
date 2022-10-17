@@ -268,6 +268,7 @@ Root 2:
 [    1/ 16%/   79B]   128B          1   lb: java.nio.DirectLongBufferU
 [    1/ 16%/   79B]    72B          1 * att: java.nio.DirectByteBuffer
 
+=== INNER CLASSES THAT RETAIN OBJECTS VIA THIS$0 ==
 ================== DISPOSER TREE ==================
 ============== DISPOSER TREE SUMMARY ==============
 ================= DISPOSED OBJECTS ================

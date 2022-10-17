@@ -18,23 +18,22 @@ package com.android.tools.profilers.cpu.capturedetails
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.Range
 import com.android.tools.perflib.vmtrace.ClockType
-import com.android.tools.profilers.ProfilersApplicationRule
+import com.android.tools.profilers.Utils
 import com.google.common.truth.Truth.assertThat
-import org.junit.Rule
+import com.intellij.testFramework.ApplicationRule
+import org.junit.ClassRule
 import org.junit.Test
 
 typealias Assertion<T> = (T) -> Unit
 
 class CpuTreeModelTest {
-  @get:Rule
-  val appRule = ProfilersApplicationRule()
 
   @Test
   fun testTreeUpdate() {
     val tree = CpuTreeNodeTest.TopDownTest.createTree()
     val topDown = Aggregate.TopDown.rootAt(tree)
     val range = Range(-Double.MAX_VALUE, Double.MAX_VALUE)
-    val model = CpuTreeModel(ClockType.GLOBAL, range, topDown)
+    val model = CpuTreeModel(ClockType.GLOBAL, range, topDown, Utils::runOnUi)
 
     assertTree(id("A") and total(30.0) and childrenTotal(21.0),
                assertTree(id("B") and total(8.0 + 7.0) and childrenTotal(11.0),
@@ -62,10 +61,10 @@ class CpuTreeModelTest {
   fun testRootNodeIdValid() {
     var topDown = Aggregate.TopDown.rootAt(CpuTreeNodeTest.TopDownTest.newNode("", 0, 10))
     val range = Range(-Double.MAX_VALUE, Double.MAX_VALUE)
-    var model = CpuTreeModel(ClockType.GLOBAL, range, topDown)
+    var model = CpuTreeModel(ClockType.GLOBAL, range, topDown, Utils::runOnUi)
     assertThat(model.isRootNodeIdValid).isFalse()
     topDown = Aggregate.TopDown.rootAt(CpuTreeNodeTest.TopDownTest.newNode("Valid", 0, 10))
-    model = CpuTreeModel(ClockType.GLOBAL, range, topDown)
+    model = CpuTreeModel(ClockType.GLOBAL, range, topDown, Utils::runOnUi)
     assertThat(model.isRootNodeIdValid).isTrue()
   }
 
@@ -74,7 +73,7 @@ class CpuTreeModelTest {
     val tree = CpuTreeNodeTest.TopDownTest.createTree()
     val topDown = Aggregate.TopDown.rootAt(tree)
     val range = Range(-Double.MAX_VALUE, Double.MAX_VALUE)
-    val model = CpuTreeModel(ClockType.GLOBAL, range, topDown)
+    val model = CpuTreeModel(ClockType.GLOBAL, range, topDown, Utils::runOnUi)
     val observer = AspectObserver()
     val treeModelChangeCount = intArrayOf(0)
     model.aspect.addDependency(observer).onChange(CpuTreeModel.Aspect.TREE_MODEL) { treeModelChangeCount[0]++ }
@@ -84,6 +83,10 @@ class CpuTreeModelTest {
   }
 
   companion object {
+    @JvmField
+    @ClassRule
+    val rule = ApplicationRule()
+
     infix fun<T> Assertion<T>.and(that: Assertion<T>): Assertion<T> = { this(it); that(it) }
 
     private fun id(id: String): Assertion<CpuTreeNode<*>> = { assertThat(it.base.id).isEqualTo(id) }

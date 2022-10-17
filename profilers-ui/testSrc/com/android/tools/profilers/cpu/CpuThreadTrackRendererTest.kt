@@ -34,19 +34,18 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-
 import javax.swing.JComponent
 
 class CpuThreadTrackRendererTest {
@@ -57,7 +56,7 @@ class CpuThreadTrackRendererTest {
 
   @get:Rule
   val grpcChannel = FakeGrpcChannel("CpuThreadTrackRendererTest", FakeCpuService(), FakeProfilerService(timer), transportService,
-                                    FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
+                                    FakeMemoryService(), FakeEventService())
 
   @get:Rule
   val applicationRule = ApplicationRule()
@@ -95,7 +94,8 @@ class CpuThreadTrackRendererTest {
         mockCapture,
         threadInfo,
         fakeTimeline,
-        multiSelectionModel
+        multiSelectionModel,
+        Utils::runOnUi
       ),
       ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
     val renderer = CpuThreadTrackRenderer(profilersView) { false }
@@ -108,7 +108,7 @@ class CpuThreadTrackRendererTest {
     // Verify trace event chart selection is updated.
     val traceEventChart = component.components[1] as HTreeChart<CaptureNode>
     assertThat(traceEventChart.selectedNode).isNull()
-    multiSelectionModel.setSelection(captureNode, setOf(CaptureNodeAnalysisModel(captureNode, mockCapture)))
+    multiSelectionModel.setSelection(captureNode, setOf(CaptureNodeAnalysisModel(captureNode, mockCapture, Utils::runOnUi)))
     assertThat(traceEventChart.selectedNode).isSameAs(captureNode)
     multiSelectionModel.clearSelection()
     assertThat(traceEventChart.selectedNode).isNull()
@@ -126,7 +126,8 @@ class CpuThreadTrackRendererTest {
         mockCapture,
         CpuThreadInfo(1, "Thread-1"),
         DefaultTimeline(),
-        MultiSelectionModel()
+        MultiSelectionModel(),
+        Utils::runOnUi
       ),
       ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
     val component = CpuThreadTrackRenderer(profilersView, {false}).render(threadTrackModel)
@@ -146,7 +147,8 @@ class CpuThreadTrackRendererTest {
         mockCapture,
         CpuThreadInfo(1, "Thread-1"),
         DefaultTimeline(),
-        MultiSelectionModel()
+        MultiSelectionModel(),
+        Utils::runOnUi
       ),
       ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
     val renderer = CpuThreadTrackRenderer(profilersView, {false})

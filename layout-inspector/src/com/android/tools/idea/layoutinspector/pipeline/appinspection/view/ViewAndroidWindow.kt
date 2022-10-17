@@ -108,10 +108,10 @@ class ViewAndroidWindow(
     val (nodeMap, requestedNodeInfo) = ViewNode.readAccess {
       val allNodes = root.flatten().filter { it.drawId != 0L }
       val nodeMap = allNodes.associateBy { it.drawId }
-      val surfaceOriginX = root.x - event.rootOffset.x
-      val surfaceOriginY = root.y - event.rootOffset.y
+      val surfaceOriginX = root.layoutBounds.x - event.rootOffset.x
+      val surfaceOriginY = root.layoutBounds.y - event.rootOffset.y
       val requests = allNodes.mapNotNull {
-        val bounds = it.transformedBounds.bounds.intersection(Rectangle(0, 0, Int.MAX_VALUE, Int.MAX_VALUE))
+        val bounds = it.renderBounds.bounds.intersection(Rectangle(0, 0, Int.MAX_VALUE, Int.MAX_VALUE))
         if (bounds.isEmpty) null
         else LayoutInspectorUtils.makeRequestedNodeInfo(it.drawId, bounds.x - surfaceOriginX, bounds.y - surfaceOriginY, bounds.width,
                                                         bounds.height)

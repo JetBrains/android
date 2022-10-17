@@ -29,9 +29,11 @@
     <createLaunchTasksProvider implementation="com.android.tools.idea.testartifacts.instrumented.CreateLaunchTasksProvider"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.common.GradleInitScripts"/>
     <applicationService serviceInterface="com.android.tools.idea.gradle.project.sync.GradleSyncInvoker"
                         serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncInvokerImpl"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleVersions"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.project.build.compiler.HideCompilerOptions" />
 
     <projectConfigurable groupId="build" id="gradle.compiler"
@@ -123,11 +125,13 @@
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
     <listener class="com.android.tools.idea.gradle.project.sync.setup.post.SetUpRunConfigurationsSyncListener"
-              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
     <listener class="com.android.tools.idea.gradle.project.sync.setup.post.RecordAgpVersionSyncListener"
-              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
     <listener class="com.android.tools.idea.gradle.variant.view.BuildVariantView$SyncListener"
-              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
+    <listener class="com.android.tools.idea.gradle.project.sync.StateChangeNotification"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
   </projectListeners>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <orderEnumerationHandlerFactory implementation="com.android.tools.idea.gradle.project.AndroidGradleOrderEnumeratorHandlerFactory"/>
@@ -169,6 +173,9 @@
   </extensions>
   <extensions defaultExtensionNs="com.android.ide">
     <sdkEventListener implementation="com.android.tools.idea.gradle.sdk.GradleAndroidSdkEventListener"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea">
+    <sendFeedbackDescriptionProvider implementation="com.android.tools.idea.feedback.GradleAndNdkSendFeedbackDescriptionProvider" />
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.android.actions">
     <newResourceCreationHandler

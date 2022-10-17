@@ -1,7 +1,8 @@
 <component name="libraryTable">
-  <library name="truth-java8-extension">
+  <library name="truth-java8-extension" type="repository">
+    <properties include-transitive-deps="false" maven-id="com.google.truth.extensions:truth-java8-extension:0.42" />
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/truth/extensions/truth-java8-extension/0.42/truth-java8-extension-0.42.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/truth/extensions/truth-java8-extension/0.42/truth-java8-extension-0.42.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

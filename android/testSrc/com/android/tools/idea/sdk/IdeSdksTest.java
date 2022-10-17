@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.sdk;
 
-import static com.android.testutils.TestUtils.getEmbeddedJdk8Path;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.sdk.IdeSdks.ANDROID_STUDIO_DEFAULT_JDK_NAME;
+import static com.android.tools.idea.testing.AndroidGradleTests.getEmbeddedJdk8Path;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;

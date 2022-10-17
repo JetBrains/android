@@ -41,8 +41,8 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.htmlComponent
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import icons.AndroidIcons
-import java.awt.EventQueue
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.SwingConstants
@@ -66,6 +66,7 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
   private var deviceMirroringEnabled: Boolean
   private var emulatorVersionIsSufficient: Boolean
   private var hyperlinkListener: HyperlinkListener
+  private var disposed = false
 
   init {
     Disposer.register(project.earlyDisposable, this)
@@ -117,10 +118,13 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
       val progress: ProgressIndicator = StudioLoggerProgressIndicator(AvdManagerConnection::class.java)
       val sdkManager = sdkHandler.getSdkManager(progress)
       val listener = RepoLoadedListener { packages -> localPackagesUpdated(packages) }
-      sdkManager.addLocalChangeListener(listener)
-      Disposer.register(this) { sdkManager.removeLocalChangeListener(listener) }
-
-      localPackagesUpdated(sdkManager.packages)
+      UIUtil.invokeLaterIfNeeded {
+        if (!disposed) {
+          sdkManager.addLocalChangeListener(listener)
+          Disposer.register(this) { sdkManager.removeLocalChangeListener(listener) }
+          localPackagesUpdated(sdkManager.packages)
+        }
+      }
     }
 
     updateContent()
@@ -129,7 +133,7 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
   @AnyThread
   private fun localPackagesUpdated(packages: RepositoryPackages) {
     val emulatorPackage = packages.localPackages[SdkConstants.FD_EMULATOR] ?: return
-    EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+    UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
       val minRequired = if (SystemInfo.OS_ARCH == "aarch64") MIN_REQUIRED_EMULATOR_VERSION_AARCH64 else MIN_REQUIRED_EMULATOR_VERSION
       val sufficient = emulatorPackage.version >= Revision.parseRevision(minRequired)
       if (emulatorVersionIsSufficient != sufficient) {
@@ -265,5 +269,6 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
   }
 
   override fun dispose() {
+    disposed = true
   }
 }

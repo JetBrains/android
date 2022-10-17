@@ -202,7 +202,6 @@ class PlaybackControls(val clockControl: SliderClockControl,
 
     private fun handleLoopEnd() {
       UIUtil.invokeLaterIfNeeded { clockControl.jumpToStart() }
-      clockControl.loopCount++
     }
 
     override fun dispose() {
@@ -261,10 +260,6 @@ class PlaybackControls(val clockControl: SliderClockControl,
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       clockControl.playInLoop = state
-      if (!state) {
-        // Reset the loop when leaving playInLoop mode.
-        clockControl.loopCount = 0
-      }
       tracker(
         if (state) ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.ENABLE_LOOP_ACTION
         else ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.DISABLE_LOOP_ACTION

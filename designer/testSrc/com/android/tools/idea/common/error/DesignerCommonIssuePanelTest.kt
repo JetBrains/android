@@ -30,7 +30,6 @@ import javax.swing.tree.TreePath
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 @Suppress("UnstableApiUsage")
 class DesignerCommonIssuePanelTest {
@@ -54,33 +53,40 @@ class DesignerCommonIssuePanelTest {
     val treeModel = tree.model
 
     val root = (treeModel.root!! as DesignerCommonIssueRoot)
+    root.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true))
 
+    val noFileNode = root.getChildren().single() as NoFileNode
     run {
       panel.setViewOptionFilter { true }
-      val parentNode = root.getChildren().single() as NoFileNode
-      assertEquals(2, parentNode.issues.size)
-      assertTrue(parentNode.issues.contains(infoSeverityIssue))
-      assertTrue(parentNode.issues.contains(warningSeverityIssue))
+      root.getNodeProvider().updateIssues(provider.getFilteredIssues())
+
+      assertEquals(2, noFileNode.getChildren().size)
+      assertEquals(warningSeverityIssue, (noFileNode.getChildren()[0].issue))
+      assertEquals(infoSeverityIssue, (noFileNode.getChildren()[1].issue))
     }
 
     run {
       panel.setViewOptionFilter { !setOf(HighlightSeverity.INFORMATION.myVal).contains(it.severity.myVal) }
-      val parentNode = root.getChildren().single() as NoFileNode
-      assertEquals(1, parentNode.issues.size)
-      assertTrue(parentNode.issues.contains(warningSeverityIssue))
+      root.getNodeProvider().updateIssues(provider.getFilteredIssues())
+
+      assertEquals(1, noFileNode.getChildren().size)
+      assertEquals(warningSeverityIssue, (noFileNode.getChildren()[0].issue))
     }
 
     run {
       panel.setViewOptionFilter { !setOf(HighlightSeverity.WARNING.myVal).contains(it.severity.myVal) }
-      val parentNode = root.getChildren().single() as NoFileNode
-      assertEquals(1, parentNode.issues.size)
-      assertTrue(parentNode.issues.contains(infoSeverityIssue))
+      root.getNodeProvider().updateIssues(provider.getFilteredIssues())
+
+      assertEquals(1, noFileNode.getChildren().size)
+      assertEquals(infoSeverityIssue, (noFileNode.getChildren()[0].issue))
     }
 
     run {
       panel.setViewOptionFilter {
         !setOf(HighlightSeverity.INFORMATION.myVal, HighlightSeverity.WARNING.myVal).contains(it.severity.myVal)
       }
+      root.getNodeProvider().updateIssues(provider.getFilteredIssues())
+
       // If there is no issue, then tree has no file node.
       assertEquals(0, root.getChildren().size)
     }
@@ -98,6 +104,7 @@ class DesignerCommonIssuePanelTest {
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 
     val root = (tree.model.root!! as DesignerCommonIssueRoot)
+    root.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true))
     val fileNode = root.getChildren().single() as NoFileNode
     val issueNode = fileNode.getChildren().single()
     val splitter = UIUtil.findComponentOfType(panel.getComponent(), OnePixelSplitter::class.java)!!

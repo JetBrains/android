@@ -145,12 +145,9 @@ class MergedManifestSnapshotFactory {
 
   /**
    * @deprecated This method only exists to preserve the behavior of legacy callers of
-   * {@link MergedManifestManager#getFreshSnapshot}. If the manifest merger fails
-   * for a legitimate reason (e.g. an invalid contributor), you should wrap the
-   * {@link MergedManifestInfo} in a "failed" snapshot using
-   * {@link MergedManifestSnapshotFactory#createFailedMergedManifestSnapshot}. If we encounter
-   * an exception during merging or parsing the result, we should just allow that exception to
-   * propagate up to the caller.
+   * {@link MergedManifestManager#getFreshSnapshot}. If we encounter an exception during
+   * merging or parsing the result, we should just allow that exception to propagate up
+   * to the caller.
    */
   @Deprecated
   @NotNull
@@ -180,42 +177,9 @@ class MergedManifestSnapshotFactory {
     );
   }
 
-  @NotNull
-  private static MergedManifestSnapshot createFailedMergedManifestSnapshot(@NotNull Module module, @NotNull MergedManifestInfo mergedManifestInfo) {
-    return new MergedManifestSnapshot(module,
-                                      null,
-                                      null,
-                                      null,
-                                      ImmutableMap.of(),
-                                      mergedManifestInfo,
-                                      AndroidVersion.DEFAULT,
-                                      AndroidVersion.DEFAULT,
-                                      null,
-                                      null,
-                                      false,
-                                      null,
-                                      null,
-                                      ImmutableList.copyOf(mergedManifestInfo.getFiles()),
-                                      ImmutablePermissionHolder.EMPTY,
-                                      false,
-                                      ImmutableList.of(),
-                                      ImmutableList.of(),
-                                      ImmutableList.of(),
-                                      mergedManifestInfo.getActions(),
-                                      mergedManifestInfo.getLoggingRecords(),
-                                      false
-    );
-  }
 
   @NotNull
   static MergedManifestSnapshot createMergedManifestSnapshot(@NotNull AndroidFacet facet, @NotNull MergedManifestInfo mergedManifestInfo) {
-    // A severe error will have caused the manifest merger to return null, so there's no document to parse.
-    // In such cases, we want to return a dummy snapshot to surface the manifest merger logs to the user.
-    // This also helps us avoid recomputing until the user has made some change to the merged manifest's
-    // contributors, since if the input hasn't changed then we'll just end up with the same severe errors.
-    if (mergedManifestInfo.hasSevereError()) {
-      return createFailedMergedManifestSnapshot(facet.getModule(), mergedManifestInfo);
-    }
     try {
       Document document = mergedManifestInfo.getXmlDocument();
       Element root = document == null ? null : document.getDocumentElement();

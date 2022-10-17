@@ -31,9 +31,10 @@ import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.kotlin.utils.yieldIfNotNull
 import java.util.Comparator
 
-private const val BUILD_ORDER_BASE = 1000_000
-private const val MODULE_ORDER_BASE = 2000_000
-private const val BUILD_WIDE_ORDER_BASE = 3000_000
+private const val BUILD_ORDER_BASE = 1_000_000
+private const val MODULE_ORDER_BASE = 2_000_000
+private const val MODULE_SECONDARY_OFFSET = 500_000
+private const val BUILD_WIDE_ORDER_BASE = 3_000_000
 
 class GradleBuildConfigurationSourceProvider(private val project: Project) : BuildConfigurationSourceProvider {
 
@@ -52,14 +53,15 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
     val displayPath: String = buildPath.buildNamePrefixedGradleProjectPath()
 
     val projectDisplayName: String = when {
-      projectPath.path == ":" && buildPath.buildName == ":" -> PROJECT_PREFIX + module.project.name
+      projectPath.path == ":" && buildPath.buildName == ":" -> PROJECT_PREFIX + module.name
       projectPath.path == ":" -> BUILD_PREFIX +  buildPath.buildName
       else -> MODULE_PREFIX + displayPath
     }
 
     companion object {
       val CONFIG_FILE_GROUP_COMPARATOR: Comparator<ModuleDesc> =
-        compareBy<ModuleDesc> {it.buildPath.buildName}
+        compareBy<ModuleDesc> { it.buildPath.rootBuildPath() }
+          .thenBy { it.buildPath.buildName }
           .thenBy { it.buildPath.gradleProjectPath }
     }
   }
@@ -105,7 +107,12 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
 
   private fun findConfigurationFiles() = sequence {
     holderModules.forEachIndexed { index, module ->
-      yieldIfNotNull(GradleUtil.getGradleBuildFile(module.module)?.describe(module.projectDisplayName, module.orderBase + index))
+      yieldIfNotNull(
+        GradleUtil.getGradleModuleModel(module.module)
+          ?.buildFilePath
+          ?.let { VfsUtil.findFileByIoFile(it, false) }
+          ?.describe(module.projectDisplayName, module.orderBase + index)
+      )
 
       // include all .gradle and ProGuard files from each module
       for (file in findAllGradleScriptsInModule(module.module)) {
@@ -116,7 +123,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
             } else {
               module.projectDisplayName
             },
-            (if (file.fileType === proguardFileType) MODULE_ORDER_BASE else module.orderBase) + index
+            (module.orderBase + index) + if (file.fileType === proguardFileType) MODULE_SECONDARY_OFFSET else 0
           )
         )
       }

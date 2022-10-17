@@ -23,6 +23,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExpectedException
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import kotlin.concurrent.thread
@@ -32,6 +33,9 @@ class ThreadingCheckerHookImplTest {
 
   @get:Rule
   var edtRule = EdtRule()
+
+  @get:Rule
+  val exceptionRule = ExpectedException.none()
 
   private val mockThreadingViolationNotifier = mock<ThreadingViolationNotifier>()
   private val threadingCheckerHook = ThreadingCheckerHookImpl(mockThreadingViolationNotifier)
@@ -94,5 +98,46 @@ class ThreadingCheckerHookImplTest {
       ThreadingCheckerTrampoline.verifyOnWorkerThread()
     }.join()
     Truth.assertThat(threadingCheckerHook.threadingViolations.keys).isEmpty()
+  }
+
+  @Test
+  fun testUsingSystemPropertyToSuppressNotifications() {
+    val propertyName = "android.studio.instrumentation.threading.suppress-notifications"
+    val origPropValue = System.getProperty(propertyName)
+    try {
+      System.setProperty(propertyName, "true")
+      ThreadingCheckerTrampoline.verifyOnWorkerThread()
+
+      verifyNoMoreInteractions(mockThreadingViolationNotifier)
+    }
+    finally {
+      if (origPropValue != null) {
+        System.setProperty(propertyName, origPropValue)
+      }
+      else {
+        System.clearProperty(propertyName)
+      }
+    }
+  }
+
+  @Test
+  fun testUsingSystemPropertyToLogErrorsInsteadOfWarnings() {
+    val propertyName = "android.studio.instrumentation.threading.log-errors"
+    val origPropValue = System.getProperty(propertyName)
+    try {
+      System.setProperty(propertyName, "true")
+      // Note that logger.error() call inside a unit test results in an exception being thrown
+      exceptionRule.expect(AssertionError::class.java)
+      exceptionRule.expectMessage("Threading violation")
+      ThreadingCheckerTrampoline.verifyOnWorkerThread()
+    }
+    finally {
+      if (origPropValue != null) {
+        System.setProperty(propertyName, origPropValue)
+      }
+      else {
+        System.clearProperty(propertyName)
+      }
+    }
   }
 }
