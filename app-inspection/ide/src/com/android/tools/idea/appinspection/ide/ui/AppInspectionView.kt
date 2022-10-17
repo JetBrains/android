@@ -48,6 +48,7 @@ import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunch
 import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.ui.EmptyStatePanel
 import com.android.tools.idea.concurrency.createChildScope
+import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerUtil.withChecksDisabledForCallable
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.ActivityTracker
@@ -378,8 +379,9 @@ class AppInspectionView @VisibleForTesting constructor(
         emptyList()
       }
 
+      // TODO(b/254115796) AppInspectorTabShell should be created on the UI thread
       val tabs = tabTargetsList.map { tabTargets ->
-        AppInspectorTabShell(tabTargets).also { shell ->
+        withChecksDisabledForCallable { AppInspectorTabShell(tabTargets)}.also { shell ->
           launchInspectorForTab(process, shell, force)
         }
       }
