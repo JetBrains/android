@@ -33,7 +33,8 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class DeviceManagerAction extends DumbAwareAction {
+// Overridden in non Android Studio IDE
+public class DeviceManagerAction extends DumbAwareAction {
   @Override
   public @NotNull ActionUpdateThread getActionUpdateThread() {
     return ActionUpdateThread.BGT;
