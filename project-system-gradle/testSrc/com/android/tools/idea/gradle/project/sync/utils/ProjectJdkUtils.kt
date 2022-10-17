@@ -27,10 +27,10 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.jps.model.serialization.JDomSerializationUtil
 import org.jetbrains.jps.model.serialization.JpsLoaderBase
+import org.jetbrains.plugins.gradle.properties.GRADLE_JAVA_HOME_PROPERTY
+import org.jetbrains.plugins.gradle.properties.GRADLE_PROPERTIES_FILE_NAME
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.settings.GradleSettings
-import org.jetbrains.plugins.gradle.util.GRADLE_JAVA_HOME_PROPERTY
-import org.jetbrains.plugins.gradle.util.PROPERTIES_FILE_NAME
 import java.io.File
 
 private const val PROJECT_DIR = "${'$'}PROJECT_DIR${'$'}"
@@ -40,7 +40,7 @@ private const val PROJECT_IDEA_MISC_XML_PATH = "$DIRECTORY_STORE_FOLDER/misc.xml
 object ProjectJdkUtils {
 
   fun setProjectGradlePropertiesJdk(projectRoot: File, jdkPath: String) {
-    val gradlePropertiesFile = projectRoot.resolve(PROPERTIES_FILE_NAME)
+    val gradlePropertiesFile = projectRoot.resolve(GRADLE_PROPERTIES_FILE_NAME)
     setGradlePropertiesJdk(gradlePropertiesFile, jdkPath)
   }
 
