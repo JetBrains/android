@@ -569,13 +569,15 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
             val variantName = androidModule.resolveVariantName(projectInfo)
             AndroidArtifactRef(variantName, projectInfo.isTestFixtures)
           } else {
-            NonAndroidAndroidArtifactRef(
-              identifier.artifact
-                ?: error(
-                  "Unresolved module dependency ${projectInfo.projectPath} (${projectInfo.buildId}) in $ownerProjectPath ($ownerBuildId). " +
-                    "Neither the source set nor the artifact property was populated by the Android Gradle plugin."
-                )
-            )
+            val artifact = identifier.artifact
+            if (artifact == null) {
+              System.err.println(
+                "Unresolved module dependency ${projectInfo.projectPath} (${projectInfo.buildId}) in $ownerProjectPath ($ownerBuildId). " +
+                  "Neither the source set nor the artifact property was populated by the Android Gradle plugin."
+              )
+              continue
+            }
+            NonAndroidAndroidArtifactRef(artifact)
           }
         createModuleDependency(
           visited = visited,
