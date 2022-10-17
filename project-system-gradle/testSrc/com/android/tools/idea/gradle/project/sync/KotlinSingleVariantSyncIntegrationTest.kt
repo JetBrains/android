@@ -39,7 +39,7 @@ class KotlinSingleVariantSyncIntegrationTest {
 
   @Test
   fun kotlinAndKaptSingleVariantSync() {
-    registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
+    registerTestHelperProjectResolver(CapturePlatformModelsProjectResolverExtension.IdeModels(), projectRule.fixture.testRootDisposable)
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.KOTLIN_KAPT)
     preparedProject.open { project ->
       expect.that(getKotlinModel(project.gradleModule(":app")!!)?.testSourceSetNames().orEmpty())

@@ -70,7 +70,10 @@ class PlatformIntegrationTest {
   @Test
   fun testModelBuildServiceInCompositeBuilds() {
     val compositeBuild = projectRule.prepareTestProject(TestProject.COMPOSITE_BUILD, "project")
-    CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
+    CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(
+      CapturePlatformModelsProjectResolverExtension.TestGradleModels(),
+      projectRule.fixture.testRootDisposable
+    )
     compositeBuild.open { project ->
       for (module in ModuleManager.getInstance(project).modules) {
         if (ExternalSystemApiUtil.getExternalModuleType(module) == "sourceSet") continue
