@@ -13,131 +13,90 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.asdriver.tests;
+package com.android.tools.asdriver.tests
 
-import com.android.SdkConstants;
-import com.android.testutils.TestUtils;
-import com.google.common.collect.Lists;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import com.android.SdkConstants
+import com.android.testutils.TestUtils
+import java.io.FileWriter
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.MICROSECONDS
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
-public class Adb implements AutoCloseable {
-  private final AndroidSdk sdk;
-  private final Path home;
-  private final Process process;
-  private final Path stdout;
-  private final Path stderr;
+class Adb private constructor(
+  private val sdk: AndroidSdk,
+  private val home: Path,
+  private val process: Process? = null,
+  private val stdout: Path? = null,
+  private val stderr: Path? = null,
+): AutoCloseable {
 
-  private Adb(Process process, AndroidSdk sdk, Path home, Path stdout, Path stderr) {
-    this.process = process;
-    this.sdk = sdk;
-    this.home = home;
-    this.stdout = stdout;
-    this.stderr = stderr;
-  }
-
-  private Adb(AndroidSdk sdk, Path home) {
-    this.process = null;
-    this.stdout = null;
-    this.stderr = null;
-    this.sdk = sdk;
-    this.home = home;
-  }
-
-  @Override
-  public void close() throws IOException {
-    if (process == null) {
-      runCommand("kill-server");
-    }
-    else {
-      if (process.isAlive()) {
-        process.destroy();
-      }
+  @Throws(IOException::class)
+  override fun close() {
+    when(process) {
+      null -> runCommand("kill-server")
+      else -> if (process.isAlive) process.destroy()
     }
   }
 
-  /**
-   * Default start for most use cases.
-   */
-  public static Adb start(AndroidSdk sdk, Path home) throws IOException {
-    return start(sdk, home, true, "nodaemon");
+  @Throws(IOException::class, InterruptedException::class)
+  fun waitForLog(expectedRegex: String?, timeout: Long, unit: TimeUnit?) {
+    LogFile(stdout).waitForMatchingLine(expectedRegex, timeout, unit)
   }
 
-  public static Adb start(AndroidSdk sdk, Path home, boolean startServer, String... params) throws IOException {
-    if (!startServer) {
-      return new Adb(sdk, home);
-    }
+  @JvmSynthetic
+  fun waitForLog(expectedRegex: String?, timeout: Duration) { waitForLog(expectedRegex, timeout.inWholeMicroseconds, MICROSECONDS) }
 
-    List<String> command = new ArrayList<>();
-    command.add("server");
-    for (String param : params) {
-      if (!param.isBlank()) {
-        command.add(param);
-      }
-    }
-    return exec(sdk, home, command.toArray(new String[]{}));
-  }
-
-  public void waitForLog(String expectedRegex, long timeout, TimeUnit unit) throws IOException, InterruptedException {
-    LogFile logfile = new LogFile(stdout);
-    logfile.waitForMatchingLine(expectedRegex, timeout, unit);
-  }
-
-  public void waitForDevice(Emulator emulator) throws IOException, InterruptedException {
-    try (Adb child = runCommand("track-devices")) {
+  @Throws(IOException::class, InterruptedException::class)
+  fun waitForDevice(emulator: Emulator) {
+    runCommand("track-devices") {
       // https://cs.android.com/android/platform/superproject/+/fbe41e9a47a57f0d20887ace0fc4d0022afd2f5f:packages/modules/adb/SERVICES.TXT;l=23
-      child.waitForLog(String.format("0015emulator-%s\tdevice", emulator.getPortString()), 10, TimeUnit.SECONDS);
+      waitForLog("0015emulator-${emulator.portString}\tdevice", 10.seconds)
     }
   }
 
-  public Adb runCommand(String... command) throws IOException {
-    return exec(sdk, home, command);
+  @Throws(IOException::class)
+  fun runCommand(vararg command: String): Adb = exec(sdk, home, *command)
+
+  @JvmSynthetic
+  @Throws(IOException::class)
+  fun runCommand(vararg command: String, block: (Adb.() -> Unit)) {
+    exec(sdk, home, *command).use { with(it, block) }
   }
 
-  /**
-   * Kotlin-friendly shorthand for an ADB command without params. If a parameterized version is desired (and only with very limited number
-   * of options), more of these exact-numbered methods may be created. E.g. runCommand(cmd, param0, consumer),
-   * runCommand(cmd, param0, param1, consumer), ....
-   *
-   * If many parameters are needed, please use the generic version {@link #runCommand(String...)}.
-   */
-  public void runCommand(String command, Consumer<Adb> consumer) throws IOException {
-    try (Adb cmd = runCommand(command)) {
-      consumer.accept(cmd);
-    }
-  }
+  companion object {
+    /** Default start for most use cases. */
+    @JvmStatic
+    @Throws(IOException::class)
+    fun start(sdk: AndroidSdk, home: Path): Adb = start(sdk, home, true, "nodaemon")
 
-  private static Adb exec(AndroidSdk sdk, Path home, String... params) throws IOException {
-    Path logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "adb_logs");
-    Path stdout = logsDir.resolve("stdout.txt");
-    Path stderr = logsDir.resolve("stderr.txt");
-    Files.createFile(stdout);
-    Files.createFile(stderr);
-
-    try (FileWriter outWriter = new FileWriter(stdout.toString(), true);
-         FileWriter errWriter = new FileWriter(stderr.toString())) {
-      String header = String.format("=== %s %s %d ===%n", stdout, String.join("-", params), System.currentTimeMillis());
-      outWriter.write(header);
-      errWriter.write(header);
+    @JvmStatic
+    @Throws(IOException::class)
+    fun start(sdk: AndroidSdk, home: Path, startServer: Boolean, vararg params: String): Adb {
+      if (!startServer) return Adb(sdk, home)
+      val command = arrayOf("server") + params.filter(String::isNotBlank).toTypedArray()
+      return exec(sdk, home, *command)
     }
 
-    List<String> command = new ArrayList<>();
-    command.add(sdk.getSourceDir().resolve(SdkConstants.FD_PLATFORM_TOOLS).resolve(SdkConstants.FN_ADB).toString());
-    Collections.addAll(command, params);
-    System.out.printf("Adb invocation '%s' has stdout log at: %s%n", String.join(" ", command), stdout);
-
-    ProcessBuilder pb = new ProcessBuilder(command);
-    pb.redirectOutput(stdout.toFile());
-    pb.redirectError(stderr.toFile());
-    pb.environment().put("HOME", home.toString());
-    return new Adb(pb.start(), sdk, home, stdout, stderr);
+    @Throws(IOException::class)
+    private fun exec(sdk: AndroidSdk, home: Path, vararg params: String): Adb {
+      val logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "adb_logs")
+      val stdout = logsDir.resolve("stdout.txt").also { Files.createFile(it) }
+      val stderr = logsDir.resolve("stderr.txt").also { Files.createFile(it) }
+      val header = "=== $stdout ${params.joinToString("-")} ${System.currentTimeMillis()} ===\n"
+      FileWriter(stdout.toString(), /* append = */ true).use { it.write(header) }
+      FileWriter(stderr.toString()).use { it.write(header) }
+      val command = listOf(sdk.sourceDir.resolve(SdkConstants.FD_PLATFORM_TOOLS).resolve(SdkConstants.FN_ADB).toString()) + params
+      System.out.printf("Adb invocation '${command.joinToString(" ")}' has stdout log at: $stdout%n")
+      val pb = ProcessBuilder(command).apply {
+        redirectOutput(stdout.toFile())
+        redirectError(stderr.toFile())
+        environment()["HOME"] = home.toString()
+      }
+      return Adb(sdk, home, pb.start(), stdout, stderr)
+    }
   }
 }

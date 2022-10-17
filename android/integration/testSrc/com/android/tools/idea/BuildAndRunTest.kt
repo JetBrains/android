@@ -21,6 +21,7 @@ import com.android.tools.asdriver.tests.MavenRepo
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
 
 class BuildAndRunTest {
   @JvmField @Rule
@@ -61,8 +62,8 @@ class BuildAndRunTest {
           system.installation.ideaLog.waitForMatchingLine(
             ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.example\\.minapp",
             60, TimeUnit.SECONDS)
-          adb.runCommand("logcat") { logcat ->
-            logcat.waitForLog(".*Hello Minimal World!.*", 30, TimeUnit.SECONDS);
+          adb.runCommand("logcat") {
+            waitForLog(".*Hello Minimal World!.*", 30.seconds);
           }
         }
       }
