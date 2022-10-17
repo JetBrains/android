@@ -102,12 +102,13 @@ internal abstract class LogcatFormatDialogBase(
   private lateinit var timestampStyleComboBox: ComboBox<TimestampFormat.Style>
   private lateinit var showPidCheckbox: JBCheckBox
   private lateinit var includeTidCheckbox: JBCheckBox
-  private lateinit var showTagsCheckbox: JBCheckBox
+  private lateinit var showTagCheckbox: JBCheckBox
   private lateinit var tagWidthSpinner: JBIntSpinner
   private lateinit var showRepeatedTagsCheckbox: JBCheckBox
-  private lateinit var showPackagesCheckbox: JBCheckBox
+  private lateinit var showPackageCheckbox: JBCheckBox
   private lateinit var packageWidthSpinner: JBIntSpinner
   private lateinit var showRepeatedPackagesCheckbox: JBCheckBox
+  private lateinit var showLevelCheckbox: JBCheckBox
 
   @VisibleForTesting
   var sampleEditor = createLogcatEditor(project).apply {
@@ -141,8 +142,9 @@ internal abstract class LogcatFormatDialogBase(
       processThreadFormat = ProcessThreadFormat(
         if (includeTidCheckbox.isSelected) ProcessThreadFormat.Style.BOTH else ProcessThreadFormat.Style.PID,
         showPidCheckbox.isSelected)
-      tagFormat = TagFormat(tagWidthSpinner.number, !showRepeatedTagsCheckbox.isSelected, showTagsCheckbox.isSelected)
-      appNameFormat = AppNameFormat(packageWidthSpinner.number, !showRepeatedPackagesCheckbox.isSelected, showPackagesCheckbox.isSelected)
+      tagFormat = TagFormat(tagWidthSpinner.number, !showRepeatedTagsCheckbox.isSelected, showTagCheckbox.isSelected)
+      appNameFormat = AppNameFormat(packageWidthSpinner.number, !showRepeatedPackagesCheckbox.isSelected, showPackageCheckbox.isSelected)
+      levelFormat = LevelFormat(showLevelCheckbox.isSelected)
     }
   }
 
@@ -152,12 +154,13 @@ internal abstract class LogcatFormatDialogBase(
     timestampStyleComboBox.selectedItem = currentOptions.timestampFormat.style
     showPidCheckbox.isSelected = currentOptions.processThreadFormat.enabled
     includeTidCheckbox.isSelected = currentOptions.processThreadFormat.style == ProcessThreadFormat.Style.BOTH
-    showTagsCheckbox.isSelected = currentOptions.tagFormat.enabled
+    showTagCheckbox.isSelected = currentOptions.tagFormat.enabled
     tagWidthSpinner.number = currentOptions.tagFormat.maxLength
     showRepeatedTagsCheckbox.isSelected = !currentOptions.tagFormat.hideDuplicates
-    showPackagesCheckbox.isSelected = currentOptions.appNameFormat.enabled
+    showPackageCheckbox.isSelected = currentOptions.appNameFormat.enabled
     packageWidthSpinner.number = currentOptions.appNameFormat.maxLength
     showRepeatedPackagesCheckbox.isSelected = !currentOptions.appNameFormat.hideDuplicates
+    showLevelCheckbox.isSelected = currentOptions.levelFormat.enabled
   }
 
   protected fun createPanel(formattingOptions: FormattingOptions): DialogPanel {
@@ -188,9 +191,10 @@ internal abstract class LogcatFormatDialogBase(
             hgap = GRID_COLUMN_GAP
           }
           add(panel { timestampGroup(formattingOptions.timestampFormat) })
-          add(panel { processIdsGroup(formattingOptions.processThreadFormat) })
-          add(panel { tagsGroup(formattingOptions.tagFormat) })
-          add(panel { packageNamesGroup(formattingOptions.appNameFormat) })
+          add(panel { processIdGroup(formattingOptions.processThreadFormat) })
+          add(panel { tagGroup(formattingOptions.tagFormat) })
+          add(panel { packageNameGroup(formattingOptions.appNameFormat) })
+          add(panel { levelGroup(formattingOptions.levelFormat.enabled) })
         }
       layoutBuilder.footerGroup()
     }
@@ -212,12 +216,14 @@ internal abstract class LogcatFormatDialogBase(
                           .setIsShowDate(timestampStyleComboBox.item == DATETIME)
                           .setIsShowProcessId(showPidCheckbox.isSelected)
                           .setIsShowThreadId(includeTidCheckbox.isSelected)
-                          .setIsShowTags(showTagsCheckbox.isSelected)
+                          .setIsShowTags(showTagCheckbox.isSelected)
                           .setIsShowRepeatedTags(showRepeatedTagsCheckbox.isSelected)
                           .setTagWidth(tagWidthSpinner.number)
-                          .setIsShowPackages(showPackagesCheckbox.isSelected)
+                          .setIsShowPackages(showPackageCheckbox.isSelected)
                           .setIsShowRepeatedPackages(showRepeatedPackagesCheckbox.isSelected)
-                          .setPackageWidth(packageWidthSpinner.number))
+                          .setPackageWidth(packageWidthSpinner.number)
+        // TODO(aalbert): Add usage for Show Levels
+      )
 
   private fun LayoutBuilder.timestampGroup(format: TimestampFormat) {
     titledRow(message("logcat.header.options.timestamp.title")) {
@@ -237,53 +243,63 @@ internal abstract class LogcatFormatDialogBase(
     }
   }
 
-  private fun LayoutBuilder.processIdsGroup(format: ProcessThreadFormat) {
-    titledRow(message("logcat.header.options.process.ids.title")) {
+  private fun LayoutBuilder.processIdGroup(format: ProcessThreadFormat) {
+    titledRow(message("logcat.header.options.process.id.title")) {
       subRowIndent = 0
       row {
-        val showPid = checkBox(message("logcat.header.options.process.ids.show.pid"), format.enabled, ::showPidCheckbox)
+        val showPid = checkBox(message("logcat.header.options.process.id.show.pid"), format.enabled, ::showPidCheckbox)
         row {
           val includeTid = format.style == ProcessThreadFormat.Style.BOTH
-          checkBox(message("logcat.header.options.process.ids.show.tid"), includeTid, ::includeTidCheckbox)
+          checkBox(message("logcat.header.options.process.id.show.tid"), includeTid, ::includeTidCheckbox)
             .enableIf(showPid.selected)
         }
       }
     }
   }
 
-  private fun LayoutBuilder.tagsGroup(format: TagFormat) {
-    titledRow(message("logcat.header.options.tags.title")) {
+  private fun LayoutBuilder.tagGroup(format: TagFormat) {
+    titledRow(message("logcat.header.options.tag.title")) {
       subRowIndent = 0
       row {
-        val showTags = checkBox(message("logcat.header.options.tags.show"), format.enabled, ::showTagsCheckbox)
+        val showTag = checkBox(message("logcat.header.options.tag.show"), format.enabled, ::showTagCheckbox)
           .constraints(growX, pushX)
         row {
           cell {
-            label(message("logcat.header.options.tags.width"))
+            label(message("logcat.header.options.tag.width"))
             spinner(format.maxLength, MIN_TAG_LENGTH, MAX_TAG_LENGTH, ::tagWidthSpinner)
           }
-        }.enableIf(showTags.selected)
+        }.enableIf(showTag.selected)
         row {
-          checkBox(message("logcat.header.options.tags.show.repeated"), !format.hideDuplicates, ::showRepeatedTagsCheckbox)
-        }.enableIf(showTags.selected)
+          checkBox(message("logcat.header.options.tag.show.repeated"), !format.hideDuplicates, ::showRepeatedTagsCheckbox)
+        }.enableIf(showTag.selected)
       }
     }
   }
 
-  private fun LayoutBuilder.packageNamesGroup(format: AppNameFormat) {
-    titledRow(message("logcat.header.options.packages.title")) {
+  private fun LayoutBuilder.packageNameGroup(format: AppNameFormat) {
+    titledRow(message("logcat.header.options.package.title")) {
       subRowIndent = 0
       row {
-        val showPackageNames = checkBox(message("logcat.header.options.packages.show"), format.enabled, ::showPackagesCheckbox)
+        val showPackageName = checkBox(message("logcat.header.options.package.show"), format.enabled, ::showPackageCheckbox)
         row {
           cell {
-            label(message("logcat.header.options.packages.width"))
+            label(message("logcat.header.options.package.width"))
             spinner(format.maxLength, MIN_APP_NAME_LENGTH, MAX_APP_NAME_LENGTH, ::packageWidthSpinner)
           }
-        }.enableIf(showPackageNames.selected)
+        }.enableIf(showPackageName.selected)
         row {
-          checkBox(message("logcat.header.options.packages.show.repeated"), !format.hideDuplicates, ::showRepeatedPackagesCheckbox)
-        }.enableIf(showPackageNames.selected)
+          checkBox(message("logcat.header.options.package.show.repeated"), !format.hideDuplicates, ::showRepeatedPackagesCheckbox)
+        }.enableIf(showPackageName.selected)
+      }
+    }
+  }
+
+  private fun LayoutBuilder.levelGroup(showLevels: Boolean) {
+    titledRow(message("logcat.header.options.level.title")) {
+      subRowIndent = 0
+      row {
+        checkBox(message("logcat.header.options.level.show"), showLevels, ::showLevelCheckbox)
+          .constraints(growX, pushX)
       }
     }
   }

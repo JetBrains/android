@@ -71,7 +71,7 @@ class LogcatFormatPresetsDialogTest {
       createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
         val styleComboBox = it.findComponentWithLabel<JComboBox<FormattingOptions.Style>>("View")
         val setAsDefaultCheckBox = it.getCheckBox("Use as default view for new windows")
-        val tagsCheckBox = it.getCheckBox("Show tags")
+        val tagsCheckBox = it.getCheckBox("Show tag")
         assertThat(styleComboBox.selectedItem).isEqualTo(initialFormatting)
         assertThat(setAsDefaultCheckBox.isSelected).isEqualTo(initialFormatting == defaultFormatting)
         assertThat(tagsCheckBox.isSelected).isEqualTo(initialFormatting.formattingOptions.tagFormat.enabled)
@@ -85,7 +85,7 @@ class LogcatFormatPresetsDialogTest {
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       val styleComboBox = it.findComponentWithLabel<JComboBox<FormattingOptions.Style>>("View")
-      val tagsCheckBox = it.getCheckBox("Show tags")
+      val tagsCheckBox = it.getCheckBox("Show tag")
 
       styleComboBox.selectedItem = COMPACT
 
@@ -138,7 +138,7 @@ class LogcatFormatPresetsDialogTest {
     val dialog = LogcatFormatPresetsDialog(projectRule.project, STANDARD, STANDARD, applyAction)
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       val styleComboBox = it.findComponentWithLabel<JComboBox<FormattingOptions.Style>>("View")
-      val tagsCheckBox = it.getCheckBox("Show tags")
+      val tagsCheckBox = it.getCheckBox("Show tag")
 
       tagsCheckBox.isSelected = false
       styleComboBox.selectedItem = COMPACT

@@ -18,7 +18,6 @@ package com.android.tools.idea.logcat.messages
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint.AppName
-import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint.Level
 import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint.Tag
 import java.time.ZoneId
 import kotlin.math.min
@@ -35,7 +34,7 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
 
   fun formatMessages(formattingOptions: FormattingOptions, textAccumulator: TextAccumulator, messages: List<LogcatMessage>) {
     // Replace each newline with a newline followed by the indentation of the message portion
-    val newline = "\n".padEnd(formattingOptions.getHeaderWidth() + 5)
+    val newline = "\n".padEnd(formattingOptions.getHeaderWidth() + 1)
     for (message in messages) {
       if (message.header === SYSTEM_HEADER) {
         textAccumulator.accumulate(message.message + '\n')
@@ -55,12 +54,11 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
       textAccumulator.accumulate(
         text = formattingOptions.appNameFormat.format(appName, header.pid, previousPid),
         filterHint = getAppNameFilterHint(appName, formattingOptions))
+
+      formattingOptions.levelFormat.format(header.logLevel, textAccumulator, logcatColors)
+
       textAccumulator.accumulate(
-        text = " ${header.logLevel.priorityLetter} ",
-        textAttributesKey = logcatColors.getLogLevelKey(header.logLevel),
-        filterHint = Level(header.logLevel))
-      textAccumulator.accumulate(
-        text = " ${message.message.replace("\n", newline)}\n",
+        text = "${message.message.replace("\n", newline)}\n",
         textAttributesKey = logcatColors.getMessageKey(header.logLevel))
 
       val end = textAccumulator.getTextLength()

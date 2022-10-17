@@ -68,14 +68,15 @@ class LogcatFormatDialogTest {
   private val timestampFormatComboBox by lazy { dialog.dialogWrapper.findComponentWithLabel<JComboBox<TimestampFormat.Style>>("Format:") }
   private val showProcessIdsCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show process id") }
   private val showThreadIdCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Include thread id") }
-  private val showTagCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show tags") }
+  private val showTagCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show tag") }
   private val showRepeatedTagsCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show repeated tags") }
   private val tagWidthLabel by lazy { dialog.dialogWrapper.getLabel("Tag column width:") }
   private val tagWidthSpinner by lazy { dialog.dialogWrapper.findComponentWithLabel<JBIntSpinner>("Tag column width:") }
-  private val showAppNameCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show package names") }
+  private val showAppNameCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show package name") }
   private val showRepeatedAppNamesCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show repeated package names") }
   private val appNameWidthLabel by lazy { dialog.dialogWrapper.getLabel("Package column width:") }
   private val appNameWidthSpinner by lazy { dialog.dialogWrapper.findComponentWithLabel<JBIntSpinner>("Package column width:") }
+  private val showLevelsCheckBox by lazy { dialog.dialogWrapper.getCheckBox("Show level") }
 
   @Before
   fun setUp() {
@@ -343,26 +344,76 @@ class LogcatFormatDialogTest {
   }
 
   @Test
+  fun initialState_levelsDisabled() {
+    formattingOptions.levelFormat = LevelFormat(false)
+
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
+      assertThat(showLevelsCheckBox.isSelected).isFalse()
+    }
+  }
+
+  @Test
+  fun initialState_levelsEnabled() {
+    formattingOptions.levelFormat = LevelFormat(true)
+
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
+      assertThat(showLevelsCheckBox.isSelected).isTrue()
+    }
+  }
+
+  @Test
+  fun toggle_levels() {
+    formattingOptions.levelFormat = LevelFormat(false)
+
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
+      showLevelsCheckBox.isSelected = true
+      assertThat(showLevelsCheckBox.isSelected).isTrue()
+
+      showLevelsCheckBox.isSelected = false
+      assertThat(showLevelsCheckBox.isSelected).isFalse()
+
+    }
+  }
+
+  @Test
+  fun apply_levels() {
+    formattingOptions.levelFormat = LevelFormat(false)
+
+    createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
+      assertThat(dialog.applyToLevels {
+        showLevelsCheckBox.isSelected = true
+      }).isEqualTo(LevelFormat(true))
+
+      assertThat(dialog.applyToLevels {
+        showLevelsCheckBox.isSelected = false
+      }).isEqualTo(LevelFormat(false))
+    }
+  }
+
+
+  @Test
   fun sampleText() {
     formattingOptions.apply {
       timestampFormat = TimestampFormat(TIME, enabled = false)
       processThreadFormat = ProcessThreadFormat(PID, enabled = false)
       tagFormat = TagFormat(maxLength = 23, hideDuplicates = false, enabled = false)
       appNameFormat = AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = false)
+      levelFormat = LevelFormat(false)
     }
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       assertThat(dialog.sampleEditor.document.text.trimEnd()).isEqualTo("""
-        D  Sample logcat message 1.
-        I  Sample logcat message 2.
-        W  Sample logcat message 3.
-        E  Sample logcat multiline
-           message.
-      """.trimIndent().prependIndent(" "))
+       Sample logcat message 1.
+       Sample logcat message 2.
+       Sample logcat message 3.
+       Sample logcat multiline
+       message.
+      """.trimIndent())
 
       showTimestampCheckBox.isSelected = true
       showProcessIdsCheckBox.isSelected = true
       showTagCheckBox.isSelected = true
       showAppNameCheckBox.isSelected = true
+      showLevelsCheckBox.isSelected = true
 
 
       assertThat(dialog.sampleEditor.document.text.trimEnd()).isEqualTo("""
@@ -390,6 +441,7 @@ class LogcatFormatDialogTest {
       showProcessIdsCheckBox.isSelected = true
       showTagCheckBox.isSelected = true
       showAppNameCheckBox.isSelected = true
+      showLevelsCheckBox.isSelected = true
 
       assertThat(dialog.sampleEditor.document.text.lines().maxOf(String::length)).isEqualTo(maxLineLength)
     }
@@ -491,3 +543,5 @@ private fun LogcatFormatDialog.applyToIds(body: () -> Unit) = applyToOptions(bod
 private fun LogcatFormatDialog.applyToTag(body: () -> Unit) = applyToOptions(body).tagFormat
 
 private fun LogcatFormatDialog.applyToAppName(body: () -> Unit) = applyToOptions(body).appNameFormat
+
+private fun LogcatFormatDialog.applyToLevels(body: () -> Unit) = applyToOptions(body).levelFormat

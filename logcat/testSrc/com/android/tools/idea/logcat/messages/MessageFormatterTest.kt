@@ -343,7 +343,7 @@ class MessageFormatterTest {
 
     // Filter the ranges corresponding to a LogLevel and build a map level -> color.
     val textAttributes = textAccumulator.textAttributesKeyRanges.filter {
-      it.getText(textAccumulator.text).matches(" message-.*\n".toRegex())
+      it.getText(textAccumulator.text).matches("message-.*\n".toRegex())
     }
       .associate { it.getText(textAccumulator.text).trim() to it.data }
 

@@ -32,6 +32,7 @@ internal data class FormattingOptions(
   var processThreadFormat: ProcessThreadFormat = ProcessThreadFormat(BOTH, enabled = true),
   var tagFormat: TagFormat = TagFormat(),
   var appNameFormat: AppNameFormat = AppNameFormat(),
+  var levelFormat: LevelFormat = LevelFormat(),
 ) {
   enum class Style(val displayName: @ActionText String) {
     STANDARD(LogcatBundle.message("logcat.format.action.standard")) {
@@ -49,7 +50,8 @@ internal data class FormattingOptions(
     abstract val formattingOptions: FormattingOptions
   }
 
-  fun getHeaderWidth() = appNameFormat.width() + tagFormat.width() + processThreadFormat.width() + timestampFormat.width()
+  fun getHeaderWidth() =
+    appNameFormat.width() + tagFormat.width() + processThreadFormat.width() + timestampFormat.width() + levelFormat.width()
 
   fun getStyle(): Style? {
     return when {
