@@ -275,7 +275,7 @@ class EmulatorToolWindowPanel(
         if (emulator.connectionState == ConnectionState.CONNECTED)
           ScreenRecorderAction.Parameters(id.serialNumber, emulator.emulatorConfig.api, emulatorId.avdId, it) else null
       }
-      else -> null
+      else -> super.getData(dataId)
     }
   }
 

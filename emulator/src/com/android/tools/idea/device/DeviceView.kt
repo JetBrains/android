@@ -109,9 +109,9 @@ import kotlin.math.min
  * @param deviceAbi the application binary interface of the device
  * @param project the project associated with the view
  */
-class DeviceView(
+internal class DeviceView(
   disposableParent: Disposable,
-  private val deviceSerialNumber: String,
+  override val deviceSerialNumber: String,
   private val deviceAbi: String,
   private val deviceName: String,
   private val initialDisplayOrientation: Int,

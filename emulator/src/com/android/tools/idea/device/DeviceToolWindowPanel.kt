@@ -174,7 +174,7 @@ internal class DeviceToolWindowPanel(
           primaryDeviceView?.let {
             ScreenRecorderAction.Parameters(deviceSerialNumber, deviceConfiguration.apiLevel, deviceConfiguration.avdName, it)
           }
-      else -> null
+      else -> super.getData(dataId)
     }
   }
 

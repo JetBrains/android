@@ -67,5 +67,12 @@ abstract class RunningDevicePanel(val id: DeviceId) : BorderLayoutPanel(), DataP
     UsageTracker.log(studioEvent)
   }
 
+  override fun getData(dataId: String): Any? {
+    return when (dataId) {
+      SERIAL_NUMBER_KEY.name -> id.serialNumber
+      else -> null
+    }
+  }
+
   interface UiState
 }

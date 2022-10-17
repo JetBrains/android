@@ -56,6 +56,8 @@ import kotlin.math.roundToInt
  */
 abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Disposable {
 
+  /** Serial number of the device sown in the view. */
+  abstract val deviceSerialNumber: String
   /** Area of the window occupied by the device display image in physical pixels. */
   var displayRectangle: Rectangle? = null
     protected set

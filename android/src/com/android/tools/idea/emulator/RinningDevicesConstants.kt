@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("DeviceConstants")
-package com.android.tools.idea.device
+@file:JvmName("RunningDevicesConstants")
+package com.android.tools.idea.emulator
 
 import com.intellij.openapi.actionSystem.DataKey
 
-/** Constants for mirroring of physical devices. */
+/** Constants for the Running Devices tool window. */
 
-@JvmField internal val DEVICE_CONTROLLER_KEY = DataKey.create<DeviceController>("DeviceController")
+const val RUNNING_DEVICES_TOOL_WINDOW_ID = "Running Devices"
 
-@JvmField internal val DEVICE_VIEW_KEY = DataKey.create<DeviceView>("DeviceView")
+const val RUNNING_DEVICES_TOOL_WINDOW_TITLE = "Running Devices"
 
-@JvmField internal val DEVICE_CONFIGURATION_KEY = DataKey.create<DeviceConfiguration>("DeviceConfiguration")
+@JvmField val SERIAL_NUMBER_KEY = DataKey.create<String>("SerialNumber")
 
-internal const val DEVICE_MAIN_TOOLBAR_ID = "DeviceToolbar"
-
-internal const val UNKNOWN_ORIENTATION = -1

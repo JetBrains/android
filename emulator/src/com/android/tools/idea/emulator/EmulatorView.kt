@@ -164,6 +164,8 @@ class EmulatorView(
     get() = screenshotShape.displayMode ?: emulatorConfig.displayModes.firstOrNull()
   override val deviceDisplaySize: Dimension
     get() = displaySize ?: emulatorConfig.displaySize
+  override val deviceSerialNumber: String
+    get() = emulator.emulatorId.serialNumber
 
   @get:VisibleForTesting
   var frameTimestampMillis = 0L

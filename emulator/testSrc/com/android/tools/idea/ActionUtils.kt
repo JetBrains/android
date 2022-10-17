@@ -25,6 +25,7 @@ import com.android.tools.idea.emulator.AbstractDisplayView
 import com.android.tools.idea.emulator.EMULATOR_CONTROLLER_KEY
 import com.android.tools.idea.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.emulator.EmulatorView
+import com.android.tools.idea.emulator.SERIAL_NUMBER_KEY
 import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -68,6 +69,7 @@ private class TestDataContext(private val displayView: AbstractDisplayView, priv
       DEVICE_CONFIGURATION_KEY.name -> DeviceConfiguration(mapOf())
       DEVICE_CONTROLLER_KEY.name -> deviceView?.deviceController
       ZOOMABLE_KEY.name -> displayView
+      SERIAL_NUMBER_KEY.name -> emulatorView?.deviceSerialNumber ?: deviceView?.deviceSerialNumber
       CommonDataKeys.PROJECT.name -> project
       else -> null
     }

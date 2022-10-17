@@ -25,6 +25,9 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.TestCoroutineScope
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -49,9 +52,6 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.TestTimeSource
 import kotlin.time.TimeMark
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.TestCoroutineScope
-import org.junit.Before
 
 /** Tests the [DeviceAdapter] class. */
 @OptIn(ExperimentalTime::class)
@@ -377,6 +377,8 @@ class DeviceAdapterTest {
       addKeyListener(keyListener)
       Disposer.register(projectRule.testRootDisposable, this)
     }
+
+    override val deviceSerialNumber: String = "test"
     override val displayOrientationQuadrants = 0
     override fun canZoom() = false
     override fun computeActualSize() = deviceDisplaySize
