@@ -262,6 +262,8 @@ class ForegroundProcessDetection(
   scope: CoroutineScope,
   workDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread) {
 
+  private val logger = Logger.getInstance(ForegroundProcessDetection::class.java)
+
   val foregroundProcessListeners = mutableListOf<ForegroundProcessListener>()
 
   /**
@@ -315,7 +317,8 @@ class ForegroundProcessDetection(
                 )
               ).collect { streamEvent ->
                   if (streamEvent.event.hasLayoutInspectorTrackingForegroundProcessSupported()) {
-                    when (val supportType = streamEvent.event.layoutInspectorTrackingForegroundProcessSupported.supportType!!) {
+                    val supportType = streamEvent.event.layoutInspectorTrackingForegroundProcessSupported.supportType!!
+                    when (supportType) {
                       LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNKNOWN -> {
                         // UNKNOWN support means that the handshake couldn't determine if the device supports foreground process detection.
                         // This could be because the device is in a state where we can't determine the foreground activity,
@@ -358,6 +361,13 @@ class ForegroundProcessDetection(
                         throw RuntimeException("Unrecognized support type: $supportType")
                       }
                     }
+
+                    logger.info(
+                      "ForegroundProcessDetection handshake - " +
+                      "device: \"${streamDevice.manufacturer} ${streamDevice.model} " +
+                      "API${streamDevice.apiLevel}\" " +
+                      "status: $supportType"
+                    )
                   }
                 }
             }
