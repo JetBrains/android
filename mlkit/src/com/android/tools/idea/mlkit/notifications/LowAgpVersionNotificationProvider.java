@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.mlkit.notifications;
 
-import com.android.ide.common.repository.GradleVersion.AgpVersion;
+import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
 import com.intellij.openapi.fileEditor.FileEditor;

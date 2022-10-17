@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure
 
-import com.android.ide.common.repository.GradleVersion.AgpVersion
+import com.android.ide.common.repository.AgpVersion
 
 /**
  * Return true if Gradle plugin version supports side-by-side NDK

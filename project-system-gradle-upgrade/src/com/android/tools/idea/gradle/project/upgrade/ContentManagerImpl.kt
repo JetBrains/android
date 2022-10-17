@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion.AgpVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel
 import com.android.tools.adtui.common.primaryContentBackground

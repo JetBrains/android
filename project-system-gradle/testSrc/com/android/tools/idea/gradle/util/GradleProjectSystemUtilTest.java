@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import static org.junit.Assert.*;
 
-import com.android.ide.common.repository.GradleVersion.AgpVersion;
+import com.android.ide.common.repository.AgpVersion;
 import org.junit.Test;
 
 public class GradleProjectSystemUtilTest {

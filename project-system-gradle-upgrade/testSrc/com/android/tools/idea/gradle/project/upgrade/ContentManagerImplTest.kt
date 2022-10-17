@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion.AgpVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.TreeWalker
@@ -928,17 +928,17 @@ class ContentManagerImplTest {
     assertThat(model.editingValidation(currentAgpVersion.toString()).first).isEqualTo(EditingErrorCategory.NONE)
     assertThat(model.editingValidation(latestAgpVersion.toString()).first).isEqualTo(EditingErrorCategory.NONE)
     latestAgpVersion.run {
-      val newMajorVersion = AgpVersion(major+1, minor, micro)
+      val newMajorVersion = AgpVersion(major + 1, minor, micro)
       assertThat(model.editingValidation(newMajorVersion.toString()).first).isEqualTo(EditingErrorCategory.ERROR)
       assertThat(model.editingValidation(newMajorVersion.toString()).second).isEqualTo("Target AGP version is unsupported.")
     }
     latestAgpVersion.run {
-      val newMinorVersion = AgpVersion(major, minor+1, micro)
+      val newMinorVersion = AgpVersion(major, minor + 1, micro)
       assertThat(model.editingValidation(newMinorVersion.toString()).first).isEqualTo(EditingErrorCategory.WARNING)
       assertThat(model.editingValidation(newMinorVersion.toString()).second).isEqualTo("Upgrade to target AGP version is unverified.")
     }
     latestAgpVersion.run {
-      val newPointVersion = AgpVersion(major, minor, micro+1)
+      val newPointVersion = AgpVersion(major, minor, micro + 1)
       assertThat(model.editingValidation(newPointVersion.toString()).first).isEqualTo(EditingErrorCategory.WARNING)
       assertThat(model.editingValidation(newPointVersion.toString()).second).isEqualTo("Upgrade to target AGP version is unverified.")
     }

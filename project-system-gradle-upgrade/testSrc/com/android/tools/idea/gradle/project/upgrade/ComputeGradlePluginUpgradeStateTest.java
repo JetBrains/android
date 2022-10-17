@@ -22,7 +22,7 @@ import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.STRONGLY_RECOMMEND;
 import static org.junit.Assert.assertEquals;
 
-import com.android.ide.common.repository.GradleVersion.AgpVersion;
+import com.android.ide.common.repository.AgpVersion;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;

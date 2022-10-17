@@ -19,7 +19,7 @@ import static com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuild
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.ide.common.repository.GradleVersion.AgpVersion;
+import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;

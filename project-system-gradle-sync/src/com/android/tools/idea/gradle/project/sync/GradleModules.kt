@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.ProjectSyncIssues
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion.AgpVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.LegacyApplicationIdModel

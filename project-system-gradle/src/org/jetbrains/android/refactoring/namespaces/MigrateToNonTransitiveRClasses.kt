@@ -16,7 +16,7 @@
 package org.jetbrains.android.refactoring.namespaces
 
 import com.android.annotations.concurrency.UiThread
-import com.android.ide.common.repository.GradleVersion.AgpVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo

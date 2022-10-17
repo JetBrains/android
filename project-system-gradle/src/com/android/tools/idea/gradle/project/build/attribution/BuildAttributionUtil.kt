@@ -18,7 +18,7 @@
 package com.android.tools.idea.gradle.project.build.attribution
 
 import com.android.SdkConstants.DOT_GRADLE
-import com.android.ide.common.repository.GradleVersion.AgpVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.intellij.openapi.project.Project

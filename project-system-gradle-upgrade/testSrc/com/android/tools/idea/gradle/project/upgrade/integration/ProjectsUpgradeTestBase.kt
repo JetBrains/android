@@ -31,7 +31,7 @@
 package com.android.tools.idea.gradle.project.upgrade.integration
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion.AgpVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.junit4.OldAgpSuite
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvokerImpl

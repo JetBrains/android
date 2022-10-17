@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.ide.common.repository.GradleVersion.AgpVersion;
+import com.android.ide.common.repository.AgpVersion;
 import com.google.common.truth.Expect;
 import org.junit.Rule;
 import org.junit.Test;

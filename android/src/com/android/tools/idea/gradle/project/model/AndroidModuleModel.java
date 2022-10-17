@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.ide.common.repository.GradleVersion.AgpVersion;
+import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;

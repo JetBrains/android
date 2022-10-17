@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
-import com.android.ide.common.repository.GradleVersion.AgpVersion;
+import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.project.upgrade.RecommendedPluginVersionUpgradeDialog.RemindMeTomorrowAction;
 import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;

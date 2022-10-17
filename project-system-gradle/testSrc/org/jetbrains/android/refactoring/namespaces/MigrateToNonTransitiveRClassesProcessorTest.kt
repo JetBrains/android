@@ -16,7 +16,7 @@
 package org.jetbrains.android.refactoring.namespaces
 
 import com.android.AndroidProjectTypes
-import com.android.ide.common.repository.GradleVersion.AgpVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker

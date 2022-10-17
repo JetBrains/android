@@ -15,7 +15,7 @@
 */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.ide.common.repository.GradleVersion.AgpVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.projectmodel.DynamicResourceValue
 import com.android.resources.ResourceType
 import com.android.sdklib.AndroidVersion

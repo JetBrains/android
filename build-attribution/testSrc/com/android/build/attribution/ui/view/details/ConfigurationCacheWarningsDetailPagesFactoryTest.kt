@@ -28,7 +28,7 @@ import com.android.build.attribution.ui.model.ConfigurationCachingWarningNodeDes
 import com.android.build.attribution.ui.model.WarningsDataPageModel
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.ide.common.repository.GradleVersion
-import com.android.ide.common.repository.GradleVersion.AgpVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ApplicationRule

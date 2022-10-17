@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.benchmark
 
 import com.android.AndroidProjectTypes
-import com.android.ide.common.repository.GradleVersion.AgpVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor.MOBILE
 import com.android.tools.adtui.validation.Validator

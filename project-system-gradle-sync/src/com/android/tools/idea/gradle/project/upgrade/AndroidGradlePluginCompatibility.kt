@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion.AgpVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.AFTER_MAXIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
@@ -82,16 +82,25 @@ fun computeAndroidGradlePluginCompatibility(current: AgpVersion, latestKnown: Ag
       // e.g. current = 7.1.0-rc01, latestKnown = 7.1.0
       //      current = 7.1.0, latestKnown = 7.1.0-rc01
       (!latestKnown.isPreview || latestKnown.previewType == "rc") && (!current.isPreview || current.previewType == "rc") &&
-      AgpVersion(latestKnown.major, latestKnown.minor) == AgpVersion(current.major, current.minor) ->
+      AgpVersion(
+        latestKnown.major,
+        latestKnown.minor
+      ) == AgpVersion(current.major, current.minor) ->
         compatibleOrDeprecated// in practice presumably always compatible
       // If the current is a snapshot and latestKnown is RC or release of the same major/minor series, incompatible. (1)
       // e.g. current = 7.1.0-dev, latestKnown = 7.1.0-rc01
       current.isSnapshot && (!latestKnown.isPreview || latestKnown.previewType == "rc") &&
-      AgpVersion(latestKnown.major, latestKnown.minor) == AgpVersion(current.major, current.minor) -> DIFFERENT_PREVIEW
+      AgpVersion(
+        latestKnown.major,
+        latestKnown.minor
+      ) == AgpVersion(current.major, current.minor) -> DIFFERENT_PREVIEW
       // If the current is a snapshot and latestKnown is alpha/beta of the same major/minor series, compatible. (1)
       // e.g. current = 7.1.0-dev, latestKnown = 7.1.0-alpha01
       current.isSnapshot && (latestKnown.previewType == "alpha" || latestKnown.previewType == "beta") &&
-      AgpVersion(latestKnown.major, latestKnown.minor) == AgpVersion(current.major, current.minor) ->
+      AgpVersion(
+        latestKnown.major,
+        latestKnown.minor
+      ) == AgpVersion(current.major, current.minor) ->
         compatibleOrDeprecated// in practice presumably always compatible
       // If the current is later than latestKnown, incompatible. (11)
       // e.g. current = 7.1.0-dev, latestKnown = 7.0.0-rc01

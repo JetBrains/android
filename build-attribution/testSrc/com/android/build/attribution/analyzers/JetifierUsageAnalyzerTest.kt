@@ -26,7 +26,7 @@ import com.android.builder.model.PROPERTY_CHECK_JETIFIER_RESULT_FILE
 import com.android.ide.common.attribution.CheckJetifierResult
 import com.android.ide.common.attribution.DependencyPath
 import com.android.ide.common.attribution.FullDependencyPath
-import com.android.ide.common.repository.GradleVersion.AgpVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.Projects
 import com.android.tools.idea.flags.StudioFlags

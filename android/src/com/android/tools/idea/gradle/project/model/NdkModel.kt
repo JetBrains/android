@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeAbi
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeSettings
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeToolchain
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
-import com.android.ide.common.repository.GradleVersion.AgpVersion
+import com.android.ide.common.repository.AgpVersion
 import com.intellij.serialization.PropertyMapping
 import java.io.File
 import java.nio.charset.StandardCharsets
