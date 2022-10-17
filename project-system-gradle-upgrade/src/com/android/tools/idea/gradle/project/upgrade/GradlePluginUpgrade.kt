@@ -296,11 +296,7 @@ fun computeGradlePluginUpgradeState(
     DIFFERENT_PREVIEW -> {
       val seriesAcceptableStable = published
         .filter { !it.isPreview }
-        .filter { AgpVersion(
-          it.major,
-          it.minor
-        ) == AgpVersion(current.major, current.minor)
-        }
+        .filter { AgpVersion(it.major, it.minor) == AgpVersion(current.major, current.minor) }
         .filter { it <= latestKnown }
         .maxOrNull()
       // For the forced upgrade of a preview, we prefer the latest stable release in the same series as the preview, if one exists.  If
@@ -352,10 +348,7 @@ fun computeGradlePluginUpgradeState(
     val currentSeriesCandidates = acceptableStables[current.major]!!
     val nextSeriesCandidates = acceptableStables.keys.firstOrNull { it > current.major }?.let { acceptableStables[it]!! }
 
-    if (currentSeriesCandidates.maxOf { it.key } == AgpVersion(
-        current.major,
-        current.minor
-      )) {
+    if (currentSeriesCandidates.maxOf { it.key } == AgpVersion(current.major, current.minor)) {
       // We have a version of the most recent series of our current major, though not the most up-to-date version of that.  If there's a
       // later stable series, recommend upgrading to that, otherwise recommend upgrading our point release.
       return GradlePluginUpgradeState(recommendationStrength, (nextSeriesCandidates ?: currentSeriesCandidates).last().value.last())
