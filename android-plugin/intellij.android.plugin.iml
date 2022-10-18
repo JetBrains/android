@@ -15,6 +15,7 @@
     <orderEntry type="module" module-name="app-inspection.ide" />
     <orderEntry type="module" module-name="intellij.android.profilersAndroid" />
     <orderEntry type="module" module-name="intellij.android.adb" />
+    <orderEntry type="module" module-name="intellij.android.adddevicedialog" />
     <orderEntry type="module" module-name="app-inspection.inspectors.database" />
     <orderEntry type="module" module-name="intellij.android.lang" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />

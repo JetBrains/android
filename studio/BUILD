@@ -121,6 +121,7 @@ studio_plugin(
             "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:app-inspection.inspectors.backgroundtask.model",
             "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:app-inspection.inspectors.backgroundtask.view",
             "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
+            "//tools/adt/idea/intellij.android.adddevicedialog",
             "//tools/adt/idea/intellij.android.compose-common:intellij.android.compose-common",
             "//tools/adt/idea/android:intellij.android.core",
             "//tools/adt/idea/android-navigator:intellij.android.navigator",

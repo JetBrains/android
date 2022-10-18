@@ -22,6 +22,7 @@ iml_module(
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module]",
         "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
+        "//tools/adt/idea/intellij.android.adddevicedialog[module]",
         "//tools/adt/idea/app-inspection/inspectors/database:app-inspection.inspectors.database[module]",
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",

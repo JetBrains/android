@@ -12,6 +12,9 @@
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java</depends>
 
+  <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+  <xi:include href="/META-INF/add-device-dialog.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-adb-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/adt-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -20,7 +23,6 @@
   <xi:include href="/META-INF/android-lang.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-lang-databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-navigator.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-room.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-dagger.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
