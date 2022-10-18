@@ -110,6 +110,7 @@ class LiteralsTest {
     findLiterals(root)
   }
 
+  @org.junit.Ignore("b/253897699")
   @Test
   fun `Kotlin literals finder`() {
     val literalsManager = LiteralsManager()
@@ -444,6 +445,7 @@ class LiteralsTest {
     )
   }
 
+  @org.junit.Ignore("b/253897699")
   @Test
   fun `check negative int literals`() {
     val literalsManager = LiteralsManager()
@@ -492,6 +494,7 @@ class LiteralsTest {
       snapshot.modified.toDebugString())
   }
 
+  @org.junit.Ignore("b/253897699")
   @Test
   fun `test parallel literal finding`() {
     val literalsManager = LiteralsManager()
