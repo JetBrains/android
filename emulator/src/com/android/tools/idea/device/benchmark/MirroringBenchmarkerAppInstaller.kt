@@ -45,6 +45,7 @@ private const val APK_URL = "$BASE_PREBUILTS_URL$RELATIVE_PATH?format=TEXT"  // 
 private const val APP_PKG = "com.android.tools.screensharing.benchmark"
 private const val ACTIVITY = "InputEventRenderingActivity"
 private const val NO_ANIMATIONS = 65536 // Intent.FLAG_ACTIVITY_NO_ANIMATION
+private const val DISABLE_IMMERSIVE_CONFIRMATION_COMMAND = "settings put secure immersive_mode_confirmations confirmed"
 private const val START_COMMAND = "am start -n $APP_PKG/.$ACTIVITY -f $NO_ANIMATIONS"
 
 /** Object that handles installation, launching, and uninstallation of the Mirroring Benchmarker APK. */
@@ -142,7 +143,8 @@ internal class MirroringBenchmarkerAppInstallerImpl(
     logger.debug(msg)
     indicator?.isIndeterminate = true
     indicator?.text = msg
-    return adb.shellCommand(deviceSerialNumber, START_COMMAND)
+    return adb.shellCommand(deviceSerialNumber, DISABLE_IMMERSIVE_CONFIRMATION_COMMAND) &&
+           adb.shellCommand(deviceSerialNumber, START_COMMAND)
   }
 
   override suspend fun uninstallBenchmarkingApp(): Boolean = adb.uninstall(deviceSerialNumber)

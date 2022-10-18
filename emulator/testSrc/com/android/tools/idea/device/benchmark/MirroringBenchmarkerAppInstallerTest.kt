@@ -36,12 +36,15 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.anyLong
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import java.io.InputStream
 import java.nio.file.Paths
 import kotlin.time.Duration.Companion.hours
 
 private const val SERIAL_NUMBER = "abc123"
+private const val DISABLE_IMMERSIVE_CONFIRMATION_COMMAND = "settings put secure immersive_mode_confirmations confirmed"
+private const val START_COMMAND = "am start -n com.android.tools.screensharing.benchmark/.InputEventRenderingActivity -f 65536"
 
 /** Tests the [MirroringBenchmarkerAppInstaller] class. */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -113,21 +116,33 @@ class MirroringBenchmarkerAppInstallerTest {
   }
 
   @Test
-  fun launchBenchmarkingApp_success() = runBlockingTest {
-    val command = "am start -n com.android.tools.screensharing.benchmark/.InputEventRenderingActivity -f 65536"
-    whenever(adb.shellCommand(SERIAL_NUMBER, command)).thenReturn(true)
+  fun launchBenchmarkingApp_disableBannerFailure() = runBlockingTest {
+    whenever(adb.shellCommand(SERIAL_NUMBER, DISABLE_IMMERSIVE_CONFIRMATION_COMMAND)).thenReturn(false)
+    whenever(adb.shellCommand(SERIAL_NUMBER, START_COMMAND)).thenReturn(true)
 
-    assertThat(installer.launchBenchmarkingApp(null)).isTrue()
-    verify(adb).shellCommand(SERIAL_NUMBER, command)
+    assertThat(installer.launchBenchmarkingApp(null)).isFalse()
+    verify(adb).shellCommand(SERIAL_NUMBER, DISABLE_IMMERSIVE_CONFIRMATION_COMMAND)
+    verify(adb, never()).shellCommand(SERIAL_NUMBER, START_COMMAND)
   }
 
   @Test
-  fun launchBenchmarkingApp_failure() = runBlockingTest {
-    val command = "am start -n com.android.tools.screensharing.benchmark/.InputEventRenderingActivity -f 65536"
-    whenever(adb.shellCommand(SERIAL_NUMBER, command)).thenReturn(false)
+  fun launchBenchmarkingApp_launchAppFailure() = runBlockingTest {
+    whenever(adb.shellCommand(SERIAL_NUMBER, DISABLE_IMMERSIVE_CONFIRMATION_COMMAND)).thenReturn(true)
+    whenever(adb.shellCommand(SERIAL_NUMBER, START_COMMAND)).thenReturn(false)
 
     assertThat(installer.launchBenchmarkingApp(null)).isFalse()
-    verify(adb).shellCommand(SERIAL_NUMBER, command)
+    verify(adb).shellCommand(SERIAL_NUMBER, DISABLE_IMMERSIVE_CONFIRMATION_COMMAND)
+    verify(adb).shellCommand(SERIAL_NUMBER, START_COMMAND)
+  }
+
+  @Test
+  fun launchBenchmarkingApp_success() = runBlockingTest {
+    whenever(adb.shellCommand(SERIAL_NUMBER, DISABLE_IMMERSIVE_CONFIRMATION_COMMAND)).thenReturn(true)
+    whenever(adb.shellCommand(SERIAL_NUMBER, START_COMMAND)).thenReturn(true)
+
+    assertThat(installer.launchBenchmarkingApp(null)).isTrue()
+    verify(adb).shellCommand(SERIAL_NUMBER, DISABLE_IMMERSIVE_CONFIRMATION_COMMAND)
+    verify(adb).shellCommand(SERIAL_NUMBER, START_COMMAND)
   }
 
   @Test
