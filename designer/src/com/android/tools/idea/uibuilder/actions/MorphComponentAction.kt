@@ -40,12 +40,6 @@ class MorphComponentAction(component: NlComponent)
   private val myNlComponent = component
   private var myNewName = component.tagName
 
-  init {
-    templatePresentation.isEnabled = true
-    templatePresentation.isVisible = true
-  }
-
-
   /**
    * Apply the provided tag name to the component in the model
    */
