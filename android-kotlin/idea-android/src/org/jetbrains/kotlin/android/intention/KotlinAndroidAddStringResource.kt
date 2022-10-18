@@ -288,7 +288,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
             allowAnalysisOnEdt {
                 analyze(this) {
                     val functionSymbol = this@isSubclassExtensionOfAny.getSymbol() as? KtFunctionLikeSymbol ?: return false
-                    val receiverType = functionSymbol.receiverType ?: return false
+                    val receiverType = functionSymbol.receiver?.type ?: return false
                     return baseClasses.any { isSubclassOf(receiverType, it, strict = false) }
                 }
             }
