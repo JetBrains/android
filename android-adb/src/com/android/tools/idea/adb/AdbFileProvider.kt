@@ -30,6 +30,11 @@ fun interface AdbFileProvider {
 
   companion object {
     @JvmStatic fun fromProject(project: Project) : AdbFileProvider = project.getService(AdbFileProvider::class.java)
+
+    /**
+     * It's preferred to use [AdbFileProvider.fromProject] because Application and Project could be using different SDKs.
+     * A Project should only use the ADB provided by the SDK used in the Project.
+     */
     @JvmStatic fun fromApplication() : AdbFileProvider = ApplicationManager.getApplication().getService(AdbFileProvider::class.java)
   }
 }
