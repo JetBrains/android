@@ -34,12 +34,13 @@ import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.android.tools.idea.logcat.util.getDefaultFilter
 import com.android.tools.idea.run.ShowLogcatListener
-import com.intellij.ide.IdeBundle
+import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo
+import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.EmulatorDeviceInfo
+import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.options.colors.ColorSettingsPages
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ex.ToolWindowEx
@@ -72,8 +73,8 @@ internal class LogcatToolWindowFactory(
     super.init(toolWindow)
     val project = (toolWindow as ToolWindowEx).project
     project.messageBus.connect(toolWindow.disposable)
-      .subscribe(ShowLogcatListener.TOPIC, ShowLogcatListener { serialNumber, applicationId ->
-        showLogcat(toolWindow, serialNumber, applicationId)
+      .subscribe(ShowLogcatListener.TOPIC, ShowLogcatListener { device, applicationId ->
+        showLogcat(toolWindow, device, applicationId)
       })
 
     ProcessNameMonitor.getInstance(project).start()
@@ -84,35 +85,25 @@ internal class LogcatToolWindowFactory(
     toolWindow.isAvailable = true
   }
 
-  private fun showLogcat(toolWindow: ToolWindowEx, serialNumber: String, applicationId: String?) {
+  private fun showLogcat(toolWindow: ToolWindowEx, deviceInfo: DeviceInfo, applicationId: String?) {
 
     AndroidCoroutineScope(toolWindow.disposable).launch {
-      val name = if (applicationId == null) serialNumber else "$applicationId ($serialNumber)"
+      val name = if (applicationId == null) deviceInfo.id else "$applicationId (${deviceInfo.id})"
 
-      val device = kotlin.runCatching { DeviceFactory(adbSessionFactory(toolWindow.project)).createDevice(serialNumber) }.getOrNull()
+      val device = runCatching {
+        DeviceFactory(adbSessionFactory(toolWindow.project)).createDevice(deviceInfo.serialNumber)
+      }.getOrDefault(deviceInfo.toOfflineDevice())
       withContext(uiThread) {
         insideShowLogcatListener = true
         try {
           val content = toolWindow.findTab(name)
-          when {
-            content != null -> {
-              toolWindow.contentManager.setSelectedContent(content)
-              toolWindow.activate(null)
-            }
-
-            device != null -> {
-              toolWindow.createLogcatTab(name, device, applicationId)
-              toolWindow.activate(null)
-            }
-
-            else -> {
-              val title = LogcatBundle.message("logcat.dialog.title")
-              val message = LogcatBundle.message("logcat.device.offline", serialNumber)
-              val button = IdeBundle.message("button.ok")
-              @Suppress("UnstableApiUsage")
-              MessageDialogBuilder.Message(title, message).buttons(button).asWarning().show()
-            }
+          if (content != null) {
+            toolWindow.contentManager.setSelectedContent(content)
           }
+          else {
+            toolWindow.createLogcatTab(name, device, applicationId)
+          }
+          toolWindow.activate(null)
         }
         finally {
           insideShowLogcatListener = false
@@ -168,4 +159,11 @@ private fun getDefaultFormattingConfig(): LogcatPanelConfig.FormattingConfig {
   val formattingOptions = AndroidLogcatFormattingOptions.getDefaultOptions()
   val style = formattingOptions.getStyle()
   return if (style == null) Custom(formattingOptions) else Preset(style)
+}
+
+private fun DeviceInfo.toOfflineDevice(): Device {
+  return when (this) {
+    is PhysicalDeviceInfo -> Device.createPhysical(serialNumber, false, release, sdk, manufacturer, model)
+    is EmulatorDeviceInfo -> Device.createEmulator(serialNumber, false, release, sdk, avdName)
+  }
 }

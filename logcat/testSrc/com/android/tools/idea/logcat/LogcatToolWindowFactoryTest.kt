@@ -33,6 +33,7 @@ import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.testing.TestDevice
 import com.android.tools.idea.logcat.testing.setupCommandsForDevice
 import com.android.tools.idea.run.ShowLogcatListener
+import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -183,7 +184,9 @@ class LogcatToolWindowFactoryTest {
     fakeAdbSession.deviceServices.setupCommandsForDevice(device)
     fakeAdbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber("device1"), "logcat -v long -v epoch", "")
 
-    project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat("device1", "com.test")
+    project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(
+      PhysicalDeviceInfo("device1", "11", 30, "Google", "Pixel"),
+      "com.test")
 
     waitForCondition { toolWindow.contentManager.contentCount == 1 }
 

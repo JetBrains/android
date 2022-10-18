@@ -161,7 +161,8 @@ public class LaunchTaskRunner extends Task.Backgroundable {
             if (device.isOnline()) {
               ((AndroidProcessHandler)myProcessHandler).addTargetDevice(device);
             }
-          }))).run(() -> {}, AppExecutorUtil.getAppExecutorService());
+          }))).run(() -> {
+        }, AppExecutorUtil.getAppExecutorService());
 
         ProgressIndicatorUtils.awaitWithCheckCanceled(waitApplicationTerminationTask, indicator);
 
@@ -211,7 +212,8 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         );
         if (isSucceeded) {
           launchedDevices.add(device);
-        } else {
+        }
+        else {
           // Manually detach a device here because devices may not be detached automatically when
           // AndroidProcessHandler is instantiated with autoTerminate = false. For example,
           // AndroidTestRunConfiguration sets autoTerminate false because the target application
@@ -236,7 +238,8 @@ public class LaunchTaskRunner extends Task.Backgroundable {
           indicator.setFraction(completedStepsCount.get().floatValue() / totalScheduledStepsCount);
         }
       }
-    } finally {
+    }
+    finally {
       myStats.endLaunchTasks();
     }
   }
@@ -295,7 +298,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
           // Show the tool window when we have an error.
           ApplicationManager.getApplication().invokeLater(() -> RunContentManager.getInstance(myProject).toFrontRunContent(
-                                                              myLaunchInfo.executor, myProcessHandler));
+            myLaunchInfo.executor, myProcessHandler));
 
           if (result == Result.ERROR) {
             myStats.setErrorId(launchResult.getErrorId());
@@ -317,8 +320,8 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
     if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
       myConsoleConsumer.accept(
-        AndroidBundle.message("android.launch.task.show.logcat", device.getName()),
-        project -> project.getMessageBus().syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device.getSerialNumber(), myApplicationId));
+        ShowLogcatListener.getShowLogcatLinkText(device),
+        project -> project.getMessageBus().syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, myApplicationId));
     }
 
     String launchType = myLaunchTasksProvider.getLaunchTypeDisplayName();

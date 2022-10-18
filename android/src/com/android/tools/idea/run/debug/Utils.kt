@@ -20,6 +20,7 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.tools.idea.concurrency.getDoneOrNull
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.AndroidLogcatFormatter
 import com.android.tools.idea.logcat.AndroidLogcatPreferences
@@ -128,8 +129,8 @@ internal fun showError(project: Project, e: ExecutionException, sessionName: Str
 internal fun captureLogcatOutputToProcessHandler(client: Client, consoleView: ConsoleView, debugProcessHandler: ProcessHandler) {
   if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
     val device = client.device
-    consoleView.printHyperlink(AndroidBundle.message("android.launch.task.show.logcat", device.name)) {
-      it.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device.serialNumber, client.clientData.clientDescription)
+    consoleView.printHyperlink(ShowLogcatListener.getShowLogcatLinkText(device)) {
+      it.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, client.clientData.clientDescription)
     }
     return
   }

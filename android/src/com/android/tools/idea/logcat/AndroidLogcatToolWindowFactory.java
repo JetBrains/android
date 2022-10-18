@@ -74,7 +74,15 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
   public void init(@NotNull ToolWindow toolWindow) {
     Project project = ((ToolWindowEx)toolWindow).getProject();
     project.getMessageBus().connect(project)
-      .subscribe(ShowLogcatListener.TOPIC, (serialNumber, applicationId) -> showLogcat(toolWindow, serialNumber, applicationId));
+      .subscribe(ShowLogcatListener.TOPIC, new ShowLogcatListener() {
+        @Override
+        public void showLogcat(@NotNull ShowLogcatListener.DeviceInfo deviceInfo, @Nullable String applicationId) { }
+
+        @Override
+        public void showLogcat(@NotNull IDevice device, @Nullable String applicationId) {
+           AndroidLogcatToolWindowFactory.this.showLogcat(toolWindow, device, applicationId);
+        }
+      });
   }
 
   @Override
@@ -174,6 +182,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
       }
     }, EdtExecutorService.getInstance());
   }
+
   private void showLogcat(
     @NotNull ToolWindow toolWindow,
     @NotNull IDevice device,

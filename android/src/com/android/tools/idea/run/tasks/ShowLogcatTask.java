@@ -44,7 +44,7 @@ public class ShowLogcatTask implements LaunchTask {
   @Override
   public LaunchResult run(@NotNull LaunchContext launchContext) {
     myProject.getMessageBus().syncPublisher(ShowLogcatListener.TOPIC)
-      .showLogcat(launchContext.getDevice().getSerialNumber(), myApplicationId);
+      .showLogcat(launchContext.getDevice(), myApplicationId);
     return LaunchResult.success();
   }
 
