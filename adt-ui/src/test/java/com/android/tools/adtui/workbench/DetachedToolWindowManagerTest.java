@@ -113,7 +113,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     //noinspection UnstableApiUsage
     when(myEditorManager.getOpenFilesWithRemotes()).thenReturn(VirtualFile.EMPTY_ARRAY);
     when(myEditorManager.getAllEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
-    registerProjectComponent(FileEditorManager.class, myEditorManager);
+    ServiceContainerUtil.replaceService(getProject(), FileEditorManager.class, myEditorManager, getTestRootDisposable());
     when(myFileEditor1.getComponent()).thenReturn(new JPanel());
     when(myFileEditor2.getComponent()).thenReturn(new JPanel());
     myManager.register(myFileEditor1, myWorkBench1);

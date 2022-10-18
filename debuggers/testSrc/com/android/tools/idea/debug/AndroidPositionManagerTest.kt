@@ -460,7 +460,7 @@ class Foo {
 
     val mockFileEditorManager: FileEditorManager = mock()
     val componentStack = ComponentStack(project)
-    componentStack.registerComponentInstance(FileEditorManager::class.java, mockFileEditorManager)
+    componentStack.registerServiceInstance(FileEditorManager::class.java, mockFileEditorManager)
 
     val listener = MyXDebugSessionListener(mockVirtualFile, project)
 

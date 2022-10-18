@@ -46,7 +46,7 @@ class BenchmarkLinkListenerTest {
   @Before
   fun setup() {
     componentStack = ComponentStack(projectRule.project)
-    componentStack.registerComponentInstance(FileEditorManager::class.java, mockEditorService)
+    componentStack.registerServiceInstance(FileEditorManager::class.java, mockEditorService)
     whenever(mockEditorService.openEditor(fileCapture.capture(), any())).thenReturn(ArrayList<FileEditor>())
   }
 

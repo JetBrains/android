@@ -71,7 +71,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.registerComponentInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ui.UIUtil
@@ -138,7 +137,7 @@ class EmulatorViewTest {
     @Suppress("UnstableApiUsage")
     whenever(fileEditorManager.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
     whenever(fileEditorManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    emulatorViewRule.project.registerComponentInstance(FileEditorManager::class.java, fileEditorManager, testRootDisposable)
+    emulatorViewRule.project.replaceService(FileEditorManager::class.java, fileEditorManager, testRootDisposable)
   }
 
   @Test

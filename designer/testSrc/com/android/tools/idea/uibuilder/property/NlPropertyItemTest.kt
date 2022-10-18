@@ -655,7 +655,7 @@ class NlPropertyItemTest {
     @Suppress("UnstableApiUsage")
     whenever(fileManager.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
     whenever(fileManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
+    componentStack!!.registerServiceInstance(FileEditorManager::class.java, fileManager)
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
     whenever(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(mock(FileEditor::class.java)))
