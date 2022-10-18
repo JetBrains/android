@@ -21,15 +21,14 @@ import com.intellij.openapi.fileEditor.impl.FileEditorManagerExImpl
 import com.intellij.testFramework.EditorTestUtil
 import com.intellij.testFramework.builders.ModuleFixtureBuilder
 import com.intellij.testFramework.fixtures.CodeInsightFixtureTestCase
-import com.intellij.testFramework.registerComponentInstance
+import com.intellij.testFramework.replaceService
 
 class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder<*>>() {
 
   override fun setUp() {
     super.setUp()
     val project = project
-    val manager = FileEditorManagerExImpl(project)
-    project.registerComponentInstance(FileEditorManager::class.java, manager, testRootDisposable)
+    project.replaceService(FileEditorManager::class.java, FileEditorManagerExImpl(project), testRootDisposable)
   }
 
   fun testNavigationWithinFile() {

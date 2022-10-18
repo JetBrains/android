@@ -16,40 +16,7 @@
 package com.android.tools.idea.uibuilder.property
 
 import com.android.AndroidXConstants.CLASS_MOTION_LAYOUT
-import com.android.SdkConstants.ABSOLUTE_LAYOUT
-import com.android.SdkConstants.ANDROID_URI
-import com.android.SdkConstants.ATTR_BACKGROUND
-import com.android.SdkConstants.ATTR_CONSTRAINT_LAYOUT_DESCRIPTION
-import com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION
-import com.android.SdkConstants.ATTR_FONT_FAMILY
-import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START
-import com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF
-import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
-import com.android.SdkConstants.ATTR_LINE_SPACING_EXTRA
-import com.android.SdkConstants.ATTR_MOTION_TARGET
-import com.android.SdkConstants.ATTR_PARENT_TAG
-import com.android.SdkConstants.ATTR_SRC
-import com.android.SdkConstants.ATTR_SRC_COMPAT
-import com.android.SdkConstants.ATTR_STATE_LIST_ANIMATOR
-import com.android.SdkConstants.ATTR_TEXT
-import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
-import com.android.SdkConstants.ATTR_TEXT_COLOR
-import com.android.SdkConstants.ATTR_TEXT_SIZE
-import com.android.SdkConstants.ATTR_VISIBILITY
-import com.android.SdkConstants.AUTO_URI
-import com.android.SdkConstants.BUTTON
-import com.android.SdkConstants.FRAME_LAYOUT
-import com.android.SdkConstants.IMAGE_VIEW
-import com.android.SdkConstants.LINEAR_LAYOUT
-import com.android.SdkConstants.NEW_ID_PREFIX
-import com.android.SdkConstants.RELATIVE_LAYOUT
-import com.android.SdkConstants.TEXT_VIEW
-import com.android.SdkConstants.TOOLS_URI
-import com.android.SdkConstants.VIEW_MERGE
+import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
@@ -651,7 +618,7 @@ class NlPropertyItemTest {
     @Suppress("UnstableApiUsage")
     whenever(fileManager.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
     whenever(fileManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
+    componentStack!!.registerServiceInstance(FileEditorManager::class.java, fileManager)
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
     whenever(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(mock(FileEditor::class.java)))

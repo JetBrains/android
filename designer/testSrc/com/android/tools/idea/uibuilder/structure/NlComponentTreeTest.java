@@ -446,7 +446,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     when(fileManager.getOpenFilesWithRemotes()).thenReturn(VirtualFile.EMPTY_ARRAY);
     when(fileManager.getAllEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
     if (componentStack != null) {
-      componentStack.registerComponentInstance(FileEditorManager.class, fileManager);
+      componentStack.registerServiceInstance(FileEditorManager.class, fileManager);
     }
     return fileManager;
   }

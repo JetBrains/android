@@ -23,11 +23,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.actions.ZoomType
-import com.android.tools.adtui.swing.FakeKeyboardFocusManager
-import com.android.tools.adtui.swing.FakeMouse
-import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.HeadlessRootPaneContainer
-import com.android.tools.adtui.swing.replaceKeyboardFocusManager
+import com.android.tools.adtui.swing.*
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
@@ -42,10 +38,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.registerComponentInstance
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.*
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ui.UIUtil
 import org.junit.Before
@@ -53,24 +46,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.anyBoolean
-import org.mockito.Mockito.atLeast
-import org.mockito.Mockito.verify
-import java.awt.Component
-import java.awt.Dimension
-import java.awt.KeyboardFocusManager
-import java.awt.MouseInfo
+import org.mockito.Mockito.*
+import java.awt.*
 import java.awt.Point
-import java.awt.PointerInfo
 import java.awt.event.KeyEvent
-import java.awt.event.KeyEvent.KEY_PRESSED
-import java.awt.event.KeyEvent.VK_A
-import java.awt.event.KeyEvent.VK_BACK_SPACE
-import java.awt.event.KeyEvent.VK_CONTROL
-import java.awt.event.KeyEvent.VK_ENTER
-import java.awt.event.KeyEvent.VK_PAGE_DOWN
-import java.awt.event.KeyEvent.VK_SHIFT
-import java.awt.event.KeyEvent.VK_TAB
+import java.awt.event.KeyEvent.*
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -101,7 +81,7 @@ class EmulatorViewTest {
     @Suppress("UnstableApiUsage")
     whenever(fileEditorManager.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
     whenever(fileEditorManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    emulatorViewRule.project.registerComponentInstance(FileEditorManager::class.java, fileEditorManager, testRootDisposable)
+    emulatorViewRule.project.replaceService(FileEditorManager::class.java, fileEditorManager, testRootDisposable)
   }
 
   @Test

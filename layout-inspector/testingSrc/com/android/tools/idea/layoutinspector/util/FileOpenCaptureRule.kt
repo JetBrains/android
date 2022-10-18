@@ -79,6 +79,6 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
     @Suppress("UnstableApiUsage")
     whenever(fileManager!!.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
     whenever(fileManager!!.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager!!)
+    componentStack!!.registerServiceInstance(FileEditorManager::class.java, fileManager!!)
   }
 }
