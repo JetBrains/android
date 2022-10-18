@@ -165,7 +165,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
    * @return same as {@link ArtifactDependencySpec#compactNotation} but quoted if interpolation is needed.
    */
   @NotNull
-  private static String createCompactNotationForLiterals(@NotNull GradleDslElement dslElement, @NotNull ArtifactDependencySpec spec) {
+  protected static String createCompactNotationForLiterals(@NotNull GradleDslElement dslElement, @NotNull ArtifactDependencySpec spec) {
     List<String> segments =
       Lists.newArrayList(spec.getGroup(), spec.getName(), spec.getVersion(), spec.getClassifier(), spec.getExtension());
     boolean shouldInterpolate  = false;

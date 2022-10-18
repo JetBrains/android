@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.PlatformDependencyModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,6 +32,19 @@ abstract class PlatformArtifactDependencyModelImpl extends ArtifactDependencyMod
                                              @NotNull String configurationName,
                                              @NotNull Maintainer maintainer) {
     super(configurationElement, configurationName, maintainer);
+  }
+
+  static void createNew(@NotNull GradlePropertiesDslElement parent,
+                        @NotNull String configurationName,
+                        @NotNull ArtifactDependencySpec dependency,
+                        boolean enforced) {
+    GradleNameElement name = GradleNameElement.create(configurationName);
+    String methodName = enforced ? "enforcedPlatform" : "platform";
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(parent, name, methodName);
+    GradleDslLiteral argument = new GradleDslLiteral(methodCall, GradleNameElement.empty());
+    argument.setValue(createCompactNotationForLiterals(argument, dependency));
+    methodCall.addNewArgument(argument);
+    parent.setNewElement(methodCall);
   }
 
   static class MapNotation extends ArtifactDependencyModelImpl.MapNotation implements PlatformDependencyModel {

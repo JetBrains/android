@@ -2154,6 +2154,28 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     verifyFileContents(myBuildFile, TestFile.DELETE_PLATFORM_DEPENDENCIES_EXPECTED);
   }
 
+  @Test
+  public void testAddPlatformDependencies() throws IOException {
+    writeToBuildFile(TestFile.PARSE_PLATFORM_DEPENDENCIES);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    buildModel.dependencies().addPlatformArtifact("implementation", "androidx.compose:compose-bom:2022.10.0", false);
+    buildModel.dependencies().addPlatformArtifact("implementation", "org.springframework:spring-framework-bom:5.1.9.RELEASE", true);
+    buildModel.dependencies().addPlatformArtifact("implementation", "com.example:foo:${version}", false);
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.ADD_PLATFORM_DEPENDENCIES_EXPECTED);
+    List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
+    assertThat(artifacts).hasSize(8);
+    assertThat(artifacts.get(5)).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(artifacts.get(5).compactNotation()).isEqualTo("androidx.compose:compose-bom:2022.10.0");
+    assertThat(((PlatformDependencyModel)artifacts.get(5)).enforced()).isFalse();
+    assertThat(artifacts.get(6)).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(artifacts.get(6).compactNotation()).isEqualTo("org.springframework:spring-framework-bom:5.1.9.RELEASE");
+    assertThat(((PlatformDependencyModel)artifacts.get(6)).enforced()).isTrue();
+    assertThat(artifacts.get(7)).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(artifacts.get(7).compactNotation()).isEqualTo("com.example:foo:3.14");
+    assertThat(((PlatformDependencyModel)artifacts.get(7)).enforced()).isFalse();
+  }
+
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {
     @NotNull public String configurationName;
 
@@ -2295,6 +2317,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     PARSE_PLATFORM_DEPENDENCIES("parsePlatformDependencies"),
     SET_PLATFORM_DEPENDENCY_VERSIONS_EXPECTED("setPlatformDependencyVersionsExpected"),
     DELETE_PLATFORM_DEPENDENCIES_EXPECTED("deletePlatformDependenciesExpected"),
+    ADD_PLATFORM_DEPENDENCIES_EXPECTED("addPlatformDependenciesExpected"),
     ;
 
     @NotNull private @SystemDependent String path;

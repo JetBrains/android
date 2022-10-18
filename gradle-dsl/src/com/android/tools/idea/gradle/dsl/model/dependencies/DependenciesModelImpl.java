@@ -510,6 +510,21 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   }
 
   @Override
+  public void addPlatformArtifact(@NotNull String configurationName, @NotNull String compactNotation, boolean enforced) {
+    ArtifactDependencySpec dependency = ArtifactDependencySpecImpl.create(compactNotation);
+    if (dependency == null) {
+      String msg = String.format("'%1$s' is not a valid artifact dependency", compactNotation);
+      throw new IllegalArgumentException(msg);
+    }
+    addPlatformArtifact(configurationName, dependency, enforced);
+  }
+
+  @Override
+  public void addPlatformArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency, boolean enforced) {
+    PlatformArtifactDependencyModelImpl.createNew(myDslElement, configurationName, dependency, enforced);
+  }
+
+  @Override
   public boolean replaceArtifactByPsiElement(@NotNull PsiElement psiElement, @NotNull ArtifactDependencySpec dependency) {
     GradleDslElement element = findByPsiElement(psiElement);
     if (element == null) {

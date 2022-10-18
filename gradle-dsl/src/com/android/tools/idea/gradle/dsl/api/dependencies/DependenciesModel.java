@@ -42,6 +42,10 @@ public interface DependenciesModel extends GradleBlockModel {
                    @NotNull ArtifactDependencySpec dependency,
                    @NotNull List<ArtifactDependencySpec> excludes);
 
+  void addPlatformArtifact(@NotNull String configurationName, @NotNull String compactNotation, boolean enforced);
+  void addPlatformArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency, boolean enforced);
+  // TODO(xof): consider supporting excludes, as in addArtifact() above.
+
   /**
    * Replaces the artifact dependency which contains the given {@link PsiElement} with a new dependency given by
    * the {@link ArtifactDependencySpec}. If no dependency that contains the {@link PsiElement} exists nothing is
