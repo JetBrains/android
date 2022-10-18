@@ -65,7 +65,7 @@ internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
     if (StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get())
       SurfaceLayoutManagerOption(
         "Group Grid Layout (By Group name)",
-        GroupedGridSurfaceLayoutManager(30, 5) { contents: Collection<PositionableContent> ->
+        GroupedGridSurfaceLayoutManager(5, 20) { contents: Collection<PositionableContent> ->
           val groups = mutableMapOf<String?, MutableList<PositionableContent>>()
           for (content in contents) {
             groups.getOrPut(content.groupId) { mutableListOf() }.add(content)
