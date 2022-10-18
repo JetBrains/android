@@ -659,14 +659,29 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   @NotNull
   private Color getFileColor(@NotNull File file) {
-    List<String> filesMapped = myFiles.stream().map(test -> test.getFile().getAbsolutePath()).collect(Collectors.toList());
-
-    int index = filesMapped.indexOf(file.getAbsolutePath());
+    int index = getFileIndex(file);
     if (index == 0) {
       // current file shouldn't be highlighted with a background
       return myBackgroundColor;
     }
     return AnnotationColors.BG_COLORS[(index - 1) * AnnotationColors.BG_COLORS_PRIME % AnnotationColors.BG_COLORS.length];
+  }
+
+  private int getFileIndex(@NotNull File file) {
+    int index = 0;
+    for (ManifestFileWithMetadata metadata : myFiles) {
+      if (file.getAbsolutePath().equals(metadata.getFile().getAbsolutePath())) {
+        return index;
+      }
+      index++;
+    }
+    for (ManifestFileWithMetadata metadata : myOtherFiles) {
+      if (file.getAbsolutePath().equals(metadata.getFile().getAbsolutePath())) {
+        return index;
+      }
+      index++;
+    }
+    return index;
   }
 
   private boolean canRemove(@NotNull Node node) {

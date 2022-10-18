@@ -76,15 +76,20 @@ class ManifestPanelContentTest : SnapshotComparisonTest {
     testProject(AndroidCoreTestProject.WITH_ERRORS_SIMPLE_APPLICATION_MULTIPLE_ERRORS)
   }
 
-  private fun testProject(testProject : TemplateBasedTestProject) {
+  @Test
+  fun testProject_dynamicApp() {
+    testProject(AndroidCoreTestProject.DYNAMIC_APP, gradlePath = ":feature1")
+  }
+
+  private fun testProject(testProject : TemplateBasedTestProject, gradlePath: String = ":app") {
     snapshotDirectoryWorkspaceRelativePath = testProject
       .templateAbsolutePath
       .resolve("snapshots")
       .toString()
     val preparedProject = projectRule.prepareTestProject(testProject)
     preparedProject.open { project ->
-      val appModule = project.gradleModule(":app")?.getMainModule() ?: error("Cannot find :app module")
-      val appModuleFacet = appModule.androidFacet ?: error("Cannot find the facet for :app")
+      val appModule = project.gradleModule(gradlePath)?.getMainModule() ?: error("Cannot find $gradlePath module")
+      val appModuleFacet = appModule.androidFacet ?: error("Cannot find the facet for $gradlePath")
 
       val mergedManifest = MergedManifestManager.getMergedManifestSupplier(appModule).get().get(2, TimeUnit.SECONDS)
 
