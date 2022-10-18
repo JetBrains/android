@@ -20,11 +20,13 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUt
 /**
  * Project gradle root representation model
  * @param name The gradle root name
- * @param gradleJvm The jdk.table.xml entry name or macro defined on [ExternalSystemJdkUtil] used to configure the gradle java for sync
+ * @param ideaGradleJdk The jdk.table.xml entry name or macro defined on [ExternalSystemJdkUtil] used to configure the gradle java for sync
+ * @param localPropertiesJdkPath The jdk.dir property located on local.properties per gradle root
  * @param modulesPath A list containing the gradle root modules absolute path
  */
 data class GradleRoot(
   val name: String = "",
-  val gradleJvm: String? = null,
+  val ideaGradleJdk: String? = null,
+  val localPropertiesJdkPath: String? = null,
   val modulesPath: List<String> = listOf()
 )

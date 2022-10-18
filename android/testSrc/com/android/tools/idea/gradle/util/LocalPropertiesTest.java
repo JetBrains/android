@@ -23,11 +23,12 @@ import com.google.common.io.Files;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 
 import java.io.*;
 import java.util.Properties;
 
+import static com.android.SdkConstants.GRADLE_JDK_DIR_PROPERTY;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.SdkConstants.SDK_DIR_PROPERTY;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
@@ -37,13 +38,13 @@ import static org.easymock.EasyMock.*;
 /**
  * Tests for {@link LocalProperties}.
  */
-public class LocalPropertiesTest extends PlatformTestCase {
+public class LocalPropertiesTest extends LightPlatformTestCase {
   private LocalProperties myLocalProperties;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myLocalProperties = new LocalProperties(myProject);
+    myLocalProperties = new LocalProperties(getProject());
   }
 
   // See https://code.google.com/p/android/issues/detail?id=82184
@@ -70,10 +71,22 @@ public class LocalPropertiesTest extends PlatformTestCase {
     }
   }
 
+  public void testGetGradleJdkPathWithSeparatorDifferentThanPlatformOne() throws IOException {
+    if (!SystemInfo.isWindows) {
+      String path = Joiner.on('\\').join("C:", "dir", "file");
+      myLocalProperties.properties().setProperty(GRADLE_JDK_DIR_PROPERTY, path);
+      myLocalProperties.save();
+
+      File actual = myLocalProperties.getGradleJdkPath();
+      assertNotNull(actual);
+      assertEquals(path, actual.getPath());
+    }
+  }
+
   public void testCreateFileOnSave() throws Exception {
     myLocalProperties.setAndroidSdkPath("~/sdk");
     myLocalProperties.save();
-    File localPropertiesFile = new File(myProject.getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
+    File localPropertiesFile = new File(getProject().getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
     assertTrue(localPropertiesFile.isFile());
   }
 
@@ -114,6 +127,26 @@ public class LocalPropertiesTest extends PlatformTestCase {
     assertEquals(toCanonicalPath(androidSdkPath), toCanonicalPath(actual.getPath()));
   }
 
+  public void testSetGradleJdkPathWithString() throws Exception {
+    String gradleJdkPath = toSystemDependentName("/home/jdk");
+    myLocalProperties.setGradleJdkPath(gradleJdkPath);
+    myLocalProperties.save();
+
+    File actual = myLocalProperties.getGradleJdkPath();
+    assertNotNull(actual);
+    assertEquals(toCanonicalPath(gradleJdkPath), toCanonicalPath(actual.getPath()));
+  }
+
+  public void testSetGradleJdkPathWithFile() throws Exception {
+    String gradleJdkPath = toSystemDependentName("/home/jdk");
+    myLocalProperties.setGradleJdkPath(new File(gradleJdkPath));
+    myLocalProperties.save();
+
+    File actual = myLocalProperties.getGradleJdkPath();
+    assertNotNull(actual);
+    assertEquals(toCanonicalPath(gradleJdkPath), toCanonicalPath(actual.getPath()));
+  }
+
   public void testSetAndroidNdkPathWithString() throws Exception {
     String androidNdkPath = toSystemDependentName("/home/ndk2");
     myLocalProperties.setAndroidNdkPath(androidNdkPath);
@@ -136,7 +169,7 @@ public class LocalPropertiesTest extends PlatformTestCase {
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
   public void testUnicodeLoad() throws Exception {
-    File localPropertiesFile = new File(myProject.getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
+    File localPropertiesFile = new File(getProject().getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
     File tempDir = Files.createTempDir();
     File sdk = new File(tempDir, "\u00C6\u0424");
     sdk.mkdirs();
@@ -148,7 +181,7 @@ public class LocalPropertiesTest extends PlatformTestCase {
     PropertiesFiles.savePropertiesToFile(outProperties, localPropertiesFile, null);
 
     // Read back platform default version of string; confirm that it gets converted properly
-    LocalProperties properties1 = new LocalProperties(myProject);
+    LocalProperties properties1 = new LocalProperties(getProject());
     File sdkPath1 = properties1.getAndroidSdkPath();
     assertNotNull(sdkPath1);
     assertTrue(sdkPath1.exists());
@@ -161,7 +194,7 @@ public class LocalPropertiesTest extends PlatformTestCase {
     }
 
     // Read back platform default version of string; confirm that it gets converted properly
-    LocalProperties properties2 = new LocalProperties(myProject);
+    LocalProperties properties2 = new LocalProperties(getProject());
     File sdkPath2 = properties2.getAndroidSdkPath();
     assertNotNull(sdkPath2);
     assertTrue(sdkPath2.exists());

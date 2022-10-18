@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.sync.extensions.getOptionElement
 import com.android.tools.idea.gradle.project.sync.extensions.getOptionElementName
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.util.GradleProperties
+import com.android.tools.idea.gradle.util.LocalProperties
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER
@@ -39,6 +40,13 @@ private const val PROJECT_IDEA_MISC_XML_PATH = "$DIRECTORY_STORE_FOLDER/misc.xml
 
 object ProjectJdkUtils {
 
+  fun setProjectLocalPropertiesJdk(projectRoot: File, jdkPath: String) {
+    LocalProperties(projectRoot).run {
+      setGradleJdkPath(jdkPath)
+      save()
+    }
+  }
+
   fun setProjectGradlePropertiesJdk(projectRoot: File, jdkPath: String) {
     val gradlePropertiesFile = projectRoot.resolve(GRADLE_PROPERTIES_FILE_NAME)
     setGradlePropertiesJdk(gradlePropertiesFile, jdkPath)
@@ -50,7 +58,7 @@ object ProjectJdkUtils {
     text = ProjectIdeaConfigFilesUtils.buildGradleXmlConfig(gradleRoots)
   )
 
-  fun setProjectIdeaJdk(projectRoot: File, jdkName: String) = createProjectFile(
+  fun setProjectIdeaMiscJdk(projectRoot: File, jdkName: String) = createProjectFile(
     projectRoot = projectRoot,
     relativePath = PROJECT_IDEA_MISC_XML_PATH,
     text = ProjectIdeaConfigFilesUtils.buildMiscXmlConfig(jdkName)

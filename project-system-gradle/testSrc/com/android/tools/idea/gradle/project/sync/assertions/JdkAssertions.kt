@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.assertions
 
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
 import com.android.tools.idea.gradle.project.sync.utils.ProjectJdkUtils
+import com.android.tools.idea.gradle.util.LocalProperties
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
 import io.ktor.util.reflect.instanceOf
@@ -71,24 +72,37 @@ class AssertOnDiskConfig(
   private val syncedProject: Project,
   private val expect: Expect
 ) {
+
+  private val projectFile by lazy { File(syncedProject.basePath.orEmpty()) }
+
   fun assertGradleJdk(expectedJdkName: String?) {
-    val projectFile = File(syncedProject.basePath.orEmpty())
     val currentGradleJdkName = ProjectJdkUtils.getGradleRootJdkNameFromIdeaGradleXmlFile(projectFile, "")
     expect.that(currentGradleJdkName).isEqualTo(expectedJdkName)
   }
 
   fun assertGradleRootsJdk(expectedGradleRootsJdkName: Map<String, String>) {
     expectedGradleRootsJdkName.forEach { (gradleRootPath, expectedJdkName) ->
-      val projectFile = File(syncedProject.basePath.orEmpty())
       val currentGradleRootJdkName = ProjectJdkUtils.getGradleRootJdkNameFromIdeaGradleXmlFile(projectFile, gradleRootPath)
       expect.that("$gradleRootPath:$currentGradleRootJdkName").isEqualTo("$gradleRootPath:$expectedJdkName")
     }
   }
 
   fun assertProjectJdk(expectedJdkName: String) {
-    val projectRoot = File(syncedProject.basePath.orEmpty())
-    val currentJdkName = ProjectJdkUtils.getProjectJdkNameInIdeaXmlFile(projectRoot)
+    val currentJdkName = ProjectJdkUtils.getProjectJdkNameInIdeaXmlFile(projectFile)
     expect.that(currentJdkName).isEqualTo(expectedJdkName)
+  }
+
+  fun assertLocalPropertiesJdk(expectedJdkPath: String) {
+    val currentJdkPath = LocalProperties(projectFile).gradleJdkPath
+    expect.that(currentJdkPath).isEqualTo(expectedJdkPath)
+  }
+
+  fun assertGradleRootsLocalPropertiesJdk(expectedGradleRootsLocalPropertiesJdkPath: Map<String, String>) {
+    expectedGradleRootsLocalPropertiesJdkPath.forEach { (gradleRootPath, expectedJdkPath) ->
+      val gradleRootFile = projectFile.resolve(gradleRootPath)
+      val currentGradleRootJdkPath = LocalProperties(gradleRootFile).gradleJdkPath
+      expect.that("$gradleRootPath:$currentGradleRootJdkPath").isEqualTo("$gradleRootPath:$expectedJdkPath")
+    }
   }
 }
 
