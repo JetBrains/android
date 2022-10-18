@@ -25,9 +25,12 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.components.JBLabel
 import org.assertj.core.util.VisibleForTesting
 import java.awt.BorderLayout
+import java.awt.FlowLayout
 import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -105,7 +108,17 @@ class SigningConfigSelectorDialog(signingConfigs: Collection<SigningConfigModel>
 
   override fun createCenterPanel(): JComponent {
     return rootPanel.apply {
+      add(JPanel(FlowLayout()).apply {
+        add(JBLabel("Debug keys should be strictly used for development purposes only."))
+        add(HyperlinkLabel("Learn more").apply {
+          setHyperlinkTarget(DOC_URL)
+        })
+      }, BorderLayout.NORTH)
       add(signingConfigComboBox, BorderLayout.CENTER)
     }
+  }
+
+  companion object {
+    const val DOC_URL = "https://developer.android.com/studio/publish/app-signing#debug-mode"
   }
 }
