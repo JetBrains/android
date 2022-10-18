@@ -150,7 +150,9 @@ public class AndroidUtils extends CommonAndroidUtil {
   private static final String[] ANDROID_COMPONENT_CLASSES = new String[]{ACTIVITY_BASE_CLASS_NAME,
     SERVICE_CLASS_NAME, RECEIVER_CLASS_NAME, PROVIDER_CLASS_NAME};
 
-  private static final Lexer JAVA_LEXER = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
+  private static class LazyHolder {
+    static final Lexer JAVA_LEXER = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
+  }
 
   /**
    * The package is used to create a directory (eg: MyApplication/app/src/main/java/src/my/package/name)
@@ -552,7 +554,7 @@ public class AndroidUtils extends CommonAndroidUtil {
 
   @Nullable
   public static String isReservedKeyword(@NotNull String string) {
-    Lexer lexer = JAVA_LEXER;
+    Lexer lexer = LazyHolder.JAVA_LEXER;
     lexer.start(string);
     if (lexer.getTokenType() != JavaTokenType.IDENTIFIER) {
       if (lexer.getTokenType() instanceof IKeywordElementType) {
