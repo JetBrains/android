@@ -24,7 +24,7 @@ internal data class Device private constructor(
   val name: String,
   val serialNumber: String,
   val isOnline: Boolean,
-  val release: Int,
+  val release: String,
   val sdk: Int,
   val model: String,
 ) {
@@ -35,23 +35,30 @@ internal data class Device private constructor(
     fun createPhysical(
       serialNumber: String,
       isOnline: Boolean,
-      release: Int,
+      release: String,
       sdk: Int,
       manufacturer: String,
       model: String,
     ): Device {
       val deviceName = if (model.startsWith(manufacturer)) model else "$manufacturer $model"
-      return Device(deviceId = serialNumber, name = deviceName, serialNumber, isOnline, release, sdk, model)
+      return Device(deviceId = serialNumber, name = deviceName, serialNumber, isOnline, release.normalizeVersion(), sdk, model)
     }
 
     fun createEmulator(
       serialNumber: String,
       isOnline: Boolean,
-      release: Int,
+      release: String,
       sdk: Int,
       avdName: String,
     ): Device {
-      return Device(deviceId = avdName, name = avdName.replace('_', ' '), serialNumber, isOnline, release, sdk, model = "")
+      return Device(
+        deviceId = avdName, name = avdName.replace('_', ' '), serialNumber, isOnline, release.normalizeVersion(), sdk, model = "")
     }
   }
+}
+
+private val VERSION_TRAILING_ZEROS_REGEX = "(\\.0)+$".toRegex()
+
+private fun String.normalizeVersion(): String {
+  return VERSION_TRAILING_ZEROS_REGEX.replace(this, "")
 }

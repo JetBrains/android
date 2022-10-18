@@ -42,7 +42,7 @@ internal class DeviceFactory(private val adbSession: AdbSession) {
       return Device.createEmulator(
         serialNumber,
         isOnline = true,
-        properties.getValue(RO_BUILD_VERSION_RELEASE).toIntOrNull() ?: 0,
+        properties.getValue(RO_BUILD_VERSION_RELEASE),
         properties.getValue(RO_BUILD_VERSION_SDK).toIntOrNull() ?: 0,
         getAvdName(serialNumber, properties))
     }
@@ -56,7 +56,7 @@ internal class DeviceFactory(private val adbSession: AdbSession) {
       return Device.createPhysical(
         serialNumber,
         isOnline = true,
-        properties.getValue(RO_BUILD_VERSION_RELEASE).toIntOrNull() ?: 0,
+        properties.getValue(RO_BUILD_VERSION_RELEASE),
         properties.getValue(RO_BUILD_VERSION_SDK).toIntOrNull() ?: 0,
         properties.getValue(RO_PRODUCT_MANUFACTURER),
         properties.getValue(RO_PRODUCT_MODEL))

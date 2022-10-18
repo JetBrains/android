@@ -296,5 +296,5 @@ private fun projectAppMonitor(logcatPresenter: LogcatPresenter, vararg packageNa
   ProjectAppMonitor(logcatPresenter, FakePackageNamesProvider(*packageNames))
 
 private fun createDevice(serialNumber: String): Device {
-  return Device.createPhysical(serialNumber, true, 11, 30, "Google", "Pixel")
+  return Device.createPhysical(serialNumber, true, "11", 30, "Google", "Pixel")
 }

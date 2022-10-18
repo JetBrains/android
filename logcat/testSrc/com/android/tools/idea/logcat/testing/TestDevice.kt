@@ -33,7 +33,7 @@ import com.android.tools.idea.logcat.devices.Device
 internal class TestDevice(
   val serialNumber: String,
   state: DeviceState,
-  val release: Int,
+  val release: String,
   val sdk: Int,
   val manufacturer: String = "",
   val model: String = "",
@@ -49,7 +49,7 @@ internal class TestDevice(
   }
 
   private val properties = mapOf(
-    RO_BUILD_VERSION_RELEASE to "$release",
+    RO_BUILD_VERSION_RELEASE to release,
     RO_BUILD_VERSION_SDK to "$sdk",
     RO_PRODUCT_MANUFACTURER to manufacturer,
     RO_PRODUCT_MODEL to model,

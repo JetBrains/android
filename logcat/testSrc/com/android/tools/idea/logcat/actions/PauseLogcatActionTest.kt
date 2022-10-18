@@ -34,7 +34,7 @@ class PauseLogcatActionTest {
   @get:Rule
   val applicationRule = ApplicationRule()
 
-  private val device = Device.createPhysical("device", true, 10, 30, "Google", "Pixel")
+  private val device = Device.createPhysical("device", true, "10", 30, "Google", "Pixel")
   private val mockLogcatPresenter = mock<LogcatPresenter>()
   private val event by lazy(::TestActionEvent)
 

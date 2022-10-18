@@ -54,7 +54,6 @@ import org.mockito.Mockito.never
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import java.util.concurrent.TimeUnit
-import kotlin.test.assertNotNull
 
 
 @RunsInEdt
@@ -180,7 +179,7 @@ class LogcatToolWindowFactoryTest {
   fun showLogcat_opensLogcatPanel() {
     val toolWindow = MockToolWindow(project)
     logcatToolWindowFactory().init(toolWindow)
-    val device = TestDevice("device1", DeviceState.ONLINE, 11, 30, "manufacturer1", "model1")
+    val device = TestDevice("device1", DeviceState.ONLINE, "11", 30, "manufacturer1", "model1")
     fakeAdbSession.deviceServices.setupCommandsForDevice(device)
     fakeAdbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber("device1"), "logcat -v long -v epoch", "")
 

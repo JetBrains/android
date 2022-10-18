@@ -54,9 +54,9 @@ class DeviceComboBoxTest {
   private val selectionEvents = mutableListOf<Any?>()
   private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
 
-  private val device1 = Device.createPhysical("device1", false, 11, 30, "Google", "Pixel 2")
-  private val device2 = Device.createPhysical("device2", false, 11, 30, "Google", "Pixel 2")
-  private val emulator = Device.createEmulator("emulator-5555", false, 11, 30, "AVD")
+  private val device1 = Device.createPhysical("device1", false, "11", 30, "Google", "Pixel 2")
+  private val device2 = Device.createPhysical("device2", false, "11", 30, "Google", "Pixel 2")
+  private val emulator = Device.createEmulator("emulator-5555", false, "11", 30, "AVD")
 
   @Test
   fun noDevice_noSelection(): Unit = runBlockingTest {

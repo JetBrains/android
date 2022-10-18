@@ -54,7 +54,6 @@ private const val GET_PROPS_EMULATOR =
 /**
  * Tests for [DeviceComboBoxDeviceTracker]
  */
-@Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
 class DeviceComboBoxDeviceTrackerTest {
   private val projectRule = ProjectRule()
   private val fakeAdb = FakeAdbRule()
@@ -65,11 +64,11 @@ class DeviceComboBoxDeviceTrackerTest {
   @get:Rule
   val rule = RuleChain(projectRule, fakeAdb.withDeviceCommandHandler(deviceCommandHandler), closeables)
 
-  private val device1 = TestDevice("device-1", ONLINE, 11, 30, "manufacturer1", "model1")
-  private val device2 = TestDevice("device-2", ONLINE, 12, 31, "manufacturer2", "model2")
-  private val emulator1 = TestDevice("emulator-1", ONLINE, 11, 30, avdName = "avd1")
-  private val emulator2 = TestDevice("emulator-2", ONLINE, 11, 30, avdNamePre31 = "avd2")
-  private val emulator3 = TestDevice("emulator-3", ONLINE, 11, 30, avdName = "", avdNamePre31 = "")
+  private val device1 = TestDevice("device-1", ONLINE, "11", 30, "manufacturer1", "model1")
+  private val device2 = TestDevice("device-2", ONLINE, "12", 31, "manufacturer2", "model2")
+  private val emulator1 = TestDevice("emulator-1", ONLINE, "11", 30, avdName = "avd1")
+  private val emulator2 = TestDevice("emulator-2", ONLINE, "11", 30, avdNamePre31 = "avd2")
+  private val emulator3 = TestDevice("emulator-3", ONLINE, "11", 30, avdName = "", avdNamePre31 = "")
 
   private val events = mutableListOf<DeviceEvent>()
 

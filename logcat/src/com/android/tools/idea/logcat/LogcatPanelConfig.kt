@@ -85,7 +85,7 @@ internal data class LogcatPanelConfig(
           Device.createEmulator(
             oldDevice.serialNumber,
             isOnline = false,
-            oldDevice.properties[RO_BUILD_VERSION_RELEASE]?.toIntOrNull() ?: 0,
+            oldDevice.properties[RO_BUILD_VERSION_RELEASE] ?: "",
             oldDevice.properties[RO_BUILD_VERSION_SDK]?.toIntOrNull() ?: 0,
             oldDevice.avdName,
           )
@@ -94,7 +94,7 @@ internal data class LogcatPanelConfig(
           Device.createPhysical(
             oldDevice.serialNumber,
             isOnline = false,
-            oldDevice.properties[RO_BUILD_VERSION_RELEASE]?.toIntOrNull() ?: 0,
+            oldDevice.properties[RO_BUILD_VERSION_RELEASE] ?: "",
             oldDevice.properties[RO_BUILD_VERSION_SDK]?.toIntOrNull() ?: 0,
             oldDevice.properties[RO_PRODUCT_MANUFACTURER] ?: "",
             oldDevice.properties[RO_PRODUCT_MODEL] ?: "",

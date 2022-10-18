@@ -371,7 +371,7 @@ class LogcatMainPanelTest {
 
   @Test
   fun clearMessageView_bySubscriptionToClearLogcatListener() {
-    val testDevice = TestDevice("device1", DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
+    val testDevice = TestDevice("device1", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
     fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
     fakeAdbSession.hostServices.setDevices(testDevice)
     val logcatMainPanel = runInEdtAndGet {
@@ -390,8 +390,8 @@ class LogcatMainPanelTest {
 
   @Test
   fun clearMessageView_bySubscriptionToClearLogcatListener_otherDevice() {
-    val testDevice1 = TestDevice("device1", DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
-    val testDevice2 = TestDevice("device2", DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
+    val testDevice1 = TestDevice("device1", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
+    val testDevice2 = TestDevice("device2", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
     fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice1)
     fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice2)
     fakeAdbSession.hostServices.setDevices(testDevice1, testDevice2)
@@ -602,7 +602,7 @@ class LogcatMainPanelTest {
   @Test
   fun connectDevice_readLogcat() = runBlocking {
     val message1 = LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1")
-    val testDevice = TestDevice("device1", DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
+    val testDevice = TestDevice("device1", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
     fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
     fakeAdbSession.hostServices.setDevices(testDevice)
     val logcatService = FakeLogcatService()
@@ -626,7 +626,7 @@ class LogcatMainPanelTest {
 
   @Test
   fun pauseLogcat_jobCanceled() = runBlocking {
-    val testDevice = TestDevice("device1", DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
+    val testDevice = TestDevice("device1", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
     fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
     fakeAdbSession.hostServices.setDevices(testDevice)
     val logcatService = FakeLogcatService()
@@ -648,7 +648,7 @@ class LogcatMainPanelTest {
   @Test
   fun resumeLogcat_jobResumed() = runBlocking {
     val message1 = LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1")
-    val testDevice = TestDevice("device1", DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
+    val testDevice = TestDevice("device1", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
     fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
     fakeAdbSession.hostServices.setDevices(testDevice)
     val logcatService = FakeLogcatService()
@@ -1101,7 +1101,7 @@ class LogcatMainPanelTest {
 
   @Test
   fun projectAppMonitorInstalled() {
-    val testDevice = TestDevice("device1", DeviceState.ONLINE, 11, 30, "Google", "Pixel", "")
+    val testDevice = TestDevice("device1", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
     fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
     fakeAdbSession.hostServices.setDevices(testDevice)
     val fakePackageNamesProvider = FakeProjectApplicationIdsProvider(project, "myapp")

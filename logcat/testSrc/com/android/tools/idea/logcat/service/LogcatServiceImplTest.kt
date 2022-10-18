@@ -73,8 +73,8 @@ class LogcatServiceImplTest {
   @get:Rule
   val rule = RuleChain(fakeAdb, closeables, disposableRule)
 
-  private val device30 = TestDevice("device", ONLINE, release = 10, sdk = 30, manufacturer = "Google", model = "Pixel")
-  private val device23 = TestDevice("device", ONLINE, release = 7, sdk = 23, manufacturer = "Google", model = "Pixel")
+  private val device30 = TestDevice("device", ONLINE, release = "10", sdk = 30, manufacturer = "Google", model = "Pixel")
+  private val device23 = TestDevice("device", ONLINE, release = "7", sdk = 23, manufacturer = "Google", model = "Pixel")
 
   private val fakeDeviceServices = FakeAdbSession().deviceServices
   private val fakeProcessNameMonitor = FakeProcessNameMonitor()
