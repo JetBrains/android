@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.SdkConstants
+import com.android.tools.idea.gradle.project.sync.utils.ProjectIdeaConfigFilesUtils
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.FileSubject
-import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
@@ -52,39 +52,9 @@ internal fun moveGradleRootUnderGradleProjectDirectory(root: File, makeSecondCop
   }
   Files.createDirectory(ideaDirectory.toPath())
 
-  fun gradleSettingsFor(rootName: String): String {
-    return """
-      <GradleProjectSettings>
-        <option name="testRunner" value="GRADLE" />
-        <option name="distributionType" value="DEFAULT_WRAPPED" />
-        <option name="externalProjectPath" value="${'$'}PROJECT_DIR${'$'}/$rootName" />
-      </GradleProjectSettings>
-    """
-  }
-
-  gradleXml.writeText(
-    """
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="GradleMigrationSettings" migrationVersion="1" />
-  <component name="GradleSettings">
-    <option name="linkedExternalProjectsSettings">
-        ${gradleSettingsFor(newRoot.name)}
-        ${if (makeSecondCopy) gradleSettingsFor(newRoot2.name) else ""}
-    </option>
-  </component>
-</project>
-    """.trim()
-  )
-
-  miscXml.writeText(
-    """
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-<component name="ProjectRootManager" version="2" project-jdk-name="$testJdkName" project-jdk-type="JavaSDK" />
-</project>
-    """.trim()
-  )
+  val rootsName = if (makeSecondCopy) listOf(newRoot.name, newRoot2.name) else listOf(newRoot.name)
+  gradleXml.writeText(ProjectIdeaConfigFilesUtils.buildGradleXmlConfig(rootsName))
+  miscXml.writeText(ProjectIdeaConfigFilesUtils.buildMiscXmlConfig(testJdkName))
 }
 
 internal fun patchMppProject(
