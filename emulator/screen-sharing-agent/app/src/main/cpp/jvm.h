@@ -64,6 +64,13 @@ public:
     return ref_;
   }
 
+  // Returns the underlying jobject and releases the ownership.
+  jobject Release() {
+    auto ref = ref_;
+    ref_ = nullptr;
+    return ref;
+  }
+
   bool IsNull() const {
     return ref_ == nullptr;
   }
