@@ -577,6 +577,7 @@ public class BuildVariantView {
         }
       }
 
+      myModuleNameLabel.setFont(table.getFont());
       myModuleNameLabel.setText(moduleName == null ? "" : moduleName);
       myModuleNameLabel.setIcon(moduleIcon);
 
