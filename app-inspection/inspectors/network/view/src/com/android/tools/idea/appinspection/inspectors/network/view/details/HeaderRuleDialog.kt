@@ -219,19 +219,22 @@ class HeaderRuleDialog(
   }
 }
 
-class EmptyFieldDocumentFilter(var updateOkAction: () -> Unit): DocumentFilter() {
-  override fun remove(fb: FilterBypass?, offset: Int, length: Int) {
+class EmptyFieldDocumentFilter(val updateOkAction: () -> Unit): DocumentFilter() {
+  override fun remove(fb: FilterBypass, offset: Int, length: Int) {
     super.remove(fb, offset, length)
     if (isDocumentEmpty(fb)) updateOkAction()
   }
 
-  override fun replace(fb: FilterBypass?, offset: Int, length: Int, text: String?, attrs: AttributeSet?) {
+  override fun insertString(fb: FilterBypass, offset: Int, string: String, attr: AttributeSet?) {
+    super.insertString(fb, offset, string, attr)
+    if(!isDocumentEmpty(fb)) updateOkAction()
+  }
+
+  override fun replace(fb: FilterBypass, offset: Int, length: Int, text: String, attrs: AttributeSet?) {
     super.replace(fb, offset, length, text, attrs)
     if (!isDocumentEmpty(fb)) updateOkAction()
   }
 
-  private fun isDocumentEmpty(fb: FilterBypass?): Boolean {
-    return fb?.document?.getText(0, fb.document.length)?.isEmpty() == true
-  }
+  private fun isDocumentEmpty(fb: FilterBypass) = fb.document.getText(0, fb.document.length).isEmpty()
 }
 

@@ -629,6 +629,37 @@ class RuleDetailsViewTest {
   }
 
   @Test
+  fun disableOkButtonOnEmptyNewHeaderInputInNewHeaderDialog() {
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val headerTable = findComponentWithUniqueName(ruleDetailsView, "headerRules") as TableView<*>
+    assertThat(headerTable.rowCount).isEqualTo(0)
+
+    val addAction = findAction(headerTable.parent.parent.parent, "Add")
+    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
+      val dialog = it as HeaderRuleDialog
+      dialog.tabs.selectedComponent = dialog.newHeaderPanel
+      // Assert that OK button is disabled since the default value is empty
+      assertThat(dialog.isOKActionEnabled).isFalse()
+
+      // Add text to the text field. Calls "replace" in DocumentFilter
+      dialog.newAddedNameLabel.text = "New-Header"
+      // Assert that the added text enabled the OK button
+      assertThat(dialog.isOKActionEnabled).isTrue()
+
+      // Clear the text field
+      dialog.newAddedNameLabel.document.remove(0, dialog.newAddedNameLabel.text.length)
+      // Assert that OK button is disabled due to empty text
+      assertThat(dialog.isOKActionEnabled).isFalse()
+
+      // Simulate copy-paste by user
+      dialog.newAddedNameLabel.document.insertString(0, "TestInsertString", null)
+      // Assert that OK button enabled when paste occurs
+      assertThat(dialog.isOKActionEnabled).isTrue()
+    }
+  }
+
+  @Test
   fun addAndRemoveBodyReplacedRulesFromDetailsView() {
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
