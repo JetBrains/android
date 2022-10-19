@@ -42,8 +42,6 @@ import com.intellij.openapi.util.RecursionManager
 import org.jetbrains.android.facet.AndroidFacet
 import java.time.Duration
 import java.util.concurrent.ExecutionException
-import kotlin.time.ExperimentalTime
-import kotlin.time.TimeSource
 
 /**
  * The minimum amount of time between the creation of any two [MergedManifestSnapshot]s
@@ -83,9 +81,6 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
   @GuardedBy("callingThreadLock")
   private var snapshotBeingComputedInCallingThread: ListenableFuture<MergedManifestSnapshot>? = null
 
-  @OptIn(ExperimentalTime::class)
-  private val timeSource = TimeSource.Monotonic
-
   init {
     Disposer.register(this, delegate)
   }
@@ -117,11 +112,10 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
   }
 
   /** Create a [MergedManifestSnapshot] and record associated telemetry. */
-  @OptIn(ExperimentalTime::class)
   @Slow
   private fun createMergedManifestSnapshot(facet: AndroidFacet): MergedManifestSnapshot {
     val snapshot: MergedManifestSnapshot
-    val startMark = timeSource.markNow()
+    val startMillis = System.currentTimeMillis()
     var result = MergeResult.FAILED
 
     try {
@@ -131,7 +125,8 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
       result = MergeResult.CANCELED
       throw e
     } finally {
-      ManifestMergerStatsTracker.recordManifestMergeRunTime(startMark.elapsedNow(), result)
+      val endMillis = System.currentTimeMillis()
+      ManifestMergerStatsTracker.recordManifestMergeRunTime(endMillis - startMillis, result)
     }
 
     return snapshot

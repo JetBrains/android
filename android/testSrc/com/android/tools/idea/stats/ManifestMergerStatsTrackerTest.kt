@@ -31,8 +31,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 @RunWith(JUnit4::class)
 class ManifestMergerStatsTrackerTest {
@@ -65,11 +63,11 @@ class ManifestMergerStatsTrackerTest {
 
   @Test
   fun reportMergerStats_onlySuccessRunTimes() {
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(20.toDuration(DurationUnit.MILLISECONDS), SUCCESS)
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(20.toDuration(DurationUnit.MILLISECONDS), SUCCESS)
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(20.toDuration(DurationUnit.MILLISECONDS), SUCCESS)
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(20.toDuration(DurationUnit.MILLISECONDS), SUCCESS)
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(20.toDuration(DurationUnit.MILLISECONDS), SUCCESS)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(20, SUCCESS)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(20, SUCCESS)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(20, SUCCESS)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(20, SUCCESS)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(20, SUCCESS)
 
     // Flush any remaining runnables on the event thread, since recording events happens asynchronously there.
     ApplicationManager.getApplication().invokeAndWait {}
@@ -95,12 +93,12 @@ class ManifestMergerStatsTrackerTest {
 
   @Test
   fun reportMergerStats_allThreeResultTypes() {
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(40.toDuration(DurationUnit.MILLISECONDS), SUCCESS)
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(40.toDuration(DurationUnit.MILLISECONDS), SUCCESS)
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(30.toDuration(DurationUnit.MILLISECONDS), CANCELED)
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(30.toDuration(DurationUnit.MILLISECONDS), CANCELED)
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(20.toDuration(DurationUnit.MILLISECONDS), FAILED)
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(20.toDuration(DurationUnit.MILLISECONDS), FAILED)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(40, SUCCESS)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(40, SUCCESS)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(30, CANCELED)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(30, CANCELED)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(20, FAILED)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(20, FAILED)
 
     // Flush any remaining runnables on the event thread, since recording events happens asynchronously there.
     ApplicationManager.getApplication().invokeAndWait {}
@@ -140,12 +138,12 @@ class ManifestMergerStatsTrackerTest {
 
   @Test
   fun reportMergerStats_statsClearedAfterReporting() {
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(40.toDuration(DurationUnit.MILLISECONDS), SUCCESS)
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(40.toDuration(DurationUnit.MILLISECONDS), SUCCESS)
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(30.toDuration(DurationUnit.MILLISECONDS), CANCELED)
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(30.toDuration(DurationUnit.MILLISECONDS), CANCELED)
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(20.toDuration(DurationUnit.MILLISECONDS), FAILED)
-    ManifestMergerStatsTracker.recordManifestMergeRunTime(20.toDuration(DurationUnit.MILLISECONDS), FAILED)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(40, SUCCESS)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(40, SUCCESS)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(30, CANCELED)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(30, CANCELED)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(20, FAILED)
+    ManifestMergerStatsTracker.recordManifestMergeRunTime(20, FAILED)
 
     // Flush any remaining runnables on the event thread, since recording events happens asynchronously there.
     ApplicationManager.getApplication().invokeAndWait {}
