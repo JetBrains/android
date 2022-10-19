@@ -105,7 +105,7 @@ class MotionAttributeRule(
     whenever(fileManager!!.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     whenever(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     @Suppress("UnstableApiUsage")
-    whenever(fileManager!!.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
+    whenever(fileManager!!.openFilesWithRemotes).thenReturn(emptyList())
     whenever(fileManager!!.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     componentStack!!.registerServiceInstance(FileEditorManager::class.java, fileManager!!)
   }

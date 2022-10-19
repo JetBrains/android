@@ -50,6 +50,7 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.BoxLayout;
@@ -94,9 +95,9 @@ public class WorkBenchTest extends WorkBenchTestCase {
     when(myFileEditorManager.getSelectedEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
     when(myFileEditorManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
     //noinspection UnstableApiUsage
-    when(myFileEditorManager.getOpenFilesWithRemotes()).thenReturn(VirtualFile.EMPTY_ARRAY);
+    when(myFileEditorManager.getOpenFilesWithRemotes()).thenReturn(Collections.emptyList());
     when(myFileEditorManager.getAllEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
-    registerServiceInstance(getProject(), FileEditorManager.class, myFileEditorManager);
+    registerProjectService(FileEditorManager.class, myFileEditorManager);
     myContent = new JPanel();
     myContent.setPreferredSize(new Dimension(500, 400));
     mySplitter = new ThreeComponentsSplitter(getTestRootDisposable());
