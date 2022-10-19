@@ -130,6 +130,10 @@ ClipboardManager* ClipboardManager::GetInstance(Jni jni) {
 }
 
 string ClipboardManager::GetText() const {
+  if (clipboard_manager_.IsNull()) {
+    return "";
+  }
+
   JObject clip_data =
       number_of_extra_parameters_ == 0 ?
           clipboard_manager_.CallObjectMethod(jni_, get_primary_clip_method_, package_name_.ref()) :
@@ -149,6 +153,10 @@ string ClipboardManager::GetText() const {
 }
 
 void ClipboardManager::SetText(const string& text) const {
+  if (clipboard_manager_.IsNull()) {
+    return;
+  }
+
   JString jtext = JString(jni_, text.c_str());
   JObject clip_data = clip_data_class_.CallStaticObjectMethod(jni_, new_plain_text_method_, jtext.ref(), jtext.ref());
   auto api_level = android_get_device_api_level();
@@ -158,16 +166,20 @@ void ClipboardManager::SetText(const string& text) const {
     clip_description.CallVoidMethod(set_extras_method_, overlay_suppressor_.ref());
   }
   if (number_of_extra_parameters_ == 0) {
-    clipboard_manager_.CallObjectMethod(jni_, set_primary_clip_method_, clip_data.ref(), package_name_.ref());
+    clipboard_manager_.CallVoidMethod(jni_, set_primary_clip_method_, clip_data.ref(), package_name_.ref());
   } else if (number_of_extra_parameters_ == 1) {
-    clipboard_manager_.CallObjectMethod(jni_, set_primary_clip_method_, clip_data.ref(), package_name_.ref(), USER_ID);
+    clipboard_manager_.CallVoidMethod(jni_, set_primary_clip_method_, clip_data.ref(), package_name_.ref(), USER_ID);
   } else {
-    clipboard_manager_.CallObjectMethod(
+    clipboard_manager_.CallVoidMethod(
         jni_, set_primary_clip_method_, clip_data.ref(), package_name_.ref(), JString(jni_, "ScreenSharing").ref(), USER_ID);
   }
 }
 
 void ClipboardManager::AddClipboardListener(ClipboardListener* listener) {
+  if (clipboard_manager_.IsNull()) {
+    return;
+  }
+
   for (;;) {
     auto old_listeners = clipboard_listeners_.load();
     auto new_listeners = new vector<ClipboardListener*>(*old_listeners);
@@ -181,6 +193,10 @@ void ClipboardManager::AddClipboardListener(ClipboardListener* listener) {
 }
 
 void ClipboardManager::RemoveClipboardListener(ClipboardListener* listener) {
+  if (clipboard_manager_.IsNull()) {
+    return;
+  }
+
   for (;;) {
     auto old_listeners = clipboard_listeners_.load();
     auto new_listeners = new vector<ClipboardListener*>(*old_listeners);
