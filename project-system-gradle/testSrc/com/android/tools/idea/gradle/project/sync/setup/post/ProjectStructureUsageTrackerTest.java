@@ -76,6 +76,7 @@ public class ProjectStructureUsageTrackerTest {
       UsageTracker.cleanAfterTesting();
   }
 
+  @Ignore("b/240662565")
   @Test
   public void testProductStructureUsageTrackingBasic() throws Exception {
     trackGradleProject(AndroidCoreTestProject.PROJECT_WITH_APP_AND_LIB_DEPENDENCY, project -> {
