@@ -1310,7 +1310,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> GLANCE_APP_WIDGET_PREVIEW = Flag.create(
     WEAR_SURFACES, "glance.preview.appwidget.enabled", "Enable Glance AppWidget preview",
     "If enabled, a preview for annotated glance app widget composable functions is displayed",
-    false);
+    true);
 
   public static final Flag<Boolean> GLANCE_TILE_PREVIEW = Flag.create(
     WEAR_SURFACES, "glance.preview.tile.enabled", "Enable Glance Tile preview",
