@@ -15,6 +15,13 @@
  */
 package com.android.tools.adtui.workbench;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.adtui.workbench.DetachedToolWindowManager.DetachedToolWindowFactory;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -24,16 +31,13 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
+import java.awt.KeyboardFocusManager;
+import java.util.Collections;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.mockito.Mock;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   // Hack to avoid: "java.lang.Error: Cannot load com.apple.laf.AquaLookAndFeel"
@@ -109,9 +113,9 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     when(myEditorManager.getSelectedEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
     when(myEditorManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
     //noinspection UnstableApiUsage
-    when(myEditorManager.getOpenFilesWithRemotes()).thenReturn(VirtualFile.EMPTY_ARRAY);
+    when(myEditorManager.getOpenFilesWithRemotes()).thenReturn(Collections.emptyList());
     when(myEditorManager.getAllEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
-    ServiceContainerUtil.replaceService(getProject(), FileEditorManager.class, myEditorManager, getTestRootDisposable());
+    registerProjectService(FileEditorManager.class, myEditorManager);
     when(myFileEditor1.getComponent()).thenReturn(new JPanel());
     when(myFileEditor2.getComponent()).thenReturn(new JPanel());
     myManager.register(myFileEditor1, myWorkBench1);

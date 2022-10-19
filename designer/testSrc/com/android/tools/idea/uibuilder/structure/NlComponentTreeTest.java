@@ -443,7 +443,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     when(fileManager.getSelectedEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
     when(fileManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
     //noinspection UnstableApiUsage
-    when(fileManager.getOpenFilesWithRemotes()).thenReturn(VirtualFile.EMPTY_ARRAY);
+    when(fileManager.getOpenFilesWithRemotes()).thenReturn(Collections.emptyList());
     when(fileManager.getAllEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
     if (componentStack != null) {
       componentStack.registerServiceInstance(FileEditorManager.class, fileManager);

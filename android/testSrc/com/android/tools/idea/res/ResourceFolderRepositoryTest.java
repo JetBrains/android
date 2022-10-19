@@ -4465,7 +4465,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         return problemFiles.contains(virtualFile);
       }
     };
-    ServiceContainerUtil.registerComponentInstance(getProject(), WolfTheProblemSolver.class, wolfTheProblemSolver, getTestRootDisposable());
+    ServiceContainerUtil.registerOrReplaceServiceInstance(getProject(), WolfTheProblemSolver.class, wolfTheProblemSolver, getTestRootDisposable());
 
     VirtualFile projectDir = getProjectDir();
     VirtualFile valid = VfsTestUtil.createFile(projectDir, "res/drawable/valid.png", new byte[] { 1 });

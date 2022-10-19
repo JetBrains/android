@@ -79,7 +79,7 @@ class EmulatorViewTest {
     whenever(fileEditorManager.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     whenever(fileEditorManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     @Suppress("UnstableApiUsage")
-    whenever(fileEditorManager.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
+    whenever(fileEditorManager.openFilesWithRemotes).thenReturn(emptyList())
     whenever(fileEditorManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     emulatorViewRule.project.replaceService(FileEditorManager::class.java, fileEditorManager, testRootDisposable)
   }

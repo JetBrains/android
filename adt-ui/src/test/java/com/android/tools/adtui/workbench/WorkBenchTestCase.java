@@ -49,16 +49,8 @@ public abstract class WorkBenchTestCase extends LightPlatformTestCase {
     }
   }
 
-  public <T> void registerApplicationComponent(@NotNull Class<T> key, @NotNull T instance) {
-    myApplicationComponentStack.registerComponentInstance(key, instance);
-  }
-
   public <T> void registerApplicationService(@NotNull Class<T> key, @NotNull T instance) {
     myApplicationComponentStack.registerServiceInstance(key, instance);
-  }
-
-  public <T> void registerProjectComponent(@NotNull Class<T> key, @NotNull T instance) {
-    myProjectComponentStack.registerComponentInstance(key, instance);
   }
 
   public <T> void registerProjectService(@NotNull Class<T> key, @NotNull T instance) {
