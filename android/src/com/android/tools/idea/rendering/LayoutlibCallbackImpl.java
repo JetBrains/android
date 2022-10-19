@@ -367,7 +367,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
             String fontFamilyXml = myFontCacheService.toXml(family);
             if (fontFamilyXml == null) {
-              myFontCacheService.download(family);
               return null;
             }
 
