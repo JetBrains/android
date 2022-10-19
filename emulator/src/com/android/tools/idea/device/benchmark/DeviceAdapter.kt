@@ -24,6 +24,8 @@ import com.android.tools.idea.emulator.right
 import com.android.tools.idea.emulator.rotatedByQuadrants
 import com.android.tools.idea.emulator.scaled
 import com.android.tools.idea.emulator.scaledUnbiased
+import com.android.utils.time.TimeSource
+import com.android.utils.time.TimeSource.TimeMark
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
@@ -46,9 +48,6 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.ExperimentalTime
-import kotlin.time.TimeMark
-import kotlin.time.TimeSource
 
 private val MAX_BECOME_READY_DURATION = 2.seconds
 private val LOG = Logger.getInstance(DeviceAdapter::class.java)
@@ -94,7 +93,7 @@ private fun AbstractDisplayView.press(keyCode: Int) {
   keyInput(keyCode, KeyEvent.CHAR_UNDEFINED, KeyEvent.KEY_PRESSED)
 }
 
-private fun AbstractDisplayView.type(keyCode: Int, keyChar: Char) {
+private fun AbstractDisplayView.type(keyChar: Char) {
   keyInput(KeyEvent.VK_UNDEFINED, keyChar, KeyEvent.KEY_TYPED)
 }
 
@@ -105,7 +104,7 @@ private fun AbstractDisplayView.keyInput(keyCode: Int, keyChar:Char, id: Int) {
 }
 
 private fun AbstractDisplayView.typeNumber(n: Int) {
-  n.toString().forEach { type(KeyEvent.VK_0 + it.digitToInt(), it) }
+  n.toString().forEach { type(it) }
 }
 
 private fun AbstractDisplayView.click(location: Point, mouseEventType: Int = MouseEvent.MOUSE_PRESSED) {
@@ -195,7 +194,6 @@ private fun Rectangle.scribble(numPoints: Int, step: Int, spikiness: Int): Seque
   }
 }.chunked(step).map{ it.first() }.take(numPoints)
 
-@OptIn(ExperimentalTime::class)
 internal class DeviceAdapter (
   private val project: Project,
   private val target: DeviceMirroringBenchmarkTarget,
@@ -323,9 +321,9 @@ internal class DeviceAdapter (
     with(target.view) {
       press(KeyEvent.VK_UP)
       typeNumber(maxBits)
-      type(KeyEvent.VK_COMMA, ',')
+      type(',')
       typeNumber(latencyBits)
-      type(KeyEvent.VK_COMMA, ',')
+      type(',')
       typeNumber(bitsPerChannel)
       press(KeyEvent.VK_ENTER)
     }

@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.util.fsm
 
+import com.android.utils.time.TimeSource
+import com.android.utils.time.TimeSource.TimeMark
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import java.util.Locale
-import kotlin.time.ExperimentalTime
-import kotlin.time.TimeMark
-import kotlin.time.TimeSource
 
 typealias Callback = () -> Unit
 
@@ -54,7 +53,6 @@ typealias Callback = () -> Unit
  * myStateMachine.state = State.TERMINAL
  * ```
  */
-@OptIn(ExperimentalTime::class)
 class StateMachine<StateEnum : Enum<StateEnum>>
 private constructor(
   private val config: Config,

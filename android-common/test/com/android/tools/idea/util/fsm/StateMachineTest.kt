@@ -17,6 +17,9 @@ package com.android.tools.idea.util.fsm
 
 import com.android.tools.idea.util.fsm.StateMachine.Config
 import com.android.tools.idea.util.fsm.StateMachine.SelfTransitionBehavior
+import com.android.utils.time.TestTimeSource
+import com.android.utils.time.TimeSource
+import com.android.utils.time.TimeSource.TimeMark
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.diagnostic.Logger
 import org.apache.log4j.Level
@@ -25,12 +28,8 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
-import kotlin.time.TestTimeSource
-import kotlin.time.TimeMark
-import kotlin.time.TimeSource
+import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalTime::class)
 @RunWith(JUnit4::class)
 class StateMachineTest {
   private val fakeLogger = FakeLogger()
@@ -412,24 +411,24 @@ class StateMachineTest {
         .addTransition(MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL)
         .build()
     assertThat(stateMachine.getDurationInCurrentState()).isEqualTo(Duration.ZERO)
-    timeSource += Duration.milliseconds(42)
-    assertThat(stateMachine.getDurationInCurrentState()).isEqualTo(Duration.milliseconds(42))
-    timeSource += Duration.milliseconds(58)
-    assertThat(stateMachine.getDurationInCurrentState()).isEqualTo(Duration.milliseconds(100))
+    timeSource += 42.milliseconds
+    assertThat(stateMachine.getDurationInCurrentState()).isEqualTo(42.milliseconds)
+    timeSource += 58.milliseconds
+    assertThat(stateMachine.getDurationInCurrentState()).isEqualTo(100.milliseconds)
 
     stateMachine.state = MyGreatFsmState.INITIAL
     assertThat(stateMachine.getDurationInCurrentState()).isEqualTo(Duration.ZERO)
-    timeSource += Duration.milliseconds(31)
-    assertThat(stateMachine.getDurationInCurrentState()).isEqualTo(Duration.milliseconds(31))
-    timeSource += Duration.milliseconds(49)
-    assertThat(stateMachine.getDurationInCurrentState()).isEqualTo(Duration.milliseconds(80))
+    timeSource += 31.milliseconds
+    assertThat(stateMachine.getDurationInCurrentState()).isEqualTo(31.milliseconds)
+    timeSource += 49.milliseconds
+    assertThat(stateMachine.getDurationInCurrentState()).isEqualTo(80.milliseconds)
 
     stateMachine.state = MyGreatFsmState.INITIAL
     assertThat(stateMachine.getDurationInCurrentState()).isEqualTo(Duration.ZERO)
-    timeSource += Duration.milliseconds(57)
-    assertThat(stateMachine.getDurationInCurrentState()).isEqualTo(Duration.milliseconds(57))
-    timeSource += Duration.milliseconds(15)
-    assertThat(stateMachine.getDurationInCurrentState()).isEqualTo(Duration.milliseconds(72))
+    timeSource += 57.milliseconds
+    assertThat(stateMachine.getDurationInCurrentState()).isEqualTo(57.milliseconds)
+    timeSource += 15.milliseconds
+    assertThat(stateMachine.getDurationInCurrentState()).isEqualTo(72.milliseconds)
   }
 
   @Test
@@ -440,23 +439,23 @@ class StateMachineTest {
         .addTransition(MyGreatFsmState.INITIAL, MyGreatFsmState.INITIAL)
         .build()
     assertThat(stateMachine.getMillisecondsInCurrentState()).isEqualTo(0)
-    timeSource += Duration.milliseconds(42)
+    timeSource += 42.milliseconds
     assertThat(stateMachine.getMillisecondsInCurrentState()).isEqualTo(42)
-    timeSource += Duration.milliseconds(58)
+    timeSource += 58.milliseconds
     assertThat(stateMachine.getMillisecondsInCurrentState()).isEqualTo(100)
 
     stateMachine.state = MyGreatFsmState.INITIAL
     assertThat(stateMachine.getMillisecondsInCurrentState()).isEqualTo(0)
-    timeSource += Duration.milliseconds(31)
+    timeSource += 31.milliseconds
     assertThat(stateMachine.getMillisecondsInCurrentState()).isEqualTo(31)
-    timeSource += Duration.milliseconds(49)
+    timeSource += 49.milliseconds
     assertThat(stateMachine.getMillisecondsInCurrentState()).isEqualTo(80)
 
     stateMachine.state = MyGreatFsmState.INITIAL
     assertThat(stateMachine.getMillisecondsInCurrentState()).isEqualTo(0)
-    timeSource += Duration.milliseconds(57)
+    timeSource += 57.milliseconds
     assertThat(stateMachine.getMillisecondsInCurrentState()).isEqualTo(57)
-    timeSource += Duration.milliseconds(15)
+    timeSource += 15.milliseconds
     assertThat(stateMachine.getMillisecondsInCurrentState()).isEqualTo(72)
   }
 

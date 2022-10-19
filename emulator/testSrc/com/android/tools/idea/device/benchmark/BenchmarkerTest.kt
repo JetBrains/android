@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.argumentCaptor
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.device.benchmark.Benchmarker.Adapter
+import com.android.utils.time.TestTimeSource
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -34,15 +35,12 @@ import java.util.TimerTask
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
-import kotlin.time.ExperimentalTime
-import kotlin.time.TestTimeSource
 
 private const val INPUT_RATE_HZ = 5
 private val INPUTS = 1..500
 private val numValues = INPUTS.last - INPUTS.first + 1
 
 /** Tests the [Benchmarker] class. */
-@OptIn(ExperimentalTime::class)
 @RunWith(JUnit4::class)
 class BenchmarkerTest {
   private val results: MutableList<Benchmarker.Results<Int>> = mutableListOf()

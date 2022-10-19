@@ -24,7 +24,6 @@ import com.intellij.util.io.HttpRequests
 import com.intellij.util.io.HttpRequests.HttpStatusException
 import com.intellij.util.io.exists
 import com.intellij.util.io.lastModified
-import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection

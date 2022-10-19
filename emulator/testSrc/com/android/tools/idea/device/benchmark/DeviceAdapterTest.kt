@@ -21,6 +21,9 @@ import com.android.tools.idea.emulator.AbstractDisplayView
 import com.android.tools.idea.emulator.interpolate
 import com.android.tools.idea.emulator.location
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.utils.time.TestTimeSource
+import com.android.utils.time.TimeSource
+import com.android.utils.time.TimeSource.TimeMark
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
@@ -49,12 +52,8 @@ import kotlin.test.assertFailsWith
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.ExperimentalTime
-import kotlin.time.TestTimeSource
-import kotlin.time.TimeMark
 
 /** Tests the [DeviceAdapter] class. */
-@OptIn(ExperimentalTime::class)
 @RunWith(JUnit4::class)
 class DeviceAdapterTest {
   @get:Rule
