@@ -54,6 +54,7 @@ fun createStatusIcon(action: AnAction, target: JComponent): JComponent {
       .apply {
         targetComponent = target
         (this as? ActionToolbarImpl)?.setForceMinimumSize(true)
+        setMiniMode(true)
       }
       .component
       .apply {
