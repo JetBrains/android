@@ -1,7 +1,7 @@
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
 
 COMMON_DATA = [
-    "//prebuilts/studio/jdk",
+    "//prebuilts/studio/jdk:jdk_1_8",
     "//prebuilts/studio/jdk/jdk11",
     "//prebuilts/studio/layoutlib:build.prop",
     "//prebuilts/studio/layoutlib/data:framework_res.jar",

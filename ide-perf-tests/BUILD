@@ -20,7 +20,6 @@ iml_module(
         ":test_deps",
         "//prebuilts/studio/buildbenchmarks:SantaTrackerKotlin_project",
         "//prebuilts/studio/buildbenchmarks:SantaTracker_project",
-        "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",

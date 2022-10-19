@@ -194,7 +194,7 @@ iml_module(
     # keep sorted
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/jdk:jdk_1_8",
         "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",

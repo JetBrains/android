@@ -40,7 +40,6 @@ iml_module(
     test_class = "com.android.tools.idea.databinding.AndroidDataBindingTestSuite",
     test_data = [
         ":testapp_deps",
-        "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",

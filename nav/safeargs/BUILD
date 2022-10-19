@@ -51,7 +51,6 @@ iml_module(
     test_class = "com.android.tools.idea.nav.safeargs.SafeArgsTestSuite",
     # keep sorted
     test_data = [
-        "//prebuilts/studio/jdk",
         "//tools/adt/idea/nav/safeargs/testData",
     ],
     test_srcs = ["testSrc"],

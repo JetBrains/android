@@ -60,7 +60,7 @@ iml_module(
     test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/jdk:jdk_1_8",
         "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:ndk",

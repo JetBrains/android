@@ -37,7 +37,6 @@ iml_module(
             ],
             "shard_count": 9,
             "data": [
-                "//prebuilts/studio/jdk",
                 "//prebuilts/studio/sdk:build-tools/latest",
                 "//prebuilts/studio/sdk:cmake",
                 "//prebuilts/studio/sdk:ndk",

@@ -65,7 +65,6 @@ iml_module(
     test_class = "com.android.build.attribution.AndroidBuildAttributionTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk",
         "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
@@ -111,7 +110,6 @@ old_agp_test(
     timeout = "long",
     agp_version = AGP_7_1,
     data = [
-        "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/build-attribution/testData",

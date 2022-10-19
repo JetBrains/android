@@ -70,7 +70,6 @@ iml_module(
     test_class = "com.android.tools.idea.gradle.structure.GradleProjectSystemStructureTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:ndk",

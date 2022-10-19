@@ -44,7 +44,6 @@ iml_module(
     test_class = "com.android.tools.idea.KotlinIntegrationTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk",
         "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",

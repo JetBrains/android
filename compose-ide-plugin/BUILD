@@ -32,7 +32,6 @@ iml_module(
     tags = ["no_test_windows"],  # b/208245297
     test_class = "com.android.tools.tests.ComposeTestSuite",
     test_data = [
-        "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platform-tools",
