@@ -30,7 +30,7 @@ public final class WizardUtils {
   }
 
   public static void createNewProject(@NotNull GuiTestRule guiTest) {
-    createNewProject(guiTest, "Empty Activity");
+    createNewProject(guiTest, "Empty Views Activity");
 
     // Assert it opens the Code and Layout files on the editor
     assertThat(FileEditorManager.getInstance(guiTest.ideFrame().getProject()).getOpenFiles()).hasLength(2);

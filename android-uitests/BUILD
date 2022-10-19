@@ -836,7 +836,7 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([
-        "testData/SimpleAppWithSharedIndex/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateDefaultActivityTest"],
     tags = COMMON_TAGS + [

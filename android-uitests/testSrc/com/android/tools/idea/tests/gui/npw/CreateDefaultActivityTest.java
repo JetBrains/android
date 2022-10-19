@@ -39,7 +39,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateDefaultActivityTest {
-  private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleappwithsharedindex/MyActivity.java";
+  private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleapplication/MyActivity.java";
   private static final String PROVIDED_MANIFEST = "app/src/main/AndroidManifest.xml";
   private static final String APP_BUILD_GRADLE = "app/build.gradle";
   private static final String DEFAULT_ACTIVITY_NAME = "MainActivity";
@@ -53,7 +53,7 @@ public class CreateDefaultActivityTest {
 
   @Before
   public void setUp() throws IOException {
-    guiTest.importProjectWithSharedIndexAndWaitForProjectSyncToFinish("SimpleAppWithSharedIndex", Wait.seconds(120));
+    guiTest.importProjectWithSharedIndexAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(300));
     guiTest.ideFrame().getProjectView().selectProjectPane();
     myEditor = guiTest.ideFrame().getEditor();
     myEditor.open(PROVIDED_ACTIVITY);
@@ -92,7 +92,7 @@ public class CreateDefaultActivityTest {
     myDialog.clickFinishAndWaitForSyncToFinish(Wait.seconds(120));
 
     guiTest.ideFrame().getProjectView().assertFilesExist(
-      "app/src/main/java/google/simpleappwithsharedindex/MainActivity.java",
+      "app/src/main/java/google/simpleapplication/MainActivity.java",
       "app/src/main/res/layout/activity_main.xml"
     );
 
@@ -107,10 +107,10 @@ public class CreateDefaultActivityTest {
 
   // Note: This should be called only when the last open file was a Java/Kotlin file
   private void invokeNewActivityMenu() {
-    guiTest.ideFrame().invokeMenuPath("File", "New", "Activity", "Basic Activity");
+    guiTest.ideFrame().invokeMenuPath("File", "New", "Activity", "Basic Views Activity");
     myDialog = NewActivityWizardFixture.find(guiTest.ideFrame());
 
-    myConfigActivity = myDialog.getConfigureActivityStep("Basic Activity");
+    myConfigActivity = myDialog.getConfigureActivityStep("Basic Views Activity");
   }
 
   private void assertTextFieldValues(@NotNull String activityName, @NotNull String layoutName) {

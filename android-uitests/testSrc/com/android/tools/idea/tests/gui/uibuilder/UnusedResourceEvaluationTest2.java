@@ -39,7 +39,7 @@ public class UnusedResourceEvaluationTest2 {
 
   @Before
   public void setUp() {
-    WizardUtils.createNewProject(guiTest, "Basic Activity");
+    WizardUtils.createNewProject(guiTest, "Basic Views Activity");
     guiTest.robot().waitForIdle();
   }
 
