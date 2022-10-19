@@ -180,13 +180,13 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewEmptyViewActivity() {
-    checkCreateTemplate("Empty View Activity")
+    checkCreateTemplate("Empty Views Activity")
   }
 
   @TemplateCheck
   @Test
   fun testNewEmptyViewActivityWithKotlin() {
-    checkCreateTemplate("Empty View Activity", withKotlin)
+    checkCreateTemplate("Empty Views Activity", withKotlin)
   }
 
   @TemplateCheck

@@ -40,7 +40,7 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
   @Rule
   public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
-  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty View Activity";
+  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
   protected static final String DEBUG_IMPORT_CLASS_NAME = "com.google.myapplication.DebugTest.BuildVariantDebugClass";
   protected static final String DEBUG_IMPORT_CLASS_STRING_USAGE = "BuildVariantDebugClass testingClassDebug = new BuildVariantDebugClass();";
   protected static final String RELEASE_IMPORT_CLASS_NAME = "com.google.myapplication.ReleaseTest.BuildVariantReleaseClass";

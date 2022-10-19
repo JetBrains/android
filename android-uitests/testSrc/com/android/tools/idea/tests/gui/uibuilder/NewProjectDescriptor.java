@@ -27,7 +27,7 @@ class NewProjectDescriptor {
   private int myMinSdkApi = SdkVersionInfo.LOWEST_ACTIVE_API;
   private String myName = "TestProject";
   // TODO(qumeric): consider adding "save location"
-  private String myActivity = "Empty View Activity";
+  private String myActivity = "Empty Views Activity";
 
   protected NewProjectDescriptor(@NotNull String name) {
     withName(name);

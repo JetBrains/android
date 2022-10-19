@@ -179,7 +179,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
 
   "Basic Views Activity" -> TemplateRenderer.BASIC_ACTIVITIY
   "Basic Activity (Material3)" -> TemplateRenderer.BASIC_ACTIVITIY
-  "Empty View Activity" -> TemplateRenderer.EMPTY_ACTIVITY
+  "Empty Views Activity" -> TemplateRenderer.EMPTY_ACTIVITY
   "Blank Activity" -> if (formFactor == FormFactor.Wear) TemplateRenderer.BLANK_WEAR_ACTIVITY else TemplateRenderer.BLANK_ACTIVITY
   "Login View Activity" -> TemplateRenderer.LOGIN_ACTIVITY
   "Tabbed View Activity" -> TemplateRenderer.TABBED_ACTIVITY

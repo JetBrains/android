@@ -46,7 +46,7 @@ import org.junit.runner.RunWith;
 public class AltEnterSuggestionsTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
 
-  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty View Activity";
+  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
 
   @Before
   public void setUp() throws Exception {
