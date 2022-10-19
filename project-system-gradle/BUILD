@@ -56,6 +56,17 @@ iml_module(
 iml_module(
     name = "intellij.android.projectSystem.gradle.tests",
     iml_files = ["intellij.android.projectSystem.gradle.tests.iml"],
+    split_test_targets = {
+        "jdk.integration": {
+            "data": [
+                "//prebuilts/studio/jdk/jdk11",
+            ],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.jdk",
+        },
+        "other": {
+            "shard_count": 27,
+        },
+    },
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemTestSuite",
     test_data = [
@@ -78,7 +89,6 @@ iml_module(
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_resources = ["testSrc/resources"],
-    test_shard_count = 27,
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
