@@ -27,7 +27,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JButton
-import javax.swing.JCheckBox
 import javax.swing.JEditorPane
 
 /**
@@ -48,47 +47,35 @@ class MirroringConfirmationDialogTest {
   }
 
   @Test
-  fun testYes() {
-    val dialogPanel = MirroringConfirmationDialog("Pixel 6", doNotAskAgain = false)
+  fun testAccept() {
+    val dialogPanel = MirroringConfirmationDialog("Pixel 6")
     val dialogWrapper = dialogPanel.createWrapper()
     createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
       val rootPane = dlg.rootPane
       val ui = FakeUi(rootPane)
       val message = ui.getComponent<JEditorPane>()
-      assertThat(message.text).contains("Would you like to start mirroring of Pixel 6?")
-      val doNotAskAgainCheckBox = ui.getComponent<JCheckBox>()
-      assertThat(doNotAskAgainCheckBox.text).isEqualTo("Remember my choice and don't ask again when a device is connected")
-      assertThat(doNotAskAgainCheckBox.isSelected).isFalse()
+      assertThat(message.text).contains("<b>Warning:</b> Mirroring might result in information disclosure")
 
-      doNotAskAgainCheckBox.isSelected = true
-
-      val yesButton = rootPane.defaultButton
-      assertThat(yesButton.text).isEqualTo("Yes")
-      ui.clickOn(yesButton)
+      val acceptButton = rootPane.defaultButton
+      assertThat(acceptButton.text).isEqualTo("Acknowledge")
+      ui.clickOn(acceptButton)
     }
 
-    assertThat(dialogWrapper.exitCode).isEqualTo(MirroringConfirmationDialog.YES_EXIT_CODE)
-    assertThat(dialogPanel.doNotAskAgain).isTrue()
+    assertThat(dialogWrapper.exitCode).isEqualTo(MirroringConfirmationDialog.ACCEPT_EXIT_CODE)
   }
 
   @Test
-  fun testNo() {
-    val dialogPanel = MirroringConfirmationDialog("Pixel 5", doNotAskAgain = true)
+  fun testReject() {
+    val dialogPanel = MirroringConfirmationDialog("Pixel 5")
     val dialogWrapper = dialogPanel.createWrapper()
     createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
       val rootPane = dlg.rootPane
       val ui = FakeUi(rootPane)
-      val doNotAskAgainCheckBox = ui.getComponent<JCheckBox>()
-      assertThat(doNotAskAgainCheckBox.isSelected).isTrue()
-
-      doNotAskAgainCheckBox.isSelected = false
-
-      val noButton = ui.getComponent<JButton> { !it.isDefaultButton }
-      assertThat(noButton.text).isEqualTo("No")
-      ui.clickOn(noButton)
+      val rejectButton = ui.getComponent<JButton> { !it.isDefaultButton }
+      assertThat(rejectButton.text).isEqualTo("Disable Mirroring")
+      ui.clickOn(rejectButton)
     }
 
-    assertThat(dialogWrapper.exitCode).isEqualTo(MirroringConfirmationDialog.NO_EXIT_CODE)
-    assertThat(dialogPanel.doNotAskAgain).isFalse()
+    assertThat(dialogWrapper.exitCode).isEqualTo(MirroringConfirmationDialog.REJECT_EXIT_CODE)
   }
 }

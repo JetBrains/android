@@ -63,6 +63,12 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
       }
     }
 
+  /**
+   * This property indicates whether the MirroringConfirmationDialog was shown at least once.
+   * It is not reflected in DeviceMirroringSettingsUi.
+   */
+  var confirmationDialogShown: Boolean = false
+
   override fun getState(): DeviceMirroringSettings = this
 
   override fun loadState(state: DeviceMirroringSettings) {

@@ -26,6 +26,8 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.SetPortableUiFontRule
+import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
+import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
@@ -65,6 +67,7 @@ import java.awt.Point
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
+import javax.swing.JButton
 import javax.swing.JViewport
 import javax.swing.UIManager
 
@@ -83,6 +86,7 @@ class EmulatorToolWindowManagerTest {
   private val toolWindow: ToolWindow by lazy { createToolWindow() }
   private val contentManager: ContentManager by lazy { toolWindow.contentManager }
 
+  private val deviceMirroringSettings: DeviceMirroringSettings by lazy { DeviceMirroringSettings.getInstance() }
   private var savedMirroringEnabledState = false
 
   private val project get() = agentRule.project
@@ -97,19 +101,22 @@ class EmulatorToolWindowManagerTest {
 
   @Before
   fun setUp() {
+    enableHeadlessDialogs(testRootDisposable)
     val mockLafManager = mock<LafManager>()
     whenever(mockLafManager.currentLookAndFeel).thenReturn(UIManager.LookAndFeelInfo("IntelliJ Light", "Ignored className"))
     ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, testRootDisposable)
 
     savedMirroringEnabledState = DeviceMirroringSettings.getInstance().deviceMirroringEnabled
-    DeviceMirroringSettings.getInstance().deviceMirroringEnabled = true
+    deviceMirroringSettings.deviceMirroringEnabled = true
+    deviceMirroringSettings.confirmationDialogShown = true
   }
 
   @After
   fun tearDown() {
     toolWindow.hide()
     dispatchAllEventsInIdeEventQueue() // Finish asynchronous processing triggered by hiding the tool window.
-    DeviceMirroringSettings.getInstance().deviceMirroringEnabled = savedMirroringEnabledState
+    deviceMirroringSettings.deviceMirroringEnabled = savedMirroringEnabledState
+    deviceMirroringSettings.confirmationDialogShown = false
   }
 
   @Test
@@ -327,6 +334,58 @@ class EmulatorToolWindowManagerTest {
   }
 
   @Test
+  fun testMirroringConfirmationDialogAccept() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
+    windowFactory.createToolWindowContent(project, toolWindow)
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+
+    deviceMirroringSettings.confirmationDialogShown = false
+
+    val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+
+    createModalDialogAndInteractWithIt(toolWindow::show) { dlg ->
+      val ui = FakeUi(dlg.rootPane)
+      ui.clickOn(ui.getComponent<JButton> { it.text == "Acknowledge" })
+    }
+
+    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    assertThat(contentManager.contents[0].displayName).isEqualTo("Google Pixel 4")
+
+    agentRule.disconnectDevice(device)
+    waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+
+    assertThat(deviceMirroringSettings.confirmationDialogShown).isTrue()
+    assertThat(deviceMirroringSettings.deviceMirroringEnabled).isTrue()
+  }
+
+  @Test
+  fun testMirroringConfirmationDialogReject() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
+    windowFactory.createToolWindowContent(project, toolWindow)
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+
+    deviceMirroringSettings.confirmationDialogShown = false
+
+    agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+
+    createModalDialogAndInteractWithIt(toolWindow::show) { dlg ->
+      val ui = FakeUi(dlg.rootPane)
+      ui.clickOn(ui.getComponent<JButton> { it.text == "Disable Mirroring" })
+    }
+
+    assertThat(deviceMirroringSettings.confirmationDialogShown).isTrue()
+    assertThat(deviceMirroringSettings.deviceMirroringEnabled).isFalse()
+  }
+
+  @Test
   fun testUnsupportedPhysicalPhone() {
     if (!isFFmpegAvailableToTest()) {
       return
@@ -336,7 +395,7 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
-    val device = agentRule.connectDevice("Pixel", 25, Dimension(1080, 1920), "armeabi-v7a")
+    agentRule.connectDevice("Pixel", 25, Dimension(1080, 1920), "armeabi-v7a")
     toolWindow.show()
 
     dispatchAllEventsInIdeEventQueue()
@@ -344,7 +403,6 @@ class EmulatorToolWindowManagerTest {
     dispatchAllEventsInIdeEventQueue()
     assertThat(contentManager.contents.size == 1).isTrue()
     assertThat(contentManager.contents[0].displayName).isNull()
-    agentRule.disconnectDevice(device)
   }
 
   @Test
@@ -357,8 +415,8 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
-    val device = agentRule.connectDevice("LG Watch Sport", 29, Dimension(480, 480), "armeabi-v7a",
-                                         mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
+    agentRule.connectDevice("LG Watch Sport", 29, Dimension(480, 480), "armeabi-v7a",
+                            mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
     toolWindow.show()
 
     dispatchAllEventsInIdeEventQueue()
@@ -366,7 +424,6 @@ class EmulatorToolWindowManagerTest {
     dispatchAllEventsInIdeEventQueue()
     assertThat(contentManager.contents.size == 1).isTrue()
     assertThat(contentManager.contents[0].displayName).isNull()
-    agentRule.disconnectDevice(device)
   }
 
   @Test
