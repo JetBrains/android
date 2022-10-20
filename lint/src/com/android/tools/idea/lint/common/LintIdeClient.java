@@ -44,6 +44,7 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.LintMap;
 import com.android.tools.lint.detector.api.Location;
+import com.android.tools.lint.detector.api.PartialResult;
 import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.Severity;
 import com.android.tools.lint.detector.api.TextFormat;
@@ -99,6 +100,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -127,6 +129,8 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Nullable protected Map<com.android.tools.lint.detector.api.Project, Module> myModuleMap;
 
   protected final LintResult myLintResult;
+
+  @Nullable protected Map<Issue, PartialResult> partialResults;
 
   public LintIdeClient(@NonNull Project project, @NonNull LintResult lintResult) {
     super(CLIENT_STUDIO);
@@ -796,5 +800,23 @@ public class LintIdeClient extends LintClient implements Disposable {
       }
     }
     return false;
+  }
+
+  @NotNull
+  @Override
+  public PartialResult getPartialResults(@NotNull com.android.tools.lint.detector.api.Project project, @NotNull Issue issue) {
+    if (partialResults == null) {
+      partialResults = new LinkedHashMap<>();
+    }
+    PartialResult partialResult = partialResults.get(issue);
+    if (partialResult == null) {
+      partialResult = new PartialResult(issue, new LinkedHashMap<>());
+      partialResults.put(issue, partialResult);
+    }
+
+    // PartialResult.map needs to return the LintMap for the "requested project"
+    // (i.e. whichever project was passed in to this method). Thus, we return a
+    // clone of partialResult with the requestedProject field set.
+    return PartialResult.withRequestedProject(partialResult, project);
   }
 }

@@ -107,6 +107,7 @@ import com.android.tools.idea.lint.inspections.AndroidLintScrollViewCountInspect
 import com.android.tools.idea.lint.inspections.AndroidLintScrollViewSizeInspection
 import com.android.tools.idea.lint.inspections.AndroidLintSdCardPathInspection
 import com.android.tools.idea.lint.inspections.AndroidLintSelectableTextInspection
+import com.android.tools.idea.lint.inspections.AndroidLintSetAndClearCommunicationDeviceInspection
 import com.android.tools.idea.lint.inspections.AndroidLintSignatureOrSystemPermissionsInspection
 import com.android.tools.idea.lint.inspections.AndroidLintSourceLockedOrientationActivityInspection
 import com.android.tools.idea.lint.inspections.AndroidLintSpUsageInspection
@@ -216,8 +217,8 @@ class AndroidLintTest : AndroidTestCase() {
     }
     else if ("testAppCompatMethod" == name || "testExtendAppCompatWidgets" == name) {
       addModuleWithAndroidFacet(projectBuilder, modules, "appcompat", AndroidProjectTypes.PROJECT_TYPE_APP)
-    } else if ("testAddSdkIntJava" == name || "testAddSdkIntKotlin" == name) {
-      // These lint checks only do something in libraries, not app modules
+    }
+    else if ("testAddSdkIntJava" == name || "testAddSdkIntKotlin" == name || name.startsWith("testPartialResultsGlobalAnalysis")) {
       addModuleWithAndroidFacet(projectBuilder, modules, "module1", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
     }
   }
@@ -1315,6 +1316,137 @@ class AndroidLintTest : AndroidTestCase() {
     myFixture.checkResultByFile("$globalTestDir/strings_after.xml")
   }
 
+  fun testPartialResultsGlobalAnalysis1() {
+    // Regression test for b/249387643: Partial result maps were not working in
+    // IDE batch/global analysis. Detectors can use partial result maps, even in
+    // a global analysis. A good example of this is
+    // AndroidLintSetAndClearCommunicationDeviceInspection
+    // (CommunicationDeviceDetector), which the test runs. The test creates two
+    // modules, where both modules contain a problem (they both call
+    // setCommunicationDevice, and no module contains a call to
+    // clearCommunicationDevice). The test ensures the analysis runs
+    // successfully, and both problems are reported.
+    // testPartialResultsGlobalAnalysis2 tests a similar scenario where no
+    // problems are reported.
+    myFixture.addFileToProject(
+      "src/p1/p2/MainActivity.java",
+      """
+      package p1.p2;
+
+      import android.app.Activity;
+      import android.os.Bundle;
+
+      import android.media.AudioDeviceInfo;
+      import android.media.AudioManager;
+
+      public class MainActivity extends Activity {
+
+        public AudioManager manager;
+        public AudioDeviceInfo info;
+
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+          super.onCreate(savedInstanceState);
+
+          manager.setCommunicationDevice(info);
+        }
+      }""".trimIndent())
+
+    myFixture.addFileToProject("AndroidManifest.xml", manifestContents(32, 32))
+
+    myFixture.addFileToProject(
+      "additionalModules/module1/src/p1/p2/LibraryActivity.java",
+      """
+      package p1.p2;
+
+      import android.app.Activity;
+      import android.os.Bundle;
+
+      import android.media.AudioDeviceInfo;
+      import android.media.AudioManager;
+
+      public class LibraryActivity extends Activity {
+
+        public AudioManager manager;
+        public AudioDeviceInfo info;
+
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+          super.onCreate(savedInstanceState);
+
+          manager.setCommunicationDevice(info);
+        }
+      }""".trimIndent())
+
+    myFixture.addFileToProject("additionalModules/module1/AndroidManifest.xml", manifestContents(32, 32))
+
+    val inspection = AndroidLintSetAndClearCommunicationDeviceInspection()
+    myFixture.enableInspections(inspection)
+    doGlobalInspectionTest(inspection, globalTestDir, AnalysisScope(project))
+  }
+
+  fun testPartialResultsGlobalAnalysis2() {
+    // Same as testPartialResultsGlobalAnalysis1, except we create two modules
+    // where one calls setCommunicationDevice and the other calls
+    // clearCommunicationDevice. The test checks that no problems are reported,
+    // which ensures the partial results from each module are correctly
+    // combined.
+    myFixture.addFileToProject(
+      "src/p1/p2/MainActivity.java",
+      """
+      package p1.p2;
+
+      import android.app.Activity;
+      import android.os.Bundle;
+
+      import android.media.AudioDeviceInfo;
+      import android.media.AudioManager;
+
+      public class MainActivity extends Activity {
+
+        public AudioManager manager;
+        public AudioDeviceInfo info;
+
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+          super.onCreate(savedInstanceState);
+
+          manager.setCommunicationDevice(info);
+        }
+      }""".trimIndent())
+
+    myFixture.addFileToProject("AndroidManifest.xml", manifestContents(32, 32))
+
+    myFixture.addFileToProject(
+      "additionalModules/module1/src/p1/p2/LibraryActivity.java",
+      """
+      package p1.p2;
+
+      import android.app.Activity;
+      import android.os.Bundle;
+
+      import android.media.AudioDeviceInfo;
+      import android.media.AudioManager;
+
+      public class LibraryActivity extends Activity {
+
+        public AudioManager manager;
+
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+          super.onCreate(savedInstanceState);
+
+          manager.clearCommunicationDevice();
+        }
+      }""".trimIndent())
+
+    myFixture.addFileToProject("additionalModules/module1/AndroidManifest.xml", manifestContents(32, 32))
+
+    val inspection = AndroidLintSetAndClearCommunicationDeviceInspection()
+    myFixture.enableInspections(inspection)
+    doGlobalInspectionTest(inspection, globalTestDir, AnalysisScope(project))
+  }
+
   fun testMergeObsoleteFolders() { // Force minSdkVersion to v14:
     deleteManifest()
     addMinSdkManifest(14)
@@ -1716,14 +1848,7 @@ class AndroidLintTest : AndroidTestCase() {
   }
 
   private fun addMinSdkManifest(minSdk: Int) {
-    myFixture.addFileToProject("AndroidManifest.xml",
-                               """
-                                <?xml version="1.0" encoding="utf-8"?>
-                                <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-                                    package="test.pkg" >
-                                    <uses-sdk android:minSdkVersion="$minSdk" android:targetSdkVersion="25" />
-                                </manifest>"
-                               """.trimIndent())
+    myFixture.addFileToProject("AndroidManifest.xml", manifestContents(minSdk, 25))
   }
 
   private fun addRequiresApi() {
@@ -1915,6 +2040,16 @@ class AndroidLintTest : AndroidTestCase() {
         }
       }
       return false
+    }
+
+    private fun manifestContents(minSdk: Int, targetSdk: Int): String {
+      return """
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+            package="test.pkg" >
+            <uses-sdk android:minSdkVersion="$minSdk" android:targetSdkVersion="$targetSdk" />
+        </manifest>"
+       """.trimIndent()
     }
   }
 }

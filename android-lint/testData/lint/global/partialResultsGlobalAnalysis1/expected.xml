@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<problems>
+  <problem>
+    <file>MainActivity.java</file>
+    <line>18</line>
+    <description>&lt;html&gt;Must call &lt;code&gt;clearCommunicationDevice()&lt;/code&gt; after &lt;code&gt;setCommunicationDevice()&lt;/code&gt;&lt;/html&gt;</description>
+  </problem>
+  <problem>
+    <file>LibraryActivity.java</file>
+    <line>18</line>
+    <description>&lt;html&gt;Must call &lt;code&gt;clearCommunicationDevice()&lt;/code&gt; after &lt;code&gt;setCommunicationDevice()&lt;/code&gt;&lt;/html&gt;</description>
+  </problem>
+</problems>
