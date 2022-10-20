@@ -19,6 +19,10 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.device.explorer.DeviceExplorerModel
 import com.android.tools.idea.deviceprovisioner.DeviceHandleRenderer
 import com.android.tools.idea.deviceprovisioner.toIterable
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleTextAttributes
@@ -26,11 +30,12 @@ import com.intellij.ui.components.JBLoadingPanel
 import icons.AndroidIcons
 import kotlinx.coroutines.flow.collect
 import java.awt.BorderLayout
+import java.util.concurrent.CancellationException
 import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JList
 
-class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorerModel): DeviceExplorerView {
+class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorerModel, private val toolWindowID: String): DeviceExplorerView {
   private val listeners: MutableList<DeviceExplorerViewListener> = ArrayList()
   private val loadingPanel: JBLoadingPanel = JBLoadingPanel(BorderLayout(), project)
   private val panel = DeviceExplorerPanel()
@@ -88,6 +93,21 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
   override suspend fun trackActiveDeviceChanges() {
     model.activeDevice.collect {
       panel.deviceCombo.selectedItem = it
+    }
+  }
+
+  override fun reportErrorGeneric(message: String, t: Throwable) { reportError(message, t) }
+
+  private fun reportError(message: String, t: Throwable) {
+    if (t is CancellationException) {
+      return
+    }
+
+    val updatedMessage = if (t.message != null) "$message: ${t.message}" else message
+    val notification = Notification(toolWindowID, toolWindowID, updatedMessage, NotificationType.WARNING)
+
+    ApplicationManager.getApplication().invokeLater {
+      Notifications.Bus.notify(notification)
     }
   }
 

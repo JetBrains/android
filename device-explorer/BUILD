@@ -19,5 +19,6 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
+        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
     ],
 )

@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer.files;
+package com.android.tools.idea.device.explorer;
+
+import static com.android.tools.idea.device.explorer.DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.device.explorer.files.DeviceFileExplorerController;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -32,8 +33,8 @@ import org.jetbrains.annotations.NotNull;
  * Note that DeviceExplorerToolWindowFactory is used by the platform directly; these methods are
  * essentially convenience wrappers around it.
  */
-public class DeviceExplorer {
-  private DeviceExplorer() {}
+public class DeviceExplorerWrapper {
+  private DeviceExplorerWrapper() {}
 
   /** Shows Device Explorer and selects the given AVD. */
   public static void openAndShowDevice(Project project, @NotNull AvdInfo avdInfo) {
@@ -41,7 +42,7 @@ public class DeviceExplorer {
       return;
     }
 
-    DeviceFileExplorerController controller = DeviceFileExplorerController.getProjectController(project);
+    DeviceExplorerController controller = DeviceExplorerController.getProjectController(project);
     assert controller != null;
     assert AndroidDebugBridge.getBridge() != null;
 
@@ -50,6 +51,12 @@ public class DeviceExplorer {
         Arrays.stream(AndroidDebugBridge.getBridge().getDevices())
             .filter(device -> avdName.equals(device.getAvdName()))
             .findAny();
+    if (!optionalIDevice.isPresent()) {
+      controller.reportErrorFindingDevice("Unable to find AVD " + avdName + " by name. Please retry.");
+      return;
+    }
+
+    controller.selectActiveDevice(optionalIDevice.get().getSerialNumber());
   }
 
   /** Shows Device Explorer and selects the device with the given serial number. */
@@ -58,15 +65,16 @@ public class DeviceExplorer {
       return;
     }
 
-    DeviceFileExplorerController controller = DeviceFileExplorerController.getProjectController(project);
+    DeviceExplorerController controller = DeviceExplorerController.getProjectController(project);
     assert controller != null;
 
+    controller.selectActiveDevice(serialNumber);
   }
 
   /** Shows Device Explorer, creating it if necessary. */
   public static boolean showToolWindow(Project project) {
     ToolWindow toolWindow = ToolWindowManager.getInstance(project)
-        .getToolWindow("Device Explorer Tool Window ID");
+        .getToolWindow(TOOL_WINDOW_ID);
 
     if (toolWindow != null) {
       toolWindow.show();

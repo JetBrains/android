@@ -46,7 +46,7 @@ class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
     toolWindow.setToHideOnEmptyContent(true)
     toolWindow.title = TOOL_WINDOW_ID
     val model = DeviceExplorerModel(project)
-    val view = DeviceExplorerViewImpl(project, model)
+    val view = DeviceExplorerViewImpl(project, model, TOOL_WINDOW_ID)
     val deviceMonitorController = createDeviceMonitorController(project)
     val deviceFilesController = createDeviceFilesController(project)
     val deviceExplorerController = DeviceExplorerController(project, model, view, deviceFilesController, deviceMonitorController)

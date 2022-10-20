@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device.explorer
 
+import com.android.adblib.serialNumber
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -25,6 +26,7 @@ import com.android.tools.idea.device.explorer.ui.DeviceExplorerViewListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Key
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
@@ -41,6 +43,7 @@ class DeviceExplorerController(
   init {
     Disposer.register(project, this)
     view.addListener(viewListener)
+    project.putUserData(KEY, this)
   }
 
   override fun dispose() {
@@ -59,17 +62,42 @@ class DeviceExplorerController(
     }
   }
 
+  fun reportErrorFindingDevice(message: String) {
+    view.reportErrorGeneric(message, IllegalStateException())
+  }
+
+  fun selectActiveDevice(serialNumber: String) {
+    uiThreadScope.launch {
+      when (val device = model.devices.value.find { it.state.connectedDevice?.serialNumber == serialNumber }) {
+        null -> reportErrorFindingDevice("Unable to find device with serial number $serialNumber. Please retry.")
+        else -> setActiveDevice(device)
+      }
+    }
+  }
+
+  private fun setActiveDevice(deviceHandle: DeviceHandle?) {
+    model.setActiveDevice(deviceHandle)
+    deviceMonitorController.activeDeviceChanged(deviceHandle?.state?.connectedDevice)
+    deviceFilesController.setActiveConnectedDevice(deviceHandle, deviceHandle?.state?.connectedDevice)
+  }
+
   private inner class ViewListener : DeviceExplorerViewListener {
     override fun noDeviceSelected() {
-      model.setActiveDevice(null)
-      deviceMonitorController.activeDeviceChanged(null)
-      deviceFilesController.setActiveConnectedDevice(null, null)
+      setActiveDevice(null)
     }
 
     override fun deviceSelected(deviceHandle: DeviceHandle) {
-      model.setActiveDevice(deviceHandle)
-      deviceMonitorController.activeDeviceChanged(deviceHandle.state.connectedDevice)
-      deviceFilesController.setActiveConnectedDevice(deviceHandle, deviceHandle.state.connectedDevice)
+      setActiveDevice(deviceHandle)
+    }
+  }
+
+  companion object {
+    private val KEY = Key.create<DeviceExplorerController>(
+      DeviceExplorerController::class.java.name
+    )
+    @JvmStatic
+    fun getProjectController(project: Project?): DeviceExplorerController? {
+      return project?.getUserData(KEY)
     }
   }
 }

@@ -26,4 +26,5 @@ interface DeviceExplorerView {
   suspend fun trackDeviceListChanges()
   suspend fun trackActiveDeviceChanges()
 
+  fun reportErrorGeneric(message: String, t: Throwable)
 }

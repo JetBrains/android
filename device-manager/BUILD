@@ -23,6 +23,7 @@ iml_module(
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
         "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing[module]",
         "//tools/adt/idea/device-file-explorer-toolwindow:intellij.android.device-file-explorer-toolwindow[module]",
+        "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
     ],
 )

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import java.awt.Component;
@@ -27,7 +28,10 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellRenderer<D ext
   private final @NotNull DeviceTable<@NotNull D> myTable;
 
   public ActivateDeviceFileExplorerWindowButtonTableCellRenderer(@Nullable Project project, @NotNull DeviceTable<@NotNull D> table) {
-    super(AllIcons.Actions.MenuOpen, "Open this device in the Device File Explorer.");
+    super(AllIcons.Actions.MenuOpen,
+          StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()
+            ? "Open this device in the Device Explorer."
+            : "Open this device in the Device File Explorer.");
 
     myProject = project;
     myTable = table;
