@@ -86,6 +86,7 @@ class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
             runInEdt { it.showSessionTab() }
           }
       }
+      return
     }
 
     // Unregister the previous listener just in case there is the old one.
