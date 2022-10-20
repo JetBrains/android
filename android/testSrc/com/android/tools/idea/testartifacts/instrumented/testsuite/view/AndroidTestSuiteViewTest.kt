@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
@@ -34,6 +35,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.testframework.sm.TestHistoryConfiguration
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -45,6 +47,7 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.dualView.TreeTableView
 import com.intellij.util.TimeoutUtil.sleep
 import com.intellij.util.ui.UIUtil
@@ -56,10 +59,13 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import java.time.Clock
 import java.time.Duration
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * Unit tests for [AndroidTestSuiteView].
@@ -602,7 +608,12 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun testHistoryIsSavedAfterRerunTestExecution() {
-    val initialTestHistoryCount = getTestHistory().size
+    val historySavedLatch = CountDownLatch(2)
+    val testHistoryConfigurationMock = Mockito.mock(TestHistoryConfiguration::class.java)
+    Mockito.`when`(testHistoryConfigurationMock.registerHistoryItem(any(), eq("mockRunConfig"), any())).then {
+      historySavedLatch.countDown()
+    }
+    projectRule.project.replaceService(TestHistoryConfiguration::class.java, testHistoryConfigurationMock, disposableRule.disposable)
 
     val runConfig = mock<RunConfiguration>().apply {
       whenever(name).thenReturn("mockRunConfig")
@@ -633,13 +644,7 @@ class AndroidTestSuiteViewTest {
 
     view.onTestSuiteFinished(device1, testsuiteOnDevice1)
 
-    assertThat(ProgressIndicatorUtils.withTimeout(30000) {
-      while(getTestHistory().size != initialTestHistoryCount + 2) {
-        ProgressManager.checkCanceled()
-        sleep(100)
-      }
-      true
-    }).isTrue()
+    assertThat(historySavedLatch.await(30, TimeUnit.SECONDS)).isTrue()
   }
 
   private fun getTestHistory(): List<ImportTestsFromHistoryAction> {

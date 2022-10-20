@@ -18,7 +18,6 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ExportAndroidTestResultsAction
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestGroup
@@ -27,6 +26,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_T
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsTreeNode
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.isRootAggregationResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.AndroidTestResultsXmlFormatter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
@@ -68,6 +68,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ActionButtonLook
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.PerformInBackgroundOption
 import com.intellij.openapi.progress.ProgressIndicator
@@ -76,6 +77,7 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.ToolWindowManager
@@ -552,7 +554,6 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       }
     }
 
-  @UiThread
   private fun saveHistory() {
     val runConfiguration = runConfiguration ?: return
     ProgressManager.getInstance().run(
@@ -580,12 +581,15 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
             }
             setResult(StreamResult(FileWriter(outputFile)))
           }
+          val rootResultsNode = Ref.create<AndroidTestResultsTreeNode>()
+          ApplicationManager.getApplication().invokeAndWait { rootResultsNode.set(myResultsTableView.rootResultsNode) }
           AndroidTestResultsXmlFormatter(
             Duration.ofMillis(myTestFinishedTimeMillis - myTestStartTimeMillis),
-            myResultsTableView.rootResultsNode,
+            rootResultsNode.get(),
             myScheduledDevices.toList(),
             runConfiguration,
             transformerHandler).execute()
+
           myResultFile = outputFile
         }
 
