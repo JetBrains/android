@@ -17,8 +17,8 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ExportAndroidTestResultsAction
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestGroup
@@ -68,6 +68,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ActionButtonLook
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.PerformInBackgroundOption
 import com.intellij.openapi.progress.ProgressIndicator
@@ -552,7 +553,6 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       }
     }
 
-  @UiThread
   private fun saveHistory() {
     val runConfiguration = runConfiguration ?: return
     ProgressManager.getInstance().run(
@@ -580,12 +580,17 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
             }
             setResult(StreamResult(FileWriter(outputFile)))
           }
-          AndroidTestResultsXmlFormatter(
-            Duration.ofMillis(myTestFinishedTimeMillis - myTestStartTimeMillis),
-            myResultsTableView.rootResultsNode,
-            myScheduledDevices.toList(),
-            runConfiguration,
-            transformerHandler).execute()
+          runInEdt {
+            val rootResultsNode = myResultsTableView.rootResultsNode
+            executeOnPooledThread {
+              AndroidTestResultsXmlFormatter(
+                Duration.ofMillis(myTestFinishedTimeMillis - myTestStartTimeMillis),
+                rootResultsNode,
+                myScheduledDevices.toList(),
+                runConfiguration,
+                transformerHandler).execute()
+            }
+          }
           myResultFile = outputFile
         }
 
