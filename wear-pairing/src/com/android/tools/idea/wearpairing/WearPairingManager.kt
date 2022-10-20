@@ -42,6 +42,7 @@ import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
@@ -67,7 +68,10 @@ import java.util.regex.Pattern
 
 private val LOG get() = logger<WearPairingManager>()
 
-object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
+@Service(
+  Service.Level.APP
+)
+class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   enum class PairingState {
     UNKNOWN,
     OFFLINE, // One or both device are offline/disconnected
@@ -110,9 +114,6 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   private val pairedDevicesList = mutableListOf<PhoneWearPair>()
-
-  @JvmStatic
-  fun getInstance(): WearPairingManager = this
 
   @TestOnly
   fun setDataProviders(virtualDevices: () -> List<AvdInfo>, connectedDevices: () -> List<IDevice>) {
@@ -485,6 +486,11 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
         }
       }
     }
+  }
+
+  companion object {
+    @JvmStatic
+    fun getInstance(): WearPairingManager = ApplicationManager.getApplication().getService(WearPairingManager::class.java)
   }
 }
 
