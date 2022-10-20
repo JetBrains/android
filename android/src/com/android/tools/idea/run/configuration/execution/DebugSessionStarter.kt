@@ -45,7 +45,6 @@ import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.catchError
 import org.jetbrains.kotlin.idea.util.application.executeOnPooledThread
-import com.intellij.openapi.module.Module
 
 object DebugSessionStarter {
 
@@ -54,12 +53,12 @@ object DebugSessionStarter {
    * Use this method only if debugging is started by using 'Debug' on configuration, otherwise use [AndroidJavaDebugger.attachToClient]
    */
   @AnyThread
-  fun attachDebuggerToStartedProcess(
+  fun <S : AndroidDebuggerState> attachDebuggerToStartedProcess(
     device: IDevice,
     appId: String,
     environment: ExecutionEnvironment,
-    androidDebugger: AndroidJavaDebugger,
-    androidDebuggerState: AndroidDebuggerState,
+    androidDebugger: AndroidDebugger<S>,
+    androidDebuggerState: S,
     destroyRunningProcess: (IDevice) -> Unit,
     consoleView: ConsoleView? = null,
     timeout: Long = 15
@@ -122,7 +121,7 @@ object DebugSessionStarter {
   }
 
   /**
-   * Starts a new Debugging session with [starter] and opens tab with [tabName] in Debug tool window.
+   * Starts a new Debugging session for [client] and opens a tab with in Debug tool window.
    */
   @AnyThread
   fun <S : AndroidDebuggerState> attachDebuggerToClientAndShowTab(
