@@ -203,6 +203,12 @@ object TemplateUtils {
     Files.getFileExtension(file.name).equals(extension.trimStart { it == '.' }, ignoreCase = true)
 }
 
+/**
+ * Attempts to resolve dynamic versions (e.g. "2.+") to specific versions from the repository.
+ *
+ * @param minRev the minimum revision to accept
+ * @see RepositoryUrlManager.resolveDynamicCoordinate
+ */
 fun resolveDependency(repo: RepositoryUrlManager, dependency: String, minRev: String? = null): GradleCoordinate {
   val coordinate = parseCoordinateString(dependency) ?: throw InvalidParameterException("Invalid dependency: $dependency")
 

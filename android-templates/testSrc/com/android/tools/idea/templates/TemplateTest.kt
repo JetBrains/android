@@ -52,6 +52,9 @@ import kotlin.system.measureTimeMillis
  * Remaining work on template test:
  * - Start using new NewProjectModel etc to initialise TemplateParameters and set parameter values.
  * - Fix clean model syncing, and hook up clean lint checks.
+ *
+ * WARNING: This test is designed to be run by TemplateTestSuite. Templates that use viewBinding will fail
+ * when tested directly from this class; use bazel instead.
  */
 class TemplateTest {
   private var runTemplateCoverageOnly: Boolean = false

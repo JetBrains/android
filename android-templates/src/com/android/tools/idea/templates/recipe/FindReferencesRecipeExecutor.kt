@@ -62,6 +62,10 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.dependencies.put(configuration, mavenCoordinate)
   }
 
+  override fun addPlatformDependency(mavenCoordinate: String, configuration: String, enforced: Boolean) {
+    context.dependencies.put(configuration, mavenCoordinate)
+  }
+
   override fun addModuleDependency(configuration: String, moduleName: String, toModule: File) {}
 
   fun addTargetFile(file: File) {

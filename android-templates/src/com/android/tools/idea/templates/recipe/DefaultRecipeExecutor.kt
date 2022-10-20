@@ -46,6 +46,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -129,6 +130,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       ?.let { gradleCoordinate -> context.module?.getModuleSystem()?.getRegisteredDependency(gradleCoordinate) } != null
   }
 
+  /**
+   * Identifies a configuration that the given maven coordinate is used in, or null if none does.
+   * Returns [OTHER_CONFIGURATION] if it is used in an unknown configuration.
+   */
   private fun GradleBuildModel.getDependencyConfiguration(mavenCoordinate: String): String? {
     val configurationsToCheck = listOf(
         ANDROID_TEST_API,
@@ -260,7 +265,14 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     } ?: return
 
     var resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
-    val resolvedMavenCoordinate = resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev).toString()
+
+    val resolvedMavenCoordinate =
+      when {
+        // For coordinates that don't specify a version, we expect that version to be supplied by a platform dependency (i.e. a BOM).
+        // These coordinates can't be parsed by GradleCoordinate, and don't need to be resolved, so leave them as-is.
+        ArtifactDependencySpecImpl.create(mavenCoordinate)?.version == null -> mavenCoordinate
+        else -> resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev).toString()
+      }
 
     // If a Library (e.g. Google Maps) Manifest references its own resources, it needs to be added to the Base, otherwise aapt2 will fail
     // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
@@ -271,6 +283,22 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null) {
       buildModel.dependencies().addArtifact(resolvedConfiguration, resolvedMavenCoordinate)
     }
+  }
+
+  override fun addPlatformDependency(mavenCoordinate: String, configuration: String, enforced: Boolean) {
+    // TODO: Delete this once we no longer support ancient Gradle plugins
+    val newConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+    require(configuration == newConfiguration) { "Platform dependencies are not supported in Gradle plugin < 3.0" }
+
+    referencesExecutor.addPlatformDependency(configuration, mavenCoordinate, enforced)
+
+    val buildModel = moduleGradleBuildModel ?: return
+    val resolvedMavenCoordinate = resolveDependency(repositoryUrlManager, mavenCoordinate).toString()
+
+    // Note that unlike in addDependency, we allow adding a dependency to multiple configurations,
+    // e.g. "implementation" and "androidTestImplementation". This is necessary to apply BOM versions
+    // to dependencies in each configuration.
+    buildModel.dependencies().addPlatformArtifact(configuration, resolvedMavenCoordinate, enforced)
   }
 
   override fun addModuleDependency(configuration: String, moduleName: String, toModule: File) {
