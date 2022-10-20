@@ -17,14 +17,18 @@ package com.android.tools.idea.run.editor;
 
 import com.android.annotations.Nullable;
 import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.xdebugger.XDebugProcessStarter;
 import com.intellij.xdebugger.XDebugSession;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.concurrency.Promise;
@@ -131,4 +135,10 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
   Promise<XDebugProcessStarter> getDebugProcessStarterForExistingProcess(@NotNull Project project,
                                                                          @NotNull Client client,
                                                                          @Nullable S debugState);
+
+  Promise<XDebugProcessStarter> getDebugProcessStarterForNewProcess(@NotNull Project project,
+                                                                    @NotNull Client client,
+                                                                    @NotNull S state,
+                                                                    @Nullable ConsoleView consoleViewToReuse,
+                                                                    @NotNull Function1<? super IDevice, Unit> destroyRunningProcess);
 }

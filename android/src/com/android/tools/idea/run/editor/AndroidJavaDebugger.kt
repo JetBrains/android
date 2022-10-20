@@ -30,7 +30,6 @@ import com.intellij.debugger.engine.JavaDebugProcess
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.xdebugger.XDebugProcess
@@ -101,7 +100,7 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
   }
 
 
-  fun getDebugProcessStarterForNewProcess(
+  override fun getDebugProcessStarterForNewProcess(
     project: Project,
     client: Client,
     state: AndroidDebuggerState,
