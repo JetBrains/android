@@ -41,7 +41,7 @@ import com.intellij.ide.projectView.ProjectViewSettings;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
-import com.intellij.ide.projectView.impl.AsyncProjectViewPane;
+import com.intellij.ide.projectView.impl.AbstractProjectViewPaneWithAsyncSupport;
 import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase;
 import com.intellij.ide.projectView.impl.ProjectTreeStructure;
 import com.intellij.ide.projectView.impl.ProjectViewTree;
@@ -79,7 +79,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidProjectViewPane extends AsyncProjectViewPane {
+public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupport {
   // Note: This value is duplicated in ProjectViewImpl.java to set the default view to be the Android project view.
   public static final String ID = AndroidProjectView.ID;
 
