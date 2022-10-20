@@ -28,7 +28,9 @@ import icons.StudioIcons
 
 class DeviceMonitorToolWindowFactory : DumbAware, ToolWindowFactory {
   override fun isApplicable(project: Project): Boolean {
-    return StudioFlags.ADB_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get() && isAndroidEnvironment(project)
+    return StudioFlags.ADB_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get() &&
+           isAndroidEnvironment(project) &&
+           !StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
