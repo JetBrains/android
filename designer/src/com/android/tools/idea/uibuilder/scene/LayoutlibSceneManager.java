@@ -1239,7 +1239,7 @@ public class LayoutlibSceneManager extends SceneManager {
     }
 
     if (quality < 1f) {
-      taskBuilder.withDownscaleFactor(quality);
+      taskBuilder.withQuality(quality);
     }
 
     if (!useShowDecorations) {

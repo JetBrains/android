@@ -144,7 +144,7 @@ class LayoutRendererTest {
 private fun createRenderTaskForTest(facet: AndroidFacet, xmlFile: XmlFile, configuration: Configuration) =
   RenderService.getInstance(facet.module.project).taskBuilder(facet, configuration)
     .withPsiFile(xmlFile)
-    .withDownscaleFactor(DOWNSCALE_FACTOR)
+    .withQuality(QUALITY)
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .disableDecorations()
     .disableSecurityManager()

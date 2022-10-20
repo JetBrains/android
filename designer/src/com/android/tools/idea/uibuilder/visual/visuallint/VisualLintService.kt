@@ -234,6 +234,8 @@ fun createRenderResult(model: NlModel, requireRender: Boolean): CompletableFutur
     .withLayoutScanner(requireRender)
     .withLogger(logger)
     .withPriority(RenderAsyncActionExecutor.RenderingPriority.LOW)
+    .withMinDownscalingFactor(0.25f)
+    .withQuality(0f)
     .build().thenCompose { newTask ->
       if (newTask == null) {
         logger.error("INFLATE", "Error inflating view for visual lint on background. No RenderTask Created.",
