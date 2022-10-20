@@ -190,7 +190,7 @@ class BuildAttributionAnalyticsManagerTest {
       ))
 
       override fun getTaskCategoryWarningsAnalyzerResult() =
-        TaskCategoryWarningsAnalyzer.Result(
+        TaskCategoryWarningsAnalyzer.IssuesResult(
           taskCategoryIssues = listOf(
             TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED
           )

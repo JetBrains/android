@@ -303,7 +303,8 @@ message BuildAnalysisResultsMessage {
   }
 
   message TaskCategoryWarningsAnalyzerResult {
-    repeated TaskCategoryIssue taskCategoryIssues = 1;
+    optional TaskCategorySupportType taskCategorySupportType = 1;
+    repeated TaskCategoryIssue taskCategoryIssues = 2;
     enum TaskCategoryIssue {
       UNKNOWN = 0;
       NON_FINAL_RES_IDS_DISABLED = 1;
@@ -314,6 +315,12 @@ message BuildAnalysisResultsMessage {
       AVOID_AIDL_UNNECESSARY_USE = 6;
       JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR = 7;
       MINIFICATION_ENABLED_IN_DEBUG_BUILD = 8;
+    }
+    enum TaskCategorySupportType {
+      UNKNOWN_TYPE = 0;
+      FEATURE_DISABLED = 1;
+      NO_DATA_FROM_AGP = 2;
+      SUPPORTED = 3;
     }
   }
 }

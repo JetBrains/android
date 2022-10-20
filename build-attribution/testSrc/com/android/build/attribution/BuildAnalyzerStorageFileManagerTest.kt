@@ -235,7 +235,7 @@ class BuildAnalyzerStorageFileManagerTest {
     taskCache[taskDatum.getTaskPath()] = taskDatum
     val jetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(AnalyzerNotRun)
     val downloadAnalyzerResult = DownloadsAnalyzer.AnalyzerIsDisabled
-    val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.Result(listOf())
+    val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.NoDataFromAGP
     return BuildAnalysisResults(
       requestHolder.buildRequest.data,
       annotationProcessorsAnalyzerResult,

@@ -271,7 +271,7 @@ class BuildAnalyzerStorageMetricsTest {
       configurationCachingCompatibilityAnalyzerResult,
       jetifierUsageAnalyzerResult,
       downloadAnalyzerResult,
-      TaskCategoryWarningsAnalyzer.Result(listOf()),
+      TaskCategoryWarningsAnalyzer.IssuesResult(listOf()),
       UUID.randomUUID().toString(),
       taskCache as HashMap<String, TaskData>,
       pluginCache as HashMap<String, PluginData>

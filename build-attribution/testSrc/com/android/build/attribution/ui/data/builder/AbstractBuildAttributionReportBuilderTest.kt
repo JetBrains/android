@@ -72,7 +72,9 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun isGCSettingSet(): Boolean? = null
     override fun buildUsesConfigurationCache(): Boolean = false
     override fun getDownloadsAnalyzerResult() = DownloadsAnalyzer.ActiveResult(repositoryResults = emptyList())
-    override fun getTaskCategoryWarningsAnalyzerResult(): TaskCategoryWarningsAnalyzer.Result = TaskCategoryWarningsAnalyzer.Result(emptyList())
+    override fun getTaskCategoryWarningsAnalyzerResult(): TaskCategoryWarningsAnalyzer.Result = TaskCategoryWarningsAnalyzer.IssuesResult(
+      emptyList()
+    )
   }
 
   fun plugin(pluginData: PluginData, duration: Long) = PluginConfigurationData(pluginData, duration)

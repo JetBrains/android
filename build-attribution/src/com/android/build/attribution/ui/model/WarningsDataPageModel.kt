@@ -150,7 +150,7 @@ class WarningsDataPageModelImpl(
     get() = reportData.issues.sumBy { it.warningCount } +
       reportData.annotationProcessors.issueCount +
       reportData.confCachingData.warningsCount() +
-      reportData.criticalPathTaskCategories.entries.sumOf { category ->
+      (reportData.criticalPathTaskCategories?.entries ?: emptyList()).sumOf { category ->
         category.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true).size
       } == 0
 
@@ -270,7 +270,7 @@ private class WarningsTreeStructure(
         }
       }
 
-      reportData.criticalPathTaskCategories.entries.map { criticalPathTaskCategoryData ->
+      reportData.criticalPathTaskCategories?.entries?.map { criticalPathTaskCategoryData ->
         val warnings = criticalPathTaskCategoryData.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true)
         if (warnings.isNotEmpty()) {
           rootNode.add(treeNode(TaskCategoryWarningNodeDescriptor(criticalPathTaskCategoryData)))
@@ -542,7 +542,7 @@ fun BuildAttributionReportUiData.countTotalWarnings(): Int =
   issues.sumOf { it.warningCount } +
   annotationProcessors.issueCount +
   confCachingData.warningsCount() +
-  criticalPathTaskCategories.entries.sumOf { category ->
+  (criticalPathTaskCategories?.entries ?: emptyList()).sumOf { category ->
     category.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true).size
   } +
   if (jetifierData.shouldShowWarning()) 1 else 0

@@ -58,7 +58,7 @@ fun constructEmptyBuildResultsObject(buildSessionId: String, projectRoot: File):
     NoIncompatiblePlugins(emptyList()),
     JetifierUsageAnalyzerResult(AnalyzerNotRun),
     DownloadsAnalyzer.ActiveResult(repositoryResults = emptyList()),
-    TaskCategoryWarningsAnalyzer.Result(listOf()),
+    TaskCategoryWarningsAnalyzer.IssuesResult(emptyList()),
     buildSessionId,
     emptyMap(),
     emptyMap()

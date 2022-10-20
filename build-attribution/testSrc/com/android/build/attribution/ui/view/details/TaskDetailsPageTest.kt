@@ -30,6 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
+import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -44,6 +45,11 @@ class TaskDetailsPageTest {
   val edtRule = EdtRule()
 
   private val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
+
+  @Before
+  fun setUp() {
+    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.override(false)
+  }
 
   @After
   fun clearOverride() {

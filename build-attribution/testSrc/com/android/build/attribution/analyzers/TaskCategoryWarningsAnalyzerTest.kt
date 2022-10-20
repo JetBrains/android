@@ -52,7 +52,10 @@ class TaskCategoryWarningsAnalyzerTest {
       invokeTasks("preBuild")
       val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
       val results = buildAnalyzerStorageManager.getSuccessfulResult()
-      assertThat(results.getTaskCategoryWarningsAnalyzerResult().taskCategoryIssues).containsExactly(
+      assertThat(results.getTaskCategoryWarningsAnalyzerResult()).isInstanceOf(TaskCategoryWarningsAnalyzer.IssuesResult::class.java)
+      assertThat(
+        (results.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult).taskCategoryIssues
+      ).containsExactly(
         TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
         TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED,
         TaskCategoryIssue.TEST_SHARDING_DISABLED,

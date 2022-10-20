@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.data.builder
 
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
+import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.TaskCategoryBuildData
@@ -61,13 +62,19 @@ class BuildAttributionReportBuilder(
       override val buildSummary: BuildSummary = buildSummary
       override val criticalPathTasks = createCriticalPathTasks(buildSummary.criticalPathDuration)
       override val criticalPathPlugins = createCriticalPathPlugins(buildSummary.criticalPathDuration)
-      override val criticalPathTaskCategories = createCriticalPathTaskCategories(buildSummary.criticalPathDuration)
       override val issues = issueUiDataContainer.allIssueGroups()
       override val configurationTime = pluginConfigurationTimeReport
       override val annotationProcessors = AnnotationProcessorsReportBuilder(buildAnalysisResult).build()
       override val confCachingData = buildAnalysisResult.getConfigurationCachingCompatibility()
       override val jetifierData = buildAnalysisResult.getJetifierUsageResult()
       override val downloadsData = buildAnalysisResult.getDownloadsAnalyzerResult()
+      override val showTaskCategoryInfo =
+        buildAnalysisResult.getTaskCategoryWarningsAnalyzerResult() is TaskCategoryWarningsAnalyzer.IssuesResult
+      override val criticalPathTaskCategories = if (showTaskCategoryInfo) {
+        createCriticalPathTaskCategories(buildSummary.criticalPathDuration)
+      } else {
+        null
+      }
     }
   }
 
@@ -134,7 +141,7 @@ class BuildAttributionReportBuilder(
       taskCategoriesDeterminingBuildDuration.add(TaskCategoryBuildData(taskCategory, duration))
     }
     val taskByTaskCategory = buildAnalysisResult.getTasksDeterminingBuildDuration().groupBy { it.primaryTaskCategory }
-    val taskCategoryIssuesResult = buildAnalysisResult.getTaskCategoryWarningsAnalyzerResult()
+    val taskCategoryIssuesResult = buildAnalysisResult.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult
     return object : CriticalPathTaskCategoriesUiData {
       override val criticalPathDuration = criticalPathDuration
       override val miscStepsTime = criticalPathDuration.supplement()

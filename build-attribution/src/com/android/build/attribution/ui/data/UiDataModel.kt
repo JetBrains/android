@@ -38,7 +38,7 @@ interface BuildAttributionReportUiData {
   val buildSummary: BuildSummary
   val criticalPathTasks: CriticalPathTasksUiData
   val criticalPathPlugins: CriticalPathPluginsUiData
-  val criticalPathTaskCategories: CriticalPathTaskCategoriesUiData
+  val criticalPathTaskCategories: CriticalPathTaskCategoriesUiData?
   /**
    * All detected issues grouped by issue type
    */
@@ -48,6 +48,7 @@ interface BuildAttributionReportUiData {
   val confCachingData: ConfigurationCachingCompatibilityProjectResult
   val jetifierData: JetifierUsageAnalyzerResult
   val downloadsData: DownloadsAnalyzer.Result
+  val showTaskCategoryInfo: Boolean
 }
 
 interface BuildSummary {

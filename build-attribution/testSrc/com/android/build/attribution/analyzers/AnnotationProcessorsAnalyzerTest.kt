@@ -57,7 +57,10 @@ class AnnotationProcessorsAnalyzerTest {
           "com.google.auto.value.extension.memoized.processor.MemoizedValidator"
         )
       )
-      assertThat(results.getTaskCategoryWarningsAnalyzerResult().taskCategoryIssues).contains(
+      assertThat(results.getTaskCategoryWarningsAnalyzerResult()).isInstanceOf(TaskCategoryWarningsAnalyzer.IssuesResult::class.java)
+      assertThat(
+        (results.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult).taskCategoryIssues
+      ).contains(
         TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR
       )
 
@@ -75,7 +78,10 @@ class AnnotationProcessorsAnalyzerTest {
       results = buildAnalyzerStorageManager.getSuccessfulResult()
 
       assertThat(results.getAnnotationProcessorsData()).isEmpty()
-      assertThat(results.getTaskCategoryWarningsAnalyzerResult().taskCategoryIssues).doesNotContain(
+      assertThat(results.getTaskCategoryWarningsAnalyzerResult()).isInstanceOf(TaskCategoryWarningsAnalyzer.IssuesResult::class.java)
+      assertThat(
+        (results.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult).taskCategoryIssues
+      ).doesNotContain(
         TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR
       )
     }

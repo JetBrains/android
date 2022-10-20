@@ -18,7 +18,6 @@ package com.android.build.attribution.proto.converters
 import com.android.build.attribution.BuildAnalysisResults
 import com.android.build.attribution.BuildAnalysisResultsMessage
 import com.android.build.attribution.analyzers.NoDataFromSavedResult
-import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.proto.constructPluginType

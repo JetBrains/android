@@ -87,6 +87,10 @@ class TasksPageViewTest {
   @Test
   @RunsInEdt
   fun testModelUpdated() {
+    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.override(false)
+    view = TasksPageView(model, mockHandlers).apply {
+      component.size = Dimension(600, 200)
+    }
     // Act - update model by opening Plugin page
     model.selectPageById(TasksPageId(TasksDataPageModel.Grouping.BY_PLUGIN, TaskDetailsPageType.PLUGIN_DETAILS, "resources.plugin"))
 

@@ -24,7 +24,7 @@ import org.junit.Test
 class TaskCategoryWarningsAnalyzerResultConverterTest {
   @Test
   fun testTaskCategoryWarningsAnalyzerResult() {
-    val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.Result(
+    val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.IssuesResult(
       listOf(TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
              TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
              TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED,
@@ -38,7 +38,7 @@ class TaskCategoryWarningsAnalyzerResultConverterTest {
 
   @Test
   fun testNotEqualsTaskCategoryWarningsAnalyzerResult() {
-    val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.Result(
+    val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.IssuesResult(
       listOf(TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
              TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
              TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED,
@@ -47,7 +47,7 @@ class TaskCategoryWarningsAnalyzerResultConverterTest {
     val resultMessage = TaskCategoryWarningsAnalyzerResultConverter.transform(
       taskCategoryWarningsAnalyzerResult)
     val resultConverted = TaskCategoryWarningsAnalyzerResultConverter.construct(resultMessage)
-    val anotherTaskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.Result(
+    val anotherTaskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.IssuesResult(
       listOf(TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
              TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
              TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED)
@@ -56,8 +56,17 @@ class TaskCategoryWarningsAnalyzerResultConverterTest {
   }
 
   @Test
-  fun testTaskCategoryWarningsAnalyzerResultEmpty() {
-    val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.Result(emptyList())
+  fun testTaskCategoryWarningsAnalyzerResultNoDataFromAGP() {
+    val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.NoDataFromAGP
+    val resultMessage = TaskCategoryWarningsAnalyzerResultConverter.transform(
+      taskCategoryWarningsAnalyzerResult)
+    val resultConverted = TaskCategoryWarningsAnalyzerResultConverter.construct(resultMessage)
+    Truth.assertThat(resultConverted).isEqualTo(taskCategoryWarningsAnalyzerResult)
+  }
+
+  @Test
+  fun testTaskCategoryWarningsAnalyzerResultFeatureDisabled() {
+    val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.FeatureDisabled
     val resultMessage = TaskCategoryWarningsAnalyzerResultConverter.transform(
       taskCategoryWarningsAnalyzerResult)
     val resultConverted = TaskCategoryWarningsAnalyzerResultConverter.construct(resultMessage)

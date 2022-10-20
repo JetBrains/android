@@ -772,7 +772,7 @@ public final class StudioFlags {
     "Enable access to historic build analysis in Build Analyzer.", false);
   public static final Flag<Boolean> BUILD_ANALYZER_CATEGORY_ANALYSIS = Flag.create(
     GRADLE_IDE, "build.analyzer.category.analysis", "Enable 'Group by Task Category' category task analysis",
-    "Enable 'Group by Task Category' category task analysis in Build Analyzer.", false);
+    "Enable 'Group by Task Category' category task analysis in Build Analyzer.", true);
 
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = Flag.create(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",

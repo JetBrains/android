@@ -22,7 +22,6 @@ import com.android.build.attribution.ui.model.tasksFilterComponent
 import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.view.chart.TimeDistributionTreeChart
 import com.android.build.attribution.ui.view.details.TaskViewDetailPagesFactory
-import com.android.tools.idea.flags.StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.CollectionComboBoxModel
@@ -172,7 +171,7 @@ class TasksPageView(
     layout = HorizontalLayout(10)
     name = "tasks-view-additional-controls"
 
-    if (BUILD_ANALYZER_CATEGORY_ANALYSIS.get()) {
+    if (model.reportData.showTaskCategoryInfo) {
       add(JLabel("Group by:"))
       add(tasksGroupingComboBox)
     } else {
@@ -188,7 +187,7 @@ class TasksPageView(
 
   private fun updateViewFromModel(treeStructureChanged: Boolean) {
     fireActionHandlerEvents = false
-    if (BUILD_ANALYZER_CATEGORY_ANALYSIS.get()) {
+    if (model.reportData.showTaskCategoryInfo) {
       tasksGroupingComboBox.selectedItem = model.selectedGrouping
     } else {
       groupingCheckBox.isSelected = model.selectedGrouping == TasksDataPageModel.Grouping.BY_PLUGIN
