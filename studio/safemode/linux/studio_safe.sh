@@ -79,22 +79,88 @@ if [ -n "$STUDIO_PROPERTIES" ]; then
   IDE_PROPERTIES_PROPERTY="-Didea.properties.file=$STUDIO_PROPERTIES"
 fi
 
-STUDIO_BIN="${IDE_BIN_HOME}/studio.sh"
-
 VM_OPTIONS_FILE="${IDE_BIN_HOME}/studio64.vmoptions"
+VM_OPTIONS_FILE=""
 USER_VM_OPTIONS_FILE=""
 
-VM_OPTIONS=VM_OPTIONS=$({ grep -E -v -e "-XX:\+Use.*GC" "$VM_OPTIONS_FILE"; cat "$USER_VM_OPTIONS_FILE"; } 2> /dev/null | grep -E -v -e "^#.*")
+STUDIO_BIN="${IDE_BIN_HOME}/studio.sh"
+STUDIO_VERSION=$(cat ../product-info.json | grep AndroidStudio | awk '{ print $2}' | sed 's/"//' | sed 's/"//' | sed 's/,//')
+STUDIO_CONFIG_DIR=${CONFIG_HOME}/Google/${STUDIO_VERSION}
+if [ ! -d "${STUDIO_CONFIG_DIR}" ]; then
+  # Android Studio config is not set up
+  echo "Android Studio config doesn't exist ${STUDIO_CONFIG_DIR} "
+  ${STUDIO_BIN} disableNonBundledPlugins dontReopenProjects
+  exit
+fi
+
+STUDIO_VERSION_SAFE="${STUDIO_VERSION}.safe"
+STUDIO_SAFE_CONFIG_DIR=${CONFIG_HOME}/Google/${STUDIO_VERSION_SAFE}
+if [ ! -d “${STUDIO_SAFE_CONFIG_DIR}” ]; then
+  mkdir “${STUDIO_SAFE_CONFIG_DIR}”
+fi
+
+cp -R "${STUDIO_CONFIG_DIR}" "${STUDIO_SAFE_CONFIG_DIR}"
+rm -rf ${STUDIO_SAFE_CONFIG_DIR}/idea.properties
+rm -rf ${STUDIO_SAFE_CONFIG_DIR}/studio64.vmoptions
 
 CLASS_PATH="$IDE_HOME/lib/util.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/app.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/3rd-party-rt.jar"
 CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/jna.jar"
-CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/jdom.jar"
-CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/log4j.jar"
-CLASS_PATH="$CLASS_PATH:$JDK/lib/tools.jar"
-CLASS_PATH="$CLASS_PATH:$STUDIO_CLASS_PATH"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/platform-statistics-devkit.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/jps-model.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/rd-core.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/rd-framework.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/stats.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/protobuf.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/external-system-rt.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/forms_rt.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/intellij-test-discovery.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/rd-swing.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/annotations.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/groovy.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/annotations-java5.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/asm-9.2.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/asm-analysis-9.2.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/asm-commons-9.2.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/asm-tree-9.2.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/asm-util-9.2.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/byte-buddy-agent.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/error-prone-annotations.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/externalProcess-rt.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/grpc-netty-shaded.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/idea_rt.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/intellij-coverage-agent-1.0.673.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/jffi-1.3.9-native.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/jffi-1.3.9.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/jnr-a64asm-1.0.0.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/jnr-ffi-2.2.12.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/jnr-x86asm-1.0.2.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/junit.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/junit4.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/lz4-java.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/platform-objectSerializer-annotations.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/pty4j.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/rd-text.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/resources.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/util_rt.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/winp.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/ant/lib/ant.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/dbus-java-3.2.1.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/java-utils-1.0.6.jar"
 
 # ---------------------------------------------------------------------
 # Run the IDE.
 # ---------------------------------------------------------------------
+# shellcheck disable=SC2086
+exec "$JAVA_BIN" \
+  -classpath "$CLASS_PATH" \
+  ${VM_OPTIONS} \
+  "-XX:ErrorFile=$HOME/java_error_in_studio_%p.log" \
+  "-XX:HeapDumpPath=$HOME/java_error_in_studio_.hprof" \
+  "-Djb.vmOptionsFile=${USER_VM_OPTIONS_FILE:-${VM_OPTIONS_FILE}}" \
+  ${IDE_PROPERTIES_PROPERTY} \
+  -Djava.system.class.loader=com.intellij.util.lang.PathClassLoader -Didea.strict.classpath=true -Didea.vendor.name=Google -Didea.paths.selector="${STUDIO_VERSION_SAFE}" -Didea.platform.prefix=AndroidStudio -XX:FlightRecorderOptions=stackdepth=256 -Didea.jre.check=true -Dsplash=true --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.base/java.time=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.base/jdk.internal.vm=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/sun.security.ssl=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED --add-opens=java.desktop/com.sun.java.swing.plaf.gtk=ALL-UNNAMED --add-opens=java.desktop/java.awt=ALL-UNNAMED --add-opens=java.desktop/java.awt.dnd.peer=ALL-UNNAMED --add-opens=java.desktop/java.awt.event=ALL-UNNAMED --add-opens=java.desktop/java.awt.image=ALL-UNNAMED --add-opens=java.desktop/java.awt.peer=ALL-UNNAMED --add-opens=java.desktop/javax.swing=ALL-UNNAMED --add-opens=java.desktop/javax.swing.plaf.basic=ALL-UNNAMED --add-opens=java.desktop/javax.swing.text.html=ALL-UNNAMED --add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED --add-opens=java.desktop/sun.awt.datatransfer=ALL-UNNAMED --add-opens=java.desktop/sun.awt.image=ALL-UNNAMED --add-opens=java.desktop/sun.awt=ALL-UNNAMED --add-opens=java.desktop/sun.font=ALL-UNNAMED --add-opens=java.desktop/sun.java2d=ALL-UNNAMED --add-opens=java.desktop/sun.swing=ALL-UNNAMED --add-opens=jdk.attach/sun.tools.attach=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-opens=jdk.internal.jvmstat/sun.jvmstat.monitor=ALL-UNNAMED --add-opens=jdk.jdi/com.sun.tools.jdi=ALL-UNNAMED \
+  com.intellij.idea.Main \
+  "$@" disableNonBundledPlugins dontReopenProjects
 
-${STUDIO_BIN} disableNonBundledPlugins dontReopenProjects
