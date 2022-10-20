@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.DisposableRule;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -44,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -51,12 +53,14 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class PhysicalDevicePanelTest {
+  @Rule
+  public final DisposableRule myDisposableRule = new DisposableRule();
   private PhysicalDevicePanel myPanel;
   private Project myProject;
   private Disposable myParent;
   private PairDevicesUsingWiFiService myService;
   private PhysicalTabPersistentStateComponent myComponent;
-  private Disposable myListener;
+  private final Disposable myListener = myDisposableRule.getDisposable();
   private PhysicalDeviceAsyncSupplier mySupplier;
 
   private CountDownLatch myLatch;
@@ -79,11 +83,6 @@ public final class PhysicalDevicePanelTest {
   @Before
   public void initComponent() {
     myComponent = new PhysicalTabPersistentStateComponent();
-  }
-
-  @Before
-  public void mockListener() {
-    myListener = Mockito.mock(Disposable.class);
   }
 
   @Before

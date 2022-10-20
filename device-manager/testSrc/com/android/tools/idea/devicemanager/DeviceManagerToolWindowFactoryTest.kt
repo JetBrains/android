@@ -50,7 +50,7 @@ class DeviceManagerToolWindowFactoryTest {
   @Before
   fun initFactory() {
     factory = DeviceManagerToolWindowFactory { _, _ ->
-      VirtualDevicePanel(null, Mockito.mock(Disposable::class.java), Mockito.mock(VirtualDeviceWatcher::class.java))
+      VirtualDevicePanel(null, disposableRule.disposable, Mockito.mock(VirtualDeviceWatcher::class.java))
     }
   }
 
