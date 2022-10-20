@@ -25,6 +25,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.wearpairing.WearPairingSettings"/>
   </extensions>
   <extensions defaultExtensionNs="com.android">
-    <androidStartupActivity implementation="com.android.tools.idea.wearpairing.WearPairingManager$WearPairingManagerStartupActivity" />
+    <androidStartupActivity implementation="com.android.tools.idea.wearpairing.WearPairingManager.Companion$WearPairingManagerStartupActivity" />
   </extensions>
 </idea-plugin>
