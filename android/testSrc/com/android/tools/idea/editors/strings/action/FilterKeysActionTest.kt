@@ -19,7 +19,6 @@ import com.android.ide.common.resources.Locale
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.getDescendant
@@ -45,8 +44,9 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.wm.IdeFrame
 import com.intellij.openapi.wm.WindowManager
+import com.intellij.openapi.wm.ex.WindowManagerEx
+import com.intellij.openapi.wm.impl.IdeFrameImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.RuleChain
@@ -62,14 +62,11 @@ import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
-import org.mockito.Mockito.withSettings
 import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JButton
-import javax.swing.JFrame
 import javax.swing.JPanel
 import javax.swing.JTextField
-import kotlin.test.fail
 
 /** Tests the [FilterKeysAction] class. */
 @RunWith(JUnit4::class)
@@ -126,9 +123,9 @@ class FilterKeysActionTest {
     // Mock the WindowManager so the call to windowManager.getFrame will not return null.
     // A null frame causes ComboBoxAction.actionPerformed(...) to return early before it invokes
     // createActionPopup, and thus will do nothing and can't be tested.
-    val windowManager: WindowManager = mock()
-    val frame: JFrame = mock(withSettings().extraInterfaces(IdeFrame::class.java))
-    whenever((frame as IdeFrame).component).thenReturn(JButton())
+    val windowManager: WindowManagerEx = mock()
+    val frame: IdeFrameImpl = mock()
+    whenever(frame.component).thenReturn(JButton())
     whenever(windowManager.getFrame(projectRule.project)).thenReturn(frame)
     ApplicationManager.getApplication().replaceService(WindowManager::class.java, windowManager, projectRule.testRootDisposable)
   }
