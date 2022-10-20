@@ -63,6 +63,8 @@ import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Point
 import java.awt.event.AdjustmentEvent
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
@@ -311,6 +313,17 @@ internal class ComposePreviewViewImpl(
 
   private val scrollPane =
     DesignSurfaceScrollPane.createDefaultScrollPane(surfaceSplitter, mainSurface.background) {}
+      .also {
+        it.addComponentListener(
+          object : ComponentAdapter() {
+            override fun componentResized(e: ComponentEvent) {
+              // Relayout the previews when the size of scroll pane is changed. This re-layouts the
+              // previews when window size is reduced.
+              mainSurface.revalidateScrollArea()
+            }
+          }
+        )
+      }
 
   override var scrollPosition: Point
     get() = scrollPane.viewport.viewPosition

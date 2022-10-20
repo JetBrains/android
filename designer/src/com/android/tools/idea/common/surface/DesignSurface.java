@@ -379,6 +379,13 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       myLayeredPane.add(myScrollPane, JLayeredPane.POPUP_LAYER);
       myContentContainerPane = myScrollPane;
       myViewport = new ScrollableDesignSurfaceViewport(myScrollPane.getViewport());
+      myScrollPane.addComponentListener(new ComponentAdapter() {
+        @Override
+        public void componentResized(ComponentEvent e) {
+          // Relayout the PositionableContents when visible size (e.g. window size) of ScrollPane is changed.
+          revalidateScrollArea();
+        }
+      });
     }
     else {
       myLayeredPane.setLayout(new OverlayLayout(myLayeredPane));
