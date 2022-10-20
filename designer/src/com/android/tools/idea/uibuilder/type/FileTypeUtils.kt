@@ -75,7 +75,10 @@ fun ConfigurationManager.getPreviewConfig(): Configuration {
     setId(Configuration.CUSTOM_DEVICE_ID)
     setManufacturer("")
     addSoftware(Software())
-    addState(State().apply { isDefaultState = true })
+    addState(State().apply {
+      isDefaultState = true
+      hardware = Hardware()
+    })
   }.build()
 
   val state = device.defaultState

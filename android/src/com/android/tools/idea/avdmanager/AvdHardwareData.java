@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.resources.Keyboard;
+import com.android.resources.ScreenRound;
 import com.android.sdklib.devices.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -103,7 +104,11 @@ public final class AvdHardwareData {
 
     hardware.setRam(myDeviceData.ramStorage().get());
 
-    hardware.setScreen(new AvdScreenData(myDeviceData).createScreen());
+    Screen screen = new AvdScreenData(myDeviceData).createScreen();
+    if (myDeviceData.isScreenRound().get()) {
+      screen.setScreenRound(ScreenRound.ROUND);
+    }
+    hardware.setScreen(screen);
 
     return hardware;
   }

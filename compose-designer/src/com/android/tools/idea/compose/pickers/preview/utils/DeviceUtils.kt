@@ -103,7 +103,12 @@ internal fun DeviceConfig.createDeviceInstance(): Device {
         setId(Configuration.CUSTOM_DEVICE_ID)
         setManufacturer("")
         addSoftware(Software())
-        addState(State().apply { isDefaultState = true })
+        addState(
+          State().apply {
+            isDefaultState = true
+            hardware = Hardware()
+          }
+        )
       }
       .build()
   customDevice.defaultState.apply {

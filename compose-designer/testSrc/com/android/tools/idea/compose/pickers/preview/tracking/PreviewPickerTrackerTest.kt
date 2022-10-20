@@ -203,7 +203,12 @@ private fun createDevice(isCustom: Boolean, isGeneric: Boolean, tagId: String): 
           setManufacturer(HardwareConfig.MANUFACTURER_GOOGLE)
         }
         addSoftware(Software())
-        addState(State().apply { isDefaultState = true })
+        addState(
+          State().apply {
+            isDefaultState = true
+            hardware = Hardware()
+          }
+        )
       }
       .build()
   customDevice.defaultState.apply {

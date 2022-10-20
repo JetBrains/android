@@ -96,6 +96,7 @@ private val roundWearOsDevice =
       listOf(
         buildState("default", 1000, 100, screenRound = ScreenRound.ROUND).apply {
           isDefaultState = true
+          hardware = Hardware()
         }
       )
   )

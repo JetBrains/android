@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import org.jetbrains.android.AndroidTestBase
@@ -90,6 +91,7 @@ class DeviceSizeListTest: AndroidTestBase() {
     builder.addSoftware(Software())
     val state = State()
     state.isDefaultState = true
+    state.hardware = Hardware()
     builder.addState(state)
     return builder.build()
   }
