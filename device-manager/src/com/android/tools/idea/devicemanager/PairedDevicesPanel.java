@@ -59,7 +59,7 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
 
   @UiThread
   public PairedDevicesPanel(@NotNull Key key, @NotNull Disposable parent, @Nullable Project project) {
-    this(key, parent, project, WearPairingManager.INSTANCE);
+    this(key, parent, project, WearPairingManager.getInstance());
   }
 
   @UiThread

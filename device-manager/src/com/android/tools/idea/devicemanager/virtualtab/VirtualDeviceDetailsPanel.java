@@ -85,7 +85,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     initScreenDiagram();
     initPropertiesSection();
 
-    InfoSection.newPairedDeviceSection(device, WearPairingManager.INSTANCE).ifPresent(myInfoSections::add);
+    InfoSection.newPairedDeviceSection(device, WearPairingManager.getInstance()).ifPresent(myInfoSections::add);
 
     if (myPropertiesSection != null) {
       myInfoSections.add(myPropertiesSection);

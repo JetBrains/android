@@ -46,7 +46,7 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
     super(PopUpMenuValue.INSTANCE, AllIcons.Actions.More);
 
     myPanel = panel;
-    myManager = WearPairingManager.INSTANCE;
+    myManager = WearPairingManager.getInstance();
 
     myButton.addActionListener(event -> {
       JPopupMenu menu = new JBPopupMenu();

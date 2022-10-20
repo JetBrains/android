@@ -270,7 +270,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
 
           val rightIcon = when {
             StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get() -> null
-            WearPairingManager.isPaired(value.deviceID) -> StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
+            WearPairingManager.getInstance().isPaired(value.deviceID) -> StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
             value.isDisabled() -> AllIcons.General.ShowInfos
             else -> null
           }
@@ -366,7 +366,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
         val row = locationToIndex(e.point)
         if (row >= 0 && isRightMouseButton(e)) {
           val listDevice = model.getElementAt(row)
-          val phoneWearPair = WearPairingManager.getPairsForDevice(listDevice.deviceID).firstOrNull()
+          val phoneWearPair = WearPairingManager.getInstance().getPairsForDevice(listDevice.deviceID).firstOrNull()
           if (phoneWearPair != null) {
             val peerDevice = phoneWearPair.getPeerDevice(listDevice.deviceID)
             val item = JBMenuItem(message("wear.assistant.device.list.forget.connection", peerDevice.displayName))
@@ -374,14 +374,14 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
               val process = Runnable {
                 val cloudSyncIsEnabled = runBlocking(context = Dispatchers.IO) {
                   withTimeoutOrNull(5_000) {
-                    WearPairingManager.checkCloudSyncIsEnabled(phoneWearPair.phone)
+                    WearPairingManager.getInstance().checkCloudSyncIsEnabled(phoneWearPair.phone)
                   }
                 }
                 if (cloudSyncIsEnabled == true) {
                   ApplicationManager.getApplication().invokeLater({ showCloudSyncDialog(phoneWearPair.phone) }, ModalityState.any())
                 }
                 AndroidCoroutineScope(this@DeviceListStep).launch(Dispatchers.IO) {
-                  WearPairingManager.removeAllPairedDevices(listDevice.deviceID)
+                  WearPairingManager.getInstance().removeAllPairedDevices(listDevice.deviceID)
                   // Update pairing icon
                   ApplicationManager.getApplication().invokeLater(
                     {
@@ -456,7 +456,7 @@ private fun PairingDevice.isDisabled(): Boolean {
 
 private fun PairingDevice.getTooltip(): String? {
   if (!StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
-    WearPairingManager.getPairsForDevice(deviceID).firstOrNull()?.apply {
+    WearPairingManager.getInstance().getPairsForDevice(deviceID).firstOrNull()?.apply {
       return "Paired with ${getPeerDevice(deviceID).displayName}"
     }
   }

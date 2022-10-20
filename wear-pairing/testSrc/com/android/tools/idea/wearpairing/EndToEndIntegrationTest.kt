@@ -117,8 +117,8 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
       }
     }
 
-    WearPairingManager.setDataProviders({ listOf(avdWearInfo) }, { listOf(phoneIDevice, wearIDevice) })
-    assertThat(WearPairingManager.getPairsForDevice(wearIDevice.name)).isEmpty()
+    WearPairingManager.getInstance().setDataProviders({ listOf(avdWearInfo) }, { listOf(phoneIDevice, wearIDevice) })
+    assertThat(WearPairingManager.getInstance().getPairsForDevice(wearIDevice.name)).isEmpty()
 
     createModalDialogAndInteractWithIt({ WearDevicePairingWizard().show(null, null) }) {
       FakeUi(it.contentPane).apply {
@@ -133,7 +133,7 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
     val usages = getWearPairingTrackingEvents()
     assertThat(usages[0].studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_FULL_SELECTION)
     assertThat(usages[1].studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_SUCCESSFUL_PAIRING)
-    val phoneWearPair = WearPairingManager.getPairsForDevice(avdWearInfo.id)
+    val phoneWearPair = WearPairingManager.getInstance().getPairsForDevice(avdWearInfo.id)
     assertThat(phoneWearPair).isNotEmpty()
     assertThat(phoneWearPair[0].pairingStatus).isEqualTo(WearPairingManager.PairingState.CONNECTED)
     assertThat(phoneWearPair[0].getPeerDevice(avdWearInfo.id).displayName).isEqualTo(phoneIDevice.name)

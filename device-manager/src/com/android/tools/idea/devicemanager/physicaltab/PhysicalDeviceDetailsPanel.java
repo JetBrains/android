@@ -76,7 +76,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
 
   @VisibleForTesting
   PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @NotNull AsyncDetailsBuilder builder) {
-    this(device, builder, PhysicalDeviceDetailsPanel::newSummarySectionCallback, WearPairingManager.INSTANCE);
+    this(device, builder, PhysicalDeviceDetailsPanel::newSummarySectionCallback, WearPairingManager.getInstance());
   }
 
   @VisibleForTesting

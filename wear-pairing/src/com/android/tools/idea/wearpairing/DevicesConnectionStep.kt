@@ -198,9 +198,9 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       return
     }
     val isNewWearPairingDevice =
-      WearPairingManager.getPairsForDevice(phonePairingDevice.deviceID)
+      WearPairingManager.getInstance().getPairsForDevice(phonePairingDevice.deviceID)
       .firstOrNull { wearPairingDevice.deviceID == it.wear.deviceID } == null
-    WearPairingManager.removeAllPairedDevices(wearPairingDevice.deviceID, restartWearGmsCore = isNewWearPairingDevice)
+    WearPairingManager.getInstance().removeAllPairedDevices(wearPairingDevice.deviceID, restartWearGmsCore = isNewWearPairingDevice)
 
     companionAppStep(phoneDevice, wearDevice)
   }
@@ -284,7 +284,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     // Note: createPairedDeviceBridge() may restart GmsCore, so it may take a bit of time until pairing. Show some UI placeholder.
     showUiBridgingDevices()
     try {
-      val phoneWearPair = WearPairingManager.createPairedDeviceBridge(phone, phoneDevice, wear, wearDevice)
+      val phoneWearPair = WearPairingManager.getInstance().createPairedDeviceBridge(phone, phoneDevice, wear, wearDevice)
       if (phoneWearPair.pairingStatus != PairingState.CONNECTED) {
         showPairing(phoneWearPair, phoneDevice, wearDevice)
       }
@@ -309,7 +309,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
             }
           }
         }
-        if (WearPairingManager.updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice) != PairingState.CONNECTED) {
+        if (WearPairingManager.getInstance().updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice) != PairingState.CONNECTED) {
           showUiPairingNonInteractive(phoneWearPair, phoneDevice, wearDevice,
                                       message("wear.assistant.device.connection.pairing.auto.failed"),
                                       "Retry", "Skip to manual instructions", false)
@@ -344,7 +344,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     backgroundJob = coroutineScope.launch(Dispatchers.IO) {
       try {
         while (phoneWearPair.pairingStatus != PairingState.CONNECTED &&
-               WearPairingManager.updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice) != PairingState.CONNECTED) {
+               WearPairingManager.getInstance().updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice) != PairingState.CONNECTED) {
           delay(2_000)
         }
 
@@ -739,7 +739,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
           val wearDeviceId = model.selectedWearDevice.valueOrNull?.deviceID ?: ""
           val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
           avdManager.getAvds(false).firstOrNull { it.id == wearDeviceId }?.apply {
-            WearPairingManager.removeAllPairedDevices(wearDeviceId, restartWearGmsCore = false)
+            WearPairingManager.getInstance().removeAllPairedDevices(wearDeviceId, restartWearGmsCore = false)
             avdManager.stopAvd(this)
             waitForCondition(10_000) { model.selectedWearDevice.valueOrNull?.isOnline() != true }
             avdManager.wipeUserData(this)

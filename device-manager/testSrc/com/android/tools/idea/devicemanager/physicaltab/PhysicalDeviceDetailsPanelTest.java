@@ -61,7 +61,7 @@ public final class PhysicalDeviceDetailsPanelTest {
     PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
                                                                       myBuilder,
                                                                       section -> newSummarySectionCallback(section, latch),
-                                                                      WearPairingManager.INSTANCE);
+                                                                      WearPairingManager.getInstance());
 
     // Assert
     CountDownLatchAssert.await(latch);

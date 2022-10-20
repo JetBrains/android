@@ -71,7 +71,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     super.setUp()
     BatchInvoker.setOverrideStrategy(invokeStrategy)
     UsageTracker.setWriterForTest(usageTracker)
-    WearPairingManager.loadSettings(emptyList(), emptyList()) // Clean up any pairing data leftovers
+    WearPairingManager.getInstance().loadSettings(emptyList(), emptyList()) // Clean up any pairing data leftovers
   }
 
   override fun tearDown() {
@@ -243,7 +243,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
 
     val fakeUi = createDeviceListStepUi()
     val iDevice = Mockito.mock(IDevice::class.java)
-    runBlocking { WearPairingManager.createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false) }
+    runBlocking { WearPairingManager.getInstance().createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false) }
 
     model.phoneList.set(listOf(phoneDevice))
     fakeUi.layoutAndDispatchEvents()
@@ -263,7 +263,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   fun showTooltipIfDeviceNotAllowed() {
     val fakeUi = createDeviceListStepUi()
     val iDevice = Mockito.mock(IDevice::class.java)
-    runBlocking { WearPairingManager.createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false) }
+    runBlocking { WearPairingManager.getInstance().createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false) }
 
     model.phoneList.set(listOf(
       phoneDevice.copy(deviceID = "id3", displayName = "My Phone2", apiLevel = 29),

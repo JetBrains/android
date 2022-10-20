@@ -111,6 +111,9 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
 
   private val pairedDevicesList = mutableListOf<PhoneWearPair>()
 
+  @JvmStatic
+  fun getInstance(): WearPairingManager = this
+
   @TestOnly
   fun setDataProviders(virtualDevices: () -> List<AvdInfo>, connectedDevices: () -> List<IDevice>) {
     virtualDevicesProvider = virtualDevices
@@ -507,7 +510,7 @@ private fun AvdInfo.toPairingDevice(deviceID: String): PairingDevice {
     state = ConnectionState.OFFLINE,
     hasPlayStore = hasPlayStore(),
   ).apply {
-    launch = { project -> WearPairingManager.launchDevice(project, deviceID, this@toPairingDevice) }
+    launch = { project -> WearPairingManager.getInstance().launchDevice(project, deviceID, this@toPairingDevice) }
   }
 }
 

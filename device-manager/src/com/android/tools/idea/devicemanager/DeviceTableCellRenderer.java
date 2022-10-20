@@ -56,8 +56,9 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   private final @NotNull JComponent myPanel;
 
   protected DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass) {
-    this(valueClass, WearPairingManager.INSTANCE);
+    this(valueClass, WearPairingManager.getInstance());
   }
+
 
   @VisibleForTesting
   DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass, @NotNull WearPairingManager manager) {
