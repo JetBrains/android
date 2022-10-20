@@ -149,6 +149,7 @@ maven_repository(
 )
 
 local_old_agp_test(
+    additional_jdks = ["11"],
     agp_version = AGP_3_1_4,
     gradle_version = GRADLE_5_3_1,
     tags = [
@@ -159,6 +160,7 @@ local_old_agp_test(
 )
 
 local_old_agp_test(
+    additional_jdks = ["11"],
     agp_version = AGP_3_3_2,
     gradle_version = GRADLE_5_3_1,
     shard_count = 1,
@@ -170,6 +172,7 @@ local_old_agp_test(
 )
 
 local_old_agp_test(
+    additional_jdks = ["11"],
     agp_version = AGP_3_3_2,
     gradle_version = GRADLE_5_5,
     shard_count = 1,
@@ -181,6 +184,10 @@ local_old_agp_test(
 )
 
 local_old_agp_test(
+    additional_jdks = [
+        "1.8",
+        "11",
+    ],
     agp_version = AGP_3_5,
     gradle_version = GRADLE_5_5,
     shard_count = 4,
@@ -192,6 +199,7 @@ local_old_agp_test(
 )
 
 local_old_agp_test(
+    additional_jdks = ["11"],
     agp_version = AGP_4_0,
     gradle_version = GRADLE_6_7_1,
     shard_count = 3,
@@ -203,6 +211,7 @@ local_old_agp_test(
 )
 
 local_old_agp_test(
+    additional_jdks = ["11"],
     agp_version = AGP_4_1,
     gradle_version = GRADLE_6_7_1,
     shard_count = 3,
@@ -214,6 +223,7 @@ local_old_agp_test(
 )
 
 local_old_agp_test(
+    additional_jdks = ["11"],
     agp_version = AGP_4_2,
     gradle_version = GRADLE_6_7_1,
     shard_count = 4,
@@ -225,6 +235,7 @@ local_old_agp_test(
 )
 
 local_old_agp_test(
+    additional_jdks = ["11"],
     agp_version = AGP_7_0,
     gradle_version = GRADLE_7_0_2,
     shard_count = 3,

@@ -1,8 +1,6 @@
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
 
 COMMON_DATA = [
-    "//prebuilts/studio/jdk:jdk_1_8",
-    "//prebuilts/studio/jdk/jdk11",
     "//prebuilts/studio/layoutlib:build.prop",
     "//prebuilts/studio/layoutlib/data:framework_res.jar",
     "//prebuilts/studio/layoutlib/data:native_libs",
@@ -130,11 +128,18 @@ GRADLE_DISTRIBUTIONS = {
 def local_old_agp_test(
         gradle_version,
         agp_version,
+        additional_jdks = [],
         **kwargs):
+    jdk_data = []
+    if "1.8" in additional_jdks:
+        jdk_data.append("//prebuilts/studio/jdk:jdk_1_8")
+    if "11" in additional_jdks:
+        jdk_data.append("//prebuilts/studio/jdk/jdk11")
+
     old_agp_test(
         name = "OldAgpTests",
         agp_version = agp_version,
-        data = COMMON_DATA + GRADLE_DISTRIBUTIONS[gradle_version] + AGP_DATA[agp_version],
+        data = COMMON_DATA + GRADLE_DISTRIBUTIONS[gradle_version] + AGP_DATA[agp_version] + jdk_data,
         gradle_version = gradle_version,
         iml_module = ":intellij.android.old-agp-tests",
         maven_deps = COMMON_MAVEN_DEPS + AGP_MAVEN_REPOS[agp_version],
