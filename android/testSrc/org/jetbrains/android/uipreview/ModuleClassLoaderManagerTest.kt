@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_CLASSLOADERS_PRELOADING
 import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.After
@@ -34,7 +33,6 @@ class ModuleClassLoaderManagerTest {
 
   @After
   fun testDown() {
-    COMPOSE_CLASSLOADERS_PRELOADING.clearOverride()
     ModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(false)
     if (ModuleClassLoaderManager.get().hasAllocatedSharedClassLoaders()) {
       fail("Class loaders were not released correctly by the tests")
@@ -109,8 +107,6 @@ class ModuleClassLoaderManagerTest {
 
   @Test
   fun `ensure stats are not activated accidentally`() {
-    // Disabling the preloading so that getPrivate returns freshly-created ModuleClassLoader that respects diagnostics settings change
-    COMPOSE_CLASSLOADERS_PRELOADING.override(false)
     run {
       val sharedClassLoader = ModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderManagerTest)
       assertTrue(sharedClassLoader.stats is NopModuleClassLoadedDiagnostics)
@@ -120,6 +116,9 @@ class ModuleClassLoaderManagerTest {
     }
 
     ModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(true)
+    // Destroying hatchery so that getPrivate returns freshly-created ModuleClassLoader that respects diagnostics settings change
+    project.module.getUserData(HATCHERY)?.destroy()
+
     run {
       // The shared class loader will be reused so, even though we are reactivating the diagnostics,
       // it should be not using them.

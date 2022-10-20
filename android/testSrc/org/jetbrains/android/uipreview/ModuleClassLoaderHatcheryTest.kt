@@ -15,17 +15,13 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_CLASSLOADERS_PRELOADING
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader
 import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.testing.AndroidProjectRule
-import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Files
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -33,17 +29,6 @@ import kotlin.test.assertNull
 class ModuleClassLoaderHatcheryTest {
   @get:Rule
   val project = AndroidProjectRule.inMemory()
-
-  @Before
-  fun setUp() {
-    // Disabling internal ModuleClassLoaderManagerHatchery
-    COMPOSE_CLASSLOADERS_PRELOADING.override(false)
-  }
-
-  @After
-  fun tearDown() {
-    COMPOSE_CLASSLOADERS_PRELOADING.clearOverride()
-  }
 
   @Test
   fun `incubates only when needed`() {

@@ -1242,13 +1242,6 @@ public final class StudioFlags {
     30
   );
 
-  public static final Flag<Boolean> COMPOSE_CLASSLOADERS_PRELOADING = Flag.create(
-    COMPOSE, "preview.classloaders.preloading",
-    "Enable background classes preloading",
-    "If enabled, a background classes preloading will happen to speed-up preview ClassLoader warm-up",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_STATE_OBJECT_CUSTOM_RENDERER = Flag.create(
     COMPOSE, "custom.renderer.for.compose.state.objects",
     "Enable custom renderers for compose state objects",
