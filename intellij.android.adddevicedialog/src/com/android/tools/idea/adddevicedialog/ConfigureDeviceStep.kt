@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.adddevicedialog
 
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.DumbAwareAction
+import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.intellij.ui.components.JBLabel
+import javax.swing.JComponent
 
-private class AddDeviceAction private constructor() : DumbAwareAction() {
-  override fun actionPerformed(event: AnActionEvent) = AddDeviceDialog.build().show()
+internal class ConfigureDeviceStep internal constructor(model: AddDeviceWizardModel) : ModelWizardStep<AddDeviceWizardModel>(model, "") {
+  override fun getComponent(): JComponent {
+    @Suppress("DialogTitleCapitalization")
+    return JBLabel("Hello, World!")
+  }
 }

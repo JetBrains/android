@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.adddevicedialog
 
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.DumbAwareAction
+import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
+import com.intellij.openapi.ui.DialogWrapper
 
-private class AddDeviceAction private constructor() : DumbAwareAction() {
-  override fun actionPerformed(event: AnActionEvent) = AddDeviceDialog.build().show()
+internal object AddDeviceDialog {
+  internal fun build(): DialogWrapper = StudioWizardDialogBuilder(ConfigureDeviceStep(AddDeviceWizardModel()), "Add Device").build()
 }

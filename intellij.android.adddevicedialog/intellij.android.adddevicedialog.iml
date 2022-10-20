@@ -6,7 +6,9 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="module" module-name="intellij.android.wizard" />
+    <orderEntry type="module" module-name="intellij.android.wizard.model" />
+    <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
