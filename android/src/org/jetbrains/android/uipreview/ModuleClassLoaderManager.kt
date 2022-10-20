@@ -300,8 +300,12 @@ class ModuleClassLoaderManager {
 
   @Synchronized
   fun clearCache(module: Module) {
-    setOf(module.getHolderModule(), module).forEach { module ->
-      module.removeUserData(PRELOADER)?.getClassLoader()?.let { Disposer.dispose(it) }
+    holders.keys.toList().filter { it.module?.getHolderModule() == module.getHolderModule() }.forEach {
+      holders.remove(it)
+    }
+    setOf(module.getHolderModule(), module).forEach { mdl ->
+      mdl.removeUserData(PRELOADER)?.getClassLoader()?.let { Disposer.dispose(it) }
+      mdl.getUserData(HATCHERY)?.destroy()
     }
   }
 

@@ -165,6 +165,7 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
 
   @Synchronized
   fun destroy() {
+    requests.clear()
     storage.forEach { it.destroy() }
     storage.clear()
   }
