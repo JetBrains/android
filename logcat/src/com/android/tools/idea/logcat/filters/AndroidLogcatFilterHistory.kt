@@ -33,30 +33,34 @@ private const val MAX_HISTORY_SIZE = 20
 @State(name = "AndroidLogcatFilterHistory", storages = [Storage("androidLogcatFilterHistory.xml")])
 internal class AndroidLogcatFilterHistory(
   var favorites: MutableList<String> = mutableListOf(),
+  var named: MutableList<String> = mutableListOf(),
   var nonFavorites: MutableList<String> = mutableListOf(),
   var mostRecentlyUsed: String = AndroidLogcatSettings.getInstance().defaultFilter,
   @Transient
   private val maxNonFavoriteItems: Int = MAX_HISTORY_SIZE,
 ) : PersistentStateComponent<AndroidLogcatFilterHistory> {
 
-  val items get() = favorites + nonFavorites
+  val items get() = favorites + named + nonFavorites
 
-  fun add(filter: String, isFavorite: Boolean) {
+  fun add(filterParser: LogcatFilterParser, filter: String, isFavorite: Boolean) {
     remove(filter)
 
-    if (isFavorite) {
-      favorites.add(0, filter)
-    }
-    else {
-      nonFavorites.add(0, filter)
-      if (nonFavorites.size > maxNonFavoriteItems) {
-        nonFavorites.removeLast()
+    fun isNamed() = filterParser.parse(filter)?.filterName != null
+    when {
+      isFavorite -> favorites.add(0, filter)
+      isNamed() -> named.add(0, filter)
+      else -> {
+        nonFavorites.add(0, filter)
+        if (nonFavorites.size > maxNonFavoriteItems) {
+          nonFavorites.removeLast()
+        }
       }
     }
   }
 
   fun remove(filter: String) {
     nonFavorites.remove(filter)
+    named.remove(filter)
     favorites.remove(filter)
   }
 

@@ -312,7 +312,7 @@ internal class FilterTextField(
     if (text.isEmpty()) {
       return
     }
-    filterHistory.add(text, isFavorite)
+    filterHistory.add(filterParser, text, isFavorite)
     LogcatUsageTracker.log(
       LogcatUsageEvent.newBuilder()
         .setType(FILTER_ADDED_TO_HISTORY)
@@ -410,6 +410,7 @@ internal class FilterTextField(
         if (filterHistory.favorites.isNotEmpty() && filterHistory.nonFavorites.isNotEmpty()) {
           add(Separator)
         }
+        addAll(filterHistory.named.map { Item(filter = it, isFavorite = false, count = null, filterParser) })
         addAll(filterHistory.nonFavorites.map { Item(filter = it, isFavorite = false, count = null, filterParser) })
       }
       // Parse all the filters here while we're still in the EDT

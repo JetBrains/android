@@ -88,6 +88,7 @@ class FilterTextFieldTest {
   @After
   fun tearDown() {
     filterHistory.nonFavorites.clear()
+    filterHistory.named.clear()
     filterHistory.favorites.clear()
   }
 
@@ -102,7 +103,7 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun constructor_setsText_asFavorite() {
-    filterHistory.add("text", isFavorite = true)
+    filterHistory.add(logcatFilterParser, "text", isFavorite = true)
 
     val filterTextField = filterTextField(initialText = "text")
 
@@ -234,8 +235,8 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_render() = runBlockingTest {
-    filterHistory.add("foo", isFavorite = true)
-    filterHistory.add("bar", isFavorite = false)
+    filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
+    filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
     fakeLogcatPresenter.processMessages(listOf(
       logcatMessage(tag = "foobar"),
       logcatMessage(tag = "bar"),
@@ -254,8 +255,8 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_renderOnlyFavorites() = runBlockingTest {
-    filterHistory.add("foo", isFavorite = true)
-    filterHistory.add("bar", isFavorite = true)
+    filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
+    filterHistory.add(logcatFilterParser, "bar", isFavorite = true)
     fakeLogcatPresenter.processMessages(listOf(
       logcatMessage(tag = "foobar"),
       logcatMessage(tag = "bar"),
@@ -273,8 +274,8 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_renderNoFavorites() = runBlockingTest {
-    filterHistory.add("foo", isFavorite = false)
-    filterHistory.add("bar", isFavorite = false)
+    filterHistory.add(logcatFilterParser, "foo", isFavorite = false)
+    filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
     fakeLogcatPresenter.processMessages(listOf(
       logcatMessage(tag = "foobar"),
       logcatMessage(tag = "bar"),
@@ -292,7 +293,7 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_renderNamedFilter() = runBlockingTest {
-    filterHistory.add("name:Foo tag:Foo", isFavorite = false)
+    filterHistory.add(logcatFilterParser, "name:Foo tag:Foo", isFavorite = false)
     fakeLogcatPresenter.processMessages(listOf(logcatMessage(tag = "Foo")))
     val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
     historyList.waitForCounts()
@@ -306,8 +307,8 @@ class FilterTextFieldTest {
   @Test
   @RunsInEdt
   fun historyList_renderNamedFilterWithSameName() = runBlockingTest {
-    filterHistory.add("name:Foo tag:Foo", isFavorite = false)
-    filterHistory.add("name:Foo tag:Foobar", isFavorite = false)
+    filterHistory.add(logcatFilterParser, "name:Foo tag:Foo", isFavorite = false)
+    filterHistory.add(logcatFilterParser, "name:Foo tag:Foobar", isFavorite = false)
     fakeLogcatPresenter.processMessages(listOf(
       logcatMessage(tag = "Foo"),
       logcatMessage(tag = "FooBar"),
@@ -319,6 +320,30 @@ class FilterTextFieldTest {
     assertThat(historyList.renderToStrings()).containsExactly(
       " : Foo: tag:Foobar ( 1 )",
       " : Foo: tag:Foo ( 2 )",
+    ).inOrder() // Order is reverse of the order added
+  }
+
+  @Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
+  @Test
+  @RunsInEdt
+  fun historyList_renderNamedNamedOrder() = runBlockingTest {
+    filterHistory.add(logcatFilterParser, "name:Foo named favorite", isFavorite = true)
+    filterHistory.add(logcatFilterParser, "favorite", isFavorite = true)
+    filterHistory.add(logcatFilterParser, "name:Foo named", isFavorite = false)
+    filterHistory.add(logcatFilterParser, "unnamed", isFavorite = false)
+    val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
+    historyList.waitForCounts()
+
+    // The order should be:
+    //   Favorites in reverse order added
+    //   Named
+    //   Unnamed
+    assertThat(historyList.renderToStrings()).containsExactly(
+      "*: favorite ( 0 )",
+      "*: Foo: named favorite ( 0 )",
+      "----------------------------------",
+      " : Foo: named ( 0 )",
+      " : unnamed ( 0 )"
     ).inOrder() // Order is reverse of the order added
   }
 
