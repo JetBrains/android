@@ -251,6 +251,10 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
   val accumulatedTimeouts: Int
     get() = accumulatedTimeoutExceptions.get()
 
+  @get:TestOnly
+  val numPendingActions: Int
+    get() = pendingActionsQueue.size
+
   /**
    * Returns true if the render thread is busy running some code, false otherwise.
    */
