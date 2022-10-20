@@ -21,8 +21,12 @@ import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.Memor
 
 import com.android.tools.analytics.UsageTracker;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.ide.PowerSaveMode;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.LowMemoryWatcher;
 import com.intellij.util.containers.WeakList;
+import com.intellij.util.messages.MessageBusConnection;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
@@ -37,7 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class HeapSnapshotTraverse {
+public final class HeapSnapshotTraverse implements Disposable {
 
   private static final int MAX_ALLOWED_OBJECT_MAP_SIZE = 1_000_000;
   private static final int INVALID_OBJECT_ID = -1;
@@ -55,6 +59,8 @@ public final class HeapSnapshotTraverse {
   private static short ourIterationId = 0;
 
   @NotNull private final LowMemoryWatcher watcher;
+  @NotNull private final MessageBusConnection messageBusConnection;
+
   @NotNull private final HeapTraverseChildProcessor heapTraverseChildProcessor;
   private final short iterationId;
   @NotNull private final HeapSnapshotStatistics statistics;
@@ -68,6 +74,14 @@ public final class HeapSnapshotTraverse {
   public HeapSnapshotTraverse(@NotNull final HeapTraverseChildProcessor childProcessor,
                               @NotNull final HeapSnapshotStatistics statistics) {
     watcher = LowMemoryWatcher.register(this::onLowMemorySignalReceived);
+    messageBusConnection = ApplicationManager.getApplication().getMessageBus().connect();
+    messageBusConnection.subscribe(PowerSaveMode.TOPIC, (PowerSaveMode.Listener)() -> {
+      if (PowerSaveMode.isEnabled()) {
+        shouldAbortTraversal = true;
+        messageBusConnection.disconnect();
+      }
+    });
+
     heapTraverseChildProcessor = childProcessor;
     iterationId = getNextIterationId();
     this.statistics = statistics;
@@ -222,6 +236,7 @@ public final class HeapSnapshotTraverse {
     }
     finally {
       watcher.stop();
+      messageBusConnection.disconnect();
     }
     return StatusCode.NO_ERROR;
   }
@@ -460,6 +475,12 @@ public final class HeapSnapshotTraverse {
         currentNode.ownedByComponentMask |= parentNode.ownedByComponentMask;
       }
     }, fieldCache);
+  }
+
+  @Override
+  public void dispose() {
+    watcher.stop();
+    messageBusConnection.disconnect();
   }
 
   public static void collectAndPrintMemoryReport() {

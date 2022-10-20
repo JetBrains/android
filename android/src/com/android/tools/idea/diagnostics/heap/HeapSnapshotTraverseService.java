@@ -22,6 +22,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
+import com.intellij.ide.PowerSaveMode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -78,7 +79,7 @@ public final class HeapSnapshotTraverseService {
       vm = VirtualMachine.attach(pid);
       Path libLocationPath = getLibLocation();
       if (libLocationPath == null) {
-        sendAgentLoadFailedReport();
+        sendMemoryCollectionFailureReport(StatusCode.AGENT_LOAD_FAILED);
         return;
       }
       vm.loadAgentPath(libLocationPath.toString());
@@ -86,7 +87,7 @@ public final class HeapSnapshotTraverseService {
     }
     catch (AttachNotSupportedException | AgentInitializationException | AgentLoadException |
            IOException e) {
-      sendAgentLoadFailedReport();
+      sendMemoryCollectionFailureReport(StatusCode.AGENT_LOAD_FAILED);
     }
     finally {
       if (vm != null) {
@@ -110,6 +111,10 @@ public final class HeapSnapshotTraverseService {
   }
 
   private void lowerThreadPriorityAndCollectMemoryReport() {
+    if (PowerSaveMode.isEnabled()) {
+      sendMemoryCollectionFailureReport(StatusCode.POWER_SAVING_MODE_ENABLED);
+      return;
+    }
     Thread currentThread = Thread.currentThread();
     int oldThreadPriority = currentThread.getPriority();
 
@@ -174,11 +179,11 @@ public final class HeapSnapshotTraverseService {
     return null;
   }
 
-  private static void sendAgentLoadFailedReport() {
+  private static void sendMemoryCollectionFailureReport(StatusCode statusCode) {
     UsageTracker.log(AndroidStudioEvent.newBuilder()
                        .setKind(AndroidStudioEvent.EventKind.MEMORY_USAGE_REPORT_EVENT)
                        .setMemoryUsageReportEvent(MemoryUsageReportEvent.newBuilder().setMetadata(
                          MemoryUsageReportEvent.MemoryUsageCollectionMetadata.newBuilder()
-                           .setStatusCode(StatusCode.AGENT_LOAD_FAILED))));
+                           .setStatusCode(statusCode))));
   }
 }
