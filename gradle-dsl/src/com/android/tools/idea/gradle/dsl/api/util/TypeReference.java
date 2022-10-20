@@ -25,7 +25,7 @@ public abstract class TypeReference<T> {
   protected TypeReference() {
     Type superClass = getClass().getGenericSuperclass();
     if (superClass instanceof Class) {
-      throw new IllegalStateException("No type parameter given!");
+      throw new IllegalStateException("No type parameter given!"); // OK to throw: used in static initializers.
     }
     myType = ((ParameterizedType) superClass).getActualTypeArguments()[0];
   }

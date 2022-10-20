@@ -1118,22 +1118,9 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(artifacts.get(0));
 
     ArtifactDependencyModel first = artifacts.get(0);
-    try {
-      first.name().delete();
-      fail();
-    }
-    catch (UnsupportedOperationException e) {
-      // Expected
-    }
-
-    try {
-      first.name().rename("Hello");
-      fail();
-    }
-    catch (UnsupportedOperationException e) {
-      // Expected
-    }
-
+    first.name().delete();
+    assertFalse(buildModel.isModified());
+    first.name().rename("Hello");
     assertFalse(buildModel.isModified());
   }
 
@@ -1430,37 +1417,14 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     List<ArtifactDependencyModel> artifacts = dependencies.artifacts();
     ArtifactDependencyModel artifact = artifacts.get(0);
-    try {
-      artifact.version().rename("hello"); // This doesn't make sense
-      fail();
-    }
-    catch (UnsupportedOperationException e) {
-      // Expected
-    }
+    artifact.version().rename("hello");
+    assertFalse(buildModel.isModified());
+    artifact.name().delete();
+    assertFalse(buildModel.isModified());
 
-    try {
-      artifact.name().delete(); // Names can't be deleted
-      fail();
-    }
-    catch (UnsupportedOperationException e) {
-      // Expected
-    }
-
-    try {
-      artifact.classifier().convertToEmptyMap(); // Again this operation doesn't make sense
-      fail();
-    }
-    catch (UnsupportedOperationException e) {
-      // Expected
-    }
-
-    try {
-      artifact.extension().convertToEmptyList();
-      fail();
-    }
-    catch (UnsupportedOperationException e) {
-      // Expected
-    }
+    // These operations don't make sense but should leave the model unmodified.
+    artifact.classifier().convertToEmptyMap();
+    artifact.extension().convertToEmptyList();
 
     assertFalse(buildModel.isModified());
   }
@@ -1966,13 +1930,9 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     }
 
     {
-      try {
-        // Try an unsupported case.
-        artifacts.get(7).setConfigurationName("debugImplementation1");
-        fail();
-      }
-      catch (UnsupportedOperationException e) {
-      }
+      // An unsupported case should not fail but should also leave its state (and the underlying Dsl) unchanged
+      artifacts.get(7).setConfigurationName("debugImplementation1");
+      assertThat(artifacts.get(7).configurationName()).isEqualTo("releaseImplementation");
     }
     {
       artifacts.get(10).setConfigurationName("debugApi1");

@@ -364,7 +364,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       return
     }
 
-    srcDirsModel.addListValue().setValue(relativeDir)
+    srcDirsModel.addListValue()?.setValue(relativeDir)
   }
 
   override fun setExtVar(name: String, value: String) {
@@ -520,7 +520,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
     val gradleName = ':' + name.trimStart(':')
     val buildModel = projectBuildModel?.getModuleBuildModel(toModule) ?: return
-    buildModel.android().dynamicFeatures().addListValue().setValue(gradleName)
+    buildModel.android().dynamicFeatures().addListValue()?.setValue(gradleName)
   }
 
   fun applyChanges() {

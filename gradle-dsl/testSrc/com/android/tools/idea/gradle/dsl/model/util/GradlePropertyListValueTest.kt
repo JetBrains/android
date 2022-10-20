@@ -76,32 +76,16 @@ class GradlePropertyListValueTest : GradleFileModelTestCase() {
 
     run {
       val firstModel = buildModel.ext().findProperty("prop1")
-      try {
-        replaceListValue(firstModel, "value1", "newValue")
-        fail()
-      }
-      catch (e: IllegalStateException) {
-        // Expected
-      }
+      replaceListValue(firstModel, "value1", "newValue")
 
       val secondModel = buildModel.ext().findProperty("prop2")
-      try {
-        replaceListValue(secondModel, "hello", "goodbye")
-        fail()
-      }
-      catch (e: IllegalStateException) {
-        // Expected
-      }
+      replaceListValue(secondModel, "hello", "goodbye")
 
       val thirdModel = buildModel.ext().findProperty("prop3")
-      try {
-        replaceListValue(thirdModel, 1, 0)
-        fail()
-      }
-      catch (e: IllegalStateException) {
-        // Expected
-      }
+      replaceListValue(thirdModel, 1, 0)
     }
+
+    assertFalse(buildModel.isModified)
   }
 
   @Test

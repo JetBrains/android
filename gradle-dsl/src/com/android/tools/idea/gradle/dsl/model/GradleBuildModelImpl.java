@@ -74,6 +74,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import java.io.File;
@@ -81,6 +82,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -90,6 +92,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleBuildModel {
+  private static final Logger LOG = Logger.getInstance(GradleBuildModelImpl.class);
   @NonNls private static final String PLUGIN = "plugin";
   // TODO(xof): duplication with PluginModelImpl strings
   @NonNls private static final String ID = "id";
@@ -319,7 +322,8 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   @NotNull
   public Set<GradleFileModel> getInvolvedFiles() {
-    return getAllInvolvedFiles().stream().distinct().map(e -> getFileModel(e)).collect(Collectors.toSet());
+    return getAllInvolvedFiles().stream().distinct()
+      .map(GradleBuildModelImpl::getFileModel).filter(Objects::nonNull).collect(Collectors.toSet());
   }
 
   @Override
@@ -407,7 +411,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     myGradleDslFile.removeProperty(REPOSITORIES.name);
   }
 
-  @NotNull
+  @Nullable
   private static GradleFileModel getFileModel(@NotNull GradleDslFile file) {
     if (file instanceof GradleBuildFile) {
       return new GradleBuildModelImpl((GradleBuildFile)file);
@@ -418,6 +422,9 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     else if (file instanceof GradlePropertiesFile) {
       return new GradlePropertiesModelImpl((GradlePropertiesFile)file);
     }
-    throw new IllegalStateException("Unknown GradleDslFile type found!");
+    else {
+      LOG.warn(new IllegalStateException("Unknown GradleDslFile type found!" + file));
+      return null;
+    }
   }
 }

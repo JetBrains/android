@@ -42,12 +42,12 @@ class JniLibsModelTest : GradleFileModelTestCase() {
     val jniLibsModel = buildModel.android().packagingOptions().jniLibs()
     checkForInvalidPsiElement(jniLibsModel, JniLibsModelImpl::class.java)
     jniLibsModel.useLegacyPackaging().setValue(true)
-    jniLibsModel.excludes().addListValue().setValue("foo")
-    jniLibsModel.pickFirsts().addListValue().setValue("bar")
-    jniLibsModel.pickFirsts().addListValue().setValue("baz")
-    jniLibsModel.keepDebugSymbols().addListValue().setValue("a")
-    jniLibsModel.keepDebugSymbols().addListValue().setValue("b")
-    jniLibsModel.keepDebugSymbols().addListValue().setValue("c")
+    jniLibsModel.excludes().addListValue()!!.setValue("foo")
+    jniLibsModel.pickFirsts().addListValue()!!.setValue("bar")
+    jniLibsModel.pickFirsts().addListValue()!!.setValue("baz")
+    jniLibsModel.keepDebugSymbols().addListValue()!!.setValue("a")
+    jniLibsModel.keepDebugSymbols().addListValue()!!.setValue("b")
+    jniLibsModel.keepDebugSymbols().addListValue()!!.setValue("c")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_EXPECTED)
@@ -64,9 +64,9 @@ class JniLibsModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val jniLibsModel = buildModel.android().packagingOptions().jniLibs()
 
-    jniLibsModel.excludes().addListValue().setValue("excludes2")
-    jniLibsModel.pickFirsts().addListValue().setValue("pickFirsts2")
-    jniLibsModel.keepDebugSymbols().addListValue().setValue("keepDebugSymbols1")
+    jniLibsModel.excludes().addListValue()!!.setValue("excludes2")
+    jniLibsModel.pickFirsts().addListValue()!!.setValue("pickFirsts2")
+    jniLibsModel.keepDebugSymbols().addListValue()!!.setValue("keepDebugSymbols1")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.ADD_ELEMENTS_AND_APPLY_EXPECTED)

@@ -186,9 +186,9 @@ private fun <T : Any> ResolvedPropertyModel.addMapEntry(
   modifier: (() -> Unit) -> Unit
 ): ModelPropertyCore<T> =
   makeItemPropertyCore(
-    getMapValue(key).resolve(), getter, setter, { ResolvedValue.NotResolved() }, matcher, modifier)
+    getMapValue(key)!!.resolve(), getter, setter, { ResolvedValue.NotResolved() }, matcher, modifier)
 
-private fun ResolvedPropertyModel.deleteMapEntry(key: String) = getMapValue(key).delete()
+private fun ResolvedPropertyModel.deleteMapEntry(key: String) = getMapValue(key)!!.delete()
 
 private fun <T : Any> ResolvedPropertyModel.changeMapEntryKey(
   old: String,
@@ -198,11 +198,11 @@ private fun <T : Any> ResolvedPropertyModel.changeMapEntryKey(
   matcher: (parsedValue: T?, resolvedValue: T) -> Boolean,
   modifier: (() -> Unit) -> Unit
 ): ModelPropertyCore<T> {
-  val oldProperty = getMapValue(old)
+  val oldProperty = getMapValue(old)!!
   val oldValue = oldProperty.getRawValue(OBJECT_TYPE)
 
   oldProperty.delete()
-  val newProperty = getMapValue(new)
+  val newProperty = getMapValue(new)!!
   if (oldValue != null) newProperty.setValue(oldValue)
   // TODO(b/72814329): Match resolved value.
   return makeItemPropertyCore(

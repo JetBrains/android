@@ -34,7 +34,7 @@ class PsFlavorDimensionCollection internal constructor(parent: PsAndroidModule)
   }
 
   override fun instantiateNew(key: String) {
-    parent.parsedModel!!.android().flavorDimensions().addListValue().setValue(key)
+    parent.parsedModel!!.android().flavorDimensions().addListValue()?.setValue(key)
   }
 
   override fun removeExisting(key: String) {

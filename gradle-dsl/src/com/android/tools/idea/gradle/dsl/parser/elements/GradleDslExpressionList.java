@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsD
 
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
@@ -30,6 +31,8 @@ import org.jetbrains.annotations.Nullable;
  * Represents an element which consists a list of {@link GradleDslSimpleExpression}s.
  */
 public final class GradleDslExpressionList extends GradlePropertiesDslElement implements GradleDslExpression {
+  private static final Logger LOG = Logger.getInstance(GradleDslExpressionList.class);
+
   private final boolean myAppendToArgumentListWithOneElement;
   // This boolean controls whether of not the empty list element should be deleted on a call to delete in one of
   // its children. For non-literal lists (e.g merges "merge1", "merge2") #shouldBeDeleted() always returns true since we
@@ -179,45 +182,65 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
 
   @Override
   public void setParsedElement(@NotNull GradleDslElement element) {
-    if (!(element instanceof GradleDslExpression)) throw new IllegalArgumentException("Not an expression: " + element);
+    if (!(element instanceof GradleDslExpression)) {
+      LOG.warn(new IllegalArgumentException("Not an expression: " + element));
+      return;
+    }
     super.setParsedElement(element);
   }
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
-    if (!(element instanceof GradleDslExpression)) throw new IllegalArgumentException("Not an expression: " + element);
+    if (!(element instanceof GradleDslExpression)) {
+      LOG.warn(new IllegalArgumentException("Not an expression: " + element));
+      return;
+    }
     super.addParsedElement(element);
   }
 
   @Override
   public void addToParsedExpressionList(@NotNull String property, @NotNull GradleDslElement element) {
-    if (!(element instanceof GradleDslExpression)) throw new IllegalArgumentException("Not an expression: " + element);
+    if (!(element instanceof GradleDslExpression)) {
+      LOG.warn(new IllegalArgumentException("Not an expression: " + element));
+      return;
+    }
     super.addToParsedExpressionList(property, element);
   }
 
-  @NotNull
   @Override
-  public GradleDslElement setNewElement(@NotNull GradleDslElement newElement) {
-    if (!(newElement instanceof GradleDslExpression)) throw new IllegalArgumentException("Not an expression: " + newElement);
-    return super.setNewElement(newElement);
+  public void setNewElement(@NotNull GradleDslElement newElement) {
+    if (!(newElement instanceof GradleDslExpression)) {
+      LOG.warn(new IllegalArgumentException("Not an expression: " + newElement));
+      return;
+    }
+    super.setNewElement(newElement);
   }
 
   @Override
   public void addNewElementAt(int index, @NotNull GradleDslElement newElement) {
-    if (!(newElement instanceof GradleDslExpression)) throw new IllegalArgumentException("Not an expression: " + newElement);
+    if (!(newElement instanceof GradleDslExpression)) {
+      LOG.warn(new IllegalArgumentException("Not an expression: " + newElement));
+      return;
+    }
     List<GradleDslExpression> expressions = getPropertyElements(GradleDslExpression.class);
     if (index > expressions.size()) {
-      throw new IndexOutOfBoundsException(index + " is out of bounds for size " + expressions.size());
+      LOG.warn(new IndexOutOfBoundsException(index + " is out of bounds for size " + expressions.size()));
+      return;
     }
     super.addNewElementAt(index, newElement);
   }
 
-  @NotNull
   @Override
-  public GradleDslElement replaceElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
-    if (!(oldElement instanceof GradleDslExpression)) throw new IllegalArgumentException("Not an expression (old): " + oldElement);
-    if (!(newElement instanceof GradleDslExpression)) throw new IllegalArgumentException("Not an expression (new): " + newElement);
-    return super.replaceElement(oldElement, newElement);
+  public void replaceElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
+    if (!(oldElement instanceof GradleDslExpression)) {
+      LOG.warn(new IllegalArgumentException("Not an expression (old): " + oldElement));
+      return;
+    }
+    if (!(newElement instanceof GradleDslExpression)) {
+      LOG.warn(new IllegalArgumentException("Not an expression (new): " + newElement));
+      return;
+    }
+    super.replaceElement(oldElement, newElement);
   }
 
   @Override

@@ -22,12 +22,15 @@ import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public class JvmTargetPropertyModelImpl extends ResolvedPropertyModelImpl implements LanguageLevelPropertyModel {
+  private static final Logger LOG = Logger.getInstance(JvmTargetPropertyModelImpl.class);
+
   private static final String docLink = "https://kotlinlang.org/docs/reference/using-gradle.html#attributes-specific-for-jvm";
   private static final ImmutableMap<Integer, String> allowedTargets = ImmutableMap.<Integer, String>builder()
     .put(6, "1.6")
@@ -57,7 +60,7 @@ public class JvmTargetPropertyModelImpl extends ResolvedPropertyModelImpl implem
       setValue(allowedTargets.get(major));
       return;
     }
-    throw new IllegalArgumentException(
-      "Kotlin jvmTarget does not support Java " + major + ". See " + docLink + " for a list of supported targets.");
+    LOG.warn(new IllegalArgumentException(
+      "Kotlin jvmTarget does not support Java " + major + ". See " + docLink + " for a list of supported targets."));
   }
 }

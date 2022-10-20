@@ -83,7 +83,9 @@ public class GradleDslLiteral extends GradleDslSettableExpression {
 
   @Override
   public void setValue(@NotNull Object value) {
-    checkForValidValue(value);
+    if(!isValid(value)) {
+      return;
+    }
     PsiElement element =
       ApplicationManager.getApplication().runReadAction((Computable<PsiElement>)() -> {
         PsiElement psiElement = getDslFile().getParser().convertToPsiElement(this, value);

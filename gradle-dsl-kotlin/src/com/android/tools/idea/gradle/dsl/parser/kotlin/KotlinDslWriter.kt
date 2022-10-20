@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyn
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
-import com.android.tools.idea.gradle.dsl.parser.elements.FakeMethodElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -33,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
@@ -453,7 +453,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     val anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter)
     val psiFactory = KtPsiFactory(parentPsiElement.project)
 
-    val fakeElement = FakeMethodElement(methodCall)
+    val fakeElement = GradleDslLiteral(methodParent, GradleNameElement.fake(methodCall.methodName))
     val methodName = maybeTrimForParent(fakeElement, this).externalNameParts.joinToString(".")
 
     val statementText =

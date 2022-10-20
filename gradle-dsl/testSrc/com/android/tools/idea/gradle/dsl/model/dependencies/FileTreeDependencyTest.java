@@ -596,13 +596,8 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertThat(fileTrees).hasSize(1);
 
     FileTreeDependencyModel fileTree = fileTrees.get(0);
-    try {
-      fileTree.dir().rename("dirr");
-      fail();
-    }
-    catch (UnsupportedOperationException e) {
-      //expected
-    }
+    fileTree.dir().rename("dirr");
+    assertThat(fileTree.dir().getName()).isEqualTo("0");
 
     // Set includes to force it into list form.
     fileTree.includes().convertToEmptyList().addListValue().setValue("*.jar");

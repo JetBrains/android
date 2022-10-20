@@ -44,7 +44,7 @@ public final class FakeElementTransform extends PropertyTransform {
   }
 
   @Override
-  @NotNull
+  @Nullable
   public GradleDslExpression bind(@NotNull GradleDslElement holder,
                                   @Nullable GradleDslElement oldElement,
                                   @NotNull Object value,
@@ -53,7 +53,7 @@ public final class FakeElementTransform extends PropertyTransform {
       ((FakeElement)oldElement).setValue(value);
       return (FakeElement)oldElement;
     }
-    throw new IllegalStateException("Must be a fake element");
+    return null;
   }
 
   @Override
@@ -70,7 +70,7 @@ public final class FakeElementTransform extends PropertyTransform {
   @Nullable
   public GradleDslElement delete(@NotNull GradleDslElement holder, @NotNull GradleDslElement oldElement,
                                  @NotNull GradleDslElement transformedElement) {
-    // This element must be a fake element, we don't need to remove of from it's holder.
+    // This element must be a fake element, we don't need to remove it from its holder.
     oldElement.delete();
     return null;
   }

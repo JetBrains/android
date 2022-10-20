@@ -155,7 +155,7 @@ private fun <T : Any> ResolvedPropertyModel.addListItem(
   modifier: (() -> Unit) -> Unit
 ): ModelPropertyCore<T> =
   makeItemPropertyCore(
-    addListValueAt(index).resolve(), getter, setter, { ResolvedValue.NotResolved() }, matcher, modifier)
+    addListValueAt(index)!!.resolve(), getter, setter, { ResolvedValue.NotResolved() }, matcher, modifier)
 
 private fun ResolvedPropertyModel.deleteListItem(index: Int) = getValue(LIST_TYPE)?.get(index)?.delete() ?: throw IllegalStateException()
 

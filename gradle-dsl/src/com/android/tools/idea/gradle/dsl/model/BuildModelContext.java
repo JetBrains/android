@@ -243,7 +243,7 @@ public final class BuildModelContext {
     return result;
   }
 
-  private void putBuildFile(@NotNull String name, @NotNull GradleDslFile buildFile) {
+  private void putBuildFile(@NotNull String name, @NotNull GradleBuildFile buildFile) {
     myFileCache.putBuildFile(name, buildFile);
   }
 

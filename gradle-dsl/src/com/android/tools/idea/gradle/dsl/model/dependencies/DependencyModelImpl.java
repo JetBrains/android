@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class DependencyModelImpl implements DependencyModel {
 
   public interface Maintainer {
-    @NotNull Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName);
+    @Nullable Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName);
   }
 
   @NotNull
@@ -64,8 +64,11 @@ public abstract class DependencyModelImpl implements DependencyModel {
 
   @Override
   public final void setConfigurationName(@NotNull String newConfigurationName) {
-    myMaintainer = myMaintainer.setConfigurationName(this, newConfigurationName);
-    myConfigurationName = newConfigurationName;
+    Maintainer result = myMaintainer.setConfigurationName(this, newConfigurationName);
+    if (result != null) {
+      myMaintainer = result;
+      myConfigurationName = newConfigurationName;
+    }
   }
 
   @Override

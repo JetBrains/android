@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +39,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
  * @param <T> the enum type to represent this properties types
  */
 public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends GradlePropertyModelImpl implements MultiTypePropertyModel<T> {
+  private static final Logger LOG = Logger.getInstance(MultiTypePropertyModelImpl.class);
 
   @NotNull private Map<T, PropertyTransform> myTransforms;
   @NotNull private T myType;
@@ -144,7 +146,8 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
       ValueType oldValueType = getValueType();
 
       if (oldValueType == MAP || oldValueType == LIST) {
-        throw new UnsupportedOperationException("Can't convert " + oldValueType + " property to new type " + type);
+        LOG.warn(new UnsupportedOperationException("Can't convert " + oldValueType + " property to new type " + type));
+        return;
       }
       else {
         GradleDslElement element = getElement();

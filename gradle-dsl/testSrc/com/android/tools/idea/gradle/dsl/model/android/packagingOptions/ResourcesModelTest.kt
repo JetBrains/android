@@ -40,12 +40,12 @@ class ResourcesModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val resourcesModel = buildModel.android().packagingOptions().resources()
     checkForInvalidPsiElement(resourcesModel, ResourcesModelImpl::class.java)
-    resourcesModel.excludes().addListValue().setValue("foo")
-    resourcesModel.pickFirsts().addListValue().setValue("bar")
-    resourcesModel.pickFirsts().addListValue().setValue("baz")
-    resourcesModel.merges().addListValue().setValue("a")
-    resourcesModel.merges().addListValue().setValue("b")
-    resourcesModel.merges().addListValue().setValue("c")
+    resourcesModel.excludes().addListValue()!!.setValue("foo")
+    resourcesModel.pickFirsts().addListValue()!!.setValue("bar")
+    resourcesModel.pickFirsts().addListValue()!!.setValue("baz")
+    resourcesModel.merges().addListValue()!!.setValue("a")
+    resourcesModel.merges().addListValue()!!.setValue("b")
+    resourcesModel.merges().addListValue()!!.setValue("c")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_EXPECTED)
@@ -61,9 +61,9 @@ class ResourcesModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val resourcesModel = buildModel.android().packagingOptions().resources()
 
-    resourcesModel.excludes().addListValue().setValue("excludes2")
-    resourcesModel.pickFirsts().addListValue().setValue("pickFirsts2")
-    resourcesModel.merges().addListValue().setValue("merges1")
+    resourcesModel.excludes().addListValue()!!.setValue("excludes2")
+    resourcesModel.pickFirsts().addListValue()!!.setValue("pickFirsts2")
+    resourcesModel.merges().addListValue()!!.setValue("merges1")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.ADD_ELEMENTS_AND_APPLY_EXPECTED)

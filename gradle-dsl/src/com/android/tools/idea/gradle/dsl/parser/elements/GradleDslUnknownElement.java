@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,6 +25,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class GradleDslUnknownElement extends GradleDslSimpleExpression {
+  public static final Logger LOG = Logger.getInstance(GradleDslUnknownElement.class);
+
   public GradleDslUnknownElement(@NotNull GradleDslElement parent, @NotNull PsiElement expression, @NotNull GradleNameElement name) {
     super(parent, expression, name, expression);
   }
@@ -57,7 +60,7 @@ public class GradleDslUnknownElement extends GradleDslSimpleExpression {
 
   @Override
   public void setValue(@NotNull Object value) {
-    throw new UnsupportedOperationException("Can't set the value of an unknown element");
+    LOG.warn(new UnsupportedOperationException("Can't set the value of an unknown element: " + this));
   }
 
   @Nullable

@@ -37,50 +37,51 @@ public class GradleVersionCatalogPropertyModel extends GradlePropertyModelImpl {
     super(holder, type, name);
   }
 
-  @NotNull
+  @Nullable
   @Override
   public GradlePropertyModel addListValue() {
     if (!"bundles".equals(myPropertyHolder.getName())) {
       return super.addListValue();
     }
     GradlePropertyModelImpl model = (GradlePropertyModelImpl)super.addListValue();
-    model.addTransform(new LibraryTransform());
+    if (model != null) model.addTransform(new LibraryTransform());
     return model;
   }
 
-  @NotNull
+  @Nullable
   @Override
   public GradlePropertyModel addListValueAt(int index) {
     if (!"bundles".equals(myPropertyHolder.getName())) {
       return super.addListValueAt(index);
     }
     GradlePropertyModelImpl model = (GradlePropertyModelImpl)super.addListValueAt(index);
-    model.addTransform(new LibraryTransform());
+    if (model != null) model.addTransform(new LibraryTransform());
     return model;
   }
 
 
-  public @NotNull GradlePropertyModel getMapValue(@NotNull String key) {
+  public @Nullable GradlePropertyModel getMapValue(@NotNull String key) {
     if (!"version".equals(key)) {
       return super.getMapValue(key);
     }
     GradlePropertyModelImpl model = (GradlePropertyModelImpl)super.getMapValue(key);
-    model.addTransform(new DefaultTransform() {
-      @Override
-      public @NotNull GradleDslExpression bind(@NotNull GradleDslElement holder,
-                                               @Nullable GradleDslElement oldElement,
-                                               @NotNull Object value,
-                                               @NotNull String name) {
-        if (oldElement == null) {
-          GradleVersionCatalogFile.GradleDslVersionLiteral
-            literal = new GradleVersionCatalogFile.GradleDslVersionLiteral(holder, GradleNameElement.fake(name), value);
-          literal.setValue(value);
-          return literal;
+    if (model != null) {
+      model.addTransform(new DefaultTransform() {
+        @Override
+        public @NotNull GradleDslExpression bind(@NotNull GradleDslElement holder,
+                                                 @Nullable GradleDslElement oldElement,
+                                                 @NotNull Object value,
+                                                 @NotNull String name) {
+          if (oldElement == null) {
+            GradleVersionCatalogFile.GradleDslVersionLiteral
+              literal = new GradleVersionCatalogFile.GradleDslVersionLiteral(holder, GradleNameElement.fake(name), value);
+            literal.setValue(value);
+            return literal;
+          }
+          return super.bind(holder, oldElement, value, name);
         }
-        return super.bind(holder, oldElement, value, name);
-      }
-    });
-
+      });
+    }
     return model;
   }
 

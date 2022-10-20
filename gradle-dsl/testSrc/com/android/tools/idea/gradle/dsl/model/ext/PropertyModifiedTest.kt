@@ -164,7 +164,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
     val prop5Model = extModel.findProperty("prop5")
     assertFalse(prop5Model.isModified)
-    val newListValue = prop5Model.addListValue()
+    val newListValue = prop5Model.addListValue()!!
     // List values are created in the call to addListValue
     assertTrue(newListValue.isModified)
     newListValue.setValue(55)
@@ -193,7 +193,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
     assertTrue(prop5Model.isModified)
 
     // Add it back
-    val newListVal = prop5Model.addListValueAt(1)
+    val newListVal = prop5Model.addListValueAt(1)!!
     assertTrue(newListVal.isModified)
     newListVal.setValue("val2")
     assertFalse(newListVal.isModified)
@@ -252,7 +252,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
     val storePassword = buildModel.android().signingConfigs()[1]!!.storePassword()
-    assertFalse(storePassword.isModified);
+    assertFalse(storePassword.isModified)
 
     storePassword.setValue("nice")
     assertTrue(storePassword.isModified)

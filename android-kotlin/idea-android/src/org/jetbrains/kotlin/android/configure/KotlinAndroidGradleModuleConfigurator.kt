@@ -309,11 +309,11 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         when (state) {
             LanguageFeature.State.ENABLED -> {
                 freeCompilerArgs.getListValue(disabledString)?.delete()
-                freeCompilerArgs.getListValue(enabledString) ?: freeCompilerArgs.addListValue().setValue(enabledString)
+                freeCompilerArgs.getListValue(enabledString) ?: freeCompilerArgs.addListValue()?.setValue(enabledString)
             }
             LanguageFeature.State.DISABLED -> {
                 freeCompilerArgs.getListValue(enabledString)?.delete()
-                freeCompilerArgs.getListValue(disabledString) ?: freeCompilerArgs.addListValue().setValue(disabledString)
+                freeCompilerArgs.getListValue(disabledString) ?: freeCompilerArgs.addListValue()?.setValue(disabledString)
             }
             else -> {
                 throw UnsupportedOperationException("Setting a Kotlin language feature to state $state is unsupported in android-kotlin")

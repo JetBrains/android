@@ -50,7 +50,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
 
     // Make sure adding to the list works.
-    android.flavorDimensions().addListValue().setValue("strawberry")
+    android.flavorDimensions().addListValue()!!.setValue("strawberry")
 
     applyChangesAndReparse(buildModel)
     // Check that we can get the new parsed value
@@ -172,7 +172,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
-    android.flavorDimensions().addListValue().setValue("strawberry")
+    android.flavorDimensions().addListValue()!!.setValue("strawberry")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.ANDROID_BLOCK_WITH_NO_DIMENSIONS_EXPECTED)
@@ -191,7 +191,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
-    android.flavorDimensions().addListValue().setValue("strawberry")
+    android.flavorDimensions().addListValue()!!.setValue("strawberry")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.ANDROID_BLOCK_WITH_NO_DIMENSIONS_EXPECTED_400)
@@ -208,8 +208,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val flavorDimensionsModel = buildModel.android().flavorDimensions()
     assertEquals("flavorDimensions", listOf("salt", "sugar"), flavorDimensionsModel)
     flavorDimensionsModel.delete()
-    flavorDimensionsModel.addListValue().setValue("salt")
-    flavorDimensionsModel.addListValue().setValue("sugar")
+    flavorDimensionsModel.addListValue()!!.setValue("salt")
+    flavorDimensionsModel.addListValue()!!.setValue("sugar")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.ANDROID_BLOCK_DELETE_AND_RECREATE_DIMENSIONS_EXPECTED)
@@ -447,10 +447,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
 
-    android.aidlPackagedList().addListValue().setValue("src/main/aidl/a.aidl")
-    android.assetPacks().addListValue().setValue(":a")
-    android.flavorDimensions().addListValue().setValue("xyz")
-    android.dynamicFeatures().addListValue().setValue(":f")
+    android.aidlPackagedList().addListValue()!!.setValue("src/main/aidl/a.aidl")
+    android.assetPacks().addListValue()!!.setValue(":a")
+    android.flavorDimensions().addListValue()!!.setValue("xyz")
+    android.dynamicFeatures().addListValue()!!.setValue(":f")
     assertEquals("aidlPackagedList", listOf("src/main/aidl/a.aidl"), android.aidlPackagedList())
     assertEquals("assetPacks", listOf(":a"), android.assetPacks())
     assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
@@ -472,7 +472,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
 
-    android.flavorDimensions().addListValue().setValue("version")
+    android.flavorDimensions().addListValue()!!.setValue("version")
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
     buildModel.resetState()
@@ -489,10 +489,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
-    android.dynamicFeatures().addListValue().setValue(":f")
+    android.dynamicFeatures().addListValue()!!.setValue(":f")
     assertEquals("dynamicFeatures", listOf(":f1", ":f2", ":f"), android.dynamicFeatures())
 
-    android.flavorDimensions().addListValue().setValue("xyz")
+    android.flavorDimensions().addListValue()!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
 
     buildModel.resetState()
@@ -1674,16 +1674,16 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
 
-    android.aidlPackagedList().addListValue().setValue("src/main/aidl/foo.aidl")
+    android.aidlPackagedList().addListValue()!!.setValue("src/main/aidl/foo.aidl")
     assertEquals("aidlPackagedList", listOf("src/main/aidl/foo.aidl"), android.aidlPackagedList())
 
-    android.assetPacks().addListValue().setValue(":a1")
+    android.assetPacks().addListValue()!!.setValue(":a1")
     assertEquals("assetPacks", listOf(":a1"), android.assetPacks())
 
-    android.dynamicFeatures().addListValue().setValue(":f")
+    android.dynamicFeatures().addListValue()!!.setValue(":f")
     assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
 
-    android.flavorDimensions().addListValue().setValue("xyz")
+    android.flavorDimensions().addListValue()!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
 
     applyChanges(buildModel)
@@ -1715,16 +1715,16 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
 
-    android.aidlPackagedList().addListValue().setValue("src/main/aidl/foo.aidl")
+    android.aidlPackagedList().addListValue()!!.setValue("src/main/aidl/foo.aidl")
     assertEquals("aidlPackagedList", listOf("src/main/aidl/foo.aidl"), android.aidlPackagedList())
 
-    android.assetPacks().addListValue().setValue(":a1")
+    android.assetPacks().addListValue()!!.setValue(":a1")
     assertEquals("assetPacks", listOf(":a1"), android.assetPacks())
 
-    android.dynamicFeatures().addListValue().setValue(":f")
+    android.dynamicFeatures().addListValue()!!.setValue(":f")
     assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
 
-    android.flavorDimensions().addListValue().setValue("xyz")
+    android.flavorDimensions().addListValue()!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
 
     applyChanges(buildModel)
@@ -1753,7 +1753,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
 
-    android.flavorDimensions().addListValue().setValue("version")
+    android.flavorDimensions().addListValue()!!.setValue("version")
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
     applyChanges(buildModel)
@@ -1777,10 +1777,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
-    android.dynamicFeatures().addListValue().setValue(":f")
+    android.dynamicFeatures().addListValue()!!.setValue(":f")
     assertEquals("dynamicFeatures", listOf(":f1", ":f2", ":f"), android.dynamicFeatures())
 
-    android.flavorDimensions().addListValue().setValue("xyz")
+    android.flavorDimensions().addListValue()!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
 
     applyChanges(buildModel)
@@ -1906,15 +1906,15 @@ class AndroidModelTest : GradleFileModelTestCase() {
       val baz = buildModel.ext().findProperty("baz")
       val quux = buildModel.ext().findProperty("quux")
       convertToEmptyList()
-      addListValue().setValue(ReferenceTo(quux))
-      addListValue().setValue(ReferenceTo(baz))
+      addListValue()!!.setValue(ReferenceTo(quux))
+      addListValue()!!.setValue(ReferenceTo(baz))
     }
     buildModel.android().defaultConfig().proguardFiles().run {
       val foo = buildModel.ext().findProperty("foo")
       val bar = buildModel.ext().findProperty("bar")
       convertToEmptyList()
-      addListValue().setValue(ReferenceTo(bar))
-      addListValue().setValue(ReferenceTo(foo))
+      addListValue()!!.setValue(ReferenceTo(bar))
+      addListValue()!!.setValue(ReferenceTo(foo))
     }
 
     buildModel.run {

@@ -150,7 +150,7 @@ private fun Module.addBuildType(name: String, debuggable: Boolean) {
   val hasReleaseFallback = existingMatchingFallbacks?.any { it.valueAsString() == "release" } ?: false
   if (!hasReleaseFallback) {
     val fallback = benchmarkBuildType.matchingFallbacks().addListValue()
-    fallback.setValue("release")
+    fallback?.setValue("release")
   }
 
   // set debuggable

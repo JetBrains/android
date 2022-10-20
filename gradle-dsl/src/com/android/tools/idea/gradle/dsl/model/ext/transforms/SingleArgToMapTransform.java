@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,6 +30,8 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createBas
  * represent "include" and "exclude".
  */
 public class SingleArgToMapTransform extends PropertyTransform {
+  private static final Logger LOG = Logger.getInstance(SingleArgToMapTransform.class);
+
   @NotNull
   private final String mySingleArgName;
   @NotNull
@@ -81,7 +84,7 @@ public class SingleArgToMapTransform extends PropertyTransform {
   }
 
   @Override
-  @NotNull
+  @Nullable
   public GradleDslExpression replace(@NotNull GradleDslElement holder,
                                      @Nullable GradleDslElement oldElement,
                                      @NotNull GradleDslExpression newElement,
@@ -107,7 +110,7 @@ public class SingleArgToMapTransform extends PropertyTransform {
 
       return methodCall;
     }
-
-    throw new IllegalStateException("Can't replace an element that isn't a GradleDslMethodCall");
+    LOG.warn(new IllegalStateException("Can't replace an element that isn't a GradleDslMethodCall: " + oldElement));
+    return null;
   }
 }

@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.dsl.parser.ext.ElementSort;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -55,6 +56,8 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsD
  * TODO: Rename this class to something different as this is confusable with GradlePropertiesModelImpl
  */
 public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
+  private static final Logger LOG = Logger.getInstance(GradlePropertiesDslElement.class);
+
   @NotNull private final static Predicate<ElementList.ElementItem> VARIABLE_FILTER =
     e -> e.myElement.getElementType() == PropertyType.VARIABLE;
   // This filter currently gives us everything that is not a variable.
@@ -643,12 +646,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    * Adds the given element to the to-be-added elements list, which are applied when {@link #apply()} method is invoked
    * or discarded when the {@link #resetState()} method is invoked.
    */
-  @NotNull
-  public GradleDslElement setNewElement(@NotNull GradleDslElement newElement) {
+  public void setNewElement(@NotNull GradleDslElement newElement) {
     newElement.setParent(this);
     addPropertyInternal(newElement, TO_BE_ADDED);
     setModified();
-    return newElement;
   }
 
   public void addNewElementAt(int index, @NotNull GradleDslElement newElement) {
@@ -663,8 +664,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     myProperties.moveElementToIndex(newElement, index);
   }
 
-  @NotNull
-  public GradleDslElement replaceElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
+  public void replaceElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
     newElement.setParent(this);
     List<GradlePropertiesDslElement> holders = new ArrayList<>();
     holders.add(this);
@@ -672,7 +672,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     for (GradlePropertiesDslElement holder : holders) {
       holder.replacePropertyInternal(oldElement, newElement);
     }
-    return newElement;
   }
 
   /**
@@ -684,13 +683,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    *
    * @param oldElement the original Dsl element as parsed by the parser
    * @param newElement the element to replace it with, with its psiElement set up appropriately
-   * @return the new element
    */
-  @NotNull
-  public GradleDslElement substituteElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
+  public void substituteElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
     assert newElement.getParent() == this;
     myProperties.substituteElement(oldElement, newElement);
-    return newElement;
   }
 
   @Nullable
@@ -941,7 +937,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       }
     }
     // The element must be found.
-    throw new IllegalStateException("Element not found in parent");
+    throw new IllegalStateException("Element not found in parent"); // OK to throw: test-only
   }
 
   void updateAppliedState(@NotNull GradleDslElement element) {
@@ -951,7 +947,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         return;
       }
     }
-    throw new IllegalStateException("Element not found in parent");
+    LOG.warn(new IllegalStateException("Element " + element + " not found in parent " + this));
   }
   /**
    * Class to deal with retrieving the correct property for a given context. It manages whether

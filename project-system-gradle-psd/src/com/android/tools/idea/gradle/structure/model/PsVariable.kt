@@ -99,8 +99,8 @@ class PsVariable(
       PsVariable(this, scopePsVariables, { myListItems?.refresh() }).also { it.initNewListItem(resolvedProperty!!) }
     }
     else {
-      val listValue = this.property!!.addListValue().resolve()
-      listValue.setParsedValue({ setValue(it) }, {}, value)
+      val listValue = this.property!!.addListValue()?.resolve()
+      listValue?.setParsedValue({ setValue(it) }, {}, value)
       parent.isModified = true
       myListItems?.refresh()
       listItems.findElement(listItems.size - 1)!!
@@ -110,10 +110,10 @@ class PsVariable(
   fun addMapValue(key: String): PsVariable? {
     if (!isMap) throw IllegalStateException("addMapValue can only be called for map variables")
     val mapValue = property!!.getMapValue(key)
-    if (mapValue.psiElement != null) {
+    if (mapValue?.psiElement != null) {
       return null
     }
-    mapValue.setValue("")
+    mapValue?.setValue("")
     myMapEntries?.refresh()
     return mapEntries.findElement(key)!!
   }
@@ -136,7 +136,7 @@ class PsVariable(
       model.pendingListItemContainer?.let {
         val itemProperty = it.addListValue()
         model.property = itemProperty
-        model.resolvedProperty = itemProperty.resolve()
+        model.resolvedProperty = itemProperty?.resolve()
         model.pendingListItemContainer = null
         model.refreshCollection()
       }
@@ -226,7 +226,7 @@ class PsVariable(
       parent.property?.takeIf { it.valueType == GradlePropertyModel.ValueType.MAP }?.toMap()?.keys ?: setOf()
 
     override fun create(key: String): PsVariable = PsVariable(parent, parent.scopePsVariables, ::refresh)
-    override fun update(key: String, model: PsVariable) = model.init(parent.property!!.getMapValue(key))
+    override fun update(key: String, model: PsVariable) = model.init(parent.property!!.getMapValue(key)!!)
   }
 
   class ListVariableEntries(variable: PsVariable) : PsCollectionBase<PsVariable, Int, PsVariable>(variable) {

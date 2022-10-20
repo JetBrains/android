@@ -559,10 +559,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("resConfigs", defaultConfig.resConfigs())
     assertEmpty("resValues", defaultConfig.resValues())
 
-    defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android.txt")
+    defaultConfig.consumerProguardFiles().addListValue()!!.setValue("proguard-android.txt")
 
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-android.txt")
-    defaultConfig.resConfigs().addListValue().setValue("abcd")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-android.txt")
+    defaultConfig.resConfigs().addListValue()!!.setValue("abcd")
     defaultConfig.addResValue("mnop", "qrst", "uvwx")
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt"), defaultConfig.consumerProguardFiles())
@@ -594,9 +594,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("resConfigs", listOf("abcd", "efgh"), defaultConfig.resConfigs())
     verifyFlavorType("resValues", listOf(listOf("abcd", "efgh", "ijkl")), defaultConfig.resValues())
 
-    defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android-1.txt")
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-android-1.txt")
-    defaultConfig.resConfigs().addListValue().setValue("xyz")
+    defaultConfig.consumerProguardFiles().addListValue()!!.setValue("proguard-android-1.txt")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-android-1.txt")
+    defaultConfig.resConfigs().addListValue()!!.setValue("xyz")
     defaultConfig.addResValue("mnop", "qrst", "uvwx")
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
@@ -666,10 +666,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "medium", "foo" to "bar"),
                  defaultConfig.testInstrumentationRunnerArguments())
 
-    defaultConfig.manifestPlaceholders().getMapValue("key1").setValue(12345)
-    defaultConfig.manifestPlaceholders().getMapValue("key3").setValue(true)
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size").setValue("small")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key").setValue("value")
+    defaultConfig.manifestPlaceholders().getMapValue("key1")!!.setValue(12345)
+    defaultConfig.manifestPlaceholders().getMapValue("key3")!!.setValue(true)
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size")!!.setValue("small")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key")!!.setValue("value")
 
     assertEquals("manifestPlaceholders", mapOf<String, Any>("key1" to 12345, "key2" to "value2", "key3" to true),
                  defaultConfig.manifestPlaceholders())
@@ -695,10 +695,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyEmptyMapProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
     verifyEmptyMapProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
 
-    defaultConfig.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1")
-    defaultConfig.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size").setValue("small")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key").setValue("value")
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel1")!!.setValue("newName1")
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel2")!!.setValue("newName2")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size")!!.setValue("small")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key")!!.setValue("value")
 
     assertEquals("manifestPlaceholders", mapOf("activityLabel1" to "newName1", "activityLabel2" to "newName2"),
                  defaultConfig.manifestPlaceholders())
@@ -1441,10 +1441,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("resConfigs", defaultConfig.resConfigs())
     assertEmpty("resValues", defaultConfig.resValues())
 
-    defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android.txt")
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-android.txt")
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-rules.pro")
-    defaultConfig.resConfigs().addListValue().setValue("abcd")
+    defaultConfig.consumerProguardFiles().addListValue()!!.setValue("proguard-android.txt")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-android.txt")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-rules.pro")
+    defaultConfig.resConfigs().addListValue()!!.setValue("abcd")
     defaultConfig.addResValue("mnop", "qrst", "uvwx")
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt"), defaultConfig.consumerProguardFiles())
@@ -1485,10 +1485,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("resConfigs", defaultConfig.resConfigs())
     assertEmpty("resValues", defaultConfig.resValues())
 
-    defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android.txt")
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-android.txt")
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-rules.pro")
-    defaultConfig.resConfigs().addListValue().setValue("abcd")
+    defaultConfig.consumerProguardFiles().addListValue()!!.setValue("proguard-android.txt")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-android.txt")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-rules.pro")
+    defaultConfig.resConfigs().addListValue()!!.setValue("abcd")
     defaultConfig.addResValue("mnop", "qrst", "uvwx")
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt"), defaultConfig.consumerProguardFiles())
@@ -1532,9 +1532,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("resConfigs", listOf("abcd", "efgh"), defaultConfig.resConfigs())
     verifyFlavorType("resValues", listOf(listOf("abcd", "efgh", "ijkl")), defaultConfig.resValues())
 
-    defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android-1.txt")
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-android-1.txt")
-    defaultConfig.resConfigs().addListValue().setValue("xyz")
+    defaultConfig.consumerProguardFiles().addListValue()!!.setValue("proguard-android-1.txt")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-android-1.txt")
+    defaultConfig.resConfigs().addListValue()!!.setValue("xyz")
     defaultConfig.addResValue("mnop", "qrst", "uvwx")
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
@@ -1586,9 +1586,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("resConfigs", listOf("abcd", "efgh"), defaultConfig.resConfigs())
     verifyFlavorType("resValues", listOf(listOf("abcd", "efgh", "ijkl")), defaultConfig.resValues())
 
-    defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android-1.txt")
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-android-1.txt")
-    defaultConfig.resConfigs().addListValue().setValue("xyz")
+    defaultConfig.consumerProguardFiles().addListValue()!!.setValue("proguard-android-1.txt")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-android-1.txt")
+    defaultConfig.resConfigs().addListValue()!!.setValue("xyz")
     defaultConfig.addResValue("mnop", "qrst", "uvwx")
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
@@ -1718,10 +1718,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "medium", "foo" to "bar"),
                  defaultConfig.testInstrumentationRunnerArguments())
 
-    defaultConfig.manifestPlaceholders().getMapValue("key1").setValue(12345)
-    defaultConfig.manifestPlaceholders().getMapValue("key3").setValue(true)
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size").setValue("small")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key").setValue("value")
+    defaultConfig.manifestPlaceholders().getMapValue("key1")!!.setValue(12345)
+    defaultConfig.manifestPlaceholders().getMapValue("key3")!!.setValue(true)
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size")!!.setValue("small")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key")!!.setValue("value")
 
     assertEquals("manifestPlaceholders", mapOf("key1" to 12345, "key2" to "value2", "key3" to true),
                  defaultConfig.manifestPlaceholders())
@@ -1760,10 +1760,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyEmptyMapProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
     verifyEmptyMapProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
 
-    defaultConfig.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1")
-    defaultConfig.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size").setValue("small")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key").setValue("value")
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel1")!!.setValue("newName1")
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel2")!!.setValue("newName2")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size")!!.setValue("small")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key")!!.setValue("value")
 
     assertEquals("manifestPlaceholders", mapOf("activityLabel1" to "newName1", "activityLabel2" to "newName2"),
                  defaultConfig.manifestPlaceholders())
@@ -1801,10 +1801,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyEmptyMapProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
     verifyEmptyMapProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
 
-    defaultConfig.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1")
-    defaultConfig.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size").setValue("small")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key").setValue("value")
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel1")!!.setValue("newName1")
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel2")!!.setValue("newName2")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size")!!.setValue("small")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key")!!.setValue("value")
 
     assertEquals("manifestPlaceholders", mapOf("activityLabel1" to "newName1", "activityLabel2" to "newName2"),
                  defaultConfig.manifestPlaceholders())
@@ -1986,21 +1986,21 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var defaultConfig = android.defaultConfig()
     var externalNativeBuild = defaultConfig.externalNativeBuild()
     var cmake = externalNativeBuild.cmake()
-    cmake.abiFilters().addListValue().setValue("abiFilterX")
-    cmake.arguments().addListValue().setValue("argumentX")
-    cmake.cFlags().addListValue().setValue("cFlagX")
-    cmake.cppFlags().addListValue().setValue("cppFlagX")
-    cmake.targets().addListValue().setValue("targetX")
+    cmake.abiFilters().addListValue()!!.setValue("abiFilterX")
+    cmake.arguments().addListValue()!!.setValue("argumentX")
+    cmake.cFlags().addListValue()!!.setValue("cFlagX")
+    cmake.cppFlags().addListValue()!!.setValue("cppFlagX")
+    cmake.targets().addListValue()!!.setValue("targetX")
 
     var ndkBuild = externalNativeBuild.ndkBuild()
-    ndkBuild.abiFilters().addListValue().setValue("abiFilterY")
-    ndkBuild.arguments().addListValue().setValue("argumentY")
-    ndkBuild.cFlags().addListValue().setValue("cFlagY")
-    ndkBuild.cppFlags().addListValue().setValue("cppFlagY")
-    ndkBuild.targets().addListValue().setValue("targetY")
+    ndkBuild.abiFilters().addListValue()!!.setValue("abiFilterY")
+    ndkBuild.arguments().addListValue()!!.setValue("argumentY")
+    ndkBuild.cFlags().addListValue()!!.setValue("cFlagY")
+    ndkBuild.cppFlags().addListValue()!!.setValue("cppFlagY")
+    ndkBuild.targets().addListValue()!!.setValue("targetY")
 
     var ndk = defaultConfig.ndk()
-    ndk.abiFilters().addListValue().setValue("abiFilterZ")
+    ndk.abiFilters().addListValue()!!.setValue("abiFilterZ")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.ADD_NATIVE_ELEMENTS_EXPECTED)
@@ -2321,8 +2321,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val demoFlavour = buildModel.android().addProductFlavor("demo")
     val resolvedPropertyModel = demoFlavour.matchingFallbacks()
     assertMissingProperty(resolvedPropertyModel)
-    resolvedPropertyModel.convertToEmptyList().addListValue().setValue("trial")
-    resolvedPropertyModel.addListValue().setValue("free")
+    resolvedPropertyModel.convertToEmptyList().addListValue()!!.setValue("trial")
+    resolvedPropertyModel.addListValue()!!.setValue("free")
     verifyListProperty(resolvedPropertyModel, listOf("trial", "free"))
 
     applyChangesAndReparse(buildModel)
@@ -2339,7 +2339,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val resolvedPropertyModel = demoFlavour.matchingFallbacks()
     verifyListProperty(resolvedPropertyModel, listOf("trial"))
 
-    resolvedPropertyModel.addListValue().setValue("free")
+    resolvedPropertyModel.addListValue()!!.setValue("free")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.APPEND_MATCHING_FALLBACKS_EXPECTED)
@@ -2448,7 +2448,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
     assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
-    buildModel.android().defaultConfig().missingDimensionStrategies()[0].addListValue().setValue("minApi17")
+    buildModel.android().defaultConfig().missingDimensionStrategies()[0].addListValue()!!.setValue("minApi17")
     assertTrue(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
     buildModel.android().defaultConfig().missingDimensionStrategies()[0].toList()!![2].delete()
     assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
@@ -2534,7 +2534,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val resConfigs = buildModel.android().defaultConfig().resConfigs()
     verifyListProperty(resConfigs, listOf("en", "fr"))
 
-    resConfigs.addListValue().setValue("it")
+    resConfigs.addListValue()!!.setValue("it")
     verifyListProperty(resConfigs, listOf("en", "fr", "it"))
 
     applyChangesAndReparse(buildModel)
@@ -2551,7 +2551,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val resConfigs = buildModel.android().defaultConfig().resConfigs()
     verifyListProperty(resConfigs, listOf("en", "fr"))
 
-    resConfigs.addListValue().setValue("it")
+    resConfigs.addListValue()!!.setValue("it")
     verifyListProperty(resConfigs, listOf("en", "fr", "it"))
 
     applyChangesAndReparse(buildModel)
@@ -2609,7 +2609,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val defaultConfig = buildModel.android().defaultConfig()
     val proguardFiles = defaultConfig.proguardFiles()
     verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro"))
-    proguardFiles.addListValue().setValue("value")
+    proguardFiles.addListValue()!!.setValue("value")
     verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro", "value"))
     proguardFiles.toList()!![0].delete()
     verifyListProperty(proguardFiles, listOf("proguard-rules.pro", "value"))
@@ -2633,7 +2633,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val proguardFiles = defaultConfig.proguardFiles()
     verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro"))
     val varModel = buildModel.ext().findProperty("list")
-    varModel.addListValue().setValue("value")
+    varModel.addListValue()!!.setValue("value")
     verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro", "value"))
     varModel.toList()!![0].delete()
     verifyListProperty(proguardFiles, listOf("proguard-rules.pro", "value"))

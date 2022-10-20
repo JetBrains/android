@@ -116,13 +116,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val prop1Model = extModel.findProperty("prop33")
     // The model is never null.
     TestCase.assertNotNull(prop1Model)
-    try {
-      // As the model is empty (i.e. Doesn't refer to any existing property), we cannot set a reference to it.
-      val referenceTo = ReferenceTo(prop1Model)
-      fail()
-    } catch (e: IllegalArgumentException) {
-      // Expected.
-    }
+    val referenceTo = ReferenceTo(prop1Model)
+    assertEquals("invalid.model.in.ReferenceTo", referenceTo.fullyQualifiedName)
   }
 
   @Test
@@ -618,7 +613,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     run {
       val propertyModel = extModel.findProperty("prop2")
       assertMissingProperty(propertyModel)
-      propertyModel.addListValue().setValue("true")
+      propertyModel.addListValue()!!.setValue("true")
       verifyListProperty(propertyModel, listOf("true"), true)
       val valueModel = propertyModel.getListValue("true")!!
       verifyPropertyModel(valueModel, STRING_TYPE, "true", STRING, DERIVED, 0, "0")
@@ -646,9 +641,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     run {
       val propertyModel = buildModel.android().defaultConfig().manifestPlaceholders()
       verifyEmptyMapProperty(propertyModel)
-      propertyModel.getMapValue("key").setValue("true")
+      propertyModel.getMapValue("key")!!.setValue("true")
       verifyMapProperty(propertyModel, mapOf("key" to "true"))
-      val valueModel = propertyModel.getMapValue("key")
+      val valueModel = propertyModel.getMapValue("key")!!
       verifyPropertyModel(valueModel, STRING_TYPE, "true", STRING, DERIVED, 0, "key")
       valueModel.delete()
       assertMissingProperty(valueModel)
@@ -674,9 +669,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     run {
       val propertyModel = extModel.findProperty("prop2")
       assertMissingProperty(propertyModel)
-      propertyModel.getMapValue("key").setValue("true")
+      propertyModel.getMapValue("key")!!.setValue("true")
       verifyMapProperty(propertyModel, mapOf("key" to "true"))
-      val valueModel = propertyModel.getMapValue("key")
+      val valueModel = propertyModel.getMapValue("key")!!
       verifyPropertyModel(valueModel, STRING_TYPE, "true", STRING, DERIVED, 0, "key")
       valueModel.delete()
       assertMissingProperty(valueModel)
@@ -1166,21 +1161,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       propertyModel.setValue("goodbye")
       verifyPropertyModel(propertyModel, STRING_TYPE, "goodbye", STRING, REGULAR, 0, "prop1", "ext.prop1")
 
-      try {
-        propertyModel.setValue(File("Hello"))
-        fail()
-      }
-      catch (e: IllegalArgumentException) {
-        // Expected
-      }
-      try {
-        propertyModel.setValue(IllegalStateException("Boo"))
-        fail()
-      }
-      catch (e: IllegalArgumentException) {
-        // Expected
-      }
-
+      // invalid values
+      propertyModel.setValue(File("Hello"))
+      propertyModel.setValue(IllegalStateException("Boo"))
       verifyPropertyModel(propertyModel, STRING_TYPE, "goodbye", STRING, REGULAR, 0, "prop1", "ext.prop1")
     }
   }
@@ -1789,13 +1772,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      try {
-        propertyModel.getMapValue("key")
-        fail("Exception should have been thrown!")
-      }
-      catch (e: IllegalStateException) {
-        // Expected.
-      }
+      assertNull(propertyModel.getMapValue("key"))
     }
   }
 
@@ -2079,7 +2056,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val map = propertyModel.getValue(MAP_TYPE)!!
       assertSize(1, map.entries)
       // Try to set a new map value.
-      propertyModel.getValue(MAP_TYPE)!!["key1"]!!.convertToEmptyMap().getMapValue("War").setValue("Death")
+      propertyModel.getValue(MAP_TYPE)!!["key1"]!!.convertToEmptyMap().getMapValue("War")!!.setValue("Death")
     }
 
     applyChangesAndReparse(buildModel)
@@ -2187,21 +2164,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val propertyModel = buildModel.ext().findProperty("prop1")
       verifyPropertyModel(propertyModel, BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0)
 
-      try {
-        propertyModel.addListValue().setValue("True")
-        fail()
-      }
-      catch (e: IllegalStateException) {
-        // Expected
-      }
-
-      try {
-        propertyModel.addListValueAt(23).setValue(72)
-        fail()
-      }
-      catch (e: IllegalStateException) {
-        // Expected
-      }
+      assertNull(propertyModel.addListValue())
+      assertNull(propertyModel.addListValueAt(23))
     }
   }
 
@@ -2214,14 +2178,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
       verifyListProperty(propertyModel, listOf(1, 2, 3, 4, 5, 6, "hello"), REGULAR, 0)
-
-      try {
-        propertyModel.addListValueAt(82).setValue(true)
-        fail()
-      }
-      catch (e: IndexOutOfBoundsException) {
-        // Expected
-      }
+      assertNull(propertyModel.addListValueAt(82))
     }
   }
 
@@ -2239,7 +2196,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyPropertyModel(map["key"], STRING_TYPE, "val", STRING, DERIVED, 0)
       verifyPropertyModel(map["key1"], STRING_TYPE, "val", STRING, DERIVED, 0)
       verifyPropertyModel(map["key2"], STRING_TYPE, "val", STRING, DERIVED, 0)
-      map["key1"]!!.convertToEmptyList().addListValue().setValue(true)
+      map["key1"]!!.convertToEmptyList().addListValue()!!.setValue(true)
       verifyListProperty(map["key1"], listOf(true), DERIVED, 0)
     }
 
@@ -2266,14 +2223,14 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     run {
       val firstModel = buildModel.ext().findProperty("prop1")
       verifyPropertyModel(firstModel, INTEGER_TYPE, 5, INTEGER, REGULAR, 0)
-      firstModel.convertToEmptyList().addListValue().setValue("5")
+      firstModel.convertToEmptyList().addListValue()!!.setValue("5")
       verifyListProperty(firstModel, listOf("5"), REGULAR, 0)
 
       val secondModel = buildModel.ext().findProperty("prop2")
       verifyPropertyModel(secondModel, STRING_TYPE, "var1", REFERENCE, REGULAR, 1)
       val varModel = secondModel.dependencies[0]!!
       verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0)
-      varModel.convertToEmptyList().addListValue().setValue("goodbye")
+      varModel.convertToEmptyList().addListValue()!!.setValue("goodbye")
       ReferenceTo.createReferenceFromText("var1[0]", secondModel)?.let { secondModel.setValue(it) }
       verifyPropertyModel(secondModel, STRING_TYPE, "var1[0]", REFERENCE, REGULAR, 1)
       val depModel = secondModel.dependencies[0]!!
@@ -2281,7 +2238,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
       val thirdModel = buildModel.ext().findProperty("prop3")
       verifyPropertyModel(thirdModel, STRING_TYPE, "goodbye", INTERPOLATED, REGULAR, 1)
-      ReferenceTo.createReferenceFromText("prop2", thirdModel)?.let { thirdModel.convertToEmptyList().addListValue().setValue(it) }
+      ReferenceTo.createReferenceFromText("prop2", thirdModel)?.let { thirdModel.convertToEmptyList().addListValue()!!.setValue(it) }
       assertEquals(LIST, thirdModel.valueType)
       val thirdList = thirdModel.getValue(LIST_TYPE)!!
       assertSize(1, thirdList)
@@ -2293,17 +2250,17 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       assertSize(2, map.entries)
       verifyPropertyModel(map["key"], STRING_TYPE, "val", STRING, DERIVED, 0)
       verifyPropertyModel(map["key1"], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
-      map["key"]!!.convertToEmptyList().addListValue().setValue("we are in")
+      map["key"]!!.convertToEmptyList().addListValue()!!.setValue("we are in")
       verifyListProperty(map["key"], listOf("we are in"), DERIVED, 0)
 
       val fifthModel = buildModel.ext().findProperty("prop5")
       verifyListProperty(fifthModel, listOf("val"), REGULAR, 0)
-      fifthModel.convertToEmptyList().addListValue().setValue("good")
+      fifthModel.convertToEmptyList().addListValue()!!.setValue("good")
       verifyListProperty(fifthModel, listOf("good"), REGULAR, 0)
 
       val sixthModel = buildModel.ext().findProperty("prop6")
       assertEquals(MAP, sixthModel.valueType)
-      sixthModel.convertToEmptyList().addListValue().setValue(true)
+      sixthModel.convertToEmptyList().addListValue()!!.setValue(true)
       verifyListProperty(sixthModel, listOf(true), REGULAR, 0)
     }
 
@@ -2348,7 +2305,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
       verifyPropertyModel(propertyModel, BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0)
-      propertyModel.convertToEmptyList().addListValue().setValue("Good")
+      propertyModel.convertToEmptyList().addListValue()!!.setValue("Good")
 
       verifyListProperty(propertyModel, listOf("Good"), REGULAR, 0)
     }
@@ -2373,12 +2330,12 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       assertEquals(LIST, propertyModel.valueType)
       verifyListProperty(propertyModel, listOf(), REGULAR, 0)
 
-      propertyModel.addListValue().setValue("3")
-      propertyModel.addListValue().setValue("4")
-      propertyModel.addListValueAt(0).setValue("1")
-      propertyModel.addListValueAt(1).setValue("2")
-      propertyModel.addListValueAt(4).setValue(5)
-      ReferenceTo.createReferenceFromText("six", propertyModel)?.let { propertyModel.addListValueAt(5).setValue(it) }
+      propertyModel.addListValue()!!.setValue("3")
+      propertyModel.addListValue()!!.setValue("4")
+      propertyModel.addListValueAt(0)!!.setValue("1")
+      propertyModel.addListValueAt(1)!!.setValue("2")
+      propertyModel.addListValueAt(4)!!.setValue(5)
+      ReferenceTo.createReferenceFromText("six", propertyModel)?.let { propertyModel.addListValueAt(5)!!.setValue(it) }
 
       val list = propertyModel.getValue(LIST_TYPE)!!
       assertSize(6, list)
@@ -2427,8 +2384,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     run {
       val proguardFiles = buildModel.android().defaultConfig().proguardFiles()
       verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quoteChar}proguard-android.txt${quoteChar})", "proguard-rules2.txt"), REGULAR, 0)
-      proguardFiles.addListValueAt(0).setValue("z.txt")
-      proguardFiles.addListValueAt(2).setValue("proguard-rules.txt")
+      proguardFiles.addListValueAt(0)!!.setValue("z.txt")
+      proguardFiles.addListValueAt(2)!!.setValue("proguard-rules.txt")
       verifyListProperty(
         proguardFiles,
         listOf("z.txt", "getDefaultProguardFile(${quoteChar}proguard-android.txt${quoteChar})", "proguard-rules.txt", "proguard-rules2.txt"),
@@ -2503,8 +2460,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       val propertyModel = buildModel.ext().findProperty("prop1")
       verifyListProperty(propertyModel, listOf(1, 4), REGULAR, 0)
 
-      ReferenceTo.createReferenceFromText("var1", propertyModel)?.let { propertyModel.addListValueAt(1).setValue(it) }
-      propertyModel.addListValueAt(2).setValue(3)
+      ReferenceTo.createReferenceFromText("var1", propertyModel)?.let { propertyModel.addListValueAt(1)!!.setValue(it) }
+      propertyModel.addListValueAt(2)!!.setValue(3)
 
       verifyListProperty(propertyModel, listOf(1, "2", 3, 4), REGULAR, 1)
     }
@@ -2669,11 +2626,11 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       verifyPropertyModel(map["key3"], INTEGER_TYPE, 23, INTEGER, DERIVED, 0)
       verifyPropertyModel(map["key4"], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
 
-      ReferenceTo.createReferenceFromText("otherVal", propertyModel)?.let { propertyModel.getMapValue("key1").setValue(it) }
-      propertyModel.getMapValue("key2").setValue("newValue")
-      propertyModel.getMapValue("key3").setValue(false)
-      propertyModel.getMapValue("key4").setValue(32)
-      propertyModel.getMapValue("newKey").setValue("meerkats")
+      ReferenceTo.createReferenceFromText("otherVal", propertyModel)?.let { propertyModel.getMapValue("key1")!!.setValue(it) }
+      propertyModel.getMapValue("key2")!!.setValue("newValue")
+      propertyModel.getMapValue("key3")!!.setValue(false)
+      propertyModel.getMapValue("key4")!!.setValue(32)
+      propertyModel.getMapValue("newKey")!!.setValue("meerkats")
 
       assertEquals(MAP, propertyModel.valueType)
       val newMap = propertyModel.getValue(MAP_TYPE)!!
@@ -2707,31 +2664,11 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     run {
       val firstModel = buildModel.ext().findProperty("prop1")
-      try {
-        firstModel.getMapValue("value1").setValue("newValue")
-        fail()
-      }
-      catch (e: IllegalStateException) {
-        // Expected
-      }
-
+      assertNull(firstModel.getMapValue("value1"))
       val secondModel = buildModel.ext().findProperty("prop2")
-      try {
-        secondModel.getMapValue("hello").setValue("goodbye")
-        fail()
-      }
-      catch (e: IllegalStateException) {
-        // Expected
-      }
-
+      assertNull(secondModel.getMapValue("hello"))
       val thirdModel = buildModel.ext().findProperty("prop3")
-      try {
-        thirdModel.getMapValue("key").setValue(0)
-        fail()
-      }
-      catch (e: IllegalStateException) {
-        // Expected
-      }
+      assertNull(thirdModel.getMapValue("key"))
     }
   }
 
@@ -2944,7 +2881,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     val extModel = buildModel.ext()
     val depsModel = extModel.findProperty("deps")
     val reference = ReferenceTo.createReferenceFromText("activity", depsModel)!!
-    extModel.findProperty("newDeps").convertToEmptyMap().getMapValue("newActivity").setValue(reference)
+    extModel.findProperty("newDeps").convertToEmptyMap().getMapValue("newActivity")!!.setValue(reference)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.REFERENCE_TO_MAP_IN_MAP_EXPECTED)
   }
@@ -3005,9 +2942,9 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       verifyMapProperty(secondMapModel, mapOf("key4" to 4), "map2")
 
       // Rename the keys
-      val firstKeyModel = firstMapModel.getMapValue("key2")
+      val firstKeyModel = firstMapModel.getMapValue("key2")!!
       verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "key2")
-      val secondKeyModel = secondMapModel.getMapValue("key4")
+      val secondKeyModel = secondMapModel.getMapValue("key4")!!
       verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "key4")
 
       firstKeyModel.rename("newKey1")
@@ -3033,9 +2970,9 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       verifyMapProperty(secondMapModel, mapOf("newKey2" to 4), "newMap2")
 
       // Rename the keys
-      val firstKeyModel = firstMapModel.getMapValue("newKey1")
+      val firstKeyModel = firstMapModel.getMapValue("newKey1")!!
       verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "newKey1")
-      val secondKeyModel = secondMapModel.getMapValue("newKey2")
+      val secondKeyModel = secondMapModel.getMapValue("newKey2")!!
       verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "newKey2")
     }
   }
@@ -3055,13 +2992,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       verifyListProperty(secondListModel, listOf("a", "b", "c", "d"), REGULAR, 0, "list2")
 
       val listItem = secondListModel.getListValue("b")!!
-      try {
-        listItem.rename("listItemName")
-        fail()
-      }
-      catch (e: UnsupportedOperationException) {
-        // Expected
-      }
+      listItem.rename("listItemName")
+      assertEquals("1", listItem.name)
 
       firstListModel.rename("varList")
       secondListModel.rename("propertyList")
@@ -3271,7 +3203,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     assertThat(extModel.findProperty("prop6").expressionPsiElement!!.text, equalTo("25.3"))
     assertThat(extModel.findProperty("prop6").fullExpressionPsiElement!!.text, equalTo("25.3"))
 
-    val mapItem = extModel.findProperty("prop4").getMapValue("key")
+    val mapItem = extModel.findProperty("prop4").getMapValue("key")!!
     val listItem = extModel.findProperty("prop5").getListValue("val2")!!
     (if (isGroovy) "'val'" else "\"val\"").let {
       assertThat(mapItem.expressionPsiElement!!.text, equalTo(it))
@@ -3428,7 +3360,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     val buildModel = gradleBuildModel
     val versionsModel = buildModel.ext().findProperty("versions")
-    val agpModel = versionsModel.getMapValue("agp")
+    val agpModel = versionsModel.getMapValue("agp")!!
 
     val versionModel = buildModel.dependencies().artifacts().get(0).version()
     val reference = ReferenceTo(agpModel, versionModel)
@@ -3555,7 +3487,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
         verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
 
         // Attempt to set a new value.
-        val newValue = propertyModel.getMapValue("key3")
+        val newValue = propertyModel.getMapValue("key3")!!
         verifyPropertyModel(newValue, OBJECT_TYPE, null, NONE, DERIVED, 0)
         newValue.setValue(true)
         verifyPropertyModel(newValue, BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
@@ -3628,7 +3560,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       }
 
       // Set the new value.
-      ReferenceTo.createReferenceFromText("val1", propertyModel)?.let { propertyModel.getMapValue("key1").setValue(it) }
+      ReferenceTo.createReferenceFromText("val1", propertyModel)?.let { propertyModel.getMapValue("key1")!!.setValue(it) }
 
       // Check the correct values are shown in the property.
       run {
@@ -3675,7 +3607,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       assertSize(0, propertyModel.getValue(MAP_TYPE)!!.entries)
 
       // Attempt to set a new value
-      propertyModel.getMapValue("Conquest").setValue("Famine")
+      propertyModel.getMapValue("Conquest")!!.setValue("Famine")
       // Check the model again
       assertEquals(MAP, propertyModel.valueType)
       val map = propertyModel.getValue(MAP_TYPE)!!
@@ -3741,7 +3673,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       val propertyModel = buildModel.ext().findProperty("prop")
       verifyMapProperty(propertyModel, ImmutableMap.of("key", "val") as Map<String, Any>)
 
-      propertyModel.getMapValue("key").setValue("newVal")
+      propertyModel.getMapValue("key")!!.setValue("newVal")
       verifyMapProperty(propertyModel, ImmutableMap.of("key", "newVal") as Map<String, Any>)
     }
 
@@ -3800,7 +3732,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       // Check it is not a map yet
       verifyPropertyModel(mapPropertyModel, STRING_TYPE, "value", STRING, VARIABLE, 0)
 
-      mapPropertyModel.convertToEmptyMap().getMapValue("key").setValue("Hello")
+      mapPropertyModel.convertToEmptyMap().getMapValue("key")!!.setValue("Hello")
 
       assertEquals(MAP, mapPropertyModel.valueType)
       val map = mapPropertyModel.getValue(MAP_TYPE)!!

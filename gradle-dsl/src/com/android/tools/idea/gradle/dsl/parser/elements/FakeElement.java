@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import java.util.List;
@@ -41,6 +42,8 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
  * and setting the derived value from and to its real element.
  */
 public abstract class FakeElement extends GradleDslSettableExpression {
+  public static final Logger LOG = Logger.getInstance(FakeElement.class);
+
   @NotNull
   protected final GradleDslSimpleExpression myRealExpression;
   protected final boolean myCanDelete;
@@ -72,12 +75,14 @@ public abstract class FakeElement extends GradleDslSettableExpression {
 
   @Override
   public void rename(@NotNull String newName) {
-    throw new UnsupportedOperationException("Renaming of this fake element is not possible.");
+    LOG.warn(new UnsupportedOperationException("Renaming of this fake element is not possible: " + this));
+    return;
   }
 
   @Override
   public void rename(@NotNull List<String> hierarchicalName) {
-    throw new UnsupportedOperationException("Renaming of this fake element is not possible.");
+    LOG.warn(new UnsupportedOperationException("Renaming of this fake element is not possible: " + this));
+    return;
   }
 
   @Override
@@ -86,7 +91,8 @@ public abstract class FakeElement extends GradleDslSettableExpression {
       consumeValue(null);
     }
     else {
-      throw new UnsupportedOperationException("Deleting this element is not supported.");
+      LOG.warn(new UnsupportedOperationException("Deleting this element is not supported: " + this));
+      return;
     }
   }
 

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.files;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.CIRCULAR_APPLICATION;
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -40,8 +41,12 @@ import org.jetbrains.annotations.Nullable;
  * file hundreds of times.
  */
 public class GradleDslFileCache {
-  @NotNull private Project myProject;
-  @NotNull private Map<String, GradleDslFile> myParsedBuildFiles = new LinkedHashMap<>();
+  @NotNull private final Project myProject;
+  @NotNull private final List<GradleDslFile> myParsedDslFiles = new ArrayList<>();
+  @NotNull private final Map<String, GradleBuildFile> myParsedBuildFiles = new LinkedHashMap<>();
+  @NotNull private final Map<String, GradleSettingsFile> myParsedSettingsFiles = new LinkedHashMap<>();
+  @NotNull private final Map<String, GradlePropertiesFile> myParsedPropertiesFiles = new LinkedHashMap<>();
+  @NotNull private final Map<String, GradleVersionCatalogFile> myParsedVersionCatalogFiles = new LinkedHashMap<>();
   @NotNull private Deque<VirtualFile> myParsingStack = new ArrayDeque<>();
 
   public GradleDslFileCache(@NotNull Project project) {
@@ -58,13 +63,14 @@ public class GradleDslFileCache {
                                               @NotNull BuildModelContext context,
                                               boolean isApplied) {
     // TODO(xof): investigate whether (as I suspect) this cache will be wrong for an applied file included from various places in the build
-    GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
+    GradleBuildFile dslFile = myParsedBuildFiles.get(file.getUrl());
     if (dslFile == null) {
       if (!myParsingStack.contains(file)) {
         myParsingStack.push(file);
         dslFile = context.parseBuildFile(myProject, file, name, isApplied);
         myParsingStack.pop();
         myParsedBuildFiles.put(file.getUrl(), dslFile);
+        myParsedDslFiles.add(dslFile);
       }
       else {
         // create a placeholder GradleBuildFile.  (It'll get overwritten in the cache anyway when popping from the stack)
@@ -74,15 +80,12 @@ public class GradleDslFileCache {
         dslFile.notification(CIRCULAR_APPLICATION);
       }
     }
-    else if (!(dslFile instanceof GradleBuildFile)) {
-      throw new IllegalStateException("Found wrong type for build file in cache!");
-    }
-
-    return (GradleBuildFile)dslFile;
+    return dslFile;
   }
 
-  public void putBuildFile(@NotNull String name, @NotNull GradleDslFile buildFile) {
+  public void putBuildFile(@NotNull String name, @NotNull GradleBuildFile buildFile) {
     myParsedBuildFiles.put(name, buildFile);
+    myParsedDslFiles.add(buildFile);
   }
 
   /**
@@ -95,36 +98,32 @@ public class GradleDslFileCache {
 
   @NotNull
   public GradleSettingsFile getOrCreateSettingsFile(@NotNull VirtualFile settingsFile, @NotNull BuildModelContext context) {
-    GradleDslFile dslFile = myParsedBuildFiles.get(settingsFile.getUrl());
+    GradleSettingsFile dslFile = myParsedSettingsFiles.get(settingsFile.getUrl());
     if (dslFile == null) {
       dslFile = new GradleSettingsFile(settingsFile, myProject, "settings", context);
       dslFile.parse();
-      myParsedBuildFiles.put(settingsFile.getUrl(), dslFile);
+      myParsedSettingsFiles.put(settingsFile.getUrl(), dslFile);
+      myParsedDslFiles.add(dslFile);
     }
-    else if (!(dslFile instanceof GradleSettingsFile)) {
-      throw new IllegalStateException("Found wrong type for settings file in cache!");
-    }
-    return (GradleSettingsFile)dslFile;
+    return dslFile;
   }
 
   @Nullable
   public GradlePropertiesFile getOrCreatePropertiesFile(@NotNull VirtualFile file, @NotNull String moduleName, @NotNull BuildModelContext context) {
-    GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
+    GradlePropertiesFile dslFile = myParsedPropertiesFiles.get(file.getUrl());
     if (dslFile == null) {
       try {
         Properties properties = getProperties(file);
         dslFile = new GradlePropertiesFile(properties, file, myProject, moduleName, context);
-        myParsedBuildFiles.put(file.getUrl(), dslFile);
+        myParsedPropertiesFiles.put(file.getUrl(), dslFile);
+        myParsedDslFiles.add(dslFile);
       }
       catch (IOException e) {
         Logger.getInstance(GradleDslFileCache.class).warn("Failed to process properties file " + file.getPath(), e);
         return null;
       }
     }
-    else if (!(dslFile instanceof GradlePropertiesFile)) {
-      throw new IllegalStateException("Found wrong type for properties file in cache!");
-    }
-    return (GradlePropertiesFile)dslFile;
+    return dslFile;
   }
 
   private static Properties getProperties(@NotNull VirtualFile file) throws IOException {
@@ -141,22 +140,20 @@ public class GradleDslFileCache {
     // It is safe not to incorporate the catalogName as part of the key, because parsing the contents of the catalog file
     // is context-independent.  Looking up entries in the catalog always involves going through a property named by the
     // catalogName.
-    GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
+    GradleVersionCatalogFile dslFile = myParsedVersionCatalogFiles.get(file.getUrl());
     if (dslFile == null) {
       dslFile = new GradleVersionCatalogFile(file, myProject, "versionCatalog", catalogName, context);
       dslFile.parse();
-      myParsedBuildFiles.put(file.getUrl(), dslFile);
+      myParsedVersionCatalogFiles.put(file.getUrl(), dslFile);
+      myParsedDslFiles.add(dslFile);
     }
-    else if (!(dslFile instanceof GradleVersionCatalogFile)) {
-      throw new IllegalStateException("Cache entry " + dslFile + " for key " + file.getUrl() + " is not a GradleVersionCatalogFile");
-    }
-    return (GradleVersionCatalogFile)dslFile;
+    return dslFile;
   }
 
 
 
   @NotNull
   public List<GradleDslFile> getAllFiles() {
-    return new ArrayList<>(myParsedBuildFiles.values());
+    return myParsedDslFiles;
   }
 }

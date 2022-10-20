@@ -45,7 +45,7 @@ public class KtsOnlyPropertyTransform extends PropertyTransform {
     return myTransform.transform(e);
   }
 
-  @NotNull
+  @Nullable
   @Override
   public GradleDslExpression bind(@NotNull GradleDslElement holder,
                                   @Nullable GradleDslElement oldElement,
@@ -54,7 +54,7 @@ public class KtsOnlyPropertyTransform extends PropertyTransform {
     return myTransform.bind(holder, oldElement, value, name);
   }
 
-  @NotNull
+  @Nullable
   @Override
   public GradleDslExpression bind(@NotNull GradleDslElement holder,
                                   @Nullable GradleDslElement oldElement,
@@ -90,7 +90,7 @@ public class KtsOnlyPropertyTransform extends PropertyTransform {
     return super.bindMap(holder, oldElement, propertyDescription);
   }
 
-  @NotNull
+  @Nullable
   @Override
   public GradleDslElement replace(@NotNull GradleDslElement holder,
                                   @Nullable GradleDslElement oldElement,

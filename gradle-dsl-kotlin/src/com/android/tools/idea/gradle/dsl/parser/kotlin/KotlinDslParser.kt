@@ -173,7 +173,7 @@ class KotlinDslParser(
             try {
               return BigDecimal(LiteralFormatUtil.removeUnderscores(literal.text).trimEnd('f', 'F'))
             } catch (e: NumberFormatException) {
-              Logger.getInstance(KotlinDslParser::class.java).error(e)
+              Logger.getInstance(KotlinDslParser::class.java).warn(e)
               return null
             }
           }

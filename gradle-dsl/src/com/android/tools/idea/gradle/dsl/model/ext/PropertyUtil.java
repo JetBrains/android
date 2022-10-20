@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +39,7 @@ import static com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElemen
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 
 public class PropertyUtil {
+  public static final Logger LOG = Logger.getInstance(PropertyUtil.class);
   @NonNls public static final String FILE_METHOD_NAME = "file";
   @NonNls public static final String FILE_CONSTRUCTOR_NAME = "File";
 
@@ -89,10 +91,16 @@ public class PropertyUtil {
       }
     }
     else if (holder instanceof GradleDslMethodCall) {
-      if (!(newElement instanceof GradleDslExpression)) throw new IllegalArgumentException("not an expression (new): " + newElement);
+      if (!(newElement instanceof GradleDslExpression)) {
+        LOG.warn(new IllegalArgumentException("not an expression (new): " + newElement));
+        return;
+      }
       GradleDslMethodCall methodCall = (GradleDslMethodCall)holder;
       if (oldElement != null) {
-        if (!(oldElement instanceof GradleDslExpression)) throw new IllegalArgumentException("not an expression (new): " + oldElement);
+        if (!(oldElement instanceof GradleDslExpression)) {
+          LOG.warn(new IllegalArgumentException("not an expression (old): " + oldElement));
+          return;
+        }
         methodCall.replaceArgument((GradleDslExpression)oldElement, (GradleDslExpression)newElement);
       }
       else {
@@ -100,7 +108,7 @@ public class PropertyUtil {
       }
     }
     else {
-      throw new IllegalStateException("Property holder has unknown type, " + holder);
+      LOG.warn(new IllegalStateException("Property holder has unknown type, " + holder));
     }
   }
 
@@ -124,7 +132,7 @@ public class PropertyUtil {
       methodCall.remove(element);
     }
     else {
-      throw new IllegalStateException("Property holder has unknown type, " + holder);
+      LOG.warn(new IllegalStateException("Property holder has unknown type, " + holder));
     }
   }
 

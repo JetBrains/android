@@ -301,7 +301,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     PsiElement anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter);
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
-    FakeMethodElement fakeElement = new FakeMethodElement(methodCall);
+    GradleDslElement fakeElement = new GradleDslLiteral(methodCall.getParent(), GradleNameElement.fake(methodCall.getMethodName()));
     String methodCallText = (methodCall.isConstructor() ? "new " : "") + quotePartsIfNecessary(maybeTrimForParent(fakeElement, this)) + "()";
     String statementText;
     if (!methodCall.getNameElement().isEmpty()) {

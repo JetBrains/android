@@ -105,7 +105,7 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   }
 
   @Override
-  @NotNull
+  @Nullable
   public GradlePropertyModel getMapValue(@NotNull String key) {
     return myRealModel.getMapValue(key);
   }
@@ -118,13 +118,13 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   }
 
   @Override
-  @NotNull
+  @Nullable
   public GradlePropertyModel addListValue() {
     return myRealModel.addListValue();
   }
 
   @Override
-  @NotNull
+  @Nullable
   public GradlePropertyModel addListValueAt(int index) {
     return myRealModel.addListValueAt(index);
   }

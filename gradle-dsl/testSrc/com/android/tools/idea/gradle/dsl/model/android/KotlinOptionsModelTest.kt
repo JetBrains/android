@@ -55,12 +55,13 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
   fun `add unknown JVM target`() {
     writeToBuildFile(TestFile.ADD_UNKNOWN_TARGET)
 
-    val android = gradleBuildModel.android()
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
     val kotlinOptions = android.kotlinOptions()
     assertMissingProperty(kotlinOptions.jvmTarget())
-    assertThrows(IllegalArgumentException::class.java) {
-      kotlinOptions.jvmTarget().setLanguageLevel(LanguageLevel.JDK_1_7)
-    }
+    kotlinOptions.jvmTarget().setLanguageLevel(LanguageLevel.JDK_1_7) // not supported
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_UNKNOWN_TARGET)
   }
 
   @Test
@@ -69,7 +70,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
     val kotlinOptions = buildModel.android().kotlinOptions()
-    kotlinOptions.freeCompilerArgs().addListValue().setValue("-XX:1")
+    kotlinOptions.freeCompilerArgs().addListValue()!!.setValue("-XX:1")
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.ADD_FREE_COMPILER_ARGS_EXPECTED)
   }
@@ -106,7 +107,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
     verifyListProperty("freeCompilerArgs", kotlinOptions.freeCompilerArgs(), listOf("-XX:1"))
     kotlinOptions.jvmTarget().setLanguageLevel(LanguageLevel.JDK_1_9)
     kotlinOptions.useIR().setValue(true)
-    kotlinOptions.freeCompilerArgs().addListValue().setValue("-XX:2")
+    kotlinOptions.freeCompilerArgs().addListValue()!!.setValue("-XX:2")
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.MODIFY_EXPECTED)
     android = buildModel.android()

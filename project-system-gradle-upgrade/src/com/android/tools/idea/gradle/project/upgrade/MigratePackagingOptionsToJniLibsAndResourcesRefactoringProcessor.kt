@@ -134,7 +134,7 @@ class SplitPropertiesUsageInfo(
 ): GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     destinations.forEach {
-      it.addListValue().setValue(value)
+      it.addListValue()?.setValue(value)
     }
   }
 

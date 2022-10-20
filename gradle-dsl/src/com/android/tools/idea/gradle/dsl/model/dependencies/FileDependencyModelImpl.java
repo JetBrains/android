@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.intellij.openapi.diagnostic.Logger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -34,6 +35,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class FileDependencyModelImpl extends DependencyModelImpl implements FileDependencyModel {
+  public static final Logger LOG = Logger.getInstance(FileDependencyModelImpl.class);
+
   @NonNls public static final String FILES = "files";
 
   @NotNull private GradleDslSimpleExpression myFileDslExpression;
@@ -53,7 +56,8 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
       argumentMaintainer = DependenciesModelImpl.Maintainers.DEEP_EXPRESSION_LIST_MAINTAINER;
     }
     else {
-      throw new IllegalStateException();
+      LOG.warn(new IllegalStateException("No argument maintainer found for " + maintainer));
+      return result;
     }
     if (FILES.equals(methodCall.getMethodName())) {
       List<GradleDslExpression> arguments = methodCall.getArguments();

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText;
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +30,8 @@ import java.math.BigDecimal;
  * use {@link #getCurrentElement()} to get the currently tentative or set element or {@link #reset()} return to the previously saved state.
  */
 public abstract class GradleDslSettableExpression extends GradleDslSimpleExpression {
+  private static final Logger LOG = Logger.getInstance(GradleDslSettableExpression.class);
+
   @Nullable private PsiElement myUnsavedValue;
 
   protected GradleDslSettableExpression(@Nullable GradleDslElement parent,
@@ -71,7 +74,7 @@ public abstract class GradleDslSettableExpression extends GradleDslSimpleExpress
     reorder();
   }
 
-  protected void checkForValidValue(@NotNull Object value) {
+  protected boolean isValid(@NotNull Object value) {
     if (!(value instanceof String ||
           value instanceof Integer ||
           value instanceof Boolean ||
@@ -79,9 +82,11 @@ public abstract class GradleDslSettableExpression extends GradleDslSimpleExpress
           value instanceof ReferenceTo ||
           value instanceof BigDecimal ||
           value instanceof InterpolatedText)) {
-      throw new IllegalArgumentException(
+      LOG.warn(new IllegalArgumentException(
         "Can't set a property value with: " + value.getClass() + " - type must be one of:\n" +
-        "    [String, Integer, Boolean, RawText, ReferenceTo, BigDecimal, InterpolatedText].");
+        "    [String, Integer, Boolean, RawText, ReferenceTo, BigDecimal, InterpolatedText]."));
+      return false;
     }
+    return true;
   }
 }

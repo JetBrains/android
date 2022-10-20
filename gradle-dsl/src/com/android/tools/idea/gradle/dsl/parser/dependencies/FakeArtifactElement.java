@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +47,8 @@ import static com.intellij.openapi.util.text.StringUtil.unquoteString;
  * its own property to provide a consistency with the map based form.
  */
 public class FakeArtifactElement extends FakeElement {
+  private static final Logger LOG = Logger.getInstance(FakeArtifactElement.class);
+
   @NotNull private final Function<ArtifactDependencySpec, String> myGetter;
   @NotNull private final BiConsumer<ArtifactDependencySpecImpl, String> mySetter;
 
@@ -91,7 +94,8 @@ public class FakeArtifactElement extends FakeElement {
     GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
     ArtifactDependencySpecImpl spec = getSpec(resolved);
     if (spec == null) {
-      throw new IllegalArgumentException("Could not create ArtifactDependencySpec from: " + value);
+      LOG.warn(new IllegalArgumentException("Could not create ArtifactDependencySpec from: " + value));
+      return;
     }
     boolean shouldQuote = false;
     String strValue = null;

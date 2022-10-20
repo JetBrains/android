@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
@@ -106,7 +107,8 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
     List<FlatDirRepositoryDslElement> flatDirElements = myDslElement.getPropertyElements(FlatDirRepositoryDslElement.class);
     if (!flatDirElements.isEmpty()) {
       // A repository already exists
-      new FlatDirRepositoryModel(myDslElement, flatDirElements.get(0)).dirs().addListValue().setValue(dirName);
+      GradlePropertyModel listModel = new FlatDirRepositoryModel(myDslElement, flatDirElements.get(0)).dirs().addListValue();
+      if (listModel != null) listModel.setValue(dirName);
     }
     else {
       // We need to create one

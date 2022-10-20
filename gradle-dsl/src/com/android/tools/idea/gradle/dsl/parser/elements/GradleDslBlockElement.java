@@ -193,9 +193,8 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
   }
 
   @Override
-  @NotNull
-  public GradleDslElement setNewElement(@NotNull GradleDslElement element) {
+  public void setNewElement(@NotNull GradleDslElement element) {
     maybeCanonizeElement(element); // NOTYPO
-    return super.setNewElement(element);
+    super.setNewElement(element);
   }
 }

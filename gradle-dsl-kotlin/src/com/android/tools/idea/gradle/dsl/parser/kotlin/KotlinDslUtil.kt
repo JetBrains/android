@@ -94,6 +94,8 @@ import java.math.BigDecimal
 import java.util.regex.Pattern
 import kotlin.reflect.KClass
 
+private val LOG = Logger.getInstance("KotlinDslUtil")
+
 internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
 
 internal fun KtCallExpression.isBlockElement(parent: GradlePropertiesDslElement): Boolean {
@@ -400,9 +402,8 @@ internal fun getOriginalName(methodName : String?, blockName : String): String {
   return if (methodName != null) "$methodName(\"$blockName\")" else "maybeCreate(\"$blockName\")"
 }
 
-@Throws(IncorrectOperationException::class)
 internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : GradleDslFile, value : Any) : PsiElement? {
-   when (value) {
+  when (value) {
     is String ->  {
       var valueText : String?
       if (StringUtil.isQuotedString(value)) {
@@ -431,11 +432,14 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
           val externalText = convertToExternalTextValue(interpolation.referenceItem!!.referredElement!!, context, applyContext, true)
           builder.append(externalText ?: interpolation.referenceItem!!.referredElement!!.fullName)
         }
-    }
+      }
       return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(builder.toString().addQuotes(true))
-   }
-   is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.ktsText)
-   else -> error("Expression '${value}' not supported.")
+    }
+    is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.ktsText)
+    else -> {
+      LOG.warn("Expression '${value}' not supported.")
+      return null
+    }
   }
 }
 
@@ -877,8 +881,8 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
   if (modelEntries != null) {
     for (entry in modelEntries) {
       if (entry.modelEffectDescription.property.name == nameElement.originalName) {
-        Logger.getInstance(KotlinDslWriter::class.java)
-          .error(UnsupportedOperationException( "trying to updateName a property: ${nameElement.originalName}"))
+        LOG.warn(UnsupportedOperationException( "trying to updateName a property: ${nameElement.originalName}"))
+        return
       }
     }
   }
@@ -976,14 +980,20 @@ internal fun createAndAddClosure(closure : GradleDslClosure, element : GradleDsl
  * Create the PsiElement for a list that is an argument of a map. In kotlin each map argument is a KtBinaryExpression.
  */
 internal fun createBinaryExpression(expressionList : GradleDslExpressionList) : PsiElement? {
-  val parent = expressionList.parent as? GradleDslExpressionMap ?:
-               error("Can't create expression for parent not being GradleDslExpressionMap")
+  val parent = expressionList.parent as? GradleDslExpressionMap
+  if (parent == null) {
+    LOG.warn("Can't create expression for parent not being GradleDslExpressionMap")
+    return null
+  }
 
   val parentPsiElement = parent.create() ?: return null
 
   val psiFactory = KtPsiFactory(parentPsiElement.project)
   val listName = expressionList.name
-  if (listName.isEmpty()) error("The list Name can't be empty.")
+  if (listName.isEmpty()) {
+    LOG.warn("The list Name can't be empty.")
+    return null
+  }
 
   val expression = psiFactory.createExpression("\"$listName\" to listOf()") as? KtBinaryExpression ?: return null
   val added : PsiElement?

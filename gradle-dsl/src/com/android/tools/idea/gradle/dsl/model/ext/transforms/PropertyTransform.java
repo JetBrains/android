@@ -76,16 +76,16 @@ public abstract class PropertyTransform {
    * @param oldElement the old element being held by the {@link GradlePropertyModel}, null if it doesn't yet exist.
    * @param value      the new value that was passed to {@link GradlePropertyModel#setValue(Object)}.
    * @param name       the name of the property, this may be useful in replacing existing elements or creating new ones.
-   * @return the new element to replace. This will be passed into {@link #replace(GradleDslElement, GradleDslElement, GradleDslExpression, String)}
-   * if the element returned differs from oldElement.
+   * @return the new element to replace, or null. If non-null it will be passed into
+   * {@link #replace(GradleDslElement, GradleDslElement, GradleDslExpression, String)} if the element returned differs from oldElement.
    */
-  @NotNull
+  @Nullable
   public abstract GradleDslExpression bind(@NotNull GradleDslElement holder,
                                            @Nullable GradleDslElement oldElement,
                                            @NotNull Object value,
                                            @NotNull String name);
 
-  @NotNull
+  @Nullable
   public GradleDslExpression bind(@NotNull GradleDslElement holder,
                                   @Nullable GradleDslElement oldElement,
                                   @NotNull Object value,
@@ -147,7 +147,7 @@ public abstract class PropertyTransform {
    * @param newElement the new element that was returned by one of the bind* methods based on what operation was performed on the model.
    * @return the new element that should be assigned to the {@link GradlePropertyModel}.
    */
-  @NotNull
+  @Nullable
   public abstract GradleDslElement replace(@NotNull GradleDslElement holder,
                                            @Nullable GradleDslElement oldElement,
                                            @NotNull GradleDslExpression newElement,

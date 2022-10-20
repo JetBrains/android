@@ -182,7 +182,7 @@ public interface GradlePropertyModel extends DeletablePsiElementHolder, GradleDs
    * Unless this resulting model has its value set, nothing will be created.
    * This should only be used for properties for which {@link #getValueType()} returns {@link ValueType#MAP}.
    */
-  @NotNull
+  @Nullable
   GradlePropertyModel getMapValue(@NotNull String key);
 
   /**
@@ -196,17 +196,21 @@ public interface GradlePropertyModel extends DeletablePsiElementHolder, GradleDs
   /**
    * Create a new value at the end of this list property. The model representing the new value is returned by this method.
    * Unless the resulting value is set, nothing will be added.
-   * Note: The returned {@link GradlePropertyModel} should not be set to a map or list. Setting these inside lists will throw an exception.
-   * This should only be used for properties for which {@link #getValueType()} return {@link ValueType#LIST}
+   * <p>
+   * Note: The returned {@link GradlePropertyModel} should not be set to a map or list.  Setting these inside lists will log an exception
+   * and otherwise have no effect.
+   * <p>
+   * This should only be used for properties for which {@link #getValueType()} return {@link ValueType#LIST}.  Otherwise an exception
+   * will be logged and null will be returned.
    */
-  @NotNull
+  @Nullable
   GradlePropertyModel addListValue();
 
   /**
-   * Same as {@link #addListValue()} but instead of the value being added at the end, it will be added at the given index.
-   * @throw {@link IndexOutOfBoundsException} if the index is outside the range of the list. Indexing starts from 0.
+   * Same as {@link #addListValue()} but instead of the value being added at the end, it will be added at the given index.  If the index
+   * is out of the [0,size] interval, an exception will be logged and null will be returned.
    */
-  @NotNull
+  @Nullable
   GradlePropertyModel addListValueAt(int index);
 
   /**

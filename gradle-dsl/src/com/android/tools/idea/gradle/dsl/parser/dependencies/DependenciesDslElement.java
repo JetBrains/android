@@ -167,8 +167,7 @@ public class DependenciesDslElement extends GradleDslBlockElement implements Des
   }
 
   @Override
-  @NotNull
-  public GradleDslElement setNewElement(@NotNull GradleDslElement newElement) {
+  public void setNewElement(@NotNull GradleDslElement newElement) {
     List<GradleDslElement> es = getCurrentElements();
     int i = 0;
     for (; i < es.size(); i++) {
@@ -177,6 +176,5 @@ public class DependenciesDslElement extends GradleDslBlockElement implements Des
       }
     }
     addNewElementAt(i, newElement);
-    return newElement;
   }
 }
