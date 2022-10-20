@@ -67,7 +67,7 @@ import java.util.regex.Pattern
 
 private val LOG get() = logger<WearPairingManager>()
 
-object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidStartupActivity {
+object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   enum class PairingState {
     UNKNOWN,
     OFFLINE, // One or both device are offline/disconnected
@@ -119,17 +119,6 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     virtualDevicesProvider = virtualDevices
     connectedDevicesProvider = connectedDevices
     pairedDevicesList.clear()
-  }
-
-  @UiThread
-  override fun runActivity(project: Project, disposable: Disposable) {
-    NonUrgentExecutor.getInstance().execute {
-      synchronized(this) {
-        if (runningJob == null) {
-          loadSettings()
-        }
-      }
-    }
   }
 
   @WorkerThread
@@ -481,6 +470,19 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
       }
       else {
         deviceTable[deviceID] = device // Paired physical device - Add to be shown as "disconnected"
+      }
+    }
+  }
+
+  object WearPairingManagerStartupActivity : AndroidStartupActivity {
+    override fun runActivity(project: Project, disposable: Disposable) {
+      val wearPairingManager = getInstance()
+      NonUrgentExecutor.getInstance().execute {
+        synchronized(wearPairingManager) {
+          if (wearPairingManager.runningJob == null) {
+            wearPairingManager.loadSettings()
+          }
+        }
       }
     }
   }
