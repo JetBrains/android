@@ -21,12 +21,11 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.services.ServiceOutput
-import com.android.flags.junit.SetFlagRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.AndroidLogcatService
 import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
+import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentManager
@@ -86,7 +85,8 @@ class StartReattachingDebuggerTest {
   fun testStartReattachingDebuggerForOneClient() {
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, true)
 
-    val firstSession = startJavaReattachingDebugger(project, device, MASTER_PROCESS_NAME, setOf(APP_ID), executionEnvironment)
+    val firstSession = startReattachingDebugger(project, device, AndroidJavaDebugger(), AndroidJavaDebugger().createState(),
+                                                MASTER_PROCESS_NAME, setOf(APP_ID), executionEnvironment)
       .blockingGet(20, TimeUnit.SECONDS)
     assertThat(firstSession).isNotNull()
     assertThat(firstSession!!.sessionName).isEqualTo("myTestConfiguration")
@@ -127,8 +127,9 @@ class StartReattachingDebuggerTest {
     var pid = Random.nextInt()
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, pid, FakeAdbTestRule.CLIENT_PACKAGE_NAME, true)
 
-    startJavaReattachingDebugger(project, device, MASTER_PROCESS_NAME, setOf(APP_ID), executionEnvironment).blockingGet(20,
-                                                                                                                        TimeUnit.SECONDS)
+    startReattachingDebugger(project, device, AndroidJavaDebugger(), AndroidJavaDebugger().createState(), MASTER_PROCESS_NAME,
+                             setOf(APP_ID), executionEnvironment).blockingGet(20,
+                                                                              TimeUnit.SECONDS)
     val tabsOpened = AtomicInteger(0)
     repeat(ADDITIONAL_CLIENTS) {
       waitForProcessToStop(pid)
@@ -165,8 +166,9 @@ class StartReattachingDebuggerTest {
       }
     }
 
-    val sessionImpl = startJavaReattachingDebugger(project, device, MASTER_PROCESS_NAME, setOf(APP_ID),
-                                                   executionEnvironment).blockingGet(20, TimeUnit.SECONDS)
+    val sessionImpl = startReattachingDebugger(project, device, AndroidJavaDebugger(), AndroidJavaDebugger().createState(),
+                                               MASTER_PROCESS_NAME, setOf(APP_ID),
+                                               executionEnvironment).blockingGet(20, TimeUnit.SECONDS)
 
     // when we stop for debug, master process should be stopped too
     sessionImpl!!.debugProcess.processHandler.destroyProcess()

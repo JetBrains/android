@@ -22,7 +22,8 @@ import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.configuration.execution.DebugSessionStarter
-import com.android.tools.idea.run.editor.AndroidJavaDebugger
+import com.android.tools.idea.run.editor.AndroidDebugger
+import com.android.tools.idea.run.editor.AndroidDebuggerState
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.ProcessAdapter
@@ -40,15 +41,17 @@ import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.rejectedPromise
 
 /**
- * Starts JAVA debug session that attaches to new clients, ready for debug, if their app id is in [applicationIds].
+ * Starts debug session that attaches to new clients, ready for debug, if their app id is in [applicationIds].
  *
  * Debugger execution will be finished when [masterAndroidProcessName] is destroyed.
  * Example of [masterAndroidProcessName] - [MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME]
  */
 @WorkerThread
-fun startJavaReattachingDebugger(
+fun <S : AndroidDebuggerState> startReattachingDebugger(
   project: Project,
   device: IDevice,
+  androidDebugger: AndroidDebugger<S>,
+  androidDebuggerState: S,
   masterAndroidProcessName: String,
   applicationIds: Set<String>,
   environment: ExecutionEnvironment,
@@ -57,34 +60,38 @@ fun startJavaReattachingDebugger(
   val masterProcessHandler = AndroidProcessHandler(project, masterAndroidProcessName)
   masterProcessHandler.addTargetDevice(device)
 
-  return startJavaReattachingDebugger(project, device, masterProcessHandler, applicationIds, environment, consoleViewToReuse)
+  return startReattachingDebugger(project, device, androidDebugger, androidDebuggerState, masterProcessHandler, applicationIds,
+                                  environment, consoleViewToReuse)
 }
 
 /**
- * Starts JAVA debug session that attaches to new clients, ready for debug, if their app id is in [applicationIds].
+ * Starts debug session that attaches to new clients, ready for debug, if their app id is in [applicationIds].
  *
  * It terminates [masterProcessHandler] on an error.
  * It stops re-attaching and listening when [masterProcessHandler] is terminated.
  */
 @WorkerThread
-fun startJavaReattachingDebugger(
+fun <S : AndroidDebuggerState> startReattachingDebugger(
   project: Project,
   device: IDevice,
+  androidDebugger: AndroidDebugger<S>,
+  androidDebuggerState: S,
   masterProcessHandler: ProcessHandler,
   applicationIds: Set<String>,
   environment: ExecutionEnvironment,
   consoleViewToReuse: ConsoleView? = null,
 ): Promise<XDebugSessionImpl> {
 
-  fun startJavaSession(client: Client): Promise<XDebugSessionImpl> {
+  fun startDebuggingSession(client: Client): Promise<XDebugSessionImpl> {
     val appId = client.clientData.packageName ?: return rejectedPromise(
       ExecutionException("Can't find package name for a process `${client.clientData.pid}`"))
 
-    return DebugSessionStarter.attachDebuggerToStartedProcess(client.device, appId, environment, AndroidJavaDebugger(), AndroidJavaDebugger().createState(), { it.forceStop(appId) },
+    return DebugSessionStarter.attachDebuggerToStartedProcess(client.device, appId, environment, androidDebugger, androidDebuggerState,
+                                                              { it.forceStop(appId) },
                                                               consoleViewToReuse, 300)
   }
 
-  return startReattachingDebugger(project, device, masterProcessHandler, applicationIds, ::startJavaSession)
+  return startReattachingDebugger(project, device, masterProcessHandler, applicationIds, ::startDebuggingSession)
 }
 
 
@@ -105,7 +112,7 @@ private fun startReattachingDebugger(
   // We wait for a client in this method, it shouldn't be on EDT.
   ApplicationManager.getApplication().assertIsNonDispatchThread()
 
-  val LOG = Logger.getInstance("startJavaReattachingDebugger")
+  val LOG = Logger.getInstance("startReattachingDebugger")
 
   // We wait for the first client outside [reattachingListener] because there is case when client is already waiting for debug before we add
   // [reattachingListener].

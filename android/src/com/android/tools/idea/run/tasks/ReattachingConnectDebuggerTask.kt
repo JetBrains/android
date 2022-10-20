@@ -22,7 +22,10 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.run.LaunchInfo
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter
-import com.android.tools.idea.run.debug.startJavaReattachingDebugger
+import com.android.tools.idea.run.configuration.RunConfigurationWithDebugger
+import com.android.tools.idea.run.debug.startReattachingDebugger
+import com.android.tools.idea.run.editor.AndroidDebugger
+import com.android.tools.idea.run.editor.AndroidDebuggerState
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.google.common.annotations.VisibleForTesting
@@ -71,11 +74,17 @@ class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
       val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
 
       val appIds = setOfNotNull(base.applicationIdProvider.packageName, base.applicationIdProvider.testPackageName)
-
+      val androidDebuggerContext = (launchInfo.env.runProfile as RunConfigurationWithDebugger).androidDebuggerContext
+      val debugger: AndroidDebugger<AndroidDebuggerState> = androidDebuggerContext.androidDebugger ?: throw RuntimeException(
+        "AndroidDebugger is not found for configuration ${launchInfo.env.runProfile::class}")
+      val state: AndroidDebuggerState = androidDebuggerContext.getAndroidDebuggerState() ?: throw RuntimeException(
+        "AndroidDebuggerState is not found for configuration ${launchInfo.env.runProfile::class}")
       executeOnPooledThread {
-        startJavaReattachingDebugger(
+        startReattachingDebugger(
           launchInfo.env.project,
           device,
+          debugger,
+          state,
           masterAndroidProcessName,
           appIds,
           launchInfo.env,
