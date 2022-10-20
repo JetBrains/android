@@ -557,6 +557,10 @@ class Foo {
 
     listener.sessionStopped()
 
+    // `sessionStopped` should close the file, but does so on the EDT. Queue an empty action and wait for it to complete, so that we're sure
+    // the pending close action has completed.
+    ApplicationManager.getApplication().invokeAndWait {}
+
     verify(mockFileEditorManager).closeFile(mockVirtualFile)
 
     componentStack.restore()

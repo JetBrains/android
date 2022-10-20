@@ -37,6 +37,7 @@ import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileTypes.FileType
@@ -225,7 +226,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
 
     override fun sessionStopped() {
       // When debugging is complete, close the generated file that was opened due to debugging into missing sources.
-      myFileToClose.get()?.let { FileEditorManager.getInstance(myProject).closeFile(it) }
+      myFileToClose.get()?.let { runInEdt { FileEditorManager.getInstance(myProject).closeFile(it) } }
     }
   }
 
