@@ -39,7 +39,7 @@ const val MAX_RENDER_WIDTH = 768
 const val MAX_RENDER_HEIGHT = 1024
 
 @VisibleForTesting
-const val DOWNSCALE_FACTOR = 0.25f
+const val QUALITY = 0.25f
 
 private val LAYOUT_KEY = Key.create<LayoutRenderer>(LayoutRenderer::class.java.name)
 
@@ -49,7 +49,7 @@ private fun createRenderTask(facet: AndroidFacet,
   return RenderService.getInstance(facet.module.project)
     .taskBuilder(facet, configuration)
     .withPsiFile(xmlFile)
-    .withDownscaleFactor(DOWNSCALE_FACTOR)
+    .withQuality(QUALITY)
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .disableDecorations()
     .build()
