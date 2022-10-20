@@ -127,6 +127,12 @@
     <debugger.compoundRendererProvider id="KotlinMapEntryRenderer"
                                        implementation="com.android.tools.compose.debug.render.KotlinMapEntryRenderer"
                                        order="first"/>
+
+    <itemPresentationProvider
+        forClass="org.jetbrains.kotlin.psi.KtFunction"
+        implementationClass="com.android.tools.compose.ComposableItemPresentationProvider"
+        order="first"
+    />
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
