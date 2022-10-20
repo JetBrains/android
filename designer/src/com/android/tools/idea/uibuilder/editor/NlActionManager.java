@@ -378,7 +378,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       }
     }
 
-    List<AnAction> target = Lists.newArrayList();
+    List<AnAction> target = new ArrayList<>();
     for (ViewAction viewAction : viewActions) {
       addActions(target, toolbar, viewAction, editor, handler, component, newSelection);
     }
@@ -410,7 +410,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       target.add(new ToggleViewActionWrapper((ToggleViewAction)viewAction, editor, handler, parent, newSelection));
     }
     else if (viewAction instanceof ToggleViewActionGroup) {
-      List<ToggleViewActionWrapper> actions = Lists.newArrayList();
+      List<ToggleViewActionWrapper> actions = new ArrayList<>();
       for (ToggleViewAction action : ((ToggleViewActionGroup)viewAction).getActions()) {
         actions.add(new ToggleViewActionWrapper(action, editor, handler, parent, newSelection));
       }
@@ -696,7 +696,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     @NotNull
     @Override
     public AnAction[] getChildren(@Nullable AnActionEvent e) {
-      List<AnAction> actions = Lists.newArrayList();
+      List<AnAction> actions = new ArrayList<>();
       for (ViewAction viewAction : myAction.getActions()) {
         addActions(actions, false, viewAction, myEditor, myHandler, myComponent, mySelectedChildren);
       }
@@ -741,7 +741,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       removeAll();
       List<List<ViewAction>> rows = myAction.getActions();
       if (rows.size() == 1) {
-        List<AnAction> actions = Lists.newArrayList();
+        List<AnAction> actions = new ArrayList<>();
         for (ViewAction viewAction : rows.get(0)) {
           addActions(actions, false, viewAction, myEditor, myHandler, myComponent, mySelectedChildren);
         }
@@ -766,7 +766,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
           }
           continue;
         }
-        List<AnAction> actions = Lists.newArrayList();
+        List<AnAction> actions = new ArrayList<>();
         for (ViewAction viewAction : row) {
           addActions(actions, false, viewAction, myEditor, myHandler, myComponent, mySelectedChildren);
         }

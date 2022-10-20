@@ -18,6 +18,7 @@ package com.android.tools.idea.observable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +49,7 @@ public final class ListenerManager {
   /**
    * List of all listeners registered by one of the listen calls.
    */
-  private final List<ListenerPairing> myListeners = Lists.newArrayList();
+  private final List<ListenerPairing> myListeners = new ArrayList<>();
 
   /**
    * The listen methods take either an invalidation listener (untyped) or a receiver (typed).

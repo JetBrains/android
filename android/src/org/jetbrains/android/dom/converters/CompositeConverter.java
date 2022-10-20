@@ -15,9 +15,9 @@
  */
 package org.jetbrains.android.dom.converters;
 
-import com.google.common.collect.Lists;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
+import java.util.ArrayList;
 import net.jcip.annotations.NotThreadSafe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +42,7 @@ public class CompositeConverter extends ResolvingConverter<String> {
   @Override
   @NotNull
   public Collection<String> getVariants(ConvertContext context) {
-    List<String> variants = Lists.newArrayList();
+    List<String> variants = new ArrayList<>();
     for (ResolvingConverter<String> converter : myConverters) {
       variants.addAll(converter.getVariants(context));
     }
@@ -79,7 +79,7 @@ public class CompositeConverter extends ResolvingConverter<String> {
      * Method {@link #build()} passes it to CompositeConverter directly without defensive
      * copying, which is justified by ensuring it would be called only once.
      */
-    private final List<ResolvingConverter<String>> myConverters = Lists.newArrayList();
+    private final List<ResolvingConverter<String>> myConverters = new ArrayList<>();
     private boolean myIsBuilt = false;
 
     private void assertNotBuilt() {

@@ -41,7 +41,6 @@ import com.android.tools.lint.detector.api.Option;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.android.tools.lint.detector.api.TextFormat;
-import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
@@ -695,7 +694,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     }
     else if (lintFix instanceof LintFixGroup) {
       LintFixGroup group = (LintFixGroup)lintFix;
-      List<LintIdeQuickFix> fixList = Lists.newArrayList();
+      List<LintIdeQuickFix> fixList = new ArrayList<>();
       for (LintFix fix : group.getFixes()) {
         Collections.addAll(fixList, createFixes(file, fix));
       }

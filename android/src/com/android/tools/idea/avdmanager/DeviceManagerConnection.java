@@ -30,6 +30,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -214,7 +215,7 @@ public class DeviceManagerConnection {
 
   public static List<Device> getDevicesFromFile(@NotNull File xmlFile) {
     InputStream stream = null;
-    List<Device> list = Lists.newArrayList();
+    List<Device> list = new ArrayList<>();
     try {
       stream = new FileInputStream(xmlFile);
       list.addAll(DeviceParser.parse(stream).values());

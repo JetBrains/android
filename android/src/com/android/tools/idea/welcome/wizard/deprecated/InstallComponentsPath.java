@@ -61,7 +61,6 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -75,6 +74,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +119,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   private ComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason,
                                                 boolean createAvd) {
-    List<ComponentTreeNode> components = Lists.newArrayList();
+    List<ComponentTreeNode> components = new ArrayList<>();
     components.add(new AndroidSdk(myInstallUpdates));
 
     RepoManager sdkManager = myLocalHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));

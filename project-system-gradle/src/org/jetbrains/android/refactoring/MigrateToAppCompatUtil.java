@@ -36,7 +36,6 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.Scope;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
@@ -143,7 +142,7 @@ class MigrateToAppCompatUtil {
       return Collections.emptyList();
     }
 
-    List<ChangeCustomViewUsageInfo> result = Lists.newArrayList();
+    List<ChangeCustomViewUsageInfo> result = new ArrayList<>();
 
     //noinspection ConstantConditions
     Map<PsiFile, List<LintProblemData>> psiFileListMap = fileListMap.entrySet().stream()

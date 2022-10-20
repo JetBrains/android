@@ -120,8 +120,8 @@ public class GradleImport {
    * than in each module
    */
   private static final String WORKSPACE_PROPERTY = "android.eclipseWorkspace";
-  private final List<String> myWarnings = Lists.newArrayList();
-  private final List<String> myErrors = Lists.newArrayList();
+  private final List<String> myWarnings = new ArrayList<>();
+  private final List<String> myErrors = new ArrayList<>();
   private List<? extends ImportModule> myRootModules;
   private Set<ImportModule> myModules;
   private ImportSummary mySummary;

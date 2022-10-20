@@ -23,6 +23,7 @@ import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.MavenCoordinates;
 import com.google.common.collect.Lists;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -43,7 +44,7 @@ public class AndroidBundleStub extends LibraryStub implements AndroidBundle {
         this(
                 new File("bundle"),
                 new File("folder"),
-                Lists.newArrayList(),
+                new ArrayList<>(),
                 Lists.newArrayList(new JavaLibraryStub()),
                 new File("manifest"),
                 new File("jarFile"),

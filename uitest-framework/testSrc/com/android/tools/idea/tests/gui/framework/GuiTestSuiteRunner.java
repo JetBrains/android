@@ -17,8 +17,8 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogTest;
 import com.google.common.base.Verify;
-import com.google.common.collect.Lists;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.runner.RunWith;
@@ -78,8 +78,8 @@ public class GuiTestSuiteRunner extends Suite {
   @NotNull
   private static Class<?>[] getGuiTestClasses(@NotNull Class<?> suiteClass, @Nullable String testGroup)
     throws InitializationError, IOException {
-    List<Class<?>> guiTestClasses = Lists.newArrayList();
-    List<File> guiTestClassFiles = Lists.newArrayList();
+    List<Class<?>> guiTestClasses = new ArrayList<>();
+    List<File> guiTestClassFiles = new ArrayList<>();
     File parentDir = getParentDir(suiteClass);
 
     String packagePath = suiteClass.getPackage().getName().replace('.', File.separatorChar);

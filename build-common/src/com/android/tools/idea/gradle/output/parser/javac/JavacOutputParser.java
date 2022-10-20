@@ -23,8 +23,8 @@ import com.android.ide.common.blame.parser.ParsingFailedException;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
 import com.android.utils.ILogger;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.ArrayList;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -91,7 +91,7 @@ public class JavacOutputParser implements PatternAwareOutputParser {
             return false;
           }
 
-          List<String> messageList = Lists.newArrayList();
+          List<String> messageList = new ArrayList<>();
           messageList.add(text);
           int column; // 0-based.
           String prevLine = null;

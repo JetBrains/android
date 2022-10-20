@@ -105,7 +105,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
    */
   @NonNull
   public static List<Project> create(@NonNull LintIdeClient client, @Nullable List<VirtualFile> files, @NonNull Module... modules) {
-    List<Project> projects = Lists.newArrayList();
+    List<Project> projects = new ArrayList<>();
 
     Map<Project, Module> projectMap = Maps.newHashMap();
     Map<Module, Project> moduleMap = Maps.newHashMap();
@@ -286,7 +286,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
       return;
     }
 
-    List<Project> dependencies = Lists.newArrayList();
+    List<Project> dependencies = new ArrayList<>();
     // No, this shouldn't use getAllAndroidDependencies; we may have non-Android dependencies that this won't include
     // (e.g. Java-only modules)
     List<Module> dependentModules =

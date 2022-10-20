@@ -30,7 +30,6 @@ import com.android.tools.idea.uibuilder.menu.MenuViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.statelist.ItemHandler;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -42,6 +41,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -303,7 +303,7 @@ public class ViewHandlerManager implements Disposable {
   public List<ViewAction> getToolbarActions(@NotNull ViewHandler handler) {
     List<ViewAction> actions = myToolbarActions.get(handler);
     if (actions == null) {
-      actions = Lists.newArrayList();
+      actions = new ArrayList<>();
       handler.addToolbarActions(actions);
       myToolbarActions.put(handler, actions);
     }
@@ -325,7 +325,7 @@ public class ViewHandlerManager implements Disposable {
   public List<ViewAction> getPopupMenuActions(@NotNull SceneComponent component, @NotNull ViewHandler handler) {
     List<ViewAction> actions = myMenuActions.get(handler);
     if (actions == null) {
-      actions = Lists.newArrayList();
+      actions = new ArrayList<>();
       if (handler.addPopupMenuActions(component, actions)) {
         myMenuActions.put(handler, actions);
       }

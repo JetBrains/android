@@ -58,6 +58,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextLayout;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EventObject;
 import java.util.List;
@@ -118,7 +119,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
       myCompletedCalls = 0;
     }
     myIndicator.onRefreshStart("Refreshing...");
-    final List<SystemImageDescription> items = Lists.newArrayList();
+    final List<SystemImageDescription> items = new ArrayList<>();
     RepoManager.RepoLoadedListener localComplete = packages ->
       ApplicationManager.getApplication().invokeLater(() -> {
         // getLocalImages() doesn't use SdkPackages, so it's ok that we're not using what's passed in.
@@ -161,7 +162,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
 
   private List<SystemImageDescription> getLocalImages() {
     SystemImageManager systemImageManager = mySdkHandler.getSystemImageManager(LOGGER);
-    List<SystemImageDescription> items = Lists.newArrayList();
+    List<SystemImageDescription> items = new ArrayList<>();
 
     for (ISystemImage image : systemImageManager.getImages()) {
       SystemImageDescription desc = new SystemImageDescription(image);
@@ -172,7 +173,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
 
   @Nullable
   private static List<SystemImageDescription> getRemoteImages(@NotNull RepositoryPackages packages) {
-    List<SystemImageDescription> items = Lists.newArrayList();
+    List<SystemImageDescription> items = new ArrayList<>();
     Set<RemotePackage> infos = packages.getNewPkgs();
 
     if (infos.isEmpty()) {

@@ -19,7 +19,6 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowi
 import static com.google.common.base.Joiner.on;
 import static org.junit.Assert.fail;
 
-import com.google.common.collect.Lists;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
@@ -27,6 +26,8 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -83,7 +84,7 @@ public class PopupMenuFixture {
     // We can't use the normal JListFixture method to click by label since the ListModel items are
     // ActionItems whose toString does not reflect the text, so search through the model items instead:
     ListPopupModel model = (ListPopupModel)list.getModel();
-    java.util.List<String> items = Lists.newArrayList();
+    List<String> items = new ArrayList<>();
     for (int i = 0; i < model.getSize(); i++) {
       Object elementAt = model.getElementAt(i);
       String s;

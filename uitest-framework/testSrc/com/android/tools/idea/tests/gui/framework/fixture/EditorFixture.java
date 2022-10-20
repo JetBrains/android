@@ -41,7 +41,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.Visual
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
@@ -87,6 +86,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -654,7 +654,7 @@ public class EditorFixture {
 
   @NotNull
   public List<String> getHighlights(HighlightSeverity severity) {
-    List<String> infos = Lists.newArrayList();
+    List<String> infos = new ArrayList<>();
     for (HighlightInfo info : getCurrentFileFixture().getHighlightInfos(severity)) {
       infos.add(info.getDescription());
     }

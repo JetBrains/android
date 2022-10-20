@@ -30,7 +30,6 @@ import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -51,6 +50,7 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.psi.SearchUtils;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -77,7 +77,7 @@ public class MigrateDrawableToMipmapFix extends DefaultLintQuickFix {
       return;
     }
 
-    final List<PsiFile> bitmaps = Lists.newArrayList();
+    final List<PsiFile> bitmaps = new ArrayList<>();
     final Set<PsiElement> references = Sets.newHashSet();
 
     GlobalSearchScope useScope = GlobalSearchScope.projectScope(project);

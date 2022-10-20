@@ -30,6 +30,7 @@ import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -222,7 +223,7 @@ public class TagSnapshot {
     if (value != null) {
       if (attributes.isEmpty()) {
         // attributes may point to Collections.emptyList() when empty, which isn't mutable
-        attributes = Lists.newArrayList();
+        attributes = new ArrayList<>();
       }
       attributes.add(new AttributeSnapshot(namespace, prefix, name, value));
     }

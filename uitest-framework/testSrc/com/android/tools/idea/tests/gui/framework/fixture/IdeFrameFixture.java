@@ -79,6 +79,7 @@ import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -119,7 +120,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public List<String> getModuleNames() {
-    List<String> names = Lists.newArrayList();
+    List<String> names = new ArrayList<>();
     for (Module module : getModuleManager().getModules()) {
       names.add(module.getName());
     }

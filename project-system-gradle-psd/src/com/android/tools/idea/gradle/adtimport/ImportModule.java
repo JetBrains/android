@@ -56,7 +56,6 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.text.StringUtil;
@@ -64,6 +63,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -76,10 +76,10 @@ public abstract class ImportModule implements Comparable<ImportModule> {
   private static final String PLAY_SERVICES_DEP = "com.google.android.gms:play-services:+";
 
   protected final GradleImport myImporter;
-  protected final List<GradleCoordinate> myDependencies = Lists.newArrayList();
-  protected final List<GradleCoordinate> myTestDependencies = Lists.newArrayList();
-  protected final List<File> myJarDependencies = Lists.newArrayList();
-  protected final List<File> myTestJarDependencies = Lists.newArrayList();
+  protected final List<GradleCoordinate> myDependencies = new ArrayList<>();
+  protected final List<GradleCoordinate> myTestDependencies = new ArrayList<>();
+  protected final List<File> myJarDependencies = new ArrayList<>();
+  protected final List<File> myTestJarDependencies = new ArrayList<>();
   protected List<GradleCoordinate> myReplaceWithDependencies;
   private String myModuleName;
 

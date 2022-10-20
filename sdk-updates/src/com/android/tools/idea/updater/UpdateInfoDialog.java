@@ -24,7 +24,6 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
-import com.google.common.collect.Lists;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.updateSettings.impl.AbstractUpdateDialog;
@@ -69,7 +68,7 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
     actions.add(new AbstractAction("Update Now") {
       @Override
       public void actionPerformed(ActionEvent e) {
-        List<String> paths = Lists.newArrayList();
+        List<String> paths = new ArrayList<>();
         for (RemotePackage p : myPackages) {
           paths.add(p.getPath());
         }

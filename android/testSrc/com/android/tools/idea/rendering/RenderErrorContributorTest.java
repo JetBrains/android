@@ -23,7 +23,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
@@ -31,6 +30,7 @@ import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
@@ -137,7 +137,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
 
     RenderService renderService = RenderService.getInstance(myModule.getProject());
     RenderLogger logger = renderService.createLogger(facet);
-    List<RenderErrorModel.Issue> issues = Lists.newArrayList();
+    List<RenderErrorModel.Issue> issues = new ArrayList<>();
 
     RenderTestUtil.withRenderTask(facet, file, configuration, logger, task -> {
       RenderResult render = RenderTestUtil.renderOnSeparateThread(task);

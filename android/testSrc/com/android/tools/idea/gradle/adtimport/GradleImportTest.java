@@ -68,6 +68,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -3407,7 +3408,7 @@ public class GradleImportTest extends AndroidTestCase {
       return;
     }
     File pwd = base.getAbsoluteFile();
-    List<String> args = Lists.newArrayList();
+    List<String> args = new ArrayList<>();
     args.add(gradlew.getAbsolutePath());
     String customizedGradleHome = System.getProperty("gradle.user.home");
     if (customizedGradleHome != null) {

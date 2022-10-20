@@ -19,8 +19,8 @@ import com.android.tools.idea.serverflags.ServerFlagService;
 import com.android.tools.idea.serverflags.protos.MemoryUsageComponent;
 import com.android.tools.idea.serverflags.protos.MemoryUsageComponentCategory;
 import com.android.tools.idea.serverflags.protos.MemoryUsageReportConfiguration;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -48,8 +48,8 @@ public final class ComponentsSet {
   ComponentsSet() {
     packageNameToComponentCache = Maps.newHashMap();
     classNameToComponent = Maps.newHashMap();
-    components = Lists.newArrayList();
-    componentCategories = Lists.newArrayList();
+    components = new ArrayList<>();
+    componentCategories = new ArrayList<>();
     uncategorizedComponent =
       registerComponent(UNCATEGORIZED_COMPONENT_LABEL,
                         registerCategory(UNCATEGORIZED_CATEGORY_LABEL));

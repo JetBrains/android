@@ -28,6 +28,7 @@ import com.intellij.ui.CheckedTreeNode;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import java.util.ArrayList;
 import kotlin.Unit;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -113,7 +114,7 @@ class ModuleDependenciesForm {
 
   @NotNull
   private static List<PsModule> findAvailableModules(@NotNull PsModule module) {
-    List<PsModule> modules = Lists.newArrayList();
+    List<PsModule> modules = new ArrayList<>();
     List<PsModule> dependencies = getModuleDependencies(module);
     module.getParent().forEachModule(m -> {
       if (module != m && !dependencies.contains(m) && module.canDependOn(m)) {
@@ -126,7 +127,7 @@ class ModuleDependenciesForm {
   @NotNull
   private static List<PsModule> getModuleDependencies(@NotNull PsModule module) {
     PsProject project = module.getParent();
-    List<PsModule> dependencies = Lists.newArrayList();
+    List<PsModule> dependencies = new ArrayList<>();
     if (module instanceof PsAndroidModule) {
       ((PsAndroidModule)module).getDependencies().forEachModuleDependency(dependency -> {
         String name = dependency.getName();

@@ -24,10 +24,10 @@ import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildTools
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,7 +66,7 @@ public class InstallBuildToolsHyperlink extends SyncIssueNotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    List<String> requested = Lists.newArrayList();
+    List<String> requested = new ArrayList<>();
     Revision minBuildToolsRev = Revision.parseRevision(myVersion);
     requested.add(DetailsTypes.getBuildToolsPath(minBuildToolsRev));
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);

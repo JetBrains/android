@@ -401,7 +401,7 @@ public class AvdManagerConnection {
    */
   @NotNull
   public List<String> getSystemImageUpdates() {
-    List<String> requested = Lists.newArrayList();
+    List<String> requested = new ArrayList<>();
     SystemImageUpdateDependency[] dependencies = getSystemImageUpdateDependencies();
     if (dependencies == null) {
       return requested;

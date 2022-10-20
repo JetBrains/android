@@ -57,6 +57,7 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -85,7 +86,7 @@ public class CanvasResizeInteraction extends Interaction {
   @NotNull private final Configuration myConfiguration;
   private final OrientationLayer myOrientationLayer;
   private final SizeBucketLayer mySizeBucketLayer;
-  private final List<DeviceLayer> myDeviceLayers = Lists.newArrayList();
+  private final List<DeviceLayer> myDeviceLayers = new ArrayList<>();
   private final Device myOriginalDevice;
   private final State myOriginalDeviceState;
   private final DeviceSizeList myDeviceSizeList = new DeviceSizeList();

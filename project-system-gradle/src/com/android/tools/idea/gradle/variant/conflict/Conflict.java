@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.containers.ContainerUtil;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -33,7 +34,7 @@ public class Conflict {
   // Key: variant expected by module, Value: all modules expecting the variant used as key.
   @NotNull private final Multimap<String, AffectedModule> myAffectedModulesByExpectedVariant = ArrayListMultimap.create();
 
-  @NotNull private final List<AffectedModule> myAffectedModules = Lists.newArrayList();
+  @NotNull private final List<AffectedModule> myAffectedModules = new ArrayList<>();
 
   private boolean myResolved;
 
@@ -126,7 +127,7 @@ public class Conflict {
       assert module != null;
       return "'" + module.getTarget().getName() + "'";
     }
-    List<String> names = Lists.newArrayList();
+    List<String> names = new ArrayList<>();
     for (Conflict.AffectedModule module : modules) {
       names.add("'" + module.getTarget().getName() + "'");
     }

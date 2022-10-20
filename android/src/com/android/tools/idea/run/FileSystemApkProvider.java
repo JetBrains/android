@@ -17,9 +17,9 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +44,7 @@ public class FileSystemApkProvider implements ApkProvider {
       throw new ApkProvisionException("Invalid manifest, no package name specified");
     }
 
-    List<ApkInfo> apkList = Lists.newArrayList();
+    List<ApkInfo> apkList = new ArrayList<>();
     apkList.add(new ApkInfo(myApkPath, id));
     return apkList;
   }

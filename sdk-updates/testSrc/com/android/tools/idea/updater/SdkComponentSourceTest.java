@@ -39,7 +39,6 @@ import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.progress.StudioProgressIndicatorAdapter;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.externalComponents.ExternalComponentSource;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
@@ -54,6 +53,7 @@ import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.ExtensionTestUtil;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -106,9 +106,9 @@ public class SdkComponentSourceTest {
 
     final FakeDownloader downloader = new FakeDownloader(sdkRoot.getRoot().resolve("tmp"));
 
-    List<String> remotePaths = Lists.newArrayList();
-    List<Revision> remoteRevisions = Lists.newArrayList();
-    List<Integer> remoteChannels = Lists.newArrayList();
+    List<String> remotePaths = new ArrayList<>();
+    List<Revision> remoteRevisions = new ArrayList<>();
+    List<Integer> remoteChannels = new ArrayList<>();
 
     remotePaths.add("newerRemote");
     remoteRevisions.add(new Revision(1, 1));

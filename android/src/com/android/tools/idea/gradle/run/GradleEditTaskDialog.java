@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.swing.JComponent;
@@ -32,7 +32,7 @@ public class GradleEditTaskDialog extends DialogWrapper {
   private JPanel myContentPanel;
   private JPanel myTaskPanel;
   private TextFieldWithAutoCompletion myTaskField;
-  private List<String> myAvailableTasks = Lists.newArrayList();
+  private List<String> myAvailableTasks = new ArrayList<>();
 
   protected GradleEditTaskDialog(@Nullable Project project) {
     super(project);

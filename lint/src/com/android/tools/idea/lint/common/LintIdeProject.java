@@ -62,7 +62,7 @@ public class LintIdeProject extends Project {
    */
   @NonNull
   static List<Project> create(@NonNull LintIdeClient client, @Nullable List<VirtualFile> files, @NonNull Module... modules) {
-    List<Project> projects = Lists.newArrayList();
+    List<Project> projects = new ArrayList<>();
 
     Map<Project, Module> projectMap = Maps.newHashMap();
     Map<Module, Project> moduleMap = Maps.newHashMap();
@@ -152,7 +152,7 @@ public class LintIdeProject extends Project {
       return;
     }
 
-    List<Project> dependencies = Lists.newArrayList();
+    List<Project> dependencies = new ArrayList<>();
     OrderEntry[] entries = ModuleRootManager.getInstance(module).getOrderEntries();
     // Loop in the reverse order to resolve dependencies on the libraries, so that if a library
     // is required by two higher level libraries it can be inserted in the correct place.
@@ -359,7 +359,7 @@ public class LintIdeProject extends Project {
     public List<File> getJavaLibraries(boolean includeProvided) {
       if (LintIdeClient.SUPPORT_CLASS_FILES) {
         if (javaLibraries == null) {
-          javaLibraries = Lists.newArrayList();
+          javaLibraries = new ArrayList<>();
 
           final OrderEntry[] entries = ModuleRootManager.getInstance(myModule).getOrderEntries();
           // loop in the inverse order to resolve dependencies on the libraries, so that if a library

@@ -34,7 +34,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyp
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -51,6 +50,7 @@ import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -149,7 +149,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   }
 
   private void setHeaderActions() {
-    List<AnAction> additionalActions = Lists.newArrayList();
+    List<AnAction> additionalActions = new ArrayList<>();
 
     additionalActions.add(new AbstractBaseCollapseAllAction(myTree) {
       @Override

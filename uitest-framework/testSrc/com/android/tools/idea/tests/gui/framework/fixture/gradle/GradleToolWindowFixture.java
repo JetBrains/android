@@ -20,7 +20,6 @@ import static org.fest.swing.core.MouseButton.LEFT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.view.TaskNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -28,6 +27,7 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.tree.TreeUtil;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
@@ -73,7 +73,7 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
 
   @NotNull
   private static TreePath findTaskPath(@NotNull DefaultMutableTreeNode root, @NotNull String taskName) {
-    List<DefaultMutableTreeNode> path = Lists.newArrayList();
+    List<DefaultMutableTreeNode> path = new ArrayList<>();
     boolean found = fillTaskPath(root, taskName, path);
     assertTrue("Failed to find task '" + taskName + "'", found);
     return new TreePath(path.toArray());

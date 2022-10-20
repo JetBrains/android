@@ -21,7 +21,6 @@ import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.util.StudioPathManager;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -108,7 +107,7 @@ public class DeviceArtDescriptor {
 
   public static List<DeviceArtDescriptor> getDescriptors(@Nullable File[] folders) {
     List<File> files = getDescriptorFiles(folders);
-    List<DeviceArtDescriptor> result = Lists.newArrayList();
+    List<DeviceArtDescriptor> result = new ArrayList<>();
 
     for (File file : files)
       try {

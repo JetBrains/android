@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
-import com.google.common.collect.Lists;
 import com.intellij.ide.util.treeView.AbstractTreeUi;
 import com.intellij.ide.util.treeView.TreeVisitor;
 import com.intellij.openapi.util.ActionCallback;
@@ -24,6 +23,7 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.ui.speedSearch.SpeedSearchSupply;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -249,7 +249,7 @@ public class TreeBuilderSpeedSearch extends SpeedSearchSupply {
 
     ActionCallback initialized = myTreeBuilder.getInitialized();
     initialized.doWhenDone(() -> {
-      List<AbstractPsModelNode> nodes = Lists.newArrayList();
+      List<AbstractPsModelNode> nodes = new ArrayList<>();
       myTreeBuilder.accept(AbstractPsModelNode.class, new TreeVisitor<AbstractPsModelNode>() {
         @Override
         public boolean visit(@NotNull AbstractPsModelNode node) {
@@ -289,7 +289,7 @@ public class TreeBuilderSpeedSearch extends SpeedSearchSupply {
   private List<AbstractPsModelNode> findNodes(@NotNull String searchQuery) {
     String pattern = searchQuery.trim();
 
-    List<AbstractPsModelNode> nodes = Lists.newArrayList();
+    List<AbstractPsModelNode> nodes = new ArrayList<>();
     ActionCallback initialized = myTreeBuilder.getInitialized();
     initialized.doWhenDone(() -> myTreeBuilder.accept(AbstractPsModelNode.class, new TreeVisitor<AbstractPsModelNode>() {
       @Override

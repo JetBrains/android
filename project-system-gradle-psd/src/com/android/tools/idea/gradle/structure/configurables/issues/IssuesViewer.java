@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ui.components.JBLabel;
 import java.awt.Font;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -70,7 +71,7 @@ public class IssuesViewer {
     Map<PsIssue.Severity, List<PsIssue>> issuesBySeverity = Maps.newHashMap();
     for (PsIssue issue : newIssues) {
       PsIssue.Severity severity = issue.getSeverity();
-      List<PsIssue> currentIssues = issuesBySeverity.computeIfAbsent(severity, k -> Lists.newArrayList());
+      List<PsIssue> currentIssues = issuesBySeverity.computeIfAbsent(severity, k -> new ArrayList<>());
       currentIssues.add(issue);
     }
 

@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.structure.model.pom;
 
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.JDOMUtil;
+import java.util.ArrayList;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +40,7 @@ public class MavenPoms {
     if (pomFilePath == null || !pomFilePath.isFile()) {
       return Collections.emptyList();
     }
-    List<PsArtifactDependencySpec> dependencies = Lists.newArrayList();
+    List<PsArtifactDependencySpec> dependencies = new ArrayList<>();
     try {
       Element rootElement = JDOMUtil.load(pomFilePath);
       Element dependenciesElement = null;

@@ -212,7 +212,7 @@ public final class SdkQuickfixUtils {
       resolvedPackages.forEach(updatable -> resolvedUninstalls.remove(updatable.getLocal()));
     }
 
-    List<UpdatablePackage> unavailableDownloads = Lists.newArrayList();
+    List<UpdatablePackage> unavailableDownloads = new ArrayList<>();
     verifyAvailability(resolvedPackages, unavailableDownloads);
 
     // If there were requests we didn't understand or can't download, show an error.
@@ -304,11 +304,11 @@ public final class SdkQuickfixUtils {
                                                @NotNull RepositoryPackages packages) throws PackageResolutionException {
     List<UpdatablePackage> result = new ArrayList<>();
     if (requestedPackages == null) {
-      requestedPackages = Lists.newArrayList();
+      requestedPackages = new ArrayList<>();
     }
     List<UpdatablePackage> resolved = Lists.newArrayList(requestedPackages);
 
-    List<RemotePackage> remotes = Lists.newArrayList();
+    List<RemotePackage> remotes = new ArrayList<>();
     for (UpdatablePackage p : resolved) {
       if (p.hasRemote()) {
         remotes.add(p.getRemote());

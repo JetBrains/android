@@ -31,7 +31,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.InferNullityDialogFixt
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.intellij.notification.Notification;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
@@ -43,6 +42,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.messages.MessageBusConnection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
@@ -62,7 +62,7 @@ public class NewProjectTest {
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   private MessageBusConnection notificationsBusConnection;
-  private final List<String> balloonsDisplayed = Lists.newArrayList();
+  private final List<String> balloonsDisplayed = new ArrayList<>();
 
   @Before
   public void setup() {

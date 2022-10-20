@@ -70,6 +70,7 @@ import java.awt.BorderLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -91,7 +92,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   @NotNull private final JPanel myContentsPanel;
   @NotNull private final String myEmptyText;
 
-  @NotNull private final List<DependencyDetails> myDependencyDetails = Lists.newArrayList();
+  @NotNull private final List<DependencyDetails> myDependencyDetails = new ArrayList<>();
 
   @Nullable private final PsModule myModule;
 

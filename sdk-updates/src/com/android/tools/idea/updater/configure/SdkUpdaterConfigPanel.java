@@ -54,7 +54,6 @@ import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
@@ -98,6 +97,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -702,7 +702,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
    * Gets the consolidated list of {@link PackageNodeModel}s from our children so they can be applied.
    */
   public Collection<PackageNodeModel> getStates() {
-    List<PackageNodeModel> result = Lists.newArrayList();
+    List<PackageNodeModel> result = new ArrayList<>();
     result.addAll(myPlatformComponentsPanel.myStates);
     result.addAll(myToolComponentsPanel.myStates);
     return result;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.model;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
 
@@ -28,7 +28,7 @@ public class PackageValueTest {
   @Test
   public void testNoSharedCommonFolder() {
     PackageKey key = new PackageKey(PackageType.CDepPackage, "package name", new File("."));
-    List<SimpleIncludeValue> includes = Lists.newArrayList();
+    List<SimpleIncludeValue> includes = new ArrayList<>();
     includes.add(new SimpleIncludeValue(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, "package name", "x1", new File("."), new File(".")));
     includes.add(new SimpleIncludeValue(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, "package name", "x2", new File("."), new File(".")));
     PackageValue value = new PackageValue(key, "CDep packages", includes);
@@ -39,7 +39,7 @@ public class PackageValueTest {
   @Test
   public void testSharedCommonFolder() {
     PackageKey key = new PackageKey(PackageType.CDepPackage, "package name", new File("."));
-    List<SimpleIncludeValue> includes = Lists.newArrayList();
+    List<SimpleIncludeValue> includes = new ArrayList<>();
     includes.add(new SimpleIncludeValue(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, "package name", "root-folder/x1", new File("."), new File(".")));
     includes.add(new SimpleIncludeValue(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, "package name", "root-folder/x2", new File("."), new File(".")));
     PackageValue value = new PackageValue(key, "CDep Packages", includes);

@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyp
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.Disposer;
@@ -34,6 +33,7 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -94,7 +94,7 @@ class TargetModulesPanel extends ToolWindowPanel {
   }
 
   private void setHeaderActions() {
-    List<AnAction> additionalActions = Lists.newArrayList();
+    List<AnAction> additionalActions = new ArrayList<>();
     additionalActions.add(new AbstractBaseCollapseAllAction(myTree) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {

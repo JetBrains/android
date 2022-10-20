@@ -16,13 +16,13 @@
 package com.android.tools.idea.wizard.dynamic;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +57,7 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
  */
 public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreListener, AndroidStudioWizardPath {
   // List of steps in this path
-  protected List<DynamicWizardStep> mySteps = Lists.newArrayList();
+  protected List<DynamicWizardStep> mySteps = new ArrayList<>();
   // Reference to the parent wizard
   protected DynamicWizard myWizard;
   // The index of the current step in the path

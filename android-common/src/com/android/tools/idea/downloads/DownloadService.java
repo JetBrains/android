@@ -57,7 +57,7 @@ public abstract class DownloadService {
   @GuardedBy("myLock")
   private final List<Runnable> mySuccesses = Lists.newLinkedList();
   @GuardedBy("myLock")
-  private final List<Runnable> myFailures = Lists.newArrayList();
+  private final List<Runnable> myFailures = new ArrayList<>();
   @GuardedBy("myLock")
   private volatile boolean myRunning = false;
   @GuardedBy("myLock")

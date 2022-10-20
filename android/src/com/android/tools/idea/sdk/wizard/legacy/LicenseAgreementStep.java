@@ -27,7 +27,6 @@ import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.AndroidSdkLicenseTemporaryData;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
@@ -41,6 +40,7 @@ import com.intellij.ui.treeStructure.Tree;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -252,7 +252,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, new StudioDownloader(),
                                                          StudioSettingsController.getInstance());
     Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
-    List<Change> toReturn = Lists.newArrayList();
+    List<Change> toReturn = new ArrayList<>();
     List<String> requestedPackages = myInstallRequestsProvider.get();
 
     if (requestedPackages != null) {

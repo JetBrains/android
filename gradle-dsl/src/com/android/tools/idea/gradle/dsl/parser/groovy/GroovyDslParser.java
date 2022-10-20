@@ -54,7 +54,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.IncorrectOperationException;
@@ -380,7 +379,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     if (closureArguments.length > 0) {
       closableBlock = closureArguments[0];
     }
-    List<GradlePropertiesDslElement> blockElements = Lists.newArrayList(); // The block elements this closure needs to be applied.
+    List<GradlePropertiesDslElement> blockElements = new ArrayList<>(); // The block elements this closure needs to be applied.
 
     if (dslElement instanceof GradleDslFile && name.name().equals("allprojects")) {
       // The "allprojects" closure needs to be applied to this project and all its sub projects.

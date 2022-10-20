@@ -16,7 +16,6 @@
 package org.jetbrains.kotlin.android;
 
 
-import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import java.io.BufferedReader;
@@ -162,7 +161,7 @@ public final class InTextDirectivesUtils {
   }
 
   private static List<String> cleanDirectivesFromComments(Collection<String> prefixes) {
-    List<String> resultPrefixes = Lists.newArrayList();
+    List<String> resultPrefixes = new ArrayList<>();
 
     for (String prefix : prefixes) {
       if (prefix.startsWith("//") || prefix.startsWith("##")) {

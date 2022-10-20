@@ -23,7 +23,6 @@ import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
@@ -36,6 +35,7 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.StartupUiUtil;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -269,7 +269,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   }
 
   private List<Change> createChangesList() {
-    List<Change> toReturn = Lists.newArrayList();
+    List<Change> toReturn = new ArrayList<>();
     if (myInstallRequests != null) {
       for (RemotePackage p : myInstallRequests) {
         License license = p.getLicense();

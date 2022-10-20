@@ -23,7 +23,6 @@ import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.lint.detector.api.Scope;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.GlobalInspectionContext;
@@ -54,6 +53,7 @@ import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.testFramework.LightVirtualFile;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -155,7 +155,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
     }
 
     List<VirtualFile> files = null;
-    final List<Module> modules = Lists.newArrayList();
+    final List<Module> modules = new ArrayList<>();
 
     int scopeType = scope.getScopeType();
     switch (scopeType) {
@@ -172,7 +172,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
       case AnalysisScope.FILE:
       case AnalysisScope.VIRTUAL_FILES:
       case AnalysisScope.UNCOMMITTED_FILES: {
-        files = Lists.newArrayList();
+        files = new ArrayList<>();
         SearchScope searchScope = ReadAction.compute(scope::toSearchScope);
         if (searchScope instanceof LocalSearchScope) {
           final LocalSearchScope localSearchScope = (LocalSearchScope)searchScope;

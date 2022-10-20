@@ -18,7 +18,6 @@ package org.jetbrains.android.inspections;
 import com.android.AndroidXConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.google.common.collect.Lists;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.ExpectedTypeInfo;
 import com.intellij.codeInsight.completion.*;
@@ -38,6 +37,7 @@ import com.intellij.psi.util.TypeConversionUtil;
 import com.intellij.util.Consumer;
 import gnu.trove.THashSet;
 import gnu.trove.TObjectHashingStrategy;
+import java.util.ArrayList;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -221,7 +221,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
           ResourceType resourceType = getResourceTypeFromAnnotation(qualifiedName);
           if (resourceType != null) {
             if (resourceTypes == null) {
-              resourceTypes = Lists.newArrayList();
+              resourceTypes = new ArrayList<>();
             }
             resourceTypes.add(resourceType);
           }

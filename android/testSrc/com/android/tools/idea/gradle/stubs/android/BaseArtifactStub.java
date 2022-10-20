@@ -20,7 +20,7 @@ import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.tools.idea.gradle.stubs.FileStructure;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +38,7 @@ public class BaseArtifactStub implements BaseArtifact {
   @NotNull protected final DependenciesStub myDependencies;
   @NotNull protected final String myBuildType;
   @NotNull protected final FileStructure myFileStructure;
-  @NotNull private final List<File> myGeneratedSourceFolders = Lists.newArrayList();
+  @NotNull private final List<File> myGeneratedSourceFolders = new ArrayList<>();
   @NotNull private final Set<File> myAdditionalClassesFolders = new HashSet<>();
 
   public BaseArtifactStub(@NotNull String name,

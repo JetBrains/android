@@ -23,7 +23,6 @@ import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 import com.intellij.openapi.Disposable;
@@ -466,7 +465,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
     CategoryModel() {
       myLabels = Maps.newHashMap();
-      List<ThemeCategory> topLevel = Lists.newArrayList();
+      List<ThemeCategory> topLevel = new ArrayList<>();
 
       if (ourRecent != null) {
         topLevel.add(ThemeCategory.RECENT);

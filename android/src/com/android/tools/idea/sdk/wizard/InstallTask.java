@@ -34,7 +34,6 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
@@ -51,6 +50,7 @@ import com.intellij.openapi.progress.impl.ProgressSuspender;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -103,7 +103,7 @@ class InstallTask extends Task.Backgroundable {
 
   @Override
   public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator indicator) {
-    final List<RepoPackage> failures = Lists.newArrayList();
+    final List<RepoPackage> failures = new ArrayList<>();
 
     LinkedHashMap<RepoPackage, PackageOperation> operations = new LinkedHashMap<>();
     if (!myInstallRequests.isEmpty()) {

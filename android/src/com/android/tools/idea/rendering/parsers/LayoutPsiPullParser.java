@@ -1050,7 +1050,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     if (layout != null && root.children.isEmpty()) {
       String prefix = rootTag.getPrefixByNamespace(ANDROID_URI);
       if (prefix != null) {
-        List<TagSnapshot> children = Lists.newArrayList();
+        List<TagSnapshot> children = new ArrayList<>();
         root.children = children;
         List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(3);
         attributes.add(new AttributeSnapshot("", "", ATTR_LAYOUT, layout));

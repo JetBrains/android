@@ -44,7 +44,6 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.extapi.psi.ASTDelegatePsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
@@ -1135,7 +1134,7 @@ public final class GroovyDslUtil {
       return Collections.emptyList();
     }
 
-    List<GradleReferenceInjection> injections = Lists.newArrayList();
+    List<GradleReferenceInjection> injections = new ArrayList<>();
     GrStringInjection[] grStringInjections = ((GrString)psiElement).getInjections();
     for (GrStringInjection injection : grStringInjections) {
       if (injection != null) {

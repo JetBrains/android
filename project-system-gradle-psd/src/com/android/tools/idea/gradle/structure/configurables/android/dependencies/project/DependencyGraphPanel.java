@@ -45,7 +45,6 @@ import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.ActionCallback;
@@ -56,6 +55,7 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -178,7 +178,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
   @SuppressWarnings("unchecked")
   @NotNull
   private List<AbstractDependencyNode<?, ? extends PsBaseDependency>> getSelection() {
-    List<AbstractDependencyNode<?, ? extends PsBaseDependency>> selection = Lists.newArrayList();
+    List<AbstractDependencyNode<?, ? extends PsBaseDependency>> selection = new ArrayList<>();
     Set<AbstractDependencyNode> matchingSelection = myTreeBuilder.getSelectedElements(AbstractDependencyNode.class);
     for (AbstractDependencyNode node : matchingSelection) {
       selection.add(node);
@@ -239,7 +239,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
   @Override
   @NotNull
   protected List<AnAction> getExtraToolbarActions(@NotNull JComponent focusComponent) {
-    List<AnAction> actions = Lists.newArrayList();
+    List<AnAction> actions = new ArrayList<>();
 
     actions.add(new AbstractBaseExpandAllAction(myTree, Expandall) {
       @Override

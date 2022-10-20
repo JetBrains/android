@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering.webp;
 
 
-import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -28,6 +27,7 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.ArrayList;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
@@ -154,7 +154,7 @@ public class ConvertFromWebpAction extends DumbAwareAction {
 
     @NotNull
     private static List<VirtualFile> findImages(@NotNull ProgressIndicator progressIndicator, LinkedList<VirtualFile> images) {
-      List<VirtualFile> files = Lists.newArrayList();
+      List<VirtualFile> files = new ArrayList<>();
 
       while (!images.isEmpty()) {
         progressIndicator.checkCanceled();
@@ -181,7 +181,7 @@ public class ConvertFromWebpAction extends DumbAwareAction {
 
   @NotNull
   private static List<VirtualFile> computeParentFolders(@NotNull List<VirtualFile> files) {
-    List<VirtualFile> toRefresh = Lists.newArrayList();
+    List<VirtualFile> toRefresh = new ArrayList<>();
     for (VirtualFile file : files) {
       VirtualFile parent = file.getParent();
       if (parent != null && !toRefresh.contains(parent)) {

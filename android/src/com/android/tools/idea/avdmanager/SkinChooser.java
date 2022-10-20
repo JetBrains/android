@@ -16,7 +16,6 @@
 package com.android.tools.idea.avdmanager;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -60,7 +59,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
   private final @NotNull Supplier<@NotNull ListenableFuture<@NotNull Collection<@NotNull Path>>> myUpdateSkins;
   private final @NotNull Executor myDeviceSkinUpdaterServiceExecutor;
   private final @NotNull Executor myEdtExecutor;
-  private List<ItemListener> myListeners = Lists.newArrayList();
+  private List<ItemListener> myListeners = new ArrayList<>();
 
   SkinChooser(@Nullable Project project, boolean includeSdkHandlerSkins) {
     this(project,

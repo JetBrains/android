@@ -31,7 +31,6 @@ import static javax.swing.Action.NAME;
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.project.PropertyBasedDoNotAskOption;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.OnePixelDivider;
@@ -41,6 +40,7 @@ import com.intellij.ui.border.CustomLineBorder;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Action;
 import javax.swing.JButton;
@@ -125,7 +125,7 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
   @NotNull
   protected JComponent createSouthPanel() {
     Action[] actions = createActions();
-    List<JButton> buttons = Lists.newArrayList();
+    List<JButton> buttons = new ArrayList<>();
 
     JPanel panel = new JPanel(new BorderLayout());
 

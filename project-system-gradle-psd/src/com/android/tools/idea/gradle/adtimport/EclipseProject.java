@@ -57,7 +57,6 @@ import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
@@ -233,8 +232,8 @@ class EclipseProject implements Comparable<EclipseProject> {
    * is in dependency order.
    */
   public static List<? extends ImportModule> performImport(@NonNull GradleImport importer, @NonNull Collection<EclipseProject> projects) {
-    List<EclipseImportModule> modules = Lists.newArrayList();
-    List<EclipseImportModule> replacedByDependencies = Lists.newArrayList();
+    List<EclipseImportModule> modules = new ArrayList<>();
+    List<EclipseImportModule> replacedByDependencies = new ArrayList<>();
 
     for (EclipseProject project : projects) {
       EclipseImportModule module = new EclipseImportModule(importer, project);
@@ -350,7 +349,7 @@ class EclipseProject implements Comparable<EclipseProject> {
                || GRIDLAYOUT_ARTIFACT.equals(libraryDirName)
                || MEDIA_ROUTER_ARTIFACT.equals(libraryDirName)) {
             if (myInferredLibraries == null) {
-              myInferredLibraries = Lists.newArrayList();
+              myInferredLibraries = new ArrayList<>();
             }
             myInferredLibraries.add(libraryDirName);
             continue;
@@ -547,7 +546,7 @@ class EclipseProject implements Comparable<EclipseProject> {
           for (File file : files) {
             if (file.isFile() && endsWithIgnoreCase(file.getPath(), DOT_JAR)) {
               if (myInstrumentationJarPaths == null) {
-                myInstrumentationJarPaths = Lists.newArrayList();
+                myInstrumentationJarPaths = new ArrayList<>();
               }
               myInstrumentationJarPaths.add(file);
             }
@@ -583,8 +582,8 @@ class EclipseProject implements Comparable<EclipseProject> {
 
   private void initClassPathEntries() throws IOException {
     assert mySourcePaths == null && myJarPaths == null;
-    mySourcePaths = Lists.newArrayList();
-    myJarPaths = Lists.newArrayList();
+    mySourcePaths = new ArrayList<>();
+    myJarPaths = new ArrayList<>();
 
     Document document = null;
     File classPathFile = getClassPathFile();
@@ -681,7 +680,7 @@ class EclipseProject implements Comparable<EclipseProject> {
               String name = library.getName();
               if (library.isFile() && name.startsWith("lib") && name.contains(".so")) { // or .endsWith? Allow libfoo.so.1 ?
                 if (myNativeLibs == null) {
-                  myNativeLibs = Lists.newArrayList();
+                  myNativeLibs = new ArrayList<>();
                 }
                 File relative = new File(LIBS_FOLDER, lib.getName() + separator + library.getName());
                 myNativeLibs.add(relative);
@@ -1016,8 +1015,8 @@ class EclipseProject implements Comparable<EclipseProject> {
   }
 
   private void initProguard(@NonNull Properties properties) {
-    myLocalProguardFiles = Lists.newArrayList();
-    mySdkProguardFiles = Lists.newArrayList();
+    myLocalProguardFiles = new ArrayList<>();
+    mySdkProguardFiles = new ArrayList<>();
 
     String proguardConfig = properties.getProperty(PROGUARD_CONFIG);
     if (proguardConfig != null && !proguardConfig.isEmpty()) {

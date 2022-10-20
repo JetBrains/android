@@ -26,10 +26,10 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.lint.client.api.LintXmlConfiguration;
-import com.google.common.collect.Lists;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -153,7 +153,7 @@ class EclipseImportModule extends ImportModule {
   @Override
   protected List<ImportModule> getDirectDependencies() {
     if (myDirectDependencies == null) {
-      myDirectDependencies = Lists.newArrayList();
+      myDirectDependencies = new ArrayList<>();
       for (EclipseProject project : myProject.getDirectLibraries()) {
         EclipseImportModule module = project.getModule();
         if (module != null) {
@@ -169,7 +169,7 @@ class EclipseImportModule extends ImportModule {
   @Override
   protected List<ImportModule> getAllDependencies() {
     if (myAllDependencies == null) {
-      myAllDependencies = Lists.newArrayList();
+      myAllDependencies = new ArrayList<>();
       for (EclipseProject project : myProject.getAllLibraries()) {
         EclipseImportModule module = project.getModule();
         if (module != null) {

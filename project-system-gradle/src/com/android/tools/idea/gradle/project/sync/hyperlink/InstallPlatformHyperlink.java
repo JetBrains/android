@@ -22,9 +22,9 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +45,7 @@ public class InstallPlatformHyperlink extends SyncIssueNotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    List<String> requested = Lists.newArrayList();
+    List<String> requested = new ArrayList<>();
     for (AndroidVersion version : myAndroidVersions) {
       requested.add(DetailsTypes.getPlatformPath(version));
     }

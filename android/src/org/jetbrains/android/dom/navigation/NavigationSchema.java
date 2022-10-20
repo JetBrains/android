@@ -35,7 +35,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.AnnotationUtil;
@@ -602,7 +601,7 @@ public class NavigationSchema implements Disposable {
    */
   private static void collectTagsForNavigator(@NotNull PsiClass navClass, @NotNull Map<PsiClass, String> navigatorToTagCollector) {
     PsiClass tempNavigator = navClass;
-    List<PsiClass> childrenToUpdate = Lists.newArrayList();
+    List<PsiClass> childrenToUpdate = new ArrayList<>();
 
     String result;
     do {

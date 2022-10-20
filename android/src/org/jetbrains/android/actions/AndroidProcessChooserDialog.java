@@ -376,7 +376,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
     }
 
-    ArrayList<AndroidDebugger> androidDebuggers = Lists.newArrayList();
+    ArrayList<AndroidDebugger> androidDebuggers = new ArrayList<>();
     for (AndroidDebugger androidDebugger : AndroidDebugger.EP_NAME.getExtensions()) {
       if (!androidDebugger.supportsProject(myProject)) {
         continue;

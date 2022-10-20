@@ -33,7 +33,6 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -46,6 +45,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -331,7 +331,7 @@ public class LayoutMetadata {
           }
 
           PsiManager manager = PsiManager.getInstance(project);
-          List<XmlTag> list = Lists.newArrayList();
+          List<XmlTag> list = new ArrayList<>();
 
           for (VirtualFile file : variations) {
             PsiFile psiFile = manager.findFile(file);
@@ -358,7 +358,7 @@ public class LayoutMetadata {
     });
 
     if (list != null && !list.isEmpty()) {
-      List<PsiFile> affectedFiles = Lists.newArrayList();
+      List<PsiFile> affectedFiles = new ArrayList<>();
       for (XmlTag tag : list) {
         PsiFile psiFile = tag.getContainingFile();
         if (psiFile != null) {

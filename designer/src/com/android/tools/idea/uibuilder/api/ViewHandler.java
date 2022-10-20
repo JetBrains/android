@@ -34,7 +34,7 @@ import com.android.tools.idea.uibuilder.api.actions.ViewActionMenu;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -133,7 +133,7 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
    * Utility method which exposes the toolbar actions in a submenu
    */
   protected void addToolbarActionsToMenu(@NotNull String label, @NotNull List<ViewAction> actions) {
-    List<ViewAction> nestedActions = Lists.newArrayList();
+    List<ViewAction> nestedActions = new ArrayList<>();
     addToolbarActions(nestedActions);
     actions.add(new ViewActionMenu(label, null, nestedActions));
   }

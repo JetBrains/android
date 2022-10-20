@@ -23,7 +23,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.project.Project;
@@ -50,6 +49,7 @@ import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiUtil;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -221,7 +221,7 @@ public class LightDataBindingComponentClass extends AndroidLightClassBase implem
   @NotNull
   @Override
   public PsiMethod[] findMethodsByName(@NonNls String name, boolean checkBases) {
-    List<PsiMethod> result = Lists.newArrayList();
+    List<PsiMethod> result = new ArrayList<>();
     for (PsiMethod method : myMethodCache.getValue()) {
       if (method.getName().equals(name)) {
         result.add(method);

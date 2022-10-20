@@ -445,8 +445,8 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   protected void performRefactoring(@NotNull UsageInfo[] usages) {
     finishMigration();
     PsiMigration psiMigration = PsiMigrationManager.getInstance(myProject).startMigration();
-    myClassMigrations = Lists.newArrayList();
-    myRefsToShorten = Lists.newArrayList();
+    myClassMigrations = new ArrayList<>();
+    myRefsToShorten = new ArrayList<>();
 
     try {
       // Mark the command as global, so that `Undo` is available even if the current file in the

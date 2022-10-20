@@ -17,7 +17,6 @@ package org.jetbrains.android.dom.structure.layout;
 
 import com.android.SdkConstants;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.intellij.ide.structureView.StructureViewModel;
 import com.intellij.ide.structureView.StructureViewModelBase;
 import com.intellij.ide.structureView.StructureViewTreeElement;
@@ -30,6 +29,7 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomElementVisitor;
 import com.intellij.util.xml.DomFileElement;
 import icons.StudioIcons;
+import java.util.ArrayList;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.layout.Fragment;
 import org.jetbrains.android.dom.layout.Include;
@@ -147,7 +147,7 @@ public class LayoutStructureViewBuilder extends TreeBasedStructureViewBuilder {
     @NotNull
     @Override
     public Collection<StructureViewTreeElement> getChildrenBase() {
-      final List<StructureViewTreeElement> result = Lists.newArrayList();
+      final List<StructureViewTreeElement> result = new ArrayList<>();
       final DomElementVisitor visitor = new DomElementVisitor() {
         public void visitLayoutViewElement(LayoutViewElement element) {
           result.add(new LayoutNode(element));

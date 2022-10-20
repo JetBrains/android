@@ -51,7 +51,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayou
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -1100,7 +1099,7 @@ public class Scene implements SelectionListener, Disposable {
                                          @AndroidDpCoordinate int y,
                                          @AndroidDpCoordinate int width,
                                          @AndroidDpCoordinate int height) {
-    List<SceneComponent> within = Lists.newArrayList();
+    List<SceneComponent> within = new ArrayList<>();
     if (getRoot() != null) {
       addWithin(within, getRoot(), x, y, width, height);
     }

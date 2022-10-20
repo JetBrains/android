@@ -47,7 +47,6 @@ import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.TestLibraries;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.ExecutionBundle;
@@ -76,6 +75,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPackage;
 import com.intellij.refactoring.listeners.RefactoringElementAdapter;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -198,7 +198,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @NotNull
   @Override
   public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
-    List<ValidationError> errors = Lists.newArrayList();
+    List<ValidationError> errors = new ArrayList<>();
 
     Module module = facet.getModule();
     JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
@@ -274,7 +274,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       // We can't proceed without a test class.
       return ImmutableList.of(ValidationError.fromException(e));
     }
-    List<ValidationError> errors = Lists.newArrayList();
+    List<ValidationError> errors = new ArrayList<>();
     if (!JUnitUtil.isTestClass(testClass)) {
       errors.add(ValidationError.warning(ExecutionBundle.message("class.isnt.test.class.error.message", CLASS_NAME)));
     }

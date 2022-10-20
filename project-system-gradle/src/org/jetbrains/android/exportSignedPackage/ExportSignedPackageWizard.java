@@ -68,6 +68,7 @@ import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -208,7 +209,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           return;
         }
         List<String> gradleTasks = getGradleTasks(gradleProjectPath.getPath(), androidModel, myBuildVariants, myTargetType);
-        List<String> projectProperties = Lists.newArrayList();
+        List<String> projectProperties = new ArrayList<>();
         projectProperties.add(createProperty(PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
         projectProperties
           .add(createProperty(PROPERTY_SIGNING_STORE_PASSWORD, new String(myGradleSigningInfo.keyStorePassword)));

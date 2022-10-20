@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
 import com.android.tools.idea.gradle.structure.model.PsModel;
-import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.NodeRenderer;
 import com.intellij.openapi.Disposable;
@@ -29,6 +28,7 @@ import com.intellij.openapi.roots.ui.CellAppearanceEx;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.Tree;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -177,7 +177,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
 
   @NotNull
   private List<PsIssue> findIssues(@NotNull AbstractPsModelNode<? extends PsModel> modelNode, @Nullable Comparator<PsIssue> comparator) {
-    List<PsIssue> issues = Lists.newArrayList();
+    List<PsIssue> issues = new ArrayList<>();
 
     PsIssueCollection issueCollection = myContext.getAnalyzerDaemon().getIssues();
     for (PsModel model : modelNode.getModels()) {

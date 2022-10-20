@@ -155,9 +155,9 @@ public class ImportSummary {
   private Map<ImportModule, Map<File, File>> myMoved = Maps.newHashMap();
   private Map<File, GradleCoordinate> myJarDependencies = Maps.newHashMap();
   private Map<String, List<GradleCoordinate>> myLibDependencies = Maps.newHashMap();
-  private List<String> myGuessedDependencyVersions = Lists.newArrayList();
+  private List<String> myGuessedDependencyVersions = new ArrayList<>();
   private File myLastGuessedJar;
-  private List<String> myIgnoredUserHomeProGuardFiles = Lists.newArrayList();
+  private List<String> myIgnoredUserHomeProGuardFiles = new ArrayList<>();
   private boolean myHasRiskyPathChars;
   private boolean myWrapErrorMessages = true;
 
@@ -244,7 +244,7 @@ public class ImportSummary {
   public void reportIgnored(@NonNull String module, @NonNull String path) {
     List<String> list = myNotMigrated.get(module);
     if (list == null) {
-      list = Lists.newArrayList();
+      list = new ArrayList<>();
       myNotMigrated.put(module, list);
     }
     list.add(path);
@@ -258,7 +258,7 @@ public class ImportSummary {
     StringBuilder sb = new StringBuilder(2000);
     sb.append(MSG_HEADER);
 
-    List<String> problems = Lists.newArrayList();
+    List<String> problems = new ArrayList<>();
     problems.addAll(myImporter.getErrors());
     problems.addAll(myImporter.getWarnings());
     if (!problems.isEmpty()) {

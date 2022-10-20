@@ -25,6 +25,7 @@ import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -52,7 +53,7 @@ public final class AndroidStudioPreferences {
 
     ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable = PROJECT_CONFIGURABLE.getPoint(project);
 
-    List<ConfigurableEP<Configurable>> nonStudioExtensions = Lists.newArrayList();
+    List<ConfigurableEP<Configurable>> nonStudioExtensions = new ArrayList<>();
     for (ConfigurableEP<Configurable> extension : projectConfigurable.getExtensionList()) {
       if (PROJECT_PREFERENCES_TO_REMOVE.contains(extension.instanceClass)) {
         nonStudioExtensions.add(extension);

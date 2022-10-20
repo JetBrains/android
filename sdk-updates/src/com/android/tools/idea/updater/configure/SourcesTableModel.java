@@ -28,7 +28,6 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.credentialStore.CredentialAttributes;
 import com.intellij.credentialStore.Credentials;
@@ -199,7 +198,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
     myLoadingStartedCallback.run();
     Application application = ApplicationManager.getApplication();
     application.executeOnPooledThread(() -> {
-      final ArrayList<Row> items = Lists.newArrayList();
+      final ArrayList<Row> items = new ArrayList<>();
       final Set<RepositorySource> initial = Sets.newHashSet();
       for (RepositorySource source : myConfigurable.getRepoManager().getSources(new StudioDownloader(), myLogger, force)) {
         items.add(new Row(source));

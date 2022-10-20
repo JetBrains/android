@@ -21,7 +21,6 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.util.IconLoader;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -159,7 +158,7 @@ public class Palette {
       @XmlElement(name = "group", type = Group.class),
       @XmlElement(name = "item", type = Item.class)
     })
-    private List<BaseItem> myItems = Lists.newArrayList();
+    private List<BaseItem> myItems = new ArrayList<>();
     // @formatter:on
 
     @Nullable

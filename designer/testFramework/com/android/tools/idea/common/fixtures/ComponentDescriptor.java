@@ -44,7 +44,7 @@ import static org.mockito.Mockito.when;
 public class ComponentDescriptor {
   @NotNull private static final Splitter SPLITTER = Splitter.on(":").omitEmptyStrings().trimResults().limit(2);
   @NotNull private final String myTagName;
-  @NotNull final List<Pair<String, String>> myAttributes = Lists.newArrayList();
+  @NotNull final List<Pair<String, String>> myAttributes = new ArrayList<>();
   @NotNull private ComponentDescriptor[] myChildren = new ComponentDescriptor[0];
   @AndroidCoordinate private int myX;
   @AndroidCoordinate private int myY;
@@ -482,7 +482,7 @@ public class ComponentDescriptor {
       viewInfo.setViewType(myViewType);
     }
 
-    List<ViewInfo> childList = Lists.newArrayList();
+    List<ViewInfo> childList = new ArrayList<>();
     XmlTag[] subTags = tag.getSubTags();
     assertEquals(subTags.length, myChildren.length);
     for (int i = 0; i < subTags.length; i++) {

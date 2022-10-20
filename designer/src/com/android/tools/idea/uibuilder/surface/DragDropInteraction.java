@@ -50,7 +50,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHand
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.awt.Cursor;
@@ -61,6 +60,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
@@ -399,7 +399,7 @@ public class DragDropInteraction extends Interaction {
 
     if ((myDragHandler instanceof CommonDragHandler) || (myDragHandler != null && myCurrentHandler != null)) {
       String error = myDragHandler.update(Coordinates.pxToDp(mySceneView, ax), Coordinates.pxToDp(mySceneView, ay), modifiers, sceneContext);
-      final List<NlComponent> added = Lists.newArrayList();
+      final List<NlComponent> added = new ArrayList<>();
       if (commit && error == null) {
         added.addAll(myDraggedComponents);
         final NlModel model = mySceneView.getSceneManager().getModel();

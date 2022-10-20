@@ -20,6 +20,7 @@ import com.android.tools.idea.observable.AbstractObservableValue;
 import com.google.common.collect.ForwardingIterator;
 import com.google.common.collect.ForwardingListIterator;
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +42,7 @@ public final class ObservableList<E> extends AbstractObservableValue<List<? exte
   private boolean myInvalidatedWhileUpdating;
 
   public ObservableList() {
-    myInnerList = Lists.newArrayList();
+    myInnerList = new ArrayList<>();
   }
 
   public ObservableList(@NotNull Iterable<? extends E> otherCollection) {

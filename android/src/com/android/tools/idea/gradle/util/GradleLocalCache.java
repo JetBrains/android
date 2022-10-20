@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import java.util.ArrayList;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,7 +77,7 @@ public class GradleLocalCache {
     if (!gradleCacheFolder.isDirectory()) {
       return null;
     }
-    List<GradleVersion> versions = Lists.newArrayList();
+    List<GradleVersion> versions = new ArrayList<>();
     for (File moduleFolder : notNullize(gradleCacheFolder.listFiles())) {
       if (!isDirectoryWithNamePrefix(moduleFolder, "modules-")) {
         continue;

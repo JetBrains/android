@@ -55,7 +55,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -169,7 +168,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
     VirtualFile openedFile = FileEditorManagerEx.getInstanceEx(firstModule.getProject()).getCurrentFile();
 
-    List<GradleBuildModel> buildModelsToUpdate = Lists.newArrayList();
+    List<GradleBuildModel> buildModelsToUpdate = new ArrayList<>();
     for (Module module : modules) {
       GradleBuildModel buildModel = GradleBuildModel.get(module);
       if (buildModel == null) {

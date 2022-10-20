@@ -143,7 +143,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
      */
     private List<VirtualFile> findSourceFolders() {
       if (sourceFolders == null) {
-        List<VirtualFile> folders = Lists.newArrayList();
+        List<VirtualFile> folders = new ArrayList<>();
 
         int apiLevel = minSdkVersion.getFeatureLevel();
         String dirName = dir.getName();

@@ -33,9 +33,9 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -81,7 +81,7 @@ public class NlModelBuilderUtil {
 
   @NotNull
   private static List<ViewInfo> buildViewInfos(@NotNull NlModel model, @NotNull ComponentDescriptor root) {
-    List<ViewInfo> infos = Lists.newArrayList();
+    List<ViewInfo> infos = new ArrayList<>();
     XmlFile file = model.getFile();
     assertThat(file).isNotNull();
     assertThat(file.getRootTag()).isNotNull();

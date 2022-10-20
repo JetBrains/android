@@ -26,7 +26,6 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -37,6 +36,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.reference.SoftReference;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -180,7 +180,7 @@ public class AndroidSdkData {
   @NotNull
   public IAndroidTarget[] getTargets(boolean includeAddOns) {
     Collection<IAndroidTarget> targets = getTargetCollection();
-    Collection<IAndroidTarget> result = Lists.newArrayList();
+    Collection<IAndroidTarget> result = new ArrayList<>();
     if (!includeAddOns) {
       for (IAndroidTarget target : targets) {
         if (target.isPlatform()) {

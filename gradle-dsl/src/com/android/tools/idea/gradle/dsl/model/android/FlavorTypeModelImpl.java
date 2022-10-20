@@ -43,7 +43,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.base.Function;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -348,7 +348,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   protected <T> List<T> getTypeNameValuesElements(@NotNull Function<GradleDslExpressionList, T> producer,
                                                   @NotNull ModelPropertyDescription property) {
     String elementName = property.name;
-    List<T> result = Lists.newArrayList();
+    List<T> result = new ArrayList<>();
     for (GradleDslElement element : myDslElement.getPropertyElementsByName(elementName)) {
       if (element instanceof GradleDslMethodCall) {
         element = ((GradleDslMethodCall)element).getArgumentsElement();

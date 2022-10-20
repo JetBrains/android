@@ -35,7 +35,6 @@ import com.android.tools.idea.tests.gui.framework.matcher.FluentMatcher;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.MessagePool;
 import com.intellij.diagnostic.PerformanceWatcher;
@@ -381,7 +380,7 @@ public final class GuiTests {
     // We can't use the normal JListFixture method to click by label since the ListModel items are
     // ActionItems whose toString does not reflect the text, so search through the model items instead:
     ListPopupModel model = (ListPopupModel)list.getModel();
-    java.util.List<String> items = Lists.newArrayList();
+    List<String> items = new ArrayList<>();
     for (int i = 0; i < model.getSize(); i++) {
       Object elementAt = model.getElementAt(i);
       String s;

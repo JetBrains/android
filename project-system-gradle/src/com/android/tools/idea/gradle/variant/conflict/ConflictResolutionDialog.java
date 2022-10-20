@@ -26,6 +26,7 @@ import com.intellij.ui.CheckboxTree;
 import com.intellij.ui.CheckedTreeNode;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.tree.TreeUtil;
+import java.util.ArrayList;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -95,7 +96,7 @@ class ConflictResolutionDialog extends DialogWrapper {
       variantNode.setChecked(false);
       root.add(variantNode);
 
-      List<Module> dependents = Lists.newArrayList();
+      List<Module> dependents = new ArrayList<>();
       for (Conflict.AffectedModule affected : conflict.getModulesExpectingVariant(variant)) {
         Module module = affected.getTarget();
         dependents.add(module);

@@ -16,7 +16,7 @@
 package com.android.tools.idea.diagnostics;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
@@ -105,7 +105,7 @@ public class ExceptionTestUtils {
       }
     }
 
-    List<StackTraceElement> frames = Lists.newArrayList();
+    List<StackTraceElement> frames = new ArrayList<>();
     Pattern outerPattern = Pattern.compile("\tat (.*)\\.([^.]*)\\((.*)\\)");
     Pattern innerPattern = Pattern.compile("(.*):(\\d*)");
     while (iterator.hasNext()) {

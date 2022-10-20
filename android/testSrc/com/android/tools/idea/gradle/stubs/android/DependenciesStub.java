@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaLibrary;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -28,10 +28,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class DependenciesStub implements Dependencies {
-  @NotNull private final List<AndroidLibrary> myLibraries = Lists.newArrayList();
-  @NotNull private final List<JavaLibrary> myJavaLibraries = Lists.newArrayList();
-  @NotNull private final List<String> myProjects = Lists.newArrayList();
-  @NotNull private final List<File> myRuntimeOnlyClasses = Lists.newArrayList();
+  @NotNull private final List<AndroidLibrary> myLibraries = new ArrayList<>();
+  @NotNull private final List<JavaLibrary> myJavaLibraries = new ArrayList<>();
+  @NotNull private final List<String> myProjects = new ArrayList<>();
+  @NotNull private final List<File> myRuntimeOnlyClasses = new ArrayList<>();
 
   public void addLibrary(@NotNull AndroidLibraryStub library) {
     myLibraries.add(library);

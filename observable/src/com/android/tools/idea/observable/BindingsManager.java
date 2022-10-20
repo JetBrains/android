@@ -17,7 +17,7 @@ package com.android.tools.idea.observable;
 
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -35,8 +35,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class BindingsManager {
 
-  private final List<OneWayBinding<?>> myOneWayBindings = Lists.newArrayList();
-  private final List<TwoWayBinding<?>> myTwoWayBindings = Lists.newArrayList();
+  private final List<OneWayBinding<?>> myOneWayBindings = new ArrayList<>();
+  private final List<TwoWayBinding<?>> myTwoWayBindings = new ArrayList<>();
 
   private final BatchInvoker myInvoker;
 
