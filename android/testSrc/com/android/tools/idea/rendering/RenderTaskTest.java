@@ -18,6 +18,8 @@ package com.android.tools.idea.rendering;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.rendering.RenderTestUtil.DEFAULT_DEVICE_ID;
+import static com.android.tools.idea.rendering.RenderTestUtil.createRenderTask;
+import static com.intellij.util.TimeoutUtil.sleep;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.mock;
@@ -34,9 +36,8 @@ import com.android.testutils.ImageDiffUtil;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationHolder;
-import com.android.tools.idea.configurations.SystemUiModeAction;
 import com.android.tools.idea.configurations.Wallpaper;
+import com.android.tools.idea.rendering.RenderAsyncActionExecutor.RenderingPriority;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
@@ -59,6 +60,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
@@ -890,5 +892,50 @@ public class RenderTaskTest extends AndroidTestCase {
         throw new RuntimeException(ex);
       }
     });
+  }
+
+  /**
+   * Checks that disposing of render tasks is not delayed by adding more tasks to the rendering queue.
+   */
+  public void testDisposePriority() {
+    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTask task1 = createRenderTask(myFacet, file, configuration, logger, RenderingPriority.LOW);
+    RenderTask task2 = createRenderTask(myFacet, file, configuration, logger, RenderingPriority.HIGH);
+    RenderTask task3 = createRenderTask(myFacet, file, configuration, logger, RenderingPriority.LOW);
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    // Do a render to ensure there is RenderSession to dispose inside the task
+    try {
+      task1.render().get(5, TimeUnit.SECONDS);
+    }
+    catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
+
+    task2.runAsyncRenderAction(() -> {
+      // Wait until both task3 and the dispose of task1 are added to the rendering queue
+      // before allowing the higher priority task to be executed.
+      while (((RenderExecutor)RenderService.getRenderAsyncActionExecutor()).getNumPendingActions() < 2) {
+        sleep(50);
+      }
+      return null;
+    });
+    task3.runAsyncRenderAction(() -> {
+      latch.await();
+      return null;
+    });
+    try {
+      task1.dispose().get(5, TimeUnit.SECONDS);
+      latch.countDown();
+      task2.dispose().get(5, TimeUnit.SECONDS);
+      task3.dispose().get(5, TimeUnit.SECONDS);
+    }
+    catch (Exception e) {
+      fail("RenderTask dispose not happening before low priority render tasks.");
+    }
   }
 }

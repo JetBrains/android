@@ -1466,7 +1466,7 @@ public class RenderTask {
 
     disposeMethod.ifPresent(m -> m.setAccessible(true));
     Optional<Method> finalDisposeMethod = disposeMethod;
-    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> {
+    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(RenderAsyncActionExecutor.RenderingPriority.HIGH, () -> {
       finalDisposeMethod.ifPresent(
         m -> renderSession.execute(
           () -> renderSession.getRootViews().forEach(v -> disposeIfCompose(v, m))

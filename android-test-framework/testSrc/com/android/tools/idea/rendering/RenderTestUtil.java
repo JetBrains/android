@@ -27,6 +27,7 @@ import com.android.tools.adtui.ImageUtils;
 import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.rendering.RenderAsyncActionExecutor.RenderingPriority;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
@@ -155,10 +156,11 @@ public class RenderTestUtil {
   }
 
   @NotNull
-  private static RenderTask createRenderTask(@NotNull AndroidFacet facet,
-                                       @NotNull VirtualFile file,
-                                       @NotNull Configuration configuration,
-                                       @NotNull RenderLogger logger) {
+  protected static RenderTask createRenderTask(@NotNull AndroidFacet facet,
+                                             @NotNull VirtualFile file,
+                                             @NotNull Configuration configuration,
+                                             @NotNull RenderLogger logger,
+                                             @NotNull RenderingPriority priority) {
     Module module = facet.getModule();
     PsiFile psiFile = ReadAction.compute(() -> PsiManager.getInstance(module.getProject()).findFile(file));
     assertNotNull(psiFile);
@@ -167,6 +169,7 @@ public class RenderTestUtil {
       .withLogger(logger)
       .withPsiFile(psiFile)
       .disableSecurityManager()
+      .withPriority(priority)
       .build();
     RenderTask task = Futures.getUnchecked(taskFuture);
     assertNotNull(task);
@@ -179,7 +182,7 @@ public class RenderTestUtil {
                                        @NotNull RenderLogger logger,
                                        @NotNull Consumer<RenderTask> f,
                                        boolean layoutScannerEnabled) {
-    final RenderTask task = createRenderTask(facet, file, configuration, logger);
+    final RenderTask task = createRenderTask(facet, file, configuration, logger, RenderingPriority.HIGH);
     task.setEnableLayoutScanner(layoutScannerEnabled);
     try {
       f.accept(task);
@@ -211,7 +214,7 @@ public class RenderTestUtil {
                                     @NotNull VirtualFile file,
                                     @NotNull Configuration configuration) {
     RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
-    return createRenderTask(facet, file, configuration, renderService.createLogger(facet));
+    return createRenderTask(facet, file, configuration, renderService.createLogger(facet), RenderingPriority.HIGH);
   }
 
   public static void withRenderTask(@NotNull AndroidFacet facet,
