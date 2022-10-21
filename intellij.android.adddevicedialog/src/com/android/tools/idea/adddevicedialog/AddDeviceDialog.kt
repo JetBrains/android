@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import com.android.tools.idea.wizard.ui.SimpleStudioWizardLayout
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.intellij.openapi.ui.DialogWrapper
 
 internal object AddDeviceDialog {
-  internal fun build(): DialogWrapper = StudioWizardDialogBuilder(ConfigureDeviceStep(AddDeviceWizardModel()), "Add Device").build()
+  internal fun build(): DialogWrapper = StudioWizardDialogBuilder(ConfigureDeviceStep(AddDeviceWizardModel()), "Add Device")
+    .build(SimpleStudioWizardLayout())
 }
