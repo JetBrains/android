@@ -28,7 +28,8 @@ import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.bind
+import com.intellij.ui.dsl.builder.panel
 import org.jetbrains.android.util.AndroidBundle.message
 
 class LiveEditConfigurable : BoundSearchableConfigurable(
@@ -38,36 +39,24 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
     val config = LiveEditApplicationConfiguration.getInstance()
 
     return panel {
-      buttonGroup {
+      buttonsGroup {
         row {
-          radioButton(
-            message("live.literals.configurable.select.live.literals"),
-            { config.mode == LIVE_LITERALS },
-            { enabled -> if (enabled) config.mode = LIVE_LITERALS },
-            message("live.literals.configurable.select.live.literals.comment")
-          )
+          radioButton(message("live.literals.configurable.select.live.literals"), LIVE_LITERALS)
+            .comment(message("live.literals.configurable.select.live.literals.comment"))
         }
 
         if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()) {
           row {
-            radioButton(
-              message("live.edit.configurable.display.name"),
-              { config.mode == LIVE_EDIT },
-              { enabled -> if (enabled) config.mode = LIVE_EDIT },
-              message("live.edit.configurable.display.name.comment")
-            )
+            radioButton(message("live.edit.configurable.display.name"), LIVE_EDIT)
+              .comment(message("live.edit.configurable.display.name.comment"))
           }
         }
 
         row {
-          radioButton(
-            message("live.edit.disable.all"),
-            { config.mode == DISABLED },
-            { enabled -> if (enabled) config.mode = DISABLED },
-            message("live.edit.disable.all.description")
-          )
+          radioButton(message("live.edit.disable.all"), DISABLED)
+            .comment(message("live.edit.disable.all.description"))
         }
-      }
+      }.bind(config::mode)
     }
   }
 
