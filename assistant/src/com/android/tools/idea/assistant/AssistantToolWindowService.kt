@@ -34,7 +34,7 @@ interface AssistantToolWindowService {
   fun openAssistant(bundleId: String, defaultTutorialCardId: String? = null)
 
   companion object {
-    const val TOOL_WINDOW_TITLE = "Assistant:"
+    const val TOOL_WINDOW_TITLE = "Assistant"
   }
 }
 
