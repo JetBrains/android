@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,6 @@
  */
 package com.android.tools.screensharing;
 
-import android.annotation.SuppressLint;
-import android.util.Log;
-
-public class Main {
-  @SuppressLint("UnsafeDynamicallyLoadedCode")
-  public static void main(String[] args) {
-    try {
-      System.load("/data/local/tmp/.studio/libscreen-sharing-agent.so");
-    }
-    catch (Throwable e) {
-      Log.e("ScreenSharing", "Unable to load libscreen-sharing-agent.so - " + e.getMessage());
-    }
-    nativeMain(args);
-  }
-
-  private static native void nativeMain(String[] args);
+public class ServiceManager {
+  public static native Object getServiceAsInterface(String name, String type, boolean allowNull);
 }

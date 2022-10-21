@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
+#include <cassert>
 #include <memory>
 
 #include "io_exception.h"
@@ -32,8 +33,7 @@ Base128OutputStream::Base128OutputStream(int fd, size_t buffer_size)
     : fd_(fd),
       buffer_(new uint8_t[buffer_size]),
       buffer_capacity_(buffer_size),
-      offset_(0),
-      data_end_(0) {
+      offset_(0) {
 }
 
 Base128OutputStream::~Base128OutputStream() {

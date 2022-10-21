@@ -52,7 +52,6 @@ private:
   uint8_t* buffer_;
   size_t buffer_capacity_;
   size_t offset_;
-  size_t data_end_;
 
   DISALLOW_COPY_AND_ASSIGN(Base128OutputStream);
 };

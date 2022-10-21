@@ -21,6 +21,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include <cassert>
 #include <chrono>
 #include <cstdlib>
 
@@ -85,18 +86,22 @@ Agent::Agent(const vector<string>& args)
       char* ptr;
       auto w = strtoul(arg.c_str() + sizeof("--max_size=") - 1, &ptr, 10);
       auto h = *ptr == ',' ? strtoul(ptr + 1, &ptr, 10) : 0;
-      if (*ptr == '\0' && 0 < w && w <= numeric_limits<int32_t>::max() && 0 < h && h <= numeric_limits<int32_t>::max()) {
-        max_video_resolution_.width = w;
-        max_video_resolution_.height = h;
-      } else {
+      if (*ptr != '\0' || w <= 0 || numeric_limits<int32_t>::max() < w || h <= 0 || numeric_limits<int32_t>::max() < h) {
         InvalidCommandLineArgument(arg);
       }
+      max_video_resolution_.width = w;
+      max_video_resolution_.height = h;
     } else if (arg.rfind("--orientation=", 0) == 0) {
       char* ptr;
       auto orientation = strtoul(arg.c_str() + sizeof("--orientation=") - 1, &ptr, 10);
-      if (*ptr == '\0') {
-        initial_video_orientation_ = orientation & 0x03;
-      } else {
+      if (*ptr != '\0') {
+        InvalidCommandLineArgument(arg);
+      }
+      initial_video_orientation_ = orientation & 0x03;
+    } else if (arg.rfind("--flags=", 0) == 0) {
+      char* ptr;
+      flags_ = strtoul(arg.c_str() + sizeof("--flags=") - 1, &ptr, 10);
+      if (*ptr != '\0') {
         InvalidCommandLineArgument(arg);
       }
     } else if (arg.rfind("--codec=", 0) == 0) {

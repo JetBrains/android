@@ -66,4 +66,13 @@ JObject ServiceManager::WaitForService(Jni jni, const char* name, bool allow_nul
   return binder;
 }
 
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_android_tools_screensharing_ServiceManager_getServiceAsInterface(
+    JNIEnv* jni_env, jclass clazz, jstring name, jstring type, jboolean allow_null) {
+  Jni jni(jni_env);
+  return ServiceManager::GetServiceAsInterface(
+      jni, JString(jni, name).GetValue().c_str(), JString(jni, type).GetValue().c_str(), allow_null).Release();
+}
+
 }  // namespace screensharing

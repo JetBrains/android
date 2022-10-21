@@ -91,21 +91,21 @@ void DisplayListenerDispatcher::Stop() {
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_android_tools_screensharing_DisplayListener_onDisplayAdded(JNIEnv* jni_env, jobject thiz, jint display_id) {
-  Log::D("DisplayListenerDispatcher.onDisplayAdded");
+  Log::D("DisplayListenerDispatcher.onDisplayAdded %d", display_id);
   DisplayManager::OnDisplayAdded(jni_env, display_id);
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_android_tools_screensharing_DisplayListener_onDisplayRemoved(JNIEnv* jni_env, jobject thiz, jint display_id) {
-  Log::D("DisplayListenerDispatcher.onDisplayRemoved");
+  Log::D("DisplayListenerDispatcher.onDisplayRemoved %d", display_id);
   DisplayManager::OnDisplayRemoved(jni_env, display_id);
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_android_tools_screensharing_DisplayListener_onDisplayChanged(JNIEnv* jni_env, jobject thiz, jint display_id) {
-  Log::D("DisplayListenerDispatcher.onDisplayChanged");
+  Log::D("DisplayListenerDispatcher.onDisplayChanged %d", display_id);
   DisplayManager::OnDisplayChanged(jni_env, display_id);
 }
 

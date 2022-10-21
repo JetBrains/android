@@ -28,6 +28,8 @@ namespace screensharing {
 // The main class of the screen sharing agent.
 class Agent {
 public:
+  static constexpr int32_t FLAG_TURN_SCREEN_OFF = 0x01;
+
   Agent(const std::vector<std::string>& args);
   ~Agent();
 
@@ -46,6 +48,10 @@ public:
   // Records the timestamp of the last simulated touch event in milliseconds according to the monotonic clock.
   static void RecordTouchEvent();
 
+  static int32_t flags() {
+    return instance_->flags_;
+  }
+
 private:
   void ShutdownInternal();
 
@@ -57,6 +63,7 @@ private:
   Size max_video_resolution_;
   int32_t initial_video_orientation_;  // In quadrants counterclockwise.
   std::string codec_name_;
+  int32_t flags_ = 0;
   DisplayStreamer* display_streamer_ = nullptr;
   Controller* controller_ = nullptr;
   std::atomic_int64_t last_touch_time_millis_ = 0;

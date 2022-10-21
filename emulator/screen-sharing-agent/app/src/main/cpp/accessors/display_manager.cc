@@ -106,13 +106,13 @@ void DisplayManager::UnregisterDisplayListener(Jni jni, DisplayManager::DisplayL
     auto pos = find(new_listeners->begin(), new_listeners->end(), listener);
     if (pos != new_listeners->end()) {
       new_listeners->erase(pos);
-      if (new_listeners->empty()) {
-        instance.display_listener_dispatcher_->Stop();
-      }
-      if (instance.display_listeners_.compare_exchange_strong(old_listeners, new_listeners)) {
-        delete old_listeners;
-        break;
-      }
+    }
+    if (new_listeners->empty()) {
+      instance.display_listener_dispatcher_->Stop();
+    }
+    if (instance.display_listeners_.compare_exchange_strong(old_listeners, new_listeners)) {
+      delete old_listeners;
+      break;
     }
     delete new_listeners;
   }

@@ -37,6 +37,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
   static std::unique_ptr<ControlMessage> Deserialize(Base128InputStream& stream);
+  static std::unique_ptr<ControlMessage> Deserialize(int32_t type, Base128InputStream& stream);
 
 protected:
   ControlMessage(int32_t type)

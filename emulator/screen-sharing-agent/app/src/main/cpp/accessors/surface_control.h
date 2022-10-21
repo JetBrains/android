@@ -24,6 +24,15 @@
 
 namespace screensharing {
 
+// Power mode constants defined in the android.view.SurfaceControl class.
+enum class DisplayPowerMode : int32_t {
+  POWER_MODE_OFF = 0,
+  POWER_MODE_DOZE = 1,
+  POWER_MODE_NORMAL = 2,
+  POWER_MODE_DOZE_SUSPEND = 3,
+  POWER_MODE_ON_SUSPEND = 4
+};
+
 // Provides access to few non-API methods of the android.view.SurfaceControl class.
 // Can only be used by the thread that created the object.
 class SurfaceControl {
@@ -48,6 +57,8 @@ public:
   SurfaceControl(Jni jni);
   ~SurfaceControl();
 
+  JObject GetInternalDisplayToken() const;
+
   void OpenTransaction() const;
 
   void CloseTransaction() const;
@@ -62,20 +73,27 @@ public:
 
   void SetDisplayProjection(jobject display_token, int32_t orientation, const ARect& layer_stack_rect, const ARect& display_rect) const;
 
+  void SetDisplayPowerMode(jobject display_token, DisplayPowerMode mode);
+
 private:
+  static void InitializeStatics(Jni jni);
+
   JObject ToJava(const ARect& rect) const;
 
+  static JClass surface_control_class_;
+  static jmethodID get_internal_display_token_method_;
+  static jmethodID close_transaction_method_;
+  static jmethodID open_transaction_method_;
+  static jmethodID create_display_method_;
+  static jmethodID destroy_display_method_;
+  static jmethodID set_display_surface_method_;
+  static jmethodID set_display_layer_stack_method_;
+  static jmethodID set_display_projection_method_;
+  static jmethodID set_display_power_mode_method_;
+  static JClass rect_class_;
+  static jmethodID rect_constructor_;
+
   Jni jni_;
-  JClass surface_control_class_;
-  jmethodID close_transaction_method_;
-  jmethodID open_transaction_method_;
-  jmethodID create_display_method_;
-  jmethodID destroy_display_method_;
-  jmethodID set_display_surface_method_;
-  jmethodID set_display_layer_stack_method_;
-  jmethodID set_display_projection_method_;
-  JClass rect_class_;
-  jmethodID rect_constructor_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(SurfaceControl);
 };
