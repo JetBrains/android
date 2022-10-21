@@ -186,6 +186,7 @@ private class LiveLiteralsDiagnosticsRemoteReporterImpl(private val msProvider: 
                                                                                   reportInterval,
                                                                                   reportIntervalUnit)
 
+  @Synchronized
   override fun liveLiteralsMonitorStarted(deviceId: String, deviceType: LiveLiteralsMonitorHandler.DeviceType) {
     activeDevices[deviceId] = deviceType
     val numberOfDevices = activeDevices.count { it.value == deviceType }
@@ -197,6 +198,7 @@ private class LiveLiteralsDiagnosticsRemoteReporterImpl(private val msProvider: 
                .build())
   }
 
+  @Synchronized
   override fun liveLiteralsMonitorStopped(deviceId: String) {
     val deviceType = activeDevices.remove(deviceId) ?: return
     onReport(LiveLiteralsEvent.newBuilder()
