@@ -25,7 +25,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.project.ProjectManagerListener
+import com.intellij.openapi.project.ProjectCloseListener
 import com.intellij.openapi.startup.ProjectPostStartupActivity
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.util.application
@@ -41,7 +41,7 @@ class ProjectMetricsService {
   val persistStatisticsSessionsMap: MutableMap<Project, Future<*>> = Collections.synchronizedMap(HashMap<Project, Future<*>>())
 }
 
-class ProjectMetricsInitializer : ProjectManagerListener {
+class ProjectMetricsInitializer : ProjectCloseListener {
   class MyStartupActivity : ProjectPostStartupActivity {
     override suspend fun execute(project: Project) {
       // Need to set up ToolWindowTrackerService here after project is initialized so service can be retrieved.

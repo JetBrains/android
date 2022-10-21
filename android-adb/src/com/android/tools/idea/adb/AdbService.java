@@ -44,8 +44,8 @@ import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectCloseListener;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.popup.util.PopupUtil;
 import com.intellij.openapi.util.SystemInfo;
@@ -334,7 +334,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     StudioAdbLibJdwpTracerFactory.install(AdbLibApplicationService.getInstance().getSession(), StudioFlags.JDWP_TRACER::get);
 
     // Ensure ADB is terminated when there are no more open projects.
-    ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+    ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {
       @Override
       public void projectClosed(@NotNull Project project) {
         // Ideally, android projects counts should be used here.
