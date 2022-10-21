@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
@@ -301,7 +302,7 @@ class FastPreviewManager private constructor(
    * Allow auto disable. If set to true, the Fast Preview might disable itself automatically if there is a compiler failure.
    * This can happen if the project has unsupported features like annotation providers.
    */
-  var allowAutoDisable: Boolean = true
+  var allowAutoDisable: Boolean = COMPOSE_FAST_PREVIEW_AUTO_DISABLE.get()
 
   /**
    * Returns true when the feature is available. The feature will not be available if Studio is in power save mode, it's currently building

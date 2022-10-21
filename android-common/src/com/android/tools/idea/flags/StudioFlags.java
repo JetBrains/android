@@ -1287,6 +1287,11 @@ public final class StudioFlags {
     COMPOSE, "project.uses.compose.override", "Forces the Compose project detection",
     "If enabled, the project will be treated as a Compose project, showing Previews if available and enhancing the Compose editing",
     false);
+
+  public static final Flag<Boolean> COMPOSE_FAST_PREVIEW_AUTO_DISABLE = Flag.create(
+    COMPOSE, "fast.preview.auto.disable", "If enabled, Fast Preview can auto-disable",
+    "If enabled, if fast preview finds a compiler problem, it will be auto disable until the user re-enables it",
+    false);
   //endregion
 
   // region Wear surfaces
