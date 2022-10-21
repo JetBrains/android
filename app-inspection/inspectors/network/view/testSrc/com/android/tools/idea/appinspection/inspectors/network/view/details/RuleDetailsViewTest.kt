@@ -1020,6 +1020,45 @@ class RuleDetailsViewTest {
     assert(rule.statusCodeRuleData.isActive)
   }
 
+  @Test
+  fun statusCodeInActiveWhenCheckBoxUnchecked() {
+    val rule = addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val findCodeTextField = findComponentWithUniqueName(ruleDetailsView, "findCodeTextField") as JTextField
+    val newCodeTextField = findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
+    val isActiveCheckBox = TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as JCheckBox
+
+    // Assert checkbox is unselected by default
+    assertThat(isActiveCheckBox.isSelected).isFalse()
+
+    // Setup a valid status code
+    isActiveCheckBox.isSelected = true
+    findCodeTextField.text = "200"
+    findCodeTextField.onFocusLost()
+    newCodeTextField.text = "404"
+    newCodeTextField.onFocusLost()
+
+    // Assert status code is active
+    assertThat(rule.statusCodeRuleData.isActive).isTrue()
+    client.verifyLatestCommand {
+      assertThat(it.interceptRuleUpdated.rule.transformationList.size).isEqualTo(1)
+      it.interceptRuleUpdated.rule.transformationList[0].also { transformation ->
+        assertThat(transformation.hasStatusCodeReplaced()).isTrue()
+        assertThat(transformation.statusCodeReplaced.targetCode.text).isEqualTo("200")
+        assertThat(transformation.statusCodeReplaced.newCode).isEqualTo("404")
+      }
+    }
+
+    // Uncheck the status code checkbox
+    isActiveCheckBox.isSelected = false
+
+    // Assert that status code is inactive
+    assertThat(rule.statusCodeRuleData.isActive).isFalse()
+    client.verifyLatestCommand {
+      assertThat(it.interceptRuleUpdated.rule.transformationList.size).isEqualTo(0)
+    }
+  }
+
   private fun addNewRule(): RuleData {
     val rulesView = inspectorView.rulesView
     val addAction = findAction(rulesView.component, "Add")

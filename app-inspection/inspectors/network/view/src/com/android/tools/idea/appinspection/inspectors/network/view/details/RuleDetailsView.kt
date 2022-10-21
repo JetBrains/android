@@ -157,11 +157,11 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
     val isActiveCheckBox = JBCheckBox("Replace with status code:").apply {
       isSelected = statusCodeData.isActive
       newCodeTextField.isEnabled = isSelected
-      addActionListener {
+      addItemListener {
         newCodeTextField.isEnabled = isSelected
         newCodeWarningLabel.isVisible = isSelected && !validateIntegerInput(newCodeTextField.text, false)
         findCodeWarningLabel.isVisible = !validateIntegerInput(findCodeTextField.text, !isSelected)
-        statusCodeData.isActive = !newCodeWarningLabel.isVisible && !findCodeWarningLabel.isVisible
+        statusCodeData.isActive = isSelected && !newCodeWarningLabel.isVisible && !findCodeWarningLabel.isVisible
       }
     }
     return JPanel(VerticalLayout(6)).apply {
