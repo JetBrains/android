@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.theme;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.ui.ColorUtil;
 import java.awt.Color;
 import java.util.Map;
 import java.util.Set;
@@ -49,13 +50,13 @@ public class ColorUtils {
       Color otherColor = contrastColor.getValue();
       if (isBackground) {
         Color backgroundColor = worstContrastColor(otherColor, color);
-        color = alphaBlending(color, backgroundColor);
-        otherColor = alphaBlending(otherColor, color);
+        color = ColorUtil.alphaBlending(color, backgroundColor);
+        otherColor = ColorUtil.alphaBlending(otherColor, color);
       }
       else {
         Color backgroundColor = worstContrastColor(color, otherColor);
-        otherColor = alphaBlending(otherColor, backgroundColor);
-        color = alphaBlending(color, otherColor);
+        otherColor = ColorUtil.alphaBlending(otherColor, backgroundColor);
+        color = ColorUtil.alphaBlending(color, otherColor);
       }
       if (calculateContrastRatio(color, otherColor) < THRESHOLD) {
         lowContrastColorsBuilder.add(colorDescription);
@@ -91,35 +92,6 @@ public class ColorUtils {
     }
     int component = (255 * foregroundComponent - backgroundAlpha * backgroundComponent) / (255 - backgroundAlpha);
     return IdeResourcesUtil.clamp(component, 0, 255);
-  }
-
-  /**
-   * Returns the color that is the result of having a foreground color on top of a background color
-   */
-  @NotNull
-  public static Color alphaBlending(@NotNull Color foreground, @NotNull Color background) {
-    float foregroundAlpha = foreground.getAlpha() / 255.0f;
-    float backgroundAlpha = background.getAlpha() / 255.0f;
-    float a = foregroundAlpha + backgroundAlpha * (1 - foregroundAlpha);
-    float r = alphaBlendingComponent(foreground.getRed(), foregroundAlpha, background.getRed(), backgroundAlpha);
-    float g = alphaBlendingComponent(foreground.getGreen(), foregroundAlpha, background.getGreen(), backgroundAlpha);
-    float b = alphaBlendingComponent(foreground.getBlue(), foregroundAlpha, background.getBlue(), backgroundAlpha);
-    return new Color(r, g, b, a);
-  }
-
-  /**
-   * Computes one RGB component for the blending of two colors
-   * @see #alphaBlending(Color, Color)
-   */
-  private static float alphaBlendingComponent(int foregroundComponent,
-                                              float foregroundAlpha,
-                                              int backgroundComponent,
-                                              float backgroundAlpha) {
-    float alpha = foregroundAlpha + backgroundAlpha * (1 - foregroundAlpha);
-    if (Math.abs(alpha) < 0.001) {
-      return 1;
-    }
-    return (foregroundAlpha * foregroundComponent + backgroundAlpha * backgroundComponent * (1 - foregroundAlpha)) / (255.0f * alpha);
   }
 
   /**
