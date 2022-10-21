@@ -39,13 +39,4 @@ public class ColorUtilsTest extends AndroidTestCase {
     assertEquals(new Color(0, 255, 177), ColorUtils.worstContrastColor(new Color(10, 150, 100, 15), new Color(100, 10, 50, 155)));
     assertEquals(new Color(0, 255, 177), ColorUtils.worstContrastColor(new Color(10, 150, 100, 200), new Color(100, 10, 50, 155)));
   }
-
-  public void testAlphaBlending() {
-    assertEquals(new Color(48, 78, 241, 15), ColorUtils.alphaBlending(new Color(48, 78, 241, 15), new Color(120, 46, 97, 0)));
-    assertEquals(new Color(255, 255, 255, 0), ColorUtils.alphaBlending(new Color(48, 78, 241, 0), new Color(120, 46, 97, 0)));
-    assertEquals(new Color(120, 46, 97, 24), ColorUtils.alphaBlending(new Color(48, 78, 241, 0), new Color(120, 46, 97, 24)));
-    assertEquals(new Color(48, 78, 241, 255), ColorUtils.alphaBlending(new Color(48, 78, 241, 255), new Color(120, 46, 97, 24)));
-    assertEquals(new Color(116, 48, 105, 255), ColorUtils.alphaBlending(new Color(48, 78, 241, 15), new Color(120, 46, 97, 255)));
-    assertEquals(new Color(91, 59, 154, 38), ColorUtils.alphaBlending(new Color(48, 78, 241, 15), new Color(120, 46, 97, 24)));
-  }
 }
