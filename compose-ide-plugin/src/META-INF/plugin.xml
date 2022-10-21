@@ -36,6 +36,8 @@
     <annotator language="kotlin" implementationClass="com.android.tools.compose.ComposeColorAnnotator"/>
 
     <additionalTextAttributes scheme="Default" file="colorschemes/ComposableHighlighterExtensionColorSchemeDefault.xml"/>
+    <additionalTextAttributes scheme="Darcula" file="colorschemes/ComposableHighlighterExtensionColorSchemeDarcula.xml"/>
+
     <colorSettingsPage implementation="com.android.tools.compose.ComposeColorSettingsPage"/>
 
     <intentionAction>
