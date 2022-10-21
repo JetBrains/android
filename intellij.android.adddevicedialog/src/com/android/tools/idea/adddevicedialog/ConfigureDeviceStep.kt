@@ -16,12 +16,8 @@
 package com.android.tools.idea.adddevicedialog
 
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.intellij.ui.components.JBLabel
 import javax.swing.JComponent
 
 internal class ConfigureDeviceStep internal constructor(model: AddDeviceWizardModel) : ModelWizardStep<AddDeviceWizardModel>(model, "") {
-  override fun getComponent(): JComponent {
-    @Suppress("DialogTitleCapitalization")
-    return JBLabel("Hello, World!")
-  }
+  override fun getComponent(): JComponent = ConfigureDevicePanel()
 }
