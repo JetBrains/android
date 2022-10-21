@@ -908,6 +908,8 @@ public class StudioIcons {
       public static final Icon DEVICE_MANAGER = load("/studio/icons/shell/toolbar/device-manager.svg"); // 16x16
       public static final Icon GRADLE_SYNC = load("/studio/icons/shell/toolbar/gradle-sync.svg"); // 16x16
       public static final Icon INSTANT_RUN = load("/studio/icons/shell/toolbar/instant-run.svg"); // 16x16
+      public static final Icon PROFILER_DETAILED = load("/studio/icons/shell/toolbar/profiler-detailed.svg"); // 16x16
+      public static final Icon PROFILER_LOW_OVERHEAD = load("/studio/icons/shell/toolbar/profiler-low-overhead.svg"); // 16x16
       public static final Icon PROFILER = load("/studio/icons/shell/toolbar/profiler.svg"); // 16x16
       public static final Icon PROJECT_STRUCTURE = load("/studio/icons/shell/toolbar/project-structure.svg"); // 16x16
       public static final Icon RUN_WITH_COVERAGE = load("/studio/icons/shell/toolbar/run-with-coverage.svg"); // 16x16
