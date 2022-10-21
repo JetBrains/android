@@ -420,7 +420,9 @@ public final class AndroidStudioSystemHealthMonitor {
     application.executeOnPooledThread(this::checkRuntime);
 
     if (ServerFlagService.Companion.getInstance()
-          .getProtoOrNull(MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME, MemoryUsageReportConfiguration.getDefaultInstance()) != null) {
+          .getProtoOrNull(MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME, MemoryUsageReportConfiguration.getDefaultInstance()) != null &&
+        !ApplicationManager.getApplication().isHeadlessEnvironment() &&
+        !ApplicationManager.getApplication().isUnitTestMode()) {
       HeapSnapshotTraverseService.getInstance().addMemoryReportCollectionRequest();
     }
 
