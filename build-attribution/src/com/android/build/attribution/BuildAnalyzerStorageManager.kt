@@ -20,7 +20,6 @@ import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.data.BuildRequestHolder
 import com.intellij.openapi.project.Project
 import com.intellij.util.messages.Topic
-import java.util.concurrent.Future
 
 interface BuildAnalyzerStorageManager {
   /**
@@ -32,7 +31,7 @@ interface BuildAnalyzerStorageManager {
    */
   fun getLatestBuildAnalysisResults(): AbstractBuildAnalysisResult
   @Slow
-  fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID: String, requestHolder: BuildRequestHolder): Future<BuildAnalysisResults>
+  fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID: String, requestHolder: BuildRequestHolder): BuildAnalysisResults
   fun recordNewFailure(buildID: String, failureType: FailureResult.Type)
   fun hasData() : Boolean
   /**
@@ -51,22 +50,21 @@ interface BuildAnalyzerStorageManager {
    * @param buildID id of the result to be deleted
    */
   @Slow
-  fun deleteHistoricBuildResultByID(buildID: String): Future<*>
-
+  fun deleteHistoricBuildResultByID(buildID: String)
   @Slow
   fun getListOfHistoricBuildDescriptors(): Set<BuildDescriptor>
   @Slow
-  fun clearBuildResultsStored(): Future<*>
+  fun clearBuildResultsStored(): Boolean
   @Slow
   fun getCurrentBuildHistoryDataSize(): Long
   @Slow
-  fun getNumberOfBuildResultsStored(): Int
+  fun getNumberOfBuildFilesStored(): Int
 
   /**
    * Retrieves new setting values and updates the storage to meet them
    */
   @Slow
-  fun onSettingsChange(): Future<*>
+  fun onSettingsChange()
 
   interface Listener {
     fun newDataAvailable()

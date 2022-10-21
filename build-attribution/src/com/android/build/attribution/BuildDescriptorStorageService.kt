@@ -15,12 +15,12 @@
  */
 package com.android.build.attribution
 
+import com.android.annotations.concurrency.Slow
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.RoamingType
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.project.Project
-import io.ktor.util.collections.ConcurrentList
 
 data class BuildDescriptorImpl(
   override var buildSessionID: String,
@@ -47,7 +47,7 @@ class BuildDescriptorStorageService(
   }
 
   data class State(
-    var descriptors: ConcurrentList<BuildDescriptorImpl> = ConcurrentList()
+    var descriptors: MutableSet<BuildDescriptorImpl> = mutableSetOf()
   )
 
   override fun getState(): State = buildDescriptorsState

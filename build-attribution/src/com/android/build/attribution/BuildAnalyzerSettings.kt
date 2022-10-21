@@ -77,7 +77,7 @@ private class BuildAnalyzerConfigurable(val project: Project) : BoundSearchableC
   override fun createPanel(): DialogPanel = panel {
     if (StudioFlags.BUILD_ANALYZER_HISTORY.get()) {
       row {
-        text("Number of build results stored: ${BuildAnalyzerStorageManager.getInstance(project).getNumberOfBuildResultsStored()}")
+        text("Number of build results stored: ${BuildAnalyzerStorageManager.getInstance(project).getNumberOfBuildFilesStored()}")
         text("File size taken up by stored build results: ${
           Formats.formatFileSize(BuildAnalyzerStorageManager.getInstance(project).getCurrentBuildHistoryDataSize())
         }")
