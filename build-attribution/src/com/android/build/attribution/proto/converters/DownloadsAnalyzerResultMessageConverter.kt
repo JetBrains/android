@@ -55,7 +55,7 @@ class DownloadsAnalyzerResultMessageConverter {
                   status,
                   download.duration,
                   download.bytes,
-                  if (download.failureMessage == "") null else download.failureMessage
+                  download.failureMessage
                 )
               )
               repositoryResults.add(DownloadsAnalyzer.RepositoryResult(repositoryType, downloadResults))
@@ -94,7 +94,7 @@ class DownloadsAnalyzerResultMessageConverter {
         .setStatus(transformDownloadStatus(downloadResult.status))
         .setDuration(downloadResult.duration)
         .setBytes(downloadResult.bytes)
-        .setFailureMessage(downloadResult.failureMessage ?: "")
+        .setFailureMessage(downloadResult.failureMessage)
       if (downloadResult.repository is DownloadsAnalyzer.OtherRepository) {
         result.repository = transformOtherRepository(downloadResult.repository)
       }
