@@ -20,7 +20,6 @@ import com.android.build.attribution.proto.converters.BuildResultsProtoMessageCo
 import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.observable.properties.AtomicProperty
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -30,8 +29,6 @@ class BuildAnalyzerStorageFileManager(
   private val dataFolder: File
 ) {
   private val log: Logger get() = Logger.getInstance("Build Analyzer")
-
-  val totalFilesSize = AtomicProperty(getCurrentBuildHistoryDataSize())
 
   /**
    * Converts build analysis results into a protobuf-generated data structure, that is then stored in byte form in a file. If there is an
@@ -51,7 +48,6 @@ class BuildAnalyzerStorageFileManager(
         buildResults.getPluginMap(),
         buildResults.getTaskMap()
       ).writeDelimitedTo(FileOutputStream(buildResultFile))
-      updateObservables()
       true
     }
     catch (e: IOException) {
@@ -95,12 +91,6 @@ class BuildAnalyzerStorageFileManager(
   @Slow
   fun deleteHistoricBuildResultByID(buildID: String) {
     getFileFromBuildID(buildID).delete()
-    updateObservables()
-  }
-
-  @Slow
-  private fun updateObservables() {
-    totalFilesSize.set(getCurrentBuildHistoryDataSize())
   }
 
   @VisibleForTesting
