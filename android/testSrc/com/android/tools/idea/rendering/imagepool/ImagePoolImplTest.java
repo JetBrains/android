@@ -131,12 +131,20 @@ public class ImagePoolImplTest {
 
   @Test
   public void testManualFree() {
+    ImagePool.Stats stats = myPool.getStats();
+    assertNotNull(stats);
     ImagePoolImpl.ImageImpl image = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null);
     BufferedImage internalPtr = image.myBuffer;
 
     assertNotEquals(internalPtr, myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
+    assertEquals(2_000_000, stats.totalBytesAllocated());
+    assertEquals(2_000_000, stats.totalBytesInUse());
     ImagePoolImageDisposer.disposeImage(image);
+    assertEquals(2_000_000, stats.totalBytesAllocated());
+    assertEquals(1_000_000, stats.totalBytesInUse());
     assertEquals(internalPtr, myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
+    assertEquals(2_000_000, stats.totalBytesAllocated());
+    assertEquals(2_000_000, stats.totalBytesInUse());
     assertNull(image.getCopy());
 
     //noinspection UnusedAssignment
