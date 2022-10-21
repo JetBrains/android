@@ -20,9 +20,9 @@ import com.intellij.CommonBundle
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.JBColor
+import com.intellij.ui.charts.ValueIterable
 import com.intellij.ui.charts.dataset
 import com.intellij.ui.charts.datasets
-import com.intellij.ui.charts.generator
 import com.intellij.ui.charts.grid
 import com.intellij.ui.charts.lineChart
 import com.intellij.ui.charts.margins
@@ -38,6 +38,9 @@ import java.awt.Point
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.SwingConstants
+import kotlin.math.ceil
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 /** Dialog to display results for device mirroring benchmarking. */
 class DeviceMirroringBenchmarkResultsDialog(private val deviceName: String, private val results: Benchmarker.Results<Point>) {
@@ -45,53 +48,28 @@ class DeviceMirroringBenchmarkResultsDialog(private val deviceName: String, priv
     require(results.percentiles.values.isNotEmpty()) { "Must provide some values!" }
   }
 
+  private fun createTimeSeries() = latencyChart(
+    xValues = 0 until results.raw.size,
+    yValues = results.raw.values.map { it.inWholeMilliseconds },
+    yLineValues = genLines(results.raw.values.maxOrNull()?.inWholeMilliseconds ?: 0L),
+    xLabelFormatStr = "%d")
+
+  private fun createHistogram() = latencyChart(
+    xValues = results.percentiles.keys,
+    yValues = results.percentiles.values,
+    yLineValues = genLines(results.percentiles.values.maxOrNull() ?: 0.0),
+    xLabelFormatStr = "%d%%")
+
   private fun createPanel() = panel {
+    separator("Histogram")
     row {
       resizableRow()
-      val chart = lineChart<Int, Double> {
-        margins {
-          top = 50
-          right = 50
-          left = 100
-          bottom = 50
-        }
-        datasets {
-          dataset {
-            label = "Latency"
-            lineColor = JBColor.BLUE
-            smooth = true
-            values {
-              results.percentiles.toList().unzip().let {
-                x = it.first
-                y = it.second
-              }
-            }
-          }
-        }
-        ranges {
-          xMin = 0
-          xMax = 100
-          yMin = 0.0
-        }
-        grid {
-          xLines = generator(10)
-          xPainter {
-            label = "%d%%".format(value)
-            verticalAlignment = SwingConstants.BOTTOM
-            horizontalAlignment = SwingConstants.CENTER
-          }
-          results.percentiles[100]?.let {
-            yLines = generator(it / 10)
-          }
-          yPainter {
-            label = "%.0f ms".format(value)
-            verticalAlignment = SwingConstants.CENTER
-            horizontalAlignment = SwingConstants.LEFT
-          }
-        }
-      }
-      chart.component.preferredSize = Dimension(800, 400)
-      cell(chart.component)
+      cell(createHistogram().component)
+    }
+    separator("Time Series")
+    row {
+      resizableRow()
+      cell(createTimeSeries().component)
     }
   }
 
@@ -114,5 +92,70 @@ class DeviceMirroringBenchmarkResultsDialog(private val deviceName: String, priv
       val wrapper = DialogWrapper.findInstance(event.source as? Component)
       wrapper?.close(DialogWrapper.CLOSE_EXIT_CODE)
     }
+  }
+
+  companion object {
+    private inline fun <reified T : Number> latencyChart(
+      xValues: Iterable<Int>,
+      yValues: Iterable<T>,
+      yLineValues: Iterable<T>,
+      xLabelFormatStr: String,
+    ) = lineChart<Int, T> {
+      margins {
+        top = 50
+        right = 50
+        left = 100
+        bottom = 50
+      }
+      datasets {
+        dataset {
+          label = "Latency"
+          lineColor = JBColor.BLUE
+          smooth = true
+          values {
+            x = xValues
+            y = yValues
+          }
+        }
+      }
+      ranges {
+        xMin = xValues.first()
+        xMax = xValues.last()
+        yMin = yLineValues.first()
+        yMax = yLineValues.last()
+      }
+      grid {
+        xLines = genLines(xValues.last()).toValueIterable()
+        xPainter {
+          label = xLabelFormatStr.format(value)
+          verticalAlignment = SwingConstants.BOTTOM
+          horizontalAlignment = SwingConstants.CENTER
+        }
+        yLines = yLineValues.toValueIterable()
+        yPainter {
+          label = "${value.toDouble().roundToLong()} ms"
+          verticalAlignment = SwingConstants.CENTER
+          horizontalAlignment = SwingConstants.LEFT
+        }
+      }
+    }.apply {
+      component.preferredSize = Dimension(800, 400)
+    }
+
+    private fun <T : Number> Iterable<T>.toValueIterable() = object : ValueIterable<T>() {
+      override fun iterator(): Iterator<T> = this@toValueIterable.iterator()
+    }
+
+    private fun genLines(yMax: Double, divisions: Int = 10): List<Double> {
+      // Find a convenient max nearby
+      val maxHundreds = ceil(yMax / (100 * divisions)).roundToLong() * 100 * divisions
+      val maxTens = ceil(yMax / (10 * divisions)).roundToLong() * 10 * divisions
+      val newMax = if (maxHundreds <= 1.2 * yMax) maxHundreds else maxTens
+
+      val step = newMax / divisions
+      return (0..divisions).map { (it * step).toDouble() }
+    }
+    private fun genLines(yMax: Long, divisions: Int = 10): Iterable<Long> = genLines(yMax.toDouble(), divisions).map { it.roundToLong() }
+    private fun genLines(yMax: Int, divisions: Int = 10): Iterable<Int> = genLines(yMax.toDouble(), divisions).map { it.roundToInt() }
   }
 }
