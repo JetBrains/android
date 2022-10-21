@@ -38,6 +38,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectCloseListener
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -76,7 +77,7 @@ class AppInspectionDiscoveryService : Disposable {
   }
 
   init {
-    applicationMessageBus.subscribe(ProjectManager.TOPIC, object : ProjectManagerListener {
+    applicationMessageBus.subscribe(ProjectCloseListener.TOPIC, object : ProjectCloseListener {
       override fun projectClosing(project: Project) {
         scope.launch {
           apiServices.disposeClients(project.name)

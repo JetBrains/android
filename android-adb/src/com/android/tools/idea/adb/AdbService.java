@@ -15,18 +15,11 @@
  */
 package com.android.tools.idea.adb;
 
-import static com.android.ddmlib.AndroidDebugBridge.DEFAULT_START_ADB_TIMEOUT_MILLIS;
-
 import com.android.adblib.AdbSession;
 import com.android.adblib.CoroutineScopeCache;
 import com.android.adblib.ddmlibcompatibility.debugging.AdbLibClientManagerFactory;
 import com.android.annotations.concurrency.WorkerThread;
-import com.android.ddmlib.AdbInitOptions;
-import com.android.ddmlib.AdbVersion;
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.DdmPreferences;
-import com.android.ddmlib.Log;
-import com.android.ddmlib.TimeoutRemainder;
+import com.android.ddmlib.*;
 import com.android.ddmlib.clientmanager.ClientManager;
 import com.android.tools.idea.adblib.AdbLibApplicationService;
 import com.android.tools.idea.flags.StudioFlags;
@@ -44,12 +37,15 @@ import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectCloseListener;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.popup.util.PopupUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.concurrency.SequentialTaskExecutor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -58,8 +54,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.ddmlib.AndroidDebugBridge.DEFAULT_START_ADB_TIMEOUT_MILLIS;
 
 /**
  * {@link AdbService} is the main entry point to initializing and obtaining the {@link AndroidDebugBridge}.
@@ -335,7 +331,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
 
     // Ensure ADB is terminated when there are no more open projects.
-    ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+    ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {
       @Override
       public void projectClosed(@NotNull Project project) {
         // Ideally, android projects counts should be used here.

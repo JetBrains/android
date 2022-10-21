@@ -787,7 +787,7 @@
               topic="com.intellij.openapi.project.ProjectManagerListener"/>
 
     <listener class="com.android.tools.idea.startup.ProjectMetricsInitializer"
-              topic="com.intellij.openapi.project.ProjectManagerListener"/>
+              topic="com.intellij.openapi.project.ProjectCloseListener"/>
 
   </applicationListeners>
 

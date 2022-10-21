@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.whatsnew.assistant;
 
-import static com.android.tools.idea.assistant.AssistantToolWindowService.TOOL_WINDOW_TITLE;
-
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
 import com.intellij.ide.BrowserUtil;
@@ -27,16 +25,18 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.openapi.project.ProjectCloseListener;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.assistant.AssistantToolWindowService.TOOL_WINDOW_TITLE;
 
 public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
   @NotNull
@@ -103,7 +103,7 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
       isOpen = true; // Start off as opened so we don't fire an extra opened event
 
       // Need an additional listener for project close, because the below invokeLater isn't fired in time before closing
-      project.getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+      project.getMessageBus().connect().subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {
         @Override
         public void projectClosed(@NotNull Project project) {
           if (!project.equals(myProject)) {

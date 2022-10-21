@@ -21,10 +21,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioProjectChange
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.project.ProjectManagerListener
+import com.intellij.openapi.project.*
 import com.intellij.openapi.startup.ProjectPostStartupActivity
 import com.intellij.util.application
 import java.util.Collections
@@ -39,8 +36,7 @@ class ProjectMetricsService {
   val persistStatisticsSessionsMap: MutableMap<Project, Future<*>> = Collections.synchronizedMap(HashMap<Project, Future<*>>())
 }
 
-private class ProjectMetricsInitializer : ProjectManagerListener {
-
+private class ProjectMetricsInitializer : ProjectCloseListener {
   class MyStartupActivity : ProjectPostStartupActivity {
     override suspend fun execute(project: Project) {
       // don't include current project to be consistent with projectClosed
