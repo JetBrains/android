@@ -86,8 +86,7 @@ fun <T> retryInNonBlockingReadAction(retryTimes: Int = defaultRetryTimes,
           result.complete(retryBlock())
         }
         catch (t: ProcessCanceledException) {
-          // ProcessCanceledException can not be logged
-          lastException = t
+          throw t
         }
         catch (t: Throwable) {
           lastException = if (t is ExecutionException) {
@@ -100,8 +99,7 @@ fun <T> retryInNonBlockingReadAction(retryTimes: Int = defaultRetryTimes,
         .submit(AndroidExecutors.getInstance().workerThreadExecutor).get()
     }
     catch (t: ProcessCanceledException) {
-      // ProcessCanceledException can not be logged
-      lastException = t
+      lastException = NonRetriableException(t)
     }
     if (result.isCompleted) return result.getCompleted()
 
