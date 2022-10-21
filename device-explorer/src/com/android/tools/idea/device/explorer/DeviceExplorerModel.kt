@@ -17,6 +17,7 @@ package com.android.tools.idea.device.explorer
 
 import com.android.adblib.ConnectedDevice
 import com.android.adblib.utils.createChildScope
+import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.isOnline
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
+@UiThread
 class DeviceExplorerModel @NonInjectable constructor(private val deviceProvisioner: DeviceProvisioner) {
   constructor(project: Project) : this(project.service<DeviceProvisionerService>().deviceProvisioner)
 

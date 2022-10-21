@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.device.explorer.monitor.processes
 
+import com.android.annotations.concurrency.UiThread
+import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDevice
-import com.intellij.openapi.application.ex.ApplicationManagerEx
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
+@UiThread
 class DeviceProcessService {
   /**
    * The [CoroutineDispatcher] used for asynchronous work that **cannot** happen on the EDT thread.
@@ -31,7 +34,7 @@ class DeviceProcessService {
   private val workerThreadDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread
 
   suspend fun fetchProcessList(device: AdbDevice): List<ProcessInfo> {
-    ApplicationManagerEx.getApplication().assertIsDispatchThread()
+    ApplicationManager.getApplication().assertIsDispatchThread()
 
     // Run this in a worker thread in case the device/adb is not responsive
     val clients = device.device.clients ?: emptyArray()
@@ -43,6 +46,7 @@ class DeviceProcessService {
     }
   }
 
+  @WorkerThread
   private fun createProcessInfo(device: Device, client: Client): ProcessInfo? {
     try {
       val processName = client.clientData.clientDescription
@@ -74,7 +78,7 @@ class DeviceProcessService {
    * Kills the [process] on the [device][ProcessInfo.device]
    */
   suspend fun killProcess(process: ProcessInfo, device: IDevice) {
-    ApplicationManagerEx.getApplication().assertIsDispatchThread()
+    ApplicationManager.getApplication().assertIsDispatchThread()
 
     if(process.device.serialNumber == device.serialNumber) {
       // Run this in a worker thread in case the device/adb is not responsive
@@ -89,7 +93,7 @@ class DeviceProcessService {
    * Force stops the [process] on the [device][ProcessInfo.device]
    */
   suspend fun forceStopProcess(process: ProcessInfo, device: IDevice) {
-    ApplicationManagerEx.getApplication().assertIsDispatchThread()
+    ApplicationManager.getApplication().assertIsDispatchThread()
 
     if(process.device.serialNumber == device.serialNumber) {
       // Run this in a worker thread in case the device/adb is not responsive

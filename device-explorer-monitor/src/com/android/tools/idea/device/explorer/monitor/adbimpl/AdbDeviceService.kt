@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device.explorer.monitor.adbimpl
 
+import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
@@ -25,7 +26,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.DeviceService
 import com.android.tools.idea.device.explorer.monitor.DeviceServiceListener
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ex.ApplicationManagerEx
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
@@ -39,6 +40,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.util.function.Supplier
 
+@UiThread
 class AdbDeviceService @NonInjectable constructor(private val adbSupplier: Supplier<File?>)
   : Disposable, DeviceService {
 
@@ -73,13 +75,13 @@ class AdbDeviceService @NonInjectable constructor(private val adbSupplier: Suppl
   }
 
   override fun addListener(listener: DeviceServiceListener) {
-    ApplicationManagerEx.getApplication().assertIsDispatchThread()
+    ApplicationManager.getApplication().assertIsDispatchThread()
 
     listeners.add(listener)
   }
 
   override fun removeListener(listener: DeviceServiceListener) {
-    ApplicationManagerEx.getApplication().assertIsDispatchThread()
+    ApplicationManager.getApplication().assertIsDispatchThread()
 
     listeners.remove(listener)
   }
@@ -96,7 +98,7 @@ class AdbDeviceService @NonInjectable constructor(private val adbSupplier: Suppl
   }
 
   override suspend fun start() {
-    ApplicationManagerEx.getApplication().assertIsDispatchThread()
+    ApplicationManager.getApplication().assertIsDispatchThread()
 
     if (state == State.SetupRunning || state == State.SetupDone) {
       return

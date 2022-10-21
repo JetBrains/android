@@ -17,7 +17,7 @@ package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
 import com.android.tools.idea.device.explorer.monitor.ProcessTreeNode
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
-import com.intellij.icons.AllIcons
+import icons.StudioIcons
 import javax.swing.Icon
 
 class KillMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
@@ -27,7 +27,7 @@ class KillMenuItem(listener: DeviceMonitorActionsListener, private val context: 
 
   override val icon: Icon
     get() {
-      return AllIcons.Debugger.KillProcess
+      return StudioIcons.Shell.Toolbar.STOP
     }
 
   override val shortcutId: String

@@ -16,6 +16,7 @@
 package com.android.tools.idea.device.explorer
 
 import com.android.adblib.serialNumber
+import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -27,9 +28,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
+@UiThread
 class DeviceExplorerController(
   project: Project,
   private val model: DeviceExplorerModel,

@@ -16,6 +16,7 @@
 package com.android.tools.idea.device.monitor.adbimpl
 
 import com.android.annotations.concurrency.UiThread
+import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.AndroidDebugBridge.IClientChangeListener
 import com.android.ddmlib.AndroidDebugBridge.IDebugBridgeChangeListener
@@ -243,6 +244,7 @@ class AdbDeviceListService @NonInjectable constructor(private val adbSupplier: S
     }
   }
 
+  @WorkerThread
   private fun createProcessInfo(device: AdbDevice, client: Client): ProcessInfo? {
     try {
       val processName = client.clientData.clientDescription

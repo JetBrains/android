@@ -17,7 +17,7 @@ package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
 import com.android.tools.idea.device.explorer.monitor.ProcessTreeNode
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
-import com.intellij.icons.AllIcons
+import icons.StudioIcons
 import javax.swing.Icon
 
 class RefreshMenuItem(listener: DeviceMonitorActionsListener) : TreeMenuItem(listener) {
@@ -27,7 +27,7 @@ class RefreshMenuItem(listener: DeviceMonitorActionsListener) : TreeMenuItem(lis
 
   override val icon: Icon
     get() {
-      return AllIcons.Actions.Refresh
+      return StudioIcons.LayoutEditor.Toolbar.REFRESH
     }
 
   override val shortcutId: String

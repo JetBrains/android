@@ -112,7 +112,7 @@ class DeviceMonitorModel(private val processService: DeviceProcessService) {
       object : TreeUtil.UpdateChildrenOps<ProcessInfoTreeNode, ProcessInfo> {
         override fun getChildNode(parentNode: MutableTreeNode, index: Int): ProcessInfoTreeNode? {
           // Some nodes (e.g. "error" or "loading" nodes) are not of the same type,
-          // we return null in those cases to that the update algorithm will remove them from
+          // we return null in those cases so that the update algorithm will remove them from
           // the parent node.
           return ProcessInfoTreeNode.fromNode(parentNode.getChildAt(index))
         }

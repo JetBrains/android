@@ -64,18 +64,17 @@ class DeviceMonitorViewImpl: DeviceMonitorView, DeviceMonitorActionsListener {
   private fun createToolbar() {
     createToolbarSubSection(DefaultActionGroup().apply {
       add(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
-      add(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action) }, BorderLayout.WEST)
-
-    createToolbarSubSection(DefaultActionGroup().apply {
-      add(RefreshMenuItem(this@DeviceMonitorViewImpl).action) }, BorderLayout.EAST)
+      add(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
+      add(RefreshMenuItem(this@DeviceMonitorViewImpl).action) }
+    )
   }
 
-  private fun createToolbarSubSection(group: DefaultActionGroup, layoutPosition: String) {
+  private fun createToolbarSubSection(group: DefaultActionGroup) {
     val actionManager = ActionManager.getInstance()
     val actionToolbar = actionManager.createActionToolbar("Device Monitor Toolbar", group, true).apply {
       targetComponent = panel.tree
     }
-    panel.toolbar.add(actionToolbar.component, layoutPosition)
+    panel.toolbar.add(actionToolbar.component, BorderLayout.WEST)
   }
 
   override val selectedNodes: List<ProcessTreeNode>?

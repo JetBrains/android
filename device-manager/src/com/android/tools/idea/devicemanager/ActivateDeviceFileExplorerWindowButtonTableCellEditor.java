@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.devicemanager;
 
-import com.android.tools.idea.device.explorer.DeviceExplorerWrapper;
+import com.android.tools.idea.device.explorer.DeviceExplorerService;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDevice;
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorer;
@@ -83,14 +83,14 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellEditor<D exten
       if (myProject != null && !myProject.isDisposed()) {
         if (myDevice instanceof VirtualDevice) {
           if (StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()) {
-            DeviceExplorerWrapper.openAndShowDevice(myProject, ((VirtualDevice)myDevice).getAvdInfo());
+            DeviceExplorerService.openAndShowDevice(myProject, ((VirtualDevice)myDevice).getAvdInfo());
           } else {
             DeviceExplorer.openAndShowDevice(myProject, ((VirtualDevice)myDevice).getAvdInfo());
           }
         }
         else if (myDevice instanceof PhysicalDevice) {
           if (StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()) {
-            DeviceExplorerWrapper.openAndShowDevice(myProject, myDevice.getKey().toString());
+            DeviceExplorerService.openAndShowDevice(myProject, myDevice.getKey().toString());
           } else {
             DeviceExplorer.openAndShowDevice(myProject, myDevice.getKey().toString());
           }
