@@ -310,7 +310,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         }
 
         // Notify listeners of the deployment.
-        myProject.getMessageBus().syncPublisher(DeviceHeadsUpListener.TOPIC).deviceNeedsAttention(device, myProject);
+        myProject.getMessageBus().syncPublisher(DeviceHeadsUpListener.TOPIC).deviceNeedsAttention(device.getSerialNumber(), myProject);
       }
 
       // Update the indicator progress.

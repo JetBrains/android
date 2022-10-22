@@ -196,10 +196,10 @@ internal class EmulatorToolWindowManager @AnyThread private constructor(
                                    })
 
     messageBusConnection.subscribe(DeviceHeadsUpListener.TOPIC,
-                                   DeviceHeadsUpListener { device, project ->
+                                   DeviceHeadsUpListener { deviceSerialNumber, project ->
                                      if (project == this.project) {
                                        UIUtil.invokeLaterIfNeeded {
-                                         onDeviceHeadsUp(device.serialNumber)
+                                         onDeviceHeadsUp(deviceSerialNumber)
                                        }
                                      }
                                    })

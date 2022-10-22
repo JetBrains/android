@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.IDevice;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.Topic;
 import org.jetbrains.annotations.NotNull;
@@ -29,8 +28,8 @@ public interface DeviceHeadsUpListener {
   /**
    * Called when a device requires user attention.
    *
-   * @param device the device requiring user attention
+   * @param deviceSerialNumber the serial number of the device that is requiring user attention
    * @param project the project associated with the event
    */
-  void deviceNeedsAttention(@NotNull IDevice device, @NotNull Project project);
+  void deviceNeedsAttention(@NotNull String deviceSerialNumber, @NotNull Project project);
 }

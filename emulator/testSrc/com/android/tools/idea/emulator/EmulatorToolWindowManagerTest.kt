@@ -16,7 +16,6 @@
 package com.android.tools.idea.emulator
 
 import com.android.adblib.DevicePropertyNames
-import com.android.ddmlib.IDevice
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PaneEntry.PaneIndex
@@ -163,10 +162,7 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents[1].isSelected).isTrue()
 
     for (emulator in listOf(emulator2, emulator3)) {
-      val device = mock<IDevice>()
-      whenever(device.isEmulator).thenReturn(true)
-      whenever(device.serialNumber).thenReturn("emulator-${emulator.serialPort}")
-      project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).deviceNeedsAttention(device, project)
+      project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).deviceNeedsAttention("emulator-${emulator.serialPort}", project)
     }
 
     // Deploying an app activates the corresponding emulator panel.
@@ -497,10 +493,7 @@ class EmulatorToolWindowManagerTest {
   }
 
   private fun requestAttention(deviceSerialNumber: String) {
-    val device = mock<IDevice>()
-    whenever(device.isEmulator).thenReturn(false)
-    whenever(device.serialNumber).thenReturn(deviceSerialNumber)
-    project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).deviceNeedsAttention(device, project)
+    project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).deviceNeedsAttention(deviceSerialNumber, project)
   }
 
   private class TestToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
