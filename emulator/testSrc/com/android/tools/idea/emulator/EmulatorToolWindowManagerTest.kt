@@ -334,6 +334,33 @@ class EmulatorToolWindowManagerTest {
   }
 
   @Test
+  fun testPhysicalDeviceRequestsAttention() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
+    windowFactory.createToolWindowContent(project, toolWindow)
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+
+    val device1 = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+    val device2 = agentRule.connectDevice("Pixel 6", 32, Dimension(1080, 2400), "arm64-v8a")
+    requestAttention(device2.serialNumber)
+
+    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
+    assertThat(contentManager.contents[0].displayName).isEqualTo("Google Pixel 4")
+    assertThat(contentManager.contents[1].displayName).isEqualTo("Google Pixel 6")
+    assertThat(contentManager.selectedContent?.displayName).isEqualTo("Google Pixel 6")
+
+    requestAttention(device1.serialNumber)
+    assertThat(contentManager.selectedContent?.displayName).isEqualTo("Google Pixel 4")
+
+    agentRule.disconnectDevice(device1)
+    agentRule.disconnectDevice(device2)
+    waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+  }
+
+  @Test
   fun testMirroringConfirmationDialogAccept() {
     if (!isFFmpegAvailableToTest()) {
       return
@@ -467,6 +494,13 @@ class EmulatorToolWindowManagerTest {
   private fun renderAndGetFrameNumber(fakeUi: FakeUi, emulatorView: EmulatorView): Int {
     fakeUi.render() // The frame number may get updated as a result of rendering.
     return emulatorView.frameNumber
+  }
+
+  private fun requestAttention(deviceSerialNumber: String) {
+    val device = mock<IDevice>()
+    whenever(device.isEmulator).thenReturn(false)
+    whenever(device.serialNumber).thenReturn(deviceSerialNumber)
+    project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).deviceNeedsAttention(device, project)
   }
 
   private class TestToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
