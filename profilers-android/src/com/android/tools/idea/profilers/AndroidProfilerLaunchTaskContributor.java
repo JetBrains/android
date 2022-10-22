@@ -32,6 +32,7 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidLaunchTaskContributor;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
+import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.run.tasks.LaunchContext;
@@ -401,7 +402,12 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
    * @return true if the launch is initiated by the {@link ProfileRunExecutor}. False otherwise.
    */
   public static boolean isProfilerLaunch(@NotNull Executor executor) {
-    return ProfileRunExecutor.EXECUTOR_ID.equals(executor.getId());
+    return ProfileRunExecutor.EXECUTOR_ID.equals(executor.getId()) || // Legacy Profile executor
+           (
+             // Profileable Builds executor group
+             AbstractProfilerExecutorGroup.Companion.getInstance() != null &&
+             AbstractProfilerExecutorGroup.Companion.getInstance().getRegisteredSettings(executor.getId()) != null
+           );
   }
 
   public static final class AndroidProfilerToolWindowLaunchTask implements LaunchTask {
