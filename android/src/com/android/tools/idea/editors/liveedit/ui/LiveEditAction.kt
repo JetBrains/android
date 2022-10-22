@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.liveedit.ui
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.editors.literals.EditState
+import com.android.tools.idea.editors.literals.EditStatus
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.intellij.icons.AllIcons
@@ -26,6 +27,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
@@ -36,6 +38,8 @@ import com.intellij.openapi.editor.colors.ColorKey
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.options.ShowSettingsUtil
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.ui.AnimatedIcon
@@ -50,18 +54,23 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.plaf.FontUIResource
 
-class LiveEditAction(private val editor: Editor) : DropDownAction("Live Edit", "Live Edit status",
-                                                                  AllIcons.General.InspectionsOKEmpty), CustomComponentAction {
-  val stateToIcon = hashMapOf<EditState, Icon>(
-    EditState.ERROR to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InspectionsError, Color.RED),
-    EditState.PAUSED to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InspectionsPause, Color.RED),
-    EditState.IN_PROGRESS to AnimatedIcon.Default.INSTANCE,
-    EditState.UP_TO_DATE to AllIcons.General.InspectionsOK,
-    EditState.OUT_OF_DATE to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InlineRefreshHover, Color.GREEN),
-    EditState.RECOMPOSE_NEEDED to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InlineRefreshHover, Color.RED),
-    EditState.RECOMPOSE_ERROR to AllIcons.General.Warning
-    // DISABLED will end up with null icon
-  )
+class LiveEditAction(private val instanceEditor: Editor) : DropDownAction(
+  "Live Edit", "Live Edit status", AllIcons.General.InspectionsOKEmpty), CustomComponentAction {
+  companion object {
+    val FOREGROUND = ColorKey.createColorKey("ActionButton.iconTextForeground", UIUtil.getContextHelpForeground())
+    val LIVE_EDIT_STATUS = Key<EditStatus>("android.liveedit.action.editstatus")
+
+    val stateToIcon = hashMapOf<EditState, Icon>(
+      EditState.ERROR to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InspectionsError, Color.RED),
+      EditState.PAUSED to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InspectionsPause, Color.RED),
+      EditState.IN_PROGRESS to AnimatedIcon.Default.INSTANCE,
+      EditState.UP_TO_DATE to AllIcons.General.InspectionsOK,
+      EditState.OUT_OF_DATE to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InlineRefreshHover, Color.GREEN),
+      EditState.RECOMPOSE_NEEDED to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InlineRefreshHover, Color.RED),
+      EditState.RECOMPOSE_ERROR to AllIcons.General.Warning
+      // DISABLED will end up with null icon
+    )
+  }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
     object : ActionButtonWithText(this, presentation, place, JBUI.size(18)) {
@@ -71,12 +80,11 @@ class LiveEditAction(private val editor: Editor) : DropDownAction("Live Edit", "
 
       override fun updateToolTipText() {
         if (Registry.`is`("ide.helptooltip.enabled")) {
-          val project = editor.project
-          if (project == null) {
+          val status = myPresentation.getClientProperty(LIVE_EDIT_STATUS)
+          if (status == null) {
             toolTipText = myPresentation.description
             return
           }
-          val status = LiveEditService.getInstance(project).editStatus()
           HelpTooltip.dispose(this)
           val tooltip = HelpTooltip()
             .setTitle(myPresentation.description)
@@ -98,18 +106,16 @@ class LiveEditAction(private val editor: Editor) : DropDownAction("Live Edit", "
       }
 
       override fun updateIcon() {
-        val project = editor.project
-        if (project == null) {
+        val status = myPresentation.getClientProperty(LIVE_EDIT_STATUS)
+        if (status == null) {
           toolTipText = myPresentation.description
           return
         }
-        myPresentation.icon = stateToIcon[LiveEditService.getInstance(project).editStatus().editState]
+        myPresentation.icon = stateToIcon[status.editState]
         super.updateIcon()
       }
     }.also {
-      it.foreground = JBColor {
-        editor.colorsScheme.getColor(FOREGROUND) ?: FOREGROUND.defaultColor
-      }
+      it.foreground = JBColor { instanceEditor?.colorsScheme.getColor(FOREGROUND) ?: FOREGROUND.defaultColor }
       if (!SystemInfo.isWindows) {
         it.font = FontUIResource(it.font.deriveFont(it.font.style, it.font.size - JBUIScale.scale(2).toFloat()))
       }
@@ -117,9 +123,30 @@ class LiveEditAction(private val editor: Editor) : DropDownAction("Live Edit", "
 
   override fun update(e: AnActionEvent) {
     val project = e.project ?: return
-    val editState = LiveEditService.getInstance(project).editStatus()
-    e.presentation.icon = stateToIcon[editState.editState]
-    e.presentation.isEnabledAndVisible = (editState.editState != EditState.DISABLED)
+    if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit) {
+      e.presentation.isEnabledAndVisible = false
+      return
+    }
+
+    update(project, e.presentation, e.dataContext)
+  }
+
+  fun update(project: Project, presentation: Presentation, dataContext: DataContext) {
+    val editor: Editor? = dataContext.getData(CommonDataKeys.EDITOR)
+    val editStatus: EditStatus
+    if (editor != null) {
+      editStatus = LiveEditService.getInstance(project).editStatus()
+    }
+    else {
+      editStatus = LiveEditService.DISABLED_STATUS
+    }
+    presentation.icon = stateToIcon[editStatus.editState]
+    presentation.isEnabledAndVisible = (editStatus.editState != EditState.DISABLED)
+    presentation.putClientProperty(LIVE_EDIT_STATUS, editStatus)
+  }
+
+  override fun updateCustomComponent(component: JComponent, presentation: Presentation) {
+    (component as ActionButtonWithText).updateIcon()
   }
 
   override fun updateActions(context: DataContext): Boolean {
@@ -130,10 +157,6 @@ class LiveEditAction(private val editor: Editor) : DropDownAction("Live Edit", "
 
   override fun getActionUpdateThread(): ActionUpdateThread {
     return ActionUpdateThread.EDT
-  }
-
-  companion object {
-    val FOREGROUND = ColorKey.createColorKey("ActionButton.iconTextForeground", UIUtil.getContextHelpForeground())
   }
 
   /**
