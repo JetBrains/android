@@ -19,16 +19,26 @@ package com.android.tools.idea.editors.literals
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
+import com.android.tools.idea.editors.liveedit.ui.LiveEditAction
+import com.android.tools.idea.emulator.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.emulator.SERIAL_NUMBER_KEY
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.util.ListenerCollection
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
+import com.intellij.ui.content.ContentManagerEvent
+import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
@@ -37,6 +47,7 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
+import java.util.stream.Collectors
 
 
 /**
@@ -55,10 +66,10 @@ enum class EditState {
   ERROR,            // LiveEdit has encountered an error that is not recoverable.
   RECOMPOSE_ERROR,  // A possibly recoverable error occurred after a recomposition.
   PAUSED,           // No apps are ready to receive live edit updates or a compilation error is preventing push to the device.
+  RECOMPOSE_NEEDED, // In manual mode, changes have been pushed to the devices but not recomposed yet.
+  OUT_OF_DATE,      // In manual mode, changes have been detected but not pushed to the device yet.
   IN_PROGRESS,      // Processing...
   UP_TO_DATE,       // The device and the code are in Sync.
-  OUT_OF_DATE,      // In manual mode, changes have been detected but not pushed to the device yet.
-  RECOMPOSE_NEEDED, // In manual mode, changes have been pushed to the devices but not recomposed yet.
   DISABLED          // LiveEdit has been disabled (via UI or custom properties).
 }
 
@@ -76,14 +87,52 @@ class LiveEditService private constructor(val project: Project, var listenerExec
                                        AppExecutorUtil.createBoundedApplicationPoolExecutor(
                                          "Document changed listeners executor", 1))
 
+  init {
+    val adapter = EmulatorLiveEditAdapter(project)
+    LiveEditAction.registerProject(project, adapter)
+    Disposer.register(this) { LiveEditAction.unregisterProject(project) }
+    ApplicationManager.getApplication().invokeLater {
+      val contentManager = project.getServiceIfCreated(ToolWindowManager::class.java)
+        ?.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
+        ?.contentManager
+      contentManager?.addContentManagerListener( object : ContentManagerListener {
+          override fun contentAdded(event: ContentManagerEvent) {
+            if (event.content.component !is DataProvider) {
+              return
+            }
+            val serial = (event.content.component as DataProvider).getData(SERIAL_NUMBER_KEY.name) as String?
+            serial?.let { adapter.register(it) }
+          }
+
+          override fun contentRemoveQuery(event: ContentManagerEvent) {
+            if (event.content.component !is DataProvider) {
+              return
+            }
+            val serial = (event.content.component as DataProvider).getData(SERIAL_NUMBER_KEY.name) as String?
+            serial?.let { adapter.unregister(it) }
+          }
+        })
+      contentManager?.contents?.forEach {
+        if (it.component is DataProvider) {
+          val serial = (it.component as DataProvider).getData(SERIAL_NUMBER_KEY.name) as String?
+          serial?.let { s -> adapter.register(s) }
+        }
+      }
+    }
+  }
+
   fun resetState() = inlineCandidateCache.clear()
 
   fun interface EditListener {
     operator fun invoke(method: EditEvent)
   }
 
-  fun interface EditStatusProvider {
-    operator fun invoke() : EditStatus
+  interface EditStatusProvider {
+    fun status(device: IDevice): EditStatus
+
+    fun status(): Map<IDevice, EditStatus>
+
+    fun devices(): Set<IDevice>
   }
 
   private val onEditListeners = ListenerCollection.createWithExecutor<EditListener>(listenerExecutor)
@@ -136,16 +185,42 @@ class LiveEditService private constructor(val project: Project, var listenerExec
     val UP_TO_DATE_STATUS = EditStatus(EditState.UP_TO_DATE, "All changes applied.", null)
   }
 
-  fun editStatus(): EditStatus {
+  fun editStatus(device: IDevice): EditStatus {
     var editStatus = DISABLED_STATUS
     for (provider in editStatusProviders) {
-      val nextStatus = provider.invoke()
+      val nextStatus = provider.status(device)
       // TODO make this state transition more robust/centralized
       if (nextStatus.editState.ordinal < editStatus.editState.ordinal) {
         editStatus = nextStatus
       }
     }
     return editStatus
+  }
+
+  fun editStatus(): MutableMap<IDevice, EditStatus> {
+    val statuses = HashMap<IDevice, EditStatus>()
+    for (provider in editStatusProviders) {
+      val nextStatuses = provider.status()
+      nextStatuses.forEach { entry ->
+        statuses.compute(entry.key) { _, oldStatus ->
+          if (oldStatus == null) {
+            entry.value
+          }
+          else {
+            if (entry.value.editState.ordinal < oldStatus.editState.ordinal) entry.value else oldStatus
+          }
+        }
+      }
+    }
+    return statuses
+  }
+
+  fun mergeStatuses(statuses: Map<IDevice, EditStatus>): EditStatus {
+    return deployMonitor.mergeStatuses(statuses)
+  }
+
+  fun devices(): Set<IDevice> {
+    return editStatusProviders.stream().map { it.devices() }.flatMap { it.stream() }.collect(Collectors.toSet())
   }
 
   fun getCallback(packageName: String, device: IDevice) : Callable<*>? {
