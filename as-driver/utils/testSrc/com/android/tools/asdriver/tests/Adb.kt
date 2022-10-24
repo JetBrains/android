@@ -23,8 +23,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.MICROSECONDS
+import java.util.regex.Matcher
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.hours
 
 class Adb private constructor(
   private val sdk: AndroidSdk,
@@ -43,18 +44,22 @@ class Adb private constructor(
   }
 
   @Throws(IOException::class, InterruptedException::class)
-  fun waitForLog(expectedRegex: String?, timeout: Long, unit: TimeUnit?) {
+  fun waitForLog(expectedRegex: String?, timeout: Long, unit: TimeUnit?): Matcher =
     LogFile(stdout).waitForMatchingLine(expectedRegex, timeout, unit)
-  }
 
   @JvmSynthetic
-  fun waitForLog(expectedRegex: String?, timeout: Duration) { waitForLog(expectedRegex, timeout.inWholeMicroseconds, MICROSECONDS) }
+  fun waitForLog(expectedRegex: String?, timeout: Duration): Matcher = waitForLog(expectedRegex, timeout.inWholeMicroseconds, MICROSECONDS)
 
   @Throws(IOException::class, InterruptedException::class)
   fun waitForDevice(emulator: Emulator) {
+    waitForDevice(emulator, 24.hours)
+  }
+
+  @JvmSynthetic
+  fun waitForDevice(emulator: Emulator, duration: Duration) {
     runCommand("track-devices") {
       // https://cs.android.com/android/platform/superproject/+/fbe41e9a47a57f0d20887ace0fc4d0022afd2f5f:packages/modules/adb/SERVICES.TXT;l=23
-      waitForLog("0015emulator-${emulator.portString}\tdevice", 10.seconds)
+      waitForLog("([0-9a-f]{4})?emulator-${emulator.portString}\tdevice", duration)
     }
   }
 
