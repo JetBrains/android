@@ -379,11 +379,11 @@ class AppInspectionView @VisibleForTesting constructor(
         emptyList()
       }
 
-      // TODO(b/254115796) AppInspectorTabShell should be created on the UI thread
       val tabs = tabTargetsList.map { tabTargets ->
-        withChecksDisabledForCallable { AppInspectorTabShell(tabTargets)}.also { shell ->
-          launchInspectorForTab(process, shell, force)
-        }
+        withContext(uiDispatcher) { AppInspectorTabShell(tabTargets) }
+          .also { shell ->
+            launchInspectorForTab(process, shell, force)
+          }
       }
 
       withContext(uiDispatcher)
