@@ -209,6 +209,7 @@ internal fun AppInspection.LibraryCompatibilityInfo.toLibraryCompatibilityInfo(
   val responseStatus = when (status) {
     AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE -> LibraryCompatbilityInfo.Status.COMPATIBLE
     AppInspection.LibraryCompatibilityInfo.Status.INCOMPATIBLE -> LibraryCompatbilityInfo.Status.INCOMPATIBLE
+    AppInspection.LibraryCompatibilityInfo.Status.VERSION_MISSING -> LibraryCompatbilityInfo.Status.VERSION_MISSING
     AppInspection.LibraryCompatibilityInfo.Status.LIBRARY_MISSING -> LibraryCompatbilityInfo.Status.LIBRARY_MISSING
     AppInspection.LibraryCompatibilityInfo.Status.APP_PROGUARDED -> LibraryCompatbilityInfo.Status.APP_PROGUARDED
     else -> LibraryCompatbilityInfo.Status.ERROR
