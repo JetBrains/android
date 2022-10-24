@@ -25,6 +25,9 @@ import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionInitializer
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportService

@@ -27,7 +27,7 @@ import com.android.tools.idea.appinspection.ide.ui.RecentProcess
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetection
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
