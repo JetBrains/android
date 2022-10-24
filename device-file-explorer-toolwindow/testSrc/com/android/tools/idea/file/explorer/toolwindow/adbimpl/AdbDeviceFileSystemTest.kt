@@ -21,6 +21,7 @@ import com.android.adblib.SOCKET_CONNECT_TIMEOUT_MS
 import com.android.adblib.deviceInfo
 import com.android.adblib.testingutils.CloseablesRule
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
+import com.android.adblib.testingutils.CoroutineTestUtils.waitNonNull
 import com.android.adblib.testingutils.FakeAdbServerProvider
 import com.android.adblib.testingutils.TestingAdbSessionHost
 import com.android.fakeadbserver.DeviceFileState
@@ -28,6 +29,7 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
+import com.android.sdklib.deviceprovisioner.isOnline
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.file.explorer.toolwindow.fs.FileTransferProgress
@@ -39,14 +41,9 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.TestApplicationManager
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import com.intellij.util.concurrency.AppExecutorUtil
-import java.nio.file.Files
-import java.time.Duration
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.flow.dropWhile
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.After
@@ -56,6 +53,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
 import org.junit.rules.TestRule
+import java.nio.file.Files
+import java.time.Duration
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 class AdbDeviceFileSystemTest {
   private val myParentDisposable = Disposer.newDisposable()
@@ -119,10 +120,10 @@ class AdbDeviceFileSystemTest {
     deviceState.deviceStatus = DeviceState.DeviceStatus.ONLINE
 
     setUserIsRoot(false)
-    deviceHandle =
-      runBlockingWithTimeout(Duration.ofSeconds(5)) {
-        provisioner.devices.dropWhile { it.isEmpty() }.first().first()
-      }
+
+    deviceHandle = runBlockingWithTimeout(Duration.ofSeconds(5)) {
+      provisioner.waitForOnlineDevice()
+    }
 
     connectedDevice = checkNotNull(deviceHandle.state.connectedDevice)
 
@@ -508,4 +509,8 @@ class AdbDeviceFileSystemTest {
 
     @JvmField @ClassRule val ourLoggerRule: TestRule = DebugLoggerRule()
   }
+}
+
+suspend fun DeviceProvisioner.waitForOnlineDevice() = waitNonNull {
+  devices.firstOrNull()?.firstOrNull()?.takeIf { it.state.isOnline() }
 }
