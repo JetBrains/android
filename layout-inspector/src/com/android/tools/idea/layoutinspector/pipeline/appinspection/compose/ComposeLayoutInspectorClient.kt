@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
-import com.android.tools.idea.appinspection.api.findVersion
+import com.android.tools.idea.appinspection.api.checkVersion
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.ide.getOrResolveInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
@@ -29,6 +29,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
@@ -134,9 +135,15 @@ class ComposeLayoutInspectorClient(
         DEV_JAR // This branch is used by tests
       }
       else {
-        val version =
-          apiServices.findVersion(model.project.name, process, MINIMUM_COMPOSE_COORDINATE.groupId, MINIMUM_COMPOSE_COORDINATE.artifactId)
-          ?: return null
+        val compatibility = apiServices.checkVersion(model.project.name, process, MINIMUM_COMPOSE_COORDINATE.groupId,
+                                                     MINIMUM_COMPOSE_COORDINATE.artifactId, listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY))
+        val version = compatibility?.version?.takeIf { it.isNotBlank() }
+        if (version == null) {
+          if (compatibility?.status == LibraryCompatbilityInfo.Status.VERSION_MISSING) {
+            InspectorBannerService.getInstance(model.project)?.setNotification(LayoutInspectorBundle.message(VERSION_MISSING_MESSAGE_KEY))
+          }
+          return null
+        }
 
         try {
           InspectorArtifactService.instance.getOrResolveInspectorJar(model.project, MINIMUM_COMPOSE_COORDINATE.copy(version = version))

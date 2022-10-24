@@ -19,6 +19,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessDiscovery
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -91,19 +92,17 @@ interface AppInspectionApiServices {
 }
 
 /**
- * Given a [process] and a coordinate describing a library, find and return the version string being used, or null if not used.
+ * Given a [process] and a coordinate describing a library, check and return the LibraryCompatbilityInfo with the version being used.
  *
- * For example, "androidx.compose.ui:ui" might return "1.0.0-beta02", for example, or null if the project doesn't use that library.
+ * For example, "androidx.compose.ui:ui" might return the version "1.0.0-beta02", for example, or a status error if the version is missing.
  */
-suspend fun AppInspectionApiServices.findVersion(project: String,
-                                                 process: ProcessDescriptor,
-                                                 groupId: String,
-                                                 artifactId: String,
-                                                 expectedClassNames: List<String> = emptyList() ): String? {
+suspend fun AppInspectionApiServices.checkVersion(project: String,
+                                                  process: ProcessDescriptor,
+                                                  groupId: String,
+                                                  artifactId: String,
+                                                  expectedClassNames: List<String> = emptyList() ): LibraryCompatbilityInfo? {
   val coordinateAnyVersion = ArtifactCoordinate(groupId, artifactId, "0.0.0", ArtifactCoordinate.Type.AAR)
   return attachToProcess(process, project)
     .getLibraryVersions(listOf(LibraryCompatibility(coordinateAnyVersion, expectedClassNames)))
     .singleOrNull()
-    ?.version
-    ?.takeIf { it.isNotBlank() }
 }
