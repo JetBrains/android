@@ -88,9 +88,10 @@ public class LayoutLibrary implements Disposable {
                         @NotNull File fontLocation,
                         @NotNull String nativeLibDirPath,
                         @NotNull String icuDataPath,
+                        @NotNull String[] keyboardPaths,
                         @NotNull Map<String, Map<String, Integer>> enumValueMap,
                         @Nullable ILayoutLog log) {
-        return mBridge.init(platformProperties, fontLocation, nativeLibDirPath, icuDataPath, enumValueMap, log);
+        return mBridge.init(platformProperties, fontLocation, nativeLibDirPath, icuDataPath, keyboardPaths, enumValueMap, log);
     }
 
     /**

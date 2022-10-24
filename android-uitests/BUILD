@@ -224,6 +224,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob(["testData/LayoutTest/**"]) + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.LayoutEditorMemoryUseTest"],
@@ -321,6 +322,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob(["testData/Navigation/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.NavEditorMemoryUseTest"],
@@ -340,6 +342,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.VisualizationTest"],
@@ -359,6 +362,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.SharedIssuePanelTest"],
@@ -378,6 +382,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob(["testData/VisualLintApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.VisualLintTest"],
@@ -397,6 +402,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob(["testData/SimpleComposeApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.compose.ComposePreviewTest"],
@@ -416,6 +422,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob(["testData/SimpleComposeApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.customview.CustomViewPreviewTest"],
@@ -964,6 +971,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/LayoutTest/**",
@@ -985,6 +993,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/LayoutTest/**",
@@ -1006,6 +1015,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -1027,6 +1037,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -1048,6 +1059,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/SimpleFlavoredApplication/**",
@@ -1729,6 +1741,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/MultiAndroidModule/**",
@@ -1749,6 +1762,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/ResourceManagerApp/**",
@@ -1892,6 +1906,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/sdk:platforms/android-25",
     ] + glob([
@@ -1912,6 +1927,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/LayoutTest/**",
@@ -1933,6 +1949,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/LayoutTest/**",
@@ -1954,6 +1971,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/LayoutTest/**",
@@ -1975,6 +1993,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/LayoutTest/**",
@@ -1994,6 +2013,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -2013,6 +2033,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -2032,6 +2053,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -2053,6 +2075,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -2746,6 +2769,7 @@ java_test(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
     ] + glob([
         "testData/SimpleApplication/**",

@@ -19,18 +19,18 @@ import com.android.ide.common.rendering.api.RenderSession;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Resulting information of executing {@link RenderTask#triggerTouchEvent(RenderSession.TouchEventType, int, int, long)}.
+ * Resulting information of executing touch events or key events in {@link RenderSession}.
  */
-public class TouchEventResult {
+public class InteractionEventResult {
   private final long myDurationMs;
 
-  protected TouchEventResult(long durationMs) {
+  protected InteractionEventResult(long durationMs) {
     myDurationMs = durationMs;
   }
 
   @NotNull
-  public static TouchEventResult create(long durationMs) {
-    return new TouchEventResult(durationMs);
+  public static InteractionEventResult create(long durationMs) {
+    return new InteractionEventResult(durationMs);
   }
 
   public long getDurationMs() {

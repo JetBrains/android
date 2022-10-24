@@ -2710,6 +2710,7 @@ Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/dat
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/fonts/fonts.xml
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/framework_res.jar
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/icu/icudt70l.dat
+Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/keyboards/Generic.kcm
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/layoutlib-extensions.jar
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/mac/lib64/libandroid_runtime.dylib
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/data/mac/lib64/libc++.dylib

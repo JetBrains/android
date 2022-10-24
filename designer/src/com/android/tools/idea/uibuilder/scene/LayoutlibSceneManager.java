@@ -58,7 +58,7 @@ import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.rendering.TouchEventResult;
+import com.android.tools.idea.rendering.InteractionEventResult;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
@@ -92,6 +92,7 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
+import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -384,8 +385,8 @@ public class LayoutlibSceneManager extends SceneManager {
 
   private final AtomicBoolean isDisposed = new AtomicBoolean(false);
 
-  /** Counter for user touch events during the interactive session. */
-  private AtomicInteger myTouchEventsCounter = new AtomicInteger(0);
+  /** Counter for user events during the interactive session. */
+  private AtomicInteger myInteractiveEventsCounter = new AtomicInteger(0);
 
   protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
     if (changeType == null) {
@@ -1615,7 +1616,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @return a future that is completed when layoutlib handled the touch event
    */
   @NotNull
-  public CompletableFuture<TouchEventResult> triggerTouchEventAsync(
+  public CompletableFuture<InteractionEventResult> triggerTouchEventAsync(
     @NotNull RenderSession.TouchEventType type, @AndroidCoordinate int x, @AndroidCoordinate int y) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
@@ -1625,8 +1626,28 @@ public class LayoutlibSceneManager extends SceneManager {
       if (myRenderTask == null) {
         return CompletableFuture.completedFuture(null);
       }
-      myTouchEventsCounter.incrementAndGet();
+      myInteractiveEventsCounter.incrementAndGet();
       return myRenderTask.triggerTouchEvent(type, x, y, currentTimeNanos());
+    }
+  }
+
+  /**
+   * Passes a Java KeyEvent from the surface to layoutlib.
+   *
+   * @return a future that is completed when layoutlib handled the key event
+   */
+  @NotNull
+  public CompletableFuture<InteractionEventResult> triggerKeyEventAsync(@NotNull KeyEvent event) {
+    if (isDisposed.get()) {
+      Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
+    }
+
+    synchronized (myRenderingTaskLock) {
+      if (myRenderTask == null) {
+        return CompletableFuture.completedFuture(null);
+      }
+      myInteractiveEventsCounter.incrementAndGet();
+      return myRenderTask.triggerKeyEvent(event, currentTimeNanos());
     }
   }
 
@@ -1757,17 +1778,17 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
-   * Resets the counter of user touch events received by this scene to 0.
+   * Resets the counter of user events received by this scene to 0.
    */
-  public void resetTouchEventsCounter() {
-    myTouchEventsCounter.set(0);
+  public void resetInteractiveEventsCounter() {
+    myInteractiveEventsCounter.set(0);
   }
 
   /**
-   * @return number of user touch events received by this scene since last reset.
+   * @return number of user touch or key events received by this scene since last reset.
    */
-  public int getTouchEventsCount() {
-    return myTouchEventsCounter.get();
+  public int getInteractiveEventsCount() {
+    return myInteractiveEventsCounter.get();
   }
 
   @Override

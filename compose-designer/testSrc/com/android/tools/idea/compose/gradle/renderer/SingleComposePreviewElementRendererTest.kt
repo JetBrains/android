@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.gradle.renderer
 
 import com.android.flags.junit.SetFlagRule
+import com.android.ide.common.rendering.api.RenderSession
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
@@ -24,7 +25,11 @@ import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
+import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.KEY_LOCATION_STANDARD
 import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -201,5 +206,73 @@ class SingleComposePreviewElementRendererTest {
         .get()!!
 
     assertTrue(defaultRender.width > 0 && defaultRender.height > 0)
+  }
+
+  /** Checks that key events are correctly dispatched to Compose Preview. */
+  @Test
+  fun testKeyEvent() {
+    val renderTaskFuture =
+      createRenderTaskFuture(
+        projectRule.androidFacet(":app"),
+        SingleComposePreviewElementInstance.forTesting(
+          "google.simpleapplication.OtherPreviewsKt.TextFieldPreview"
+        ),
+        false
+      )
+    val frameNanos = 16000000L
+    val renderTask = renderTaskFuture.get(1, TimeUnit.MINUTES)
+    try {
+      renderTask.render().get(1, TimeUnit.MINUTES)
+      renderTask.executeCallbacks(0).get(5, TimeUnit.SECONDS)
+
+      // Start by clicking on the text field to make it focused
+      val clickX = 30
+      val clickY = 30
+      renderTask
+        .triggerTouchEvent(RenderSession.TouchEventType.PRESS, clickX, clickY, 1000)
+        .get(5, TimeUnit.SECONDS)
+      renderTask
+        .triggerTouchEvent(RenderSession.TouchEventType.RELEASE, clickX, clickY, 2000)
+        .get(5, TimeUnit.SECONDS)
+
+      var time = 10 * frameNanos
+      // Give time for the setup of the TextField
+      repeat(5) {
+        renderTask.render().get(5, TimeUnit.SECONDS)
+        renderTask.executeCallbacks(time).get(5, TimeUnit.SECONDS)
+        time += 10 * frameNanos
+      }
+
+      // Press letter 'p'
+      val event =
+        KeyEvent(
+          JPanel(),
+          KeyEvent.KEY_PRESSED,
+          time + 1000,
+          0,
+          KeyEvent.VK_P,
+          'p',
+          KEY_LOCATION_STANDARD
+        )
+      renderTask.triggerKeyEvent(event, time + 1000).get(5, TimeUnit.SECONDS)
+
+      time += 10 * frameNanos
+      renderTask.render().get(5, TimeUnit.SECONDS)
+      renderTask.executeCallbacks(time).get(5, TimeUnit.SECONDS)
+
+      val renderResult = renderTask.render().get(5, TimeUnit.SECONDS)
+      renderResult.renderedImage.copy?.let {
+        assertImageSimilar(
+          Paths.get(
+            "${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/keyEventRender.png"
+          ),
+          it,
+          0.1,
+          1
+        )
+      }
+    } finally {
+      renderTask.dispose().get(5, TimeUnit.SECONDS)
+    }
   }
 }

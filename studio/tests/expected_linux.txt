@@ -2694,6 +2694,7 @@ android-studio/plugins/design-tools/resources/layoutlib/data/fonts/SourceSansPro
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/fonts.xml
 android-studio/plugins/design-tools/resources/layoutlib/data/framework_res.jar
 android-studio/plugins/design-tools/resources/layoutlib/data/icu/icudt70l.dat
+android-studio/plugins/design-tools/resources/layoutlib/data/keyboards/Generic.kcm
 android-studio/plugins/design-tools/resources/layoutlib/data/layoutlib-extensions.jar
 android-studio/plugins/design-tools/resources/layoutlib/data/linux/lib64/libandroid_runtime.so
 android-studio/plugins/design-tools/resources/layoutlib/data/linux/lib64/libc++.so

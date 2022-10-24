@@ -387,7 +387,7 @@ class ComposePreviewRepresentation(
     sceneComponentProvider.enabled = false
     val startUpStart = System.currentTimeMillis()
     forceRefresh(quickRefresh)?.invokeOnCompletion {
-      surface.sceneManagers.forEach { it.resetTouchEventsCounter() }
+      surface.sceneManagers.forEach { it.resetInteractiveEventsCounter() }
       if (!isFromAnimationInspection
       ) { // Currently it will re-create classloader and will be slower that switch from static
         InteractivePreviewUsageTracker.getInstance(surface)
@@ -919,7 +919,7 @@ class ComposePreviewRepresentation(
   }
 
   private fun logInteractiveSessionMetrics() {
-    val touchEvents = surface.sceneManagers.map { it.touchEventsCount }.sum()
+    val touchEvents = surface.sceneManagers.map { it.interactiveEventsCount }.sum()
     InteractivePreviewUsageTracker.getInstance(surface)
       .logInteractiveSession(fpsCounter.getFps(), fpsCounter.getDurationMs(), touchEvents)
   }

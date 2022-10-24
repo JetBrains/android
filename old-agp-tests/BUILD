@@ -16,6 +16,7 @@ iml_module(
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/sdk:build-tools/28.0.3",
         "//prebuilts/studio/sdk:build-tools/29.0.2",
         "//prebuilts/studio/sdk:build-tools/30.0.2",

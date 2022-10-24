@@ -81,11 +81,12 @@ public class LayoutLibraryLoader {
     final ILayoutLog layoutLog = new LayoutLogWrapper(LOG);
 
     String dataPath = FileUtil.toSystemIndependentName(target.getPath(IAndroidTarget.DATA).toString());
+    String[] keyboardPaths = new String[] { dataPath + "/keyboards/Generic.kcm" };
 
     LayoutLibrary library = LayoutLibraryProvider.EP_NAME.computeSafeIfAny(LayoutLibraryProvider::getLibrary);
     if (library == null ||
         !library.init(buildPropMap != null ? buildPropMap : Collections.emptyMap(), new File(fontFolder.getPath()),
-                      getNativeLibraryPath(dataPath), dataPath + "/icu/icudt70l.dat", enumMap, layoutLog)) {
+                      getNativeLibraryPath(dataPath), dataPath + "/icu/icudt70l.dat", keyboardPaths, enumMap, layoutLog)) {
       throw new RenderingException(LayoutlibBundle.message("layoutlib.init.failed"));
     }
     return library;

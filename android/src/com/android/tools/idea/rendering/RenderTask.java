@@ -83,6 +83,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.serviceContainer.AlreadyDisposedException;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
@@ -967,10 +968,10 @@ public class RenderTask {
    * @param touchEventType type of a touch event.
    * @param x              horizontal android coordinate of the detected touch event.
    * @param y              vertical android coordinate of the detected touch event.
-   * @return a {@link TouchEventResult} future that is completed when layoutlib handled the touch event.
+   * @return a {@link InteractionEventResult} future that is completed when layoutlib handled the touch event.
    */
   @NotNull
-  public CompletableFuture<TouchEventResult> triggerTouchEvent(@NotNull RenderSession.TouchEventType touchEventType, int x, int y, long timeNanos) {
+  public CompletableFuture<InteractionEventResult> triggerTouchEvent(@NotNull RenderSession.TouchEventType touchEventType, int x, int y, long timeNanos) {
     if (myRenderSession == null) {
       return CompletableFuture.completedFuture(null);
     }
@@ -979,7 +980,26 @@ public class RenderTask {
       myRenderSession.setSystemTimeNanos(timeNanos);
       long start = System.currentTimeMillis();
       myRenderSession.triggerTouchEvent(touchEventType, x, y);
-      return TouchEventResult.create(System.currentTimeMillis() - start);
+      return InteractionEventResult.create(System.currentTimeMillis() - start);
+    });
+  }
+
+  /**
+   * Sets layoutlib system time (needed for the correct event handling) and pass the Java KeyEvent to layoutlib.
+   *
+   * @return a {@link InteractionEventResult} future that is completed when layoutlib handled the key event.
+   */
+  @NotNull
+  public CompletableFuture<InteractionEventResult> triggerKeyEvent(@NotNull KeyEvent event, long timeNanos) {
+    if (myRenderSession == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+
+    return runAsyncRenderAction(() -> {
+      myRenderSession.setSystemTimeNanos(timeNanos);
+      long start = System.currentTimeMillis();
+      myRenderSession.triggerKeyEvent(event);
+      return InteractionEventResult.create(System.currentTimeMillis() - start);
     });
   }
 

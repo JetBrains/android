@@ -40,30 +40,30 @@ open class ExtendedRenderResult protected constructor(
     fun create(
       renderResult: RenderResult,
       firstExecuteCallbacksResult: ExecuteCallbacksResult,
-      firstTouchEventResult: TouchEventResult,
-      postTouchEventResult: ExecuteCallbacksResult) =
+      firstInteractionEventResult: InteractionEventResult,
+      postInteractionEventResult: ExecuteCallbacksResult) =
       ExtendedRenderResult(
         renderResult,
         ExtendedStats(
           firstExecuteCallbacksResult.durationMs,
-          firstTouchEventResult.durationMs,
-          postTouchEventResult.durationMs))
+          firstInteractionEventResult.durationMs,
+          postInteractionEventResult.durationMs))
   }
 }
 
 /**
  * [firstExecuteCallbacksDurationMs] the duration in milliseconds of the very first call to execute android platform callbacks (Handler and
  * Choreographer). We expect it to take significant time because of class loading that happens the first time this code path is executed.
- * [firstTouchEventDurationMs] the duration in milliseconds of the very first call to triggering touch event against the android View and
+ * [firstInteractionEventDurationMs] the duration in milliseconds of the very first call to triggering touch event against the android View and
  * Compose on touch infrastructure. We expect it to take significant time because of class loading that happens the first time this code
  * path is executed.
- * [postTouchEventDurationMs] the duration in milliseconds of the first call to execute android platform callbacks right after the first
+ * [postInteractionEventDurationMs] the duration in milliseconds of the first call to execute android platform callbacks right after the first
  * touch event is fully propagated. We expect it to take significant time because touch event might add some new callbacks that are executed
  * the very first time and that might load classes.
  */
 data class ExtendedStats(
   val firstExecuteCallbacksDurationMs: Long,
-  val firstTouchEventDurationMs: Long,
-  val postTouchEventDurationMs: Long
+  val firstInteractionEventDurationMs: Long,
+  val postInteractionEventDurationMs: Long
 )
 

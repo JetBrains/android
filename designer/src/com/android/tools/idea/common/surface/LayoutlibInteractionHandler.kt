@@ -69,7 +69,9 @@ class LayoutlibInteractionHandler(private val surface: DesignSurface<*>) : Inter
       PanInteraction(surface.getData(PANNABLE_KEY.name) as? Pannable ?: surface)
     }
     else {
-      null
+      val view = surface.focusedSceneView ?: return null
+      val screenView = view as ScreenView
+      return LayoutlibInteraction(screenView)
     }
   }
 

@@ -186,7 +186,7 @@ internal class FirstTouchEventTimeMeasurement(metric: Metric) : MetricMeasuremen
   override fun before() {}
 
   override fun after(result: RenderResult) = if (result is ExtendedRenderResult)
-    MetricSample(Instant.now().toEpochMilli(), result.extendedStats.firstTouchEventDurationMs)
+    MetricSample(Instant.now().toEpochMilli(), result.extendedStats.firstInteractionEventDurationMs)
   else null // No time available
 }
 
@@ -197,7 +197,7 @@ internal class PostTouchEventCallbacksExecutionTimeMeasurement(metric: Metric) :
   override fun before() {}
 
   override fun after(result: RenderResult) = if (result is ExtendedRenderResult)
-    MetricSample(Instant.now().toEpochMilli(), result.extendedStats.postTouchEventDurationMs)
+    MetricSample(Instant.now().toEpochMilli(), result.extendedStats.postInteractionEventDurationMs)
   else null // No time available
 }
 

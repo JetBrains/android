@@ -47,6 +47,7 @@ iml_module(
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
