@@ -35,7 +35,7 @@ fun addDynamicFeatureModule(moduleName: String, module: Module, fixture: JavaCod
   val project = module.project
   val dynamicFeatureModule = PsiTestUtil.addModule(project, JavaModuleType.getModuleType(), moduleName,
                                                    fixture.tempDirFixture.findOrCreateDir(moduleName))
-  AndroidTestCase.addAndroidFacet(dynamicFeatureModule, false)
+  AndroidTestCase.addAndroidFacetAndSdk(dynamicFeatureModule, false)
 
   val newModuleSystem = object : AndroidModuleSystem by DefaultModuleSystem(module) {
     override fun getDynamicFeatureModules(): List<Module> = listOf(dynamicFeatureModule)

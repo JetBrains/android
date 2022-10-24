@@ -16,12 +16,11 @@
 
 package org.jetbrains.kotlin.android;
 
-import static org.jetbrains.android.AndroidTestCase.addAndroidFacet;
+import static org.jetbrains.android.AndroidTestCase.addAndroidFacetAndSdk;
 import static org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen;
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -97,7 +96,7 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
     // its own custom manifest file. However, in that case, we will delete it shortly below.
     createManifest();
 
-    myFacet = addAndroidFacet(myModule);
+    myFacet = addAndroidFacetAndSdk(myModule);
 
     AndroidTestCase.removeFacetOn(myFixture.getProjectDisposable(), myFacet);
 

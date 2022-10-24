@@ -207,7 +207,7 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
       JavaModuleType.getModuleType(),
       moduleName,
       fixture.tempDirFixture.findOrCreateDir(moduleName))
-    addAndroidFacet(dynamicFeatureModule)
+    addAndroidFacetAndSdk(dynamicFeatureModule)
     val newModuleSystem = object : AndroidModuleSystem by DefaultModuleSystem(module) {
       override fun getDynamicFeatureModules(): List<Module> = listOf(dynamicFeatureModule)
     }

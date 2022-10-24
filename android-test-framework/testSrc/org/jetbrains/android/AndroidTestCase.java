@@ -6,7 +6,6 @@ import static com.android.tools.idea.testing.ThreadingAgentTestUtilKt.maybeCheck
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.SdkConstants;
-import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
@@ -31,6 +30,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -128,7 +128,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       cleanJdkTable();
       setupJdk(jdkPath);
     });
-    myFacet = addAndroidFacet(myModule);
+    myFacet = addAndroidFacetAndSdk(myModule);
 
     removeFacetOn(myFixture.getProjectDisposable(), myFacet);
 
@@ -146,7 +146,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     for (MyAdditionalModuleData data : modules) {
       Module additionalModule = data.myModuleFixtureBuilder.getFixture().getModule();
       myAdditionalModules.add(additionalModule);
-      AndroidFacet facet = addAndroidFacet(additionalModule);
+      AndroidFacet facet = addAndroidFacetAndSdk(additionalModule);
       removeFacetOn(myFixture.getProjectDisposable(), facet);
       facet.getConfiguration().setProjectType(data.myProjectType);
       String rootPath = getAdditionalModulePath(data.myDirName);
@@ -360,16 +360,17 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     });
   }
 
-  public static AndroidFacet addAndroidFacet(Module module) {
-    return addAndroidFacet(module, true);
+  public static AndroidFacet addAndroidFacetAndSdk(Module module) {
+    return addAndroidFacetAndSdk(module, true);
   }
 
-  public static AndroidFacet addAndroidFacet(Module module, boolean attachSdk) {
+  public static AndroidFacet addAndroidFacetAndSdk(Module module, boolean attachSdk) {
     AndroidFacetType type = AndroidFacet.getFacetType();
     String facetName = "Android";
     AndroidFacet facet = addFacet(module, type, facetName);
     if (attachSdk) {
-      Sdks.addLatestAndroidSdk(facet, module);
+      Disposable earlyDisposable = ((ProjectEx)module.getProject()).getEarlyDisposable();
+      Sdks.addLatestAndroidSdk(earlyDisposable, module);
     }
     return facet;
   }

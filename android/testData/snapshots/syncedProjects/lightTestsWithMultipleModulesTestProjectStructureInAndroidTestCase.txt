@@ -1,5 +1,6 @@
 PROJECT                       : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase
-    PROJECT_JDK
+    PROJECT_JDK                   : <JDK_NAME>
+        Version                       : <JDK_VERSION>
     MODULE                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase
         LinkedProjectId               : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase
         LinkedProjectPath             : <TEMP>
@@ -12,6 +13,11 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         CONENT_ENTRY                  : file://<TEMP>
             EXCLUDE_FOLDER                : file://<TEMP>/.gradle [-]
             EXCLUDE_FOLDER                : file://<TEMP>/build [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
