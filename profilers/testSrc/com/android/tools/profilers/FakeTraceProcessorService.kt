@@ -158,9 +158,15 @@ class FakeTraceProcessorService: TraceProcessorService {
 }
 
 /**
- * Wrapper for old fake trace that had `null` for timeline events and resulted in `IllegalStateException` when inspected
+ * Wrapper for old fake trace that had `null` for timeline events, power rails, and battery drain
+ * and resulted in `IllegalStateException` when inspected.
  */
 private class FakeTimelineModelAdapter(private val base: SystemTraceModelAdapter,
-                                       private val fakeEvents: List<AndroidFrameTimelineEvent> = listOf()): SystemTraceModelAdapter by base {
+                                       private val fakeEvents: List<AndroidFrameTimelineEvent> = listOf(),
+                                       private val fakePowerRails: List<CounterModel> = listOf(),
+                                       private val fakeBatteryDrain: List<CounterModel> = listOf()): SystemTraceModelAdapter by base {
   override fun getAndroidFrameTimelineEvents() = base.getAndroidFrameTimelineEvents() ?: fakeEvents
+  override fun getPowerRails(): List<CounterModel> = base.getPowerRails() ?: fakePowerRails
+  override fun getBatteryDrain(): List<CounterModel> = base.getBatteryDrain() ?: fakeBatteryDrain
+
 }

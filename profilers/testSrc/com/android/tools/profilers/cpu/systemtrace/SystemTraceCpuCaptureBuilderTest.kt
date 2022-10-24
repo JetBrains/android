@@ -261,6 +261,50 @@ class SystemTraceCpuCaptureBuilderTest {
   }
 
   @Test
+  fun buildPowerCountersData() {
+    val processes = mapOf(
+      1 to ProcessModel(
+        1, "Process",
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf()))
+
+    val powerRails = listOf(
+      CounterModel("power.rails.foo", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      CounterModel("power.rails.bar", sortedMapOf(3L to 300.0, 4L to 400.0)))
+
+    val batteryDrain = listOf(
+      CounterModel("batt.foo", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      CounterModel("batt.bar", sortedMapOf(3L to 300.0, 4L to 400.0)))
+
+    val model = TestModel(processes, emptyMap(), emptyList(), powerRails, batteryDrain, emptyList())
+
+    val builder = SystemTraceCpuCaptureBuilder(model)
+    val capture = builder.build(0L, 1, Range())
+    val systemTraceData = capture.systemTraceData!!
+
+    assertThat(systemTraceData.powerRailCounters).hasSize(2)
+    assertThat(systemTraceData.batteryDrainCounters).hasSize(2)
+
+    assertThat(systemTraceData.powerRailCounters).containsExactly(
+      "bar", listOf(
+      SeriesData(3, 300L),
+      SeriesData(4, 400L)),
+      "foo", listOf(
+      SeriesData(1, 100L),
+      SeriesData(2, 200L)))
+      .inOrder()
+
+    assertThat(systemTraceData.batteryDrainCounters).containsExactly(
+      "bar", listOf(
+      SeriesData(3, 300L),
+      SeriesData(4, 400L)),
+      "foo", listOf(
+      SeriesData(1, 100L),
+      SeriesData(2, 200L)))
+      .inOrder()
+  }
+
+  @Test
   fun buildBlastBufferQueueCounterData() {
     val processes = mapOf(
       1 to ProcessModel(

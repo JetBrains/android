@@ -43,13 +43,16 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val cpuState = buildCpuStateData(mainProcess)
     val cpuCounters = buildCpuCountersData()
     val memoryCounters = buildMainProcessMemoryCountersData(mainProcess)
+    val powerRailCounters = buildPowerRailCountersData()
+    val batteryDrainCounters = buildBatteryDrainCountersData()
     val blastBufferQueueCounter = buildBlastBufferQueueCounterData(mainProcess)
 
     val frameManager = SystemTraceFrameManager(mainProcess)
     val sfManager = SystemTraceSurfaceflingerManager(model, mainProcess.name)
 
     return SystemTraceCpuCapture(traceId, model, captureTreeNodes, threadState, cpuState.schedulingData, cpuState.utilizationData,
-                                 cpuCounters, memoryCounters, blastBufferQueueCounter, frameManager, sfManager, initialViewRange)
+                                 cpuCounters, memoryCounters, powerRailCounters, batteryDrainCounters, blastBufferQueueCounter,
+                                 frameManager, sfManager, initialViewRange)
   }
 
   /**
@@ -218,6 +221,18 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
       .filter { it.key.startsWith("mem.") }
       .associate { it.key to convertCounterToSeriesData(it.value) }
       .toSortedMap()
+  }
+
+  private fun buildPowerRailCountersData(): Map<String, List<SeriesData<Long>>> {
+    return model.getPowerRails().associate {
+      it.name.replace("power.rails.", "") to convertCounterToSeriesData(it)
+    }.toSortedMap()
+  }
+
+  private fun buildBatteryDrainCountersData(): Map<String, List<SeriesData<Long>>> {
+    return model.getBatteryDrain().associate {
+      it.name.replace("batt.", "") to convertCounterToSeriesData(it)
+    }.toSortedMap()
   }
 
   private fun buildCpuCountersData(): List<Map<String, List<SeriesData<Long>>>> {
