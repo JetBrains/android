@@ -47,6 +47,11 @@ class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Trace
   private val processById = sortedMapOf<Int, ProcessModel>()
   private val cores: List<CpuCoreModel>
 
+  // Power data is something only available for newer hardware
+  // and thus will not be traced/shown by the legacy system.
+  private val powerRails: List<CounterModel> = emptyList()
+  private val batteryDrain: List<CounterModel> = emptyList()
+
   override fun getCaptureStartTimestampUs() = convertToUserTimeUs(beginTimestampSeconds)
   override fun getCaptureEndTimestampUs() = convertToUserTimeUs(endTimestampSeconds)
 
@@ -57,6 +62,8 @@ class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Trace
   override fun getCpuCores(): List<CpuCoreModel> = cores
 
   override fun getSystemTraceTechnology() = technology
+  override fun getPowerRails(): List<CounterModel> = powerRails
+  override fun getBatteryDrain(): List<CounterModel> = batteryDrain
   override fun isCapturePossibleCorrupted() = possibleCorruption
 
   /**

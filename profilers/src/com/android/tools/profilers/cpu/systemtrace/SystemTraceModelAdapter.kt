@@ -48,6 +48,10 @@ interface SystemTraceModelAdapter {
 
   fun getSystemTraceTechnology(): Trace.UserOptions.TraceType
 
+  fun getPowerRails(): List<CounterModel>
+
+  fun getBatteryDrain(): List<CounterModel>
+
   /**
    * @return true if there is potentially missing data from the capture.
    * It's hard to guarantee if data is missing or not, so this is a best guess.

@@ -167,6 +167,9 @@ class TraceProcessorServiceImplTest {
                     TraceProcessor.QueryParameters.AndroidFrameEventsParameters.newBuilder().setLayerNameHint("foo")))
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
                   .setTraceId(10)
+                  .setPowerCounterTracksRequest(TraceProcessor.QueryParameters.PowerCounterTracksParameters.getDefaultInstance()))
+      .addQuery(TraceProcessor.QueryParameters.newBuilder()
+                  .setTraceId(10)
                   .setAndroidFrameTimelineRequest(
                     TraceProcessor.QueryParameters.AndroidFrameTimelineParameters.newBuilder().setProcessId(123)))
       .addQuery(TraceProcessor.QueryParameters.newBuilder()

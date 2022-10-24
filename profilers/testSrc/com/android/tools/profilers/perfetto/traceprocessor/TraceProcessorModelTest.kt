@@ -19,6 +19,7 @@ import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.FrameEvent
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.Layer
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.Phase
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CounterModel
@@ -340,6 +341,49 @@ class TraceProcessorModelTest {
                                 PerfettoTrace.FrameTimelineEvent.JankType.JANK_UNKNOWN,
                                 onTimeFinish = true, gpuComposition = false, layoutDepth = 0),
     ).inOrder()
+  }
+
+  @Test
+  fun addPowerCounters() {
+    val powerCounters = TraceProcessor.PowerCounterTracksResult.newBuilder()
+      .addCounter(
+        TraceProcessor.Counter.newBuilder()
+          .setName("power.rails.1")
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
+      )
+      .addCounter(
+        TraceProcessor.Counter.newBuilder()
+          .setName("power.rails.2")
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
+      )
+      .addCounter(
+        TraceProcessor.Counter.newBuilder()
+          .setName("batt.1")
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
+      )
+      .addCounter(
+        TraceProcessor.Counter.newBuilder()
+          .setName("batt.2")
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
+      )
+      .build()
+
+
+    val model = TraceProcessorModel.Builder().apply {
+      addPowerCounters(powerCounters)
+    }.build()
+
+    assertThat(model.getPowerRails()).containsExactly(
+      CounterModel("power.rails.1", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      CounterModel("power.rails.2", sortedMapOf(1L to 100.0, 2L to 200.0)))
+
+    assertThat(model.getBatteryDrain()).containsExactly(
+      CounterModel("batt.1", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      CounterModel("batt.2", sortedMapOf(1L to 100.0, 2L to 200.0)))
   }
 
   @Test

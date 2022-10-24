@@ -17,7 +17,7 @@ package com.android.tools.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.*
-import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.perfetto.proto.TraceProcessor.PowerCounterTracksResult
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
@@ -44,6 +44,8 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
 
   private val processMap: Map<Int, ProcessModel>
   private val cpuCores: List<CpuCoreModel>
+  private val powerRails: List<CounterModel>
+  private val batteryDrain: List<CounterModel>
   private val androidFrameLayers: List<Layer>
   private val androidFrameTimelineEvents: List<AndroidFrameTimelineEvent>
 
@@ -69,6 +71,12 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     }
     processMap = processMapBuilder.toSortedMap()
 
+    // Power counter data contains two types of counters: power rail and battery drain.
+    // The name of each power rail is prefixed by 'power.rails.' while
+    // the name of each battery drain metric is prefixed by 'batt.'.
+    powerRails = builder.powerCounters.filter { it.name.contains("power.rails.") }
+    batteryDrain = builder.powerCounters.filter { it.name.contains("batt.") }
+
     // Build cpuCores
     cpuCores = (0 until builder.cpuCoresCount).map {
       val cpuCountersMap = builder.coreToCpuCounters.getOrDefault(it, listOf())
@@ -88,9 +96,9 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
   override fun getProcessById(id: Int) = processMap[id]
   override fun getProcesses() = processMap.values.toList()
   override fun getDanglingThread(tid: Int): ThreadModel? = danglingThreads[tid]
-
   override fun getCpuCores() = cpuCores
-
+  override fun getPowerRails(): List<CounterModel> = powerRails
+  override fun getBatteryDrain(): List<CounterModel> = batteryDrain
   override fun getSystemTraceTechnology() = Trace.UserOptions.TraceType.PERFETTO
 
   // TODO(b/156578844): Fetch data from TraceProcessor error table to populate this.
@@ -109,6 +117,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     internal val coreToScheduling = mutableMapOf<Int, List<SchedulingEventModel>>()
     internal val coreToCpuCounters = mutableMapOf<Int, List<CounterModel>>()
     internal val processToCounters = mutableMapOf<Int, List<CounterModel>>()
+    internal val powerCounters = mutableListOf<CounterModel>()
     internal val androidFrameLayers = mutableListOf<Layer>()
     internal val androidFrameTimelineEvents = mutableListOf<AndroidFrameTimelineEvent>()
     internal var surfaceflingerDisplayTokenToEndNs = mapOf<Long, Long>()
@@ -299,6 +308,15 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
           convertToUs(it.timestampNanoseconds) to it.value
         }.toSortedMap())
       }
+    }
+
+    fun addPowerCounters(counters: PowerCounterTracksResult) {
+      // powerCounters include both power rail counter and battery drain counter data
+      powerCounters.addAll(counters.counterList.map { counter ->
+        CounterModel(counter.name, counter.valueList.associate {
+          convertToUs(it.timestampNanoseconds) to it.value
+        }.toSortedMap())
+      })
     }
 
     fun addAndroidFrameEvents(frameEventsResult: TraceProcessor.AndroidFrameEventsResult) {

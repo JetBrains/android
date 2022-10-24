@@ -24,7 +24,6 @@ import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryParameters
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryResult
 import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.analytics.FeatureTracker
-import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceSurfaceflingerManager
@@ -91,6 +90,9 @@ class TraceProcessorServiceImpl(
         RequestBuilder({ setAndroidFrameEventsRequest(
           QueryParameters.AndroidFrameEventsParameters.newBuilder().setLayerNameHint(selectedProcess.name) )},
                        { modelBuilder.addAndroidFrameEvents(it.androidFrameEventsResult) }),
+        // Query for power rail and battery drain data.
+        RequestBuilder({ powerCounterTracksRequest = QueryParameters.PowerCounterTracksParameters.getDefaultInstance() },
+                       { modelBuilder.addPowerCounters(it.powerCounterTracksResult) }),
         // Query Android FrameTimeline events.
         androidFrameTimelineRequest(selectedProcess.id.toLong(), modelBuilder::addAndroidFrameTimelineEvents)
       )

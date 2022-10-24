@@ -52,7 +52,7 @@ class SystemTraceCpuCaptureBuilderTest {
       mapOf()
     ))
 
-    val model = TestModel(processes, mapOf(), listOf())
+    val model = TestModel(processes, mapOf(), listOf(), listOf(), listOf())
     val capture = SystemTraceCpuCaptureBuilder(model).build(0L, 1, Range(0.0, 5.0))
     val systemTraceData = capture.systemTraceData
 
@@ -97,7 +97,7 @@ class SystemTraceCpuCaptureBuilderTest {
       mapOf()
     ))
 
-    val model = TestModel(processes, mapOf(), listOf())
+    val model = TestModel(processes, mapOf(), listOf(), listOf(), listOf())
     val capture = SystemTraceCpuCaptureBuilder(model).build(0L, 1, Range(0.0, 5.0))
     val systemTraceData = capture.systemTraceData
 
@@ -135,7 +135,7 @@ class SystemTraceCpuCaptureBuilderTest {
       CpuCoreModel(1, listOf(), mapOf())
     )
 
-    val model = TestModel(processes, danglingThreads, cpuCores)
+    val model = TestModel(processes, danglingThreads, cpuCores, emptyList(), emptyList())
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1, Range())
@@ -170,7 +170,7 @@ class SystemTraceCpuCaptureBuilderTest {
       CpuCoreModel(1, listOf(), mapOf())
     )
 
-    val model = TestModel(processes, emptyMap(), cpuCores)
+    val model = TestModel(processes, emptyMap(), cpuCores, emptyList(), emptyList())
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1, Range())
@@ -209,7 +209,7 @@ class SystemTraceCpuCaptureBuilderTest {
         ))
     )
 
-    val model = TestModel(processes, emptyMap(), cpuCores)
+    val model = TestModel(processes, emptyMap(), cpuCores, emptyList(), emptyList())
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1, Range())
@@ -239,7 +239,7 @@ class SystemTraceCpuCaptureBuilderTest {
           "nonmem.rss" to CounterModel("nonmem.rss", sortedMapOf(50L to 10.0, 100L to 90.0, 101L to 75.0)),
           "non-memory" to CounterModel("non-memory", sortedMapOf(50L to 10.0, 100L to 90.0, 101L to 75.0)))))
 
-    val model = TestModel(processes, emptyMap(), listOf())
+    val model = TestModel(processes, emptyMap(), listOf(), listOf(), listOf())
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1, Range())
@@ -268,7 +268,7 @@ class SystemTraceCpuCaptureBuilderTest {
         mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
         mapOf("QueuedBuffer - ViewRootImpl[MainActivity]BLAST#0" to CounterModel("PendingBuffer - ViewRootImpl[MainActivity]BLAST#0",
                                                                                  sortedMapOf(1L to 1.0, 4L to 2.0, 7L to 3.0)))))
-    val model = TestModel(processes, emptyMap(), listOf())
+    val model = TestModel(processes, emptyMap(), listOf(), listOf(), listOf())
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
@@ -288,7 +288,7 @@ class SystemTraceCpuCaptureBuilderTest {
         mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
         mapOf()))
 
-    val model = TestModel(processes, emptyMap(), listOf())
+    val model = TestModel(processes, emptyMap(), listOf(), listOf(), listOf())
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1, Range(1.0,2.0))
@@ -324,7 +324,7 @@ class SystemTraceCpuCaptureBuilderTest {
                                            PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
                                            PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
                                            false, false, 0)
-    val model = TestModel(processes, mapOf(), listOf(), timelineEvents = listOf(frame1, frame2))
+    val model = TestModel(processes, mapOf(), listOf(), listOf(), listOf(), timelineEvents = listOf(frame1, frame2))
     val capture = SystemTraceCpuCaptureBuilder(model).build(0L, 1, Range(0.0, 7000.0))
 
     capture.frameRenderSequence(frame1).let { (mainEvent, renderEvent, gpuEvent) ->
@@ -343,6 +343,8 @@ class SystemTraceCpuCaptureBuilderTest {
     private val processes: Map<Int, ProcessModel>,
     private val danglingThreads: Map<Int, ThreadModel>,
     private val cpuCores: List<CpuCoreModel>,
+    private val powerRails: List<CounterModel>,
+    private val batteryDrain: List<CounterModel>,
     private val timelineEvents: List<AndroidFrameTimelineEvent> = listOf()) : SystemTraceModelAdapter {
 
     override fun getCaptureStartTimestampUs() = 0L
@@ -353,6 +355,8 @@ class SystemTraceCpuCaptureBuilderTest {
     override fun getCpuCores(): List<CpuCoreModel> = cpuCores
 
     override fun getSystemTraceTechnology() = Trace.UserOptions.TraceType.UNSPECIFIED_TYPE
+    override fun getPowerRails(): List<CounterModel> = powerRails
+    override fun getBatteryDrain(): List<CounterModel> = batteryDrain
     override fun isCapturePossibleCorrupted() = false
     override fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer> = emptyList()
     override fun getAndroidFrameTimelineEvents(): List<AndroidFrameTimelineEvent> = timelineEvents
