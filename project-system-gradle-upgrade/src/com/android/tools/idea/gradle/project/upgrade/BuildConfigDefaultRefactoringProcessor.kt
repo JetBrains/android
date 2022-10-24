@@ -25,9 +25,11 @@ import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.systemIndependentPath
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
@@ -82,7 +84,11 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
 
       val namespace = GradleAndroidModel.get(facet)?.androidProject?.namespace ?: getPackageName(module)
       val className = "$namespace.BuildConfig"
-      val buildConfigClass = JavaPsiFacade.getInstance(project).findClass(className, module.moduleContentScope)
+
+      val dumbService = DumbService.getInstance(project)
+      val psiFacade = JavaPsiFacade.getInstance(project)
+      var buildConfigClass: PsiClass? = null
+      dumbService.runReadActionInSmartMode { buildConfigClass = psiFacade.findClass(className, module.moduleContentScope) }
       if (buildConfigClass == null) {
         // If we cannot resolve the BuildConfig class, but there is a generated folder for it, then (most likely) the sources have
         // not been generated; we should block this upgrade until the user generates sources.
