@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.Nullable;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -47,7 +48,8 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   private int nextPort = 8554;
   private String emulatorImagePath = "system_image_android-29_default_x86_64";
 
-  private static boolean applied = false;
+  @Nullable
+  private static Throwable initializedAt = null;
 
   private AndroidSystem(TestFileSystem fileSystem, Display display, AndroidSdk sdk) {
     this.fileSystem = fileSystem;
@@ -63,14 +65,14 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        if (applied) {
+        if (initializedAt != null) {
           // This object can be used as a rule only once per execution to avoid multiple
           // integration tests on the same target. We only want a single test in a single
           // target so that integration tests are parallelized, since they tend to take
           // much longer time than unit tests.
-          throw new IllegalStateException("There should only be one integration test per test execution.");
+          throw new IllegalStateException("There should only be one integration test per test execution.", initializedAt);
         }
-        applied = true;
+        initializedAt = new Throwable("AndroidSystem was previously initialized here.");
         try {
           base.evaluate();
           if (install != null) {
