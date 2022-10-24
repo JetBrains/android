@@ -133,6 +133,9 @@
         implementationClass="com.android.tools.compose.ComposableItemPresentationProvider"
         order="first"
     />
+
+    <iconProvider implementation="com.android.tools.compose.ComposableIconProvider" order="first" />
+
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
