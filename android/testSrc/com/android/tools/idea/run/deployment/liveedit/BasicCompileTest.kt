@@ -168,7 +168,6 @@ class BasicCompileTest {
     // Can't test invocation of the method since the functional interface "A" is not loaded.
   }
 
-  @org.junit.Ignore("b/249073553")
   @Test
   fun simpleComposeChange() {
     var output = compile(files["ComposeSimple.kt"], "composableFun").singleOutput()
@@ -187,7 +186,6 @@ class BasicCompileTest {
     Assert.assertTrue(foundFunction)
   }
 
-  @org.junit.Ignore("b/249073553")
   @Test
   fun simpleComposeNested() {
     var output = compile(files["ComposeNested.kt"], "composableNested").singleOutput()
