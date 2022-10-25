@@ -49,6 +49,7 @@ import com.intellij.util.xmlb.annotations.Tag
 import icons.StudioIcons
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -273,7 +274,10 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     // Calculated new representations
     for (provider in providers.filter { it.displayName !in currentRepresentationsNames }) {
       val representation = provider.createRepresentation (file)
-      if (!Disposer.tryRegister(this@MultiRepresentationPreview, representation)) return
+      if (!Disposer.tryRegister(this@MultiRepresentationPreview, representation)) {
+        Disposer.dispose(representation)
+        return
+      }
       shortcutsApplicableComponent?.let {
         launch(uiThread) {
           if (!Disposer.isDisposed(representation)) representation.registerShortcuts(it)
@@ -346,8 +350,8 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
    */
   @TestOnly
   suspend fun awaitForRepresentationsUpdated() {
-    updateCallbacksLock.withLock { updateCallbacks.toList() }.forEach {
-      it.await()
+    while (updateCallbacksLock.withLock { updateCallbacks.isNotEmpty() }) {
+      delay(100)
     }
   }
 

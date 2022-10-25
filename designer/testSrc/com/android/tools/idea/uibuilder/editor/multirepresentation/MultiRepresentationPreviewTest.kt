@@ -36,18 +36,20 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.MockitoAnnotations
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.JComponent
 import javax.swing.JPanel
-import kotlin.test.assertFalse
 
 class MultiRepresentationPreviewTest {
   private lateinit var multiPreview: UpdatableMultiRepresentationPreview
@@ -612,6 +614,45 @@ class MultiRepresentationPreviewTest {
     assertEquals(1, representations.count { !Disposer.isDisposed(it) })
     assertNotNull(multiPreview.currentRepresentation)
     assertFalse(Disposer.isDisposed(multiPreview.currentRepresentation!!))
+  }
+
+  @Test
+  fun testUnusedRepresentationIsDisposed() = runBlocking {
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
+    myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
+
+    val representation = TestPreviewRepresentation()
+
+    val createRepresentationLatch = CountDownLatch(1)
+    val parentDisposedLatch = CountDownLatch(1)
+
+    val provider = object : PreviewRepresentationProvider {
+      override val displayName: RepresentationName = "Representation"
+      override suspend fun accept(project: Project, psiFile: PsiFile) = true
+      override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
+        createRepresentationLatch.countDown()
+        // Only return the representation when the parent is already disposed
+        parentDisposedLatch.await()
+        assertFalse(Disposer.isDisposed(representation))
+        return representation
+      }
+    }
+
+    multiPreview = UpdatableMultiRepresentationPreview(sampleFile, myFixture.editor, listOf(provider))
+
+    // Essentially the same as Init but async
+    multiPreview.updateRepresentationsInTestAsync()
+
+    // Wait until the representation is requested and dispose the parent
+    createRepresentationLatch.await()
+    Disposer.dispose(multiPreview)
+
+    // The createRepresentationm
+    parentDisposedLatch.countDown()
+
+    multiPreview.awaitForRepresentationsUpdated()
+
+    assertTrue(Disposer.isDisposed(representation))
   }
 }
 
