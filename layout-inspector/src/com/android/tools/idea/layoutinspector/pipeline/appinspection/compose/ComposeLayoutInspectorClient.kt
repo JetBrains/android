@@ -19,17 +19,12 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.checkVersion
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.ide.getOrResolveInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionMissingException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
-import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
@@ -38,12 +33,15 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
+import com.android.tools.idea.layoutinspector.pipeline.errorCode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.protobuf.CodedInputStream
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.project.Project
 import com.intellij.util.text.nullize
 import kotlinx.coroutines.cancel
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
@@ -67,7 +65,8 @@ private val DEV_JAR = AppInspectorJar(
   developmentDirectory = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER.get(),
   releaseDirectory = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.get().nullize()
 )
-private val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate(
+@VisibleForTesting
+val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate(
   "androidx.compose.ui", "ui", "1.0.0-beta02", ArtifactCoordinate.Type.AAR
 )
 private const val EXPECTED_CLASS_IN_COMPOSE_LIBRARY = "androidx.compose.ui.Modifier"
@@ -129,34 +128,23 @@ class ComposeLayoutInspectorClient(
       model: InspectorModel,
       treeSettings: TreeSettings,
       capabilities: EnumSet<Capability>,
-      launchMonitor: InspectorClientLaunchMonitor
+      launchMonitor: InspectorClientLaunchMonitor,
+      logErrorToMetrics: (AttachErrorCode) -> Unit
     ): ComposeLayoutInspectorClient? {
+      val project = model.project
       val jar = if (StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()) {
         DEV_JAR // This branch is used by tests
       }
       else {
-        val compatibility = apiServices.checkVersion(model.project.name, process, MINIMUM_COMPOSE_COORDINATE.groupId,
+        val compatibility = apiServices.checkVersion(project.name, process, MINIMUM_COMPOSE_COORDINATE.groupId,
                                                      MINIMUM_COMPOSE_COORDINATE.artifactId, listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY))
         val version = compatibility?.version?.takeIf { it.isNotBlank() }
-        if (version == null) {
-          if (compatibility?.status == LibraryCompatbilityInfo.Status.VERSION_MISSING) {
-            InspectorBannerService.getInstance(model.project)?.setNotification(LayoutInspectorBundle.message(VERSION_MISSING_MESSAGE_KEY))
-          }
-          return null
-        }
-
+                      ?: return handleError(project, logErrorToMetrics, compatibility?.status.errorCode)
         try {
-          InspectorArtifactService.instance.getOrResolveInspectorJar(model.project, MINIMUM_COMPOSE_COORDINATE.copy(version = version))
+          InspectorArtifactService.instance.getOrResolveInspectorJar(project, MINIMUM_COMPOSE_COORDINATE.copy(version = version))
         }
-        catch (e: AppInspectionArtifactNotFoundException) {
-          if (version.endsWith("-SNAPSHOT")) {
-            InspectorBannerService.getInstance(model.project)?.setNotification(
-              LayoutInspectorBundle.message(INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY))
-          } else {
-            InspectorBannerService.getInstance(model.project)?.setNotification(
-              LayoutInspectorBundle.message(COMPOSE_INSPECTION_NOT_AVAILABLE_KEY))
-          }
-          return null
+        catch (exception: AppInspectionArtifactNotFoundException) {
+          return handleError(project, logErrorToMetrics, versionNotFoundAsErrorCode(version))
         }
       }
 
@@ -168,31 +156,55 @@ class ComposeLayoutInspectorClient(
         val messenger = apiServices.launchInspector(params)
         ComposeLayoutInspectorClient(model, treeSettings, messenger, capabilities, launchMonitor).apply { updateSettings() }
       }
-      catch (ignored: AppInspectionVersionIncompatibleException) {
-        InspectorBannerService.getInstance(model.project)?.setNotification(
-          LayoutInspectorBundle.message(INCOMPATIBLE_LIBRARY_MESSAGE_KEY, MINIMUM_COMPOSE_COORDINATE.toString()))
-        null
-      }
-      catch (ignored: AppInspectionAppProguardedException) {
-        val banner = InspectorBannerService.getInstance(model.project)
-        banner?.setNotification(
-          LayoutInspectorBundle.message(PROGUARDED_LIBRARY_MESSAGE_KEY),
-          listOf(InspectorBannerService.LearnMoreAction(PROGUARD_LEARN_MORE), banner.DISMISS_ACTION))
-        null
-      }
-      catch (ignored: AppInspectionVersionMissingException) {
-        InspectorBannerService.getInstance(model.project)?.setNotification(LayoutInspectorBundle.message(VERSION_MISSING_MESSAGE_KEY))
-        null
-      }
-      catch (ignored: AppInspectionLibraryMissingException) {
-        // The artifact androidx.compose.ui:ui did not exist in the application.
-        // This is normal for View only applications.
-        null
-      }
       catch (unexpected: AppInspectionException) {
-        Logger.getInstance(ComposeLayoutInspectorClient::class.java).warn(unexpected)
+        handleError(project, logErrorToMetrics, unexpected.errorCode)
         null
       }
+    }
+
+    /**
+     * We were unable to find the compose inspection jar. This can mean eiter:
+     * - the app is using a SNAPSHOT for compose:ui:ui but have not specified the VM flag use.snapshot.jar
+     * - the jar file wasn't found where it is supposed to be / could not be downloaded
+     */
+    private fun versionNotFoundAsErrorCode(version: String = "") =
+        if (version.endsWith("-SNAPSHOT")) AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED
+        else AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND
+
+    private fun handleError(
+      project: Project,
+      logErrorToMetrics: (AttachErrorCode) -> Unit,
+      error: AttachErrorCode
+    ): ComposeLayoutInspectorClient? {
+      val actions = mutableListOf<AnAction>()
+      val message: String = when (error) {
+        AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY -> {
+          // This is not an error we want to report.
+          // The compose.ui.ui was not present, which is normal in a View only application.
+          return null
+        }
+        AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND ->
+          LayoutInspectorBundle.message(VERSION_MISSING_MESSAGE_KEY)
+        AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION ->
+          LayoutInspectorBundle.message(INCOMPATIBLE_LIBRARY_MESSAGE_KEY, MINIMUM_COMPOSE_COORDINATE.toString())
+        AttachErrorCode.APP_INSPECTION_PROGUARDED_APP -> {
+          actions.add(InspectorBannerService.LearnMoreAction(PROGUARD_LEARN_MORE))
+          LayoutInspectorBundle.message(PROGUARDED_LIBRARY_MESSAGE_KEY)
+        }
+        AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED ->
+          LayoutInspectorBundle.message(INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY)
+        AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND ->
+          LayoutInspectorBundle.message(COMPOSE_INSPECTION_NOT_AVAILABLE_KEY)
+        else -> {
+          logErrorToMetrics(error)
+          return null
+        }
+      }
+      val banner = InspectorBannerService.getInstance(project) ?: return null
+      actions.add(banner.DISMISS_ACTION)
+      banner.setNotification(message, actions)
+      logErrorToMetrics(error)
+      return null
     }
   }
 

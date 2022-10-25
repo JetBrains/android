@@ -576,6 +576,13 @@ class AppInspectionInspectorClientTest {
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
     assertThat(banner.text.text).isEqualTo(LayoutInspectorBundle.message(VERSION_MISSING_MESSAGE_KEY))
+
+    inspectorRule.launcher.disconnectActiveClient()
+
+    val session = usageRule.testTracker.usages
+      .single { it.studioEvent.dynamicLayoutInspectorEvent.type == DynamicLayoutInspectorEventType.SESSION_DATA }
+      .studioEvent.dynamicLayoutInspectorEvent.session
+    assertThat(session.attach.composeErrorCode).isEqualTo(AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND)
   }
 
   @Test

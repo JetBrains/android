@@ -174,7 +174,8 @@ class AppInspectionInspectorClient(
       apiServices.attachToProcess(process, model.project.name)
       launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS)
 
-      composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model, treeSettings, capabilities, launchMonitor)
+      composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model, treeSettings, capabilities, launchMonitor,
+                                                             ::logComposeAttachError)
       val viewIns = ViewLayoutInspectorClient.launch(apiServices, process, model, stats, scope, composeInspector,
                                                      ::fireError, ::fireTreeEvent, launchMonitor)
       propertiesProvider = AppInspectionPropertiesProvider(viewIns.propertiesCache, composeInspector?.parametersCache, model)
@@ -252,6 +253,10 @@ class AppInspectionInspectorClient(
 
   private fun logEvent(eventType: DynamicLayoutInspectorEventType) {
     metrics.logEvent(eventType, stats)
+  }
+
+  private fun logComposeAttachError(errorCode: AttachErrorCode) {
+    stats.composeAttachError(errorCode)
   }
 
   private suspend fun refreshInternal() {

@@ -90,6 +90,11 @@ interface SessionStatistics {
   fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode)
 
   /**
+   * The compose inspector failed to initialize.
+   */
+  fun composeAttachError(errorCode: AttachErrorCode)
+
+  /**
    * A frame was received.
    */
   fun frameReceived()
@@ -199,6 +204,10 @@ class SessionStatisticsImpl(clientType: ClientType, model: InspectorModel) : Ses
 
   override fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode) {
     attach.attachError(errorState, errorCode)
+  }
+
+  override fun composeAttachError(errorCode: AttachErrorCode) {
+    attach.composeAttachError(errorCode)
   }
 
   override fun frameReceived() {

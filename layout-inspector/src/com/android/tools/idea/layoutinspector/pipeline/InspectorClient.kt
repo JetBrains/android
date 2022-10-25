@@ -287,6 +287,7 @@ private object DisconnectedSessionStatistics : SessionStatistics {
   override fun resetRecompositionCountsClick() {}
   override fun attachSuccess() {}
   override fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode) {}
+  override fun composeAttachError(errorCode: AttachErrorCode) {}
   override fun frameReceived() {}
 
   override var currentModeIsLive: Boolean = false

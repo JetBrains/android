@@ -30,12 +30,14 @@ class AttachStatistics(
   private var error = false
   private var errorState = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
   private var errorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
+  private var composeErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
 
   fun start() {
     success = false
     error = false
     errorState = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
     errorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
+    composeErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
   }
 
   fun save(dataSupplier: () -> DynamicLayoutInspectorAttachToProcess.Builder) {
@@ -46,6 +48,7 @@ class AttachStatistics(
         error.attachErrorCode = errorCode
         error.attachErrorState = errorState
       }
+      it.composeErrorCode = composeErrorCode
     }
   }
 
@@ -57,5 +60,9 @@ class AttachStatistics(
     error = true
     this.errorState = errorState ?: AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
     this.errorCode = errorCode
+  }
+
+  fun composeAttachError(errorCode: AttachErrorCode) {
+    composeErrorCode = errorCode
   }
 }
