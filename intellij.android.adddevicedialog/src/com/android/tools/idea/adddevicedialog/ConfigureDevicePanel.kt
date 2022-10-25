@@ -17,29 +17,40 @@ package com.android.tools.idea.adddevicedialog
 
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
+import com.intellij.ui.components.JBTabbedPane
+import java.awt.Component
 import javax.swing.GroupLayout
 
 internal class ConfigureDevicePanel internal constructor() : JBPanel<ConfigureDevicePanel>(null) {
   init {
     val configureDeviceLabel = JBLabel("Configure device")
     val addDeviceToDeviceManagerLabel = JBLabel("Add a device to the device manager")
-    val deviceAndApiPanel = DeviceAndApiPanel()
+    val tabbedPane = tabbedPane()
 
     val layout = GroupLayout(this)
 
     val horizontalGroup = layout.createParallelGroup()
       .addComponent(configureDeviceLabel)
       .addComponent(addDeviceToDeviceManagerLabel)
-      .addComponent(deviceAndApiPanel)
+      .addComponent(tabbedPane)
 
     val verticalGroup = layout.createSequentialGroup()
       .addComponent(configureDeviceLabel)
       .addComponent(addDeviceToDeviceManagerLabel)
-      .addComponent(deviceAndApiPanel)
+      .addComponent(tabbedPane)
 
     layout.setHorizontalGroup(horizontalGroup)
     layout.setVerticalGroup(verticalGroup)
 
     setLayout(layout)
+  }
+
+  private fun tabbedPane(): Component {
+    val tabbedPane = JBTabbedPane()
+
+    tabbedPane.addTab("Device and API", DeviceAndApiPanel())
+    tabbedPane.addTab("Additional settings", AdditionalSettingsPanel())
+
+    return tabbedPane
   }
 }
