@@ -128,9 +128,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         val layoutInspector = LayoutInspector(launcher, model, treeSettings)
 
         val deviceModel = DeviceModel(processesModel)
-        val foregroundProcessDetection = createForegroundProcessDetection(
-          project, processesModel, deviceModel, workbench, toolWindow, metrics
-        )
+        val foregroundProcessDetection = createForegroundProcessDetection(project, processesModel, deviceModel)
 
         val deviceViewPanel = DeviceViewPanel(
           processesModel = processesModel,
@@ -165,9 +163,6 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     project: Project,
     processesModel: ProcessesModel,
     deviceModel: DeviceModel,
-    workBench: WorkBench<LayoutInspector>,
-    toolWindow: ToolWindow,
-    layoutInspectorMetrics: LayoutInspectorMetrics
   ): ForegroundProcessDetection? {
     return if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()) {
       ForegroundProcessDetectionInitializer.initialize(
@@ -176,12 +171,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         deviceModel = deviceModel,
         coroutineScope = project.coroutineScope,
         metrics = ForegroundProcessDetectionMetrics
-      ).also {
-        project.messageBus.connect(workBench).subscribe(
-          ToolWindowManagerListener.TOPIC,
-          ForegroundProcessDetectionWindowManagerListener(it, toolWindow.isVisible)
-        )
-      }
+      )
     }
     else {
       null
@@ -194,39 +184,6 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     processDiscovery = processDiscovery,
     isPreferred = { RecentProcess.isRecentProcess(it, project) }
   )
-}
-
-/**
- * Enables and disables [ForegroundProcessDetection] based on the state of the tool window (visible or not visible)
- */
-class ForegroundProcessDetectionWindowManagerListener(
-  private val foregroundProcessDetection: ForegroundProcessDetection,
-  isVisibleAtCreation: Boolean
-) : ToolWindowManagerListener {
-  init {
-    if (isVisibleAtCreation) {
-      foregroundProcessDetection.startListeningForEvents()
-    }
-  }
-
-  override fun stateChanged(toolWindowManager: ToolWindowManager) {
-    val isWindowVisible = isToolWindowExpanded(toolWindowManager)
-    toggleForegroundProcessDetection(isWindowVisible)
-  }
-
-  private fun toggleForegroundProcessDetection(shouldStart: Boolean) {
-    if (shouldStart) {
-      foregroundProcessDetection.startListeningForEvents()
-    }
-    else {
-      foregroundProcessDetection.stopListeningForEvents()
-    }
-  }
-
-  private fun isToolWindowExpanded(toolWindowManager: ToolWindowManager): Boolean {
-    val window = toolWindowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID) ?: return false
-    return window.isVisible
-  }
 }
 
 /**
