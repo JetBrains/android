@@ -23,16 +23,19 @@ internal class ConfigureDevicePanel internal constructor() : JBPanel<ConfigureDe
   init {
     val configureDeviceLabel = JBLabel("Configure device")
     val addDeviceToDeviceManagerLabel = JBLabel("Add a device to the device manager")
+    val deviceAndApiPanel = DeviceAndApiPanel()
 
     val layout = GroupLayout(this)
 
     val horizontalGroup = layout.createParallelGroup()
       .addComponent(configureDeviceLabel)
       .addComponent(addDeviceToDeviceManagerLabel)
+      .addComponent(deviceAndApiPanel)
 
     val verticalGroup = layout.createSequentialGroup()
       .addComponent(configureDeviceLabel)
       .addComponent(addDeviceToDeviceManagerLabel)
+      .addComponent(deviceAndApiPanel)
 
     layout.setHorizontalGroup(horizontalGroup)
     layout.setVerticalGroup(verticalGroup)
