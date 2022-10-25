@@ -331,7 +331,7 @@ void DisplayStreamer::Shutdown() {
   if (socket_fd_ > 0) {
     close(socket_fd_);
     StopCodec();
-    DisplayManager::UnregisterDisplayListener( Jvm::GetJni(), this);
+    DisplayManager::UnregisterDisplayListener(Jvm::GetJni(), this);
   }
 }
 
