@@ -23,9 +23,7 @@ import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.components.TextComponentEmptyText
 import com.intellij.ui.components.panels.VerticalLayout
-import com.intellij.util.BooleanFunction
 import com.intellij.util.ui.JBUI
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.event.ItemEvent
@@ -87,13 +85,10 @@ class HeaderRuleDialog(
         textField.isEnabled = isSelected
         if (!isSelected) {
           regexCheckBox?.isSelected = false
-          textField.text = ""
         }
         regexCheckBox?.isEnabled = isSelected
         updateOkAction()
       }
-      textField.putClientProperty(TextComponentEmptyText.STATUS_VISIBLE_FUNCTION, BooleanFunction<JBTextField>
-      { !it.isEnabled })
       addItemListener(changeAction)
       changeAction(ItemEvent(this, 0, null, ITEM_STATE_CHANGED))
     }

@@ -629,6 +629,46 @@ class RuleDetailsViewTest {
   }
 
   @Test
+  fun textFieldNotEmptyWhenDisabledAndEnabled() {
+    addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val headerTable = findComponentWithUniqueName(ruleDetailsView, "headerRules") as TableView<*>
+
+    val addAction = findAction(headerTable.parent.parent.parent, "Add")
+    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
+      val dialog = it as HeaderRuleDialog
+      dialog.tabs.selectedComponent = dialog.editHeaderPanel
+
+      assertThat(dialog.findNameTextField.isEnabled).isFalse()
+      assertThat(dialog.findNameTextField.text).isEmpty()
+      assertThat(dialog.findNameCheckBox.isSelected).isFalse()
+
+      // Check checkbox
+      dialog.findNameCheckBox.isSelected = true
+      // Assert text field is enabled
+      assertThat(dialog.findNameTextField.isEnabled).isTrue()
+
+      // Add text
+      dialog.findNameTextField.text = "Some-Header"
+      // Uncheck checkbox
+      dialog.findNameCheckBox.isSelected = false
+
+      // Assert the text does not disappear when checkbox unchecked
+      assertThat(dialog.findNameTextField.isEnabled).isFalse()
+      assertThat(dialog.findNameTextField.text).isNotEmpty()
+      assertThat(dialog.findNameTextField.text).isEqualTo("Some-Header")
+
+      // Check checkbox again to verify text is still present
+      dialog.findNameCheckBox.isSelected = true
+
+      // Assert the text does not disappear when checkbox checked
+      assertThat(dialog.findNameTextField.isEnabled).isTrue()
+      assertThat(dialog.findNameTextField.text).isNotEmpty()
+      assertThat(dialog.findNameTextField.text).isEqualTo("Some-Header")
+    }
+  }
+
+  @Test
   fun disableOkButtonOnEmptyNewHeaderInputInNewHeaderDialog() {
     addNewRule()
     val ruleDetailsView = detailsPanel.ruleDetailsView
