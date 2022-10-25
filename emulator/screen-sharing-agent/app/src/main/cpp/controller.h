@@ -18,18 +18,15 @@
 
 #include <atomic>
 #include <thread>
-#include <vector>
 
-#include <accessors/clipboard_manager.h>
-#include <accessors/key_character_map.h>
+#include "accessors/clipboard_manager.h"
+#include "accessors/key_character_map.h"
 #include "accessors/pointer_helper.h"
-#include "accessors/surface_control.h"
 #include "base128_input_stream.h"
 #include "common.h"
 #include "control_messages.h"
 #include "geom.h"
 #include "jvm.h"
-#include "scoped_setting.h"
 
 namespace screensharing {
 
@@ -78,9 +75,6 @@ private:
   JObjectArray pointer_coordinates_;  // MotionEvent.PointerCoords[]
   int64_t motion_event_start_time_;
   KeyCharacterMap* key_character_map_;  // Owned.
-  bool restore_normal_display_power_mode_;
-  ScopedSetting stay_on_;
-  ScopedSetting accelerometer_rotation_;
 
   ClipboardListener clipboard_listener_;
   int max_synced_clipboard_length_;

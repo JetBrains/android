@@ -37,6 +37,7 @@ add_library(
         log.cc
         main.cc
         scoped_setting.cc
+        session_environment.cc
         settings.cc
         string_printf.cc
         video_packet_header.cc

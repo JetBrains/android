@@ -37,20 +37,14 @@ Base128InputStream::Base128InputStream(int socket_fd, size_t buffer_size)
 
 Base128InputStream::~Base128InputStream() {
   Close();
+  delete[] buffer_;
 }
 
 void Base128InputStream::Close() {
-  if (buffer_ != nullptr) {
-    shutdown(fd_, SHUT_RD);
-    delete[] buffer_;
-    buffer_ = nullptr;
-  }
+  shutdown(fd_, SHUT_RD);
 }
 
 uint8_t Base128InputStream::ReadByte() {
-  if (buffer_ == nullptr) {
-    throw StreamClosedException();
-  }
   if (offset_ == data_end_) {
     auto n = read(fd_, buffer_, buffer_capacity_);
     if (n < 0) {
