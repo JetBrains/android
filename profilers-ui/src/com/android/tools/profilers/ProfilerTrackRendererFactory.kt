@@ -17,6 +17,7 @@ package com.android.tools.profilers
 
 import com.android.tools.adtui.trackgroup.TrackRendererFactory
 import com.android.tools.profilers.cpu.AndroidFrameEventTrackRenderer
+import com.android.tools.profilers.cpu.BatteryDrainTrackRenderer
 import com.android.tools.profilers.cpu.BufferQueueTrackRenderer
 import com.android.tools.profilers.cpu.CpuCoreTrackRenderer
 import com.android.tools.profilers.cpu.CpuFrequencyTrackRenderer
@@ -50,6 +51,7 @@ class ProfilerTrackRendererFactory(private val myProfilersView: StudioProfilersV
     ProfilerTrackRendererType.CPU_FREQUENCY -> CpuFrequencyTrackRenderer()
     ProfilerTrackRendererType.RSS_MEMORY -> RssMemoryTrackRenderer()
     ProfilerTrackRendererType.ANDROID_POWER_RAIL -> PowerRailTrackRenderer()
+    ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN -> BatteryDrainTrackRenderer()
     ProfilerTrackRendererType.ANDROID_FRAME_EVENT -> AndroidFrameEventTrackRenderer(vsyncEnabler)
     ProfilerTrackRendererType.ANDROID_FRAME_TIMELINE_EVENT -> JankyFrameTrackRenderer(myProfilersView, vsyncEnabler)
     ProfilerTrackRendererType.ANDROID_FRAME_DEADLINE_TEXT -> DeadlineTextRenderer(vsyncEnabler)

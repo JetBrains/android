@@ -64,6 +64,10 @@ public enum ProfilerTrackRendererType {
    */
   ANDROID_POWER_RAIL,
   /**
+   * For battery drain counters.
+   */
+  ANDROID_BATTERY_DRAIN,
+  /**
    * For Android frame lifecycle event.
    */
   ANDROID_FRAME_EVENT,
