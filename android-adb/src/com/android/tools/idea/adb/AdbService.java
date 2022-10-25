@@ -343,8 +343,17 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
         // So, we only check if all projects are closed. If yes, terminate adb.
         if (ProjectManager.getInstance().getOpenProjects().length == 0) {
           LOG.info("Ddmlib can be terminated as all projects have been closed");
-          //noinspection unused
-          Future<?> unused = mySequentialExecutor.submit(myImplementation::terminate);
+          Future<?> terminateAdb = mySequentialExecutor.submit(myImplementation::terminate);
+          if (ApplicationManager.getApplication().isUnitTestMode()) {
+            // In unit tests terminate ADB synchronously to ensures ADB won't be terminated when another test has started running.
+            try {
+              terminateAdb.get(30, TimeUnit.SECONDS);
+            }
+            catch (Throwable e) {
+              LOG.warn("Failed to terminate ddmlib.", e);
+              throw new RuntimeException(e);
+            }
+          }
         }
       }
     });
