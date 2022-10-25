@@ -66,7 +66,7 @@ class LiveEditTest {
   //    }
   //  })
   //  action.update(project, presentation, DataContext.EMPTY_CONTEXT)
-  //  assertThat(presentation.isEnabledAndVisible).isEqualTo(false)
+  //  assertThat(presentation.isEnabledAndVisible).isFalse()
   //}
   //
   //@Test
@@ -99,6 +99,6 @@ class LiveEditTest {
   //  })
   //  action.update(project, presentation, DataContext.EMPTY_CONTEXT)
   //  assertThat(presentation.icon).isEqualTo(LiveEditAction.getIconForState(EditState.UP_TO_DATE))
-  //  assertThat(presentation.isEnabledAndVisible).isEqualTo(true)
+  //  assertThat(presentation.isEnabledAndVisible).isTrue()
   //}
 }
