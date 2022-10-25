@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,26 @@
 
 #pragma once
 
-#include <string>
+#include <mutex>
+
+#include "common.h"
+#include "scoped_setting.h"
 
 namespace screensharing {
 
-class IoException : public std::exception {
+// Manages system settings that are modified when the agent starts and restored to the original
+// values when the agent terminates.
+class SessionEnvironment {
 public:
-  IoException();
-  IoException(const char* message);
-
-  virtual std::string GetMessage() const;
+  SessionEnvironment(bool turn_off_display);
+  ~SessionEnvironment();
 
 private:
-  int errno_;
-  std::string message_;
-};
+  ScopedSetting accelerometer_rotation_;
+  ScopedSetting stay_on_;
+  bool restore_normal_display_power_mode_;
 
-class IoTimeout : public IoException {
-};
-
-class EndOfFile : public IoException {
+  DISALLOW_COPY_AND_ASSIGN(SessionEnvironment);
 };
 
 }  // namespace screensharing

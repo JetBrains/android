@@ -25,7 +25,10 @@
 #include <chrono>
 #include <cstdlib>
 
+#include "accessors/service_manager.h"
+#include "flags.h"
 #include "log.h"
+#include "session_environment.h"
 
 namespace screensharing {
 
@@ -56,15 +59,13 @@ int CreateAndConnectSocket(const char* socket_name) {
   Log::Fatal("Invalid command line argument: \"%s\"", arg.c_str());
 }
 
+void sighup_handler(int signal_number) {
+  Agent::Shutdown();
+}
+
 }  // namespace
 
-Agent::Agent(const vector<string>& args)
-    : max_video_resolution_(Size(numeric_limits<int32_t>::max(), numeric_limits<int32_t>::max())),
-      initial_video_orientation_(-1),
-      codec_name_("vp8") {
-  assert(instance_ == nullptr);
-  instance_ = this;
-
+Agent::Agent(const vector<string>& args) {
   for (int i = 1; i < args.size(); i++) {
     const string& arg = args[i];
     if (arg.rfind("--log=", 0) == 0) {
@@ -112,12 +113,17 @@ Agent::Agent(const vector<string>& args)
   }
 }
 
-Agent::~Agent() {
-  delete controller_;
-  delete display_streamer_;
-}
+Agent::~Agent() = default;
 
 void Agent::Run() {
+  struct sigaction action;
+  memset(&action, 0, sizeof(action));
+  action.sa_handler = sighup_handler;
+  int res = sigaction(SIGHUP, &action, nullptr);
+  if (res < 0) {
+    Log::D("Unable to set SIGHUP handler - sigaction returned %d", res);
+  }
+
   display_streamer_ = new DisplayStreamer(
       display_id_, codec_name_, max_video_resolution_, initial_video_orientation_, CreateAndConnectSocket(SOCKET_NAME));
   controller_ = new Controller(CreateAndConnectSocket(SOCKET_NAME));
@@ -127,50 +133,63 @@ void Agent::Run() {
 }
 
 void Agent::SetVideoOrientation(int32_t orientation) {
-  if (instance_ != nullptr) {
-    instance_->display_streamer_->SetVideoOrientation(orientation);
-  }
+  display_streamer_->SetVideoOrientation(orientation);
 }
 
 void Agent::SetMaxVideoResolution(Size max_video_resolution) {
-  if (instance_ != nullptr) {
-    instance_->max_video_resolution_ = max_video_resolution;
-    instance_->display_streamer_->SetMaxVideoResolution(max_video_resolution);
-  }
+  max_video_resolution_ = max_video_resolution;
+  display_streamer_->SetMaxVideoResolution(max_video_resolution);
 }
 
 DisplayInfo Agent::GetDisplayInfo() {
-  if (instance_ == nullptr || instance_->display_streamer_ == nullptr) {
+  if (display_streamer_ == nullptr) {
     Log::Fatal("Display information has not been obtained yet");
   }
-  return instance_->display_streamer_->GetDisplayInfo();
+  return display_streamer_->GetDisplayInfo();
+}
+
+void Agent::InitializeSessionEnvironment() {
+  ServiceManager::GetService(Jvm::GetJni(), "settings");  // Wait for the "settings" service to initialize.
+  scoped_lock lock(environment_mutex_);
+  session_environment_ = new SessionEnvironment((flags_ & TURN_OFF_DISPLAY_WHILE_MIRRORING) != 0);
+}
+
+void Agent::RestoreEnvironment() {
+  scoped_lock lock(environment_mutex_);
+  delete session_environment_;
+  session_environment_ = nullptr;
 }
 
 void Agent::Shutdown() {
-  if (instance_ != nullptr) {
-    instance_->ShutdownInternal();
-  }
-}
-
-void Agent::ShutdownInternal() {
-  if (controller_ != nullptr) {
-    controller_->Shutdown();
-  }
-  if (display_streamer_ != nullptr) {
-    display_streamer_->Shutdown();
+  if (!shutting_down_.exchange(true)) {
+    if (controller_ != nullptr) {
+      controller_->Shutdown();
+    }
+    if (display_streamer_ != nullptr) {
+      display_streamer_->Shutdown();
+    }
+    RestoreEnvironment();
   }
 }
 
 int64_t Agent::GetLastTouchEventTime() {
-  return instance_ == nullptr ? 0 : instance_->last_touch_time_millis_.load();
+  return last_touch_time_millis_.load();
 }
 
 void Agent::RecordTouchEvent() {
-  if (instance_ != nullptr) {
-    instance_->last_touch_time_millis_.store(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
-  }
+  last_touch_time_millis_.store(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
 }
 
-Agent* Agent::instance_ = nullptr;
+int32_t Agent::display_id_(0);
+Size Agent::max_video_resolution_(numeric_limits<int32_t>::max(), numeric_limits<int32_t>::max());
+int32_t Agent::initial_video_orientation_(-1);
+string Agent::codec_name_("vp8");
+int32_t Agent::flags_(0);
+DisplayStreamer* Agent::display_streamer_(nullptr);
+Controller* Agent::controller_(nullptr);
+mutex Agent::environment_mutex_;
+SessionEnvironment* Agent::session_environment_(nullptr);  // GUARDED_BY(environment_mutex_)
+atomic_int64_t Agent::last_touch_time_millis_(0);
+atomic_bool Agent::shutting_down_(false);
 
 }  // namespace screensharing
