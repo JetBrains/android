@@ -236,7 +236,10 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     // Calculated new representations
     for (provider in providers.filter { it.displayName !in currentRepresentationsNames }) {
       val representation = provider.createRepresentation (file)
-      Disposer.register(this@MultiRepresentationPreview, representation)
+      if (!Disposer.tryRegister(this@MultiRepresentationPreview, representation)) {
+        Disposer.dispose(representation)
+        return
+      }
       shortcutsApplicableComponent?.let {
         invokeLater {
           if (!Disposer.isDisposed(representation)) representation.registerShortcuts(it)
