@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.animation
+package com.android.tools.idea.compose.preview.animation.actions
 
+import com.android.tools.idea.compose.preview.animation.AnimationPreviewState
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationEventTracker
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.message
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import icons.StudioIcons
 import java.util.function.Supplier
 
+/** A toggle action to freeze / unfreeze animation. */
 class FreezeAction(
   private val previewState: AnimationPreviewState,
   val state: ElementState,
@@ -56,5 +60,9 @@ class FreezeAction(
         if (previewState.isCoordinationAvailable()) message("animation.inspector.action.freeze")
         else message("animation.inspector.coordination.unavailable.freeze.animation")
     }
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
   }
 }

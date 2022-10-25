@@ -25,7 +25,9 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.compose.preview.animation.TestUtils.createComposeAnimation
+import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.compose.preview.animation.TestUtils.findLabel
+import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.compose.preview.animation.managers.AnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnimationManager
 import com.android.tools.idea.rendering.classloading.NopClassLocator
@@ -42,7 +44,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.ui.ComboBox
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.testFramework.runInEdtAndGet
@@ -51,6 +52,7 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 import java.io.IOException
 import java.util.stream.Collectors
+import javax.swing.JComponent
 import javax.swing.JSlider
 import org.jetbrains.android.uipreview.createUrlClassLoader
 import org.junit.After
@@ -260,36 +262,19 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
 
     invokeAndWaitIfNeeded {
-      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-      // We can get any of the combo boxes, since "from" and "to" states should be the same.
-      val stateComboBoxes =
-        TreeWalker(inspector.component)
-          .descendantStream()
-          .filter { it is ComboBox<*> }
-          .collect(Collectors.toList())
-      assertEquals(2, stateComboBoxes.size) // "start" combobox and  "end" combobox.
-      val startStateComboBox = stateComboBoxes[0] as ComboBox<*>
-      val endStateComboBox = stateComboBoxes[1] as ComboBox<*>
-
-      assertEquals(3, startStateComboBox.itemCount)
-      assertEquals("State1", startStateComboBox.getItemAt(0))
-      assertEquals("State2", startStateComboBox.getItemAt(1))
-      assertEquals("State3", startStateComboBox.getItemAt(2))
-
-      assertEquals("State1", startStateComboBox.selectedItem)
-      // The "end" combo box does not display the same state as the "start" combo box if possible
-      assertEquals("State2", endStateComboBox.selectedItem)
-
-      // Change state of the comboBox.
-      startStateComboBox.selectedItem = "State2"
-      PlatformTestUtil
-        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
-
-      // Change state of the comboBox back to previous state - cached transition info should be
-      // used.
-      startStateComboBox.selectedItem = "State1"
-      PlatformTestUtil
-        .dispatchAllInvocationEventsInIdeEventQueue() // Wait for all changes in UI thread
+      val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
+      ui.updateToolbars()
+      ui.layoutAndDispatchEvents()
+      (inspector.component.findToolbar("AnimationCard") as JComponent).let {
+        // Freeze, swap, from state, label, to state components.
+        assertEquals(5, it.componentCount)
+        assertEquals("State1", it.components[2].findComboBox().text)
+        assertEquals("State2", it.components[4].findComboBox().text)
+        // Swap
+        ui.clickOn(it.components[1])
+        assertEquals("State2", it.components[2].findComboBox().text)
+        assertEquals("State1", it.components[4].findComboBox().text)
+      }
     }
   }
 
@@ -307,26 +292,18 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animatedVisibilityAnimation)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
 
-    val stateComboBoxes =
-      TreeWalker(inspector.component)
-        .descendantStream()
-        .filter { it is ComboBox<*> }
-        .collect(Collectors.toList())
-    assertEquals(1, stateComboBoxes.size) // AnimatedVisibility has a single combo box
-    val animatedVisibilityComboBox = stateComboBoxes[0] as ComboBox<*>
-
-    assertEquals(2, animatedVisibilityComboBox.itemCount)
-    assertEquals("Enter", animatedVisibilityComboBox.getItemAt(0))
-    assertEquals("Exit", animatedVisibilityComboBox.getItemAt(1))
-    assertEquals("Enter", animatedVisibilityComboBox.selectedItem)
-
-    // Change state of the comboBox.
-    animatedVisibilityComboBox.selectedItem = "Exit"
-    UIUtil.pump() // Wait for all changes in UI thread
-
-    // Change state of the comboBox back to previous state - cached transition info should be used.
-    animatedVisibilityComboBox.selectedItem = "Enter"
-    UIUtil.pump() // Wait for all changes in UI thread
+    invokeAndWaitIfNeeded {
+      val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
+      ui.updateToolbars()
+      ui.layoutAndDispatchEvents()
+      (inspector.component.findToolbar("AnimationCard") as JComponent).let {
+        // Freeze, swap, state components.
+        assertEquals(3, it.componentCount)
+        assertEquals("Enter", it.components[2].findComboBox().text)
+        ui.clickOn(it.components[1])
+        assertEquals("Exit", it.components[2].findComboBox().text)
+      }
+    }
   }
 
   @Test
@@ -458,28 +435,30 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     val inspector = createAndOpenInspector()
     val transitionAnimation =
       object : ComposeAnimation {
-        override val animationObject = Any()
+        override val animationObject = Any() // Note that `getCurrentState` is not provided.
         override val type = ComposeAnimationType.TRANSITION_ANIMATION
         override val states = setOf(true) // Note that `false` is not provided
       }
 
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
-    UIUtil.pump() // Wait for the tab to be added on the UI thread
 
-    // We can get any of the combo boxes, since "from" and "to" states should be the same.
-    val stateComboBoxes =
-      TreeWalker(inspector.component)
-        .descendantStream()
-        .filter { it is ComboBox<*> }
-        .collect(Collectors.toList())
-    val startStateComboBox = stateComboBoxes[0] as ComboBox<*>
+    invokeAndWaitIfNeeded {
+      val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
+      ui.updateToolbars()
+      ui.layoutAndDispatchEvents()
+      (inspector.component.findToolbar("AnimationCard") as JComponent).let {
+        // Freeze, swap, from state, label, to state components.
+        assertEquals(5, it.componentCount)
+        assertEquals("true", it.components[2].findComboBox().text)
+        assertEquals("false", it.components[4].findComboBox().text)
+        // false inferred because the animation states received had a boolean
 
-    assertEquals(2, startStateComboBox.itemCount)
-    assertEquals(true, startStateComboBox.getItemAt(0))
-    assertEquals(
-      false,
-      startStateComboBox.getItemAt(1)
-    ) // false inferred because the animation states received had a boolean
+        // Swap
+        ui.clickOn(it.components[1])
+        assertEquals("false", it.components[2].findComboBox().text)
+        assertEquals("true", it.components[4].findComboBox().text)
+      }
+    }
   }
 
   @Test

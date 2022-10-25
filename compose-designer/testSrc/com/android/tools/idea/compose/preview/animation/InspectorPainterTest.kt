@@ -16,13 +16,10 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.ui.ComboBox
 import java.awt.Graphics2D
 import javax.swing.JSlider
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -75,123 +72,5 @@ class InspectorPainterTest {
   fun paintThumbForHorizSlider() {
     val g = mock(Graphics2D::class.java)
     InspectorPainter.Thumb.paintThumbForHorizSlider(g, 0, 0, 100)
-  }
-
-  @Test
-  fun createStartEndComboBox() {
-    val comboBox: InspectorPainter.StateComboBox =
-      InspectorPainter.StartEndComboBox(mock(DesignSurface::class.java), logger = {}, callback = {})
-    assertNotNull(comboBox.stateHashCode())
-    assertNotNull(comboBox.component)
-    comboBox.updateStates(setOf("One", "Two", "Three"))
-    // Before `setStartState` is called, states are the same.
-    assertEquals("One", comboBox.getState(0))
-    assertEquals("One", comboBox.getState(1))
-    comboBox.setStartState("One")
-    assertEquals("One", comboBox.getState(0))
-    assertEquals("Two", comboBox.getState(1))
-    comboBox.setupListeners()
-  }
-
-  @Test
-  fun createStartEndComboBoxes() {
-    var callbacks = 0
-    val comboBoxOne: InspectorPainter.StateComboBox =
-      InspectorPainter.StartEndComboBox(
-        mock(DesignSurface::class.java),
-        logger = {},
-        callback = { callbacks++ }
-      )
-    val comboBoxTwo: InspectorPainter.StateComboBox =
-      InspectorPainter.StartEndComboBox(
-        mock(DesignSurface::class.java),
-        logger = {},
-        callback = { callbacks++ }
-      )
-    val boxes = InspectorPainter.StateComboBoxes(listOf(comboBoxOne, comboBoxTwo))
-
-    // All StateComboBox have the same state.
-    boxes.updateStates(setOf("One", "Two", "Three"))
-    boxes.setStartState("One")
-    assertEquals("One", boxes.getState(0))
-    assertEquals("One", comboBoxOne.getState(0))
-    assertEquals("One", comboBoxTwo.getState(0))
-    assertEquals("Two", boxes.getState(1))
-    assertEquals("Two", comboBoxOne.getState(1))
-    assertEquals("Two", comboBoxTwo.getState(1))
-    // All StateComboBox have the same stateHashCode.
-    assertEquals(boxes.stateHashCode(), comboBoxOne.stateHashCode())
-    assertEquals(boxes.stateHashCode(), comboBoxTwo.stateHashCode())
-    // Callback is called only once and state for all comboBoxes has changed.
-    boxes.setupListeners()
-    (comboBoxOne.component.components.first { it is ComboBox<*> } as ComboBox<*>).apply {
-      this.selectedIndex = 2
-      assertEquals(1, callbacks)
-      assertEquals("Three", boxes.getState(0))
-      assertEquals("Three", comboBoxOne.getState(0))
-      assertEquals("Three", comboBoxTwo.getState(0))
-    }
-    (comboBoxTwo.component.components.first { it is ComboBox<*> } as ComboBox<*>).apply {
-      this.selectedIndex = 1
-      assertEquals(2, callbacks)
-      assertEquals("Two", boxes.getState(0))
-      assertEquals("Two", comboBoxOne.getState(0))
-      assertEquals("Two", comboBoxTwo.getState(0))
-    }
-  }
-
-  @Test
-  fun createAnimatedVisibilityComboBox() {
-    val comboBox: InspectorPainter.StateComboBox =
-      InspectorPainter.AnimatedVisibilityComboBox(logger = {}, callback = {})
-    assertNotNull(comboBox.stateHashCode())
-    assertNotNull(comboBox.component)
-    comboBox.updateStates(setOf("One", "Two", "Three"))
-    assertEquals("One", comboBox.getState(0))
-    comboBox.setStartState("Two")
-    assertEquals("Two", comboBox.getState(0))
-    comboBox.setupListeners()
-  }
-
-  @Test
-  fun createAnimatedVisibilityComboBoxes() {
-    var callbacks = 0
-    val comboBoxOne: InspectorPainter.StateComboBox =
-      InspectorPainter.AnimatedVisibilityComboBox(logger = {}, callback = { callbacks++ })
-    val comboBoxTwo: InspectorPainter.StateComboBox =
-      InspectorPainter.AnimatedVisibilityComboBox(logger = {}, callback = { callbacks++ })
-    val boxes = InspectorPainter.StateComboBoxes(listOf(comboBoxOne, comboBoxTwo))
-
-    // All StateComboBox have the same state.
-    boxes.updateStates(setOf("One", "Two", "Three"))
-    boxes.setStartState("One")
-    assertEquals("One", boxes.getState(0))
-    assertEquals("One", comboBoxOne.getState(0))
-    assertEquals("One", comboBoxTwo.getState(0))
-    // All StateComboBox have the same stateHashCode.
-    assertEquals(boxes.stateHashCode(), comboBoxOne.stateHashCode())
-    assertEquals(boxes.stateHashCode(), comboBoxTwo.stateHashCode())
-    // Callback is called only once.
-    boxes.setupListeners()
-    (comboBoxOne.component as ComboBox<*>).apply {
-      this.selectedIndex = 2
-      assertEquals(1, callbacks)
-      assertEquals("Three", boxes.getState(0))
-      assertEquals("Three", comboBoxOne.getState(0))
-      assertEquals("Three", comboBoxTwo.getState(0))
-    }
-    (comboBoxTwo.component as ComboBox<*>).apply {
-      this.selectedIndex = 1
-      assertEquals(2, callbacks)
-      assertEquals("Two", boxes.getState(0))
-      assertEquals("Two", comboBoxOne.getState(0))
-      assertEquals("Two", comboBoxTwo.getState(0))
-    }
-  }
-
-  @Test
-  fun createEmptyComboBox() {
-    val comboBox: InspectorPainter.StateComboBox = InspectorPainter.EmptyComboBox()
-    assertNotNull(comboBox.component)
   }
 }

@@ -20,7 +20,6 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.ToolbarLabelAction
@@ -54,11 +53,9 @@ class BottomPanel(
     DefaultToolbarImpl(
       surface,
       "ResetCoordinationTimeline",
-      DefaultActionGroup(
-        listOf(ClockTimeLabel(), Separator()) +
-          if (COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()) listOf(ResetTimelineAction())
-          else emptyList()
-      )
+      listOf(ClockTimeLabel(), Separator()) +
+        if (COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()) listOf(ResetTimelineAction())
+        else emptyList()
     )
 
   private val resetListeners: MutableList<() -> Unit> = mutableListOf()

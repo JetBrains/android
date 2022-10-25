@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.TestUtils.findExpandButton
+import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import java.awt.Component
 import java.awt.Dimension
-import java.util.stream.Collectors
 import javax.swing.JComponent
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -142,13 +140,6 @@ class AnimationCardTest {
   }
 
   private fun findFreezeButton(parent: Component): Component {
-    val frozeToolbar =
-      TreeWalker(parent)
-        .descendantStream()
-        .filter { it is ActionToolbarImpl }
-        .collect(Collectors.toList())
-        .map { it as ActionToolbarImpl }
-        .firstOrNull { it.place == "FreezeAnimationCard" }
-    return (frozeToolbar as JComponent).components[0]
+    return parent.findToolbar("AnimationCard").components[0]
   }
 }
