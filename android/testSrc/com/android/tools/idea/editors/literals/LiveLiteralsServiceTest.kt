@@ -107,7 +107,6 @@ internal class LiveLiteralsServiceTest {
     }
   }
 
-  @Ignore("b/194631917")
   @Test
   fun `check that already open editors register constants`() {
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
@@ -121,7 +120,6 @@ internal class LiveLiteralsServiceTest {
     assertEquals(9, liveLiteralsService.allConstants().size)
   }
 
-  @Ignore("b/194631917")
   @Test
   fun `check that constants are registered after a new editor is opened`() {
     val liveLiteralsService = getTestLiveLiteralsService()
@@ -146,7 +144,6 @@ internal class LiveLiteralsServiceTest {
     assertEquals(9, liveLiteralsService.allConstants().size)
   }
 
-  @Ignore("b/194631917")
   @Test
   fun `listener notification`() {
     // Setup
