@@ -78,17 +78,6 @@ class IssuePanelServiceTest {
   }
 
   @Test
-  fun testInitWithDesignFile() {
-    val file = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
-    runInEdtAndWait {
-      rule.fixture.openFileInEditor(file.virtualFile)
-    }
-
-    assertEquals("Layout and Qualifiers", toolWindow.contentManager.selectedContent!!.displayName)
-    assertEquals(2, toolWindow.contentManager.contents.size)
-  }
-
-  @Test
   fun testInitWithOtherFile() {
     val file = rule.fixture.addFileToProject("/src/file.kt", "")
     runInEdtAndWait {
@@ -111,7 +100,7 @@ class IssuePanelServiceTest {
     runInEdtAndWait {
       rule.fixture.openFileInEditor(layoutFile.virtualFile)
     }
-    assertTrue(service.isIssuePanelVisible(mock()))
+    assertFalse(service.isIssuePanelVisible(mock()))
   }
 
   @Test
@@ -135,7 +124,7 @@ class IssuePanelServiceTest {
   }
 
   @Test
-  fun testGetSharedIssuePanel() {
+  fun testOpeningFileDoesNotOpenSharedIssuePanel() {
     val ktFile = rule.fixture.addFileToProject("/src/file.kt", "")
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
 
@@ -147,7 +136,7 @@ class IssuePanelServiceTest {
     runInEdtAndWait {
       rule.fixture.openFileInEditor(layoutFile.virtualFile)
     }
-    assertNotNull(service.getSelectedSharedIssuePanel())
+    assertNull(service.getSelectedSharedIssuePanel())
 
     runInEdtAndWait {
       rule.fixture.openFileInEditor(ktFile.virtualFile)
@@ -326,6 +315,19 @@ class IssuePanelServiceTest {
     // The issue panel should be added back after register the file
     service.registerFile(file, null)
     assertTrue(service.isSharedIssuePanelAddedToProblemsPane())
+  }
+
+  @Test
+  fun testExplicitShowCallSelectsTheCorrectTab() {
+    val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
+    ProblemsView.getToolWindow(rule.project)!!.show()
+    runInEdtAndWait {
+      rule.fixture.openFileInEditor(layoutFile.virtualFile)
+    }
+    assertFalse(service.isIssuePanelVisible(mock()))
+
+    service.setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
+    assertFalse(service.isIssuePanelVisible(mock()))
   }
 }
 

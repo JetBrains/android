@@ -182,12 +182,12 @@ class IssuePanelService(private val project: Project) {
           return
         }
         if (isComposeFile(newFile) || isSupportedDesignerFileType(newFile)) {
-          addIssuePanel(selectIfVisible)
+          addIssuePanel()
           return
         }
         val surface = newEditor?.getDesignSurface()
         if (surface != null) {
-          updateIssuePanelVisibility(newFile, selectIfVisible)
+          updateIssuePanelVisibility(newFile)
         }
         else {
           removeSharedIssueTabFromProblemsPanel()
@@ -215,26 +215,23 @@ class IssuePanelService(private val project: Project) {
     }
   }
 
-  private fun updateIssuePanelVisibility(file: VirtualFile, selectIfVisible: Boolean) {
+  private fun updateIssuePanelVisibility(file: VirtualFile) {
     val psiFileType = file.toPsiFile(project)?.typeOf()
     if (psiFileType is DrawableFileType) {
       // We don't support Shared issue panel for Drawable files.
       removeSharedIssueTabFromProblemsPanel()
     }
     else {
-      addIssuePanel(selectIfVisible)
+      addIssuePanel()
     }
   }
 
   /**
    * Add shared issue panel into IJ's problems panel. If [selected] is true, select the shared issue panel after added.
    */
-  private fun addIssuePanel(selected: Boolean) {
+  private fun addIssuePanel() {
     addSharedIssueTabToProblemsPanel()
     updateSharedIssuePanelTabName()
-    if (selected) {
-      selectSharedIssuePanelTab()
-    }
   }
 
   private fun selectSharedIssuePanelTab() {
@@ -512,7 +509,7 @@ class IssuePanelService(private val project: Project) {
       fileToTabName.remove(file)
     }
     if (FileEditorManager.getInstance(project).selectedEditors.any { it.file == file }) {
-      updateIssuePanelVisibility(file, false)
+      updateIssuePanelVisibility(file)
     }
   }
 
