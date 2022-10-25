@@ -29,8 +29,6 @@ namespace screensharing {
 // The main class of the screen sharing agent.
 class Agent {
 public:
-  static constexpr int32_t FLAG_TURN_SCREEN_OFF = 0x01;
-
   Agent(const std::vector<std::string>& args);
   ~Agent();
 
