@@ -202,84 +202,89 @@ private class WarningsTreeStructure(
   fun updateStructure(groupByPlugin: Boolean, filter: WarningsFilter) {
     pageIdToNode.clear()
     treeStats.clear()
-    treeRoot.let { rootNode ->
-      rootNode.removeAllChildren()
-      val taskWarnings = reportData.issues.asSequence()
-        .flatMap { it.issues.asSequence() }
-        .filter { filter.acceptTaskIssue(it) }
-        .toList()
-      treeStats.filteredWarningsCount += taskWarnings.size
+    treeRoot.removeAllChildren()
 
-      if (groupByPlugin) {
-        taskWarnings.groupBy { it.task.pluginName }.forEach { (pluginName, warnings) ->
-          val warningsByTask = warnings.groupBy { it.task }
-          val pluginTreeGroupingNode = treeNode(PluginGroupingWarningNodeDescriptor(pluginName, warningsByTask))
-          rootNode.add(pluginTreeGroupingNode)
-          warningsByTask.forEach { (task, warnings) ->
-            pluginTreeGroupingNode.add(treeNode(TaskUnderPluginDetailsNodeDescriptor(task, warnings)))
-          }
+    val warningsToAdd = mutableListOf<WarningsTreeNode>()
+
+    val taskWarnings = reportData.issues.asSequence()
+      .flatMap { it.issues.asSequence() }
+      .filter { filter.acceptTaskIssue(it) }
+      .toList()
+    treeStats.filteredWarningsCount += taskWarnings.size
+
+    if (groupByPlugin) {
+      taskWarnings.groupBy { it.task.pluginName }.forEach { (pluginName, warnings) ->
+        val warningsByTask = warnings.groupBy { it.task }
+        val pluginTreeGroupingNode = treeNode(PluginGroupingWarningNodeDescriptor(pluginName, warningsByTask))
+        warningsToAdd.add(pluginTreeGroupingNode)
+        warningsByTask.forEach { (task, warnings) ->
+          pluginTreeGroupingNode.add(treeNode(TaskUnderPluginDetailsNodeDescriptor(task, warnings)))
         }
       }
-      else {
-        taskWarnings.groupBy { it.type }.forEach { (type, warnings) ->
-          val warningTypeGroupingNodeDescriptor = TaskWarningTypeNodeDescriptor(type, warnings)
-          val warningTypeGroupingNode = treeNode(warningTypeGroupingNodeDescriptor)
-          rootNode.add(warningTypeGroupingNode)
-          warnings.map { TaskWarningDetailsNodeDescriptor(it) }.forEach { taskIssueNodeDescriptor ->
-            warningTypeGroupingNode.add(treeNode(taskIssueNodeDescriptor))
-          }
-        }
-      }
-
-      if (filter.showAnnotationProcessorWarnings) {
-        reportData.annotationProcessors.nonIncrementalProcessors.asSequence()
-          .map { AnnotationProcessorDetailsNodeDescriptor(it) }
-          .toList()
-          .ifNotEmpty {
-            val annotationProcessorsRootNode = treeNode(AnnotationProcessorsRootNodeDescriptor(reportData.annotationProcessors))
-            rootNode.add(annotationProcessorsRootNode)
-            forEach {
-              annotationProcessorsRootNode.add(treeNode(it))
-            }
-            treeStats.filteredWarningsCount += size
-          }
-      }
-
-      // Add configuration caching issues
-      if (filter.showConfigurationCacheWarnings && reportData.confCachingData.shouldShowWarning()) {
-        val configurationDuration = reportData.buildSummary.configurationDuration
-        val configurationCacheData = reportData.confCachingData
-        rootNode.add(treeNode(ConfigurationCachingRootNodeDescriptor(configurationCacheData, configurationDuration)).apply {
-          if (configurationCacheData is IncompatiblePluginsDetected) {
-            configurationCacheData.upgradePluginWarnings.forEach {
-              add(treeNode(ConfigurationCachingWarningNodeDescriptor(it, configurationDuration)))
-            }
-            configurationCacheData.incompatiblePluginWarnings.forEach {
-              add(treeNode(ConfigurationCachingWarningNodeDescriptor(it, configurationDuration)))
-            }
-          }
-        })
-        treeStats.filteredWarningsCount += configurationCacheData.warningsCount()
-      }
-
-      // Add Jetifier usage warning
-      if (reportData.jetifierData.shouldShowWarning()) {
-        if (filter.showJetifierWarnings) {
-          rootNode.add(treeNode(JetifierUsageWarningRootNodeDescriptor(reportData.jetifierData)))
-          treeStats.filteredWarningsCount++
-        }
-      }
-
-      reportData.criticalPathTaskCategories?.entries?.map { criticalPathTaskCategoryData ->
-        val warnings = criticalPathTaskCategoryData.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true)
-        if (warnings.isNotEmpty()) {
-          rootNode.add(treeNode(TaskCategoryWarningNodeDescriptor(criticalPathTaskCategoryData)))
-          treeStats.filteredWarningsCount += warnings.size
-        }
-      }
-
-      treeStats.totalWarningsCount = reportData.countTotalWarnings()
     }
+    else {
+      taskWarnings.groupBy { it.type }.forEach { (type, warnings) ->
+        val warningTypeGroupingNodeDescriptor = TaskWarningTypeNodeDescriptor(type, warnings)
+        val warningTypeGroupingNode = treeNode(warningTypeGroupingNodeDescriptor)
+        warningsToAdd.add(warningTypeGroupingNode)
+        warnings.map { TaskWarningDetailsNodeDescriptor(it) }.forEach { taskIssueNodeDescriptor ->
+          warningTypeGroupingNode.add(treeNode(taskIssueNodeDescriptor))
+        }
+      }
+    }
+
+    if (filter.showAnnotationProcessorWarnings) {
+      reportData.annotationProcessors.nonIncrementalProcessors.asSequence()
+        .map { AnnotationProcessorDetailsNodeDescriptor(it) }
+        .toList()
+        .ifNotEmpty {
+          val annotationProcessorsRootNode = treeNode(AnnotationProcessorsRootNodeDescriptor(reportData.annotationProcessors))
+          warningsToAdd.add(annotationProcessorsRootNode)
+          forEach {
+            annotationProcessorsRootNode.add(treeNode(it))
+          }
+          treeStats.filteredWarningsCount += size
+        }
+    }
+
+    // Add configuration caching issues
+    if (filter.showConfigurationCacheWarnings && reportData.confCachingData.shouldShowWarning()) {
+      val configurationDuration = reportData.buildSummary.configurationDuration
+      val configurationCacheData = reportData.confCachingData
+      warningsToAdd.add(treeNode(ConfigurationCachingRootNodeDescriptor(configurationCacheData, configurationDuration)).apply {
+        if (configurationCacheData is IncompatiblePluginsDetected) {
+          configurationCacheData.upgradePluginWarnings.forEach {
+            add(treeNode(ConfigurationCachingWarningNodeDescriptor(it, configurationDuration)))
+          }
+          configurationCacheData.incompatiblePluginWarnings.forEach {
+            add(treeNode(ConfigurationCachingWarningNodeDescriptor(it, configurationDuration)))
+          }
+        }
+      })
+      treeStats.filteredWarningsCount += configurationCacheData.warningsCount()
+    }
+
+    // Add Jetifier usage warning
+    if (reportData.jetifierData.shouldShowWarning()) {
+      if (filter.showJetifierWarnings) {
+        warningsToAdd.add(treeNode(JetifierUsageWarningRootNodeDescriptor(reportData.jetifierData)))
+        treeStats.filteredWarningsCount++
+      }
+    }
+
+    reportData.criticalPathTaskCategories?.entries?.map { criticalPathTaskCategoryData ->
+      val warnings = criticalPathTaskCategoryData.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true)
+      if (warnings.isNotEmpty()) {
+        warningsToAdd.add(treeNode(TaskCategoryWarningNodeDescriptor(criticalPathTaskCategoryData)))
+        treeStats.filteredWarningsCount += warnings.size
+      }
+    }
+
+    warningsToAdd.sortedBy {
+      it.descriptor
+    }.forEach(treeRoot::add)
+
+    treeStats.totalWarningsCount = reportData.countTotalWarnings()
   }
 
   class TreeStats {
@@ -340,11 +345,21 @@ data class WarningsPageId(
   }
 }
 
-sealed class WarningsTreePresentableNodeDescriptor {
+sealed class WarningsTreePresentableNodeDescriptor: Comparable<WarningsTreePresentableNodeDescriptor> {
   abstract val pageId: WarningsPageId
   abstract val analyticsPageType: PageType
   abstract val presentation: BuildAnalyzerTreeNodePresentation
+  abstract val executionTimeMs: Long?
   override fun toString(): String = presentation.mainText
+
+  override fun compareTo(other: WarningsTreePresentableNodeDescriptor): Int {
+    // sort by execution time descending, and then alphabetically for warnings without an execution time
+    return if (this.executionTimeMs != null || other.executionTimeMs != null) {
+      -1 * (this.executionTimeMs ?: -1).compareTo(other.executionTimeMs ?: -1)
+    } else {
+      this.toString().compareTo(other.toString())
+    }
+  }
 }
 
 /** Descriptor for the task warning type group node. */
@@ -363,8 +378,10 @@ class TaskWarningTypeNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = warningType.uiName,
       suffix = warningsCountString(presentedWarnings.size),
-      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(presentedWarnings.sumByLong { it.task.executionTime.timeMs })
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(executionTimeMs)
     )
+
+  override val executionTimeMs = presentedWarnings.sumByLong { it.task.executionTime.timeMs }
 }
 
 /** Descriptor for the task warning page node. */
@@ -382,8 +399,9 @@ class TaskWarningDetailsNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = issueData.task.taskPath,
       nodeIconState = NodeIconState.WARNING_ICON,
-      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(issueData.task.executionTime.timeMs)
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(executionTimeMs)
     )
+  override val executionTimeMs = issueData.task.executionTime.timeMs
 }
 
 class PluginGroupingWarningNodeDescriptor(
@@ -401,8 +419,10 @@ class PluginGroupingWarningNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = pluginName,
       suffix = warningsCountString(warningsCount),
-      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(presentedTasksWithWarnings.keys.sumByLong { it.executionTime.timeMs })
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(executionTimeMs)
     )
+
+  override val executionTimeMs = presentedTasksWithWarnings.keys.sumByLong { it.executionTime.timeMs }
 }
 
 class TaskCategoryWarningNodeDescriptor(
@@ -414,8 +434,9 @@ class TaskCategoryWarningNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = taskCategoryData.name,
       suffix = warningsCountString(taskCategoryData.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true).size),
-      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(taskCategoryData.criticalPathDuration.timeMs)
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(executionTimeMs)
     )
+  override val executionTimeMs = taskCategoryData.criticalPathDuration.timeMs
 }
 
 /** Descriptor for the task warning page node. */
@@ -430,8 +451,9 @@ class TaskUnderPluginDetailsNodeDescriptor(
       mainText = taskData.taskPath,
       nodeIconState = NodeIconState.WARNING_ICON,
       suffix = warningsCountString(filteredWarnings.size),
-      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(taskData.executionTime.timeMs)
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(executionTimeMs)
     )
+  override val executionTimeMs = taskData.executionTime.timeMs
 }
 
 /** Descriptor for the non-incremental annotation processors group node. */
@@ -443,8 +465,11 @@ class AnnotationProcessorsRootNodeDescriptor(
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = "Non-incremental Annotation Processors",
-      suffix = warningsCountString(annotationProcessorsReport.issueCount)
+      suffix = warningsCountString(annotationProcessorsReport.issueCount),
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(executionTimeMs)
+
     )
+  override val executionTimeMs = annotationProcessorsReport.nonIncrementalProcessors.sumByLong { it.compilationTimeMs }
 }
 
 /** Descriptor for the non-incremental annotation processor page node. */
@@ -457,8 +482,9 @@ class AnnotationProcessorDetailsNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = annotationProcessorData.className,
       nodeIconState = NodeIconState.WARNING_ICON,
-      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(annotationProcessorData.compilationTimeMs)
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(executionTimeMs)
     )
+  override val executionTimeMs = annotationProcessorData.compilationTimeMs
 }
 
 /** Descriptor for the configuration caching problems page node. */
@@ -486,8 +512,9 @@ class ConfigurationCachingRootNodeDescriptor(
         ConfigurationCachingTurnedOff -> ""
         NoDataFromSavedResult -> ""
       },
-      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(projectConfigurationTime.timeMs)
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(executionTimeMs)
     )
+  override val executionTimeMs = projectConfigurationTime.timeMs
 }
 
 class ConfigurationCachingWarningNodeDescriptor(
@@ -500,8 +527,10 @@ class ConfigurationCachingWarningNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = data.plugin.displayName,
       suffix = if (data.requiredVersion != null) "update required" else "not compatible",
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(executionTimeMs),
       nodeIconState = NodeIconState.WARNING_ICON
     )
+  override val executionTimeMs = projectConfigurationTime.totalMs
 }
 
 class JetifierUsageWarningRootNodeDescriptor(
@@ -513,7 +542,7 @@ class JetifierUsageWarningRootNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = "Jetifier",
     )
-
+  override val executionTimeMs = null
 }
 
 private fun ConfigurationCachingCompatibilityProjectResult.warningsCount() = when (this) {

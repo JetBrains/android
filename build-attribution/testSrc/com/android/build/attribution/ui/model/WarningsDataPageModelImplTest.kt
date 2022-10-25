@@ -53,6 +53,8 @@ class WarningsDataPageModelImplTest {
     print(mockData.criticalPathTaskCategories.entries.joinToString { it.name })
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
@@ -63,9 +65,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
-      |  ANDROID_RESOURCES
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(0)
   }
@@ -82,6 +82,8 @@ class WarningsDataPageModelImplTest {
     assertThat(model.selectedNode).isEqualTo(lastChild)
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
@@ -92,9 +94,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
-      |  JETIFIER_USAGE
-      |=>ANDROID_RESOURCES
+      |=>JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -112,6 +112,8 @@ class WarningsDataPageModelImplTest {
     assertThat(model.selectedNode).isNull()
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
@@ -122,9 +124,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
-      |  ANDROID_RESOURCES
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(2)
   }
@@ -138,6 +138,8 @@ class WarningsDataPageModelImplTest {
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |===>ALWAYS_RUN_TASKS-:app:resources
@@ -148,9 +150,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
-      |  ANDROID_RESOURCES
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -164,6 +164,8 @@ class WarningsDataPageModelImplTest {
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
@@ -174,9 +176,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
-      |  ANDROID_RESOURCES
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(0)
   }
@@ -189,15 +189,15 @@ class WarningsDataPageModelImplTest {
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
-      |  ALWAYS_RUN_TASKS
-      |    ALWAYS_RUN_TASKS-:app:resources
+      |  CONFIGURATION_CACHING
       |  ANNOTATION_PROCESSORS
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
-      |  JETIFIER_USAGE
+      |  ALWAYS_RUN_TASKS
+      |    ALWAYS_RUN_TASKS-:app:resources
       |  ANDROID_RESOURCES
+      |  JETIFIER_USAGE
     """.trimMargin())
   }
 
@@ -213,15 +213,15 @@ class WarningsDataPageModelImplTest {
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
       |  TASK_SETUP_ISSUE
       |    TASK_SETUP_ISSUE-:app:compile
       |    TASK_SETUP_ISSUE-:lib:compile
-      |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
-      |  ANDROID_RESOURCES
     """.trimMargin())
   }
 
@@ -238,6 +238,8 @@ class WarningsDataPageModelImplTest {
     })
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
@@ -248,8 +250,6 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
-      |  ANDROID_RESOURCES
     """.trimMargin())
     assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 9, Filtered: 9")
   }
@@ -264,11 +264,11 @@ class WarningsDataPageModelImplTest {
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
       |  ANNOTATION_PROCESSORS
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
       |=>JETIFIER_USAGE
     """.trimMargin())
   }
@@ -307,12 +307,12 @@ class WarningsDataPageModelImplTest {
 
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |===>ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
-      |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
-      |  ANDROID_RESOURCES
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -329,6 +329,8 @@ class WarningsDataPageModelImplTest {
 
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  TASK_SETUP_ISSUE
       |    TASK_SETUP_ISSUE-:app:compile
       |    TASK_SETUP_ISSUE-:lib:compile
@@ -336,9 +338,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
-      |  ANDROID_RESOURCES
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -349,18 +349,18 @@ class WarningsDataPageModelImplTest {
 
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  compiler.plugin
       |    :app:compile
       |    :lib:compile
-      |  resources.plugin
-      |    :app:resources
       |  ANNOTATION_PROCESSORS
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
+      |  resources.plugin
+      |    :app:resources
       |  JETIFIER_USAGE
-      |  ANDROID_RESOURCES
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
