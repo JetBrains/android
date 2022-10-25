@@ -368,7 +368,7 @@ bool DisplayStreamer::ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketH
       }
       end_of_stream = true;
     }
-    if (codec_buffer.IsConfig()) {
+    if (!codec_buffer.IsConfig()) {
       packet_header->frame_number++;
     }
   }
