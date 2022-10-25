@@ -211,6 +211,7 @@ class BuildAnalyzerFiltersTest {
   @Test
   fun testShowTasksWithoutWarningsFilterApplyToTasks() {
     val filterActions = tasksFilterActions(model.tasksPageModel, controller) as DefaultActionGroup
+    model.tasksPageModel.selectGrouping(TasksDataPageModel.Grouping.UNGROUPED)
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show tasks without warnings" }
 
     filterToggleAction.actionPerformed(TestActionEvent())
@@ -227,6 +228,7 @@ class BuildAnalyzerFiltersTest {
   @Test
   fun testShowTasksForAndroidPluginsFilterApplyToTasks() {
     val filterActions = tasksFilterActions(model.tasksPageModel, controller) as DefaultActionGroup
+    model.tasksPageModel.selectGrouping(TasksDataPageModel.Grouping.UNGROUPED)
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show tasks for Android/Java/Kotlin plugins" }
 
     filterToggleAction.actionPerformed(TestActionEvent())

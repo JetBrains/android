@@ -153,7 +153,7 @@ class WarningsPageViewTest {
 
     // Act / assert links handling
     links[0].doClick()
-    Mockito.verify(mockHandlers).changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.UNGROUPED)
+    Mockito.verify(mockHandlers).changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
 
     links[1].doClick()
     Mockito.verify(mockHandlers).changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN)

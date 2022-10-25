@@ -60,7 +60,7 @@ class TaskViewDetailPagesFactoryTest {
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
 
-    val detailsPage = factory.createDetailsPage(TasksPageId.task(taskData, TasksDataPageModel.Grouping.UNGROUPED))
+    val detailsPage = factory.createDetailsPage(TasksPageId.task(taskData, TasksDataPageModel.Grouping.BY_TASK_CATEGORY))
     assertThat(TreeWalker(detailsPage).descendants().filterIsInstance<JEditorPane>()).hasSize(1)
     // Just checking that page is created as expected, Content of the html for this page is tested in TaskDetailsPageTest.kt
   }

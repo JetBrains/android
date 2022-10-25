@@ -94,6 +94,13 @@ interface TasksDataPageModel {
   val availableGroupings: List<Grouping>
     get() = Grouping.values().asList()
 
+  val defaultGrouping: Grouping
+    get() = if (reportData.showTaskCategoryInfo) {
+      Grouping.BY_TASK_CATEGORY
+    } else {
+      Grouping.UNGROUPED
+    }
+
   fun applyFilter(newFilter: TasksFilter)
 }
 
@@ -154,7 +161,7 @@ class TasksDataPageModelImpl(
   // True when tree changed it's structure since last listener call.
   private var treeStructureChanged = false
 
-  private var selectedPageId: TasksPageId = TasksPageId.emptySelection(TasksDataPageModel.Grouping.UNGROUPED)
+  private var selectedPageId: TasksPageId = TasksPageId.emptySelection(defaultGrouping)
     private set(value) {
       val newSelectedGrouping = value.grouping
       if (newSelectedGrouping != field.grouping) {

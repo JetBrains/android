@@ -77,7 +77,7 @@ class TasksPageViewTest {
   fun testCreateView() {
     assertThat(view.component.name).isEqualTo("tasks-view")
     assertThat(view.groupingCheckBox.isSelected).isFalse()
-    assertThat(view.tasksGroupingComboBox.selectedItem).isEqualTo(TasksDataPageModel.Grouping.UNGROUPED)
+    assertThat(view.tasksGroupingComboBox.selectedItem).isEqualTo(TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
     assertThat(view.treeHeaderLabel.text).isEqualTo(model.treeHeaderText)
 
     assertThat(view.tree.selectionPath).isNull()

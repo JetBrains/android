@@ -34,7 +34,6 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
 import com.android.tools.idea.testing.IdeComponents
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
@@ -106,7 +105,7 @@ class BuildAnalyzerViewControllerTest {
 
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
       from = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
-      to = BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT
+      to = BuildAttributionUiEvent.Page.PageType.TASK_CATEGORY_CRITICAL_PATH_TASKS_ROOT
     )
   }
 
@@ -258,7 +257,7 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.GROUPING_CHANGED)
-      assertThat(currentPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT)
+      assertThat(currentPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.TASK_CATEGORY_CRITICAL_PATH_TASKS_ROOT)
       assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASKS_ROOT)
     }
   }
@@ -280,7 +279,7 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK)
-      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.TASK_CATEGORY_CRITICAL_PATH_TASK_PAGE)
     }
   }
 
@@ -302,7 +301,7 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
-      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.TASK_CATEGORY_CRITICAL_PATH_TASK_PAGE)
     }
   }
 

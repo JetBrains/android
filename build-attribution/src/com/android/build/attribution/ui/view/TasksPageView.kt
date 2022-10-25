@@ -79,7 +79,9 @@ class TasksPageView(
     }
   }
 
-  val tasksGroupingComboBox = ComboBox(CollectionComboBoxModel(model.availableGroupings)).apply {
+  val tasksGroupingComboBox = ComboBox(
+    CollectionComboBoxModel(model.availableGroupings, TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
+  ).apply {
     name = "tasksGroupingComboBox"
     renderer = SimpleListCellRenderer.create { label, value, _ -> label.text = value.uiName }
     addItemListener { event ->

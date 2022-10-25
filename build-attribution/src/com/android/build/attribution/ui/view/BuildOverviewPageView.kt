@@ -102,7 +102,7 @@ downloaded in total ${Formats.formatFileSize(downloadsData.sumOfDataBytes)} in $
       border = JBUI.Borders.emptyLeft(2)
     })
     add(HyperlinkLabel("Tasks impacting build duration").apply {
-      addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.UNGROUPED) }
+      addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_TASK_CATEGORY) }
     })
     add(HyperlinkLabel("Plugins with tasks impacting build duration").apply {
       addHyperlinkListener { actionHandlers.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN) }
