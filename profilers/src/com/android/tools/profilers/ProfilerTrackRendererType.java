@@ -60,6 +60,10 @@ public enum ProfilerTrackRendererType {
    */
   RSS_MEMORY,
   /**
+   * For power rail counters.
+   */
+  ANDROID_POWER_RAIL,
+  /**
    * For Android frame lifecycle event.
    */
   ANDROID_FRAME_EVENT,
