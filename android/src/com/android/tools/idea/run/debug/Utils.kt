@@ -20,7 +20,6 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
-import com.android.tools.idea.concurrency.getDoneOrNull
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.AndroidLogcatFormatter
 import com.android.tools.idea.logcat.AndroidLogcatPreferences
@@ -42,11 +41,10 @@ import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindowId
-import org.jetbrains.android.util.AndroidBundle
 import java.time.ZoneId
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -58,13 +56,16 @@ import java.util.function.Function
  */
 @WorkerThread
 @Throws(ExecutionException::class)
-internal fun waitForClientReadyForDebug(device: IDevice, appIds: Collection<String>, pollTimeoutSeconds: Long = 15): Client {
-
-  Logger.getInstance("waitForClient").info("Waiting for clients $appIds for $pollTimeoutSeconds seconds")
+internal fun waitForClientReadyForDebug(device: IDevice,
+                                        appIds: Collection<String>,
+                                        pollTimeoutSeconds: Long = 15,
+                                        indicator: ProgressIndicator?): Client {
+  indicator?.text = "Waiting for processes ${appIds.joinToString()}"
+  Logger.getInstance("waitForClientReadyForDebug").info("Waiting for clients $appIds for $pollTimeoutSeconds seconds")
 
   val startTimeMillis = System.currentTimeMillis()
   while ((System.currentTimeMillis() - startTimeMillis) <= TimeUnit.SECONDS.toMillis(pollTimeoutSeconds)) {
-    ProgressManager.checkCanceled()
+    indicator?.checkCanceled()
     if (!device.isOnline) {
       throw ExecutionException("Device is offline")
     }
@@ -84,9 +85,9 @@ internal fun waitForClientReadyForDebug(device: IDevice, appIds: Collection<Stri
 private fun getClientWithAppId(device: IDevice, appId: String): Client? {
   val clients = DeploymentApplicationService.instance.findClient(device, appId)
   if (clients.isNotEmpty()) {
-    Logger.getInstance("waitForClient").info("Connecting to $appId")
+    Logger.getInstance("waitForClientReadyForDebug").info("Found process $appId")
     if (clients.size > 1) {
-      Logger.getInstance("waitForClient").info("Multiple clients with same application ID: $appId")
+      Logger.getInstance("waitForClientReadyForDebug").info("Multiple clients with same application ID: $appId")
     }
     // Even though multiple processes may be related to a particular application ID, we'll only connect to the first one
     // in the list since the debugger is set up to only connect to at most one process.

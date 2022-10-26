@@ -16,10 +16,14 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.AnyThread
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.AndroidSessionInfo
 import com.android.tools.idea.run.ApplicationTerminator
+import com.android.tools.idea.run.debug.ReattachingDebuggerListener
+import com.android.tools.idea.run.debug.ReattachingProcessHandler
 import com.android.tools.idea.run.debug.captureLogcatOutputToProcessHandler
 import com.android.tools.idea.run.debug.showError
 import com.android.tools.idea.run.debug.waitForClientReadyForDebug
@@ -30,6 +34,9 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.executors.DefaultDebugExecutor
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
+import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.runInEdt
@@ -50,6 +57,8 @@ import org.jetbrains.kotlin.idea.util.application.executeOnPooledThread
 
 object DebugSessionStarter {
 
+  private val LOG = Logger.getInstance(DebugSessionStarter::class.java)
+
   /**
    * Starts a new debugging session for given [Client].
    * Use this method only if debugging is started by using 'Debug' on configuration, otherwise use [AndroidJavaDebugger.attachToClient]
@@ -67,18 +76,9 @@ object DebugSessionStarter {
   ): Promise<XDebugSessionImpl> {
     val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
     ProgressManager.checkCanceled()
-    indicator?.text = "Waiting for a client"
-    val clientPromise = AsyncPromise<Client>()
-    ProgressManager.getInstance().run(object : Backgroundable(environment.project, "Waiting for process $appId", true) {
-      override fun run(indicator: ProgressIndicator) {
-        clientPromise.catchError {
-          clientPromise.setResult(waitForClientReadyForDebug(device, listOf(appId), timeout))
-        }
-      }
-    })
+    val clientPromise = clientAsyncPromise(environment, appId, device, timeout)
 
     ProgressManager.checkCanceled()
-    indicator?.text = "Attaching debugger"
 
     return clientPromise
       .thenAsync { client ->
@@ -87,6 +87,8 @@ object DebugSessionStarter {
                                                             consoleView, destroyRunningProcess)
       }
       .thenAsync { debugProcessStarter ->
+        indicator?.text = "Attaching debugger"
+
         val promise = AsyncPromise<XDebugSessionImpl>()
 
         runInEdt {
@@ -111,17 +113,143 @@ object DebugSessionStarter {
             destroyRunningProcess(device)
           }
           catch (e: Exception) {
-            Logger.getInstance(this::class.java).warn(e)
+            LOG.warn(e)
           }
           try {
             // Terminate the process to make it ready for future debugging.
             ApplicationTerminator(device, appId).killApp()
           }
           catch (e: Exception) {
-            Logger.getInstance(this::class.java).warn(e)
+            LOG.warn(e)
           }
         }
       }
+  }
+
+  @AnyThread
+  fun <S : AndroidDebuggerState> attachReattachingDebuggerToStartedProcess(
+    device: IDevice,
+    appId: String,
+    masterProcessName: String,
+    environment: ExecutionEnvironment,
+    androidDebugger: AndroidDebugger<S>,
+    androidDebuggerState: S,
+    destroyRunningProcess: (IDevice) -> Unit,
+    consoleView: ConsoleView? = null,
+    timeout: Long = 300
+  ): Promise<XDebugSessionImpl> {
+    val masterProcessHandler = AndroidProcessHandler(environment.project, masterProcessName)
+    masterProcessHandler.addTargetDevice(device)
+    return attachReattachingDebuggerToStartedProcess(device, appId, masterProcessHandler, environment, androidDebugger,
+                                                     androidDebuggerState, destroyRunningProcess, consoleView, timeout)
+  }
+
+  /**
+   * Wires up adb listeners to automatically reconnect the debugger for each test. This is necessary when
+   * using instrumentation runners that kill the instrumentation process between each test, disconnecting
+   * the debugger. We listen for the start of a new test, waiting for a debugger, and reconnect.
+   */
+  @AnyThread
+  fun <S : AndroidDebuggerState> attachReattachingDebuggerToStartedProcess(
+    device: IDevice,
+    appId: String,
+    masterProcessHandler: ProcessHandler,
+    environment: ExecutionEnvironment,
+    androidDebugger: AndroidDebugger<S>,
+    androidDebuggerState: S,
+    destroyRunningProcess: (IDevice) -> Unit,
+    consoleView: ConsoleView? = null,
+    timeout: Long = 300
+  ): Promise<XDebugSessionImpl> {
+    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
+    ProgressManager.checkCanceled()
+    val clientPromise = clientAsyncPromise(environment, appId, device, timeout)
+
+    ProgressManager.checkCanceled()
+
+    return clientPromise
+      .thenAsync { client ->
+        androidDebugger.getDebugProcessStarterForNewProcess(environment.project, client,
+                                                            androidDebuggerState,
+                                                            consoleView, destroyRunningProcess)
+      }
+      .thenAsync { debugProcessStarter ->
+        indicator?.text = "Attaching debugger"
+
+        val promise = AsyncPromise<XDebugSessionImpl>()
+        val reattachingProcessHandler = ReattachingProcessHandler(masterProcessHandler)
+
+        val reattachingListener = ReattachingDebuggerListener(environment.project, masterProcessHandler, appId,
+                                                              androidDebugger, androidDebuggerState, consoleView, environment,
+                                                              reattachingProcessHandler)
+        LOG.info("Add reattaching listener")
+        AndroidDebugBridge.addClientChangeListener(reattachingListener)
+
+        masterProcessHandler.addProcessListener(object : ProcessAdapter() {
+          override fun processTerminated(event: ProcessEvent) {
+            // Stop the reattaching debug connector task as soon as the master process is terminated.
+            LOG.info("Delete reattaching listener")
+            AndroidDebugBridge.removeClientChangeListener(reattachingListener)
+          }
+        })
+        masterProcessHandler.startNotify()
+
+        LOG.info("Start first session")
+
+        runInEdt {
+          promise.catchError {
+            val session = XDebuggerManager.getInstance(environment.project).startSession(environment, debugProcessStarter)
+
+            val debugProcessHandler = session.debugProcess.processHandler
+            debugProcessHandler.startNotify()
+            reattachingProcessHandler.subscribeOnDebugProcess(debugProcessHandler)
+            session.runContentDescriptor.processHandler = reattachingProcessHandler
+
+            captureLogcatOutputToProcessHandler(clientPromise.get()!!, session.consoleView, reattachingProcessHandler)
+            val executor = environment.executor
+            AndroidSessionInfo.create(masterProcessHandler,
+                                      environment.runProfile as? RunConfiguration,
+                                      executor.id,
+                                      environment.executionTarget)
+            promise.setResult(session as XDebugSessionImpl)
+          }
+        }
+        promise
+      }
+      .onError {
+        executeOnPooledThread {
+          try {
+            destroyRunningProcess(device)
+          }
+          catch (e: Exception) {
+            LOG.warn(e)
+          }
+          try {
+            // Terminate the process to make it ready for future debugging.
+            ApplicationTerminator(device, appId).killApp()
+          }
+          catch (e: Exception) {
+            LOG.warn(e)
+          }
+        }
+      }
+  }
+
+  private fun clientAsyncPromise(
+    environment: ExecutionEnvironment,
+    appId: String,
+    device: IDevice,
+    timeout: Long
+  ): AsyncPromise<Client> {
+    val clientPromise = AsyncPromise<Client>()
+    ProgressManager.getInstance().run(object : Backgroundable(environment.project, "Waiting for process $appId", true) {
+      override fun run(indicator: ProgressIndicator) {
+        clientPromise.catchError {
+          clientPromise.setResult(waitForClientReadyForDebug(device, listOf(appId), timeout, indicator))
+        }
+      }
+    })
+    return clientPromise
   }
 
   /**
@@ -159,7 +287,7 @@ object DebugSessionStarter {
           showError(project, it, sessionName)
         }
         else {
-          Logger.getInstance(this::class.java).error(it)
+          LOG.error(it)
         }
       }
   }

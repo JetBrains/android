@@ -105,7 +105,7 @@ abstract class ConnectDebuggerTaskBase protected constructor(
     if (pollTimeoutSeconds <= 0) {
       pollTimeoutSeconds = Int.MAX_VALUE
     }
-    client = waitForClientReadyForDebug(device, myApplicationIds, pollTimeoutSeconds.toLong())
+    client = waitForClientReadyForDebug(device, myApplicationIds, pollTimeoutSeconds.toLong(), null)
     return client
   }
 

@@ -116,7 +116,7 @@ private fun startReattachingDebugger(
 
   // We wait for the first client outside [reattachingListener] because there is case when client is already waiting for debug before we add
   // [reattachingListener].
-  val client = waitForClientReadyForDebug(device, applicationIds, 200)
+  val client = waitForClientReadyForDebug(device, applicationIds, 200, null)
   fun startSessionFinal(client: Client) = startSession(client)
     .onSuccess { session ->
       session.runContentDescriptor.processHandler!!.addProcessListener(object : ProcessAdapter() {
@@ -132,7 +132,7 @@ private fun startReattachingDebugger(
       masterProcessHandler.destroyProcess()
     }
 
-  val reattachingListener = ReattachingDebuggerListener(project, masterProcessHandler, applicationIds, ::startSessionFinal)
+  val reattachingListener = ReattachingDebuggerListenerOld(project, masterProcessHandler, applicationIds, ::startSessionFinal)
   LOG.debug("Add reattaching listener")
   AndroidDebugBridge.addClientChangeListener(reattachingListener)
 
@@ -150,7 +150,7 @@ private fun startReattachingDebugger(
 /**
  * While [masterProcessHandler] is not terminated calls [startSession] for clients with a process name in [applicationIds].
  */
-private class ReattachingDebuggerListener(
+private class ReattachingDebuggerListenerOld(
   private val project: Project,
   private val masterProcessHandler: ProcessHandler,
   private val applicationIds: Set<String>,
@@ -160,6 +160,7 @@ private class ReattachingDebuggerListener(
   init {
     Disposer.register(project, { AndroidDebugBridge.removeClientChangeListener(this) })
   }
+
   companion object {
     /**
      * Changes to [Client] instances that mean a new debugger should be connected.
