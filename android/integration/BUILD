@@ -210,29 +210,45 @@ iml_test(
     test_class = "com.android.tools.idea.LiveEditTest",
 )
 
+build_and_run_test_data = select({
+    "@platforms//os:linux": [
+        "//tools/adt/idea/studio:android-studio.linux.zip",
+    ],
+    "@platforms//os:macos": [
+        "//tools/adt/idea/studio:android-studio.mac.zip",
+    ],
+    "@platforms//os:windows": [
+        "//tools/adt/idea/studio:android-studio.win.zip",
+    ],
+    "//conditions:default": [],
+}) + [
+    ":buildproject_deps",
+    ":minapp",
+    "//prebuilts/studio/sdk:build-tools/latest",
+    "//prebuilts/studio/sdk:emulator",
+    "//prebuilts/studio/sdk:platform-tools",
+    "//tools/base/build-system:gradle-distrib-7.2",
+    "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+]
+
+iml_test(
+    name = "BuildAndRunWithMemoryTest",
+    timeout = "long",
+    data = build_and_run_test_data,
+    module = ":intellij.android.core.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.BuildAndRunWithMemoryTest",
+)
+
 iml_test(
     name = "BuildAndRunTest",
     timeout = "long",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-        "//conditions:default": [],
-    }) + [
-        ":buildproject_deps",
-        ":minapp",
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:emulator",
-        "//prebuilts/studio/sdk:platform-tools",
-        "//tools/base/build-system:gradle-distrib-7.2",
-        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
-    ],
+    data = build_and_run_test_data,
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],
     tags_mac = [],

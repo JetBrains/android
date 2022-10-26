@@ -39,6 +39,10 @@ public class AndroidStudioInstallation {
   private final LogFile stdout;
   private final LogFile stderr;
   private final LogFile ideaLog;
+
+  // File for storing memory usage statistics. The file is written by calling the `CollectMemoryUsageStatisticsInternalAction` action.
+  // After migrating to gRPC API should be removed as a part of b/256132435.
+  private final LogFile metricsFile;
   private final Path studioDir;
   private final Path vmOptionsPath;
   private final Path configDir;
@@ -76,6 +80,8 @@ public class AndroidStudioInstallation {
     logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "logs");
     ideaLog = new LogFile(logsDir.resolve("idea.log"));
     Files.createFile(ideaLog.getPath());
+    metricsFile = new LogFile(logsDir.resolve("metrics.log"));
+    Files.createFile(metricsFile.getPath());
     stdout = new LogFile(logsDir.resolve("stdout.txt"));
     stderr = new LogFile(logsDir.resolve("stderr.txt"));
 
@@ -330,6 +336,10 @@ public class AndroidStudioInstallation {
 
   public LogFile getIdeaLog() {
     return ideaLog;
+  }
+
+  public LogFile getMetricsFile() {
+    return metricsFile;
   }
 
   public void addVmOption(String line) throws IOException {
