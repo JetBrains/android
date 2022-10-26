@@ -21,6 +21,6 @@ import org.jetbrains.plugins.gradle.service.project.open.GradleProjectOpenProces
 
 class DisableGradleProjectOpenProcessor : ApplicationInitializedListener {
   override fun componentsInitialized() {
-    ProjectOpenProcessor.EXTENSION_POINT_NAME.getPoint().unregisterExtension(GradleProjectOpenProcessor::class.java)
+    ProjectOpenProcessor.EXTENSION_POINT_NAME.point.unregisterExtension(GradleProjectOpenProcessor::class.java)
   }
 }

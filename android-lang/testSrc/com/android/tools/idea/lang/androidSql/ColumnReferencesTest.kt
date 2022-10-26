@@ -33,7 +33,7 @@ class ColumnReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   override fun setUp() {
     super.setUp()
     createStubRoomClasses(myFixture)
-    AndroidSqlContext.Provider.EP_NAME.getPoint().registerExtension(AndroidSqlTestContext.Provider(), testRootDisposable)
+    AndroidSqlContext.Provider.EP_NAME.point.registerExtension(AndroidSqlTestContext.Provider(), testRootDisposable)
   }
 
   fun testDefaultColumnName() {
