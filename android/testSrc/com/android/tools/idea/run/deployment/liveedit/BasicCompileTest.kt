@@ -64,9 +64,7 @@ class BasicCompileTest {
   fun setUp() {
     myProject = projectRule.project
 
-    // Load the compose runtime into the main module's library dependency.
-    LocalFileSystem.getInstance().refreshAndFindFileByPath(composeRuntimePath)
-    PsiTestUtil.addLibrary(projectRule.fixture.getModule(), composeRuntimePath)
+    projectRule.module.loadComposeRuntimeInClassPath()
 
     // Register the compose compiler plugin much like what Intellij would normally do.
     if (IrGenerationExtension.getInstances(myProject).find { it is ComposePluginIrGenerationExtension } == null) {

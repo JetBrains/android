@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.fast
 
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
+import com.android.tools.idea.run.deployment.liveedit.loadComposeRuntimeInClassPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
@@ -25,6 +26,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Files
@@ -35,6 +37,11 @@ internal class EmbeddedCompilerClientImplTest {
   private val compiler: EmbeddedCompilerClientImpl by lazy {
     EmbeddedCompilerClientImpl(project = projectRule.project,
                                log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java))
+  }
+
+  @Before
+  fun setUp() {
+    projectRule.module.loadComposeRuntimeInClassPath()
   }
 
   @Test

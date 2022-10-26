@@ -26,6 +26,8 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 
+private val liveEditPackageName = "${CompileScope::class.java.packageName}."
+
 @Suppress("INVISIBLE_REFERENCE", "EXPERIMENTAL_IS_NOT_ENABLED")
 @OptIn(org.jetbrains.kotlin.extensions.internal.InternalNonStableExtensionPoints::class)
 class ComposePluginIrGenerationExtension : IrGenerationExtension {
@@ -42,10 +44,9 @@ class ComposePluginIrGenerationExtension : IrGenerationExtension {
       // Instead, it should be rethrown so that the infrastructure can handle it correctly."
       throw e;
     } catch (versionError : IncompatibleComposeRuntimeVersionException) {
-      // We only rethrow version incompatiablity when we are trying to CodeGen for Live Edit.
+      // We only rethrow version incompatibility when we are trying to CodeGen for Live Edit.
       for (s in versionError.stackTrace) {
-        if (s.className.equals(AndroidLiveEditCodeGenerator::class.qualifiedName) ||
-            s.className.equals(CompileScope::class.qualifiedName) ) {
+        if (s.className.startsWith(liveEditPackageName)) {
           throw versionError
         }
       }

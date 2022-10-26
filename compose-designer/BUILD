@@ -62,6 +62,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/compose-designer/testData",
+        "//tools/adt/idea/compose-ide-plugin/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
