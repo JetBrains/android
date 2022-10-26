@@ -376,7 +376,7 @@ class CustomViewPreviewRepresentation(
 
     // Persist the current dimensions
     surface.models.firstOrNull()?.configuration?.let { configuration ->
-      val selectedClass = classes.firstOrNull { fqcn2name(it) == currentView } ?: return
+      val selectedClass = synchronized(classesLock) { classes.firstOrNull { fqcn2name(it) == currentView } } ?: return
       val className = fqcn2name(selectedClass)
       val screen = configuration.device!!.defaultHardware.screen
       persistenceManager.setList(
