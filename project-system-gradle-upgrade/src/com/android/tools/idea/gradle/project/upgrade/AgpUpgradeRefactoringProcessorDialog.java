@@ -142,7 +142,7 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
               DumbService.getInstance(myProcessor.getProject()).smartInvokeLater(() -> myProcessor.run());
             }
             else {
-              notifyCancelledUpgrade(myProcessor.getProject(), myProcessor);
+              notifyCancelledUpgrade(myProcessor.getProject());
             }
         }
       };

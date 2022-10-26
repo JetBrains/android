@@ -18,22 +18,44 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
-import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationType
-import com.intellij.notification.NotificationsManager
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 
 val AGP_UPGRADE_NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade Notification", NotificationDisplayType.STICKY_BALLOON, true)
 
-abstract class ProjectUpgradeNotification(title: String, content: String, type: NotificationType, listener: NotificationListener)
+abstract class ProjectUpgradeNotification(title: String, content: String, type: NotificationType)
   : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId, title, content, type) {
     init {
-      setListener(listener)
+      addAction(object : AnAction("Don't ask for this project") {
+        override fun actionPerformed(e: AnActionEvent) {
+          this@ProjectUpgradeNotification.expire()
+          e.project?.let { RecommendedUpgradeReminder(it).doNotAskForProject = true }
+        }
+      })
+      addAction(object : AnAction("Don't show again") {
+        override fun actionPerformed(e: AnActionEvent) {
+          this@ProjectUpgradeNotification.expire()
+          e.project?.let { RecommendedUpgradeReminder(it).doNotAskForApplication = true }
+        }
+      })
+      addAction(object : AnAction("Remind me tomorrow") {
+        override fun actionPerformed(e: AnActionEvent) {
+          this@ProjectUpgradeNotification.expire()
+          e.project?.let { RecommendedUpgradeReminder(it).updateLastTimestamp() }
+        }
+      })
+      addAction(object : AnAction("Start AGP Upgrade Assistant") {
+        override fun actionPerformed(e: AnActionEvent) {
+          this@ProjectUpgradeNotification.expire()
+          e.project?.let { performRecommendedPluginUpgrade(it) }
+        }
+      })
     }
   }
 
-class UpgradeSuggestion(title: String, content: String, listener: NotificationListener)
-  : ProjectUpgradeNotification(title, content, NotificationType.INFORMATION, listener)
+class UpgradeSuggestion(title: String, content: String)
+  : ProjectUpgradeNotification(title, content, NotificationType.INFORMATION)
 
-class DeprecatedAgpUpgradeWarning(title: String, content: String, listener: NotificationListener)
-  : ProjectUpgradeNotification(title, content, NotificationType.WARNING, listener)
+class DeprecatedAgpUpgradeWarning(title: String, content: String)
+  : ProjectUpgradeNotification(title, content, NotificationType.WARNING)

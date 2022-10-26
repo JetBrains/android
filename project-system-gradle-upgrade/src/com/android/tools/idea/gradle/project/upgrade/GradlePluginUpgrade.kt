@@ -117,18 +117,12 @@ fun recommendPluginUpgrade(project: Project, current: AgpVersion, strongly: Bool
     .getNotificationsOfType(ProjectUpgradeNotification::class.java, project)
 
   if (existing.isEmpty()) {
-    val listener = NotificationListener { notification, _ ->
-      notification.expire()
-      ApplicationManager.getApplication().executeOnPooledThread { performRecommendedPluginUpgrade(project) }
-    }
-
     val notification = when (strongly) {
       false -> UpgradeSuggestion(
-        AndroidBundle.message("project.upgrade.notification.title"), AndroidBundle.message("project.upgrade.notification.body"), listener)
+        AndroidBundle.message("project.upgrade.notification.title"), AndroidBundle.message("project.upgrade.notification.body", current))
       true -> DeprecatedAgpUpgradeWarning(
         AndroidBundle.message("project.upgrade.deprecated.notification.title"),
-        AndroidBundle.message("project.upgrade.deprecated.notification.body", current, GRADLE_PLUGIN_NEXT_MINIMUM_VERSION),
-        listener
+        AndroidBundle.message("project.upgrade.deprecated.notification.body", current, GRADLE_PLUGIN_NEXT_MINIMUM_VERSION)
       )
     }
     notification.notify(project)
@@ -136,28 +130,17 @@ fun recommendPluginUpgrade(project: Project, current: AgpVersion, strongly: Bool
 }
 
 /**
- * Shows a [RecommendedPluginVersionUpgradeDialog] to the user prompting them to upgrade to a newer version of
- * the Android Gradle Plugin and Gradle. If the [currentVersion] is null this method always returns false, with
- * no action taken.
- *
- * If the user accepted the upgrade then the file are modified and the project is re-synced. This method uses
- * [AndroidPluginVersionUpdater] in order to perform these operations.
- *
- * Returns true if the project should be synced, false otherwise.
- *
- * Note: The [dialogFactory] argument should not be used outside of tests. It should only be used to mock the
- * result of the dialog.
- *
+ * Invokes the AGP Upgrade Assistant Tool Window, allowing the user to update the version of AGP used in their project.
+ * If the [currentVersion] is null this method always returns false, with no action taken.
  */
 @Slow
 @JvmOverloads
 fun performRecommendedPluginUpgrade(
   project: Project,
   currentVersion: AgpVersion? = project.findPluginInfo()?.pluginVersion,
-  latestKnown: AgpVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()),
-  dialogFactory: RecommendedPluginVersionUpgradeDialog.Factory = RecommendedPluginVersionUpgradeDialog.Factory()
-) : Boolean {
-  if (currentVersion == null) return false
+  latestKnown: AgpVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+) {
+  if (currentVersion == null) return
 
   LOG.info("Gradle model version: $currentVersion, latest known version for IDE: $latestKnown")
 
@@ -165,19 +148,10 @@ fun performRecommendedPluginUpgrade(
   val state = computeGradlePluginUpgradeState(currentVersion, latestKnown, published)
 
   LOG.info("Gradle upgrade state: $state")
-  if (!setOf(RECOMMEND, STRONGLY_RECOMMEND).contains(state.importance)) return false
+  if (!setOf(RECOMMEND, STRONGLY_RECOMMEND).contains(state.importance)) return
 
-  val userAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
-    val updateDialog = dialogFactory.create(project, currentVersion, state.target)
-    updateDialog.showAndGet()
-  }
-
-  if (userAccepted) {
-    // The user accepted the upgrade
-    showAndInvokeAgpUpgradeRefactoringProcessor(project, currentVersion, state.target)
-  }
-
-  return false
+  showAndInvokeAgpUpgradeRefactoringProcessor(project, currentVersion, state.target)
+  return
 }
 
 // TODO(b/174543899): this is too weak; it doesn't catch modifications to:

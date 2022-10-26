@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -40,8 +39,6 @@ import org.mockito.MockedStatic;
  */
 public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
-  @Mock private RecommendedPluginVersionUpgradeDialog.Factory myUpgradeDialogFactory;
-  @Mock private RecommendedPluginVersionUpgradeDialog myUpgradeDialog;
   @Mock private RecommendedUpgradeReminder myUpgradeReminder;
   private ContentManager myContentManager;
   @Mock private RefactoringProcessorInstantiator myRefactoringProcessorInstantiator;
@@ -61,7 +58,6 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     // TODO(xof): this is a clear leak of implementation details.  Figure out how to remove it.
     when(myProcessor.getAgpVersionRefactoringProcessor()).thenReturn(myAgpVersionRefactoringProcessor);
     ServiceContainerUtil.replaceService(project, DumbService.class, new MockDumbService(project), project);
-    when(myUpgradeDialogFactory.create(same(project), any(), any())).thenReturn(myUpgradeDialog);
     when(myPluginInfo.getModule()).thenReturn(getModule());
     when(myPluginInfo.getPluginVersion()).thenReturn(AgpVersion.parse("4.0.0"));
   }
@@ -101,26 +97,6 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), current, recommended).getUpgrade());
   }
 
-  public void testDoNotInvokeUpgradeAssistantWhenUserDeclinesUpgrade() {
-    simulateUpgradeReminderIsDue();
-
-    // Simulate project's plugin version is lower than latest.
-    AgpVersion current = AgpVersion.parse("4.0.0");
-    AgpVersion recommended = AgpVersion.parse("4.1.0");
-
-    // Simulate user declined upgrade.
-    when(myUpgradeDialog.showAndGet()).thenReturn(false);
-    assertFalse(GradlePluginUpgrade.performRecommendedPluginUpgrade(getProject(), current, recommended, myUpgradeDialogFactory));
-
-    verifyUpgradeAssistantWasNotInvoked();
-  }
-
-  private void verifyUpgradeAssistantWasNotInvoked() {
-    verifyNoInteractions(myContentManager);
-    verifyNoInteractions(myRefactoringProcessorInstantiator);
-    verifyNoInteractions(myProcessor);
-  }
-
   public void testInvokeUpgradeAssistantWhenUserAcceptsUpgrade() {
     simulateUpgradeReminderIsDue();
 
@@ -128,11 +104,9 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     AgpVersion recommended = AgpVersion.parse("4.1.0");
 
     // Simulate user accepted upgrade.
-    when(myUpgradeDialog.showAndGet()).thenReturn(true);
-    when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any())).thenReturn(true);
     try (MockedStatic<AndroidPluginInfo> androidPluginInfoMock = mockStatic(AndroidPluginInfo.class)) {
       androidPluginInfoMock.when(() -> AndroidPluginInfo.find(myProject)).thenReturn(myPluginInfo);
-      assertFalse(GradlePluginUpgrade.performRecommendedPluginUpgrade(getProject(), current, recommended, myUpgradeDialogFactory));
+      GradlePluginUpgrade.performRecommendedPluginUpgrade(myProject, current, recommended);
       verifyUpgradeAssistantWasInvoked();
     }
   }
