@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle
 
 import com.android.SdkConstants
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.onDisk
@@ -28,9 +27,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
-import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.Contract
-import org.junit.After
 import org.junit.Assert
 import org.junit.Assert.assertTrue
 import org.junit.Before

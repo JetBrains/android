@@ -17,28 +17,35 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
+import com.android.utils.FileUtils
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase.assertSize
+import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.IOException
 
 @RunsInEdt
 class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   private lateinit var gradlePropertiesFile : VirtualFile
+  private lateinit var versionCatalogFile : VirtualFile
 
   @Before
   fun setUpGradlePropertiesFile() {
     runWriteAction {
       gradlePropertiesFile = projectRule.fixture.tempDirFixture.createFile("gradle.properties")
+      versionCatalogFile = projectRule.fixture.tempDirFixture.createFile(FileUtils.toSystemDependentPath("gradle/libs.versions.toml"))
       assertTrue(gradlePropertiesFile.isWritable)
+      assertTrue(versionCatalogFile.isWritable)
     }
   }
 
@@ -175,6 +182,7 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     processor.run()
     verifyFileContents(settingsFile, TestFileName("AgpVersion/SettingsPluginExpected"))
   }
+
   @Test
   fun testPre80MavenPublishDoesNotBlockPre80Upgrades() {
     writeToBuildFile(TestFileName("AgpVersion/Pre80MavenPublish"))
@@ -253,6 +261,39 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testVersionInVersionCatalogLiteral() {
+    writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
+    writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogLiteral"))
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
+    assertFalse(processor.isBlocked)
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
+    verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogLiteralExpected"))
+  }
+
+  @Test
+  fun testVersionInVersionCatalogMap() {
+    writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
+    writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogMap"))
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
+    assertFalse(processor.isBlocked)
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
+    verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogMapExpected"))
+  }
+
+  @Test
+  fun testVersionInVersionCatalogVersionRef() {
+    writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
+    writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogVersionRef"))
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
+    assertFalse(processor.isBlocked)
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
+    verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogVersionRefExpected"))
+  }
+
+  @Test
   fun testLiteralTooltipsNotNull() {
     writeToBuildFile(TestFileName("AgpVersion/VersionInLiteral"))
     val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
@@ -272,5 +313,21 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
 
   private fun writeToGradlePropertiesFile(text: String) {
     runWriteAction { VfsUtil.saveText(gradlePropertiesFile, text) }
+  }
+
+  private fun writeToVersionCatalogFile(fileName: TestFileName) {
+    val testFile = fileName.toFile(testDataPath, ".toml")
+    assertTrue(testFile.exists())
+    val virtualTestFile = VfsUtil.findFileByIoFile(testFile, true)
+    runWriteAction { VfsUtil.saveText(versionCatalogFile, VfsUtilCore.loadText(virtualTestFile!!)) }
+  }
+
+  @Throws(IOException::class)
+  private fun verifyVersionCatalogFileContents(file: VirtualFile, expected: TestFileName) {
+    fun String.normalize() = replace("[ \\t]+".toRegex(), "").trim { it <= ' ' }
+
+    val expectedText = FileUtil.loadFile(expected.toFile(testDataPath, ".toml")).normalize()
+    val actualText = VfsUtilCore.loadText(file).normalize()
+    Assert.assertEquals(expectedText, actualText)
   }
 }

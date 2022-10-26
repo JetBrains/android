@@ -1,0 +1,5 @@
+[versions]
+agpVersion = "8.0.0"
+
+[plugins]
+agp = { id = "com.android.application", version.ref = "agpVersion" }

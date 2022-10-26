@@ -1,0 +1,2 @@
+[plugins]
+agp = "com.android.application:7.2.0"
