@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.SdkConstants;
 import com.android.emulator.SnapshotProtoException;
 import com.android.emulator.SnapshotProtoParser;
 import com.android.io.CancellableFileIo;
@@ -1111,20 +1110,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().customSkinFile(), new Validator<Optional<File>>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull Optional<File> value) {
-        Result result = Result.OK;
-        if (value.isPresent() && !FileUtil.filesEqual(value.get(), AvdWizardUtils.NO_SKIN)) {
-          File layoutFile = new File(value.get(), SdkConstants.FN_SKIN_LAYOUT);
-          if (!layoutFile.isFile()) {
-            result = new Result(Severity.ERROR, "The skin directory does not point to a valid skin.");
-          }
-        }
-        return result;
-      }
-    });
+    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().customSkinFile(), new CustomSkinValidator());
 
     myOriginalName = getModel().avdDisplayName().get();
 

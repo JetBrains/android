@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.SdkConstants;
 import com.android.resources.Navigation;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
@@ -39,7 +38,6 @@ import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.JBColor;
@@ -237,17 +235,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myValidatorPanel.registerTest(deviceModel.supportsLandscape().or(deviceModel.supportsPortrait()),
                                   "A device must support at least one orientation (Portrait or Landscape).");
 
-    myValidatorPanel.registerValidator(deviceModel.customSkinFile(), value -> {
-      File skinPath = value.orElse(null);
-      if (skinPath != null && !FileUtil.filesEqual(skinPath, AvdWizardUtils.NO_SKIN) &&
-          !skinPath.getPath().equals(skinPath.getName())) {
-        File layoutFile = new File(skinPath, SdkConstants.FN_SKIN_LAYOUT);
-        if (!layoutFile.isFile()) {
-          return new Result(Validator.Severity.ERROR, "The skin directory does not point to a valid skin.");
-        }
-      }
-      return Result.OK;
-    });
+    myValidatorPanel.registerValidator(deviceModel.customSkinFile(), new CustomSkinValidator());
 
     myValidatorPanel.registerTest(getModel().getDeviceData().compatibleSkinSize(),
                                   Validator.Severity.WARNING, "The selected skin is not large enough to view the entire screen.");
