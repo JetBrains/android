@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint.common;
 
+import static com.android.SdkConstants.ANDROID_NS_NAME;
 import static com.android.SdkConstants.ANDROID_URI;
 
 import com.android.ide.common.xml.XmlPrettyPrinter;
@@ -23,7 +24,6 @@ import com.android.utils.XmlUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.UsefulTestCase;
@@ -32,13 +32,13 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
 
 public class DomPsiConverterTest extends UsefulTestCase {
   protected JavaCodeInsightTestFixture myFixture;
@@ -99,7 +99,14 @@ public class DomPsiConverterTest extends UsefulTestCase {
     // Check some additional operations
     NodeList elementsByTagName = domDocument.getElementsByTagName("application");
     assertEquals(1, elementsByTagName.getLength());
-    assertEquals("@drawable/icon", elementsByTagName.item(0).getAttributes().getNamedItemNS(ANDROID_URI, "icon").getNodeValue());
+    Node appTag = elementsByTagName.item(0);
+    Node iconAttr = appTag.getAttributes().getNamedItemNS(ANDROID_URI, "icon");
+    assertEquals("@drawable/icon", iconAttr.getNodeValue());
+
+    for (Node node : List.of(domDocument, appTag, iconAttr)) {
+      assertEquals(node.lookupNamespaceURI(ANDROID_NS_NAME), ANDROID_URI);
+      assertEquals(node.lookupPrefix(ANDROID_URI), ANDROID_NS_NAME);
+    }
   }
 
   public void testRootNodes() {

@@ -25,6 +25,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlComment;
@@ -662,10 +663,10 @@ public class DomPsiConverter {
       throw new UnsupportedOperationException(); // Not supported
     }
 
-    @NotNull
     @Override
     public String lookupPrefix(String s) {
-      throw new UnsupportedOperationException(); // Not supported
+      XmlTag tag = PsiTreeUtil.getParentOfType(myElement, XmlTag.class, /*strict*/ false);
+      return tag != null ? tag.getPrefixByNamespace(s) : null;
     }
 
     @Override
@@ -673,10 +674,10 @@ public class DomPsiConverter {
       throw new UnsupportedOperationException(); // Not supported
     }
 
-    @NotNull
     @Override
     public String lookupNamespaceURI(String s) {
-      throw new UnsupportedOperationException(); // Not supported
+      XmlTag tag = PsiTreeUtil.getParentOfType(myElement, XmlTag.class, /*strict*/ false);
+      return tag != null ? tag.getNamespaceByPrefix(s) : null;
     }
 
     @Override
@@ -754,6 +755,17 @@ public class DomPsiConverter {
       myFile = file;
     }
 
+    @Override
+    public String lookupPrefix(String s) {
+      Element docElement = getDocumentElement();
+      return docElement != null ? docElement.lookupPrefix(s) : null;
+    }
+
+    @Override
+    public String lookupNamespaceURI(String s) {
+      Element docElement = getDocumentElement();
+      return docElement != null ? docElement.lookupNamespaceURI(s) : null;
+    }
     // From org.w3c.dom.Node:
 
     @Nullable
