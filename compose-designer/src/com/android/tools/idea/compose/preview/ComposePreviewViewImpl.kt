@@ -57,19 +57,24 @@ import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBSplitter
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import java.awt.AWTEvent
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Point
+import java.awt.Toolkit
+import java.awt.event.AWTEventListener
 import java.awt.event.AdjustmentEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.OverlayLayout
+import javax.swing.SwingUtilities
 
 private const val SURFACE_SPLITTER_DIVIDER_WIDTH_PX = 5
 private const val ISSUE_SPLITTER_DIVIDER_WIDTH_PX = 3
@@ -384,6 +389,19 @@ internal class ComposePreviewViewImpl(
               isFocusable = false
               add(mainSurface.actionManager.designSurfaceToolbar, BorderLayout.EAST)
             }
+
+        val workBenchHoverListener = AWTEventListener { event: AWTEvent ->
+          if (event.id == MouseEvent.MOUSE_ENTERED || event.id == MouseEvent.MOUSE_EXITED) {
+            zoomControlsLayerPane.isVisible =
+              SwingUtilities.isDescendingFrom((event as MouseEvent).component, workbench)
+          }
+        }
+        Toolkit.getDefaultToolkit()
+          .addAWTEventListener(workBenchHoverListener, AWTEvent.MOUSE_EVENT_MASK)
+        Disposer.register(workbench) {
+          Toolkit.getDefaultToolkit().removeAWTEventListener(workBenchHoverListener)
+        }
+
         this.add(zoomControlsLayerPane, JLayeredPane.DRAG_LAYER as Integer)
         this.add(scrollPane, JLayeredPane.POPUP_LAYER as Integer)
       }
