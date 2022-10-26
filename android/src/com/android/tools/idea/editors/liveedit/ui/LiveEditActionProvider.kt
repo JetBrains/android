@@ -18,11 +18,13 @@ package com.android.tools.idea.editors.liveedit.ui
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.markup.InspectionWidgetActionProvider
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 
 class LiveEditActionProvider : InspectionWidgetActionProvider {
   override fun createAction(editor: Editor): AnAction? {
     val project: Project? = editor.project
-    return if (project == null || project.isDefault) null else LiveEditAction(editor)
+    val file = FileDocumentManager.getInstance().getFile(editor.document)
+    return if (project == null || project.isDefault || file == null || !file.exists()) null else LiveEditAction(editor)
   }
 }
