@@ -663,6 +663,7 @@ internal class EmulatorToolWindowManager @AnyThread private constructor(
     fun devicesConnected(devices: Set<String>) {
       val removed = mirroredDevices.minus(devices)
       mirroredDevices.removeAll(removed)
+      mirrorableDeviceProperties.keys.removeAll(removed)
       for (device in removed) {
         removePhysicalDevicePanel(device)
       }
