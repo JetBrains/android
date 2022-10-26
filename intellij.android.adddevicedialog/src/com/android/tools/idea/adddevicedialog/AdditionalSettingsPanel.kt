@@ -15,6 +15,44 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import com.intellij.openapi.ui.ComboBox
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
+import javax.swing.GroupLayout
+import javax.swing.JButton
 
-internal class AdditionalSettingsPanel internal constructor() : JBPanel<AdditionalSettingsPanel>(null)
+internal class AdditionalSettingsPanel internal constructor() : JBPanel<AdditionalSettingsPanel>(null) {
+  init {
+    val sdkExtensionLevelLabel = JBLabel("SDK extension level")
+    val sdkExtensionLevelComboBox = ComboBox<Any>()
+
+    val deviceSkinLabel = JBLabel("Device skin")
+    val deviceSkinComboBox = ComboBox<Any>()
+    val importButton = JButton("Import")
+
+    val layout = GroupLayout(this)
+
+    val horizontalGroup = layout.createParallelGroup()
+      .addGroup(layout.createSequentialGroup()
+                  .addComponent(sdkExtensionLevelLabel)
+                  .addComponent(sdkExtensionLevelComboBox))
+      .addGroup(layout.createSequentialGroup()
+                  .addComponent(deviceSkinLabel)
+                  .addComponent(deviceSkinComboBox)
+                  .addComponent(importButton))
+
+    val verticalGroup = layout.createSequentialGroup()
+      .addGroup(layout.createParallelGroup()
+                  .addComponent(sdkExtensionLevelLabel)
+                  .addComponent(sdkExtensionLevelComboBox, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+      .addGroup(layout.createParallelGroup()
+                  .addComponent(deviceSkinLabel)
+                  .addComponent(deviceSkinComboBox, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                  .addComponent(importButton))
+
+    layout.setHorizontalGroup(horizontalGroup)
+    layout.setVerticalGroup(verticalGroup)
+
+    setLayout(layout)
+  }
+}
