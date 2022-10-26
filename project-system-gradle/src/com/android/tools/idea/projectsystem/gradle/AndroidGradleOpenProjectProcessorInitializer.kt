@@ -18,8 +18,8 @@ package com.android.tools.idea.projectsystem.gradle
 import com.intellij.projectImport.ProjectOpenProcessor
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectOpenProcessor
 
-class AndroidGradleOpenProjectProcessorInitializer : Runnable {
+private class AndroidGradleOpenProjectProcessorInitializer : Runnable {
   override fun run() {
-    ProjectOpenProcessor.EXTENSION_POINT_NAME.getPoint().unregisterExtension(GradleProjectOpenProcessor::class.java)
+    ProjectOpenProcessor.EXTENSION_POINT_NAME.point.unregisterExtension(GradleProjectOpenProcessor::class.java)
   }
 }
