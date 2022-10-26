@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.annotations.Trace
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
 import com.google.common.collect.HashMultimap
@@ -186,6 +187,12 @@ class AndroidLiveEditCodeGenerator(val project: Project, val inlineCandidateCach
 
     if (compilerOutput.isEmpty()) {
       throw LiveEditUpdateException.internalError("No compiler output.", input.file)
+    }
+
+    if (input.element.containingFile == null) {
+      // The function we are looking at no longer belongs to file. This is mostly an IDE refactor. Make it a recoverable error
+      // to see if the next step of the refactor can fix it. This should be solve nicely with a ClassDiffer.
+      throw compilationError("Invalid AST. Function no longer belong to any files.")
     }
 
     when(input.element) {
