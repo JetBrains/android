@@ -152,7 +152,9 @@ void Controller::Initialize() {
   pointer_properties_.MakeGlobal();
   pointer_coordinates_.MakeGlobal();
 
+  ProcessKeyboardEvent(KeyEventMessage(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_WAKEUP, 0));
   Agent::InitializeSessionEnvironment();
+
   SetReceiveTimeoutMillis(SOCKET_RECEIVE_TIMEOUT_MILLIS, socket_fd_);
   RemoveAgentFiles();
 }
