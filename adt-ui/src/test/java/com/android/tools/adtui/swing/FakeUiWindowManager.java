@@ -26,7 +26,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.StatusBar;
-import com.intellij.openapi.wm.StatusBarCentralWidget;
 import com.intellij.openapi.wm.StatusBarWidget;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
@@ -60,7 +59,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class FakeUiWindowManager extends WindowManagerEx {
   private static final Key<StatusBar> STATUS_BAR = Key.create("STATUS_BAR");
-  private final DesktopLayout myLayout = new DesktopLayout();
 
   @Override
   public final void doNotSuggestAsParent(Window window) {}
@@ -224,12 +222,6 @@ public final class FakeUiWindowManager extends WindowManagerEx {
     }
 
     @Override
-    public void addCustomIndicationComponent(@NotNull JComponent c) {}
-
-    @Override
-    public void removeCustomIndicationComponent(@NotNull JComponent c) {}
-
-    @Override
     public void addProgress(@NotNull ProgressIndicatorEx indicator, @NotNull TaskInfo info) {}
 
     @Override
@@ -258,9 +250,6 @@ public final class FakeUiWindowManager extends WindowManagerEx {
     public void addWidget(@NotNull StatusBarWidget widget, @NotNull String anchor, @NotNull Disposable parentDisposable) {
       addWidget(widget, parentDisposable);
     }
-
-    @Override
-    public void setCentralWidget(@NotNull StatusBarCentralWidget widget) {}
 
     @Override
     public void dispose() {}
