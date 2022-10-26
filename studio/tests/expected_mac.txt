@@ -55,11 +55,11 @@ Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_utils.py
 Android Studio Preview.app/Contents/bin/ltedit.sh
 Android Studio Preview.app/Contents/bin/printenv
 Android Studio Preview.app/Contents/bin/profiler.sh
-Android Studio Preview.app/Contents/bin/studio_safe.sh
 Android Studio Preview.app/Contents/bin/remote-dev-server.sh
 Android Studio Preview.app/Contents/bin/restarter
 Android Studio Preview.app/Contents/bin/studio.svg
 Android Studio Preview.app/Contents/bin/studio.vmoptions
+Android Studio Preview.app/Contents/bin/studio_safe.sh
 Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jar
 Android Studio Preview.app/Contents/jbr/Contents/Home/bin/jarsigner
 Android Studio Preview.app/Contents/jbr/Contents/Home/bin/java
@@ -2479,7 +2479,6 @@ Android Studio Preview.app/Contents/plugins/android/resources/transport/native/a
 Android Studio Preview.app/Contents/plugins/android/resources/transport/native/agent/x86_64/libjvmtiagent.so
 Android Studio Preview.app/Contents/plugins/android/resources/transport/x86/transport
 Android Studio Preview.app/Contents/plugins/android/resources/transport/x86_64/transport
-Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/06a82815-04f4-49e5-967e-03ffbb78ddad.intoto.jsonl
 Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/clang-tidy
 Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/clangd
 Android Studio Preview.app/Contents/plugins/c-clangd/lib/LICENSE.txt/CIDR_LICENSE.txt

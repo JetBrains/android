@@ -2462,7 +2462,6 @@ android-studio/plugins/android/resources/transport/native/agent/x86/libjvmtiagen
 android-studio/plugins/android/resources/transport/native/agent/x86_64/libjvmtiagent.so
 android-studio/plugins/android/resources/transport/x86/transport
 android-studio/plugins/android/resources/transport/x86_64/transport
-android-studio/plugins/c-clangd/bin/clang/linux/88e5cd8e-bb35-488c-b0a5-0702b8efa4a9.intoto.jsonl
 android-studio/plugins/c-clangd/bin/clang/linux/clang-tidy
 android-studio/plugins/c-clangd/bin/clang/linux/clangd
 android-studio/plugins/c-clangd/bin/clang/linux/libc++.so.1
