@@ -15,26 +15,20 @@
  */
 package com.android.tools.idea.run.tasks
 
-import com.android.ddmlib.AndroidDebugBridge
-import com.android.ddmlib.Client
-import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.concurrency.executeOnPooledThread
+import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.LaunchInfo
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter
-import com.android.tools.idea.run.configuration.RunConfigurationWithDebugger
-import com.android.tools.idea.run.debug.startReattachingDebugger
+import com.android.tools.idea.run.configuration.execution.DebugSessionStarter
+import com.android.tools.idea.run.debug.showError
 import com.android.tools.idea.run.editor.AndroidDebugger
 import com.android.tools.idea.run.editor.AndroidDebuggerState
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
-import com.google.common.annotations.VisibleForTesting
-import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.ExecutionException
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.RunContentManager
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runInEdt
-import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProcessCanceledException
 
 
 /**
@@ -44,123 +38,54 @@ import com.intellij.openapi.util.Disposer
  * using instrumentation runners that kill the instrumentation process between each test, disconnecting
  * the debugger. We listen for the start of a new test, waiting for a debugger, and reconnect.
  */
-class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
-                                     private val masterAndroidProcessName: String,
-                                     private val listener: ReattachingConnectDebuggerTaskListener?) : ConnectDebuggerTask by base,
-                                                                                                      ReattachingConnectDebuggerController {
-  companion object {
-    /**
-     * Changes to [Client] instances that mean a new debugger should be connected.
-     *
-     * The target application can either:
-     * 1. Match our target name, and become available for debugging.
-     * 2. Be available for debugging, and suddenly have its name changed to match.
-     */
-    const val CHANGE_MASK = Client.CHANGE_DEBUGGER_STATUS or Client.CHANGE_NAME
+class ReattachingConnectDebuggerTask<S : AndroidDebuggerState>(
+  private val androidDebugger: AndroidDebugger<S>,
+  private val androidDebuggerState: S,
+  private val applicationIdProvider: ApplicationIdProvider,
+  private val masterAndroidProcessName: String) : ConnectDebuggerTask {
+  override fun getDescription() = "Connecting Debugger"
+
+  override fun getDuration() = LaunchTaskDurations.CONNECT_DEBUGGER
+
+  private var timeoutSeconds = 15
+  override fun setTimeoutSeconds(value: Int) {
+    timeoutSeconds = value
   }
 
-  /**
-   * An internal listener that listens the changes on the target process on Android device.
-   * The listener becomes non-null value while this task is actively listening to the changes,
-   * otherwise the value is null.
-   */
-  private var myReattachingListener: AndroidDebugBridge.IClientChangeListener? = null
+  override fun getTimeoutSeconds(): Int {
+    return timeoutSeconds
+  }
 
-  override fun perform(
-    launchInfo: LaunchInfo, device: IDevice, status: ProcessHandlerLaunchStatus, printer: ProcessHandlerConsolePrinter) {
-    if (base is ConnectJavaDebuggerTask) {
-      val processHandler: ProcessHandler = status.processHandler
-      // Reuse the current ConsoleView to retain the UI state and not to lose test results.
-      val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
+  override fun perform(launchInfo: LaunchInfo, device: IDevice, status: ProcessHandlerLaunchStatus, printer: ProcessHandlerConsolePrinter) {
+    val applicationIdProvider = applicationIdProvider
+    val logger = Logger.getInstance(ConnectJavaDebuggerTask::class.java)
+    val oldProcessHandler = status.processHandler
+    // Reuse the current ConsoleView to retain the UI state and not to lose test results.
+    val androidTestResultListener = oldProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY) as? ConsoleView
+    logger.info("Attaching Java debugger")
 
-      val appIds = setOfNotNull(base.applicationIdProvider.packageName, base.applicationIdProvider.testPackageName)
-      val androidDebuggerContext = (launchInfo.env.runProfile as RunConfigurationWithDebugger).androidDebuggerContext
-      val debugger: AndroidDebugger<AndroidDebuggerState> = androidDebuggerContext.androidDebugger ?: throw RuntimeException(
-        "AndroidDebugger is not found for configuration ${launchInfo.env.runProfile::class}")
-      val state: AndroidDebuggerState = androidDebuggerContext.getAndroidDebuggerState() ?: throw RuntimeException(
-        "AndroidDebuggerState is not found for configuration ${launchInfo.env.runProfile::class}")
-      executeOnPooledThread {
-        startReattachingDebugger(
-          launchInfo.env.project,
-          device,
-          debugger,
-          state,
-          masterAndroidProcessName,
-          appIds,
-          launchInfo.env,
-          androidTestResultListener as? ConsoleView,
-        )
-          .onSuccess {
-            processHandler.detachProcess()
-            runInEdt { it.showSessionTab() }
-          }
+    val env = launchInfo.env
+
+    DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
+      device,
+      applicationIdProvider.packageName,
+      masterAndroidProcessName,
+      env,
+      androidDebugger,
+      androidDebuggerState,
+      destroyRunningProcess = { },
+      androidTestResultListener)
+      .onSuccess { session ->
+        oldProcessHandler.detachProcess()
+        session.showSessionTab()
       }
-      return
-    }
-
-    // Unregister the previous listener just in case there is the old one.
-    stop()
-
-    // Start listening and reattaching to the process.
-    myReattachingListener = AndroidDebugBridge.IClientChangeListener { client, changeMask ->
-      val data = client.clientData
-      val clientDescription = data.clientDescription
-      if (base.myApplicationIds.contains(clientDescription)) {
-        if (changeMask and CHANGE_MASK != 0 && data.debuggerConnectionStatus == ClientData.DebuggerStatus.WAITING) {
-          ApplicationManager.getApplication().invokeLater {
-            // Make sure the Android session is still active. b/156897049.
-            val descriptor = RunContentManager.getInstance(base.myProject).findContentDescriptor(launchInfo.executor, status.processHandler)
-            if (descriptor != null && !Disposer.isDisposed(descriptor)) {
-              base.launchDebugger(launchInfo, client, status, printer)
-            }
-          }
+      .onError {
+        if (it is ExecutionException) {
+          showError(env.project, it, env.runProfile.name)
+        }
+        else if (it !is ProcessCanceledException) {
+          logger.error(it)
         }
       }
-    }
-    AndroidDebugBridge.addClientChangeListener(myReattachingListener)
-
-    listener?.onStart(launchInfo, device, this)
-
   }
-
-  /**
-   * Stops reattaching to the target process.
-   */
-  override fun stop() {
-    if (myReattachingListener != null) {
-      AndroidDebugBridge.removeClientChangeListener(myReattachingListener)
-    }
-    myReattachingListener = null
-  }
-
-  /**
-   * Returns the current reattaching listener.
-   * <p>Do not use this method in production code.
-   */
-  @VisibleForTesting
-  fun getReattachingListenerForTesting() = myReattachingListener
-}
-
-/**
- * An interface to control the reattaching debug connector.
- */
-interface ReattachingConnectDebuggerController {
-  /**
-   * Stops monitoring processes running on device and stop reattaching debugger to
-   * the target process.
-   */
-  fun stop()
-}
-
-/**
- * An interface to listen event from the reattaching debug connector.
- */
-interface ReattachingConnectDebuggerTaskListener {
-  /**
-   * This method is invoked when the reattaching debug connector starts monitoring
-   * processes on device and reattaching to the target process.
-   */
-  fun onStart(launchInfo: LaunchInfo,
-              device: IDevice,
-              controller: ReattachingConnectDebuggerController)
 }

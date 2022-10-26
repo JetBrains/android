@@ -19,13 +19,14 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestExecutionOption
-import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.configuration.execution.DebugSessionStarter.attachDebuggerToClientAndShowTab
 import com.android.tools.idea.run.debug.startAndroidJavaDebuggerSession
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask
-import com.android.tools.idea.testartifacts.instrumented.orchestrator.createReattachingConnectDebuggerTask
+import com.android.tools.idea.run.tasks.ReattachingConnectDebuggerTask
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
+import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
 import com.intellij.debugger.engine.JavaDebugProcess
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -63,22 +64,23 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
     facet: AndroidFacet,
     state: AndroidDebuggerState
   ): ConnectDebuggerTask {
-    val baseConnector = ConnectJavaDebuggerTask(
-      applicationIdProvider, env.project
-    )
-    if (env.runProfile is AndroidRunConfiguration) {
-      return baseConnector
-    }
+
     val executionType = Optional.ofNullable(AndroidModel.get(facet))
       .map { obj: AndroidModel -> obj.testExecutionOption }
       .orElse(TestExecutionOption.HOST)
-    return when (executionType) {
-      TestExecutionOption.ANDROID_TEST_ORCHESTRATOR, TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR -> createReattachingConnectDebuggerTask(
-        baseConnector,
-        executionType
-      )
 
-      else -> baseConnector
+    return if (env.runProfile is AndroidTestRunConfiguration &&
+               (executionType == TestExecutionOption.ANDROID_TEST_ORCHESTRATOR ||
+                executionType == TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR)) {
+      ReattachingConnectDebuggerTask(
+        this,
+        state,
+        applicationIdProvider,
+        MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME.getValue(executionType)
+      )
+    }
+    else {
+      ConnectJavaDebuggerTask(applicationIdProvider, env.project)
     }
   }
 
