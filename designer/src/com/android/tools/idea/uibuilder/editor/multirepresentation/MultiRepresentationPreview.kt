@@ -419,7 +419,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
 
   private fun createActionToolbar(group: ActionGroup): ActionToolbarImpl {
     val toolbar = ActionManager.getInstance().createActionToolbar("top", group, true)
-    toolbar.setTargetComponent(editor.component)
+    toolbar.targetComponent = component
     toolbar.layoutPolicy = ActionToolbar.WRAP_LAYOUT_POLICY
     if (group === ActionGroup.EMPTY_GROUP) {
       toolbar.component.isVisible = false
