@@ -1,5 +1,3 @@
-package(default_visibility = ["//visibility:private"])
-
 PACKAGE = "com.android.tools.eventlogger"
 
 MANIFEST = "app/src/main/AndroidManifest.xml"
@@ -15,6 +13,7 @@ android_binary(
         "targetSdkVersion": "33",
     },
     tags = ["no_windows"],
+    visibility = ["//tools/adt/idea/emulator:__pkg__"],
     deps = [
         "//tools/adt/idea/emulator/integration/event-logger/app/src/main/java/com/android/tools/eventlogger:event_logging_activity",
     ],
