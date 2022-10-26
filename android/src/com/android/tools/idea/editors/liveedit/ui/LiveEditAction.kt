@@ -108,8 +108,8 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
     component = object : ActionButtonWithText(this, presentation, place, JBUI.size(18)) {
       override fun iconTextSpace() = JBUI.scale(2)
-      override fun getInsets(): Insets = JBUI.insets(2)
-      override fun getMargins(): Insets = JBUI.insetsRight(5)
+      override fun getInsets(): Insets = if (place == "EditorInspectionsToolbar") JBUI.insets(2) else JBUI.emptyInsets()
+      override fun getMargins(): Insets = if (place == "EditorInspectionsToolbar") JBUI.insetsRight(5) else JBUI.emptyInsets()
 
       override fun updateToolTipText() {
         if (Registry.`is`("ide.helptooltip.enabled")) {

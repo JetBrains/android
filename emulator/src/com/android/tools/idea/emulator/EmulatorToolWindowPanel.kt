@@ -47,12 +47,14 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
 import com.intellij.ui.SideBorder
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.util.xmlb.annotations.Property
 import icons.StudioIcons
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
 import org.jetbrains.annotations.TestOnly
+import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.KeyboardFocusManager
@@ -62,6 +64,7 @@ import java.util.function.IntFunction
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+import javax.swing.border.EmptyBorder
 
 /**
  * Provides view of one AVD in the Running Devices tool window.
@@ -71,7 +74,9 @@ class EmulatorToolWindowPanel(
   val emulator: EmulatorController
 ) : RunningDevicePanel(DeviceId.ofEmulator(emulator.emulatorId)), ConnectionStateListener {
 
+  private val toolbarPanel = BorderLayoutPanel()
   private val mainToolbar: ActionToolbar
+  private val northEastToolbar: ActionToolbar
   private val centerPanel = BorderLayoutPanel()
   private val displayPanels = Int2ObjectRBTreeMap<EmulatorDisplayPanel>()
   private val displayConfigurator = DisplayConfigurator()
@@ -133,18 +138,26 @@ class EmulatorToolWindowPanel(
     background = primaryPanelBackground
 
     mainToolbar = createToolbar(EMULATOR_MAIN_TOOLBAR_ID, isToolbarHorizontal)
+    northEastToolbar = createToolbar(EMULATOR_NORTH_EAST_TOOLBAR_ID, isToolbarHorizontal)
+    northEastToolbar.component.border = EmptyBorder(JBUI.emptyInsets())
 
     addToCenter(centerPanel)
 
     if (isToolbarHorizontal) {
       mainToolbar.setOrientation(SwingConstants.HORIZONTAL)
+      northEastToolbar.setOrientation(SwingConstants.HORIZONTAL)
+      toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
+      toolbarPanel.add(northEastToolbar.component, BorderLayout.EAST)
       centerPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.TOP)
-      addToTop(mainToolbar.component)
+      addToTop(toolbarPanel)
     }
     else {
       mainToolbar.setOrientation(SwingConstants.VERTICAL)
+      northEastToolbar.setOrientation(SwingConstants.VERTICAL)
+      toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
+      toolbarPanel.add(northEastToolbar.component, BorderLayout.SOUTH)
       centerPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.LEFT)
-      addToLeft(mainToolbar.component)
+      addToLeft(toolbarPanel)
     }
   }
 
@@ -181,8 +194,10 @@ class EmulatorToolWindowPanel(
     val emulatorView = primaryDisplayPanel.displayView
     primaryEmulatorView = emulatorView
     mainToolbar.targetComponent = emulatorView
+    northEastToolbar.targetComponent = emulatorView
     emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) {
       mainToolbar.updateActionsImmediately()
+      northEastToolbar.updateActionsImmediately()
     }
     installFileDropHandler(this, id.serialNumber, emulatorView, project)
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
@@ -261,6 +276,7 @@ class EmulatorToolWindowPanel(
     displayPanels.clear()
     primaryEmulatorView = null
     mainToolbar.targetComponent = this
+    northEastToolbar.targetComponent = this
     clipboardSynchronizer = null
     lastUiState = uiState
     return uiState
@@ -331,6 +347,7 @@ class EmulatorToolWindowPanel(
       displayDescriptors = newDisplays
       setRootPanel(rootPanel)
       mainToolbar.updateActionsImmediately()
+      northEastToolbar.updateActionsImmediately()
     }
 
     fun buildLayout(multiDisplayState: MultiDisplayState) {
@@ -379,6 +396,7 @@ class EmulatorToolWindowPanel(
 
     private fun setRootPanel(rootPanel: JPanel) {
       mainToolbar.updateActionsImmediately() // Rotation buttons are hidden in multi-display mode.
+      northEastToolbar.updateActionsImmediately()
       centerPanel.removeAll()
       centerPanel.addToCenter(rootPanel)
       centerPanel.validate()

@@ -30,6 +30,8 @@ import com.intellij.openapi.actionSystem.DataKey
 
 internal const val EMULATOR_MAIN_TOOLBAR_ID = "EmulatorToolbar"
 
+internal const val EMULATOR_NORTH_EAST_TOOLBAR_ID = "EmulatorToolbar_NE"
+
 internal val RUNNING_DEVICES_NOTIFICATION_GROUP: NotificationGroup
   get() = findRegisteredGroup("Running Devices Messages")!!
 
