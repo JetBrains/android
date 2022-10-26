@@ -20,6 +20,11 @@ import com.android.tools.idea.serverflags.protos.MemoryUsageComponent;
 import com.android.tools.idea.serverflags.protos.MemoryUsageComponentCategory;
 import com.android.tools.idea.serverflags.protos.MemoryUsageReportConfiguration;
 import com.google.common.collect.Maps;
+import com.google.common.io.Resources;
+import com.google.protobuf.TextFormat;
+import com.intellij.openapi.diagnostic.Logger;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,11 +33,15 @@ import org.jetbrains.annotations.Nullable;
 
 public final class ComponentsSet {
 
+  private static final Logger LOG = Logger.getInstance(ComponentsSet.class);
+
   public static final String MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME =
     "diagnostics/memory_usage_reporting";
 
+  private static final String INTEGRATION_TEST_CONFIG_RESOURCE_NAME = "/diagnostics/integration_test_memory_usage_config.textproto";
+
   static final String UNCATEGORIZED_CATEGORY_LABEL = "android:uncategorized";
-  static final String UNCATEGORIZED_COMPONENT_LABEL = "main";
+  static final String UNCATEGORIZED_COMPONENT_LABEL = "uncategorized_main";
 
   @NotNull
   private final Component uncategorizedComponent;
@@ -56,10 +65,26 @@ public final class ComponentsSet {
   }
 
   @NotNull
-  public static MemoryUsageReportConfiguration getMemoryUsageReportConfiguration() {
+  public static MemoryUsageReportConfiguration getServerFlagConfiguration() {
     return ServerFlagService.Companion.getInstance()
       .getProto(MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME,
                 MemoryUsageReportConfiguration.getDefaultInstance());
+  }
+
+  @NotNull
+  public static MemoryUsageReportConfiguration getIntegrationTestConfiguration() {
+    MemoryUsageReportConfiguration.Builder builder = MemoryUsageReportConfiguration.newBuilder();
+    try {
+      TextFormat.merge(
+        Resources.toString(
+          Resources.getResource(ComponentsSet.class, INTEGRATION_TEST_CONFIG_RESOURCE_NAME),
+          StandardCharsets.UTF_8),
+        builder);
+    }
+    catch (IOException e) {
+      LOG.error("Failed to read memory usage components configuration", e);
+    }
+    return builder.build();
   }
 
   @NotNull
@@ -143,11 +168,10 @@ public final class ComponentsSet {
     return null;
   }
 
-  @NotNull
-  public static ComponentsSet getComponentSet() {
+  private static ComponentsSet buildComponentSetFromConfiguration(MemoryUsageReportConfiguration configuration) {
     ComponentsSet components = new ComponentsSet();
 
-    for (MemoryUsageComponentCategory protoCategory : getMemoryUsageReportConfiguration().getCategoriesList()) {
+    for (MemoryUsageComponentCategory protoCategory : configuration.getCategoriesList()) {
       ComponentCategory category = components.registerCategory(protoCategory.getLabel());
       for (MemoryUsageComponent component : protoCategory.getComponentsList()) {
         components.addComponentWithPackagesAndClassNames(component.getLabel(), category,
@@ -157,6 +181,16 @@ public final class ComponentsSet {
     }
 
     return components;
+  }
+
+  @NotNull
+  public static ComponentsSet buildComponentSet() {
+    return buildComponentSetFromConfiguration(getServerFlagConfiguration());
+  }
+
+  @NotNull
+  public static ComponentsSet buildComponentSetForIntegrationTesting() {
+    return buildComponentSetFromConfiguration(getIntegrationTestConfiguration());
   }
 
   public static final class Component {

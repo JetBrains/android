@@ -23,6 +23,7 @@ import com.android.tools.idea.util.StudioPathManager;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
 import com.intellij.ide.PowerSaveMode;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -33,7 +34,11 @@ import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,6 +52,8 @@ public final class HeapSnapshotTraverseService {
   private static final long REPORT_COLLECTION_DELAY_MILLISECONDS = Duration.ofMinutes(30).toMillis();
   private static final String DIAGNOSTICS_HEAP_NATIVE_PATH =
     "tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native";
+
+  private static final String MEMORY_USAGE_REPORT_FAILURE_MESSAGE_PREFIX = "Memory usage report collection failed: ";
   private static final String JNI_OBJECT_TAGGER_LIB_NAME = "jni_object_tagger";
   private static final String RESOURCES_NATIVE_PATH = "plugins/android/resources/native";
   private static final Logger LOG = Logger.getInstance(HeapSnapshotTraverseService.class);
@@ -58,6 +65,11 @@ public final class HeapSnapshotTraverseService {
 
   HeapSnapshotTraverseService() {
     alarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication());
+  }
+
+  public void registerIntegrationTestCollectMemoryUsageStatisticsAction() {
+    ActionManager.getInstance()
+      .registerAction("IntegrationTestCollectMemoryUsageStatisticsAction", new IntegrationTestCollectMemoryUsageStatisticsAction());
   }
 
   @NotNull
@@ -101,13 +113,33 @@ public final class HeapSnapshotTraverseService {
     }
   }
 
-  public void collectAndPrintMemoryReport() {
+  public void collectAndLogMemoryReport() {
     loadObjectTaggingAgent();
     if (!agentSuccessfullyLoaded) {
       return;
     }
+    HeapSnapshotTraverse.collectAndWriteStats(LOG::info, ComponentsSet.buildComponentSet(), false);
+  }
 
-    HeapSnapshotTraverse.collectAndPrintMemoryReport();
+  public void collectMemoryReportAndDumpToMetricsFile() {
+    try (Writer writer = new BufferedWriter(new FileWriter(new File(PathManager.getLogPath(), "metrics.log")))) {
+      loadObjectTaggingAgent();
+      if (!agentSuccessfullyLoaded) {
+        writer.append(MEMORY_USAGE_REPORT_FAILURE_MESSAGE_PREFIX).append("Failed to load agent").append("\n");
+        return;
+      }
+
+      HeapSnapshotTraverse.collectAndWriteStats((String s) -> {
+        try {
+          writer.append(s).append("\n");
+        }
+        catch (IOException ignored) {
+        }
+      }, ComponentsSet.buildComponentSetForIntegrationTesting(), true);
+    }
+    catch (IOException e) {
+      LOG.error("Failed to write memory usage statistics to metrics.log file", e);
+    }
   }
 
   private void lowerThreadPriorityAndCollectMemoryReport() {

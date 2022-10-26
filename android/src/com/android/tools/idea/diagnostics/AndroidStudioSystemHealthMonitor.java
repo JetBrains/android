@@ -152,6 +152,8 @@ import sun.tools.attach.HotSpotVirtualMachine;
 public final class AndroidStudioSystemHealthMonitor {
   private static final Logger LOG = Logger.getInstance(AndroidStudioSystemHealthMonitor.class);
 
+  public static final String STUDIO_RUN_UNDER_INTEGRATION_TEST_KEY = "studio.run.under.integration.test";
+
   // The group should be registered by SystemHealthMonitor
   private final NotificationGroup myGroup = NotificationGroup.findRegisteredGroup("System Health");
 
@@ -419,6 +421,9 @@ public final class AndroidStudioSystemHealthMonitor {
 
     application.executeOnPooledThread(this::checkRuntime);
 
+    if (Boolean.getBoolean(STUDIO_RUN_UNDER_INTEGRATION_TEST_KEY)) {
+      HeapSnapshotTraverseService.getInstance().registerIntegrationTestCollectMemoryUsageStatisticsAction();
+    }
     if (ServerFlagService.Companion.getInstance()
           .getProtoOrNull(MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME, MemoryUsageReportConfiguration.getDefaultInstance()) != null &&
         !ApplicationManager.getApplication().isHeadlessEnvironment() &&

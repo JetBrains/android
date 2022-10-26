@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
+import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils;
+import java.util.Locale;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,5 +41,13 @@ public class HeapTraverseUtil {
 
   public static boolean isPrimitive(@NotNull Class<?> type) {
     return type.isPrimitive();
+  }
+
+  @NotNull
+  public static String getObjectsSizePresentation(long bytes, boolean showSizesInBytes) {
+    if (showSizesInBytes) {
+      return String.format(Locale.US, "%d bytes", bytes);
+    }
+    return HeapReportUtils.INSTANCE.toShortStringAsCount(bytes);
   }
 }

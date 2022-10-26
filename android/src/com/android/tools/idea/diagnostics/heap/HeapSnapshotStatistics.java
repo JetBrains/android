@@ -20,15 +20,16 @@ import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.Memor
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
-import com.intellij.diagnostic.hprof.util.HeapReportUtils;
 import com.intellij.ide.PowerSaveMode;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
@@ -109,51 +110,32 @@ final class HeapSnapshotStatistics {
     componentStats.get(componentID).addRetainedObject(size, objectAge);
   }
 
-  private void printClusterStats(@NotNull final PrintWriter out,
-                                 @NotNull final ClusterObjectsStatistics.MemoryTrafficStatistics statistics) {
-    out.printf("    [%s/%d]\n", HeapReportUtils.INSTANCE.toShortStringAsCount(
-                 statistics.objectsStat.getTotalSizeInBytes()),
-               statistics.objectsStat.getObjectsCount());
+  void print(@NotNull final Consumer<String> writer, @NotNull final Function<Long, String> objectSizePresentation) {
+    writer.accept(
+      String.format(Locale.US, "Total used memory: %s/%d objects",
+                    objectSizePresentation.apply(totalStats.objectsStat.totalSizeInBytes),
+                    totalStats.objectsStat.objectsCount));
 
-    out.printf("    Newly allocated objects [%s/%d]\n",
-               HeapReportUtils.INSTANCE.toShortStringAsCount(
-                 statistics.newObjectsStat.getTotalSizeInBytes()),
-               statistics.newObjectsStat.getObjectsCount());
-
-    for (int i = 0; i < ClusterObjectsStatistics.MAX_TRACKED_OBJECT_AGE; i++) {
-      out.printf("    Objects allocated at least %d iterations before [%s/%d]\n", i + 1,
-                 HeapReportUtils.INSTANCE.toShortStringAsCount(
-                   statistics.previousSnapshotsRemainedObjectsStats.get(i).getTotalSizeInBytes()),
-                 statistics.previousSnapshotsRemainedObjectsStats.get(i).getObjectsCount());
-    }
-  }
-
-  void print(@NotNull final PrintWriter out) {
-    out.print("Total:\n");
-    printClusterStats(out, totalStats);
-
-    out.printf("Categories:\n");
+    writer.accept(String.format(Locale.US, "%d Categories:", categoryComponentStats.size()));
     for (CategoryClusterObjectsStatistics stat : categoryComponentStats) {
-      out.printf("Category %s:\n", stat.getComponentCategory().getComponentCategoryLabel());
-      printClusterStats(out, stat.getOwnedClusterStat());
-      out.printf("  Retained stat:\n");
-      printClusterStats(out, stat.getRetainedClusterStat());
+      writer.accept(String.format(Locale.US, "  Category %s:", stat.getComponentCategory().getComponentCategoryLabel()));
+      writer.accept(String.format(Locale.US, "    Owned: %s/%d objects",
+                                  objectSizePresentation.apply(stat.getOwnedClusterStat().getObjectsStatistics().totalSizeInBytes),
+                                  stat.getOwnedClusterStat().getObjectsStatistics().objectsCount));
+      writer.accept(String.format(Locale.US, "    Retained: %s/%d objects",
+                                  objectSizePresentation.apply(stat.getRetainedClusterStat().getObjectsStatistics().totalSizeInBytes),
+                                  stat.getRetainedClusterStat().getObjectsStatistics().objectsCount));
     }
 
+    writer.accept(String.format(Locale.US, "%d Components:", componentStats.size()));
     for (ComponentClusterObjectsStatistics stat : componentStats) {
-      out.printf("Component %s:\n", stat.getComponent().getComponentLabel());
-      printClusterStats(out, stat.getOwnedClusterStat());
-      out.printf("  Retained stat:\n");
-      printClusterStats(out, stat.getRetainedClusterStat());
-    }
-
-    for (SharedClusterStatistics sharedClusterStatistics : maskToSharedComponentStats.values()) {
-      out.printf("Shared component %s:\n",
-                 sharedClusterStatistics.getComponentKinds().stream()
-                   .map(i -> componentsSet.getComponents().get(i).getComponentLabel())
-                   .collect(
-                     Collectors.toList()));
-      printClusterStats(out, sharedClusterStatistics.getStatistics());
+      writer.accept(String.format(Locale.US, "  Component %s:", stat.getComponent().getComponentLabel()));
+      writer.accept(String.format(Locale.US, "    Owned: %s/%d objects",
+                                  objectSizePresentation.apply(stat.getOwnedClusterStat().getObjectsStatistics().totalSizeInBytes),
+                                  stat.getOwnedClusterStat().getObjectsStatistics().objectsCount));
+      writer.accept(String.format(Locale.US, "    Retained: %s/%d objects",
+                                  objectSizePresentation.apply(stat.getRetainedClusterStat().getObjectsStatistics().totalSizeInBytes),
+                                  stat.getRetainedClusterStat().getObjectsStatistics().objectsCount));
     }
   }
 

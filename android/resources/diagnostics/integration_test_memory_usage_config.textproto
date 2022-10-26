@@ -1,0 +1,211 @@
+categories: {
+  label: "android:resourceManager"
+
+  components: {
+    label: "resourceManager_main"
+    package_names: "org.jetbrains.android.resourceManagers"
+  }
+}
+categories: {
+  label: "android:resourceRepository"
+
+  components: {
+    label: "resourceRepository_main"
+    package_names: "org.jetbrains.android.facet"
+    package_names: "com.android.tools.idea.res"
+  }
+}
+categories: {
+  label: "android:designTools"
+
+  components: {
+    label: "rendering"
+    package_names: "android"
+    package_names: "androidx"
+    package_names: "com.android.tools.idea.rendering"
+  }
+  components: {
+    label: "imagepool"
+    package_names: "com.android.tools.idea.rendering.imagepool"
+  }
+  components: {
+    label: "layoutEditor"
+    package_names: "com.android.tools.idea.common.surface"
+    package_names: "com.android.tools.idea.common.scene"
+    package_names: "com.android.tools.idea.common.editor"
+    package_names: "com.android.tools.idea.uibuilder"
+    package_names: "com.android.tools.idea.configurations"
+  }
+  components: {
+    label: "layoutlib"
+    package_names: "com.android.layoutlib"
+    package_names: "com.android.tools.idea.layoutlib"
+  }
+  components: {
+    label: "naveditor"
+    package_names: "com.android.tools.idea.naveditor"
+  }
+}
+categories: {
+  label: "android:gradle"
+
+  components: {
+    label: "gradle_main"
+    package_names: "org.jetbrains.plugins.gradle"
+    package_names: "com.android.tools.idea.gradle"
+  }
+}
+categories: {
+  label: "android:profiler"
+
+  components: {
+    label: "profiler_main"
+    package_names: "com.android.tools.profiling"
+    package_names: "com.android.tools.profilers"
+    package_names: "com.android.tools.profiler"
+    package_names: "com.android.tools.idea.profilers"
+  }
+  components: {
+    label: "transport"
+    package_names: "com.android.tools.idea.transport"
+    package_names: "com.android.tools.datastore"
+  }
+}
+categories: {
+  label: "android:templates"
+
+  components: {
+    label: "templates_main"
+    package_names: "com.android.tools.idea.templates"
+  }
+}
+categories: {
+  label: "android:runDebug"
+
+  components: {
+    label: "runDeployer"
+    package_names: "com.android.tools.idea.run"
+    package_names: "com.android.tools.deployer"
+  }
+  components: {
+    label: "logcat"
+    package_names: "com.android.tools.idea.logcat"
+  }
+  components: {
+    label: "ddm"
+    package_names: "com.android.tools.idea.ddms"
+    package_names: "com.android.ddmlib"
+  }
+  components: {
+    label: "debug"
+    package_names: "com.android.tools.idea.debug"
+  }
+  components: {
+    label: "apkView"
+    package_names: "com.android.tools.idea.apk.viewer"
+  }
+}
+categories: {
+  label: "android:lint"
+
+  components: {
+    label: "lint_main"
+    package_names: "com.android.tools.lint"
+    package_names: "com.android.tools.idea.lint"
+    package_names: "com.android.tools.idea.common.lint"
+  }
+}
+categories: {
+  label: "android:cpp"
+
+  components: {
+    label: "cpp_main"
+    package_names: "com.android.tools.ndk"
+    package_names: "com.jetbrains.cidr"
+  }
+}
+categories: {
+  label: "android:avdmanager"
+
+  components: {
+    label: "avdmanager_main"
+    package_names: "com.android.tools.idea.avdmanager"
+    package_names: "com.android.sdklib.internal.avd"
+  }
+}
+categories: {
+  label: "android:editors"
+
+  components: {
+    label: "editors_main"
+    package_names: "com.android.tools.idea.editors"
+  }
+  components: {
+    label: "inspections"
+    package_names: "org.jetbrains.android.inspections"
+  }
+}
+categories: {
+  label: "android:diagnostics"
+
+  components: {
+    label: "diagnostics_main"
+    package_names: "com.android.tools.idea.diagnostics"
+    package_names: "com.android.tools.analytics"
+  }
+}
+categories: {
+  label: "android:dataBinding"
+
+  components: {
+    label: "dataBinding_main"
+    package_names: "com.android.tools.idea.databinding"
+    package_names: "com.android.tools.idea.lang.databinding"
+  }
+}
+categories: {
+  label: "android:sdk"
+
+  components: {
+    label: "sdk_main"
+    package_names: "com.android.sdklib"
+    package_names: "org.jetbrains.android.sdk"
+  }
+}
+categories: {
+  label: "intellij:platform"
+
+  components: {
+    label: "kotlin"
+    package_names: "org.jetbrains.kotlin"
+  }
+  components: {
+    label: "project"
+    package_names: "com.intellij.openapi.project"
+  }
+  components: {
+    label: "application"
+    package_names: "com.intellij.openapi.application"
+  }
+  components: {
+    label: "module"
+    package_names: "com.intellij.workspaceModel.ide.impl.legacyBridge.module"
+    package_names: "com.intellij.openapi.module"
+  }
+  components: {
+    label: "vfs"
+    package_names: "com.intellij.openapi.vfs"
+    class_names: "com.intellij.workspaceModel.ide.impl.IdeVirtualFileUrlManagerImpl"
+    class_names: "com.intellij.workspaceModel.ide.impl.legacyBridge.watcher.VirtualFileUrlWatcher"
+  }
+  components: {
+    label: "editor"
+    package_names: "com.intellij.openapi.editor"
+    package_names: "com.intellij.openapi.fileEditor"
+  }
+  components: {
+    label: "psi"
+    package_names: "com.intellij.psi"
+  }
+}
+shared_components_limit: 200

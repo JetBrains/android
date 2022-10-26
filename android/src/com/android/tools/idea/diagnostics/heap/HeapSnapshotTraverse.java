@@ -28,9 +28,7 @@ import com.intellij.openapi.util.LowMemoryWatcher;
 import com.intellij.util.containers.WeakList;
 import com.intellij.util.messages.MessageBusConnection;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,6 +36,7 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -483,14 +482,17 @@ public final class HeapSnapshotTraverse implements Disposable {
     messageBusConnection.disconnect();
   }
 
-  public static void collectAndPrintMemoryReport() {
-    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(ComponentsSet.getComponentSet());
+  public static void collectAndWriteStats(@NotNull final Consumer<String> writer,
+                                          @NotNull final ComponentsSet componentsSet,
+                                          boolean showSizesInBytes) {
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
     new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH);
-    stats.print(new PrintWriter(System.out, true, StandardCharsets.UTF_8));
+
+    stats.print(writer, bytes -> HeapTraverseUtil.getObjectsSizePresentation(bytes, showSizesInBytes));
   }
 
   public static StatusCode collectMemoryReport() {
-    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(ComponentsSet.getComponentSet());
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(ComponentsSet.buildComponentSet());
     long startTime = System.nanoTime();
     StatusCode statusCode =
       new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH);
@@ -502,7 +504,7 @@ public final class HeapSnapshotTraverse implements Disposable {
                                                              System.nanoTime() - startTime),
                                                            TimeUnit.NANOSECONDS.toMillis(
                                                              startTime),
-                                                           ComponentsSet.getMemoryUsageReportConfiguration()
+                                                           ComponentsSet.getServerFlagConfiguration()
                                                              .getSharedComponentsLimit())));
     return statusCode;
   }

@@ -19,10 +19,14 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
-public final class HeapStrongReferenceCountAction extends AnAction {
+/**
+ * It is an internal action that is only registered for Android Studio instances running from integration
+ * End2End tests. It collects memory usage statistics of components
+ */
+public final class IntegrationTestCollectMemoryUsageStatisticsAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    HeapSnapshotTraverseService.getInstance().collectAndPrintMemoryReport();
+    HeapSnapshotTraverseService.getInstance().collectMemoryReportAndDumpToMetricsFile();
   }
 }
