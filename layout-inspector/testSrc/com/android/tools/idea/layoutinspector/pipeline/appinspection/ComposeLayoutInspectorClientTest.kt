@@ -127,7 +127,8 @@ class ComposeLayoutInspectorClientTest {
   fun inspectorArtifactNotFound_showComposeInspectionNotAvailableBanner() = runBlocking {
     val artifactService = object : InspectorArtifactService {
       override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path {
-        throw AppInspectionArtifactNotFoundException("not found", ArtifactCoordinate("group", "id", "1.0.0", ArtifactCoordinate.Type.AAR))
+        throw AppInspectionArtifactNotFoundException("not found",
+                                                     ArtifactCoordinate("androidx.compose.ui", "ui", "1.0.0", ArtifactCoordinate.Type.AAR))
       }
     }
     ApplicationManager.getApplication().registerServiceInstance(InspectorArtifactService::class.java, artifactService)

@@ -1279,6 +1279,11 @@ class AppInspectionInspectorClientWithFailingClientTest {
       AppInspectionArtifactNotFoundException("expected", ArtifactCoordinate("group", "id", "1.1.0", ArtifactCoordinate.Type.AAR)),
       AttachErrorCode.APP_INSPECTION_ARTIFACT_NOT_FOUND
     )
+    checkException(
+      AppInspectionArtifactNotFoundException("expected",
+                                             ArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0", ArtifactCoordinate.Type.AAR)),
+      AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND
+    )
     checkException(object : AppInspectionServiceException("expected") {}, AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR)
   }
 

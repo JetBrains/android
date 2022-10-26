@@ -30,10 +30,11 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.ErrorInfo
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
-import com.android.tools.idea.layoutinspector.pipeline.errorCode
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.errorCode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.protobuf.CodedInputStream
@@ -65,7 +66,6 @@ private val DEV_JAR = AppInspectorJar(
   developmentDirectory = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER.get(),
   releaseDirectory = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.get().nullize()
 )
-@VisibleForTesting
 val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate(
   "androidx.compose.ui", "ui", "1.0.0-beta02", ArtifactCoordinate.Type.AAR
 )
@@ -144,7 +144,7 @@ class ComposeLayoutInspectorClient(
           InspectorArtifactService.instance.getOrResolveInspectorJar(project, MINIMUM_COMPOSE_COORDINATE.copy(version = version))
         }
         catch (exception: AppInspectionArtifactNotFoundException) {
-          return handleError(project, logErrorToMetrics, versionNotFoundAsErrorCode(version))
+          return handleError(project, logErrorToMetrics, exception.errorCode)
         }
       }
 
@@ -158,26 +158,16 @@ class ComposeLayoutInspectorClient(
       }
       catch (unexpected: AppInspectionException) {
         handleError(project, logErrorToMetrics, unexpected.errorCode)
-        null
       }
     }
-
-    /**
-     * We were unable to find the compose inspection jar. This can mean eiter:
-     * - the app is using a SNAPSHOT for compose:ui:ui but have not specified the VM flag use.snapshot.jar
-     * - the jar file wasn't found where it is supposed to be / could not be downloaded
-     */
-    private fun versionNotFoundAsErrorCode(version: String = "") =
-        if (version.endsWith("-SNAPSHOT")) AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED
-        else AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND
 
     private fun handleError(
       project: Project,
       logErrorToMetrics: (AttachErrorCode) -> Unit,
-      error: AttachErrorCode
+      error: ErrorInfo
     ): ComposeLayoutInspectorClient? {
       val actions = mutableListOf<AnAction>()
-      val message: String = when (error) {
+      val message: String = when (error.code) {
         AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY -> {
           // This is not an error we want to report.
           // The compose.ui.ui was not present, which is normal in a View only application.
@@ -196,14 +186,14 @@ class ComposeLayoutInspectorClient(
         AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND ->
           LayoutInspectorBundle.message(COMPOSE_INSPECTION_NOT_AVAILABLE_KEY)
         else -> {
-          logErrorToMetrics(error)
+          logErrorToMetrics(error.code)
           return null
         }
       }
       val banner = InspectorBannerService.getInstance(project) ?: return null
       actions.add(banner.DISMISS_ACTION)
       banner.setNotification(message, actions)
-      logErrorToMetrics(error)
+      logErrorToMetrics(error.code)
       return null
     }
   }

@@ -15,29 +15,18 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionCannotFindAdbDeviceException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionMissingException
-import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -171,49 +160,4 @@ abstract class AbstractInspectorClient(
   }
 
   protected abstract fun doDisconnect(): ListenableFuture<Nothing>
-}
-
-class ConnectionFailedException(message: String, val code: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE): Exception(message)
-
-val Throwable.errorCode: AttachErrorCode
-  get() = when (this) {
-    is ConnectionFailedException -> code
-    is AppInspectionCannotFindAdbDeviceException -> AttachErrorCode.APP_INSPECTION_CANNOT_FIND_DEVICE
-    is AppInspectionProcessNoLongerExistsException -> AttachErrorCode.APP_INSPECTION_PROCESS_NO_LONGER_EXISTS
-    is AppInspectionVersionIncompatibleException -> AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION
-    is AppInspectionVersionMissingException -> AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND
-    is AppInspectionLibraryMissingException -> AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY
-    is AppInspectionAppProguardedException -> AttachErrorCode.APP_INSPECTION_PROGUARDED_APP
-    is AppInspectionArtifactNotFoundException -> AttachErrorCode.APP_INSPECTION_ARTIFACT_NOT_FOUND
-    is AppInspectionServiceException -> {
-      logUnexpectedError(InspectorConnectionError(this))
-      AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR
-    }
-    else -> {
-      logUnexpectedError(InspectorConnectionError(this))
-      AttachErrorCode.UNKNOWN_ERROR_CODE
-    }
-  }
-
-val LibraryCompatbilityInfo.Status?.errorCode
-  get() = when (this) {
-    LibraryCompatbilityInfo.Status.INCOMPATIBLE -> AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION
-    LibraryCompatbilityInfo.Status.APP_PROGUARDED -> AttachErrorCode.APP_INSPECTION_PROGUARDED_APP
-    LibraryCompatbilityInfo.Status.VERSION_MISSING -> AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND
-    LibraryCompatbilityInfo.Status.LIBRARY_MISSING -> AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY
-    else -> {
-      logUnexpectedError(InspectorConnectionError("Unexpected status $this"))
-      AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR
-    }
-  }
-
-/**
- * Log this unexpected exception such that it can be found in go/studio-exceptions but do not throw a new exception.
- */
-private fun logUnexpectedError(error: InspectorConnectionError) {
-  try {
-    Logger.getInstance(ComposeLayoutInspectorClient::class.java).error(error)
-  }
-  catch (_: Throwable) {
-  }
 }

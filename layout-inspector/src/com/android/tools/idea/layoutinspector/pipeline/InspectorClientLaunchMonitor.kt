@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.errorCode
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
@@ -70,7 +71,7 @@ class InspectorClientLaunchMonitor(
   }
 
   fun onFailure(t: Throwable) {
-    logAttachError(t.errorCode)
+    logAttachError(t.errorCode.code)
     stop()
   }
 
