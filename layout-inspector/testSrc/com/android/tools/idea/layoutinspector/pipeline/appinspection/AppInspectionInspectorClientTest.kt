@@ -111,6 +111,7 @@ import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.`when`
+import java.net.UnknownHostException
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ArrayBlockingQueue
@@ -1283,6 +1284,12 @@ class AppInspectionInspectorClientWithFailingClientTest {
       AppInspectionArtifactNotFoundException("expected",
                                              ArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0", ArtifactCoordinate.Type.AAR)),
       AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND
+    )
+    checkException(
+      AppInspectionArtifactNotFoundException("Artifact androidx.compose.ui:ui:1.3.0 could not be resolved on $GMAVEN_HOSTNAME.",
+                                             ArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0", ArtifactCoordinate.Type.AAR),
+                                             UnknownHostException(GMAVEN_HOSTNAME)),
+      AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD
     )
     checkException(object : AppInspectionServiceException("expected") {}, AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR)
   }

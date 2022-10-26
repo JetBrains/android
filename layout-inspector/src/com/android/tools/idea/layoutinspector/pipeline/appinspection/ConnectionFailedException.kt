@@ -28,8 +28,13 @@ import com.android.tools.idea.layoutinspector.pipeline.ErrorInfo
 import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.MINIMUM_COMPOSE_COORDINATE
 import com.android.tools.idea.layoutinspector.pipeline.info
+import com.android.tools.idea.transport.TransportNonExistingFileException
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.util.io.HttpRequests
+import java.net.UnknownHostException
+
+const val GMAVEN_HOSTNAME = "maven.google.com"
 
 /**
  * A problem was detected in one of the app inspection inspectors.
@@ -54,13 +59,15 @@ val Throwable.errorCode: ErrorInfo
     is AppInspectionArtifactNotFoundException -> when {
       // The app may be using a SNAPSHOT for compose:ui:ui but have not specified the VM flag use.snapshot.jar:
       artifactCoordinate.version.endsWith("-SNAPSHOT") -> AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED
+      message?.contains(GMAVEN_HOSTNAME) == true -> AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD
       artifactCoordinate.sameArtifact(MINIMUM_COMPOSE_COORDINATE) -> AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND
       else -> AttachErrorCode.APP_INSPECTION_ARTIFACT_NOT_FOUND
-    }.info()
+    }.info("artifact" to artifactCoordinate.toString())
     is AppInspectionServiceException -> {
       logUnexpectedError(InspectorConnectionError(this))
       AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR.info()
     }
+    is TransportNonExistingFileException -> AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND.info("path" to path)
     else -> {
       logUnexpectedError(InspectorConnectionError(this))
       AttachErrorCode.UNKNOWN_ERROR_CODE.info()

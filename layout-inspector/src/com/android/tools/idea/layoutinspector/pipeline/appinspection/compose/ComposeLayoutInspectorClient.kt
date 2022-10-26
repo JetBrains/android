@@ -38,6 +38,8 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.errorCode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.protobuf.CodedInputStream
+import com.android.tools.idea.transport.TransportException
+import com.android.tools.idea.util.StudioPathManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
@@ -84,6 +86,12 @@ const val INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY = "inspector.not.found.use.snapsh
 @VisibleForTesting
 const val COMPOSE_INSPECTION_NOT_AVAILABLE_KEY = "compose.inspection.not.available"
 
+@VisibleForTesting
+const val MAVEN_DOWNLOAD_PROBLEM = "maven.download.problem"
+
+@VisibleForTesting
+const val COMPOSE_JAR_FOUND_FOUND_KEY = "compose.jar.not.found"
+
 private const val PROGUARD_LEARN_MORE = "https://d.android.com/r/studio-ui/layout-inspector/code-shrinking"
 
 /**
@@ -124,7 +132,8 @@ class ComposeLayoutInspectorClient(
       treeSettings: TreeSettings,
       capabilities: EnumSet<Capability>,
       launchMonitor: InspectorClientLaunchMonitor,
-      logErrorToMetrics: (AttachErrorCode) -> Unit
+      logErrorToMetrics: (AttachErrorCode) -> Unit,
+      @VisibleForTesting isRunningFromSourcesInTests: Boolean? = null // Should only be set from tests
     ): ComposeLayoutInspectorClient? {
       val project = model.project
       val jar = if (StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()) {
@@ -143,12 +152,12 @@ class ComposeLayoutInspectorClient(
         val compatibility = apiServices.checkVersion(project.name, process, MINIMUM_COMPOSE_COORDINATE.groupId,
                                                      MINIMUM_COMPOSE_COORDINATE.artifactId, listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY))
         val version = compatibility?.version?.takeIf { it.isNotBlank() }
-                      ?: return handleError(project, logErrorToMetrics, compatibility?.status.errorCode)
+                      ?: return handleError(project, logErrorToMetrics, isRunningFromSourcesInTests, compatibility?.status.errorCode)
         try {
           InspectorArtifactService.instance.getOrResolveInspectorJar(project, MINIMUM_COMPOSE_COORDINATE.copy(version = version))
         }
         catch (exception: AppInspectionArtifactNotFoundException) {
-          return handleError(project, logErrorToMetrics, exception.errorCode)
+          return handleError(project, logErrorToMetrics, isRunningFromSourcesInTests, exception.errorCode)
         }
       }
 
@@ -161,13 +170,17 @@ class ComposeLayoutInspectorClient(
         ComposeLayoutInspectorClient(model, treeSettings, messenger, capabilities, launchMonitor).apply { updateSettings() }
       }
       catch (unexpected: AppInspectionException) {
-        handleError(project, logErrorToMetrics, unexpected.errorCode)
+        handleError(project, logErrorToMetrics, isRunningFromSourcesInTests, unexpected.errorCode)
+      }
+      catch (unexpected: TransportException) {
+        handleError(project, logErrorToMetrics, isRunningFromSourcesInTests, unexpected.errorCode)
       }
     }
 
     private fun handleError(
       project: Project,
       logErrorToMetrics: (AttachErrorCode) -> Unit,
+      isRunningFromSourcesInTests: Boolean?,
       error: ErrorInfo
     ): ComposeLayoutInspectorClient? {
       val actions = mutableListOf<AnAction>()
@@ -189,6 +202,10 @@ class ComposeLayoutInspectorClient(
           LayoutInspectorBundle.message(INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY)
         AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND ->
           LayoutInspectorBundle.message(COMPOSE_INSPECTION_NOT_AVAILABLE_KEY)
+        AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD ->
+          LayoutInspectorBundle.message(MAVEN_DOWNLOAD_PROBLEM, error.args["artifact"]!!)
+        AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND ->
+          LayoutInspectorBundle.message(COMPOSE_JAR_FOUND_FOUND_KEY, error.args["path"]!!, inspectorFolderFlag(isRunningFromSourcesInTests))
         else -> {
           logErrorToMetrics(error.code)
           return null
@@ -200,6 +217,16 @@ class ComposeLayoutInspectorClient(
       logErrorToMetrics(error.code)
       return null
     }
+
+    /**
+     * Return the flag name that can be used to specify the folder of the compose inspector if running on dev jar
+     * i.e. if [StudioFlags.APP_INSPECTION_USE_DEV_JAR] is turned on.
+     */
+    private fun inspectorFolderFlag(isRunningFromSourcesInTests: Boolean?): String =
+      if (isRunningFromSourcesInTests ?: StudioPathManager.isRunningFromSources())
+        StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER.id
+      else
+        StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.id
   }
 
   val parametersCache = ComposeParametersCache(this, model)
