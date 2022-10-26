@@ -133,6 +133,37 @@ class LayoutInspectorToolWindowFactoryTest {
   val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule).around(disposableRule)!!
 
   @Test
+  fun foregroundProcessDetectionOnlyStartsIfWindowIsNotMinimized() {
+    val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
+    val listener = ForegroundProcessDetectionWindowManagerListener(mockForegroundProcessDetection, false)
+    val toolWindow = FakeToolWindow(inspectorRule.project, listener)
+
+    verifyNoInteractions(mockForegroundProcessDetection)
+
+    toolWindow.show()
+    toolWindow.hide()
+
+    verify(mockForegroundProcessDetection).startListeningForEvents()
+    verify(mockForegroundProcessDetection).stopListeningForEvents()
+  }
+
+  @Test
+  fun foregroundProcessDetectionStartsImmediatelyIfWindowIsVisibleAtCreation() {
+    val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
+    val listener = ForegroundProcessDetectionWindowManagerListener(mockForegroundProcessDetection, true)
+    val toolWindow = FakeToolWindow(inspectorRule.project, listener)
+
+    toolWindow.show()
+
+    verify(mockForegroundProcessDetection, times(2)).startListeningForEvents()
+
+    toolWindow.hide()
+
+    verify(mockForegroundProcessDetection).stopListeningForEvents()
+    verifyNoMoreInteractions(mockForegroundProcessDetection)
+  }
+
+  @Test
   fun clientOnlyLaunchedIfWindowIsNotMinimized() {
     val listener = LayoutInspectorToolWindowManagerListener(inspectorRule.project, inspectorRule.launcher)
     val toolWindow = FakeToolWindow(inspectorRule.project, listener)

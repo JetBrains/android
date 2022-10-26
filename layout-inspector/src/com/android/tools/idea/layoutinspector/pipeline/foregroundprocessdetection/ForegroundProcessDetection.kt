@@ -426,6 +426,14 @@ class ForegroundProcessDetection(
     deviceModel.selectedDevice = null
   }
 
+  fun startListeningForEvents() {
+    // TODO stop/resume on-device polling
+  }
+
+  fun stopListeningForEvents() {
+    // TODO stop/resume on-device polling
+  }
+
   /**
    * Tell the device connected to this stream to start the on-device detection of foreground process.
    */
