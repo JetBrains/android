@@ -395,6 +395,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
+    public boolean isSystemTracePowerTracksEnabled() {
+      return StudioFlags.PROFILER_SYSTRACE_POWER_TRACKS.get();
+    }
+
+    @Override
     public boolean isUnifiedPipelineEnabled() {
       return StudioFlags.PROFILER_UNIFIED_PIPELINE.get();
     }

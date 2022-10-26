@@ -155,6 +155,11 @@ public final class StudioFlags {
     "Allow users to build apps as profileable with a supported Gradle plugin version (>7.3.0)",
     true);
 
+  public static final Flag<Boolean> PROFILER_SYSTRACE_POWER_TRACKS = Flag.create(
+    PROFILER, "power.tracks", "Enable power tracks in system trace UI",
+    "Shows power data track groups in the system trace.",
+    false);
+
   // TODO(b/211154220): Pending user's feedback, either completely remove the keyboard event functionality in
   // Event Timeline or find a proper way to support it for Android S and newer.
   public static final Flag<Boolean> PROFILER_KEYBOARD_EVENT = Flag.create(

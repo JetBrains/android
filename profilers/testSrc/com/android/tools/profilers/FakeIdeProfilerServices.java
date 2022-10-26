@@ -124,6 +124,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myProfileablsBuildsEnabled = true;
 
   /**
+   * Whether power data tracks should be visible in system trace.
+   */
+  private boolean mySystemTracePowerTracksEnabled = false;
+
+  /**
    * Whether we support navigate-to-source action for Compose Tracing
    */
   private boolean myComposeTracingNavigateToSourceEnabled = true;
@@ -245,6 +250,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isProfileableBuildsEnabled() {
         return myProfileablsBuildsEnabled;
       }
+
+      @Override
+      public boolean isSystemTracePowerTracksEnabled() { return mySystemTracePowerTracksEnabled; }
 
       @Override
       public boolean isCustomEventVisualizationEnabled() {
