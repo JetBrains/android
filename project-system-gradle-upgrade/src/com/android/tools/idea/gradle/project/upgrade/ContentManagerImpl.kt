@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
+import com.android.SdkConstants
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel
@@ -37,6 +38,11 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentRefactoringProcessor.BlockReason
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.AFTER_MAXIMUM
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DEPRECATED
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DIFFERENT_PREVIEW
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.ObjectValueProperty
@@ -76,6 +82,7 @@ import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.ActionLink
+import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBPanel
@@ -1046,6 +1053,48 @@ class ContentManagerImpl(val project: Project): ContentManager {
             }
           }
         }
+        selectedStep == null && uiState.showTree -> {
+          when (model.current?.let { computeAndroidGradlePluginCompatibility(it, model.latestKnownVersion) }) {
+            DEPRECATED -> {
+              val sb = StringBuilder()
+              sb.append("<div><b>Update from deprecated Android Gradle Plugin version</b></div>")
+              sb.append("<p>This project currently uses Android Gradle Plugin version ${model.current}, which<br/>" +
+                        "will not be supported in future versions of Android Studio.  Update your project<br/>" +
+                        "to version ${SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION} or later")
+              if (model.recommended?.let { it < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION) } == true) {
+                sb.append(" (you may wish to do this in multiple steps)")
+              }
+              sb.append(".")
+              label.text = sb.toString()
+              detailsPanel.add(label)
+              detailsPanel.addReleaseNotesInfo()
+            }
+            COMPATIBLE -> {
+              if (model.current == model.recommended) {
+                // not AllDone: there must be optional steps left (current must be non-null here)
+                val sb = StringBuilder()
+                sb.append("<div><b>Recommended project updates</b></div>")
+                sb.append("<p>To prepare your project for future changes in the Android Gradle Plugin, we recommend<br/>" +
+                          "executing additional update steps.")
+                label.text = sb.toString()
+                detailsPanel.add(label)
+              }
+              else {
+                val sb = StringBuilder()
+                sb.append("<div><b>Updates available</b></div>")
+                sb.append("<p>To take advantage of the latest features, improvements and fixes, we<br/>" +
+                          "recommend that you upgrade this project's Android Gradle Plugin from ${model.current}<br/>" +
+                          "to ${model.recommended}.</p>")
+                label.text = sb.toString()
+                detailsPanel.add(label)
+                detailsPanel.addReleaseNotesInfo()
+              }
+            }
+            // Other (non-compatible) cases not handled by AGP Upgrade Assistant Tool Window
+            DIFFERENT_PREVIEW, BEFORE_MINIMUM, AFTER_MAXIMUM -> Unit
+            null -> Unit
+          }
+        }
       }
       detailsPanel.revalidate()
       detailsPanel.repaint()
@@ -1054,7 +1103,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
     private fun JBPanel<JBPanel<*>>.addBuildWindowInfo() {
       JPanel().apply {
         name = "build window info panel"
-        layout = VerticalLayout(0);
+        layout = VerticalLayout(0)
         border = JBUI.Borders.empty(10, 0, 0, 0)
         add(JBLabel("There may be more information about the sync failure in the"))
         ActionLink("'Build' window") {
@@ -1103,7 +1152,19 @@ class ContentManagerImpl(val project: Project): ContentManager {
           .also { actionLink -> add(actionLink) }
       }
         .also { panel -> add(panel) }
+    }
 
+    private fun JBPanel<JBPanel<*>>.addReleaseNotesInfo() {
+      JPanel().apply {
+        name = "release notes info panel"
+        layout = FlowLayout(FlowLayout.LEADING, 0, 0)
+        border = JBUI.Borders.empty(10, 0, 0, 0)
+        add(JBLabel("View the Android Gradle plugin "))
+        BrowserLink(AllIcons.Ide.External_link_arrow, "release notes", null, "https://developer.android.com/studio/releases/gradle-plugin")
+          .apply { name = "browse release notes link" }
+          .also { browserLink -> add(browserLink) }
+      }
+        .also { panel -> add(panel) }
     }
   }
 
