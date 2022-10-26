@@ -77,11 +77,10 @@ public class ImageUtils {
    * @return the rotated image
    */
   public static @NotNull BufferedImage rotateByQuadrants(@NotNull BufferedImage source, int numQuadrants) {
-    if (numQuadrants % 4 == 0) {
+    numQuadrants = numQuadrants & 0x3;
+    if (numQuadrants == 0) {
       return source;
     }
-
-    numQuadrants = (numQuadrants % 4 + 4) % 4;
 
     int w = source.getWidth();
     int h = source.getHeight();
@@ -144,11 +143,10 @@ public class ImageUtils {
    */
   public static @NotNull BufferedImage rotateByQuadrantsAndScale(
       @NotNull BufferedImage source, int numQuadrants, int destinationWidth, int destinationHeight) {
-    if (numQuadrants % 4 == 0 && destinationWidth == source.getWidth() && destinationHeight == source.getHeight()) {
+    numQuadrants = numQuadrants & 0x3;
+    if (numQuadrants == 0 && destinationWidth == source.getWidth() && destinationHeight == source.getHeight()) {
       return source;
     }
-
-    numQuadrants = (numQuadrants % 4 + 4) % 4;
 
     int w = source.getWidth();
     int h = source.getHeight();
