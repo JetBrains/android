@@ -16,6 +16,7 @@
 package com.android.tools.idea.adddevicedialog
 
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import javax.swing.GroupLayout
@@ -30,6 +31,14 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
     val deviceSkinComboBox = ComboBox<Any>()
     val importButton = JButton("Import")
 
+    val cameraSeparator = TitledSeparator("Camera")
+
+    val frontLabel = JBLabel("Front")
+    val frontComboBox = ComboBox<Any>()
+
+    val rearLabel = JBLabel("Rear")
+    val rearComboBox = ComboBox<Any>()
+
     val layout = GroupLayout(this)
 
     val horizontalGroup = layout.createParallelGroup()
@@ -40,6 +49,13 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
                   .addComponent(deviceSkinLabel)
                   .addComponent(deviceSkinComboBox)
                   .addComponent(importButton))
+      .addComponent(cameraSeparator)
+      .addGroup(layout.createSequentialGroup()
+                  .addComponent(frontLabel)
+                  .addComponent(frontComboBox))
+      .addGroup(layout.createSequentialGroup()
+                  .addComponent(rearLabel)
+                  .addComponent(rearComboBox))
 
     val verticalGroup = layout.createSequentialGroup()
       .addGroup(layout.createParallelGroup()
@@ -49,6 +65,13 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
                   .addComponent(deviceSkinLabel)
                   .addComponent(deviceSkinComboBox, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                   .addComponent(importButton))
+      .addComponent(cameraSeparator, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+      .addGroup(layout.createParallelGroup()
+                  .addComponent(frontLabel)
+                  .addComponent(frontComboBox, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+      .addGroup(layout.createParallelGroup()
+                  .addComponent(rearLabel)
+                  .addComponent(rearComboBox, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 
     layout.setHorizontalGroup(horizontalGroup)
     layout.setVerticalGroup(verticalGroup)
