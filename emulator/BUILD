@@ -112,9 +112,10 @@ iml_test(
     data = [
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
+        "//tools/adt/idea/emulator/integration/event-logger",
         "//tools/adt/idea/emulator/screen-sharing-agent",
         "//tools/adt/idea/emulator/screen-sharing-agent:native/x86_64/libscreen-sharing-agent.so",
-        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+        "@system_image_android-30_default_x86_64//:x86_64-android-30-images",
     ],
     module = ":intellij.android.emulator.integration",
     tags = ["no_windows"],

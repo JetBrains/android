@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device
 
+import com.android.testutils.TestUtils.getBinPath
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.asdriver.tests.Adb
@@ -22,15 +23,19 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.tests.IdeaTestSuiteBase
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.junit.AfterClass
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.ClassRule
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -38,7 +43,9 @@ import org.junit.runners.Suite
 import org.junit.runners.Suite.SuiteClasses
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.event.KeyEvent
 import java.nio.file.Files
+import java.util.regex.Pattern
 import javax.swing.JScrollPane
 import kotlin.time.Duration.Companion.seconds
 
@@ -54,6 +61,11 @@ class ScreenSharingAgentTestSuite : IdeaTestSuiteBase()
 @RunWith(JUnit4::class)
 @RunsInEdt
 class ScreenSharingAgentTest {
+  @Before
+  fun setUp() {
+    adb.runCommand("logcat", "-c", emulator=emulator)
+  }
+
   @Test
   fun framesReceived() {
     val framesToWaitFor = 30
@@ -66,7 +78,150 @@ class ScreenSharingAgentTest {
     }
   }
 
+  @Test
+  fun keyEvents_letters_lowercase() {
+    runEventLogger {
+      fakeUi.keyboard.setFocus(deviceView)
+      adb.logcat {
+        for (char in 'a'..'z') {
+          fakeUi.keyboard.type(char.code)
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+          waitForLogs(
+            listOf(
+              ".*: KEY DOWN: ${char.androidCode}",
+              ".*: KEY UP: ${char.androidCode}"),
+            10.seconds)
+        }
+      }
+    }
+  }
+
+  @Test
+  fun keyEvents_letters_uppercase() {
+    runEventLogger {
+      fakeUi.keyboard.setFocus(deviceView)
+      adb.logcat {
+        for (char in 'A'..'Z') {
+          fakeUi.keyboard.type(char.code)
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+          waitForLogs(
+            listOf(
+              ".*: KEY DOWN: $AKEYCODE_SHIFT_LEFT",
+              ".*: KEY DOWN: ${char.androidCode}",
+              ".*: KEY UP: ${char.androidCode}",
+              ".*: KEY UP: $AKEYCODE_SHIFT_LEFT"),
+            10.seconds)
+        }
+      }
+    }
+  }
+
+  @Test
+  fun keyEvents_digits() {
+    runEventLogger {
+      fakeUi.keyboard.setFocus(deviceView)
+      adb.logcat {
+        for (char in '0'..'9') {
+          fakeUi.keyboard.type(char.code)
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+          waitForLogs(
+            listOf(".*: KEY DOWN: ${char.androidCode}",
+                   ".*: KEY UP: ${char.androidCode}"),
+            10.seconds)
+        }
+      }
+    }
+  }
+
+  @Test
+  @Ignore // Does not currently work
+  fun keyEvents_trivialKeystrokes() {
+    runEventLogger {
+      fakeUi.keyboard.setFocus(deviceView)
+      adb.logcat {
+        val trivialKeyStrokeCases = mapOf(
+          KeyEvent.VK_LEFT to AKEYCODE_DPAD_LEFT,
+          KeyEvent.VK_KP_LEFT to AKEYCODE_DPAD_LEFT,
+          KeyEvent.VK_RIGHT to AKEYCODE_DPAD_RIGHT,
+          KeyEvent.VK_KP_RIGHT to AKEYCODE_DPAD_RIGHT,
+          KeyEvent.VK_UP to AKEYCODE_DPAD_UP,
+          KeyEvent.VK_KP_UP to AKEYCODE_DPAD_UP,
+          KeyEvent.VK_DOWN to AKEYCODE_DPAD_DOWN,
+          KeyEvent.VK_KP_DOWN to AKEYCODE_DPAD_DOWN,
+          KeyEvent.VK_HOME to AKEYCODE_MOVE_HOME,
+          KeyEvent.VK_END to AKEYCODE_MOVE_END,
+          KeyEvent.VK_PAGE_DOWN to AKEYCODE_PAGE_DOWN,
+          KeyEvent.VK_PAGE_UP to AKEYCODE_PAGE_UP,
+        )
+        for ((hostKeyStroke, androidKeyCode) in trivialKeyStrokeCases) {
+          fakeUi.keyboard.type(hostKeyStroke)
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+          waitForLogs(
+            listOf(
+              ".*: KEY DOWN: $androidKeyCode",
+              ".*: KEY UP: $androidKeyCode"),
+            10.seconds)
+        }
+      }
+    }
+  }
+
+
+  @Test
+  fun keyEvents_controlCharacters() {
+    val controlCharacterCases = mapOf(
+      KeyEvent.VK_ENTER to AKEYCODE_ENTER,
+      KeyEvent.VK_TAB to AKEYCODE_TAB,
+      KeyEvent.VK_ESCAPE to AKEYCODE_ESCAPE,
+      KeyEvent.VK_BACK_SPACE to AKEYCODE_DEL,
+      KeyEvent.VK_DELETE to if (SystemInfo.isMac) AKEYCODE_DEL else AKEYCODE_FORWARD_DEL,
+    )
+
+    runEventLogger {
+      fakeUi.keyboard.setFocus(deviceView)
+      adb.logcat {
+        for ((hostKeyStroke, androidKeyCode) in controlCharacterCases) {
+          fakeUi.keyboard.pressAndRelease(hostKeyStroke)
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+          waitForLogs(
+            listOf(
+              ".*: KEY DOWN: $androidKeyCode",
+              ".*: KEY UP: $androidKeyCode"),
+            10.seconds)
+        }
+      }
+    }
+  }
+
+  private fun runEventLogger(block: () -> Unit) {
+    try {
+      adb.runCommand("shell", START_COMMAND, emulator = emulator) {
+        val logLine = Pattern.quote("Starting: Intent { flg=0x${NO_ANIMATIONS.toString(16)} cmp=$APP_PKG/.$ACTIVITY }")
+        waitForLog(logLine, 30.seconds)
+      }
+      block()
+    }
+    finally {
+      adb.runCommand("shell", CLEAR_DATA_COMMAND, emulator = emulator) {
+        waitForLog("Success", 30.seconds)
+      }
+    }
+  }
+
   companion object {
+    private const val EVENT_LOGGER_TAG = "EventLogger"
+    private const val AGENT_TAG = "ScreenSharing"
+    private const val APP_PKG = "com.android.tools.eventlogger"
+    private const val ACTIVITY = "EventLoggingActivity"
+    private const val NO_ANIMATIONS = 65536 // Intent.FLAG_ACTIVITY_NO_ANIMATION
+    private const val START_COMMAND = "am start -n $APP_PKG/.$ACTIVITY -f $NO_ANIMATIONS"
+    private const val CLEAR_DATA_COMMAND = "pm clear $APP_PKG"
+
     private val system: AndroidSystem = AndroidSystem.basic()
     private val projectRule = ProjectRule()
     @get:ClassRule
@@ -80,46 +235,64 @@ class ScreenSharingAgentTest {
 
     @JvmStatic
     @BeforeClass
-    fun setUp() {
+    fun setUpClass() {
       val adbBinary = resolveWorkspacePath("prebuilts/studio/sdk/linux/platform-tools/adb")
       check(Files.exists(adbBinary))
       check(System.getProperty(AndroidSdkUtils.ADB_PATH_PROPERTY) == null)
       System.setProperty(AndroidSdkUtils.ADB_PATH_PROPERTY, adbBinary.toString())
 
       adb = system.runAdb()
-      emulator = system.runEmulator()
+      emulator = system.runEmulator(Emulator.SystemImage.API_30)
       emulator.waitForBoot()
       adb.waitForDevice(emulator)
 
       deviceView = DeviceView(
         disposableParent = projectRule.project.earlyDisposable,
-        deviceSerialNumber = "emulator-${emulator.portString}",
+        deviceSerialNumber = emulator.serialNumber,
         deviceAbi = "x86_64",
         deviceName = "My Great Device",
         initialDisplayOrientation = 0,
         project = projectRule.project,
       )
 
-      fakeUi = FakeUi(wrapInScrollPane(deviceView, 200, 300))
+      fakeUi = FakeUi(deviceView.wrapInScrollPane(200, 300))
       fakeUi.render()
 
       waitForCondition(30.seconds) { deviceView.isConnected }
+
+      // Install the event logger app
+      val eventLoggerApk = getBinPath("tools/adt/idea/emulator/integration/event-logger/event-logger.apk")
+      adb.runCommand("install", eventLoggerApk.toString(), emulator = emulator) {
+        waitForLog("Success", 30.seconds)
+      }
     }
 
     @JvmStatic
     @AfterClass
-    fun tearDown() {
+    fun tearDownClass() {
       emulator.close()
       waitForCondition(30.seconds) { !deviceView.isConnected }
       adb.close()
     }
 
-    private fun wrapInScrollPane(view: Component, width: Int, height: Int): JScrollPane {
-      return JBScrollPane(view).apply {
+    private fun Component.wrapInScrollPane(width: Int, height: Int): JScrollPane {
+      return JBScrollPane(this).apply {
         border = null
         isFocusable = true
         size = Dimension(width, height)
       }
+    }
+
+    private val Char.androidCode: Int
+      get() = when (this) {
+        in 'a'..'z' -> this.code - 'a'.code + AKEYCODE_A
+        in 'A'..'Z' -> this.code - 'A'.code + AKEYCODE_A
+        in '0'..'9' -> this.code - '0'.code + AKEYCODE_0
+        else -> throw IllegalArgumentException("Only alphanumeric characters are supported!")
+      }
+
+    private fun Adb.logcat(block: Adb.() -> Unit) {
+      runCommand("logcat", "$EVENT_LOGGER_TAG:D", "$AGENT_TAG:D", "*:S", emulator = emulator) { block() }
     }
   }
 }
