@@ -34,7 +34,6 @@ import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.editors.liveedit.ui.LiveEditAction
 import com.android.tools.idea.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.executeDeviceAction
@@ -189,9 +188,6 @@ class EmulatorToolWindowPanelTest {
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "AudioVolumeDown"""")
-
-    // Ensures that LiveEditAction starts off hidden since it's disconnected.
-    assertThat(ui.findComponent<LiveEditAction>()).isNull()
 
     assertThat(streamScreenshotCall.completion.isCancelled).isFalse()
 

@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
-import com.android.ddmlib.IDevice
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.editors.literals.EditState
 import com.android.tools.idea.editors.literals.EditStatus
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
-import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.intellij.icons.AllIcons
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
@@ -44,30 +42,23 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Insets
-import java.util.Collections
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.plaf.FontUIResource
 
-/**
- * An action that displays the Live Edit status in either the edit window or an embedded emulator window.
- */
-class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownAction(
+class LiveEditAction(private val instanceEditor: Editor) : DropDownAction(
   "Live Edit", "Live Edit status", AllIcons.General.InspectionsOKEmpty), CustomComponentAction {
   companion object {
     val FOREGROUND = ColorKey.createColorKey("ActionButton.iconTextForeground", UIUtil.getContextHelpForeground())
     val LIVE_EDIT_STATUS = Key<EditStatus>("android.liveedit.action.editstatus")
-    val deviceMap = HashMap<Project, DeviceGetter>()
 
     val stateToIcon = hashMapOf<EditState, Icon>(
       EditState.ERROR to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InspectionsError, Color.RED),
@@ -79,34 +70,10 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
       EditState.RECOMPOSE_ERROR to AllIcons.General.Warning
       // DISABLED will end up with null icon
     )
-
-    fun registerProject(project: Project, deviceGetter: DeviceGetter) {
-      deviceMap[project] = deviceGetter
-    }
-
-    fun unregisterProject(project: Project) {
-      deviceMap.remove(project)
-    }
-
-    @VisibleForTesting
-    fun getIconForState(state: EditState): Icon? {
-      return stateToIcon[state]
-    }
   }
 
-  /**
-   * An interface to exposed to external modules to implement in order to receive device serials and IDevices associated with those serials.
-   */
-  interface DeviceGetter {
-    fun serial(dataContext: DataContext): String?
-    fun device(dataContext: DataContext): IDevice?
-    fun devices(): List<IDevice>
-  }
-
-  lateinit var component: ActionButtonWithText
-
-  override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
-    component = object : ActionButtonWithText(this, presentation, place, JBUI.size(18)) {
+  override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
+    object : ActionButtonWithText(this, presentation, place, JBUI.size(18)) {
       override fun iconTextSpace() = JBUI.scale(2)
       override fun getInsets(): Insets = JBUI.insets(2)
       override fun getMargins(): Insets = JBUI.insetsRight(5)
@@ -119,15 +86,16 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
             return
           }
           HelpTooltip.dispose(this)
-          val tooltip = HelpTooltip().setTitle(myPresentation.description).setDescription(status.message)
+          val tooltip = HelpTooltip()
+            .setTitle(myPresentation.description)
+            .setDescription(status.message)
 
           if (!status.actionId.isNullOrBlank()) {
             val actionId = status.actionId
             val action = ActionManager.getInstance().getAction(actionId)
             val shortcut = KeymapManager.getInstance()?.activeKeymap?.getShortcuts(actionId)?.toList()?.firstOrNull()
-            tooltip.setLink("${action.templateText}${if (shortcut != null) " (${KeymapUtil.getShortcutText(shortcut)})" else ""}") {
-              ActionManager.getInstance().tryToExecute(action, null, null, null, true)
-            }
+            tooltip.setLink("${action.templateText}${if (shortcut != null) " (${KeymapUtil.getShortcutText(shortcut)})" else ""}")
+              { ActionManager.getInstance().tryToExecute(action, null, null, null, true) }
           }
 
           tooltip.installOn(this)
@@ -147,13 +115,11 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
         super.updateIcon()
       }
     }.also {
-      it.foreground = JBColor { instanceEditor?.colorsScheme?.getColor(FOREGROUND) ?: FOREGROUND.defaultColor }
+      it.foreground = JBColor { instanceEditor?.colorsScheme.getColor(FOREGROUND) ?: FOREGROUND.defaultColor }
       if (!SystemInfo.isWindows) {
         it.font = FontUIResource(it.font.deriveFont(it.font.style, it.font.size - JBUIScale.scale(2).toFloat()))
       }
     }
-    return component
-  }
 
   override fun update(e: AnActionEvent) {
     val project = e.project ?: return
@@ -169,29 +135,10 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
     val editor: Editor? = dataContext.getData(CommonDataKeys.EDITOR)
     val editStatus: EditStatus
     if (editor != null) {
-      val statuses = LiveEditService.getInstance(project).editStatus()
-      val insetDevices = deviceMap[project]?.devices()?.let { HashSet<IDevice>(it) } ?: Collections.emptySet()
-      statuses.keys.removeIf { insetDevices.contains(it) }
-      editStatus = LiveEditService.getInstance(project).mergeStatuses(statuses)
-
-      val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
-      if (!project.isInitialized ||
-          psiFile == null ||
-          statuses.isEmpty() ||
-          !psiFile.virtualFile.isKotlinFileType() ||
-          !editor.document.isWritable ||
-          editStatus.editState == EditState.DISABLED) {
-        presentation.isEnabledAndVisible = false
-        return
-      }
+      editStatus = LiveEditService.getInstance(project).editStatus()
     }
     else {
-      val device = deviceMap[project]?.device(dataContext)
-      if (device == null) {
-        presentation.isEnabledAndVisible = false
-        return
-      }
-      editStatus = LiveEditService.getInstance(project).editStatus(device)
+      editStatus = LiveEditService.DISABLED_STATUS
     }
     presentation.icon = stateToIcon[editStatus.editState]
     presentation.isEnabledAndVisible = (editStatus.editState != EditState.DISABLED)

@@ -87,7 +87,6 @@
               icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS" text="Snapshots" description="Create, load, rename or delete snapshots"/>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.emulator.actions.EmulatorShowExtendedControlsAction"
               icon="AllIcons.Actions.More" text="Extended Controls" description="Show extended controls"/>
-      <action id="android.emulator.liveedit.status" class="com.android.tools.idea.editors.liveedit.ui.LiveEditAction"/>
     </group>
     <group id="DeviceToolbar">
       <action id="android.device.power.button" class="com.android.tools.idea.device.actions.DevicePowerButtonAction"
