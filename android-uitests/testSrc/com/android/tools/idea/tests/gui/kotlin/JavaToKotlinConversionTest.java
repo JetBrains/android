@@ -19,14 +19,21 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinWithAndroidWithGradleDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ConvertJavaToKotlinDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.KotlinIsNotConfiguredDialogFixture;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.timing.Wait;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static junit.framework.Assert.assertTrue;
 import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.finder.WindowFinder.findDialog;
@@ -43,7 +51,11 @@ import static org.fest.swing.finder.WindowFinder.findDialog;
 @RunWith(GuiTestRemoteRunner.class)
 public class JavaToKotlinConversionTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(9, TimeUnit.MINUTES);
+  private File projectDir;
+  private String studioVersion;
+  private IdeFrameFixture ideFrame;
+  private String projectName = "SimpleApplication";
 
   /**
    * Verifies it can convert Java class to Kotlin Class.
@@ -67,68 +79,72 @@ public class JavaToKotlinConversionTest {
    * <p>
    */
 
+  @Before
+  public void setUp() throws Exception {
+
+    projectDir = guiTest.setUpProject(projectName, null, null, null, null);
+    guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    ideFrame = guiTest.ideFrame();
+    studioVersion = ideFrame.getAndroidStudioVersion();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    ideFrame.clearNotificationsPresentOnIdeFrame();
+  }
+
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void testJavaToKotlinConversion() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    EditorFixture editor = ideFrame.getEditor();
+    String kotlinVersionTobeConfigured;
 
-    openJavaAndPressConvertToKotlin(ideFrameFixture);
+    // Clearing any notifications on the ideframe
+    ideFrame.clearNotificationsPresentOnIdeFrame();
 
-    KotlinIsNotConfiguredDialogFixture.find(ideFrameFixture.robot())
+    ideFrame.getProjectView()
+      .selectAndroidPane();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    //Kotlin Not configured dialog box opens, click ok
+    ideFrame.waitAndInvokeMenuPath("Code", "Convert Java File to Kotlin File");
+    KotlinIsNotConfiguredDialogFixture.find(ideFrame.robot())
       .clickOkAndWaitDialogDisappear();
 
-    //Click 'OK' on 'Configure Kotlin with Android with Gradle' dialog box
-    ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
-      .clickOkAndWaitDialogDisappear();
+    //Waiting for 'Configure Kotlin with Android with Gradle' dialog box
+    ConfigureKotlinWithAndroidWithGradleDialogFixture
+      configureKotlinDialogBox = ConfigureKotlinWithAndroidWithGradleDialogFixture.find(ideFrame);
+    //Click on single module, and confirm if it displays the module name.
+    assertTrue(configureKotlinDialogBox.clickRadioButtonWithName("Single module:"));
+    List<String> modulesList = configureKotlinDialogBox.getSingleModuleComboBoxDetails();
+    assertTrue(modulesList.size() > 0);
+    //Click on all modules again.
+    assertTrue(configureKotlinDialogBox.clickRadioButtonWithName("All modules"));
+    //Check if multiple kotlin versions are present.
+    List<String> KotlinVersionsList = configureKotlinDialogBox.getKotlinVersions();
+    kotlinVersionTobeConfigured = KotlinVersionsList.get(0);
+    assertTrue(kotlinVersionTobeConfigured != "1.0.0");
+    assertTrue(KotlinVersionsList.size() > 2);
+    //Click Ok
+    configureKotlinDialogBox.clickOkAndWaitDialogDisappear();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    assertTrue(editor.open("build.gradle").getCurrentFileContents().contains(kotlinVersionTobeConfigured));
 
-    //Need to add gradle wait time
-    guiTest.waitForBackgroundTasks();
-
-    guiTest.robot().waitForIdle();
-
-    //Changing Kotlin version according to build file
-    ConversionTestUtil.changeKotlinVersionForSimpleApplication(guiTest);
-
-    // Doing it twice because after the first time we have only added Kotlin support to the project
-    openJavaAndPressConvertToKotlin(ideFrameFixture);
-
-    //Click 'Yes' on Convert Java to Kotlin dialog box
-    /*
-     * Content of dialog box:  'Some code in the rest of your project may require corrections after performing
-     *  this conversion. Do you want to find such code and correct it too?'
-     */
-    DialogFixture convertCodeFromJavaDialog = findDialog(withTitle("Convert Java to Kotlin"))
-      .withTimeout(SECONDS.toMillis(300)).using(guiTest.robot());
-
-    convertCodeFromJavaDialog.button(withText("Yes")).click();
-
-    guiTest.waitForBackgroundTasks();
-
-    guiTest.robot().waitForIdle();
-
-    EditorFixture editor = ideFrameFixture.getEditor();
-
+    //Open MainActivity and convert the file to kotlin.
+    ideFrame.getEditor().open("app/src/main/java/google/simpleapplication/MyActivity.java");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    ideFrame.waitAndInvokeMenuPath("Code", "Convert Java File to Kotlin File");
+    ConvertJavaToKotlinDialogFixture.find(ideFrame)
+      .clickYes();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     Wait.seconds(60).expecting("Wait for kt file is generated.")
       .until(() -> "MyActivity.kt".equals(editor.getCurrentFileName()));
-
+    assertTrue(editor.getCurrentFileName().contains(".kt"));
     assertThat(editor.getCurrentFileContents()).contains("class MyActivity : Activity() {");
+    assertThat(editor.getHighlights(HighlightSeverity.ERROR)).isEmpty();
 
-    guiTest.robot().waitForIdle();
-
-    ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
-
-    guiTest.waitForBackgroundTasks();
-
-    guiTest.robot().waitForIdle();
-
-    ideFrameFixture.invokeAndWaitForBuildAction(Wait.seconds(300), "Build", "Rebuild Project");
-  }
-
-  private static void openJavaAndPressConvertToKotlin(@NotNull IdeFrameFixture ideFrameFixture) {
-    // Wait for indexing to finish
-    DumbService.getInstance(ideFrameFixture.getProject()).waitForSmartMode();
-
-    ideFrameFixture.getEditor().open("app/src/main/java/google/simpleapplication/MyActivity.java");
-    ideFrameFixture.waitAndInvokeMenuPath("Code", "Convert Java File to Kotlin File");
+    //make and build file.
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    ideFrame.invokeAndWaitForBuildAction(Wait.seconds(300), "Build", "Rebuild Project");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 }
