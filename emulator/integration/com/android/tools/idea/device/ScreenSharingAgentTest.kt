@@ -28,9 +28,9 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
 import org.jetbrains.android.sdk.AndroidSdkUtils
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
+import org.junit.AfterClass
+import org.junit.BeforeClass
+import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -54,50 +54,6 @@ class ScreenSharingAgentTestSuite : IdeaTestSuiteBase()
 @RunWith(JUnit4::class)
 @RunsInEdt
 class ScreenSharingAgentTest {
-  private val system: AndroidSystem = AndroidSystem.basic()
-  private val projectRule = ProjectRule()
-  @get:Rule
-  val ruleChain: RuleChain = RuleChain(projectRule, system, EdtRule())
-
-  private lateinit var adb: Adb
-  private lateinit var emulator: Emulator
-  private lateinit var deviceView: DeviceView
-  private lateinit var fakeUi: FakeUi
-
-  @Before
-  fun setUp() {
-    val adbBinary = resolveWorkspacePath("prebuilts/studio/sdk/linux/platform-tools/adb")
-    check(Files.exists(adbBinary))
-    check(System.getProperty(AndroidSdkUtils.ADB_PATH_PROPERTY) == null)
-    System.setProperty(AndroidSdkUtils.ADB_PATH_PROPERTY, adbBinary.toString())
-
-    adb = system.runAdb()
-    emulator = system.runEmulator()
-    emulator.waitForBoot()
-    adb.waitForDevice(emulator)
-
-    deviceView = DeviceView(
-      disposableParent = projectRule.project.earlyDisposable,
-      deviceSerialNumber = "emulator-${emulator.portString}",
-      deviceAbi = "x86_64",
-      deviceName = "My Great Device",
-      initialDisplayOrientation = 0,
-      project = projectRule.project,
-    )
-
-    fakeUi = FakeUi(wrapInScrollPane(deviceView, 200, 300))
-    fakeUi.render()
-
-    waitForCondition(30.seconds) { deviceView.isConnected }
-  }
-
-  @After
-  fun tearDown() {
-    emulator.close()
-    waitForCondition(30.seconds) { !deviceView.isConnected }
-    adb.close()
-  }
-
   @Test
   fun framesReceived() {
     val framesToWaitFor = 30
@@ -110,11 +66,60 @@ class ScreenSharingAgentTest {
     }
   }
 
-  private fun wrapInScrollPane(view: Component, width: Int, height: Int): JScrollPane {
-    return JBScrollPane(view).apply {
-      border = null
-      isFocusable = true
-      size = Dimension(width, height)
+  companion object {
+    private val system: AndroidSystem = AndroidSystem.basic()
+    private val projectRule = ProjectRule()
+    @get:ClassRule
+    @get:JvmStatic
+    val ruleChain: RuleChain = RuleChain(projectRule, system, EdtRule())
+
+    private lateinit var adb: Adb
+    private lateinit var emulator: Emulator
+    private lateinit var deviceView: DeviceView
+    private lateinit var fakeUi: FakeUi
+
+    @JvmStatic
+    @BeforeClass
+    fun setUp() {
+      val adbBinary = resolveWorkspacePath("prebuilts/studio/sdk/linux/platform-tools/adb")
+      check(Files.exists(adbBinary))
+      check(System.getProperty(AndroidSdkUtils.ADB_PATH_PROPERTY) == null)
+      System.setProperty(AndroidSdkUtils.ADB_PATH_PROPERTY, adbBinary.toString())
+
+      adb = system.runAdb()
+      emulator = system.runEmulator()
+      emulator.waitForBoot()
+      adb.waitForDevice(emulator)
+
+      deviceView = DeviceView(
+        disposableParent = projectRule.project.earlyDisposable,
+        deviceSerialNumber = "emulator-${emulator.portString}",
+        deviceAbi = "x86_64",
+        deviceName = "My Great Device",
+        initialDisplayOrientation = 0,
+        project = projectRule.project,
+      )
+
+      fakeUi = FakeUi(wrapInScrollPane(deviceView, 200, 300))
+      fakeUi.render()
+
+      waitForCondition(30.seconds) { deviceView.isConnected }
+    }
+
+    @JvmStatic
+    @AfterClass
+    fun tearDown() {
+      emulator.close()
+      waitForCondition(30.seconds) { !deviceView.isConnected }
+      adb.close()
+    }
+
+    private fun wrapInScrollPane(view: Component, width: Int, height: Int): JScrollPane {
+      return JBScrollPane(view).apply {
+        border = null
+        isFocusable = true
+        size = Dimension(width, height)
+      }
     }
   }
 }
