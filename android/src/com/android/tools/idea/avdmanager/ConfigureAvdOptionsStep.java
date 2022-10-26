@@ -47,6 +47,7 @@ import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.SettableValue;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.ObservableOptional;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
@@ -57,6 +58,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
+import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -304,9 +306,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myChosenSnapshotComboBox.addItemListener(mySnapshotComboListener);
 
     boolean supportsVirtualCamera = EmulatorAdvFeatures.emulatorSupportsVirtualScene(
-            AndroidSdks.getInstance().tryToChooseSdkHandler(),
-            new StudioLoggerProgressIndicator(ConfigureAvdOptionsStep.class),
-            new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
+      AndroidSdks.getInstance().tryToChooseSdkHandler(),
+      new StudioLoggerProgressIndicator(ConfigureAvdOptionsStep.class),
+      new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
 
     setupCameraComboBox(myFrontCameraCombo, false);
     setupCameraComboBox(myBackCameraCombo, supportsVirtualCamera);
@@ -352,11 +354,11 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       comboBox.setModel(new DefaultComboBoxModel(allCameras));
     }
     comboBox.setToolTipText("<html>" +
-            "None - no camera installed for AVD<br>" +
-            (withVirtualScene ? "VirtualScene - use a virtual camera in a simulated environment<br>" : "") +
-            "Emulated - use a simulated camera<br>" +
-            "Device - use host computer webcam or built-in camera" +
-            "</html>");
+                            "None - no camera installed for AVD<br>" +
+                            (withVirtualScene ? "VirtualScene - use a virtual camera in a simulated environment<br>" : "") +
+                            "Emulated - use a simulated camera<br>" +
+                            "Device - use host computer webcam or built-in camera" +
+                            "</html>");
   }
 
   private void initCpuCoreDropDown() {
@@ -409,7 +411,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       catch (SnapshotProtoException ssException) {
         // Ignore this directory
         Logger.getInstance(ConfigureAvdOptionsStep.class)
-              .info("Could not parse Snapshot protobuf: " + snapshotFileName, ssException);
+          .info("Could not parse Snapshot protobuf: " + snapshotFileName, ssException);
       }
     }
     Collections.sort(mySnapshotList);
@@ -430,8 +432,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     CollectionComboBoxModel<String> snapshotModel = new CollectionComboBoxModel<>();
     // Put up to 3 snapshots onto the pull-down
     mySnapshotList.stream()
-                  .limit(3)
-                  .forEach(item -> snapshotModel.add(item.logicalName));
+      .limit(3)
+      .forEach(item -> snapshotModel.add(item.logicalName));
     int numNotShown = mySnapshotList.size() - snapshotModel.getSize();
     String finalLine = (mySnapshotList.isEmpty()) ? "(no snapshots)" :
                        (numNotShown == 0) ? "  Details ..." :
@@ -689,41 +691,35 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     List<AbstractProperty<?>> deviceProperties = AbstractProperty.getAll(getModel().getAvdDeviceData());
     deviceProperties.add(getModel().systemImage());
-    myListeners.listenAll(deviceProperties).with(new Runnable() {
-      @Override
-      public void run() {
-        if (getModel().systemImage().get().isPresent() && getModel().getAvdDeviceData().customSkinFile().get().isPresent()) {
-          File skin =
-            AvdWizardUtils.pathToUpdatedSkins(getModel().getAvdDeviceData().customSkinFile().getValue().toPath(),
-                                              getModel().systemImage().getValue());
-          if (skin != null) {
-            getModel().getAvdDeviceData().customSkinFile().setValue(skin);
-            if (FileUtil.filesEqual(skin, AvdWizardUtils.NO_SKIN)) {
-              myDeviceFrameCheckbox.setSelected(false);
-            }
-            else {
-              myDeviceFrameCheckbox.setSelected(true);
-            }
-          }
-          else {
-            getModel().getAvdDeviceData().customSkinFile().setValue(AvdWizardUtils.NO_SKIN);
-            myDeviceFrameCheckbox.setSelected(false);
-          }
-        }
-        final Device device = getModel().device().getValueOrNull();
-        final boolean comboBoxEnabled = device == null || !device.getDefaultHardware().getScreen().isFoldable();
-        if (!comboBoxEnabled) {
-          myDeviceFrameCheckbox.setSelected(false);
-        }
-        final boolean checkBoxEnabled = shouldEnableDeviceFrameCheckbox();
-        myDeviceFrameCheckbox.setEnabled(checkBoxEnabled);
-        myDeviceFrameTitle.setEnabled(checkBoxEnabled);
-        mySkinDefinitionLabel.setEnabled(comboBoxEnabled);
-        mySkinComboBox.setEnabled(comboBoxEnabled);
+    myListeners.listenAll(deviceProperties).with(() -> {
+      AvdOptionsModel model = getModel();
+      OptionalProperty<File> customSkinFileProperty = model.getAvdDeviceData().customSkinFile();
+
+      ObservableOptional<SystemImageDescription> systemImageProperty = model.systemImage();
+      Optional<File> optionalCustomSkinFile = customSkinFileProperty.get();
+
+      if (systemImageProperty.get().isPresent() &&
+          optionalCustomSkinFile.isPresent() &&
+          !FileUtils.isSameFile(optionalCustomSkinFile.get(), SkinChooser.LOADING_SKINS)) {
+        File skin = AvdWizardUtils.pathToUpdatedSkins(customSkinFileProperty.getValue().toPath(), systemImageProperty.getValue());
+        customSkinFileProperty.setValue(skin);
+        myDeviceFrameCheckbox.setSelected(!FileUtil.filesEqual(skin, AvdWizardUtils.NO_SKIN));
       }
+
+      final Device device = model.device().getValueOrNull();
+      final boolean comboBoxEnabled = device == null || !device.getDefaultHardware().getScreen().isFoldable();
+      final boolean checkBoxEnabled = shouldEnableDeviceFrameCheckbox();
+
+      if (!comboBoxEnabled) {
+        myDeviceFrameCheckbox.setSelected(false);
+      }
+      myDeviceFrameCheckbox.setEnabled(checkBoxEnabled);
+      myDeviceFrameTitle.setEnabled(checkBoxEnabled);
+      mySkinDefinitionLabel.setEnabled(comboBoxEnabled);
+      mySkinComboBox.setEnabled(comboBoxEnabled);
     });
 
-    myListeners.listen(getModel().systemImage(), () -> updateSystemImageData());
+    myListeners.listen(getModel().systemImage(), this::updateSystemImageData);
 
     myListeners.listen(getModel().useQemu2(), () -> toggleSystemOptionals(true));
 
@@ -861,7 +857,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         }
         catch (IOException ioEx) {
           Logger.getInstance(ConfigureAvdOptionsStep.class)
-                .info("Could not write temporary file to " + tempDir.getAbsolutePath(), ioEx);
+            .info("Could not write temporary file to " + tempDir.getAbsolutePath(), ioEx);
           return;
         }
         if (paramFile == null) {
@@ -951,7 +947,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
       catch (IOException ioEx) {
         Logger.getInstance(ConfigureAvdOptionsStep.class)
-              .info("Could not read snapshot selection from emulator", ioEx);
+          .info("Could not read snapshot selection from emulator", ioEx);
         // Ignore
       }
     }
@@ -964,12 +960,12 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         if (!fileToDelete.delete()) {
           // Delete failed. Log and ignore.
           Logger.getInstance(ConfigureAvdOptionsStep.class)
-                .warn(errorString + fileToDelete.getAbsolutePath());
+            .warn(errorString + fileToDelete.getAbsolutePath());
         }
       }
       catch (Exception deleteEx) {
         Logger.getInstance(ConfigureAvdOptionsStep.class)
-              .warn(errorString + fileToDelete.getAbsolutePath(), deleteEx);
+          .warn(errorString + fileToDelete.getAbsolutePath(), deleteEx);
       }
     }
   };
@@ -1148,7 +1144,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
           errorMessage = "The AVD name can contain only the characters " + AvdNameVerifier.humanReadableAllowedCharacters();
         }
         else if ( !value.equals(myOriginalName) &&
-            AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithDisplayName(value)) {
+                  AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithDisplayName(value)) {
           // Another device with this name already exists
           severity = Severity.ERROR;
           errorMessage = String.format("An AVD with the name \"%1$s\" already exists.", getModel().avdDisplayName());

@@ -52,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
  * new skin by browsing.
  */
 public class SkinChooser extends ComboboxWithBrowseButton implements ItemListener, ItemSelectable {
-  private static final File LOADING_SKINS = new File("_loading_skins");
+  static final File LOADING_SKINS = new File("_loading_skins");
 
   static final File FAILED_TO_LOAD_SKINS = new File("_failed_to_load_skins");
 
