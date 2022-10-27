@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import com.android.tools.idea.grouplayout.GroupLayout.Companion.groupLayout
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
@@ -39,42 +40,56 @@ internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPa
     val abiLabel = JBLabel("ABI")
     val abiComboBox = ComboBox<Any>()
 
-    val layout = GroupLayout(this)
-    val maxSize = JBUIScale.scale(Short.MAX_VALUE.toInt())
+    val max = JBUIScale.scale(Short.MAX_VALUE.toInt())
 
-    val horizontalGroup = layout.createParallelGroup()
-      .addComponent(nameLabel)
-      .addComponent(nameTextField)
-      .addComponent(deviceDefinitionLabel)
-      .addComponent(deviceDefinitionComboBox)
-      .addGroup(layout.createSequentialGroup()
-                  .addComponent(apiLevelLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, maxSize)
-                  .addComponent(servicesLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, maxSize))
-      .addGroup(layout.createSequentialGroup()
-                  .addComponent(apiLevelComboBox)
-                  .addComponent(servicesComboBox))
-      .addComponent(abiLabel)
-      .addGroup(layout.createSequentialGroup()
-                  .addComponent(abiComboBox)
-                  .addContainerGap(abiComboBox.preferredSize.width, maxSize))
+    layout = groupLayout(this) {
+      horizontalGroup {
+        parallelGroup {
+          component(nameLabel)
+          component(nameTextField)
+          component(deviceDefinitionLabel)
+          component(deviceDefinitionComboBox)
 
-    val verticalGroup = layout.createSequentialGroup()
-      .addComponent(nameLabel)
-      .addComponent(nameTextField, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-      .addComponent(deviceDefinitionLabel)
-      .addComponent(deviceDefinitionComboBox, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-      .addGroup(layout.createParallelGroup()
-                  .addComponent(apiLevelLabel)
-                  .addComponent(servicesLabel))
-      .addGroup(layout.createParallelGroup()
-                  .addComponent(apiLevelComboBox, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                  .addComponent(servicesComboBox, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-      .addComponent(abiLabel)
-      .addComponent(abiComboBox, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+          sequentialGroup {
+            component(apiLevelLabel, max = max)
+            component(servicesLabel, max = max)
+          }
 
-    layout.setHorizontalGroup(horizontalGroup)
-    layout.setVerticalGroup(verticalGroup)
+          sequentialGroup {
+            component(apiLevelComboBox)
+            component(servicesComboBox)
+          }
 
-    setLayout(layout)
+          component(abiLabel)
+
+          sequentialGroup {
+            component(abiComboBox)
+            containerGap(abiComboBox.preferredSize.width, max)
+          }
+        }
+      }
+
+      verticalGroup {
+        sequentialGroup {
+          component(nameLabel)
+          component(nameTextField, max = GroupLayout.PREFERRED_SIZE)
+          component(deviceDefinitionLabel)
+          component(deviceDefinitionComboBox, max = GroupLayout.PREFERRED_SIZE)
+
+          parallelGroup {
+            component(apiLevelLabel)
+            component(servicesLabel)
+          }
+
+          parallelGroup {
+            component(apiLevelComboBox, max = GroupLayout.PREFERRED_SIZE)
+            component(servicesComboBox, max = GroupLayout.PREFERRED_SIZE)
+          }
+
+          component(abiLabel)
+          component(abiComboBox, max = GroupLayout.PREFERRED_SIZE)
+        }
+      }
+    }
   }
 }

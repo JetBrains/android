@@ -15,21 +15,11 @@
  */
 package com.android.tools.idea.grouplayout
 
-import java.awt.Component
-
-open class Group internal constructor(internal open val group: javax.swing.GroupLayout.Group, private val layout: GroupLayout) {
-  fun sequentialGroup(init: SequentialGroup.() -> Unit) {
-    group.addGroup(layout.sequentialGroup(init))
-  }
-
-  fun parallelGroup(init: Group.() -> Unit) {
-    group.addGroup(layout.parallelGroup(init))
-  }
-
-  fun component(component: Component,
-                min: Int = javax.swing.GroupLayout.DEFAULT_SIZE,
-                pref: Int = javax.swing.GroupLayout.DEFAULT_SIZE,
-                max: Int = javax.swing.GroupLayout.DEFAULT_SIZE) {
-    group.addComponent(component, min, pref, max)
+class SequentialGroup internal constructor(
+  override val group: javax.swing.GroupLayout.SequentialGroup,
+  layout: GroupLayout
+) : Group(group, layout) {
+  fun containerGap(pref: Int, max: Int) {
+    group.addContainerGap(pref, max)
   }
 }

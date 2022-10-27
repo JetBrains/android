@@ -18,21 +18,24 @@ package com.android.tools.idea.grouplayout
 import java.awt.Container
 import java.awt.LayoutManager
 
-internal class GroupLayout private constructor(host: Container) {
-  internal companion object {
-    internal fun groupLayout(host: Container, init: GroupLayout.() -> Unit): LayoutManager = GroupLayout(host).apply(init).layout
+/** This is still incubating. Do not use this. */
+class GroupLayout private constructor(host: Container) {
+  companion object {
+    fun groupLayout(host: Container, init: GroupLayout.() -> Unit): LayoutManager = GroupLayout(host).apply(init).layout
   }
 
   private val layout = javax.swing.GroupLayout(host)
 
-  internal fun parallelGroup(init: Group.() -> Unit) = Group(layout.createParallelGroup()).apply(init).group
-  internal fun sequentialGroup(init: Group.() -> Unit) = Group(layout.createSequentialGroup()).apply(init).group
+  fun sequentialGroup(init: SequentialGroup.() -> Unit): javax.swing.GroupLayout.Group =
+    SequentialGroup(layout.createSequentialGroup(), this).apply(init).group
 
-  internal fun horizontalGroup(horizontalGroup: () -> javax.swing.GroupLayout.Group) {
+  fun parallelGroup(init: Group.() -> Unit) = Group(layout.createParallelGroup(), this).apply(init).group
+
+  fun horizontalGroup(horizontalGroup: () -> javax.swing.GroupLayout.Group) {
     layout.setHorizontalGroup(horizontalGroup())
   }
 
-  internal fun verticalGroup(verticalGroup: () -> javax.swing.GroupLayout.Group) {
+  fun verticalGroup(verticalGroup: () -> javax.swing.GroupLayout.Group) {
     layout.setVerticalGroup(verticalGroup())
   }
 }
