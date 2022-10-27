@@ -30,17 +30,17 @@ internal class ConfigureDevicePanel internal constructor() : JBPanel<ConfigureDe
     layout = groupLayout(this) {
       horizontalGroup {
         parallelGroup {
-          component { configureDeviceLabel }
-          component { addDeviceToDeviceManagerLabel }
-          component { tabbedPane }
+          component(configureDeviceLabel)
+          component(addDeviceToDeviceManagerLabel)
+          component(tabbedPane)
         }
       }
 
       verticalGroup {
         sequentialGroup {
-          component { configureDeviceLabel }
-          component { addDeviceToDeviceManagerLabel }
-          component { tabbedPane }
+          component(configureDeviceLabel)
+          component(addDeviceToDeviceManagerLabel)
+          component(tabbedPane)
         }
       }
     }

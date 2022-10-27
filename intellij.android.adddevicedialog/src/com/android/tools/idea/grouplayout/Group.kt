@@ -18,7 +18,7 @@ package com.android.tools.idea.grouplayout
 import java.awt.Component
 
 internal class Group internal constructor(internal val group: javax.swing.GroupLayout.Group) {
-  internal fun component(component: () -> Component) {
-    group.addComponent(component())
+  internal fun component(component: Component) {
+    group.addComponent(component)
   }
 }
