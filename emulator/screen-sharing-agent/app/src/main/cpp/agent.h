@@ -22,6 +22,7 @@
 #include "common.h"
 #include "controller.h"
 #include "display_streamer.h"
+#include "session_environment.h"
 
 namespace screensharing {
 
@@ -39,6 +40,12 @@ public:
   static void SetMaxVideoResolution(Size max_video_resolution);
   static DisplayInfo GetDisplayInfo();
 
+  // Modifies system settings for the screen sharing session. May be called on any thread.
+  static void InitializeSessionEnvironment();
+  // Restores the original environment that existed before calling InitializeSessionEnvironment.
+  // May be called on any thread. Safe to be called multiple times.
+  static void RestoreEnvironment();
+
   static void Shutdown();
 
   // Returns the timestamp of the end of last simulated touch event in milliseconds according to the monotonic clock.
@@ -46,20 +53,24 @@ public:
   // Records the timestamp of the last simulated touch event in milliseconds according to the monotonic clock.
   static void RecordTouchEvent();
 
-private:
-  void ShutdownInternal();
+  static int32_t flags() {
+    return flags_;
+  }
 
+private:
   static constexpr char SOCKET_NAME[] = "screen-sharing-agent";
 
-  static Agent* instance_;
-
-  int32_t display_id_ = 0;
-  Size max_video_resolution_;
-  int32_t initial_video_orientation_;  // In quadrants counterclockwise.
-  std::string codec_name_;
-  DisplayStreamer* display_streamer_ = nullptr;
-  Controller* controller_ = nullptr;
-  std::atomic_int64_t last_touch_time_millis_ = 0;
+  static int32_t display_id_;
+  static Size max_video_resolution_;
+  static int32_t initial_video_orientation_;  // In quadrants counterclockwise.
+  static std::string codec_name_;
+  static int32_t flags_;
+  static DisplayStreamer* display_streamer_;
+  static Controller* controller_;
+  static std::mutex environment_mutex_;
+  static SessionEnvironment* session_environment_;  // GUARDED_BY(environment_mutex_)
+  static std::atomic_int64_t last_touch_time_millis_;
+  static std::atomic_bool shutting_down_;
 
   DISALLOW_COPY_AND_ASSIGN(Agent);
 };

@@ -16,20 +16,17 @@
 
 #include "controller.h"
 
+#include <sys/socket.h>
 #include <unistd.h>
 
-#include <cstdio>
+#include <cassert>
 
 #include "accessors/input_manager.h"
 #include "accessors/key_event.h"
 #include "accessors/motion_event.h"
-#include "accessors/service_manager.h"
-#include "accessors/window_manager.h"
 #include "agent.h"
 #include "jvm.h"
 #include "log.h"
-#include "num_to_string.h"
-#include "settings.h"
 
 namespace screensharing {
 
@@ -43,13 +40,10 @@ using namespace std::chrono;
 
 namespace {
 
-// Constants from android.os.BatteryManager.
-constexpr int BATTERY_PLUGGED_AC = 1;
-constexpr int BATTERY_PLUGGED_USB = 2;
-constexpr int BATTERY_PLUGGED_WIRELESS = 4;
-
 constexpr int BUFFER_SIZE = 4096;
 constexpr int UTF8_MAX_BYTES_PER_CHARACTER = 4;
+
+constexpr int SOCKET_RECEIVE_TIMEOUT_MILLIS = 500;
 
 int64_t UptimeMillis() {
   timespec t = { 0, 0 };
@@ -91,6 +85,15 @@ void RemoveAgentFiles() {
   remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_SO_NAME);
 }
 
+// Sets the receive timeout for the given socket. Zero timeout value means that reading
+// from the socket will never time out.
+void SetReceiveTimeoutMillis(int timeout_millis, int socket_fd) {
+  struct timeval tv;
+  tv.tv_sec = timeout_millis / 1000;
+  tv.tv_usec = (timeout_millis % 1000) * 1000;
+  setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+}
+
 }  // namespace
 
 Controller::Controller(int socket_fd)
@@ -101,23 +104,19 @@ Controller::Controller(int socket_fd)
       pointer_helper_(),
       motion_event_start_time_(0),
       key_character_map_(),
-      stay_on_(Settings::Table::GLOBAL, "stay_on_while_plugged_in"),
-      accelerometer_rotation_(Settings::Table::SYSTEM, "accelerometer_rotation"),
       clipboard_listener_(this),
-      max_synced_clipboard_length_(0),
-      setting_clipboard_(false) {
+      max_synced_clipboard_length_(0) {
   assert(socket_fd > 0);
 }
 
 Controller::~Controller() {
-  input_stream_.Close();
-  StopClipboardSync();
+  Shutdown();
   if (thread_.joinable()) {
     thread_.join();
   }
+  close(socket_fd_);
   delete pointer_helper_;
   delete key_character_map_;
-  close(socket_fd_);
 }
 
 void Controller::Start() {
@@ -133,7 +132,6 @@ void Controller::Start() {
 
 void Controller::Shutdown() {
   input_stream_.Close();
-  StopClipboardSync();
   output_stream_.Close();
 }
 
@@ -154,12 +152,10 @@ void Controller::Initialize() {
   pointer_properties_.MakeGlobal();
   pointer_coordinates_.MakeGlobal();
 
-  ServiceManager::GetService(jni_, "settings");  // Wait for the "settings" service to initialize.
-  // Keep the screen on as long as the device has power.
-  stay_on_.Set(num_to_string<BATTERY_PLUGGED_AC | BATTERY_PLUGGED_USB | BATTERY_PLUGGED_WIRELESS>::value);
-  // Turn off "Auto-rotate screen".
-  accelerometer_rotation_.Set("0");
+  ProcessKeyboardEvent(KeyEventMessage(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_WAKEUP, 0));
+  Agent::InitializeSessionEnvironment();
 
+  SetReceiveTimeoutMillis(SOCKET_RECEIVE_TIMEOUT_MILLIS, socket_fd_);
   RemoveAgentFiles();
 }
 
@@ -167,11 +163,21 @@ void Controller::Run() {
   Log::D("Controller::Run");
   try {
     for (;;) {
-      unique_ptr<ControlMessage> message = ControlMessage::Deserialize(input_stream_);
+      if (clipboard_changed_.exchange(false)) {
+        ProcessClipboardChange();
+      }
+
+      SetReceiveTimeoutMillis(SOCKET_RECEIVE_TIMEOUT_MILLIS, socket_fd_);
+      int32_t message_type;
+      try {
+        message_type = input_stream_.ReadInt32();
+      } catch (IoTimeout& e) {
+        continue;
+      }
+      SetReceiveTimeoutMillis(0, socket_fd_);  //
+      unique_ptr<ControlMessage> message = ControlMessage::Deserialize(message_type, input_stream_);
       ProcessMessage(*message);
     }
-  } catch (StreamClosedException& e) {
-    Log::D("Controller::Run: Command stream closed");
   } catch (EndOfFile& e) {
     Log::D("Controller::Run: End of command stream");
   } catch (IoException& e) {
@@ -329,16 +335,11 @@ void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage
 }
 
 void Controller::StartClipboardSync(const StartClipboardSyncMessage& message) {
-  scoped_lock lock(clipboard_mutex_);
+  ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni_);
   if (message.text() != last_clipboard_text_) {
     last_clipboard_text_ = message.text();
-    setting_clipboard_ = true;
+    clipboard_manager->SetText(last_clipboard_text_);
   }
-  ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni_);
-  if (setting_clipboard_) {
-    clipboard_manager->SetText(jni_, message.text());
-  }
-  setting_clipboard_ = false;
   bool was_stopped = max_synced_clipboard_length_ == 0;
   max_synced_clipboard_length_ = message.max_synced_length();
   if (was_stopped) {
@@ -347,7 +348,6 @@ void Controller::StartClipboardSync(const StartClipboardSyncMessage& message) {
 }
 
 void Controller::StopClipboardSync() {
-  scoped_lock lock(clipboard_mutex_);
   if (max_synced_clipboard_length_ != 0) {
     ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni_);
     clipboard_manager->RemoveClipboardListener(&clipboard_listener_);
@@ -356,36 +356,31 @@ void Controller::StopClipboardSync() {
   }
 }
 
-void Controller::OnPrimaryClipChanged() {
-  string text;
-  {
-    scoped_lock lock(clipboard_mutex_);
-    if (setting_clipboard_) {
-      return;
-    }
-    // Cannot use jni_ because this method may be called on an arbitrary thread.
-    JNIEnv* jni = Jvm::GetJni();
-    ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni);
-    text = clipboard_manager->GetText(jni);
-    if (text.empty() || text == last_clipboard_text_) {
-      return;
-    }
-    int max_length = max_synced_clipboard_length_;
-    if (text.size() > max_length * UTF8_MAX_BYTES_PER_CHARACTER || Utf8CharacterCount(text) > max_length) {
-      return;
-    }
-    last_clipboard_text_ = text;
+void Controller::ProcessClipboardChange() {
+  Log::D("Controller::ProcessClipboardChange");
+  ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni_);
+  string text = clipboard_manager->GetText();
+  if (text.empty() || text == last_clipboard_text_) {
+    return;
   }
+  int max_length = max_synced_clipboard_length_;
+  if (text.size() > max_length * UTF8_MAX_BYTES_PER_CHARACTER || Utf8CharacterCount(text) > max_length) {
+    return;
+  }
+  last_clipboard_text_ = text;
 
   ClipboardChangedNotification message(move(text));
   try {
     message.Serialize(output_stream_);
     output_stream_.Flush();
-  } catch (StreamClosedException& e) {
-    // The stream has been closed - ignore.
   } catch (EndOfFile& e) {
     // The socket has been closed - ignore.
   }
+}
+
+void Controller::OnPrimaryClipChanged() {
+  Log::D("Controller::OnPrimaryClipChanged");
+  clipboard_changed_ = true;
 }
 
 Controller::ClipboardListener::~ClipboardListener() = default;

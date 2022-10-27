@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,8 @@
 
 #pragma once
 
-#include <string>
-
 namespace screensharing {
 
-class IoException : public std::exception {
-public:
-  IoException();
-  IoException(const char* message);
-
-  virtual std::string GetMessage() const;
-
-private:
-  int errno_;
-  std::string message_;
-};
-
-class IoTimeout : public IoException {
-};
-
-class EndOfFile : public IoException {
-};
+constexpr int32_t TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x01;
 
 }  // namespace screensharing

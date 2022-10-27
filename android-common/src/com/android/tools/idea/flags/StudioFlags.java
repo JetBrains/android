@@ -151,7 +151,7 @@ public final class StudioFlags {
     PROFILER, "perfetto.sdk.tracing", "Automatically instrument perfetto sdk builds",
     "A cpu trace intercept command is added that will enable perfetto instrumentation for apps" +
     " that use the perfetto SDK",
-    true);
+    false);
   //endregion
 
   //region ML

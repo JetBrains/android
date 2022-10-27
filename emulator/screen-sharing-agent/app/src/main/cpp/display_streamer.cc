@@ -20,6 +20,7 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
+#include <cassert>
 #include <cerrno>
 #include <chrono>
 #include <cmath>
@@ -105,12 +106,17 @@ struct CodecOutputBuffer {
 
 int CodecOutputBuffer::consequent_error_count = 0;
 
-constexpr int MIN_VIDEO_RESOLUTION = 128;
+constexpr double MIN_VIDEO_RESOLUTION = 128;
 constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
 constexpr int BIT_RATE = 8000000;
+constexpr int BIT_RATE_REDUCED = 2000000;
 constexpr int I_FRAME_INTERVAL_SECONDS = 10;
 constexpr int REPEAT_FRAME_DELAY_MILLIS = 100;
 constexpr int CHANNEL_HEADER_LENGTH = 20;
+
+bool IsCodecResolutionLessThanDisplayResolution(Size codec_resolution, Size display_resolution) {
+  return max(codec_resolution.width, codec_resolution.height) < max(display_resolution.width, display_resolution.height);
+}
 
 AMediaFormat* CreateMediaFormat(const char* mime_type) {
   AMediaFormat* media_format = AMediaFormat_new();
@@ -118,7 +124,6 @@ AMediaFormat* CreateMediaFormat(const char* mime_type) {
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_COLOR_FORMAT, COLOR_FormatSurface);
   // Does not affect the actual frame rate, but must be present.
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_FRAME_RATE, 60);
-  AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_BIT_RATE, BIT_RATE);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_I_FRAME_INTERVAL, I_FRAME_INTERVAL_SECONDS);
   AMediaFormat_setInt64(media_format, AMEDIAFORMAT_KEY_REPEAT_PREVIOUS_FRAME_AFTER, REPEAT_FRAME_DELAY_MILLIS * 1000);
   return media_format;
@@ -145,12 +150,10 @@ int32_t RoundUpToMultipleOf(int32_t value, int32_t power_of_two) {
 }
 
 Size ComputeVideoSize(Size rotated_display_size, Size max_resolution, Size size_alignment) {
-  auto width = max(rotated_display_size.width, MIN_VIDEO_RESOLUTION);
-  auto height = max(rotated_display_size.height, MIN_VIDEO_RESOLUTION);
-  double scale = min(1.0, min(static_cast<double>(max_resolution.width) / width, static_cast<double>(max_resolution.height) / height));
-  if (scale == 0) {
-    scale = 1.;
-  }
+  auto width = rotated_display_size.width;
+  auto height = rotated_display_size.height;
+  double scale = max(min(1.0, min(static_cast<double>(max_resolution.width) / width, static_cast<double>(max_resolution.height) / height)),
+                     max(MIN_VIDEO_RESOLUTION / width, MIN_VIDEO_RESOLUTION / height));
   return Size { RoundUpToMultipleOf(lround(width * scale), max(size_alignment.width, 8)),
                 RoundUpToMultipleOf(lround(height * scale), max(size_alignment.height, 8)) };
 }
@@ -205,7 +208,8 @@ void DisplayStreamer::Run() {
   if (codec == nullptr) {
     Log::Fatal("Unable to create a %s video encoder", codec_info->name.c_str());
   }
-  Log::D("Using %s video encoder", codec_info->name.c_str());
+  Log::D("Using %s video encoder with %dx%d max resolution",
+         codec_info->name.c_str(), codec_info->max_resolution.width, codec_info->max_resolution.height);
   AMediaFormat* media_format = CreateMediaFormat(mime_type.c_str());
 
   string header;
@@ -229,6 +233,7 @@ void DisplayStreamer::Run() {
         Log::Fatal("Unable to create a %s video encoder", codec_info->name.c_str());
       }
     }
+    int api_level = android_get_device_api_level();
     bool secure = android_get_device_api_level() < 31;  // Creation of secure displays is not allowed on API 31+.
     JObject display = surface_control.CreateDisplay("screen-sharing-agent", secure);
     if (display.IsNull()) {
@@ -236,6 +241,10 @@ void DisplayStreamer::Run() {
     }
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
     Log::D("display_info: %s", display_info.ToDebugString().c_str());
+    // Use heuristics for determining a bit rate value that doesn't cause SIGABRT in the encoder (b/251659422).
+    int32_t bit_rate = api_level < 32 && IsCodecResolutionLessThanDisplayResolution(codec_info->max_resolution, display_info.logical_size) ?
+                       BIT_RATE_REDUCED : BIT_RATE;
+    AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_BIT_RATE, bit_rate);
     ANativeWindow* surface = nullptr;
     {
       scoped_lock lock(mutex_);
@@ -322,7 +331,7 @@ void DisplayStreamer::Shutdown() {
   if (socket_fd_ > 0) {
     close(socket_fd_);
     StopCodec();
-    DisplayManager::UnregisterDisplayListener( Jvm::GetJni(), this);
+    DisplayManager::UnregisterDisplayListener(Jvm::GetJni(), this);
   }
 }
 
@@ -339,7 +348,7 @@ bool DisplayStreamer::ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketH
     }
     int64_t delta = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count() - Agent::GetLastTouchEventTime();
     if (delta < 1000) {
-      Log::D("Video packet of %d bytes at %lld ms since last touch event", codec_buffer.info.size, delta);
+      Log::D("Video packet of %d bytes at %" PRIi64 " ms since last touch event", codec_buffer.info.size, delta);
     }
     packet_header->origination_timestamp_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
     if (codec_buffer.IsConfig()) {
@@ -359,7 +368,7 @@ bool DisplayStreamer::ProcessFramesUntilStopped(AMediaCodec* codec, VideoPacketH
       }
       end_of_stream = true;
     }
-    if (codec_buffer.IsConfig()) {
+    if (!codec_buffer.IsConfig()) {
       packet_header->frame_number++;
     }
   }

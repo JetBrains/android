@@ -37,13 +37,8 @@ public:
 
   ~ClipboardManager();
 
-  // Checks if the clipboard is available or not.
-  bool IsAvailable() const {
-    return !clipboard_manager_.IsNull();
-  }
-
-  std::string GetText(Jni jni) const;
-  void SetText(Jni jni, const std::string& text) const;
+  std::string GetText() const;
+  void SetText(const std::string& text) const;
   void AddClipboardListener(ClipboardListener* listener);
   void RemoveClipboardListener(ClipboardListener* listener);
 
@@ -51,27 +46,14 @@ public:
 
 private:
   ClipboardManager(Jni jni);
-  // Number of parameters of the getPrimaryClip method minus 1. Possible values: 0, 1 and 2.
-  int number_of_extra_parameters_;
 
-  JString package_name_;
-  JObject clipboard_listener_;
-  // android.content.ClipData class.
-  JClass clip_data_class_;
-  jmethodID new_plain_text_method_;
-  jmethodID get_item_count_method_;
-  jmethodID get_item_at_method_;
-  jmethodID get_description_method_;
-  // android.content.ClipData.Item class.
+  Jni jni_;
+  // com.android.tools.screensharing.ClipboardAdapter class.
+  JClass clipboard_adapter_class_;
   jmethodID get_text_method_;
-  // android.content.ClipboardManager class.
-  JObject clipboard_manager_;
-  jmethodID get_primary_clip_method_;
-  jmethodID set_primary_clip_method_;
-  // android.content.ClipDescription class.
-  jmethodID set_extras_method_;
-  // The PersistableBundle used to suppress clipboard change UI overlays on Android 13+.
-  JObject overlay_suppressor_;
+  jmethodID set_text_method_;
+  jmethodID enable_primary_clip_changed_listener_method_;
+  jmethodID disable_primary_clip_changed_listener_method_;
   // Copy-on-write set of clipboard listeners.
   std::atomic<std::vector<ClipboardListener*>*> clipboard_listeners_;
 

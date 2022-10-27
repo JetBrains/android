@@ -145,11 +145,6 @@ public class RenderTask {
   };
 
   /**
-   * Minimum downscaling factor used. The quality can go from [0, 1] but that setting is actually mapped into [MIN_DOWNSCALING_FACTOR, 1]
-   * since below MIN_DOWNSCALING_FACTOR the quality is not good enough.
-   */
-  private static final float MIN_DOWNSCALING_FACTOR = .5f;
-  /**
    * When quality < 1.0, the max allowed size for the rendering is DOWNSCALED_IMAGE_MAX_BYTES * downscalingFactor
    */
   private static final int DEFAULT_DOWNSCALED_IMAGE_MAX_BYTES = 2_500_000; // 2.5MB
@@ -169,6 +164,7 @@ public class RenderTask {
   @NotNull private final LayoutlibCallbackImpl myLayoutlibCallback;
   @NotNull private final LayoutLibrary myLayoutLib;
   @NotNull private final HardwareConfigHelper myHardwareConfigHelper;
+  private final float myMinDownscalingFactor;
   private final float myDefaultQuality;
   private final long myDownScaledImageMaxBytes;
   @Nullable private IncludeReference myIncludedWithin;
@@ -227,7 +223,8 @@ public class RenderTask {
              @NotNull Runnable onNewModuleClassLoader,
              @NotNull Collection<String> classesToPreload,
              boolean reportOutOfDateUserClasses,
-             @NotNull RenderAsyncActionExecutor.RenderingPriority priority) {
+             @NotNull RenderAsyncActionExecutor.RenderingPriority priority,
+             float minDownscalingFactor) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
     this.reportOutOfDateUserClasses = reportOutOfDateUserClasses;
 
@@ -285,6 +282,7 @@ public class RenderTask {
                                     configuration,
                                     moduleInfo,
                                     renderService.getPlatform(facet));
+      myMinDownscalingFactor = minDownscalingFactor;
       myDefaultQuality = quality;
       // Some devices need more memory to avoid the blur when rendering. These are special cases.
       // The image looks acceptable after dividing both width and height to half. So we divide memory usage by 4 for these devices.
@@ -317,7 +315,7 @@ public class RenderTask {
       return;
     }
 
-    float actualSamplingFactor = MIN_DOWNSCALING_FACTOR + Math.max(Math.min(quality, 1f), 0f) * (1f - MIN_DOWNSCALING_FACTOR);
+    float actualSamplingFactor = myMinDownscalingFactor + Math.max(Math.min(quality, 1f), 0f) * (1f - myMinDownscalingFactor);
     long maxSize = (long)((float)myDownScaledImageMaxBytes * actualSamplingFactor);
     myCachingImageFactory = new CachingImageFactory(((width, height) -> {
       int downscaleWidth = width;
@@ -1457,7 +1455,7 @@ public class RenderTask {
 
     disposeMethod.ifPresent(m -> m.setAccessible(true));
     Optional<Method> finalDisposeMethod = disposeMethod;
-    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> {
+    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(RenderAsyncActionExecutor.RenderingPriority.HIGH, () -> {
       finalDisposeMethod.ifPresent(
         m -> renderSession.execute(
           () -> renderSession.getRootViews().forEach(v -> disposeIfCompose(v, m))

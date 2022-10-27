@@ -365,7 +365,7 @@ public class RenderService implements Disposable {
     @Nullable private RenderLogger myLogger;
     @Nullable private ILayoutPullParserFactory myParserFactory;
     private boolean isSecurityManagerEnabled = true;
-    private float myDownscaleFactor = 1f;
+    private float myQuality = 1f;
     private boolean showDecorations = true;
     private boolean showWithToolsVisibilityAndPosition = true;
     private int myMaxRenderWidth = -1;
@@ -434,6 +434,7 @@ public class RenderService implements Disposable {
      */
     private boolean reportOutOfDateUserClasses = true;
     @NotNull private RenderingPriority myPriority = DEFAULT_RENDERING_PRIORITY;
+    private float myMinDownscalingFactor = 0.5f;
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -500,12 +501,12 @@ public class RenderService implements Disposable {
     }
 
     /**
-     * Disables the image pooling for this render task
+     * Sets the quality level as a float between 0 and 1.
+     * By default, this is set to 1, which is the highest quality.
      */
-    @SuppressWarnings("unused")
     @NotNull
-    public RenderTaskBuilder withDownscaleFactor(float downscaleFactor) {
-      this.myDownscaleFactor = downscaleFactor;
+    public RenderTaskBuilder withQuality(float quality) {
+      this.myQuality = quality;
       return this;
     }
 
@@ -624,6 +625,16 @@ public class RenderService implements Disposable {
     }
 
     /**
+     * Sets a minimum downscaling for rendered images. This is to ensure the quality cannot go below a certain level.
+     * By default, it is set at 0.5.
+     */
+    @NotNull
+    public RenderTaskBuilder withMinDownscalingFactor(float downscalingFactor) {
+      myMinDownscalingFactor = downscalingFactor;
+      return this;
+    }
+
+    /**
      * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
      * can not be created.
      */
@@ -682,9 +693,9 @@ public class RenderService implements Disposable {
           RenderTask task =
             new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
-                           myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceCaptureElement, myManifestProvider,
+                           myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, myManifestProvider,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
-                           classesToPreload, reportOutOfDateUserClasses, myPriority);
+                           classesToPreload, reportOutOfDateUserClasses, myPriority, myMinDownscalingFactor);
           if (myPsiFile instanceof XmlFile) {
             task.setXmlFile((XmlFile)myPsiFile);
           }

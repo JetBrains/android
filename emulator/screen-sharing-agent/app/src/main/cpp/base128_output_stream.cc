@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
+#include <cassert>
 #include <memory>
 
 #include "io_exception.h"
@@ -32,31 +33,24 @@ Base128OutputStream::Base128OutputStream(int fd, size_t buffer_size)
     : fd_(fd),
       buffer_(new uint8_t[buffer_size]),
       buffer_capacity_(buffer_size),
-      offset_(0),
-      data_end_(0) {
+      offset_(0) {
 }
 
 Base128OutputStream::~Base128OutputStream() {
   Close();
+  delete[] buffer_;
 }
 
 void Base128OutputStream::Close() {
-  if (buffer_ != nullptr) {
-    try {
-      Flush();
-    } catch (const IoException& e) {
-      Log::E("Unable to flush Base128OutputStream");
-    }
-    shutdown(fd_, SHUT_WR);
-    delete[] buffer_;
-    buffer_ = nullptr;
+  try {
+    Flush();
+  } catch (const IoException& e) {
+    Log::E("Unable to flush Base128OutputStream");
   }
+  shutdown(fd_, SHUT_WR);
 }
 
 void Base128OutputStream::Flush() {
-  if (buffer_ == nullptr) {
-    throw StreamClosedException();
-  }
   while (offset_ > 0) {
     auto n = write(fd_, buffer_, offset_);
     if (n < 0) {
@@ -74,9 +68,6 @@ void Base128OutputStream::Flush() {
 }
 
 void Base128OutputStream::WriteByte(uint8_t byte) {
-  if (buffer_ == nullptr) {
-    throw StreamClosedException();
-  }
   if (offset_ == buffer_capacity_) {
     Flush();
   }

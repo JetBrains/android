@@ -24,6 +24,10 @@ using namespace std;
 
 unique_ptr<ControlMessage> ControlMessage::Deserialize(Base128InputStream& stream) {
   int32_t type = stream.ReadInt32();
+  return Deserialize(type, stream);
+}
+
+unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128InputStream& stream) {
   switch (type) {
     case MotionEventMessage::TYPE:
       return unique_ptr<ControlMessage>(MotionEventMessage::Deserialize(stream));

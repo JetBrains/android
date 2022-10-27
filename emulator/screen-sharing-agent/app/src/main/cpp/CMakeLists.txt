@@ -1,7 +1,7 @@
 # For more information about using CMake with Android Studio, read the
 # documentation: https://d.android.com/studio/projects/add-native-code.html
 
-cmake_minimum_required(VERSION 3.18.1)
+cmake_minimum_required(VERSION 3.22.1)
 
 project("screensharing")
 
@@ -37,6 +37,7 @@ add_library(
         log.cc
         main.cc
         scoped_setting.cc
+        session_environment.cc
         settings.cc
         string_printf.cc
         video_packet_header.cc

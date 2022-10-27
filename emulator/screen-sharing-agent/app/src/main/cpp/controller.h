@@ -16,19 +16,17 @@
 
 #pragma once
 
-#include <mutex>
+#include <atomic>
 #include <thread>
-#include <vector>
 
-#include <accessors/clipboard_manager.h>
-#include <accessors/key_character_map.h>
+#include "accessors/clipboard_manager.h"
+#include "accessors/key_character_map.h"
 #include "accessors/pointer_helper.h"
 #include "base128_input_stream.h"
 #include "common.h"
 #include "control_messages.h"
 #include "geom.h"
 #include "jvm.h"
-#include "scoped_setting.h"
 
 namespace screensharing {
 
@@ -65,6 +63,7 @@ private:
   void StartClipboardSync(const StartClipboardSyncMessage& message);
   void StopClipboardSync();
   void OnPrimaryClipChanged();
+  void ProcessClipboardChange();
 
   Jni jni_ = nullptr;
   int socket_fd_;  // Owned.
@@ -76,14 +75,11 @@ private:
   JObjectArray pointer_coordinates_;  // MotionEvent.PointerCoords[]
   int64_t motion_event_start_time_;
   KeyCharacterMap* key_character_map_;  // Owned.
-  ScopedSetting stay_on_;
-  ScopedSetting accelerometer_rotation_;
 
   ClipboardListener clipboard_listener_;
-  std::mutex clipboard_mutex_;
-  int max_synced_clipboard_length_;  // GUARDED_BY(clipboard_mutex_)
-  std::string last_clipboard_text_;  // GUARDED_BY(clipboard_mutex_)
-  bool setting_clipboard_;  // GUARDED_BY(clipboard_mutex_)
+  int max_synced_clipboard_length_;
+  std::string last_clipboard_text_;
+  std::atomic_bool clipboard_changed_;
 
   DISALLOW_COPY_AND_ASSIGN(Controller);
 };
