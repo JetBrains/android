@@ -739,8 +739,9 @@ class ComposeCompletionContributorTest {
     )
   }
 
+  /** Regression test for b/155314487. */
   @Test
-  fun testMaterialThemeComposableIsDemotedInCompletion() {
+  fun testLookupElementOrder_materialThemeInStatement() {
     myFixture.addFileToProject(
       "src/androidx/compose/material/MaterialTheme.kt",
       // language=kotlin
@@ -794,7 +795,84 @@ class ComposeCompletionContributorTest {
         "MaterialTheme (androidx.compose.material)",
         "MaterialTheme {...}",
         "MaterialTheme (com.example)",
-        )
+      )
+    ).inOrder()
+  }
+
+  /** Regression test for b/155314487. */
+  @Test
+  fun testLookupElementOrder_materialThemeInArgument() {
+    myFixture.addFileToProject(
+      "src/androidx/compose/material/MaterialTheme.kt",
+      // language=kotlin
+      """
+      package androidx.compose.material
+
+      import androidx.compose.runtime.Composable
+
+      // This simulates the Composable function
+      @Composable
+      fun MaterialTheme(children: @Composable() () -> Unit) {}
+
+      // This simulates the MaterialTheme object that should be promoted instead of the MaterialTheme
+      object MaterialTheme
+    """)
+
+
+    // Add a MaterialTheme that is not part of androidx to ensure is not affected by the promotion/demotion
+    myFixture.addFileToProject(
+      "src/com/example/MaterialTheme.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      object MaterialTheme
+    """)
+
+
+    // Add Color so it can be referenced without causing a missing reference.
+    myFixture.addFileToProject(
+      "src/androidx/compose/ui/graphics/Color.kt",
+      // language=kotlin
+      """
+      package androidx.compose.ui.graphics
+
+      class Color
+    """)
+
+
+    // Given:
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.graphics.Color
+
+      @Composable
+      fun HomeScreen() {
+        HomeScreenElement(color = Material<caret>)
+      }
+
+      @Composable
+      fun HomeScreenElement(color: Color) {}
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.completeBasic()
+
+    // Then:
+    // b/155314487: This order is incorrect. I'm adding this test to document current behavior, and will update this test to the new
+    // expected behavior once the fix is made.
+    assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(
+      listOf(
+        "MaterialTheme (com.example)",
+        "MaterialTheme {...}",
+        "MaterialTheme (androidx.compose.material)",
+      )
     ).inOrder()
   }
 
