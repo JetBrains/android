@@ -278,7 +278,9 @@ class ComposeCompletionWeigher : CompletionWeigher() {
   override fun weigh(element: LookupElement, location: CompletionLocation): Int = when {
       location.completionParameters.position.language != KotlinLanguage.INSTANCE -> 0
       location.completionParameters.position.getModuleSystem()?.usesCompose != true -> 0
-      element.isForNamedArgument() -> 3
+      // Since Compose uses so many named arguments, promote them to the top. This is for a case where the user has typed something like
+      // "Button(en<caret>)", and we want to promote the completion "enabled = Boolean".
+      element.isNamedArgumentCompletion() -> 3
       location.completionParameters.isForStatement() -> {
         val isConflictingName = COMPOSABLE_CONFLICTING_NAMES.contains((element.psiElement as? KtNamedDeclaration)?.fqName?.asString() ?: "")
         val isComposableFunction = element.psiElement?.isComposableFunction() ?: false
@@ -298,7 +300,7 @@ class ComposeCompletionWeigher : CompletionWeigher() {
       else -> 0
     }
 
-  private fun LookupElement.isForNamedArgument() = lookupString.endsWith(" =")
+  private fun LookupElement.isNamedArgumentCompletion() = lookupString.endsWith(" =")
 }
 
 private fun InsertionContext.getNextElementIgnoringWhitespace(): PsiElement? {

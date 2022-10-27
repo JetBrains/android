@@ -103,6 +103,7 @@ class ComposeCompletionContributorTest {
     myFixture.completeBasic()
 
     // Then:
+    // Order doesn't matter here, since we're just validating that the elements are displayed with the correct signature text.
     assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(expectedLookupItems)
 
     // Given:
@@ -130,6 +131,7 @@ class ComposeCompletionContributorTest {
     myFixture.completeBasic()
 
     // Then:
+    // Order doesn't matter here, since we're just validating that the elements are displayed with the correct signature text.
     assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(expectedLookupItems)
   }
 
@@ -874,6 +876,56 @@ class ComposeCompletionContributorTest {
         "MaterialTheme (androidx.compose.material)",
       )
     ).inOrder()
+  }
+
+  @Test
+  fun testLookupElementOrder_namedArgument() {
+    myFixture.addFileToProject(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      // "Foobar" is a unique prefix that no other lookup elements will match.
+
+      fun foobarOne(required: Int): Int = 1
+
+      fun foobarTwo(required: Int, optional: Int = 42): Int = 2
+
+      @Composable
+      fun WrappingFunction(foobarArg: Int) {}
+      """.trimIndent()
+    )
+
+    val expectedLookupItems = listOf(
+      "foobarArg = Int",
+      "foobarOne(required: Int) (com.example) Int",
+      "foobarTwo(required: Int, optional: Int = ...) (com.example) Int",
+    )
+
+    // Given:
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        WrappingFunction(foobar<caret>)
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.completeBasic()
+
+    // Then:
+    assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(expectedLookupItems).inOrder()
   }
 
   /**
