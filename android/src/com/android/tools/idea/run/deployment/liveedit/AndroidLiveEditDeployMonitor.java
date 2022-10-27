@@ -611,7 +611,10 @@ public class AndroidLiveEditDeployMonitor {
                                      update.getHasGroupId());
 
       // In manual mode we don't recompose automatically if priming happened.
-      boolean recomposeAfterPriming = !LiveEditService.Companion.isLeTriggerManual();
+      // Last minute change, we don't want user to have to perform "hard-refresh" is a class was primed.
+      //boolean recomposeAfterPriming = !LiveEditService.Companion.isLeTriggerManual();
+      boolean recomposeAfterPriming = true;
+
       LiveUpdateDeployer.UpdateLiveEditsParam param =
         new LiveUpdateDeployer.UpdateLiveEditsParam(
           update.getClassName(), update.getMethodName(), update.getMethodDesc(),
