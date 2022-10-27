@@ -17,7 +17,7 @@ package com.android.tools.idea.common.editor.navigation
 
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.impl.FileEditorManagerExImpl
+import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
 import com.intellij.testFramework.EditorTestUtil
 import com.intellij.testFramework.builders.ModuleFixtureBuilder
 import com.intellij.testFramework.fixtures.CodeInsightFixtureTestCase
@@ -28,7 +28,7 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
   override fun setUp() {
     super.setUp()
     val project = project
-    project.replaceService(FileEditorManager::class.java, FileEditorManagerExImpl(project), testRootDisposable)
+    project.replaceService(FileEditorManager::class.java, FileEditorManagerImpl(project), testRootDisposable)
   }
 
   fun testNavigationWithinFile() {
