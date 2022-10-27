@@ -216,12 +216,14 @@ class BuildAndRefresh(private val fileProvider: () -> PsiFile?) : AnAction() {
 }
 
 /**
- * [AnAction] that shows the "Problems" panel with the "Current File" tab selected.
+ * [AnAction] that shows the "Problems" panel with the "Design Tools" tab selected. The name "Design Tools" is different depends on
+ * different tools. e.g. it shows "Compose" when using Compose Preview, shows "Layout and Qualifiers" when using Layout Editor.
+ *
  */
 class ShowProblemsPanel : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    IssuePanelService.getInstance(project).setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
+    IssuePanelService.getInstance(project).setIssuePanelVisibility(true, IssuePanelService.Tab.DESIGN_TOOLS)
   }
 }
 
