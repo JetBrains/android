@@ -159,10 +159,10 @@ Size ComputeVideoSize(Size rotated_display_size, Size max_resolution, Size size_
 }
 
 Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_video_resolution, AMediaFormat* media_format,
-                    const DisplayInfo& display_info, int32_t rotation_correction) {
+                    const DisplayInfo& display_info) {
   Size max_resolution = Size(min(max_video_resolution.width, codec_info.max_resolution.width),
                              min(max_video_resolution.height, codec_info.max_resolution.height));
-  Size video_size = ComputeVideoSize(display_info.logical_size.Rotated(rotation_correction), max_resolution, codec_info.size_alignment);
+  Size video_size = ComputeVideoSize(display_info.logical_size, max_resolution, codec_info.size_alignment);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_WIDTH, video_size.width);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_HEIGHT, video_size.height);
   media_status_t status = AMediaCodec_configure(codec, media_format, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
@@ -172,14 +172,12 @@ Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_vi
   return video_size;
 }
 
-// The display area defined by display_info.logical_size is mapped to projected size and then
-// rotated counterclockwise by the number of quadrants determined by the rotation parameter.
-void ConfigureDisplay(const SurfaceControl& surface_control, jobject display_token, ANativeWindow* surface, int32_t rotation,
-                      const DisplayInfo& display_info, Size projected_size) {
+// The display area defined by display_info.logical_size is mapped to projected size.
+void ConfigureDisplay(const SurfaceControl& surface_control, jobject display_token, ANativeWindow* surface, const DisplayInfo& display_info,
+                      Size projected_size) {
   SurfaceControl::Transaction transaction(surface_control);
   surface_control.SetDisplaySurface(display_token, surface);
-  surface_control.SetDisplayProjection(
-      display_token, NormalizeRotation(-rotation), display_info.logical_size.toRect(), projected_size.toRect());
+  surface_control.SetDisplayProjection(display_token, 0, display_info.logical_size.toRect(), projected_size.toRect());
   surface_control.SetDisplayLayerStack(display_token, display_info.layer_stack);
 }
 
@@ -251,12 +249,13 @@ void DisplayStreamer::Run() {
       display_info_ = display_info;
       int32_t rotation_correction = video_orientation_ >= 0 ? NormalizeRotation(video_orientation_ - display_info.rotation) : 0;
       media_status_t status;
-      Size video_size = ConfigureCodec(codec, *codec_info, max_video_resolution_, media_format, display_info, rotation_correction);
+      Size video_size = ConfigureCodec(codec, *codec_info, max_video_resolution_, media_format, display_info);
+      Log::D("rotation_correction = %d video_size = %dx%d", rotation_correction, video_size.width, video_size.height);
       status = AMediaCodec_createInputSurface(codec, &surface);  // Requires API 26.
       if (status != AMEDIA_OK) {
         Log::Fatal("AMediaCodec_createInputSurface returned %d", status);
       }
-      ConfigureDisplay(surface_control, display, surface, rotation_correction, display_info, video_size.Rotated(-rotation_correction));
+      ConfigureDisplay(surface_control, display, surface, display_info, video_size);
       AMediaCodec_start(codec);
       running_codec_ = codec;
       Size display_size = display_info.NaturalSize();  // The display dimensions in the canonical orientation.

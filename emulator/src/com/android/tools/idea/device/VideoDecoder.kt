@@ -17,6 +17,7 @@ package com.android.tools.idea.device
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.emulator.coerceAtMost
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
@@ -330,7 +331,8 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
 
       synchronized(imageLock) {
         var image = displayFrame?.image
-        if (image?.width == imageSize.width && image.height == imageSize.height) {
+        if (image?.width == imageSize.width && image.height == imageSize.height &&
+            displayFrame?.orientationCorrection == 0 && header.displayOrientationCorrection == 0) {
           val imagePixels = (image.raster.dataBuffer as DataBufferInt).data
           framePixels.get(imagePixels)
         }
@@ -340,7 +342,7 @@ internal class VideoDecoder(private val videoChannel: SuspendingSocketChannel, @
           val buffer = DataBufferInt(imagePixels, imagePixels.size)
           val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, imageSize.width, imageSize.height, SAMPLE_MODEL_BIT_MASKS)
           val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
-          image = BufferedImage(COLOR_MODEL, raster, false, null)
+          image = ImageUtils.rotateByQuadrants(BufferedImage(COLOR_MODEL, raster, false, null), header.displayOrientationCorrection)
         }
 
         displayFrame = VideoFrame(image, header.displaySize, header.displayOrientation, header.displayOrientationCorrection,
