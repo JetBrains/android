@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
@@ -47,7 +48,6 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   @NotNull private final List<DeviceExplorerViewListener> myListeners = new ArrayList<>();
   @NotNull private final List<DeviceExplorerViewProgressListener> myProgressListeners = new ArrayList<>();
   @NotNull private final DeviceFileExplorerViewImpl myViewImpl;
-  @NotNull private final FutureValuesTracker<String> myStartRefreshTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<Unit> myStopRefreshTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<Unit> myShowNoDeviceScreenTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceSelectedTracker = new FutureValuesTracker<>();
@@ -62,13 +62,11 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myNewFileTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceAddedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceRemovedTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceUpdatedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DefaultTreeModel> myTreeModelChangedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<TreeModelEvent> myTreeNodesChangedTacker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<TreeModelEvent> myTreeNodesInsertedTacker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<TreeModelEvent> myTreeNodesRemovedTacker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<TreeModelEvent> myTreeStructureChangedTacker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<String> myReportErrorRelatedToServiceTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<String> myReportErrorRelatedToDeviceTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<String> myReportErrorRelatedToNodeTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<String> myReportErrorGenericTracker = new FutureValuesTracker<>();
@@ -78,16 +76,11 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   private int myBusyIndicatorCount;
 
   public MockDeviceExplorerView(@NotNull Project project,
-                                @NotNull DeviceFileSystemRenderer deviceRenderer,
                                 @NotNull DeviceFileExplorerModel model) {
-    myViewImpl = new DeviceFileExplorerViewImpl(project, deviceRenderer, model);
+    myViewImpl = new DeviceFileExplorerViewImpl(project, model, "ToolWindow ID");
     myViewImpl.addListener(new MyDeviceExplorerViewListener());
     myViewImpl.addProgressListener(new MyDeviceExplorerViewProgressListener());
     model.addListener(new MyDeviceExplorerModelListener());
-  }
-
-  public JComboBox<DeviceFileSystem> getDeviceCombo() {
-    return myViewImpl.getDeviceCombo();
   }
 
   public JTree getTree() {
@@ -96,6 +89,11 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
 
   public ActionGroup getFileTreeActionGroup() {
     return myViewImpl.getFileTreeActionGroup();
+  }
+
+  @Override
+  public JComponent getComponent() {
+    return myViewImpl.getComponent();
   }
 
   @Override
@@ -133,39 +131,19 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
 
     myViewImpl.getLoadingPanel().setSize(new Dimension(100, 300));
     myViewImpl.getDeviceExplorerPanel().getComponent().setSize(new Dimension(100, 300));
-    myViewImpl.getDeviceExplorerPanel().getDeviceCombo().setSize(new Dimension(100, 30));
     myViewImpl.getDeviceExplorerPanel().getColumnTreePane().setSize(new Dimension(100, 300));
 
     myViewImpl.getLoadingPanel().doLayout();
     myViewImpl.getDeviceExplorerPanel().getComponent().doLayout();
-    myViewImpl.getDeviceExplorerPanel().getDeviceCombo().doLayout();
     myViewImpl.getDeviceExplorerPanel().getColumnTreePane().doLayout();
     myViewImpl.getDeviceExplorerPanel().getColumnTreePane().getViewport().doLayout();
     myViewImpl.getDeviceExplorerPanel().getColumnTreePane().getViewport().getView().doLayout();
   }
 
   @Override
-  public void startRefresh(@NotNull String text) {
-    myViewImpl.startRefresh(text);
-    myStartRefreshTracker.produce(text);
-  }
-
-  @Override
-  public void stopRefresh() {
-    myViewImpl.stopRefresh();
-    myStopRefreshTracker.produce(null);
-  }
-
-  @Override
   public void showNoDeviceScreen() {
     myViewImpl.showNoDeviceScreen();
     myShowNoDeviceScreenTracker.produce(null);
-  }
-
-  @Override
-  public void reportErrorRelatedToService(@NotNull DeviceFileSystemService service, @NotNull String message, @NotNull Throwable t) {
-    myReportErrorRelatedToServiceTracker.produce(message + getThrowableMessage(t));
-    myViewImpl.reportErrorRelatedToService(service, message, t);
   }
 
   @Override
@@ -178,12 +156,6 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   public void reportErrorRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message, @NotNull Throwable t) {
     myReportErrorRelatedToNodeTracker.produce(message + getThrowableMessage(t));
     myViewImpl.reportErrorRelatedToNode(node, message, t);
-  }
-
-  @Override
-  public void reportErrorGeneric(@NotNull String message, @NotNull Throwable t) {
-    myReportErrorGenericTracker.produce(message + getThrowableMessage(t));
-    myViewImpl.reportErrorGeneric(message, t);
   }
 
   @Override
@@ -278,15 +250,6 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
     return myDeviceRemovedTracker;
   }
 
-  public FutureValuesTracker<DeviceFileSystem> getDeviceUpdatedTracker() {
-    return myDeviceUpdatedTracker;
-  }
-
-  @NotNull
-  public FutureValuesTracker<String> getStartRefreshTracker() {
-    return myStartRefreshTracker;
-  }
-
   @NotNull
   public FutureValuesTracker<Unit> getStopRefreshTracker() {
     return myStopRefreshTracker;
@@ -337,10 +300,6 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
     return myTreeModelChangedTracker;
   }
 
-  @NotNull
-  public FutureValuesTracker<String> getReportErrorRelatedToServiceTracker() {
-    return myReportErrorRelatedToServiceTracker;
-  }
 
   @NotNull
   public FutureValuesTracker<String> getReportErrorRelatedToDeviceTracker() {
@@ -350,11 +309,6 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   @NotNull
   public FutureValuesTracker<String> getReportErrorRelatedToNodeTracker() {
     return myReportErrorRelatedToNodeTracker;
-  }
-
-  @NotNull
-  public FutureValuesTracker<String> getReportErrorGenericTracker() {
-    return myReportErrorGenericTracker;
   }
 
   @NotNull
@@ -406,17 +360,6 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   }
 
   private class MyDeviceExplorerViewListener implements DeviceExplorerViewListener {
-
-    @Override
-    public void noDeviceSelected() {
-      myListeners.forEach(DeviceExplorerViewListener::noDeviceSelected);
-    }
-
-    @Override
-    public void deviceSelected(@NotNull DeviceFileSystem device) {
-      myDeviceSelectedTracker.produce(device);
-      myListeners.forEach(l -> l.deviceSelected(device));
-    }
 
     @Override
     public void openNodesInEditorInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
@@ -487,25 +430,6 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   }
 
   private class MyDeviceExplorerModelListener implements DeviceExplorerModelListener {
-
-    @Override
-    public void deviceAdded(@NotNull DeviceFileSystem device) {
-      myDeviceAddedTracker.produce(device);
-    }
-
-    @Override
-    public void deviceRemoved(@NotNull DeviceFileSystem device) {
-      myDeviceRemovedTracker.produce(device);
-    }
-
-    @Override
-    public void deviceUpdated(@NotNull DeviceFileSystem device) {
-      myDeviceUpdatedTracker.produce(device);
-    }
-
-    @Override
-    public void activeDeviceChanged(@Nullable DeviceFileSystem newActiveDevice) {
-    }
 
     @Override
     public void treeModelChanged(@Nullable DefaultTreeModel newTreeModel, @Nullable DefaultTreeSelectionModel newTreeSelectionModel) {

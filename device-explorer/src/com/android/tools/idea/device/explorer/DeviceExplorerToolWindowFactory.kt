@@ -65,11 +65,10 @@ class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
   }
 
   private fun createDeviceFilesController(project: Project): DeviceFileExplorerController {
-    val adbService = project.getService(AdbDeviceFileSystemService::class.java)
     val fileManager = project.getService(DeviceExplorerFileManager::class.java)
     val model = DeviceFileExplorerModel()
     val view = DeviceFileExplorerViewImpl(project, model, TOOL_WINDOW_ID)
-    return DeviceFileExplorerController(project, model, view, adbService, fileManager,
+    return DeviceFileExplorerController(project, model, view, fileManager,
                                         object : DeviceFileExplorerController.FileOpener {
                                           override suspend fun openFile(localPath: Path) {
                                             fileManager.openFile(localPath)

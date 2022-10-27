@@ -99,7 +99,6 @@ class DeviceFileExplorerController(
   private val project: Project,
   private val model: DeviceFileExplorerModel,
   private val view: DeviceFileExplorerView,
-  private val service: DeviceFileSystemService<out DeviceFileSystem>,
   private val fileManager: DeviceExplorerFileManager,
   private val fileOpener: FileOpener
 ) : Disposable {
@@ -117,8 +116,6 @@ class DeviceFileExplorerController(
   private val transferringNodesAlarms = Alarm()
   private val loadingChildrenAlarms = Alarm()
   private var longRunningOperationTracker: LongRunningOperationTracker? = null
-  private val edtExecutor = FutureCallbackExecutor(EdtExecutorService.getInstance())
-  private val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
 
   init {
     Disposer.register(project, this)
@@ -274,19 +271,15 @@ class DeviceFileExplorerController(
     return model.activeDevice != null
   }
 
-  fun setActiveConnectedDevice(handle: DeviceHandle?, device: ConnectedDevice?) {
-    if(handle == null || device == null) {
+  fun setActiveConnectedDevice(fileSystem: DeviceFileSystem?) {
+    if (fileSystem == null) {
       setNoActiveDevice()
     } else {
-      val fileSystem = newDeviceFileSystem(handle, device)
       scope.launch { setActiveDevice(fileSystem) }
     }
   }
 
   fun getViewComponent(): JComponent = view.component
-
-  private fun newDeviceFileSystem(handle: DeviceHandle, connectedDevice: ConnectedDevice) =
-    AdbDeviceFileSystem(handle, connectedDevice, edtExecutor, dispatcher)
 
   @UiThread
   private inner class ViewListener : DeviceExplorerViewListener {
