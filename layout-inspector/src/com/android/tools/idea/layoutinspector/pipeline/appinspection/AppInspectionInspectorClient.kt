@@ -38,6 +38,7 @@ import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
+import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
@@ -62,7 +63,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -120,9 +120,12 @@ class AppInspectionInspectorClient(
     InspectorBannerService.getInstance(model.project)?.setNotification(
       when {
         t is ConnectionFailedException -> t.message!!
-        process.device.apiLevel >= 29 -> AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
+        process.device.apiLevel >= 29 -> {
+          logUnexpectedError(InspectorConnectionError(t))
+          AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
+        }
         else -> {
-          Logger.getInstance(AppInspectionInspectorClient::class.java).warn(t)
+          logUnexpectedError(InspectorConnectionError(t))
           "Unknown error"
         }
       }
