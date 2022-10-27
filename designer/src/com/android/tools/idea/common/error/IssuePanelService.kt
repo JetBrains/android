@@ -38,6 +38,8 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -59,6 +61,10 @@ import com.intellij.ui.tree.TreeVisitor
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
@@ -160,6 +166,8 @@ class IssuePanelService(private val project: Project) {
     contentManager.addContentManagerListener(contentManagerListener)
 
     project.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
+      private val coroutineScope = CoroutineScope(Dispatchers.EDT)
+
       override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
         val editor = source.getSelectedEditor(file)
         updateIssuePanelVisibility(file, editor, true)
@@ -177,20 +185,29 @@ class IssuePanelService(private val project: Project) {
       }
 
       private fun updateIssuePanelVisibility(newFile: VirtualFile?, newEditor: FileEditor?, selectIfVisible: Boolean) {
-        if (newFile == null) {
-          setSharedIssuePanelVisibility(false)
-          return
-        }
-        if (isComposeFile(newFile) || isSupportedDesignerFileType(newFile)) {
-          addIssuePanel(selectIfVisible)
-          return
-        }
-        val surface = newEditor?.getDesignSurface()
-        if (surface != null) {
-          updateIssuePanelVisibility(newFile, selectIfVisible)
-        }
-        else {
-          removeSharedIssueTabFromProblemsPanel()
+        coroutineScope.launch {
+          if (newFile == null) {
+            setSharedIssuePanelVisibility(false)
+            return@launch
+          }
+
+          val composeFile = withContext(Dispatchers.IO) {
+            readAction {
+              isComposeFile(newFile) || isSupportedDesignerFileType(newFile)
+            }
+          }
+
+          if (composeFile) {
+            addIssuePanel(selectIfVisible)
+            return@launch
+          }
+          val surface = newEditor?.getDesignSurface()
+          if (surface != null) {
+            updateIssuePanelVisibility(newFile, selectIfVisible)
+          }
+          else {
+            removeSharedIssueTabFromProblemsPanel()
+          }
         }
       }
     })
