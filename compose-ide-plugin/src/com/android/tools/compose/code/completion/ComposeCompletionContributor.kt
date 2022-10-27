@@ -18,9 +18,6 @@ package com.android.tools.compose.code.completion
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.ComposeSettings
 import com.android.tools.compose.isComposableFunction
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_PRESENTATION
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionLocation
@@ -134,8 +131,7 @@ private fun PsiElement?.isKdoc() = this is KDocName
  */
 class ComposeCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
-    if (!StudioFlags.COMPOSE_EDITOR_SUPPORT.get() ||
-        parameters.position.getModuleSystem()?.usesCompose != true ||
+    if (parameters.position.getModuleSystem()?.usesCompose != true ||
         parameters.position.language != KotlinLanguage.INSTANCE) {
       return
     }
@@ -183,12 +179,10 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
   override fun renderElement(presentation: LookupElementPresentation) {
     super.renderElement(presentation)
 
-    if (COMPOSE_COMPLETION_PRESENTATION.get()) {
-      val descriptor = getFunctionDescriptor() ?: return
-      presentation.icon = COMPOSABLE_FUNCTION_ICON
-      presentation.setTypeText(if (descriptor.returnType?.isUnit() == true) null else presentation.typeText, null)
-      rewriteSignature(descriptor, presentation)
-    }
+    val descriptor = getFunctionDescriptor() ?: return
+    presentation.icon = COMPOSABLE_FUNCTION_ICON
+    presentation.setTypeText(if (descriptor.returnType?.isUnit() == true) null else presentation.typeText, null)
+    rewriteSignature(descriptor, presentation)
   }
 
   override fun handleInsert(context: InsertionContext) {
@@ -196,7 +190,6 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
     val parent = context.getParent()
     val callType by lazy { parent.inferCallType() }
     return when {
-      !COMPOSE_COMPLETION_INSERT_HANDLER.get() -> super.handleInsert(context)
       !ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled -> super.handleInsert(context)
       parent.isKdoc() -> super.handleInsert(context)
       descriptor == null -> super.handleInsert(context)
@@ -283,8 +276,6 @@ private val COMPOSABLE_CONFLICTING_NAMES = setOf(
  */
 class ComposeCompletionWeigher : CompletionWeigher() {
   override fun weigh(element: LookupElement, location: CompletionLocation): Int = when {
-      !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> 0
-      !StudioFlags.COMPOSE_COMPLETION_WEIGHER.get() -> 0
       location.completionParameters.position.language != KotlinLanguage.INSTANCE -> 0
       location.completionParameters.position.getModuleSystem()?.usesCompose != true -> 0
       element.isForNamedArgument() -> 3

@@ -78,7 +78,6 @@ class PreviewPickerLineMarkerProviderTest(
   @Before
   fun setup() {
     StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.override(true)
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
     ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled = true
     (rule.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
@@ -119,7 +118,6 @@ class PreviewPickerLineMarkerProviderTest(
   @After
   fun teardown() {
     StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.clearOverride()
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
     StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
   }
 

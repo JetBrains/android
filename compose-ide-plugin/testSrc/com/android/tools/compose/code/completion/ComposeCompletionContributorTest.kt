@@ -17,7 +17,6 @@ package com.android.tools.compose.code.completion
 
 import com.android.tools.compose.ComposeFqNames
 import com.android.tools.compose.ComposeSettings
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -43,10 +42,6 @@ class ComposeCompletionContributorTest {
 
   @Before
   fun setUp() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
-    StudioFlags.COMPOSE_COMPLETION_PRESENTATION.override(true)
-    StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER.override(true)
-    StudioFlags.COMPOSE_COMPLETION_WEIGHER.override(true)
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     myFixture.stubComposableAnnotation(ComposeFqNames.root)
   }

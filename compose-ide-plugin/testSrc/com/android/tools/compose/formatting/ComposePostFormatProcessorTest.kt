@@ -18,7 +18,6 @@ package com.android.tools.compose.formatting
 
 import com.android.tools.compose.COMPOSE_UI_PACKAGE
 import com.android.tools.compose.ComposeFqNames
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -48,7 +47,6 @@ class ComposePostFormatProcessorTest {
 
   @Before
   fun setUp() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     myFixture.stubComposableAnnotation(ComposeFqNames.root)
     myFixture.addFileToProject(

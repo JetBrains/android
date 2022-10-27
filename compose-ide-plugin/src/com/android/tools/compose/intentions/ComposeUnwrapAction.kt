@@ -16,7 +16,6 @@
 package com.android.tools.compose.intentions
 
 import com.android.tools.compose.ComposeBundle
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
@@ -50,7 +49,6 @@ class ComposeUnwrapAction : IntentionAction {
 
   override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean {
     return when {
-      !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> false
       file == null || editor == null -> false
       !file.isWritable || file !is KtFile -> false
       else -> isCaretAtWrapper(editor, file)

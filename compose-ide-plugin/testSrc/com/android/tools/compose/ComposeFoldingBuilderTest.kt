@@ -16,7 +16,6 @@
 package com.android.tools.compose
 
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -24,7 +23,6 @@ import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import org.jetbrains.android.compose.stubComposableAnnotation
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -40,7 +38,6 @@ class ComposeFoldingBuilderTest {
 
   @Before
   fun setUp() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     myFixture.stubComposableAnnotation(ComposeFqNames.root)
     myFixture.addFileToProject(
@@ -57,11 +54,6 @@ class ComposeFoldingBuilderTest {
     }
     """.trimIndent()
     )
-  }
-  
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
   }
 
   @Test

@@ -15,11 +15,9 @@
  */
 package com.android.tools.compose.intentions
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
-
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
@@ -30,14 +28,8 @@ import org.jetbrains.android.compose.stubPreviewAnnotation
 class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
   override fun setUp() {
     super.setUp()
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     myFixture.stubComposableAnnotation()
     myFixture.stubPreviewAnnotation()
-  }
-
-  public override fun tearDown() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
-    super.tearDown()
   }
 
   fun testCursorAtAnnotation() {

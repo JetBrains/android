@@ -17,7 +17,6 @@ package com.android.tools.compose
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.adtui.LightCalloutPopup
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
@@ -60,7 +59,6 @@ class ComposeColorAnnotator : Annotator {
 
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     when {
-      !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> return
       element.getModuleSystem()?.usesCompose != true -> return
       element is KtCallElement -> {
         val uElement = element.toUElement(UCallExpression::class.java) ?: return

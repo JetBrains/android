@@ -19,7 +19,6 @@ import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.isComposableAnnotation
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.editor.Editor
@@ -46,7 +45,6 @@ class ComposeCreatePreviewAction : IntentionAction {
 
   override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean {
     return when {
-      !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> false
       file == null || editor == null -> false
       !file.isWritable || file !is KtFile -> false
       else -> getComposableAnnotationEntry(editor, file) != null

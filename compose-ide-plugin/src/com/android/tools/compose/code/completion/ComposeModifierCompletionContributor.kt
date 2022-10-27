@@ -17,7 +17,6 @@ package com.android.tools.compose.code.completion
 
 import com.android.tools.compose.COMPOSE_MODIFIER_FQN
 import com.android.tools.compose.isComposeEnabled
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionInitializationContext
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -93,7 +92,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
   override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
     val element = parameters.position
-    if (!StudioFlags.COMPOSE_EDITOR_SUPPORT.get() || !isComposeEnabled(element) || parameters.originalFile !is KtFile) {
+    if (!isComposeEnabled(element) || parameters.originalFile !is KtFile) {
       return
     }
 

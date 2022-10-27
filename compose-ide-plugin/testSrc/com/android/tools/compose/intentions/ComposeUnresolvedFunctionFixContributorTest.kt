@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose.intentions
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
@@ -27,12 +26,6 @@ class ComposeUnresolvedFunctionFixContributorTest : JavaCodeInsightFixtureTestCa
   public override fun setUp() {
     super.setUp()
     myFixture.stubComposableAnnotation()
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
-  }
-
-  public override fun tearDown() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
-    super.tearDown()
   }
 
   fun testCreateComposableFunction() {

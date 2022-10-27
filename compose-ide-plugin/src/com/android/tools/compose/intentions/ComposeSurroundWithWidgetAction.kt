@@ -17,7 +17,6 @@ package com.android.tools.compose.intentions
 
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.isInsideComposableCode
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.impl.IntentionActionGroup
@@ -156,10 +155,9 @@ abstract class ComposeSurroundWithWidgetAction : IntentionAction, HighPriorityAc
   }
 
   override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean = when {
-      !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> false
-      file == null || editor == null -> false
-      !file.isWritable || file !is KtFile -> false
-      else -> findSurroundableRange(file, editor) != null
+    file == null || editor == null -> false
+    !file.isWritable || file !is KtFile -> false
+    else -> findSurroundableRange(file, editor) != null
   }
 
   protected abstract fun getTemplate(): TemplateImpl?

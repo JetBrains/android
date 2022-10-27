@@ -15,12 +15,9 @@
  */
 package com.android.tools.compose
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
-import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubComposeRuntime
 import org.jetbrains.android.compose.stubKotlinStdlib
-import org.jetbrains.kotlin.idea.inspections.FunctionNameInspection
 
 /**
  * Tests for [ComposeSampleResolutionService]
@@ -256,16 +253,6 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
 
     configureFromExistingVirtualFile(file.virtualFile)
     checkHighlighting()
-  }
-
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
-  }
-
-  override fun tearDown() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
-    super.tearDown()
   }
 
 }

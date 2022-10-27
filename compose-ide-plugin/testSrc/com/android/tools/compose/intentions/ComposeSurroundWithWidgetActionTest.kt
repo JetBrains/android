@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose.intentions
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
@@ -31,7 +30,6 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
   public override fun setUp() {
     super.setUp()
     myFixture.stubComposableAnnotation()
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
 
     myFixture.addFileToProject(
       "src/androidx/compose/foundation/layout/ColumnAndRow.kt",
@@ -46,11 +44,6 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
     inline fun Box(content: @Composable () -> Unit) {}
     """.trimIndent()
     )
-  }
-
-  public override fun tearDown() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
-    super.tearDown()
   }
 
   private fun invokeActionAndAssertResult(

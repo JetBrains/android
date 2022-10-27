@@ -18,7 +18,6 @@ package com.android.tools.compose.intentions
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.formatting.wrapModifierChain
 import com.android.tools.compose.isModifierChainLongerThanTwo
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.application.options.CodeStyle
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.editor.Editor
@@ -45,7 +44,6 @@ class ComposeWrapModifiersAction : IntentionAction {
 
   override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean {
     return when {
-      !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> false
       file == null || editor == null -> false
       !file.isWritable || file !is KtFile -> false
       else -> {

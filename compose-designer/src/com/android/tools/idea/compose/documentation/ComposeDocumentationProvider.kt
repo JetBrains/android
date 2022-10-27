@@ -77,9 +77,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
     element: PsiElement?,
     originalElement: PsiElement?
   ): CompletableFuture<String?> {
-    if (!StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION.get() ||
-        !StudioFlags.COMPOSE_EDITOR_SUPPORT.get()
-    ) {
+    if (!StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION.get()) {
       return CompletableFuture.completedFuture(null)
     }
 

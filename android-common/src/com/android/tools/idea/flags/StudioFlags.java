@@ -1092,35 +1092,6 @@ public final class StudioFlags {
     "If enabled, when moving the caret in the text editor, the Preview will show the preview currently under the cursor.",
     true);
 
-  public static final Flag<Boolean> COMPOSE_EDITOR_SUPPORT = Flag.create(
-    COMPOSE, "editor",
-    "Compose-specific support in the code editor",
-    "Controls whether Compose-specific editor features, like completion tweaks, are enabled. This flag has priority over " +
-    "all flags in the `compose.editor.*` namespace.",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_PRESENTATION = Flag.create(
-    COMPOSE, "editor.completion.presentation",
-    "Custom presentation for code completion items for composable functions",
-    "If enabled, code completion items for composable functions use a custom presentation (icon, text).",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_WEIGHER = Flag.create(
-    COMPOSE, "editor.completion.weigher",
-    "Custom weigher for Compose",
-    "If enabled, code completion puts composable functions above other completion suggestions.",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_INSERT_HANDLER = Flag.create(
-    COMPOSE, "editor.completion.insert.handler",
-    "Custom insert handler for composable functions",
-    "If enabled, code completion for composable functions uses a custom InsertHandler that inserts required parameter names.",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_CONSTRAINTLAYOUT_COMPLETION = Flag.create(
     COMPOSE, "editor.completion.constraintlayout.json",
     "Completion for ConstraintLayout JSON syntax",

@@ -18,7 +18,6 @@ package com.android.tools.compose.intentions
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.isComposableFunction
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.intention.IntentionAction
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.diagnostics.Diagnostic
@@ -42,14 +41,11 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelectorOrThis
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 import org.jetbrains.kotlin.types.Variance
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 
 class ComposeUnresolvedFunctionFixContributor : QuickFixContributor {
   override fun registerQuickFixes(quickFixes: QuickFixes) {
-    if (StudioFlags.COMPOSE_EDITOR_SUPPORT.get()) {
-      quickFixes.register(Errors.UNRESOLVED_REFERENCE, ComposeUnresolvedFunctionFixFactory())
-    }
+    quickFixes.register(Errors.UNRESOLVED_REFERENCE, ComposeUnresolvedFunctionFixFactory())
   }
 }
 

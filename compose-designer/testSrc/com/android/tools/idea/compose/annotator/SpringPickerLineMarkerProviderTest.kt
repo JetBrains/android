@@ -41,7 +41,6 @@ internal class SpringPickerLineMarkerProviderTest {
   @get:Rule
   val chain =
     RuleChain.outerRule(rule)
-      .around(SetFlagRule(StudioFlags.COMPOSE_EDITOR_SUPPORT, true))
       .around(SetFlagRule(StudioFlags.COMPOSE_SPRING_PICKER, true))
       .around(EdtRule())!!
 

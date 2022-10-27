@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.idea.inspections.FunctionNameInspection
@@ -24,16 +23,6 @@ import org.jetbrains.kotlin.idea.inspections.FunctionNameInspection
  * Test for [ComposeSuppressor].
  */
 class ComposeSuppressorTest : JavaCodeInsightFixtureTestCase() {
-
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
-  }
-
-  override fun tearDown() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
-    super.tearDown()
-  }
 
   fun testFunctionNameWarning(): Unit = myFixture.run {
     enableInspections(FunctionNameInspection::class.java)

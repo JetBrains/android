@@ -23,7 +23,6 @@ import com.android.tools.compose.COMPOSE_ARRANGEMENT_HORIZONTAL
 import com.android.tools.compose.COMPOSE_ARRANGEMENT_VERTICAL
 import com.android.tools.compose.isClassOrExtendsClass
 import com.android.tools.compose.isComposeEnabled
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
@@ -49,7 +48,6 @@ import org.jetbrains.kotlin.idea.util.ImportInsertHelper
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtCallElement
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -60,8 +58,6 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.typeUtil.supertypes
 
 /**
  * Suggests specific implementations of frequently used Compose interfaces in a parameter or a property position.
@@ -70,7 +66,7 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
 
   override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
     val elementToComplete = parameters.position
-    if (!StudioFlags.COMPOSE_EDITOR_SUPPORT.get() || !isComposeEnabled(elementToComplete) || parameters.originalFile !is KtFile) {
+    if (!isComposeEnabled(elementToComplete) || parameters.originalFile !is KtFile) {
       return
     }
     val elementToCompleteTypeFqName = elementToComplete.argumentTypeFqName ?: elementToComplete.propertyTypeFqName

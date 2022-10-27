@@ -15,8 +15,6 @@
  */
 package com.android.tools.compose
 
-import com.android.flags.junit.SetFlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -36,9 +34,6 @@ import org.junit.Test
 class ComposableCallCheckerTest {
   @get:Rule
   val androidProject = AndroidProjectRule.inMemory()
-
-  @get:Rule
-  val flagRule = SetFlagRule(StudioFlags.COMPOSE_EDITOR_SUPPORT, true)
 
   @Test
   fun testCfromNC() = doTest(

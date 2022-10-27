@@ -71,7 +71,6 @@ internal class PreviewPickerAnnotationInspectionTest(
   @Before
   fun setup() {
     StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.override(true)
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled = true
     (rule.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
@@ -81,7 +80,6 @@ internal class PreviewPickerAnnotationInspectionTest(
   @After
   fun teardown() {
     StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.clearOverride()
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
