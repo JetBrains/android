@@ -34,8 +34,10 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task.Backgroundable
 import com.intellij.openapi.project.Project
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
@@ -67,11 +69,13 @@ object DebugSessionStarter {
     ProgressManager.checkCanceled()
     indicator?.text = "Waiting for a client"
     val clientPromise = AsyncPromise<Client>()
-    executeOnPooledThread {
-      clientPromise.catchError {
-        clientPromise.setResult(waitForClientReadyForDebug(device, listOf(appId), timeout))
+    ProgressManager.getInstance().run(object : Backgroundable(environment.project, "Waiting for process $appId", true) {
+      override fun run(indicator: ProgressIndicator) {
+        clientPromise.catchError {
+          clientPromise.setResult(waitForClientReadyForDebug(device, listOf(appId), timeout))
+        }
       }
-    }
+    })
 
     ProgressManager.checkCanceled()
     indicator?.text = "Attaching debugger"
