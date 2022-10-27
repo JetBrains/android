@@ -638,45 +638,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         )
       }.toMap()
     ),
-    def(
-      stackMarker = { it() },
-      TestScenario(
-        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
-        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
-      ),
-      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
-      expectApks = mapOf(AGP_CURRENT to """
-         ApplicationId: com.myrbsdk_10000
-         Files:
-            -> project/app/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
-         RequiredInstallationOptions: []
-
-         ApplicationId: com.example.rubidumconsumer
-         Files:
-           project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
-         RequiredInstallationOptions: []
-      """.trimIndent())
-    ),
-    def(
-      stackMarker = { it() },
-      TestScenario(
-        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
-        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app-with-dynamic-feature:main"),
-      ),
-      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
-      expectApks = mapOf(AGP_CURRENT to """
-         ApplicationId: com.myrbsdk_10000
-         Files:
-            -> project/app-with-dynamic-feature/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
-         RequiredInstallationOptions: []
-
-         ApplicationId: com.example.rubidumconsumer
-         Files:
-           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk
-           project.feature -> project/feature/build/intermediates/apk/debug/feature-debug.apk
-         RequiredInstallationOptions: []
-      """.trimIndent())
-    ),
   )
 
 private fun def(

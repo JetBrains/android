@@ -241,6 +241,7 @@ abstract class SyncedProjectTest(
   fun testBuildSrcWithComposite() = testProject(TestProject.BUILDSRC_WITH_COMPOSITE)
 
   @Test
+  @Ignore("Privacy sandbox SDK support is planned in AGP 8.2.0")
   fun testPrivacySandboxSdkProject() = testProject(TestProject.PRIVACY_SANDBOX_SDK)
 
   @Test
