@@ -46,8 +46,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LiveEditEvent;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -190,15 +188,26 @@ public class AndroidLiveEditDeployMonitor {
         return LiveEditService.DISABLED_STATUS;
       }
 
-      if (Arrays.stream(device.getClients()).noneMatch(c -> applicationId.equals(c.getClientData().getPackageName()))) {
-        boolean needsRefresh = editStatus.get(device) != DISCONNECTED;
-        editStatus.put(device, DISCONNECTED);
-        if (needsRefresh) {
-          // Need to manually call updateAllToolbarsImmediately because this is the only place that we detect the app has terminated.
-          ApplicationManager.getApplication().invokeLater(ActionToolbarImpl::updateAllToolbarsImmediately);
+      return editStatus.compute(device, (d, s) -> {
+        EditStatus result;
+        if (!device.isOnline()) {
+          result = DISCONNECTED;
         }
-      }
-      return editStatus.getOrDefault(device, DISABLED_STATUS);
+        else {
+          if (s == null) {
+            // Monitor for this device not initialized yet.
+            result = DISABLED_STATUS;
+          }
+          else if (s == DISCONNECTED && Arrays.stream(device.getClients()).anyMatch(c -> applicationId.equals(c.getClientData().getPackageName()))) {
+            // App has came online, so flip state to UP_TO_DATE.
+            result = UP_TO_DATE;
+          }
+          else {
+            result = s;
+          }
+        }
+        return result;
+      });
     }
 
     @NotNull
@@ -272,18 +281,17 @@ public class AndroidLiveEditDeployMonitor {
         return true;
       });
 
-      editStatusChanged(() ->
-        editStatus.replaceAll((key, status) -> {
-          switch (status.getEditState()) {
-            case PAUSED:
-            case UP_TO_DATE:
-            case IN_PROGRESS:
-            case RECOMPOSE_ERROR:
-              return UPDATE_IN_PROGRESS;
-            default:
-              return status;
-          }
-        }));
+      editStatus.replaceAll((key, status) -> {
+        switch (status.getEditState()) {
+          case PAUSED:
+          case UP_TO_DATE:
+          case IN_PROGRESS:
+          case RECOMPOSE_ERROR:
+            return UPDATE_IN_PROGRESS;
+          default:
+            return status;
+        }
+      });
 
       if (!handleChangedMethods(project, copy)) {
         changedMethodQueue.addAll(copy);
@@ -318,6 +326,9 @@ public class AndroidLiveEditDeployMonitor {
     }
 
     LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), applicationId);
+
+    // Initialize EditStatus for current device.
+    updateEditStatus(device, DISCONNECTED);
 
     return () -> methodChangesExecutor
       .schedule(
@@ -504,16 +515,11 @@ public class AndroidLiveEditDeployMonitor {
   }
 
   private void updateEditStatus(@NotNull IDevice device, @NotNull EditStatus status) {
-    editStatusChanged(() -> editStatus.compute(device, (d, oldStatus) -> {
-      if (oldStatus != null && oldStatus.getEditState() == LiveEditService.DISABLED_STATUS.getEditState()) {
-        return LiveEditService.DISABLED_STATUS;
-      }
-      return status;
-    }));
+    editStatus.put(device, status);
   }
 
   private void updateEditStatus(@NotNull EditStatus status) {
-    editStatusChanged(() -> editStatus.replaceAll((device, oldStatus) -> status));
+    editStatus.replaceAll((device, oldStatus) -> status);
   }
 
   @NotNull
@@ -676,13 +682,5 @@ public class AndroidLiveEditDeployMonitor {
       path = Paths.get(PathManager.getHomePath(), "plugins/android/resources/installer");
     }
     return path.toString();
-  }
-
-  private void editStatusChanged(@NotNull Runnable update) {
-    EditStatus oldStatus = mergeStatuses(editStatus);
-    update.run();
-    if (mergeStatuses(editStatus) != oldStatus) {
-      ApplicationManager.getApplication().invokeLater(ActionToolbarImpl::updateAllToolbarsImmediately);
-    }
   }
 }

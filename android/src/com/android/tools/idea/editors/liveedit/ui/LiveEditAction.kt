@@ -67,6 +67,7 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
   companion object {
     val FOREGROUND = ColorKey.createColorKey("ActionButton.iconTextForeground", UIUtil.getContextHelpForeground())
     val LIVE_EDIT_STATUS = Key<EditStatus>("android.liveedit.action.editstatus")
+    val LIVE_EDIT_STATUS_PREVIOUS = Key<EditStatus>("android.liveedit.action.editstatus.previous")
     val deviceMap = HashMap<Project, DeviceGetter>()
 
     val stateToIcon = hashMapOf<EditState, Icon>(
@@ -114,23 +115,30 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
       override fun updateToolTipText() {
         if (Registry.`is`("ide.helptooltip.enabled")) {
           val status = myPresentation.getClientProperty(LIVE_EDIT_STATUS)
+          val previousStatus = myPresentation.getClientProperty(LIVE_EDIT_STATUS_PREVIOUS)
+
+          // We have to store the current status because tooltips can't compare due to us setting the ActionLink (it has no equals override).
+          myPresentation.putClientProperty(LIVE_EDIT_STATUS_PREVIOUS, status)
+
           if (status == null) {
             toolTipText = myPresentation.description
             return
           }
-          HelpTooltip.dispose(this)
-          val tooltip = HelpTooltip().setTitle(myPresentation.description).setDescription(status.message)
 
-          if (!status.actionId.isNullOrBlank()) {
-            val actionId = status.actionId
-            val action = ActionManager.getInstance().getAction(actionId)
-            val shortcut = KeymapManager.getInstance()?.activeKeymap?.getShortcuts(actionId)?.toList()?.firstOrNull()
-            tooltip.setLink("${action.templateText}${if (shortcut != null) " (${KeymapUtil.getShortcutText(shortcut)})" else ""}") {
-              ActionManager.getInstance().tryToExecute(action, null, null, null, true)
+          var tooltip = HelpTooltip.getTooltipFor(this)
+          if (tooltip == null || status != previousStatus) {
+            tooltip = HelpTooltip().setTitle(myPresentation.description).setDescription(status.message)
+            if (!status.actionId.isNullOrBlank()) {
+              val actionId = status.actionId
+              val action = ActionManager.getInstance().getAction(actionId)
+              val shortcut = KeymapManager.getInstance()?.activeKeymap?.getShortcuts(actionId)?.toList()?.firstOrNull()
+              tooltip.setLink("${action.templateText}${if (shortcut != null) " (${KeymapUtil.getShortcutText(shortcut)})" else ""}") {
+                ActionManager.getInstance().tryToExecute(action, null, null, null, true)
+              }
             }
+            HelpTooltip.dispose(this)
+            tooltip.installOn(this)
           }
-
-          tooltip.installOn(this)
         }
         else {
           super.updateToolTipText()
@@ -199,7 +207,7 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
   }
 
   override fun updateCustomComponent(component: JComponent, presentation: Presentation) {
-    (component as ActionButtonWithText).updateIcon()
+    (component as ActionButtonWithText).update()
   }
 
   override fun updateActions(context: DataContext): Boolean {
