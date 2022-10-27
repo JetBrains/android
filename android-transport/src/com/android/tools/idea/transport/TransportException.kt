@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.transport;
+package com.android.tools.idea.transport
 
-public class FailedToStartServerException extends RuntimeException {
-  FailedToStartServerException(String reason) {
-    super(reason);
-  }
-}
+abstract class TransportException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
+
+/**
+ * Attempt to push file to device failed because the file doesn't exist.
+ */
+class TransportNonExistingFileException(message: String, val path: String) : TransportException(message)
+
+/**
+ * The daemon process could not be started on the device.
+ */
+class FailedToStartServerException(reason: String) : TransportException(reason)
