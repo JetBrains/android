@@ -93,7 +93,7 @@ class AppInspectorTabLaunchSupportTest {
       object : InspectorArtifactService {
         override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path {
           return if (artifactCoordinate == unresolvedLibrary) {
-            throw AppInspectionArtifactNotFoundException("not found")
+            throw AppInspectionArtifactNotFoundException("not found", artifactCoordinate)
           } else {
             Paths.get("resolved", "jar")
           }

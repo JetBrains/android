@@ -49,6 +49,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMi
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
@@ -1274,7 +1275,10 @@ class AppInspectionInspectorClientWithFailingClientTest {
     checkException(AppInspectionVersionIncompatibleException("expected"), AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION)
     checkException(AppInspectionLibraryMissingException("expected"), AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY)
     checkException(AppInspectionAppProguardedException("expected"), AttachErrorCode.APP_INSPECTION_PROGUARDED_APP)
-    checkException(AppInspectionArtifactNotFoundException("expected"), AttachErrorCode.APP_INSPECTION_ARTIFACT_NOT_FOUND)
+    checkException(
+      AppInspectionArtifactNotFoundException("expected", ArtifactCoordinate("group", "id", "1.1.0", ArtifactCoordinate.Type.AAR)),
+      AttachErrorCode.APP_INSPECTION_ARTIFACT_NOT_FOUND
+    )
     checkException(object : AppInspectionServiceException("expected") {}, AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR)
   }
 

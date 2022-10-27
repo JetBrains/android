@@ -40,6 +40,7 @@ class ModuleSystemArtifactResolver(private val project: Project) : ArtifactResol
     return project.allModules().asSequence()
       .map { module -> projectSystem.getModuleSystem(module) }
       .mapNotNull { moduleSystem -> moduleSystem.getDependencyPath(artifactCoordinate.toGradleCoordinate()) }
-      .firstOrNull() ?: throw AppInspectionArtifactNotFoundException("Artifact $artifactCoordinate could not be found in module system.")
+      .firstOrNull() ?: throw AppInspectionArtifactNotFoundException("Artifact $artifactCoordinate could not be found in module system.",
+                                                                     artifactCoordinate)
   }
 }

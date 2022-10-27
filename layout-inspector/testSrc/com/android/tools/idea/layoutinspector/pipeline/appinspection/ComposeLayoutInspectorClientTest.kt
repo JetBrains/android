@@ -109,7 +109,8 @@ class ComposeLayoutInspectorClientTest {
   fun inspectorArtifactNotFound_showUseSnapshotBanner() = runBlocking {
     val artifactService = object : InspectorArtifactService {
       override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path {
-        throw AppInspectionArtifactNotFoundException("not found")
+        throw AppInspectionArtifactNotFoundException("not found",
+                                                     ArtifactCoordinate("group", "id", "1.0.0-SNAPSHOT", ArtifactCoordinate.Type.AAR))
       }
     }
     ApplicationManager.getApplication().registerServiceInstance(InspectorArtifactService::class.java, artifactService)
@@ -126,7 +127,7 @@ class ComposeLayoutInspectorClientTest {
   fun inspectorArtifactNotFound_showComposeInspectionNotAvailableBanner() = runBlocking {
     val artifactService = object : InspectorArtifactService {
       override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path {
-        throw AppInspectionArtifactNotFoundException("not found")
+        throw AppInspectionArtifactNotFoundException("not found", ArtifactCoordinate("group", "id", "1.0.0", ArtifactCoordinate.Type.AAR))
       }
     }
     ApplicationManager.getApplication().registerServiceInstance(InspectorArtifactService::class.java, artifactService)

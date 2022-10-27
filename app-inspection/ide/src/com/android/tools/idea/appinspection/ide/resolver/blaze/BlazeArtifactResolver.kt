@@ -63,14 +63,15 @@ class BlazeArtifactResolver @VisibleForTesting constructor(
       val artifactDir = moduleSystemArtifactResolver.resolveArtifact(artifactCoordinate)
       artifactDir.resolve(INSPECTOR_JAR).takeIf { it.exists() } ?: artifactDir.resolve(
         artifactCoordinate.blazeFileName).takeIf { it.exists() } ?: throw AppInspectionArtifactNotFoundException(
-        "Artifact not found in blaze module system.")
+        "Artifact not found in blaze module system.", artifactCoordinate)
     }
     catch (e: AppInspectionArtifactNotFoundException) {
       try {
         httpArtifactResolver.resolveArtifact(artifactCoordinate)
       }
       catch (e: AppInspectionArtifactNotFoundException) {
-        throw AppInspectionArtifactNotFoundException("Artifact $artifactCoordinate not found in blaze module system and on maven.")
+        throw AppInspectionArtifactNotFoundException("Artifact $artifactCoordinate not found in blaze module system and on maven.",
+                                                     artifactCoordinate)
       }
     }
   }

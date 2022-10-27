@@ -40,7 +40,8 @@ class HttpArtifactResolver(
                                             ConsoleProgressIndicator())
         artifactCoordinate.getTmpFile()
       } catch (e: IOException) {
-        throw throw AppInspectionArtifactNotFoundException("Artifact $artifactCoordinate could not be resolved on maven.google.com.", e)
+        throw throw AppInspectionArtifactNotFoundException("Artifact $artifactCoordinate could not be resolved on maven.google.com.",
+                                                           artifactCoordinate, e)
       }
     }
   }

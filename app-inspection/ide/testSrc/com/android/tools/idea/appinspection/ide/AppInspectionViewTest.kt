@@ -859,7 +859,7 @@ class AppInspectionViewTest {
         object : InspectorArtifactService {
           override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path {
             return if (artifactCoordinate.groupId == "unresolvable") {
-              throw AppInspectionArtifactNotFoundException("not resolved")
+              throw AppInspectionArtifactNotFoundException("not resolved", artifactCoordinate)
             }
             else {
               Paths.get("path/to/inspector.jar")

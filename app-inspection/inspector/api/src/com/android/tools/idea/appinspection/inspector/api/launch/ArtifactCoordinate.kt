@@ -41,6 +41,12 @@ data class ArtifactCoordinate(
    */
   override fun toString() = "${groupId}:${artifactId}:${version}"
 
+  /**
+   * Returns true if the artifacts are the same without checking the version.
+   */
+  fun sameArtifact(other: ArtifactCoordinate): Boolean =
+    groupId == other.groupId && artifactId == other.artifactId
+
   fun toArtifactCoordinateProto(): AppInspection.ArtifactCoordinate = AppInspection.ArtifactCoordinate.newBuilder()
     .setGroupId(groupId)
     .setArtifactId(artifactId)

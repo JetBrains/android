@@ -86,7 +86,8 @@ class InspectorArtifactServiceImpl @NonInjectable @VisibleForTesting constructor
         jarPaths.populateInspectorArchive(artifactCoordinate, inspectorJar)
         jarPaths.getInspectorArchive(artifactCoordinate)!!
       } catch (e: IOException) {
-        throw AppInspectionArtifactNotFoundException("Error encountered while extracting inspector $artifactCoordinate", e)
+        throw AppInspectionArtifactNotFoundException("Error encountered while extracting inspector $artifactCoordinate",
+                                                     artifactCoordinate, e)
       }
     }
   }
