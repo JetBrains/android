@@ -61,11 +61,6 @@ import java.util.EnumSet
 
 const val COMPOSE_LAYOUT_INSPECTOR_ID = "layoutinspector.compose.inspection"
 
-private val DEV_JAR = AppInspectorJar(
-  "compose-ui-inspection.jar",
-  developmentDirectory = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER.get(),
-  releaseDirectory = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.get().nullize()
-)
 val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate(
   "androidx.compose.ui", "ui", "1.0.0-beta02", ArtifactCoordinate.Type.AAR
 )
@@ -133,7 +128,16 @@ class ComposeLayoutInspectorClient(
     ): ComposeLayoutInspectorClient? {
       val project = model.project
       val jar = if (StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()) {
-        DEV_JAR // This branch is used by tests
+        // This dev jar is used for:
+        // - most tests (developmentDirectory)
+        // - development on studio using an androidx-main (developmentDirectory)
+        // - development on androidx-main using released version of studio (releaseDirectory)
+        // - released version of studio using local artifact of unreleased compose version (releaseDirectory)
+        AppInspectorJar(
+          "compose-ui-inspection.jar",
+          developmentDirectory = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER.get(),
+          releaseDirectory = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.get().nullize()
+        )
       }
       else {
         val compatibility = apiServices.checkVersion(project.name, process, MINIMUM_COMPOSE_COORDINATE.groupId,
