@@ -389,7 +389,7 @@ public class AndroidLiveEditDeployMonitor {
 
     updateEditStatus(UPDATE_IN_PROGRESS);
 
-    while(!processChanges(project, bufferedEvents)) {
+    while(!processChanges(project, bufferedEvents, LiveEditEvent.Mode.MANUAL)) {
         LOGGER.info("ProcessChanges was interrupted");
     }
     bufferedEvents.clear();
@@ -415,12 +415,12 @@ public class AndroidLiveEditDeployMonitor {
       return true;
     }
 
-    return processChanges(project, changes);
+    return processChanges(project, changes, LiveEditEvent.Mode.AUTO);
   }
 
   @Trace
-  private boolean processChanges(Project project, List<EditEvent> changes) {
-    LiveEditEvent.Builder event = LiveEditEvent.newBuilder();
+  private boolean processChanges(Project project, List<EditEvent> changes, LiveEditEvent.Mode mode) {
+    LiveEditEvent.Builder event = LiveEditEvent.newBuilder().setMode(mode);
 
     long start = System.nanoTime();
     long compileFinish, pushFinish;
