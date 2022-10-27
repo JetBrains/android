@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
+import org.jetbrains.kotlin.psi.KtValueArgument
 
 /**
  * Custom [CompletionWeigher] which moves Composable functions up the completion list.
@@ -38,44 +39,71 @@ import org.jetbrains.kotlin.psi.KtNamedDeclaration
  * to debug it.
  */
 class ComposeCompletionWeigher : CompletionWeigher() {
-  override fun weigh(element: LookupElement, location: CompletionLocation): Int = when {
-    location.completionParameters.position.language != KotlinLanguage.INSTANCE -> 0
-    location.completionParameters.position.getModuleSystem()?.usesCompose != true -> 0
+  override fun weigh(element: LookupElement, location: CompletionLocation): Int {
+    if (!location.completionParameters.isInComposeEnabledModuleAndFile()) return 0
 
     // Since Compose uses so many named arguments, promote them to the top. This is for a case where the user has typed something like
     // "Button(en<caret>)", and we want to promote the completion "enabled = Boolean".
-    element.isNamedArgumentCompletion() -> 3
-    location.completionParameters.isForStatement() -> {
-      val isConflictingName = COMPOSABLE_CONFLICTING_NAMES.contains((element.psiElement as? KtNamedDeclaration)?.fqName?.asString() ?: "")
-      val isComposableFunction = element.psiElement?.isComposableFunction() ?: false
-      // This method ensures that the order of completion ends up as:
-      //
-      // Composables with non-conflicting names (like Button {}) +2
-      // Non Composables with conflicting names (like the MaterialTheme object) +2
-      // Composable with conflicting names      (like MaterialTheme {}) +1
-      // Anything else 0
-      when {
-        isComposableFunction && !isConflictingName -> 2
-        !isComposableFunction && isConflictingName -> 2
-        isComposableFunction && isConflictingName -> 1
-        else -> 0
-      }
+    if (element.isNamedArgumentCompletion()) return 3
+
+    if (location.completionParameters.isForStatement()) {
+      // For statements, ensure that the order of completion ends up as:
+      // [Weight 2] Non-Composable functions that are being promoted above Composables
+      // [Weight 1] Composable functions
+      // [Weight 0] Anything else
+      if (element.isComposableFunction()) return 1
+      if (element.isPromotedInStatement()) return 2
+      return 0
     }
-    else -> 0
+
+    if (location.completionParameters.isForValueArgument()) {
+      // For arguments, ensure that the order of completion ends up as:
+      // [Weight 2] Non-Composable functions that are being promoted
+      // [Weight 1] Non-Composable functions / Anything else (default case)
+      // [Weight 0] Composable functions
+      if (element.isComposableFunction()) return 0
+      if (element.isPromotedInArgument()) return 2
+      return 1
+    }
+
+    return 0
   }
 }
 
-/** Set of Composable FQNs that have a conflicting name with a non-composable and where we want to promote the non-composable instead. */
-private val COMPOSABLE_CONFLICTING_NAMES = setOf(
+/** Set of fully-qualified names of non-Composable functions that should be promoted above standard Composables in a statement. */
+private val PROMOTED_NON_COMPOSABLES_IN_STATEMENTS = setOf(
   "androidx.compose.material.MaterialTheme"
 )
+
+/** Set of fully-qualified names of non-Composable functions that should be promoted in a value argument. */
+private val PROMOTED_NON_COMPOSABLES_IN_ARGUMENTS = setOf(
+  "androidx.compose.material.MaterialTheme"
+)
+
+private fun LookupElement.isPromotedInStatement(): Boolean {
+  val fqName = (psiElement as? KtNamedDeclaration)?.fqName?.asString()
+  return fqName != null && PROMOTED_NON_COMPOSABLES_IN_STATEMENTS.contains(fqName)
+}
+
+private fun LookupElement.isPromotedInArgument(): Boolean {
+  val fqName = (psiElement as? KtNamedDeclaration)?.fqName?.asString()
+  return fqName != null && PROMOTED_NON_COMPOSABLES_IN_ARGUMENTS.contains(fqName)
+}
+
+/** Checks if the proposed completion would insert a composable function. */
+private fun LookupElement.isComposableFunction() = psiElement?.isComposableFunction() == true
 
 /** Checks if the proposed completion would insert a named argument. */
 private fun LookupElement.isNamedArgumentCompletion() = lookupString.endsWith(" =")
 
-/** Checks if this completion is for a statement (where Compose views usually called) and not part of another expression. */
-private fun CompletionParameters.isForStatement(): Boolean {
-  return position is LeafPsiElement &&
-         position.node.elementType == KtTokens.IDENTIFIER &&
-         position.parent?.parent is KtBlockExpression
-}
+/** Checks if this completion is for a statement (where Compose views are usually called) and not part of another expression. */
+private fun CompletionParameters.isForStatement() =
+  position is LeafPsiElement && position.node.elementType == KtTokens.IDENTIFIER && position.parent?.parent is KtBlockExpression
+
+/** Checks if this completion is for a value argument, where Compose views are usually not called. */
+private fun CompletionParameters.isForValueArgument() =
+  position is LeafPsiElement && position.node.elementType == KtTokens.IDENTIFIER && position.parent?.parent is KtValueArgument
+
+/** Checks if the given completions parameters are in a Kotlin file in a Compose-enabled module. */
+private fun CompletionParameters.isInComposeEnabledModuleAndFile() =
+  position.language == KotlinLanguage.INSTANCE && position.getModuleSystem()?.usesCompose == true

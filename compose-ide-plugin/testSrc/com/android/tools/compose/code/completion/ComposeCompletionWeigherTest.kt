@@ -169,12 +169,10 @@ class ComposeCompletionWeigherTest {
     myFixture.completeBasic()
 
     // Then:
-    // b/155314487: This order is incorrect. I'm adding this test to document current behavior, and will update this test to the new
-    // expected behavior once the fix is made.
     Truth.assertThat(myFixture.renderedLookupElements).containsExactly(
+      "MaterialTheme (androidx.compose.material)",
       "MaterialTheme (com.example)",
       "MaterialTheme {...}",
-      "MaterialTheme (androidx.compose.material)",
     ).inOrder()
   }
 
