@@ -229,6 +229,15 @@ class LiveEditService private constructor(val project: Project, var listenerExec
 
   @com.android.annotations.Trace
   private fun onMethodBodyUpdated(event: EditEvent) {
+    // Drop any invalid events.
+    // As mention in other parts of the code. The type of PSI event sent are really unpredictable. Intermediate events
+    // sometimes contains event origins that is not valid or no longer exist in any file. In automatic mode this might not be a big
+    // issue but in automatic mode, a single failing event can get merged into the big edit event which causes the single compiler
+    // invocation to crash.
+    if (!event.origin.isValid || event.origin.containingFile == null) {
+      return
+    }
+
     onEditListeners.forEach {
       it(event)
     }
