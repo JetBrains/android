@@ -22,5 +22,6 @@
     <orderEntry type="module" module-name="as-driver.utils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
+    <orderEntry type="module" module-name="perf-logger" scope="TEST" />
   </component>
 </module>

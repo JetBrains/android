@@ -15,27 +15,41 @@ iml_module(
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
     ],
 )
+
+open_project_data = select({
+    "@platforms//os:linux": [
+        "//tools/adt/idea/studio:android-studio.linux.zip",
+    ],
+    "@platforms//os:macos": [
+        "//tools/adt/idea/studio:android-studio.mac.zip",
+    ],
+    "@platforms//os:windows": [
+        "//tools/adt/idea/studio:android-studio.win.zip",
+    ],
+}) + [
+    ":minapp",
+    ":openproject_deps",
+    "//tools/base/build-system:gradle-distrib-7.2",
+]
 
 iml_test(
     name = "OpenProjectTest",
     timeout = "long",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-    }) + [
-        ":minapp",
-        ":openproject_deps",
-        "//tools/base/build-system:gradle-distrib-7.2",
-    ],
+    data = open_project_data,
+    module = ":intellij.android.core.integration",
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.OpenProjectTest",
+)
+
+iml_test(
+    name = "OpenProjectWithThreadingAgentDisabledTest",
+    timeout = "long",
+    data = open_project_data,
+    jvm_flags = ["-Dthreading_agent.disabled=true"],
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
