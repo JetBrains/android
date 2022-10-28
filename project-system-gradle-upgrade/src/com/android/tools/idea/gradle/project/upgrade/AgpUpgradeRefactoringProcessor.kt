@@ -268,6 +268,7 @@ class AgpUpgradeRefactoringProcessor(
     GMavenRepositoryRefactoringProcessor(this),
     GradleVersionRefactoringProcessor(this),
     GradlePluginsRefactoringProcessor(this),
+    ProjectJdkRefactoringProcessor(this),
     Java8DefaultRefactoringProcessor(this),
     CompileRuntimeConfigurationRefactoringProcessor(this),
     FabricCrashlyticsRefactoringProcessor(this),

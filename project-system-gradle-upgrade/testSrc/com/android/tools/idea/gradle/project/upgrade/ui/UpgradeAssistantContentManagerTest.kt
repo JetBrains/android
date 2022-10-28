@@ -306,7 +306,7 @@ class ContentManagerImplTest {
     assertThat(mandatoryCodependent.isEnabled).isTrue()
     assertThat(mandatoryCodependent.isChecked).isTrue()
     assertThat(mandatoryCodependent.childCount).isEqualTo(1)
-    val step = mandatoryCodependent.firstChild as CheckedTreeNode
+    val step = mandatoryCodependent.lastChild as CheckedTreeNode
     assertThat(step.isEnabled).isFalse()
     assertThat(step.isChecked).isTrue()
     val stepPresentation = step.userObject as UpgradeAssistantWindowModel.DefaultStepPresentation
@@ -660,7 +660,7 @@ class ContentManagerImplTest {
     """.trimIndent())
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
-    val model = UpgradeAssistantWindowModel(project, { currentAgpVersion }, AgpVersion.parse("4.2.0"))
+    val model = UpgradeAssistantWindowModel(project, { currentAgpVersion }, AgpVersion.parse("4.2.0-alpha07"))
     val view = UpgradeAssistantView(model, toolWindow.contentManager)
     val mandatoryCodependentNode = view.tree.getPathForRow(0).lastPathComponent as CheckedTreeNode
     assertThat(mandatoryCodependentNode.userObject).isEqualTo(MANDATORY_CODEPENDENT)

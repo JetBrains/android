@@ -19,6 +19,7 @@ iml_module(
     test_class = "com.android.tools.idea.gradle.project.upgrade.GradleProjectSystemUpgradeTestSuite",
     test_data = [
         ":test_deps",
+        "//prebuilts/studio/jdk:jdk_1_8",
         "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
