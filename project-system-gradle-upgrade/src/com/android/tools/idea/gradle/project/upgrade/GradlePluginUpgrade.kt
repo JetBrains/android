@@ -214,25 +214,18 @@ fun performForcedPluginUpgrade(
     IdeGoogleMavenRepository.getAgpVersions()
   ).target
 ) {
-  val upgradeAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
-    ForcedPluginPreviewVersionUpgradeDialog(project, currentPluginVersion, newPluginVersion).showAndGet()
+  // Note: we retrieve a RefactoringProcessorInstantiator as a project service for the convenience of tests.
+  val refactoringProcessorInstantiator = project.getService(RefactoringProcessorInstantiator::class.java)
+  val processor = refactoringProcessorInstantiator.createProcessor(project, currentPluginVersion, newPluginVersion)
+  // Enable only the minimum number of processors for a forced upgrade
+  processor.componentRefactoringProcessors.forEach { component ->
+    component.isEnabled = component.necessity().let { it == MANDATORY_CODEPENDENT || it == MANDATORY_INDEPENDENT }
   }
-
-  if (upgradeAccepted) {
-    // The user accepted the upgrade: show upgrade details and offer the action.
-    // Note: we retrieve a RefactoringProcessorInstantiator as a project service for the convenience of tests.
-    val refactoringProcessorInstantiator = project.getService(RefactoringProcessorInstantiator::class.java)
-    val processor = refactoringProcessorInstantiator.createProcessor(project, currentPluginVersion, newPluginVersion)
-    // Enable only the minimum number of processors for a forced upgrade
-    processor.componentRefactoringProcessors.forEach { component ->
-      component.isEnabled = component.necessity().let { it == MANDATORY_CODEPENDENT || it == MANDATORY_INDEPENDENT }
-    }
-    val runProcessor = refactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(processor)
-    if (runProcessor) {
-      DumbService.getInstance(project).smartInvokeLater { processor.run() }
-      // upgrade refactoring scheduled
-      return
-    }
+  val runProcessor = refactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(processor)
+  if (runProcessor) {
+    DumbService.getInstance(project).smartInvokeLater { processor.run() }
+    // upgrade refactoring scheduled
+    return
   }
 }
 

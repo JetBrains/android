@@ -508,7 +508,7 @@ class AgpUpgradeRefactoringProcessorDialogTest : HeavyPlatformTestCase() {
                                                                                processor.getR8FullModeDefaultRefactoringProcessor(), false, true))
     val editorPanes = UIUtil.findComponentsOfType(dialog.createCenterPanel(), JEditorPane::class.java)
     assertSize(1, editorPanes)
-    assertFalse(editorPanes[0].text.contains("version\\s+$fromVersion".toRegex()))
+    assertFalse(editorPanes[0].text.contains("from\\s+Android\\s+Gradle\\s+Plugin\\s+version\\s+$fromVersion".toRegex()))
     assertFalse(editorPanes[0].text.contains("to\\s+version\\s+$toVersion".toRegex()))
   }
 

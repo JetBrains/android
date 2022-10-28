@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.upgrade;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.ui.Messages.OK;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.never;
@@ -27,12 +26,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.testing.TestMessagesDialog;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.ui.TestDialog;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
@@ -45,7 +41,6 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
   @Mock private AgpUpgradeRefactoringProcessor myProcessor;
 
   private GradleSyncMessages mySyncMessages;
-  private TestDialog myOriginalTestDialog;
 
   @Override
   protected void setUp() throws Exception {
@@ -58,18 +53,6 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     ServiceContainerUtil.replaceService(project, RefactoringProcessorInstantiator.class, myRefactoringProcessorInstantiator, project);
     when(myRefactoringProcessorInstantiator.createProcessor(same(project), any(), any())).thenReturn(myProcessor);
     mySyncMessages = GradleSyncMessages.getInstance(project);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      if (myOriginalTestDialog != null) {
-        ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(myOriginalTestDialog);
-      }
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testNewerThanLatestKnown() {
@@ -88,7 +71,6 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     AgpVersion latestPluginVersion = AgpVersion.parse("2.0.0");
 
     // Simulate user accepting the upgrade.
-    myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
     when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any())).thenReturn(true);
     GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
     verify(myRefactoringProcessorInstantiator).showAndGetAgpUpgradeDialog(any());
@@ -99,25 +81,11 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
   public void testUpgradeAcceptedThenCancelled() {
     AgpVersion alphaPluginVersion = AgpVersion.parse("2.0.0-alpha9");
     AgpVersion latestPluginVersion = AgpVersion.parse("2.0.0");
-    // Simulate user accepting then cancelling the upgrade.
-    myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
+
+    // Simulate user cancelling the upgrade.
     when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any())).thenReturn(false);
     GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
     verify(myRefactoringProcessorInstantiator).showAndGetAgpUpgradeDialog(any());
     verify(myProcessor, never()).run();
-  }
-
-  // See https://code.google.com/p/android/issues/detail?id=227927
-  public void testUpgradeDeclined() {
-    AgpVersion latestPluginVersion = AgpVersion.parse("2.0.0");
-    AgpVersion currentPluginVersion = AgpVersion.parse("2.0.0-alpha9");
-
-    // Simulate user canceling upgrade.
-    myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(Messages.CANCEL));
-
-    GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), currentPluginVersion, latestPluginVersion);
-
-    verifyNoInteractions(myRefactoringProcessorInstantiator);
-    verifyNoInteractions(myProcessor);
   }
 }

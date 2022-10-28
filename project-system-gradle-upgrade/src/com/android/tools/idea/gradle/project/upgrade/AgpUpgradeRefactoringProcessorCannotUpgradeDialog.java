@@ -51,9 +51,12 @@ public class AgpUpgradeRefactoringProcessorCannotUpgradeDialog extends DialogWra
     });
 
     StringBuilder sb = new StringBuilder();
+    sb.append("<p><b>Incompatibility between Android Studio and Android Gradle plugin</b></p>");
+    sb.append("<p>This project is using Android Gradle plugin version ").append(processor.getCurrent())
+      .append(", which is incompatible with this version of Android Studio.</p>");
     List<AgpUpgradeComponentRefactoringProcessor> blockedComponents = processor.getComponentRefactoringProcessors().stream()
       .filter((c) -> c.isEnabled() && c.isBlocked()).collect(Collectors.toList());
-    sb.append("<p>The Upgrade Assistant failed to upgrade this project, finding no way of performing the following command")
+    sb.append("<br/><p>The Upgrade Assistant failed to upgrade this project, finding no way of performing the following command")
       .append(blockedComponents.size() == 1 ? "" : "s").append(":</p>");
     sb.append("<ul>");
     blockedComponents.forEach((c) -> {
