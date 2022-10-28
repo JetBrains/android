@@ -115,7 +115,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
     // that any exceptions along the way do not actually break the feedback sending flow (we're already reporting a bug,
     // so let's not make that process prone to exceptions)
     return safeCall(() -> {
-      StringBuilder sb = new StringBuilder(com.intellij.ide.actions.SendFeedbackAction.getDescription(null, null));
+      StringBuilder sb = new StringBuilder(com.intellij.ide.actions.SendFeedbackAction.getDescription(null));
       // Add Android Studio custom information we want to see prepopulated in the bug reports
       sb.append("\n\n");
       sb.append(String.format("AS: %1$s\n", ApplicationInfoEx.getInstanceEx().getFullVersion()));
