@@ -30,7 +30,6 @@ import com.android.tools.idea.logcat.output.LogcatOutputSettings
 import com.android.tools.idea.run.ApplicationLogListener
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.android.tools.idea.run.ShowLogcatListener
-import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask
 import com.google.common.util.concurrent.Uninterruptibles
 import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.ExecutionException
@@ -140,14 +139,13 @@ internal fun captureLogcatOutputToProcessHandler(client: Client, consoleView: Co
   }
   val device = client.device
   val logListener: AndroidLogcatService.LogcatListener = MyLogcatListener(client, debugProcessHandler)
-  Logger.getInstance(
-    ConnectJavaDebuggerTask::class.java).info(String.format("captureLogcatOutput(\"%s\")", device.name))
+  Logger.getInstance(MyLogcatListener::class.java).info(String.format("captureLogcatOutput(\"%s\")", device.name))
   AndroidLogcatService.getInstance().addListener(device, logListener, true)
 
   // Remove listener when process is terminated
   debugProcessHandler.addProcessListener(object : ProcessAdapter() {
     override fun processTerminated(event: ProcessEvent) {
-      Logger.getInstance(ConnectJavaDebuggerTask::class.java)
+      Logger.getInstance(MyLogcatListener::class.java)
         .info(String.format("captureLogcatOutput(\"%s\"): remove listener", device.name))
       AndroidLogcatService.getInstance().removeListener(device, logListener)
     }

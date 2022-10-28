@@ -23,7 +23,7 @@ import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.configuration.execution.DebugSessionStarter.attachDebuggerToClientAndShowTab
 import com.android.tools.idea.run.debug.startAndroidJavaDebuggerSession
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
-import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask
+import com.android.tools.idea.run.tasks.DefaultConnectDebuggerTask
 import com.android.tools.idea.run.tasks.ReattachingConnectDebuggerTask
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
@@ -80,7 +80,7 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
       )
     }
     else {
-      ConnectJavaDebuggerTask(applicationIdProvider, env.project)
+      DefaultConnectDebuggerTask(this, state, applicationIdProvider, env.project)
     }
   }
 

@@ -32,7 +32,7 @@ import com.intellij.openapi.progress.ProcessCanceledException
 
 
 /**
- * A wrapper for [ConnectDebuggerTaskBase] that need to keep reattaching the debugger.
+ * [ConnectDebuggerTask] that need to keep reattaching the debugger.
  *
  * <p>Wires up adb listeners to automatically reconnect the debugger for each test. This is necessary when
  * using instrumentation runners that kill the instrumentation process between each test, disconnecting
@@ -58,7 +58,7 @@ class ReattachingConnectDebuggerTask<S : AndroidDebuggerState>(
 
   override fun perform(launchInfo: LaunchInfo, device: IDevice, status: ProcessHandlerLaunchStatus, printer: ProcessHandlerConsolePrinter) {
     val applicationIdProvider = applicationIdProvider
-    val logger = Logger.getInstance(ConnectJavaDebuggerTask::class.java)
+    val logger = Logger.getInstance(ReattachingConnectDebuggerTask::class.java)
     val oldProcessHandler = status.processHandler
     // Reuse the current ConsoleView to retain the UI state and not to lose test results.
     val androidTestResultListener = oldProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY) as? ConsoleView

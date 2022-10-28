@@ -15,59 +15,99 @@
  */
 package com.android.tools.idea.run.tasks
 
-import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.LaunchInfo
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter
 import com.android.tools.idea.run.configuration.execution.DebugSessionStarter
 import com.android.tools.idea.run.debug.showError
-import com.android.tools.idea.run.editor.AndroidJavaDebugger
+import com.android.tools.idea.run.editor.AndroidDebugger
+import com.android.tools.idea.run.editor.AndroidDebuggerState
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import java.util.LinkedList
 
-class ConnectJavaDebuggerTask(val applicationIdProvider: ApplicationIdProvider,
-                              val project: Project) : ConnectDebuggerTaskBase(applicationIdProvider, project) {
-  private var pollTimeoutSeconds: Int = 15
+class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
+  private val debugger: AndroidDebugger<S>,
+  private val debuggerState: S,
+  applicationIdProvider: ApplicationIdProvider,
+  @JvmField val project: Project
+) : ConnectDebuggerTask {
+  private val LOG = Logger.getInstance(DefaultConnectDebuggerTask::class.java)
 
-  override fun getDescription() = "Connecting Debugger"
+  private var myPollTimeoutSeconds = 15
 
-  override fun getDuration() = LaunchTaskDurations.CONNECT_DEBUGGER
+  // The first entry in the list contains the main package name, and an optional second entry contains test package name.
+  @JvmField
+  val myApplicationIds: MutableList<String>
+
+  init {
+    myApplicationIds = LinkedList()
+    try {
+      val packageName = applicationIdProvider.packageName
+      myApplicationIds.add(packageName)
+    }
+    catch (e: ApkProvisionException) {
+      LOG.error(e)
+    }
+    try {
+      val testPackageName = applicationIdProvider.testPackageName
+      if (testPackageName != null) {
+        myApplicationIds.add(testPackageName)
+      }
+    }
+    catch (e: ApkProvisionException) {
+      // not as severe as failing to obtain package id for main application
+      LOG.warn("Unable to obtain test package name, will not connect debugger if tests don't instantiate main application")
+    }
+  }
+
+  override fun getDescription(): String {
+    return "Connecting Debugger"
+  }
+
+  override fun getDuration(): Int {
+    return LaunchTaskDurations.CONNECT_DEBUGGER
+  }
 
   override fun setTimeoutSeconds(timeoutSeconds: Int) {
-    pollTimeoutSeconds = timeoutSeconds
+    myPollTimeoutSeconds = timeoutSeconds
   }
 
   override fun getTimeoutSeconds(): Int {
-    return pollTimeoutSeconds
+    return myPollTimeoutSeconds
   }
 
-  override fun perform(launchInfo: LaunchInfo, device: IDevice, state: ProcessHandlerLaunchStatus, printer: ProcessHandlerConsolePrinter) {
-
-    val logger = Logger.getInstance(ConnectJavaDebuggerTask::class.java)
+  override fun perform(
+    launchInfo: LaunchInfo,
+    device: IDevice,
+    state: ProcessHandlerLaunchStatus,
+    printer: ProcessHandlerConsolePrinter
+  ) {
     val processHandler = state.processHandler
     // Reuse the current ConsoleView to retain the UI state and not to lose test results.
     val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY) as? ConsoleView
-    logger.info("Attaching Java debugger")
+    LOG.info("Attaching ${debugger.id} debugger")
 
     val env = launchInfo.env
 
-    var timeoutSeconds = pollTimeoutSeconds
+    var timeoutSeconds = myPollTimeoutSeconds
     if (timeoutSeconds <= 0) {
       timeoutSeconds = Int.MAX_VALUE
     }
 
     DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      applicationIdProvider.packageName,
+      myApplicationIds[0],
       env,
-      AndroidJavaDebugger(),
-      AndroidJavaDebugger().createState(),
-      destroyRunningProcess = { it.forceStop(applicationIdProvider.packageName) },
+      debugger,
+      debuggerState,
+      destroyRunningProcess = { d -> myApplicationIds.forEach { d.forceStop(it) } },
       androidTestResultListener,
       timeoutSeconds.toLong())
       .onSuccess { session ->
@@ -82,12 +122,5 @@ class ConnectJavaDebuggerTask(val applicationIdProvider: ApplicationIdProvider,
           Logger.getInstance(this::class.java).error(it)
         }
       }
-  }
-
-  override fun launchDebugger(currentLaunchInfo: LaunchInfo,
-                              client: Client,
-                              state: ProcessHandlerLaunchStatus,
-                              printer: ProcessHandlerConsolePrinter) {
-    throw RuntimeException("perform method should be called")
   }
 }
