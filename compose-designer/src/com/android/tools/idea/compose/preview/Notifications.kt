@@ -20,14 +20,14 @@ import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.requestBuild
-import com.intellij.codeInsight.daemon.impl.createActionLabel
-import com.intellij.openapi.components.ProjectComponent
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupManager
+import com.intellij.openapi.startup.ProjectPostStartupActivity
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
@@ -75,7 +75,8 @@ internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
 /**
  * [ProjectComponent] that listens for Kotlin file additions or removals and triggers a notification update
  */
-internal class ComposeNewPreviewNotificationManager(project: Project) {
+@Service(Service.Level.PROJECT)
+internal class ComposeNewPreviewNotificationManager : Disposable {
   companion object {
     private val LOG = logger<ComposeNewPreviewNotificationManager>()
   }
@@ -85,12 +86,15 @@ internal class ComposeNewPreviewNotificationManager(project: Project) {
                        TimeUnit.SECONDS.toMillis(2).toInt(),
                        true,
                        null,
-                       project)
+                       this)
   }
 
-  init {
-    StartupManager.getInstance(project).runAfterOpened {
-      projectOpened(project)
+  override fun dispose() {
+  }
+
+  class MyStartupActivity : ProjectPostStartupActivity {
+    override suspend fun execute(project: Project) {
+      project.service<ComposeNewPreviewNotificationManager>().projectOpened(project)
     }
   }
 
@@ -128,6 +132,6 @@ internal class ComposeNewPreviewNotificationManager(project: Project) {
       override fun childRemoved(event: PsiTreeChangeEvent) {
         onEvent(event)
       }
-    }, project)
+    }, this)
   }
 }

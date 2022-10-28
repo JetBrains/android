@@ -154,6 +154,8 @@
         implementationClass="com.android.tools.idea.compose.annotator.SpringPickerLineMarkerProvider"/>
 
     <notificationGroup id="Compose Preview Notification" displayType="NONE"/>
+
+    <postStartupActivity implementation="com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationManager$MyStartupActivity"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode">
@@ -163,12 +165,6 @@
   <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.handlers">
     <viewHandlerProvider implementation="com.android.tools.idea.compose.preview.uibuilder.handler.ComposeViewHandlerProvider" />
   </extensions>
-
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationManager</implementation-class>
-    </component>
-  </project-components>
 
   <actions>
     <action id="Android.Designer.ComposeIssueNotificationAction"
