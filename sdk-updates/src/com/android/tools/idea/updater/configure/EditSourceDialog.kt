@@ -17,18 +17,22 @@ package com.android.tools.idea.updater.configure
 
 import com.android.repository.api.RepositorySource
 import com.android.repository.api.RepositorySourceProvider
-import com.android.tools.idea.sdk.AndroidAuthenticator
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.sdk.AndroidAuthenticator
 import com.intellij.credentialStore.Credentials
 import com.intellij.credentialStore.OneTimeString
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.layout.*
-import java.awt.event.*
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.selected
+import com.intellij.ui.dsl.gridLayout.HorizontalAlign
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.net.MalformedURLException
 import java.net.URL
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JPasswordField
 import javax.swing.JTextField
 
@@ -40,16 +44,9 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
   private val existingAuth = existingSource?.let { AndroidAuthenticator.getAuthentication(existingSource.url) }
   private val urlField = JTextField(existingSource?.url ?: "http://")
   private val nameField = JTextField(existingSource?.displayName ?: "Custom Update Site")
-  private val useAuthentication = JBCheckBox("Use Authentication", existingAuth != null)
+  private lateinit var useAuthentication: Cell<JBCheckBox>
   private val loginField = JTextField(existingAuth?.userName)
   private val passwordField = JPasswordField(existingAuth?.let { OneTimeString(existingAuth.password, clearable = true).toString() })
-  private val errorLabel = JLabel()
-  private val authPanel = panel {
-    row("Login:") { loginField(growX, pushX) }
-    row("Password:") { passwordField(growX, pushX) }
-  }
-
-  private var myUrlSet = false
 
   val uiName: String
       get() = nameField.text
@@ -61,47 +58,19 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
     isModal = true
 
     urlField.addActionListener {
-      myUrlSet = true
-      validateUrl(urlField.text)
+      initValidation()
     }
 
     urlField.addFocusListener(object : FocusAdapter() {
       override fun focusLost(e: FocusEvent) {
-        myUrlSet = true
-        validateUrl(urlField.text)
+        initValidation()
       }
     })
-
-    urlField.addKeyListener(object : KeyAdapter() {
-      override fun keyTyped(e: KeyEvent) {
-        if (myUrlSet) {
-          validateUrl(urlField.text + e.keyChar)
-        }
-      }
-    })
-
-    val toggleAuthEnabled: (ActionEvent?) -> Unit = { authPanel.components.forEach { it.isEnabled = useAuthentication.isSelected } }
-    toggleAuthEnabled(null)
-    useAuthentication.addActionListener(toggleAuthEnabled)
 
     init()
   }
 
-  private fun validateUrl(url: String): Boolean {
-    val error = getErrorMessage(url)
-    if (error == null) {
-      errorLabel.text = ""
-      isOKActionEnabled = true
-      contentPane.repaint()
-      return true
-    }
-    else {
-      errorLabel.text = error
-      isOKActionEnabled = false
-      contentPane.repaint()
-      return false
-    }
-  }
+  override fun doValidate() = getErrorMessage(urlField.text)?.let { ValidationInfo(it) }
 
   private fun getErrorMessage(urlString: String): String? {
     try {
@@ -127,29 +96,20 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
 
   val credentials: Credentials?
     get() {
-      if (useAuthentication.isSelected) {
+      if (useAuthentication.component.isSelected) {
         return Credentials(loginField.text, passwordField.password)
       }
       return null
     }
 
-  override fun createCenterPanel(): JComponent? {
+  override fun createCenterPanel(): JComponent {
     return panel {
-      noteRow("Please enter the Name and URL of the addon.xml for the update site")
-      row("Name:") { nameField() }
-      row("URL:") { urlField() }
-      row { useAuthentication() }
-      row {
-        authPanel(growX)
-      }
-      row { errorLabel() }
-    }
-  }
-
-  override fun doOKAction() {
-    myUrlSet = true
-    if (validateUrl(urlField.text)) {
-      super.doOKAction()
+      row { comment("Please enter the Name and URL of the addon.xml for the update site") }
+      row("Name:") { cell(nameField).horizontalAlign(HorizontalAlign.FILL) }
+      row("URL:") { cell(urlField).horizontalAlign(HorizontalAlign.FILL) }
+      row { useAuthentication = checkBox("Use Authentication").also { it.component.isSelected = existingAuth != null } }
+      row("Login:") { cell(loginField).horizontalAlign(HorizontalAlign.FILL) }.enabledIf(useAuthentication.selected)
+      row("Password:") { cell(passwordField).horizontalAlign(HorizontalAlign.FILL) }.enabledIf(useAuthentication.selected)
     }
   }
 }
