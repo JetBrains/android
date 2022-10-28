@@ -37,6 +37,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_INSPECTION_NOT_AVAILABLE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_JAR_FOUND_FOUND_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient.Companion.resolveFolder
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.INCOMPATIBLE_LIBRARY_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.MAVEN_DOWNLOAD_PROBLEM
@@ -55,6 +56,7 @@ import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UnknownCommandResponse
+import org.jetbrains.kotlin.konan.file.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -207,7 +209,7 @@ class ComposeLayoutInspectorClientTest {
 
   @Test
   fun inspectorCouldNotFindComposeInspectorJarWithDevFlag() = runBlocking {
-    val folder = "/non-existing-folder"
+    val folder = "/non-existing-folder/other/folder"
     val file = "$folder/compose-ui-inspection.jar"
     StudioFlags.APP_INSPECTION_USE_DEV_JAR.override(true)
     StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER.override(folder)
@@ -261,6 +263,28 @@ class ComposeLayoutInspectorClientTest {
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
     checkLaunch(apiServices, "", AttachErrorCode.UNKNOWN_ERROR_CODE)
+  }
+
+  @Test
+  fun testResolveFolder() {
+    assertThat(resolveFolder("/Volumes/android/studio-main/tools/adt/idea", "#tools/../prebuilts/studio/sdk"))
+      .isEqualTo("../../../prebuilts/studio/sdk".replace("/", File.separator))
+    assertThat(resolveFolder("/Volumes/android/studio-main/tools/adt/idea", "#idea/../data"))
+      .isEqualTo("../data".replace("/", File.separator))
+    assertThat(resolveFolder("/Volumes/android/studio-main/tools/adt/idea", "#Volumes/data"))
+      .isEqualTo("../../../../../data".replace("/", File.separator))
+    assertThat(resolveFolder("/Volumes/android/studio-main/tools/adt/idea", "#not-here/data"))
+      .isEqualTo("data")
+    assertThat(resolveFolder("/Volumes/android", "../relative/extra"))
+      .isEqualTo("../relative/extra")
+    assertThat(resolveFolder(
+      "/Volumes/android/androidx-main/frameworks/support/studio/android-studio-2022.2.1.5-mac/Android Studio Preview.app/Contents",
+      "#studio/../../../out/some-folder")
+    ).isEqualTo("../../../../../../out/some-folder".replace("/", File.separator))
+    assertThat(resolveFolder(
+      "/usr/local/google/home/jlauridsen/internal/androidx-main/frameworks/support/studio/android-studio-2022.2.1.5-linux/android-studio",
+      "#studio/../../../out/some-folder")
+    ).isEqualTo("../../../../../out/some-folder".replace("/", File.separator))
   }
 
   private suspend fun checkLaunch(

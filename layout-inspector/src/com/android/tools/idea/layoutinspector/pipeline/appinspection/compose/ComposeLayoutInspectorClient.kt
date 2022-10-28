@@ -59,7 +59,10 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetPara
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Response
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsCommand
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsResponse
+import java.nio.file.Paths
 import java.util.EnumSet
+import kotlin.io.path.name
+import kotlin.io.path.pathString
 
 const val COMPOSE_LAYOUT_INSPECTOR_ID = "layoutinspector.compose.inspection"
 
@@ -144,8 +147,8 @@ class ComposeLayoutInspectorClient(
         // - released version of studio using local artifact of unreleased compose version (releaseDirectory)
         AppInspectorJar(
           "compose-ui-inspection.jar",
-          developmentDirectory = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER.get(),
-          releaseDirectory = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.get().nullize()
+          developmentDirectory = resolveFolder(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER.get()),
+          releaseDirectory = resolveFolder(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER.get())
         )
       }
       else {
@@ -175,6 +178,53 @@ class ComposeLayoutInspectorClient(
       catch (unexpected: TransportException) {
         handleError(project, logErrorToMetrics, isRunningFromSourcesInTests, unexpected.errorCode)
       }
+    }
+
+    private fun resolveFolder(folder: String?): String? = resolveFolder(".", folder)
+
+    /**
+     * Resolve the [folder] to a possible initial parent reference.
+     *
+     * This functionality is added for developers on androidx-main where the depth of the current directory (where studio is started from)
+     * depends on the platform. By adding the "#studio" the reference would work on all platforms.
+     *
+     * The name after an initial '#' is regarded as a parent reference. The parent reference is matched to a parent folder of
+     * [currentFolder]. The returned path will make [folder] relative to the matched parent folder.
+     *
+     * Example: if the currentFolder is:
+     *    "/Volumes/android/androidx-main/frameworks/support/studio/android-studio-2022.2.1.5-mac/Android Studio Preview.app/Contents"
+     * Then a folder spec of "#studio/../../../out/some-folder" will be resolved to:
+     *    "../../../../../../out/some-folder"
+     * which later will be resolved to the absolute path:
+     *    "/Volumes/android/androidx-main/out/some-folder"
+     */
+    @VisibleForTesting
+    fun resolveFolder(currentFolder: String, folder: String?): String? {
+      if (folder?.startsWith("#") != true) {
+        return folder.nullize()
+      }
+      val currentDir = Paths.get(currentFolder).toAbsolutePath()
+      val devPath = Paths.get(folder)
+      val searchFor = devPath.getName(0).pathString.substring(1)
+      var depth = 0
+      for (i in 0 until currentDir.nameCount) {
+        if (currentDir.getName(currentDir.nameCount - 1 - i).name == searchFor) {
+          depth = i
+          break
+        }
+      }
+      val restPath = devPath.subpath(1, devPath.nameCount)
+      if (depth == 0) {
+        return restPath.pathString
+      }
+      var path = Paths.get("..")
+      for (i in 1 until depth) {
+        path = path.resolve("..")
+      }
+      for (part in restPath) {
+        path = path.resolve(part)
+      }
+      return path.pathString
     }
 
     private fun handleError(
