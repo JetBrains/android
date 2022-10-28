@@ -563,7 +563,9 @@ public class MlLightClassTest extends AndroidTestCase {
     );
 
     myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
+/* b/215645288
     myFixture.checkHighlighting();
+b/215645288 */
   }
 
   public void testLightModelClassNavigation() {
