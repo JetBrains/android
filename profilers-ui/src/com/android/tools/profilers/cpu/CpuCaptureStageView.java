@@ -49,6 +49,7 @@ import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip;
+import com.android.tools.profilers.cpu.systemtrace.PowerRailTooltip;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTooltip;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip;
 import com.android.tools.profilers.cpu.systemtrace.VsyncTooltip;
@@ -169,6 +170,8 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     myTrackGroupList.getTooltipBinder().bind(VsyncTooltip.class, VsyncTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(BufferQueueTooltip.class, BufferQueueTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(RssMemoryTooltip.class, RssMemoryTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(PowerRailTooltip.class, PowerRailTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(BatteryDrainTooltip.class, BatteryDrainTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(CpuFrequencyTooltip.class, CpuFrequencyTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(AndroidFrameEventTooltip.class, AndroidFrameEventTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(AndroidFrameTimelineTooltip.class, AndroidFrameTimelineTooltipView::new);

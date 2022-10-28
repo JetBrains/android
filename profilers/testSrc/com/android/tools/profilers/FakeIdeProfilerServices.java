@@ -424,6 +424,10 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     myProfileablsBuildsEnabled = enabled;
   }
 
+  public void enableSystemTracePowerTracks(boolean enabled) {
+    mySystemTracePowerTracksEnabled = enabled;
+  }
+
   public void enableComposeTracingNavigateToSource(boolean enabled) {
     myComposeTracingNavigateToSourceEnabled = enabled;
   }
