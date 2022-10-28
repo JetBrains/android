@@ -59,6 +59,7 @@ import com.google.wireless.android.sdk.stats.ConfigurationCacheCompatibilityData
 import com.google.wireless.android.sdk.stats.CriticalPathAnalyzerData
 import com.google.wireless.android.sdk.stats.JetifierUsageData
 import com.google.wireless.android.sdk.stats.ProjectConfigurationAnalyzerData
+import com.google.wireless.android.sdk.stats.TaskCategoryIssuesData
 import com.google.wireless.android.sdk.stats.TasksConfigurationIssuesAnalyzerData
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -192,7 +193,9 @@ class BuildAttributionAnalyticsManagerTest {
       override fun getTaskCategoryWarningsAnalyzerResult() =
         TaskCategoryWarningsAnalyzer.IssuesResult(
           taskCategoryIssues = listOf(
-            TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED
+            TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED,
+            TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
+            TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD,
           )
         )
     }
@@ -218,6 +221,7 @@ class BuildAttributionAnalyticsManagerTest {
     checkConfigurationCacheCompatibilityData(buildAttributionAnalyzersData.configurationCacheCompatibilityData)
     checkJetifierUsageAnalyzerData(buildAttributionAnalyzersData.jetifierUsageData)
     checkDownloadsAnalyzerData(buildAttributionAnalyzersData.downloadsAnalysisData)
+    checkTaskCategoryAnalyzerData(buildAttributionAnalyzersData.taskCategoryIssuesData)
 
     val buildAttributionReportSessionId = buildAttributionEvents.first().studioEvent.buildAttributionStats.buildAttributionReportSessionId
     assertThat(buildAttributionReportSessionId).isEqualTo("46f89941-2cea-83d7-e613-0c5823be215a")
@@ -305,6 +309,14 @@ class BuildAttributionAnalyticsManagerTest {
       missedRequestsCount = 1
       missedRequestsTotalTimeMs = 10
     }.build())
+  }
+
+  private fun checkTaskCategoryAnalyzerData(analyzerData: TaskCategoryIssuesData) {
+    assertThat(analyzerData.reportedIssuesList).hasSize(2)
+    assertThat(analyzerData.reportedIssuesList).containsExactly(
+      TaskCategoryIssuesData.TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED,
+      TaskCategoryIssuesData.TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD,
+    )
   }
 
   private fun isTheSamePlugin(pluginIdentifier: BuildAttributionPluginIdentifier, pluginData: PluginData): Boolean {

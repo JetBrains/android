@@ -31,6 +31,7 @@ import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.analyzers.NoDataFromSavedResult
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
+import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.BuildInvocationType
@@ -40,6 +41,7 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
+import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.withProjectId
 import com.google.common.base.Stopwatch
@@ -56,6 +58,7 @@ import com.google.wireless.android.sdk.stats.ConfigurationCacheCompatibilityData
 import com.google.wireless.android.sdk.stats.CriticalPathAnalyzerData
 import com.google.wireless.android.sdk.stats.JetifierUsageData
 import com.google.wireless.android.sdk.stats.ProjectConfigurationAnalyzerData
+import com.google.wireless.android.sdk.stats.TaskCategoryIssuesData
 import com.google.wireless.android.sdk.stats.TasksConfigurationIssuesAnalyzerData
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
@@ -108,6 +111,11 @@ class BuildAttributionAnalyticsManager(
       if (it is DownloadsAnalyzer.ActiveResult) {
         analyzersDataBuilder.downloadsAnalysisData = transformDownloadsAnalyzerData(it)
       }
+    }
+    if (analysisResult.getTaskCategoryWarningsAnalyzerResult() is TaskCategoryWarningsAnalyzer.IssuesResult) {
+      analyzersDataBuilder.taskCategoryIssuesData = transformTaskCategoryIssuesData(
+        analysisResult.getTaskCategoryWarningsAnalyzerResult() as TaskCategoryWarningsAnalyzer.IssuesResult
+      )
     }
     attributionStatsBuilder.setBuildAttributionAnalyzersData(analyzersDataBuilder)
   }
@@ -297,6 +305,24 @@ class BuildAttributionAnalyticsManager(
       })
     }
       .build()
+
+  private fun transformTaskCategoryIssue(issue: TaskCategoryIssue): TaskCategoryIssuesData.TaskCategoryIssue? =
+    when (issue) {
+      TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED -> TaskCategoryIssuesData.TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED
+      TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED -> TaskCategoryIssuesData.TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED
+      TaskCategoryIssue.RESOURCE_VALIDATION_ENABLED -> TaskCategoryIssuesData.TaskCategoryIssue.RESOURCE_VALIDATION_ENABLED
+      TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD -> TaskCategoryIssuesData.TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD
+
+      // we already send analytics for non-incremental annotation processors through the annotation processors analyzer
+      TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR -> null
+    }
+
+  private fun transformTaskCategoryIssuesData(taskCategoryIssuesResult: TaskCategoryWarningsAnalyzer.IssuesResult): TaskCategoryIssuesData =
+    TaskCategoryIssuesData.newBuilder().apply {
+      addAllReportedIssues(
+        taskCategoryIssuesResult.taskCategoryIssues.mapNotNull(::transformTaskCategoryIssue)
+      )
+    }.build()
 
   fun logBuildSuccess(buildInvocationType: BuildInvocationType) {
     attributionStatsBuilder.buildType = buildInvocationType.metricsType
