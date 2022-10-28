@@ -121,7 +121,7 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
  */
 class AgpUpgradeQuickFix(val currentAgpVersion: AgpVersion) : DescribedBuildIssueQuickFix {
   override val id: String = "android.gradle.plugin.forced.update"
-  override val description: String = "Upgrade to the latest version"
+  override val description: String = "Upgrade to a supported version"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Unit>()

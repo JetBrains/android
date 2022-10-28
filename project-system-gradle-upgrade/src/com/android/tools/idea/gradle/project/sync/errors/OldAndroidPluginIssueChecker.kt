@@ -72,11 +72,6 @@ class OldAndroidPluginIssueChecker: GradleIssueChecker {
       val minAgpToUse = if (isJdk8OrOlder) MINIMUM_AGP_VERSION_JDK_8 else MINIMUM_AGP_VERSION_JDK_11
       composer.addQuickFix(UpgradeGradleVersionsQuickFix(getCompatibleGradleVersion(minAgpToUse).version, minAgpToUse, "minimum"))
     }
-    composer.run {
-      val latestGradleVersion = GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)
-      val latestAgpVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-      addQuickFix(UpgradeGradleVersionsQuickFix(latestGradleVersion, latestAgpVersion, "latest"))
-    }
     composer.addQuickFix("Open build file", OpenPluginBuildFileQuickFix())
     return composer.composeBuildIssue()
   }
