@@ -101,8 +101,9 @@ public class CreateDefaultActivityTest {
     assertEquals(1, getOccurrenceCount(manifesText, "@string/title_activity_main"));
     assertEquals(1, getOccurrenceCount(manifesText, "android.intent.category.LAUNCHER"));
 
+    guiTest.ideFrame().getEditor().open(APP_BUILD_GRADLE);
     String gradleText = guiTest.getProjectFileText(APP_BUILD_GRADLE);
-    assertEquals(1, getOccurrenceCount(gradleText, "com.android.support.constraint:constraint-layout"));
+    assertEquals(1, getOccurrenceCount(gradleText, "androidx.constraintlayout:constraintlayout"));
   }
 
   // Note: This should be called only when the last open file was a Java/Kotlin file
