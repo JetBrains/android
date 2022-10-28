@@ -251,7 +251,7 @@ internal object DaggerTypeMapper {
           return Variance.INVARIANT
         }
 
-        if (parameterVariance == Variance.IN_VARIANCE && isMostPreciseContravariantArgument(projection.getType(), parameter)) {
+        if (parameterVariance == Variance.IN_VARIANCE && isMostPreciseContravariantArgument(projection.getType())) {
           return Variance.INVARIANT
         }
       }
