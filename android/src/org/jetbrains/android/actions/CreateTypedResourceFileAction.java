@@ -27,6 +27,7 @@ import com.intellij.ide.IdeView;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -212,6 +213,10 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
   @Override
   protected String getErrorTitle() {
     return CommonBundle.getErrorTitle();
+  }
+
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
