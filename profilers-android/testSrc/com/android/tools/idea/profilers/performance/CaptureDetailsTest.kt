@@ -59,6 +59,7 @@ class CaptureDetailsTest {
   private val benchmarkBottomUpFilterChange = benchmarkFilterChange("Bottom-Up")
   private val benchmarkFlameChartFilterChange = benchmarkFilterChange("Flame-Chart")
 
+  @org.junit.Ignore("b/255883540, b/255883136")
   @Test
   fun benchmarkTopDown() = benchmarkInitAndUpdate(benchmarkTopDownInit,
                                                   benchmarkTopDownRangeChange,
