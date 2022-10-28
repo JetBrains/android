@@ -25,10 +25,11 @@ class TaskCategoryWarningsAnalyzerResultConverterTest {
   @Test
   fun testTaskCategoryWarningsAnalyzerResult() {
     val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.IssuesResult(
-      listOf(TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
-             TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
-             TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED,
-             TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED)
+      listOf(
+        TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
+        TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
+        TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD
+      )
     )
     val resultMessage = TaskCategoryWarningsAnalyzerResultConverter.transform(
       taskCategoryWarningsAnalyzerResult)
@@ -39,18 +40,20 @@ class TaskCategoryWarningsAnalyzerResultConverterTest {
   @Test
   fun testNotEqualsTaskCategoryWarningsAnalyzerResult() {
     val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.IssuesResult(
-      listOf(TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
-             TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
-             TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED,
-             TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED)
+      listOf(
+        TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
+        TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
+        TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD
+      )
     )
     val resultMessage = TaskCategoryWarningsAnalyzerResultConverter.transform(
       taskCategoryWarningsAnalyzerResult)
     val resultConverted = TaskCategoryWarningsAnalyzerResultConverter.construct(resultMessage)
     val anotherTaskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzer.IssuesResult(
-      listOf(TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
-             TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
-             TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED)
+      listOf(
+        TaskCategoryIssue.NON_FINAL_RES_IDS_DISABLED,
+        TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
+      )
     )
     Truth.assertThat(resultConverted).isNotEqualTo(anotherTaskCategoryWarningsAnalyzerResult)
   }

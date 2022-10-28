@@ -61,14 +61,6 @@ enum class BuildAnalyzerBrowserLinks(
     "https://d.android.com/r/tools/build-attribution/downloads",
     BuildAttributionUiEvent.OutgoingLinkTarget.DOWNLOADS_INFO
   ),
-  RENDERSCRIPT_MIGRATE(
-    "https://d.android.com/r/tools/build-attribution/renderscript-migrate",
-    BuildAttributionUiEvent.OutgoingLinkTarget.RENDERSCRIPT_MIGRATE
-  ),
-  AIDL_INFO(
-    "https://d.android.com/r/tools/build-attribution/aidl-info",
-    BuildAttributionUiEvent.OutgoingLinkTarget.AIDL_INFO
-  ),
   NON_TRANSITIVE_R_CLASS(
     "https://d.android.com/r/tools/build-attribution/non-transitive-r-classes",
     BuildAttributionUiEvent.OutgoingLinkTarget.NON_TRANSITIVE_R_CLASS

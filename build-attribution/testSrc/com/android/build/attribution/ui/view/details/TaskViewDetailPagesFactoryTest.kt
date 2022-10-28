@@ -297,8 +297,7 @@ which it must do in order to support incremental builds.<BR/>
       
       <table><tr><td VALIGN=TOP><icon alt='Warning' src='AllIcons.General.BalloonWarning'></td><td VALIGN=TOP>Non-transitive R classes are currently disabled.<BR/>
       Enable non-transitive R classes for faster incremental compilation.<BR/>
-      To enable this, set android.nonTransitiveRClass=true in gradle.properties.<BR/>
-      <a href='AndroidMigrateToNonTransitiveRClassesAction'>Migrate to non-transitive R classes</a>, <a href='NON_TRANSITIVE_R_CLASS'>Learn more</a><icon src='AllIcons.Ide.External_link_arrow'></td></tr>
+      <a href='AndroidMigrateToNonTransitiveRClassesAction'>Click here to migrate your project to use non-transitive R classes</a>, or <a href='NON_TRANSITIVE_R_CLASS'>Learn more</a><icon src='AllIcons.Ide.External_link_arrow'></td></tr>
       </table>
     """.trimIndent())
   }

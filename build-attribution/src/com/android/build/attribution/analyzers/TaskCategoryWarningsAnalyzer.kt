@@ -16,15 +16,14 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.data.StudioProvidedInfo
-import com.android.build.attribution.data.TaskContainer
 import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 import com.android.buildanalyzer.common.TaskCategory
 import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.tools.idea.flags.StudioFlags
 
-class TaskCategoryWarningsAnalyzer(private val taskContainer: TaskContainer) : BaseAnalyzer<TaskCategoryWarningsAnalyzer.Result>(),
-                                                                               BuildAttributionReportAnalyzer,
-                                                                               PostBuildProcessAnalyzer {
+class TaskCategoryWarningsAnalyzer : BaseAnalyzer<TaskCategoryWarningsAnalyzer.Result>(),
+                                     BuildAttributionReportAnalyzer,
+                                     PostBuildProcessAnalyzer {
    private val taskCategoryIssues = mutableListOf<TaskCategoryIssue>()
    private var agpSupportsTaskCategories: Boolean = false
 
@@ -46,14 +45,7 @@ class TaskCategoryWarningsAnalyzer(private val taskContainer: TaskContainer) : B
   }
 
   override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalyzersProxy, studioProvidedInfo: StudioProvidedInfo) {
-    if (taskContainer.any { it.primaryTaskCategory == TaskCategory.RENDERSCRIPT }) {
-      taskCategoryIssues.add(TaskCategoryIssue.RENDERSCRIPT_API_DEPRECATED)
-    }
-    if (taskContainer.any { it.primaryTaskCategory == TaskCategory.AIDL }) {
-      taskCategoryIssues.add(TaskCategoryIssue.AVOID_AIDL_UNNECESSARY_USE)
-    }
-    val nonIncrementalAnnotationProcessors = analyzersResult.annotationProcessorsAnalyzer.result.nonIncrementalAnnotationProcessorsData
-    if (nonIncrementalAnnotationProcessors.isNotEmpty()) {
+    if (analyzersResult.annotationProcessorsAnalyzer.result.nonIncrementalAnnotationProcessorsData.isNotEmpty()) {
       taskCategoryIssues.add(TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR)
     }
     ensureResultCalculated()

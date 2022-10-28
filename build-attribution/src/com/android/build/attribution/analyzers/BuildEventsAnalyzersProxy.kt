@@ -103,7 +103,7 @@ class BuildEventsAnalyzersProxy(
   val configurationCachingCompatibilityAnalyzer = ConfigurationCachingCompatibilityAnalyzer()
   val jetifierUsageAnalyzer = JetifierUsageAnalyzer()
   val downloadsAnalyzer = StudioFlags.BUILD_ANALYZER_DOWNLOADS_ANALYSIS.get().ifTrue { DownloadsAnalyzer() }
-  val taskCategoryWarningsAnalyzer = TaskCategoryWarningsAnalyzer(taskContainer)
+  val taskCategoryWarningsAnalyzer = TaskCategoryWarningsAnalyzer()
 
   fun getBuildFinishedTimestamp(): Long {
     return criticalPathAnalyzer.result.buildFinishedTimestamp
