@@ -153,6 +153,8 @@ maven_repository(
         "@maven//:androidx.navigation.navigation-fragment_2.3.5",
         "@maven//:androidx.navigation.navigation-ui-ktx_2.3.5",
         "@maven//:androidx.navigation.navigation-ui_2.3.5",
+        "@maven//:androidx.privacysandbox.tools.tools-apipackager_1.0.0-SNAPSHOT",
+        "@maven//:androidx.privacysandbox.tools.tools_1.0.0-SNAPSHOT",
         "@maven//:androidx.savedstate.savedstate_1.1.0-rc01",
         "@maven//:androidx.test.espresso.espresso-core_3.1.0",
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
