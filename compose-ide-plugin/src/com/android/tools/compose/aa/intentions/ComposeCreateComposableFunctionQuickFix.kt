@@ -23,8 +23,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.extractMethod.newImpl.ExtractMethodHelper.addSiblingAfter
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
-import org.jetbrains.kotlin.analysis.api.components.KtTypeRendererOptions
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KtFirDiagnostic
+import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KtTypeRendererForSource
 import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.idea.base.resources.KotlinBundle
@@ -40,6 +40,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelectorOrThis
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
+import org.jetbrains.kotlin.types.Variance
 
 /**
  * K2 version of [ComposeUnresolvedFunctionFixContributor].
@@ -131,7 +132,7 @@ class ComposeCreateComposableFunctionQuickFix(
           unresolvedCall.valueArguments.forEachIndexed { index, arg ->
             val type = arg.getArgumentExpression()?.getKtType() ?: builtinTypes.ANY
             val name = arg.getArgumentName()?.referenceExpression?.getReferencedName() ?: "x$index"
-            param(name, type.render(KtTypeRendererOptions.SHORT_NAMES))
+            param(name, type.render(KtTypeRendererForSource.WITH_SHORT_NAMES, Variance.INVARIANT))
           }
           noReturnType()
           blockBody("TODO(\"Not yet implemented\")")
