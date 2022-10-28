@@ -99,6 +99,8 @@
              id="android.compose"
              order="first"/>
 
+    <weigher key="proximity" implementationClass="com.android.tools.compose.code.actions.ComposeProximityWeigher"/>
+
     <lang.inspectionSuppressor language="kotlin" implementationClass="com.android.tools.compose.ComposeSuppressor"/>
 
     <postFormatProcessor implementation="com.android.tools.compose.formatting.ComposePostFormatProcessor"/>
