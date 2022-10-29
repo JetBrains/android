@@ -39,12 +39,14 @@ import com.android.tools.profiler.proto.Agent
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectInfo.HandshakeUnknownConversion
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import layout_inspector.LayoutInspector
@@ -239,7 +241,7 @@ fun ForegroundProcess.matchToProcessDescriptor(processModel: ProcessesModel): Pr
   return processModel.processes.firstOrNull { it.pid == this.pid }
 }
 
-fun interface ForegroundProcessListener {
+interface ForegroundProcessListener {
   fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess)
 }
 
@@ -258,9 +260,7 @@ class ForegroundProcessDetection(
   private val transportClient: TransportClient,
   private val metrics: ForegroundProcessDetectionMetrics,
   scope: CoroutineScope,
-  workDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread,
-  @TestOnly private val onDeviceDisconnected: (DeviceDescriptor) -> Unit = {},
-  @TestOnly private val pollingIntervalMs: Long = 2000) {
+  workDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread) {
 
   private val logger = Logger.getInstance(ForegroundProcessDetection::class.java)
 
@@ -272,7 +272,12 @@ class ForegroundProcessDetection(
    */
   private val connectedStreams = ConcurrentHashMap<Long, TransportStreamChannel>()
 
-  private val handshakeExecutors = ConcurrentHashMap<DeviceDescriptor, HandshakeExecutor>()
+  // Set of devices that with UNKNOWN support of foreground process detection.
+  // UNKNOWN should eventually convert to SUPPORTED or NOT_SUPPORTED.
+  // Keeping track of these devices is only useful for metrics purposes.
+  // We want to know how many devices convert to SUPPORTED or NOT_SUPPORTED
+  // and how many never convert.
+  private val devicesWithUnknownState = mutableSetOf<DeviceDescriptor>()
 
   init {
     val manager = TransportStreamManager.createManager(transportClient.transportStub, workDispatcher)
@@ -282,11 +287,10 @@ class ForegroundProcessDetection(
         .collect { activity ->
           val streamChannel = activity.streamChannel
           val streamDevice = streamChannel.stream.device.toDeviceDescriptor()
-          val stream =  streamChannel.stream
           if (activity is StreamConnected) {
             connectedStreams[streamChannel.stream.streamId] = streamChannel
 
-            val timeRequest = Transport.TimeRequest.newBuilder().setStreamId(stream.streamId).build()
+            val timeRequest = Transport.TimeRequest.newBuilder().setStreamId(activity.streamChannel.stream.streamId).build()
             val currentTime = activity.streamChannel.client.getCurrentTime(timeRequest).timestampNs
 
             // start listening for LAYOUT_INSPECTOR_FOREGROUND_PROCESS events
@@ -304,10 +308,6 @@ class ForegroundProcessDetection(
               }
             }
 
-            val handshakeExecutor = HandshakeExecutor(
-              streamDevice, stream, scope, workDispatcher, transportClient, metrics, pollingIntervalMs
-            )
-
             // start listening for LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED events
             launch {
               streamChannel.eventFlow(
@@ -317,14 +317,27 @@ class ForegroundProcessDetection(
                 )
               ).collect { streamEvent ->
                   if (streamEvent.event.hasLayoutInspectorTrackingForegroundProcessSupported()) {
-                    val trackingForegroundProcessSupportedEvent = streamEvent.event.layoutInspectorTrackingForegroundProcessSupported
-                    val supportType = trackingForegroundProcessSupportedEvent.supportType!!
+                    val supportType = streamEvent.event.layoutInspectorTrackingForegroundProcessSupported.supportType!!
                     when (supportType) {
                       LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNKNOWN -> {
-                        handshakeExecutor.post(HandshakeState.UnknownSupported(trackingForegroundProcessSupportedEvent))
+                        // UNKNOWN support means that the handshake couldn't determine if the device supports foreground process detection.
+                        // This could be because the device is in a state where we can't determine the foreground activity,
+                        // for example if the device is locked and there is no foreground activity.
+                        // We should wait a try the handshake again until the device converts to SUPPORTED or NOT_SUPPORTED.
+                        if (!devicesWithUnknownState.contains(streamDevice)) {
+                          devicesWithUnknownState.add(streamDevice)
+                          // log UNKNOWN devices only once
+                          metrics.logHandshakeResult(streamEvent.event.layoutInspectorTrackingForegroundProcessSupported, streamDevice)
+                        }
+                        delay(2000)
+                        sendStartHandshakeCommand(activity.streamChannel.stream)
                       }
                       LayoutInspector.TrackingForegroundProcessSupported.SupportType.SUPPORTED -> {
-                        handshakeExecutor.post(HandshakeState.Supported(trackingForegroundProcessSupportedEvent))
+                        logConcludedHandshake(
+                          streamEvent.event.layoutInspectorTrackingForegroundProcessSupported,
+                          streamDevice,
+                          HandshakeUnknownConversion.UNKNOWN_TO_SUPPORTED
+                        )
 
                         deviceModel.foregroundProcessDetectionSupportedDevices.add(streamDevice)
 
@@ -336,9 +349,12 @@ class ForegroundProcessDetection(
                         }
                       }
                       LayoutInspector.TrackingForegroundProcessSupported.SupportType.NOT_SUPPORTED -> {
-                        handshakeExecutor.post(HandshakeState.NotSupported(trackingForegroundProcessSupportedEvent))
-
-                        // the device is not added to DeviceModel#foregroundProcessDetectionSupportedDevices,
+                        logConcludedHandshake(
+                          streamEvent.event.layoutInspectorTrackingForegroundProcessSupported,
+                          streamDevice,
+                          HandshakeUnknownConversion.UNKNOWN_TO_NOT_SUPPORTED
+                        )
+                        // the device is never added to DeviceModel#foregroundProcessDetectionSupportedDevices,
                         // so it will be handled in the UI by showing a process picker.
                       }
                       LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNRECOGNIZED -> {
@@ -357,17 +373,25 @@ class ForegroundProcessDetection(
             }
 
 
-            handshakeExecutor.post(HandshakeState.Connected)
-            handshakeExecutors[streamDevice] = handshakeExecutor
+            sendStartHandshakeCommand(activity.streamChannel.stream)
           }
           else if (activity is StreamDisconnected) {
+            val stream = activity.streamChannel.stream
             connectedStreams.remove(stream.streamId)
             deviceModel.foregroundProcessDetectionSupportedDevices.remove(streamDevice)
 
-            val handler = handshakeExecutors.remove(streamDevice)
-            handler?.post(HandshakeState.Disconnected)
+            devicesWithUnknownState.forEach { _ ->
+              // These devices had UNKNOWN support and never converted to SUPPORTED or NOT_SUPPORTED.
+              // This could happen if there are issues in the handshake or if a device was disconnected
+              // before the UNKNOWN state had time to resolve.
+              // For example if a device was plugged in while locked and unplugged before ever being unlocked.
+              metrics.logHandshakeConversion(HandshakeUnknownConversion.UNKNOWN_NOT_RESOLVED, streamDevice)
+            }
+
+            devicesWithUnknownState.clear()
 
             if (streamDevice.serial == deviceModel.selectedDevice?.serial) {
+
               // when a device is disconnected we still want to call [DebugViewAttributes#clear],
               // because this updates the state of the class. The flag will be turned off on the
               // device by the trap command, we want to reflect this state in DebugViewAttributes.
@@ -377,10 +401,23 @@ class ForegroundProcessDetection(
               }
               deviceModel.selectedDevice = null
             }
-
-            onDeviceDisconnected(streamDevice)
           }
         }
+    }
+  }
+
+  /**
+   * Logs to metrics the result of a handshake that resulted in SUPPORTED or NOT_SUPPORTED.
+   */
+  private fun logConcludedHandshake(
+    handshakeResult: LayoutInspector.TrackingForegroundProcessSupported,
+    streamDevice: DeviceDescriptor,
+    conversion: HandshakeUnknownConversion
+  ) {
+    metrics.logHandshakeResult(handshakeResult, streamDevice)
+    if (devicesWithUnknownState.contains(streamDevice)) {
+      devicesWithUnknownState.remove(streamDevice)
+      metrics.logHandshakeConversion(conversion, streamDevice)
     }
   }
 
@@ -435,33 +472,41 @@ class ForegroundProcessDetection(
   }
 
   /**
+   * Sends the command that initiates the handshake, the device will respond by sending an event of type
+   * LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED.
+   */
+  private fun sendStartHandshakeCommand(stream: Common.Stream) {
+    sendCommand(Commands.Command.CommandType.IS_TRACKING_FOREGROUND_PROCESS_SUPPORTED, stream.streamId)
+  }
+
+  /**
    * Tell the device connected to this stream to start the on-device detection of foreground process.
    */
   private fun sendStartOnDevicePollingCommand(stream: Common.Stream) {
-    transportClient.sendCommand(Commands.Command.CommandType.START_TRACKING_FOREGROUND_PROCESS, stream.streamId)
+    sendCommand(Commands.Command.CommandType.START_TRACKING_FOREGROUND_PROCESS, stream.streamId)
   }
 
   /**
    * Tell the device connected to this stream to stop the on-device detection of foreground process.
    */
   private fun sendStopOnDevicePollingCommand(stream: Common.Stream) {
-    transportClient.sendCommand(Commands.Command.CommandType.STOP_TRACKING_FOREGROUND_PROCESS, stream.streamId)
+    sendCommand(Commands.Command.CommandType.STOP_TRACKING_FOREGROUND_PROCESS, stream.streamId)
   }
-}
 
-/**
- * Send a command to the transport.
- */
-internal fun TransportClient.sendCommand(commandType: Commands.Command.CommandType, streamId: Long) {
-  val command = Commands.Command
-    .newBuilder()
-    .setType(commandType)
-    .setStreamId(streamId)
-    .build()
+  /**
+   * Send a command to the transport.
+   */
+  private fun sendCommand(commandType: Commands.Command.CommandType, streamId: Long) {
+    val command = Commands.Command
+      .newBuilder()
+      .setType(commandType)
+      .setStreamId(streamId)
+      .build()
 
-  transportStub.execute(
-    Transport.ExecuteRequest.newBuilder().setCommand(command).build()
-  )
+    transportClient.transportStub.execute(
+      Transport.ExecuteRequest.newBuilder().setCommand(command).build()
+    )
+  }
 }
 
 private fun StreamEvent.toForegroundProcess(): ForegroundProcess? {
