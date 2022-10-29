@@ -89,6 +89,7 @@
       <module fileurl="file://$PROJECT_DIR$/as-driver/integration/as-driver.integration.iml" filepath="$PROJECT_DIR$/as-driver/integration/as-driver.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/as-driver/utils/as-driver.utils.iml" filepath="$PROJECT_DIR$/as-driver/utils/as-driver.utils.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/asfp/aidegen/asfp.aidegen.iml" filepath="$PROJECT_DIR$/../../vendor/google/asfp/aidegen/asfp.aidegen.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/asfp/base/asfp.base.iml" filepath="$PROJECT_DIR$/../../vendor/google/asfp/base/asfp.base.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/asfp/studio/asfp.studio.iml" filepath="$PROJECT_DIR$/../../vendor/google/asfp/studio/asfp.studio.iml" />
       <module fileurl="file://$PROJECT_DIR$/assistant/assistant.iml" filepath="$PROJECT_DIR$/assistant/assistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/assistant/assistant-test.iml" filepath="$PROJECT_DIR$/assistant/assistant-test.iml" />
