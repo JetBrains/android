@@ -1,6 +1,8 @@
 package com.android.tools.idea.editors.literals
 
 import com.android.flags.junit.SetFlagRule
+import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
+import com.android.tools.idea.editors.literals.internal.LiveLiteralsFinder
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
@@ -11,6 +13,8 @@ import com.android.tools.idea.testing.replaceText
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.LogLevel
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -47,6 +51,11 @@ internal class LiveLiteralsServiceTest {
 
   @Before
   fun setup() {
+    Logger.getInstance(LiveLiteralsService::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(LiteralsManager::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(LiveLiteralsFinder::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(LiveLiteralsDeploymentReportService::class.java).setLevel(LogLevel.ALL)
+
     LiveEditApplicationConfiguration.getInstance().mode = LIVE_LITERALS
     file1 = projectRule.fixture.addFileToProject("src/main/java/com/literals/test/Test.kt", """
       package com.literals.test
@@ -107,7 +116,6 @@ internal class LiveLiteralsServiceTest {
     }
   }
 
-  @Ignore("b/194631917")
   @Test
   fun `check that already open editors register constants`() {
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
@@ -121,7 +129,6 @@ internal class LiveLiteralsServiceTest {
     assertEquals(9, liveLiteralsService.allConstants().size)
   }
 
-  @Ignore("b/194631917")
   @Test
   fun `check that constants are registered after a new editor is opened`() {
     val liveLiteralsService = getTestLiveLiteralsService()
@@ -146,7 +153,6 @@ internal class LiveLiteralsServiceTest {
     assertEquals(9, liveLiteralsService.allConstants().size)
   }
 
-  @Ignore("b/194631917")
   @Test
   fun `listener notification`() {
     // Setup

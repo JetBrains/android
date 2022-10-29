@@ -23,7 +23,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.RangeHighlighter
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -38,6 +37,8 @@ import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import com.intellij.psi.impl.PsiExpressionEvaluator
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.AppExecutorUtil
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.isActive
 import org.jetbrains.concurrency.await
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -117,6 +118,7 @@ private object DefaultPsiElementLiteralUsageReferenceProvider : PsiElementLitera
         LiteralUsageReference(FqName("$className.$methodName"), virtualFilePath, range,
                               element.getLineNumber())
       }
+
       else -> {
         val className = PsiTreeUtil.getContextOfType(element, PsiClass::class.java)?.qualifiedName?.let { "$it." } ?: ""
         val methodName = PsiTreeUtil.getContextOfType(element, PsiMethod::class.java)?.name ?: "<init>"
@@ -294,7 +296,8 @@ private class LiteralReferenceImpl(originalElement: PsiElement,
       ReadAction.compute<Any?, Throwable> {
         try {
           constantEvaluator.evaluate(it)
-        } catch (_: IndexNotReadyException) {
+        }
+        catch (_: IndexNotReadyException) {
           // If not in smart mode, just return the last cached value
           lastCachedConstantValue
         }
@@ -396,10 +399,11 @@ class LiteralsManager(
   private suspend fun findLiterals(root: PsiElement,
                                    constantType: Collection<Class<*>>,
                                    constantEvaluator: ConstantEvaluator,
-                                   elementFilter: (PsiElement) -> Boolean): LiteralReferenceSnapshot {
-    val savedLiterals = ReadAction.nonBlocking(Callable<Collection<LiteralReferenceImpl>> {
-      val savedLiterals = mutableListOf<LiteralReferenceImpl>()
-      try {
+                                   elementFilter: (PsiElement) -> Boolean): LiteralReferenceSnapshot = coroutineScope {
+    val savedLiterals =
+      ReadAction.nonBlocking(Callable<Collection<LiteralReferenceImpl>> {
+        LOG.debug("Find literals start $root")
+        val savedLiterals = mutableListOf<LiteralReferenceImpl>()
         root.acceptChildren(object : PsiRecursiveElementWalkingVisitor() {
           override fun visitElement(element: PsiElement) {
             if (!elementFilter(element) || !element.isValid || element.containingFile == null) return
@@ -413,6 +417,7 @@ class LiteralsManager(
               if (element.entries.size == 1 || element.entries.any { it !is KtLiteralStringTemplateEntry }) {
                 element.entries.forEach {
                   if (it is KtLiteralStringTemplateEntry) {
+                    LOG.debug("Found literal for $root: $it")
                     savedLiterals.add(
                       LiteralReferenceImpl(it,
                                            uniqueIdProvider,
@@ -424,6 +429,7 @@ class LiteralsManager(
                 }
               }
               else {
+                LOG.debug("Found literal for $root: $element")
                 // All sub elements are string entries so handle as one string
                 savedLiterals.add(
                   LiteralReferenceImpl(element, uniqueIdProvider, literalUsageReferenceProvider,
@@ -436,6 +442,8 @@ class LiteralsManager(
 
             if (constantType.any { it.isInstance(element) }) {
               constantEvaluator.evaluate(element)?.let {
+                LOG.debug("Found literal for $root: $element")
+
                 // This is a regular constant, save it.
                 savedLiterals.add(LiteralReferenceImpl(element,
                                                        uniqueIdProvider,
@@ -450,15 +458,12 @@ class LiteralsManager(
             super.visitElement(element)
           }
         })
-      }
-      catch (_: IndexNotReadyException) {}
-      catch (_: ProcessCanceledException) {
-        // After 222.2889.14 the visitor can throw ProcessCanceledException instead of IndexNotReadyException if in dumb mode.
-      }
-      savedLiterals
-    }).submit(literalReadingExecutor).await()
+        savedLiterals
+      })
+        .expireWhen { !isActive }
+        .submit(literalReadingExecutor).await()
 
-    return if (savedLiterals.isNotEmpty()) LiteralReferenceSnapshotImpl(savedLiterals) else EmptyLiteralReferenceSnapshot
+    return@coroutineScope if (savedLiterals.isNotEmpty()) LiteralReferenceSnapshotImpl(savedLiterals) else EmptyLiteralReferenceSnapshot
   }
 
   /**
@@ -491,7 +496,8 @@ class LiteralsManager(
     /**
      * Marks the given element as managed.
      */
-    private fun markAsManaged(element: PsiElement, literalReference: LiteralReference) = element.putCopyableUserData(MANAGED_KEY, literalReference)
+    private fun markAsManaged(element: PsiElement, literalReference: LiteralReference) = element.putCopyableUserData(MANAGED_KEY,
+                                                                                                                     literalReference)
   }
 }
 
