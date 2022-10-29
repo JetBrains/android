@@ -25,13 +25,7 @@ import java.awt.Rectangle
 import javax.swing.Icon
 
 class TemplateIcon(private val delegateIcon: Icon) : JBScalableIcon() {
-  private var cachedIcon: Icon? = null
-  private var _scale: Float = 1f
-    set(value) {
-      cachedIcon = null
-      field = value
-    }
-
+  private var _scale = 1f
   private var cropRectangle = Rectangle(delegateIcon.iconWidth, delegateIcon.iconHeight)
 
   fun setHeight(height: Int) = scale(height.toFloat() / cropRectangle.height)
@@ -51,8 +45,7 @@ class TemplateIcon(private val delegateIcon: Icon) : JBScalableIcon() {
   }
 
   override fun paintIcon(c: Component, g: Graphics, x: Int, y: Int) {
-    val icon = cachedIcon ?: IconUtil.scale(delegateIcon, c, _scale).also { cachedIcon = it }
-    icon.paintIcon(c, g, x - cropRectangle.x, y)
+    delegateIcon.paintIcon(c, g, x - cropRectangle.x, y)
   }
 
   override fun getIconWidth() = cropRectangle.width
