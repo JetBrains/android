@@ -39,7 +39,7 @@ import java.nio.file.Paths
 import java.nio.file.attribute.FileTime
 
 /**
- * Allows tests to use [FakeEmulator] instead of the real one.
+ * Allows tests to use [FakeScreenSharingAgent] instead of the real one.
  */
 internal class FakeScreenSharingAgentRule : TestRule {
   private var deviceCounter = 0
