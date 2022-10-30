@@ -93,7 +93,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
   @NotNull
   public FoldingDescriptor[] buildFoldRegions(@NotNull PsiElement element, @NotNull Document document, boolean quick) {
     if (!(element instanceof PsiJavaFile || element instanceof XmlFile) || quick && !UNIT_TEST_MODE || !isFoldingEnabled()) {
-      return FoldingDescriptor.EMPTY;
+      return FoldingDescriptor.EMPTY_ARRAY;
     }
     final List<FoldingDescriptor> result = new ArrayList<>();
     if (element instanceof PsiJavaFile) {
@@ -123,7 +123,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       });
     }
 
-    return result.toArray(FoldingDescriptor.EMPTY);
+    return result.toArray(FoldingDescriptor.EMPTY_ARRAY);
   }
 
   @Nullable
