@@ -9,6 +9,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val color = R.color.abc_tint_default
+        val color = androidx.appcompat.R.color.abc_tint_default
     }
 }

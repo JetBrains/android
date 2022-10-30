@@ -196,7 +196,7 @@ MODULE                        : gradle_project_1.app
     AgpFlags
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
-        TransitiveRClasses            : true
+        TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -1610,7 +1610,7 @@ MODULE                        : gradle_project_name.app
     AgpFlags
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
-        TransitiveRClasses            : true
+        TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug

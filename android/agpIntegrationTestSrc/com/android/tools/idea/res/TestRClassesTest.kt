@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findClass
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.loadNewFile
+import com.android.tools.idea.util.toIoFile
 import com.intellij.testFramework.VfsTestUtil.createFile
 import java.io.File
 import com.google.common.truth.Truth.assertThat
@@ -40,6 +41,8 @@ import com.intellij.psi.search.GlobalSearchScope
  * We use the [TestProjectPaths.PROJECT_WITH_APPAND_LIB] project and make `app` have an `androidTestImplementation` dependency on `lib`.
  */
 sealed class TestRClassesTest : AndroidGradleTestCase() {
+
+  protected open val disableNonTransitiveRClass = false
   override fun setUp() {
     super.setUp()
 
@@ -81,6 +84,12 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
         </resources>
       """.trimIndent()
     )
+
+    if (disableNonTransitiveRClass) {
+      File(project.guessProjectDir()!!.toIoFile(), "gradle.properties").appendText(
+        "android.nonTransitiveRClass=false"
+      )
+    }
 
     modifyGradleFiles(projectRoot)
     importProject()
@@ -150,6 +159,8 @@ class EnableNonTransitiveRClassTest: TestRClassesTest() {
 }
 
 class TransitiveTestRClassesTest : TestRClassesTest() {
+
+  override val disableNonTransitiveRClass = true
 
   fun testAppTestResources() {
     val androidTest = createFile(

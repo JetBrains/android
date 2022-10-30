@@ -162,8 +162,8 @@ class GradleBuildFileNamespaceRClassesTest : AndroidGradleTestCase() {
               // Module R class resources work as normal
               //    resource from app module:
               R.string.app_name,
-              //    resource from lib module:
-              R.string.libResource,
+              //    resource from lib module not recognized because of non-transitive R classes
+              R.string.${"libResource" highlightedAs HighlightSeverity.ERROR},
 
               // Fully qualified reference to lib module with package name from manifest:
               com.example.projectwithappandlib.lib.${"R" highlightedAs HighlightSeverity.ERROR}.string.libResource,
@@ -190,16 +190,21 @@ class GradleBuildFileNamespaceRClassesTest : AndroidGradleTestCase() {
       public class RClassAndroidTest {
           void useResources() {
              int[] id = new int[] {
-              // Accessing resources transitively via the app module R Class
+              // Accessing resources transitively via the app module R Class should fail with non-transitive R classes enabled
               com.example.projectwithappandlib.app.test.R.string.${caret}appTestResource,
-              com.example.projectwithappandlib.app.test.R.string.libResource,
-              com.example.projectwithappandlib.app.test.R.color.primary_material_dark,
+              com.example.projectwithappandlib.app.test.R.string.${"libResource" highlightedAs HighlightSeverity.ERROR},
+              com.example.projectwithappandlib.app.test.R.color.${"primary_material_dark" highlightedAs HighlightSeverity.ERROR},
 
               // Main resources are not in the test R class:
               com.example.projectwithappandlib.app.test.R.string.${"app_name" highlightedAs HighlightSeverity.ERROR},
 
               // Main resources from dependencies are not in R class:
               com.example.projectwithappandlib.app.test.R.string.${"libTestResource" highlightedAs HighlightSeverity.ERROR},
+
+              // Fully qualified reference to lib module with package name from build.gradle DSL:
+              com.example.foo.libmodule.${"R" highlightedAs HighlightSeverity.ERROR}.string.libResource, //TODO: This is wrong
+
+              androidx.appcompat.R.color.primary_material_dark,
 
               R.string.app_name // Main R class is still accessible.
              };
@@ -212,13 +217,13 @@ class GradleBuildFileNamespaceRClassesTest : AndroidGradleTestCase() {
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
-    Truth.assertThat(myFixture.lookupElementStrings).containsAllOf(
-      "appTestResource", // app test resources
-      "libResource", // lib main resources
+    Truth.assertThat(myFixture.lookupElementStrings).contains(
+      "appTestResource" // app test resources
     )
 
     // Private resources are filtered out.
     Truth.assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
+    Truth.assertThat(myFixture.lookupElementStrings).doesNotContain("libResource")
   }
 
   fun testLibTestResources() {
@@ -233,10 +238,11 @@ class GradleBuildFileNamespaceRClassesTest : AndroidGradleTestCase() {
           void useResources() {
              int[] id = new int[] {
               com.example.foo.libmodule.test.R.string.${caret}libTestResource,
-              com.example.foo.libmodule.test.R.color.primary_material_dark,
+              
+              androidx.appcompat.R.color.primary_material_dark,
 
-              // Main resources are in the test R class:
-              com.example.foo.libmodule.test.R.string.libResource,
+              // Main resources are accessible:
+              com.example.foo.libmodule.R.string.libResource,
 
               ${"R" highlightedAs HighlightSeverity.ERROR}.string.libResource // Main R class is no longer accessible as the package name in build file is
                                                             // different to the current file.
@@ -250,12 +256,12 @@ class GradleBuildFileNamespaceRClassesTest : AndroidGradleTestCase() {
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()
-    Truth.assertThat(myFixture.lookupElementStrings).containsAllOf(
-      "libTestResource", // lib test resources
-      "libResource", // lib main resources
+    Truth.assertThat(myFixture.lookupElementStrings).contains(
+      "libTestResource" // lib test resources
     )
 
     // Private resources are filtered out.
     Truth.assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
+    Truth.assertThat(myFixture.lookupElementStrings).doesNotContain("libResource")
   }
 }

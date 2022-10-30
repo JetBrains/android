@@ -786,7 +786,7 @@ MODULE                        : project.app
     AgpFlags
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
-        TransitiveRClasses            : true
+        TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -1139,7 +1139,7 @@ MODULE                        : project.library
     AgpFlags
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
-        TransitiveRClasses            : true
+        TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -1451,7 +1451,7 @@ MODULE                        : project.library-remote
     AgpFlags
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
-        TransitiveRClasses            : true
+        TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug

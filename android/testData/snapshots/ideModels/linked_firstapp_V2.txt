@@ -527,7 +527,7 @@ MODULE                        : My_First_App.app
     AgpFlags
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
-        TransitiveRClasses            : true
+        TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -1993,7 +1993,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
     AgpFlags
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
-        TransitiveRClasses            : true
+        TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug

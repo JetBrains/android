@@ -599,7 +599,7 @@ MODULE                        : project.app
     AgpFlags
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
-        TransitiveRClasses            : true
+        TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -1906,7 +1906,7 @@ MODULE                        : project.library1
     AgpFlags
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
-        TransitiveRClasses            : true
+        TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -2729,7 +2729,7 @@ MODULE                        : project.library2
     AgpFlags
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
-        TransitiveRClasses            : true
+        TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug

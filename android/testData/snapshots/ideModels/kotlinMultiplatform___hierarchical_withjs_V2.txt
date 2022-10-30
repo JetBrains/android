@@ -665,7 +665,7 @@ MODULE                        : kotlinMultiPlatform.app
     AgpFlags
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
-        TransitiveRClasses            : true
+        TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -2333,7 +2333,7 @@ MODULE                        : kotlinMultiPlatform.module2
     AgpFlags
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
-        TransitiveRClasses            : true
+        TransitiveRClasses            : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
