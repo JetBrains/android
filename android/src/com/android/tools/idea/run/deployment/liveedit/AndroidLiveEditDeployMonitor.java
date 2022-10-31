@@ -154,6 +154,7 @@ public class AndroidLiveEditDeployMonitor {
   // when things go wrong. This will be changed in the final product.
   private static final LogWrapper LOGGER = new LogWrapper(Logger.getInstance(AndroidLiveEditDeployMonitor.class));
 
+  private static final EditStatus LOADING = new EditStatus(EditState.LOADING, "Application being deployed", null);
   private static final EditStatus UPDATE_IN_PROGRESS = new EditStatus(EditState.IN_PROGRESS, "Live edit update in progress", null);
 
   private static final EditStatus DISCONNECTED = new EditStatus(EditState.PAUSED, "No apps are ready to receive live edits", null);
@@ -194,13 +195,18 @@ public class AndroidLiveEditDeployMonitor {
           result = DISCONNECTED;
         }
         else {
+          boolean appAlive = Arrays.stream(device.getClients()).anyMatch(c -> applicationId.equals(c.getClientData().getPackageName()));
           if (s == null) {
             // Monitor for this device not initialized yet.
             result = DISABLED_STATUS;
           }
-          else if (s == DISCONNECTED && Arrays.stream(device.getClients()).anyMatch(c -> applicationId.equals(c.getClientData().getPackageName()))) {
+          else if (s == LOADING && appAlive) {
             // App has came online, so flip state to UP_TO_DATE.
             result = UP_TO_DATE;
+          }
+          else if (s != DISCONNECTED && s != LOADING && !appAlive) {
+            // App was running and has been terminated (or this was in disabled state already - this saves extra check), hide the indicator.
+            result = DISABLED_STATUS;
           }
           else {
             result = s;
@@ -285,6 +291,7 @@ public class AndroidLiveEditDeployMonitor {
         switch (status.getEditState()) {
           case PAUSED:
           case UP_TO_DATE:
+          case LOADING:
           case IN_PROGRESS:
           case RECOMPOSE_ERROR:
             return UPDATE_IN_PROGRESS;
@@ -335,7 +342,7 @@ public class AndroidLiveEditDeployMonitor {
         () -> {
           this.applicationId = applicationId;
           LiveEditService.getInstance(project).resetState();
-          updateEditStatus(device, LiveEditService.UP_TO_DATE_STATUS);
+          updateEditStatus(device, LOADING);
 
           LiveLiteralsMonitorHandler.DeviceType deviceType;
           if (device.isEmulator()) {

@@ -68,6 +68,7 @@ enum class EditState {
   PAUSED,           // No apps are ready to receive live edit updates or a compilation error is preventing push to the device.
   RECOMPOSE_NEEDED, // In manual mode, changes have been pushed to the devices but not recomposed yet.
   OUT_OF_DATE,      // In manual mode, changes have been detected but not pushed to the device yet.
+  LOADING,          // App is being deployed.
   IN_PROGRESS,      // Processing...
   UP_TO_DATE,       // The device and the code are in Sync.
   DISABLED          // LiveEdit has been disabled (via UI or custom properties).
