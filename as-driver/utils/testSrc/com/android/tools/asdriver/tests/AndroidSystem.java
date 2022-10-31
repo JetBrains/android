@@ -17,6 +17,7 @@ package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
 import com.android.utils.PathUtils;
+import com.google.common.base.Preconditions;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +39,8 @@ import org.junit.runners.model.Statement;
  * It has a display, environment variables, a file system etc.
  */
 public class AndroidSystem implements AutoCloseable, TestRule {
+  private static final Emulator.SystemImage DEFAULT_EMULATOR_SYSTEM_IMAGE = Emulator.SystemImage.API_29;
+
   private final TestFileSystem fileSystem;
   private final HashMap<String, String> env;
   private final Display display;
@@ -46,7 +49,6 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   // Currently running emulators
   private List<Emulator> emulators;
   private int nextPort = 8554;
-  private String emulatorImagePath = "system_image_android-29_default_x86_64";
 
   @Nullable
   private static Throwable initializedAt = null;
@@ -148,14 +150,13 @@ public class AndroidSystem implements AutoCloseable, TestRule {
                          "go/e2e-find-log-files for more information on how to diagnose test issues.");
     }));
   }
+
   /**
    * Assumes there is only one AndroidStudio installed in the system.
    * If there are multiple it will throw an exception.
    */
   public AndroidStudioInstallation getInstallation() {
-    if (install == null) {
-      throw new IllegalStateException("Android studio has not been installed on this system.");
-    }
+    Preconditions.checkState(install != null, "Android studio has not been installed on this system.");
     return install;
   }
 
@@ -175,25 +176,38 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     repo.install(fileSystem.getRoot(), install, env);
   }
 
+  /** Runs and returns an emulator using the default {@link Emulator.SystemImage}. */
   public Emulator runEmulator() throws IOException, InterruptedException {
+    return runEmulator(DEFAULT_EMULATOR_SYSTEM_IMAGE);
+  }
+
+  /**
+   * Runs an emulator using the default {@link Emulator.SystemImage}, providing it to the {@code callback} and then calling
+   * {@link Emulator#close()}.
+   */
+  public void runEmulator(Consumer<Emulator> callback) throws IOException, InterruptedException {
+    runEmulator(DEFAULT_EMULATOR_SYSTEM_IMAGE, callback);
+  }
+
+  /**
+   * Runs an emulator using the given {@link Emulator.SystemImage}, providing it to the {@code callback} and then calling
+   * {@link Emulator#close()}.
+   */
+  public void runEmulator(Emulator.SystemImage systemImage, Consumer<Emulator> callback) throws IOException, InterruptedException {
+    try (Emulator emulator = runEmulator(systemImage)) {
+      callback.accept(emulator);
+    }
+  }
+
+  /** Runs and returns an emulator using the given {@link Emulator.SystemImage}. */
+  public Emulator runEmulator(Emulator.SystemImage systemImage) throws IOException, InterruptedException {
     String curEmulatorName = String.format("emu%d", emulators.size());
-    Path workspaceRoot = TestUtils.getWorkspaceRoot(emulatorImagePath);
+    Path workspaceRoot = TestUtils.getWorkspaceRoot(systemImage.path);
     Emulator.createEmulator(fileSystem, curEmulatorName, workspaceRoot);
     // Increase grpc port by one after spawning an emulator to avoid conflict
     Emulator emulator = Emulator.start(fileSystem, sdk, display, curEmulatorName, nextPort++);
     emulators.add(emulator);
     return emulator;
-  }
-
-  public void runEmulator(Consumer<Emulator> callback) throws IOException, InterruptedException {
-    try (Emulator emulator = runEmulator()) {
-      callback.accept(emulator);
-    }
-  }
-
-  public AndroidSystem setEmulatorImagePath(String systemImagePath) {
-    this.emulatorImagePath = systemImagePath;
-    return this;
   }
 
   public Adb runAdb() throws IOException {
