@@ -58,6 +58,7 @@ internal const val SCREEN_SHARING_AGENT_SOURCE_PATH = "tools/adt/idea/emulator/s
 internal const val DEVICE_PATH_BASE = "/data/local/tmp/.studio"
 const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x01 // Keep in sync with flags.h
 const val MAX_BIT_RATE_EMULATOR = 2000000
+const val DEFAULT_AGENT_LOG_LEVEL = "info"
 
 internal class DeviceClient(
   disposableParent: Disposable,
@@ -209,13 +210,15 @@ internal class DeviceClient(
     val flagsArg = if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) " --flags=$TURN_OFF_DISPLAY_WHILE_MIRRORING"
                    else ""
     val maxBitRateArg = if (deviceSerialNumber.startsWith("emulator-")) " --max_bit_rate=$MAX_BIT_RATE_EMULATOR" else ""
+    val logLevelArg = if (StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get() == DEFAULT_AGENT_LOG_LEVEL) ""
+                      else " --log=${StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get()}"
     val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
                   " com.android.tools.screensharing.Main" +
                   " --max_size=${maxVideoSize.width},${maxVideoSize.height}" +
                   orientationArg +
                   flagsArg +
                   maxBitRateArg +
-                  " --log=${StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get()}" +
+                  logLevelArg +
                   " --codec=${StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()}"
     // Use a coroutine scope that not linked to the lifecycle of the client to make sure that
     // the agent has a chance to terminate gracefully when the client is disposed rather than

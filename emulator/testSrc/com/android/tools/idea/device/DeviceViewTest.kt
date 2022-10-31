@@ -178,8 +178,7 @@ internal class DeviceViewTest {
     }
     createDeviceView(200, 300, 2.0)
     assertThat(agent.commandLine).isEqualTo("CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process" +
-                                            " $DEVICE_PATH_BASE com.android.tools.screensharing.Main" +
-                                            " --max_size=400,600 --log=debug --codec=vp8")
+                                            " $DEVICE_PATH_BASE com.android.tools.screensharing.Main --max_size=400,600 --codec=vp8")
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(61, 0, 277, 600))
     assertThat(view.displayOrientationQuadrants).isEqualTo(0)
