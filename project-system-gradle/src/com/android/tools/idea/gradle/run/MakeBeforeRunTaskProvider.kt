@@ -19,7 +19,6 @@ import com.android.builder.model.PROPERTY_APK_SELECT_CONFIG
 import com.android.builder.model.PROPERTY_BUILD_ABI
 import com.android.builder.model.PROPERTY_BUILD_API
 import com.android.builder.model.PROPERTY_BUILD_API_CODENAME
-import com.android.builder.model.PROPERTY_BUILD_DENSITY
 import com.android.builder.model.PROPERTY_BUILD_WITH_STABLE_IDS
 import com.android.builder.model.PROPERTY_DEPLOY_AS_INSTANT_APP
 import com.android.builder.model.PROPERTY_EXTRACT_INSTANT_APK
@@ -364,9 +363,6 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
           if (version.codename != null) {
             properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API_CODENAME, version.codename!!))
           }
-        }
-        deviceSpec.density?.let { density ->
-          properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_DENSITY, density.resourceValue))
         }
         if (deviceSpec.abis.isNotEmpty()) {
           properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(deviceSpec.abis)))

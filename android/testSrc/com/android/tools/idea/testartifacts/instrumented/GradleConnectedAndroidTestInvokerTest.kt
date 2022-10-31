@@ -575,7 +575,6 @@ class GradleConnectedAndroidTestInvokerTest {
       argThat {
         it?.run {
           arguments.contains("-Pandroid.injected.build.api=30") &&
-          arguments.contains("-Pandroid.injected.build.density=xxhdpi") &&
           arguments.contains("-Pandroid.injected.build.abi=x86,x86_64")
         } ?: false
       },
