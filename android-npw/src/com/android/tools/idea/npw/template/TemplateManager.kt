@@ -159,9 +159,6 @@ class TemplateManager private constructor() {
 
   @GuardedBy("CATEGORY_TABLE_LOCK")
   private fun addTemplateToTable(template: Template) = with(template) {
-    if (category == Category.Compose && !StudioFlags.COMPOSE_WIZARD_TEMPLATES.get()) {
-      return
-    }
     val existingTemplate = _categoryTable!![category, name]
     if (existingTemplate == null) {
       _categoryTable!!.put(category, name, TemplateInfo(template.minSdk, template.constraints))

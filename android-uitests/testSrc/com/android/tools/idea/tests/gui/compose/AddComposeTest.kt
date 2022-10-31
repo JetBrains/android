@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.compose
 
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_WIZARD_TEMPLATES
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture.ActivityTextField.NAME
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
@@ -24,8 +23,6 @@ import com.android.tools.idea.tests.util.WizardUtils.createNewProject
 import com.android.tools.idea.wizard.template.Language.Kotlin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -34,16 +31,6 @@ import org.junit.runner.RunWith
 class AddComposeTest {
   @get:Rule
   val guiTest = GuiTestRule()
-
-  @Before
-  fun setup() {
-    COMPOSE_WIZARD_TEMPLATES.override(true)
-  }
-
-  @After
-  fun cleanUp() {
-    COMPOSE_WIZARD_TEMPLATES.clearOverride()
-  }
 
   /**
    * Verifies that user is able to create a new Compose Activity Project through the

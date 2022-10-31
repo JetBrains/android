@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.compose
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.android.tools.idea.tests.util.WizardUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,16 +29,6 @@ import java.util.concurrent.TimeUnit
 class NewComposeProjectTest {
   @get:Rule
   val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
-
-  @Before
-  fun setup() {
-    StudioFlags.COMPOSE_WIZARD_TEMPLATES.override(true)
-  }
-
-  @After
-  fun cleanUp() {
-    StudioFlags.COMPOSE_WIZARD_TEMPLATES.clearOverride()
-  }
 
   /**
    * Verifies that user is able to create a new Compose Activity Project through the

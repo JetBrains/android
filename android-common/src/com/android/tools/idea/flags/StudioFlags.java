@@ -95,11 +95,6 @@ public final class StudioFlags {
     NPW, "new.macro.benchmark.module", "New Macro Benchmark Module",
     "Show template to create a new Macro Benchmark module in the new module wizard.",
     true);
-
-  public static final Flag<Boolean> NPW_MATERIAL3_ENABLED = Flag.create(
-    NPW, "new.material3.templates", "New Material3 Templates",
-    "Enable the new material 3 templates.",
-    true);
   //endregion
 
   //region Memory Usage Reporting
@@ -1113,13 +1108,6 @@ public final class StudioFlags {
     COMPOSE, "editor.function.extraction",
     "Enables extracting @Composable function from other composables",
     "If enabled, function extracted from @Composable function will annotated @Composable",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_WIZARD_TEMPLATES = Flag.create(
-    COMPOSE, "wizard.templates",
-    "Show Compose Wizards",
-    "If enabled, allows adding new Compose Projects/Modules/Activities through the wizards",
     true
   );
 
