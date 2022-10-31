@@ -18,11 +18,13 @@ package com.android.tools.idea.concurrency
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -68,8 +70,8 @@ class UniqueTaskCoroutineLauncherTest {
       myJob = coroutineScope.launch { myTask() }
       myJob.join()
     } catch (e: CancellationException) {
-      // Use runBlocking to make sure to wait until the cancellation is completed.
-      runBlocking {
+      // Use NonCancellable to make sure to wait until the cancellation is completed.
+      withContext(NonCancellable) {
         myJob?.cancelAndJoin()
         throw e
       }

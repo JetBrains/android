@@ -119,6 +119,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -130,7 +131,6 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.TestOnly
@@ -1394,8 +1394,8 @@ class ComposePreviewRepresentation(
         // this point, the compilation was completed or no compilation was done. Either way,
         // a compilation result was already sent through the channel. However, the refresh
         // may still need to be cancelled.
-        // Use runBlocking to make sure to wait until the cancellation is completed.
-        runBlocking {
+        // Use NonCancellable to make sure to wait until the cancellation is completed.
+        withContext(NonCancellable) {
           deferredCompilationResult.complete(CompilationResult.CompilationAborted())
           refreshJob?.cancelAndJoin()
           throw e
