@@ -662,4 +662,3 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
     void customizeAgentConfig(@NotNull Agent.AgentConfig.Builder configBuilder, @Nullable AndroidRunConfigurationBase runConfig);
   }
 }
-
