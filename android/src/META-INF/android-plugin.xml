@@ -734,10 +734,6 @@
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
                     interface="com.android.tools.idea.sdk.IdeSdks$AndroidSdkEventListener"/>
     <extensionPoint qualifiedName="com.android.run.deployTargetProvider" interface="com.android.tools.idea.run.editor.DeployTargetProvider" />
-    <extensionPoint qualifiedName="com.android.ide.projectStructureItemsContributor"
-                    interface="com.android.tools.idea.structure.dialog.ProjectStructureItemsContributor"/>
-    <extensionPoint qualifiedName="com.android.ide.moduleStructureConfigurableContributor"
-                    interface="com.android.tools.idea.structure.dialog.ModuleStructureConfigurableContributor"/>
     <extensionPoint qualifiedName="com.android.ide.androidConfigurableContributor"
                     interface="com.android.tools.idea.structure.dialog.AndroidConfigurableContributor"/>
     <extensionPoint qualifiedName="com.android.run.androidDebugger" interface="com.android.tools.idea.run.editor.AndroidDebugger" />
