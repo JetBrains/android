@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.animation.picker
 
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingValidation
 import com.android.tools.idea.compose.pickers.base.property.MemoryParameterPropertyItem
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 
@@ -23,8 +24,12 @@ import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
  * A [PsiPropertyItem] that only exists on memory. Listeners should be added to subscribe on changes
  * for this property.
  */
-class AnimatedPropertyItem(name: String, defaultValue: String?, override val namespace: String) :
-  MemoryParameterPropertyItem(name, defaultValue, { EDITOR_NO_ERROR }) {
+class AnimatedPropertyItem(
+  name: String,
+  defaultValue: String?,
+  inputValidation: EditingValidation = { EDITOR_NO_ERROR },
+  override val namespace: String
+) : MemoryParameterPropertyItem(name, defaultValue, inputValidation) {
 
   // TODO(b/256584578) Add a property validation.
 

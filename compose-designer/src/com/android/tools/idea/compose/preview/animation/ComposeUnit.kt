@@ -16,7 +16,12 @@
 package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimatedProperty
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.idea.compose.preview.animation.picker.AnimatedPropertyItem
+import com.android.tools.idea.compose.preview.animation.validation.DoubleValidation
+import com.android.tools.idea.compose.preview.animation.validation.DpValidation
+import com.android.tools.idea.compose.preview.animation.validation.FloatValidation
+import com.android.tools.idea.compose.preview.animation.validation.IntValidation
 import com.android.tools.idea.compose.preview.message
 import java.lang.reflect.Method
 
@@ -39,7 +44,7 @@ object ComposeUnit {
 
     fun createProperties(prefix: String): List<AnimatedPropertyItem> =
       components.mapIndexed { index, component ->
-        AnimatedPropertyItem("${prefix}.$index", "$component", "Any")
+        AnimatedPropertyItem("${prefix}.$index", "$component", { EDITOR_NO_ERROR }, "Any")
       }
 
     fun parseUnit(getValue: (Int) -> String?): Unit<*>?
@@ -129,7 +134,7 @@ object ComposeUnit {
 
   class IntUnit(value: Int) : Unit1D<Int>(value) {
     override fun createProperties(prefix: String) =
-      listOf(AnimatedPropertyItem(prefix, "$component1", "Int"))
+      listOf(AnimatedPropertyItem(prefix, "$component1", { EDITOR_NO_ERROR }, "Int"))
 
     override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
       return try {
@@ -144,7 +149,7 @@ object ComposeUnit {
 
   class DoubleUnit(value: Double) : Unit1D<Double>(value) {
     override fun createProperties(prefix: String) =
-      listOf(AnimatedPropertyItem(prefix, "$component1", "Double"))
+      listOf(AnimatedPropertyItem(prefix, "$component1", DoubleValidation, "Double"))
 
     override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
       return try {
@@ -159,7 +164,7 @@ object ComposeUnit {
 
   class FloatUnit(value: Float) : Unit1D<Float>(value) {
     override fun createProperties(prefix: String) =
-      listOf(AnimatedPropertyItem(prefix, "$component1", "Float"))
+      listOf(AnimatedPropertyItem(prefix, "$component1", FloatValidation, "Float"))
 
     override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
       return try {
@@ -178,7 +183,7 @@ object ComposeUnit {
     override fun toString(): String = any.toString()
 
     override fun createProperties(prefix: String) =
-      listOf(AnimatedPropertyItem(prefix, "$any", "Any"))
+      listOf(AnimatedPropertyItem(prefix, "$any", { EDITOR_NO_ERROR }, "Any"))
 
     override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
       // TODO Not supported at the moment.
@@ -209,7 +214,7 @@ object ComposeUnit {
 
     override fun createProperties(prefix: String) =
       components.mapIndexed { index, component ->
-        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", "Int")
+        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", IntValidation, "Int")
       }
 
     override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
@@ -246,7 +251,7 @@ object ComposeUnit {
 
     override fun createProperties(prefix: String) =
       components.mapIndexed { index, component ->
-        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", "Int")
+        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", IntValidation, "Int")
       }
 
     override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
@@ -278,7 +283,7 @@ object ComposeUnit {
     override fun toString(): String = "${component1}dp"
 
     override fun createProperties(prefix: String) =
-      listOf(AnimatedPropertyItem(prefix, "$component1", "Float"))
+      listOf(AnimatedPropertyItem(prefix, "$component1", DpValidation, "Float"))
 
     override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
       return try {
@@ -312,7 +317,7 @@ object ComposeUnit {
 
     override fun createProperties(prefix: String) =
       components.mapIndexed { index, component ->
-        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", "Float")
+        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", FloatValidation, "Float")
       }
 
     override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
@@ -351,7 +356,7 @@ object ComposeUnit {
 
     override fun createProperties(prefix: String) =
       components.mapIndexed { index, component ->
-        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", "Float")
+        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", FloatValidation, "Float")
       }
 
     override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
@@ -390,7 +395,7 @@ object ComposeUnit {
 
     override fun createProperties(prefix: String) =
       components.mapIndexed { index, component ->
-        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", "Float")
+        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", FloatValidation, "Float")
       }
 
     override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
@@ -438,7 +443,7 @@ object ComposeUnit {
 
     override fun createProperties(prefix: String) =
       components.mapIndexed { index, component ->
-        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", "Color")
+        AnimatedPropertyItem(COMPONENT_NAMES[index], "$component", FloatValidation, "Color")
       }
 
     override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
