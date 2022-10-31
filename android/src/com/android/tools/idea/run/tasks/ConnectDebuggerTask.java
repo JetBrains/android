@@ -16,9 +16,8 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.LaunchInfo;
-import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
-import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
+import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,8 +25,5 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface ConnectDebuggerTask {
 
-  void perform(@NotNull LaunchInfo launchInfo,
-               @NotNull IDevice device,
-               @NotNull ProcessHandlerLaunchStatus state,
-               @NotNull ProcessHandlerConsolePrinter printer);
+  void perform(@NotNull IDevice device, @NotNull ExecutionEnvironment environment, @NotNull ProcessHandler oldProcessHandler);
 }

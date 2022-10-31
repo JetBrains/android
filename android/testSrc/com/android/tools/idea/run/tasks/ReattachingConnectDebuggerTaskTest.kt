@@ -24,15 +24,10 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.logcat.AndroidLogcatService
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.LaunchInfo
-import com.android.tools.idea.run.ProcessHandlerConsolePrinter
 import com.android.tools.idea.run.debug.createFakeExecutionEnvironment
 import com.android.tools.idea.run.editor.AndroidDebuggerState
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
-import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
 import com.google.common.truth.Truth.assertThat
-import com.intellij.execution.executors.DefaultDebugExecutor
-import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.application.ApplicationManager
@@ -110,9 +105,6 @@ class ReattachingConnectDebuggerTaskTest {
     val reattachingDebuggerTask = ReattachingConnectDebuggerTask(AndroidJavaDebugger(), AndroidDebuggerState(), applicationIdProvider,
                                                                  MASTER_PROCESS_NAME, 15)
 
-    val launchInfo = LaunchInfo(DefaultDebugExecutor.getDebugExecutorInstance(), executionEnvironment.runner,
-                                executionEnvironment) { _, _, _ -> ConsoleViewImpl(project, true) }
-
     val androidProcessHandler = AndroidProcessHandler(project, APP_ID)
 
     val firstStartDebugLatch = CountDownLatch(1)
@@ -120,8 +112,7 @@ class ReattachingConnectDebuggerTaskTest {
       firstStartDebugLatch.countDown()
     }
 
-    reattachingDebuggerTask.perform(launchInfo, device, ProcessHandlerLaunchStatus(androidProcessHandler),
-                                    ProcessHandlerConsolePrinter(androidProcessHandler))
+    reattachingDebuggerTask.perform(device, executionEnvironment, androidProcessHandler)
 
     if (!firstStartDebugLatch.await(20, TimeUnit.SECONDS)) {
       Assert.fail("First session tab wasn't open")

@@ -17,15 +17,14 @@ package com.android.tools.idea.run.tasks
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.LaunchInfo
-import com.android.tools.idea.run.ProcessHandlerConsolePrinter
 import com.android.tools.idea.run.configuration.execution.DebugSessionStarter
 import com.android.tools.idea.run.debug.showError
 import com.android.tools.idea.run.editor.AndroidDebugger
 import com.android.tools.idea.run.editor.AndroidDebuggerState
-import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -45,21 +44,21 @@ class ReattachingConnectDebuggerTask<S : AndroidDebuggerState>(
   private val masterAndroidProcessName: String,
   private var timeoutSeconds: Int) : ConnectDebuggerTask {
 
-  override fun perform(launchInfo: LaunchInfo, device: IDevice, status: ProcessHandlerLaunchStatus, printer: ProcessHandlerConsolePrinter) {
+  override fun perform(device: IDevice,
+                       environment: ExecutionEnvironment,
+                       oldProcessHandler: ProcessHandler) {
     val applicationIdProvider = applicationIdProvider
     val logger = Logger.getInstance(ReattachingConnectDebuggerTask::class.java)
-    val oldProcessHandler = status.processHandler
     // Reuse the current ConsoleView to retain the UI state and not to lose test results.
     val androidTestResultListener = oldProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY) as? ConsoleView
     logger.info("Attaching Java debugger")
 
-    val env = launchInfo.env
 
     DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
       device,
       applicationIdProvider.packageName,
       masterAndroidProcessName,
-      env,
+      environment,
       androidDebugger,
       androidDebuggerState,
       destroyRunningProcess = { },
@@ -72,7 +71,7 @@ class ReattachingConnectDebuggerTask<S : AndroidDebuggerState>(
       }
       .onError {
         if (it is ExecutionException) {
-          showError(env.project, it, env.runProfile.name)
+          showError(environment.project, it, environment.runProfile.name)
         }
         else if (it !is ProcessCanceledException) {
           logger.error(it)

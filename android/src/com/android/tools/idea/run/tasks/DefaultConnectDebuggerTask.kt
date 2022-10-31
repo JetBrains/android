@@ -20,18 +20,16 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.LaunchInfo
-import com.android.tools.idea.run.ProcessHandlerConsolePrinter
 import com.android.tools.idea.run.configuration.execution.DebugSessionStarter
 import com.android.tools.idea.run.debug.showError
 import com.android.tools.idea.run.editor.AndroidDebugger
 import com.android.tools.idea.run.editor.AndroidDebuggerContext
 import com.android.tools.idea.run.editor.AndroidDebuggerState
-import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
@@ -75,34 +73,31 @@ class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
   }
 
   override fun perform(
-    launchInfo: LaunchInfo,
     device: IDevice,
-    state: ProcessHandlerLaunchStatus,
-    printer: ProcessHandlerConsolePrinter
+    environment: ExecutionEnvironment,
+    oldProcessHandler: ProcessHandler
   ) {
-    val processHandler = state.processHandler
     // Reuse the current ConsoleView to retain the UI state and not to lose test results.
-    val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY) as? ConsoleView
+    val androidTestResultListener = oldProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY) as? ConsoleView
     LOG.info("Attaching ${debugger.id} debugger")
 
-    val env = launchInfo.env
 
     DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
       myApplicationIds[0],
-      env,
+      environment,
       debugger,
       debuggerState,
       destroyRunningProcess = { d -> myApplicationIds.forEach { d.forceStop(it) } },
       androidTestResultListener,
       timeoutSeconds.toLong())
       .onSuccess { session ->
-        processHandler.detachProcess()
+        oldProcessHandler.detachProcess()
         session.showSessionTab()
       }
       .onError {
         if (it is ExecutionException) {
-          showError(project, it, env.runProfile.name)
+          showError(environment.project, it, environment.runProfile.name)
         }
         else {
           Logger.getInstance(this::class.java).error(it)
