@@ -48,6 +48,14 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
     val latencyLabel = JBLabel("Latency")
     val latencyComboBox = ComboBox<Any>()
 
+    val startupSeparator = TitledSeparator("Startup")
+
+    val orientationLabel = JBLabel("Orientation")
+    val orientationComboBox = ComboBox<Any>()
+
+    val defaultBootLabel = JBLabel("Default boot")
+    val defaultBootComboBox = ComboBox<Any>()
+
     layout = groupLayout(this) {
       horizontalGroup {
         parallelGroup {
@@ -84,6 +92,18 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
           sequentialGroup {
             component(latencyLabel)
             component(latencyComboBox)
+          }
+
+          component(startupSeparator)
+
+          sequentialGroup {
+            component(orientationLabel)
+            component(orientationComboBox)
+          }
+
+          sequentialGroup {
+            component(defaultBootLabel)
+            component(defaultBootComboBox)
           }
         }
       }
@@ -123,6 +143,18 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
           parallelGroup {
             component(latencyLabel)
             component(latencyComboBox, max = GroupLayout.PREFERRED_SIZE)
+          }
+
+          component(startupSeparator, max = GroupLayout.PREFERRED_SIZE)
+
+          parallelGroup {
+            component(orientationLabel)
+            component(orientationComboBox, max = GroupLayout.PREFERRED_SIZE)
+          }
+
+          parallelGroup {
+            component(defaultBootLabel)
+            component(defaultBootComboBox, max = GroupLayout.PREFERRED_SIZE)
           }
         }
       }
