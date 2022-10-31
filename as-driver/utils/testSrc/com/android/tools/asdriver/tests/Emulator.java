@@ -157,6 +157,11 @@ public class Emulator implements AutoCloseable {
     return portString;
   }
 
+  public String getSerialNumber() {
+    // In accordance with https://cs.android.com/android/platform/superproject/+/master:packages/modules/adb/SERVICES.TXT
+    return "emulator-" + portString;
+  }
+
   @Override
   public void close() throws InterruptedException {
     if (process != null) {

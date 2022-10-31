@@ -59,7 +59,7 @@ class Adb private constructor(
   fun waitForDevice(emulator: Emulator, duration: Duration) {
     runCommand("track-devices") {
       // https://cs.android.com/android/platform/superproject/+/fbe41e9a47a57f0d20887ace0fc4d0022afd2f5f:packages/modules/adb/SERVICES.TXT;l=23
-      waitForLog("([0-9a-f]{4})?emulator-${emulator.portString}\tdevice", duration)
+      waitForLog("([0-9a-f]{4})?${emulator.serialNumber}\tdevice", duration)
     }
   }
 
