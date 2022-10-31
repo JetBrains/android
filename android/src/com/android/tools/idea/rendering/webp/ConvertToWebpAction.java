@@ -51,6 +51,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.EdtReplacementThread;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -507,7 +508,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
     private List<WebpConvertedFile> findImages(@NotNull ProgressIndicator progressIndicator, @NotNull LinkedList<VirtualFile> images) {
       List<WebpConvertedFile> files = new ArrayList<>();
 
-      Set<String> launcherIconNames = getLauncherIconNames(images);
+      Set<String> launcherIconNames = ReadAction.compute(() -> getLauncherIconNames(images));
 
       while (!images.isEmpty()) {
         progressIndicator.checkCanceled();

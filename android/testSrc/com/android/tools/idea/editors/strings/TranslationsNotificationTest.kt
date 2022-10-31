@@ -18,7 +18,9 @@ package com.android.tools.idea.editors.strings
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
+import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.junit.Rule
 import org.junit.Test
 
@@ -40,7 +42,7 @@ class TranslationsNotificationTest {
       </resources>
       """.trimIndent()
     )
-    assertThat(StringResourceEditorProvider.canViewTranslations(projectRule.project, psiFile.virtualFile)).isTrue()
+    assertThat(canViewTranslations(psiFile)).isTrue()
   }
 
   @Test
@@ -54,7 +56,7 @@ class TranslationsNotificationTest {
       </resources>
       """.trimIndent()
     )
-    assertThat(StringResourceEditorProvider.canViewTranslations(projectRule.project, psiFile.virtualFile)).isFalse()
+    assertThat(canViewTranslations(psiFile)).isFalse()
   }
 
   @Test
@@ -69,6 +71,10 @@ class TranslationsNotificationTest {
       </resources>
       """.trimIndent()
     )
-    assertThat(StringResourceEditorProvider.canViewTranslations(projectRule.project, psiFile.virtualFile)).isTrue()
+    assertThat(canViewTranslations(psiFile)).isTrue()
+  }
+
+  private fun canViewTranslations(psiFile: PsiFile): Boolean {
+    return runReadAction { StringResourceEditorProvider.canViewTranslations(projectRule.project, psiFile.virtualFile) }
   }
 }
