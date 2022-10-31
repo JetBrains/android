@@ -40,6 +40,14 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
     val rearLabel = JBLabel("Rear")
     val rearComboBox = ComboBox<Any>()
 
+    val networkSeparator = TitledSeparator("Network")
+
+    val speedLabel = JBLabel("Speed")
+    val speedComboBox = ComboBox<Any>()
+
+    val latencyLabel = JBLabel("Latency")
+    val latencyComboBox = ComboBox<Any>()
+
     layout = groupLayout(this) {
       horizontalGroup {
         parallelGroup {
@@ -64,6 +72,18 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
           sequentialGroup {
             component(rearLabel)
             component(rearComboBox)
+          }
+
+          component(networkSeparator)
+
+          sequentialGroup {
+            component(speedLabel)
+            component(speedComboBox)
+          }
+
+          sequentialGroup {
+            component(latencyLabel)
+            component(latencyComboBox)
           }
         }
       }
@@ -91,6 +111,18 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
           parallelGroup {
             component(rearLabel)
             component(rearComboBox, max = GroupLayout.PREFERRED_SIZE)
+          }
+
+          component(networkSeparator, max = GroupLayout.PREFERRED_SIZE)
+
+          parallelGroup {
+            component(speedLabel)
+            component(speedComboBox, max = GroupLayout.PREFERRED_SIZE)
+          }
+
+          parallelGroup {
+            component(latencyLabel)
+            component(latencyComboBox, max = GroupLayout.PREFERRED_SIZE)
           }
         }
       }
