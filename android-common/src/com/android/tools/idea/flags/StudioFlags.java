@@ -824,6 +824,13 @@ public final class StudioFlags {
     ""
   );
 
+  public static final Flag<String> GRADLE_LOCAL_DISTRIBUTION_URL = Flag.create(
+    GRADLE_IDE, "local.distribution.url", "Local override for distributionUrl",
+    "When creating a project, Gradle updates the distributionUrl to point to a server accessible via the internet. When internet egress " +
+    "is unavailable, this flag can be used to override the server destination to be a local URI.",
+    ""
+  );
+
   //endregion
 
   //region Database Inspector

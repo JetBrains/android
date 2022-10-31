@@ -133,6 +133,18 @@ public class GradleWrapperTest extends PlatformTestCase {
     assertEquals(SdkConstants.GRADLE_LATEST_VERSION, GradleWrapper.getGradleVersionToUse());
   }
 
+  public void testLocalDistributionUrl() {
+    String version = "1.2.3";
+    boolean binOnly = true;
+
+    String localPath = "file:///some/local/path/";
+    StudioFlags.GRADLE_LOCAL_DISTRIBUTION_URL.override(localPath);
+    assertEquals(localPath + "gradle-1.2.3-bin.zip", GradleWrapper.getDistributionUrl(version, binOnly));
+
+    StudioFlags.GRADLE_LOCAL_DISTRIBUTION_URL.override("");
+    assertEquals("https://services.gradle.org/distributions/gradle-1.2.3-bin.zip", GradleWrapper.getDistributionUrl(version, binOnly));
+  }
+
   public void testUpdateDistributionUrlUpgradeGradleWrapper() throws IOException {
     // Test when we have a local/unofficial Gradle version, we can upgrade to a new official version.
     File projectPath = getProjectBaseDir();
