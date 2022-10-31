@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import com.android.tools.idea.grouplayout.GroupLayout.Companion.groupLayout
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.JBLabel
@@ -39,43 +40,60 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
     val rearLabel = JBLabel("Rear")
     val rearComboBox = ComboBox<Any>()
 
-    val layout = GroupLayout(this)
+    layout = groupLayout(this) {
+      horizontalGroup {
+        parallelGroup {
+          sequentialGroup {
+            component(sdkExtensionLevelLabel)
+            component(sdkExtensionLevelComboBox)
+          }
 
-    val horizontalGroup = layout.createParallelGroup()
-      .addGroup(layout.createSequentialGroup()
-                  .addComponent(sdkExtensionLevelLabel)
-                  .addComponent(sdkExtensionLevelComboBox))
-      .addGroup(layout.createSequentialGroup()
-                  .addComponent(deviceSkinLabel)
-                  .addComponent(deviceSkinComboBox)
-                  .addComponent(importButton))
-      .addComponent(cameraSeparator)
-      .addGroup(layout.createSequentialGroup()
-                  .addComponent(frontLabel)
-                  .addComponent(frontComboBox))
-      .addGroup(layout.createSequentialGroup()
-                  .addComponent(rearLabel)
-                  .addComponent(rearComboBox))
+          sequentialGroup {
+            component(deviceSkinLabel)
+            component(deviceSkinComboBox)
+            component(importButton)
+          }
 
-    val verticalGroup = layout.createSequentialGroup()
-      .addGroup(layout.createParallelGroup()
-                  .addComponent(sdkExtensionLevelLabel)
-                  .addComponent(sdkExtensionLevelComboBox, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-      .addGroup(layout.createParallelGroup()
-                  .addComponent(deviceSkinLabel)
-                  .addComponent(deviceSkinComboBox, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                  .addComponent(importButton))
-      .addComponent(cameraSeparator, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-      .addGroup(layout.createParallelGroup()
-                  .addComponent(frontLabel)
-                  .addComponent(frontComboBox, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-      .addGroup(layout.createParallelGroup()
-                  .addComponent(rearLabel)
-                  .addComponent(rearComboBox, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+          component(cameraSeparator)
 
-    layout.setHorizontalGroup(horizontalGroup)
-    layout.setVerticalGroup(verticalGroup)
+          sequentialGroup {
+            component(frontLabel)
+            component(frontComboBox)
+          }
 
-    setLayout(layout)
+          sequentialGroup {
+            component(rearLabel)
+            component(rearComboBox)
+          }
+        }
+      }
+
+      verticalGroup {
+        sequentialGroup {
+          parallelGroup {
+            component(sdkExtensionLevelLabel)
+            component(sdkExtensionLevelComboBox, max = GroupLayout.PREFERRED_SIZE)
+          }
+
+          parallelGroup {
+            component(deviceSkinLabel)
+            component(deviceSkinComboBox, max = GroupLayout.PREFERRED_SIZE)
+            component(importButton)
+          }
+
+          component(cameraSeparator, max = GroupLayout.PREFERRED_SIZE)
+
+          parallelGroup {
+            component(frontLabel)
+            component(frontComboBox, max = GroupLayout.PREFERRED_SIZE)
+          }
+
+          parallelGroup {
+            component(rearLabel)
+            component(rearComboBox, max = GroupLayout.PREFERRED_SIZE)
+          }
+        }
+      }
+    }
   }
 }
