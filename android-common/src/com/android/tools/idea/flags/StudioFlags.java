@@ -907,6 +907,10 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "agent.log.level", "On Device Logging Level for Mirroring",
     "The log level used by the screen sharing agent, one of \"verbose\", \"debug\", \"info\", \"warn\" or \"error\"",
     "info");
+  public static final Flag<Integer> DEVICE_MIRRORING_MAX_BIT_RATE = Flag.create(
+    DEVICE_MIRRORING, "max.bit.rate", "Maximum Bit Rate for Mirroring of Physical Devices",
+    "The maximum bit rate of video stream, zero means no limit",
+    0);
   public static final Flag<String> DEVICE_MIRRORING_VIDEO_CODEC = Flag.create(
     DEVICE_MIRRORING, "video.codec", "Video Codec Used for Mirroring of Physical Devices",
     "The name of a video codec, e.g. \"vp8\" or \"vp9\"",

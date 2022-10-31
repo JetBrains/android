@@ -209,7 +209,11 @@ internal class DeviceClient(
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
     val flagsArg = if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) " --flags=$TURN_OFF_DISPLAY_WHILE_MIRRORING"
                    else ""
-    val maxBitRateArg = if (deviceSerialNumber.startsWith("emulator-")) " --max_bit_rate=$MAX_BIT_RATE_EMULATOR" else ""
+    val maxBitRateArg = when {
+      deviceSerialNumber.startsWith("emulator-") -> " --max_bit_rate=$MAX_BIT_RATE_EMULATOR"
+      StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get() > 0 -> " --max_bit_rate=${StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get()}"
+      else -> ""
+    }
     val logLevelArg = if (StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get() == DEFAULT_AGENT_LOG_LEVEL) ""
                       else " --log=${StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get()}"
     val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
