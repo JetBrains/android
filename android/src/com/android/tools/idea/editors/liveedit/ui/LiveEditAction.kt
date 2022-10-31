@@ -72,7 +72,7 @@ class LiveEditAction(private val instanceEditor: Editor? = null) : DropDownActio
 
     val stateToIcon = hashMapOf<EditState, Icon>(
       EditState.ERROR to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InspectionsError, Color.RED),
-      EditState.PAUSED to ColoredIconGenerator.generateColoredIcon(AllIcons.General.InspectionsPause, Color.RED),
+      EditState.PAUSED to AllIcons.General.InspectionsPause,
       EditState.LOADING to AnimatedIcon.Default.INSTANCE,
       EditState.IN_PROGRESS to AnimatedIcon.Default.INSTANCE,
       EditState.UP_TO_DATE to AllIcons.General.InspectionsOK,
