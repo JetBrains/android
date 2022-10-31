@@ -21,6 +21,7 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Expect
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -50,7 +51,7 @@ class GradleSyncSpecialCasesIntegrationTest : GradleIntegrationTest {
     openPreparedProject("project") { project ->
       val manifestVirtualFile = VfsUtil.findFile(newManifestFile.toPath(), false)
       expect.that(manifestVirtualFile).isNotNull()
-      expect.that(manifestVirtualFile?.let { AndroidFacet.getInstance(it, project) }).isNotNull()
+      expect.that(manifestVirtualFile?.let { runReadAction {  AndroidFacet.getInstance(it, project) } }).isNotNull()
     }
   }
 
