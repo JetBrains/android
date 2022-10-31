@@ -16,13 +16,13 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.LaunchContext;
 import com.android.tools.idea.run.tasks.LaunchResult;
 import com.android.tools.idea.run.tasks.LaunchResult.Result;
 import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
@@ -32,6 +32,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
+import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentManager;
@@ -117,18 +118,11 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       ProcessHandlerLaunchStatus launchStatus = new ProcessHandlerLaunchStatus(myProcessHandler);
       ProcessHandlerConsolePrinter consolePrinter = new ProcessHandlerConsolePrinter(myProcessHandler);
       List<ListenableFuture<IDevice>> listenableDeviceFutures = myDeviceFutures.get();
-      AndroidVersion androidVersion = myDeviceFutures.getDevices().size() == 1
-                                      ? myDeviceFutures.getDevices().get(0).getVersion()
-                                      : null;
-      ConnectDebuggerTask debugSessionTask = isSwap() ? null : myLaunchTasksProvider.getConnectDebuggerTask();
+      boolean shouldConnectDebugger = myLaunchInfo.executor instanceof DefaultDebugExecutor && !isSwap();
 
-      if (debugSessionTask != null) {
-        if (listenableDeviceFutures.size() != 1) {
-          launchStatus.terminateLaunch("Cannot launch a debug session on more than 1 device.", true);
-          return;
-        }
-        // Copy over console output from the original console to the debug console once it is established.
-        AndroidProcessText.attach(myProcessHandler);
+      if (shouldConnectDebugger && listenableDeviceFutures.size() != 1) {
+        launchStatus.terminateLaunch("Cannot launch a debug session on more than 1 device.", true);
+        return;
       }
 
       printLaunchTaskStartedMessage(consolePrinter);
@@ -195,7 +189,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       final int totalScheduledStepsCount = launchTaskMap
         .values()
         .stream()
-        .mapToInt(launchTasks -> getTotalDuration(launchTasks, debugSessionTask))
+        .mapToInt(launchTasks -> getTotalDuration(launchTasks, shouldConnectDebugger))
         .sum();
 
       // A list of devices that we have launched application successfully.
@@ -229,14 +223,18 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       }
 
       // A debug session task should be performed sequentially at the end.
-      for (IDevice device : launchedDevices) {
-        if (debugSessionTask != null) {
-          indicator.setText(debugSessionTask.getDescription());
-          debugSessionTask.perform(myLaunchInfo, device, launchStatus, consolePrinter);
-          // Update the indicator progress bar.
-          completedStepsCount.set(completedStepsCount.get() + debugSessionTask.getDuration());
-          indicator.setFraction(completedStepsCount.get().floatValue() / totalScheduledStepsCount);
+      if (shouldConnectDebugger) {
+        assert launchedDevices.size() == 1;
+        IDevice device = launchedDevices.get(0);
+        ConnectDebuggerTask debuggerTask = myLaunchTasksProvider.getConnectDebuggerTask();
+        if (debuggerTask == null) {
+          throw new RuntimeException("ConnectDebuggerTask is null for task provider " + myLaunchTasksProvider.getClass().getName());
         }
+        indicator.setText("Connecting debugger");
+        debuggerTask.perform(myLaunchInfo, device, launchStatus, consolePrinter);
+        // Update the indicator progress bar.
+        completedStepsCount.set(completedStepsCount.get() + LaunchTaskDurations.CONNECT_DEBUGGER);
+        indicator.setFraction(completedStepsCount.get().floatValue() / totalScheduledStepsCount);
       }
     }
     finally {
@@ -432,15 +430,15 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     return true;
   }
 
-  private static int getTotalDuration(@NotNull List<LaunchTask> launchTasks, @Nullable ConnectDebuggerTask debugSessionTask) {
+  private static int getTotalDuration(@NotNull List<LaunchTask> launchTasks, boolean shouldConnectDebugger) {
     int total = 0;
 
     for (LaunchTask task : launchTasks) {
       total += task.getDuration();
     }
 
-    if (debugSessionTask != null) {
-      total += debugSessionTask.getDuration();
+    if (shouldConnectDebugger) {
+      total += LaunchTaskDurations.CONNECT_DEBUGGER;
     }
 
     return total;

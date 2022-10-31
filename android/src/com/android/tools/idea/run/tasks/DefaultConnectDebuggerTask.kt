@@ -67,14 +67,6 @@ class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
     }
   }
 
-  override fun getDescription(): String {
-    return "Connecting Debugger"
-  }
-
-  override fun getDuration(): Int {
-    return LaunchTaskDurations.CONNECT_DEBUGGER
-  }
-
   override fun setTimeoutSeconds(timeoutSeconds: Int) {
     myPollTimeoutSeconds = timeoutSeconds
   }

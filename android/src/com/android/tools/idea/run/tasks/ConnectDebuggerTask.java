@@ -23,10 +23,6 @@ import org.jetbrains.annotations.NotNull;
 
 /** A {@link ConnectDebuggerTask} is similar to a {@link LaunchTask}, except that running it creates a new launch descriptor and process. */
 public interface ConnectDebuggerTask {
-  @NotNull
-  String getDescription();
-
-  int getDuration();
 
   /**
    * Sets the timeout duration for the task.
