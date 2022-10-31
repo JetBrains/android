@@ -26,19 +26,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface ConnectDebuggerTask {
 
-  /**
-   * Sets the timeout duration for the task.
-   *
-   * @param timeoutSeconds timeout duration in seconds for this connect debugger task to be aborted. 0 or negative number means
-   *                       there is no timeout.
-   */
-  void setTimeoutSeconds(int timeoutSeconds);
-
-  /**
-   * Returns the timeout duration for the task.
-   */
-  int getTimeoutSeconds();
-
   void perform(@NotNull LaunchInfo launchInfo,
                @NotNull IDevice device,
                @NotNull ProcessHandlerLaunchStatus state,

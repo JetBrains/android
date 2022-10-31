@@ -37,17 +37,17 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.LinkedList
 
 class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
   private val debugger: AndroidDebugger<S>,
   private val debuggerState: S,
   applicationIdProvider: ApplicationIdProvider,
-  @JvmField val project: Project,
-  private val timeoutSeconds: Int
+  private val project: Project,
+  @VisibleForTesting val timeoutSeconds: Int
 ) : ConnectDebuggerTask {
   private val LOG = Logger.getInstance(DefaultConnectDebuggerTask::class.java)
-
 
   // The first entry in the list contains the main package name, and an optional second entry contains test package name.
   @JvmField
@@ -72,12 +72,6 @@ class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
       // not as severe as failing to obtain package id for main application
       LOG.warn("Unable to obtain test package name, will not connect debugger if tests don't instantiate main application")
     }
-  }
-
-  override fun setTimeoutSeconds(timeoutSeconds: Int) {}
-
-  override fun getTimeoutSeconds(): Int {
-    return timeoutSeconds
   }
 
   override fun perform(

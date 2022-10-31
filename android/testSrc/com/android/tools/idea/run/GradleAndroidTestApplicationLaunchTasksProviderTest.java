@@ -25,6 +25,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.run.editor.AndroidJavaDebugger;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
+import com.android.tools.idea.run.tasks.DefaultConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -119,7 +120,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       assertThat(task.getDuration()).isEqualTo(LaunchTaskDurations.LAUNCH_ACTIVITY);
     });
     assertThat(connectDebuggerTask).isNotNull();
-    assertThat(connectDebuggerTask.getTimeoutSeconds()).isEqualTo(Integer.MAX_VALUE);
+    assertThat(((DefaultConnectDebuggerTask)connectDebuggerTask).getTimeoutSeconds()).isEqualTo(Integer.MAX_VALUE);
   }
 
   public void testLaunchTaskProvidedForAllInPackageTest() throws Exception {

@@ -43,16 +43,7 @@ class ReattachingConnectDebuggerTask<S : AndroidDebuggerState>(
   private val androidDebuggerState: S,
   private val applicationIdProvider: ApplicationIdProvider,
   private val masterAndroidProcessName: String,
-  private var timeoutSeconds: Int
-) : ConnectDebuggerTask {
-
-  override fun setTimeoutSeconds(value: Int) {
-    timeoutSeconds = value
-  }
-
-  override fun getTimeoutSeconds(): Int {
-    return timeoutSeconds
-  }
+  private var timeoutSeconds: Int) : ConnectDebuggerTask {
 
   override fun perform(launchInfo: LaunchInfo, device: IDevice, status: ProcessHandlerLaunchStatus, printer: ProcessHandlerConsolePrinter) {
     val applicationIdProvider = applicationIdProvider
@@ -72,7 +63,9 @@ class ReattachingConnectDebuggerTask<S : AndroidDebuggerState>(
       androidDebugger,
       androidDebuggerState,
       destroyRunningProcess = { },
-      androidTestResultListener)
+      androidTestResultListener,
+      timeoutSeconds.toLong()
+    )
       .onSuccess { session ->
         oldProcessHandler.detachProcess()
         session.showSessionTab()
