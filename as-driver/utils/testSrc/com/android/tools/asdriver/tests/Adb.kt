@@ -66,10 +66,13 @@ class Adb private constructor(
   @Throws(IOException::class)
   fun runCommand(vararg command: String): Adb = exec(sdk, home, *command)
 
+  @Throws(IOException::class)
+  fun runCommand(vararg command: String, emulator: Emulator): Adb = exec(sdk, home, *command, emulator=emulator)
+
   @JvmSynthetic
   @Throws(IOException::class)
-  fun runCommand(vararg command: String, block: (Adb.() -> Unit)) {
-    exec(sdk, home, *command).use { with(it, block) }
+  fun runCommand(vararg command: String, emulator: Emulator? = null, block: (Adb.() -> Unit)) {
+    exec(sdk, home, *command, emulator=emulator).use { with(it, block) }
   }
 
   companion object {
@@ -87,7 +90,7 @@ class Adb private constructor(
     }
 
     @Throws(IOException::class)
-    private fun exec(sdk: AndroidSdk, home: Path, vararg params: String): Adb {
+    private fun exec(sdk: AndroidSdk, home: Path, vararg params: String, emulator: Emulator? = null): Adb {
       val logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "adb_logs")
       val stdout = logsDir.resolve("stdout.txt").also { Files.createFile(it) }
       val stderr = logsDir.resolve("stderr.txt").also { Files.createFile(it) }
@@ -100,6 +103,7 @@ class Adb private constructor(
         redirectOutput(stdout.toFile())
         redirectError(stderr.toFile())
         environment()["HOME"] = home.toString()
+        emulator?.let { environment()["ANDROID_SERIAL"] = emulator.serialNumber }
       }
       return Adb(sdk, home, pb.start(), stdout, stderr)
     }
