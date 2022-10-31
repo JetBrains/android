@@ -60,6 +60,8 @@ import javax.swing.JPanel
 import javax.swing.JTextArea
 import javax.swing.event.HyperlinkEvent
 
+const val HEAP_REPORTS_DIR = "heapReports"
+
 class AnalysisRunnable(val report: UnanalyzedHeapReport,
                        private val deleteAfterAnalysis: Boolean) : Runnable {
 
@@ -123,7 +125,7 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
         report.properties
       )
 
-      val heapReportDir = Paths.get(PathManager.getLogPath()).resolve("heapReports")
+      val heapReportDir = Paths.get(PathManager.getLogPath()).resolve(HEAP_REPORTS_DIR)
       heapReportDir.toFile().mkdirs()
       val datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
       val heapReportFile = heapReportDir.resolve(Paths.get("heapReport$datetime.txt"))

@@ -43,9 +43,7 @@ class DiagnosticSummaryAction : DumbAwareAction("Create Diagnostics Summary File
   companion object {
     @JvmStatic
     fun createSummaryFile(project: Project?) : String {
-      val fileInfo = DiagnosticSummaryFileProviders.map {
-        it.getFiles(project).filter { file -> Files.exists(file.source) }
-      }.flatten()
+      val fileInfo = buildFileList(project)
 
       val zipInfo = fileInfo.map { ZipData(it.source.toString(), it.destination.toString()) }.toTypedArray()
 
