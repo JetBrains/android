@@ -224,6 +224,10 @@ class LiveEditService private constructor(val project: Project, var listenerExec
     return editStatusProviders.stream().map { it.devices() }.flatMap { it.stream() }.collect(Collectors.toSet())
   }
 
+  fun notifyDebug(packageName: String, device: IDevice) {
+    deployMonitor.notifyDebug(packageName, device)
+  }
+
   fun getCallback(packageName: String, device: IDevice) : Callable<*>? {
     return deployMonitor.getCallback(packageName, device)
   }

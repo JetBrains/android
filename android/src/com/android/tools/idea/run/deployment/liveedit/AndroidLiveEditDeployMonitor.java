@@ -39,18 +39,21 @@ import com.android.tools.idea.editors.literals.EditEvent;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler;
 import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LiveEditEvent;
 import com.intellij.concurrency.JobScheduler;
+import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.ToolWindowId;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -168,6 +171,8 @@ public class AndroidLiveEditDeployMonitor {
 
   private static final EditStatus RECOMPOSE_ERROR = new EditStatus(EditState.RECOMPOSE_ERROR, "Error during recomposition.", null);
 
+  private static final EditStatus DEBUGGER_ATTACHED = new EditStatus(EditState.RECOMPOSE_ERROR, "The app is currently running in debugging or profiling mode. These modes are not compatible with Live Edit.", ToolWindowId.RUN);
+
   private final @NotNull Project project;
 
   private final @NotNull LinkedHashMap<String, SourceInlineCandidate> sourceInlineCandidateCache;
@@ -195,21 +200,33 @@ public class AndroidLiveEditDeployMonitor {
           result = DISCONNECTED;
         }
         else {
-          boolean appAlive = Arrays.stream(device.getClients()).anyMatch(c -> applicationId.equals(c.getClientData().getPackageName()));
-          if (s == null) {
-            // Monitor for this device not initialized yet.
-            result = DISABLED_STATUS;
-          }
-          else if (s == LOADING && appAlive) {
-            // App has came online, so flip state to UP_TO_DATE.
-            result = UP_TO_DATE;
-          }
-          else if (s != DISCONNECTED && s != LOADING && !appAlive) {
-            // App was running and has been terminated (or this was in disabled state already - this saves extra check), hide the indicator.
-            result = DISABLED_STATUS;
+          List<AndroidSessionInfo> info = AndroidSessionInfo.findActiveSession(project);
+          if (info != null &&
+              info.stream()
+                .filter(i -> DefaultDebugExecutor.getDebugExecutorInstance().getId().equals(i.getExecutorId()))
+                .map(AndroidSessionInfo::getProcessHandler)
+                .filter(p -> p instanceof AndroidRemoteDebugProcessHandler)
+                .map(p -> (AndroidRemoteDebugProcessHandler)p)
+                .anyMatch(p -> !(p.isProcessTerminating() || p.isProcessTerminated()) && p.isPackageRunning(d, applicationId))) {
+            result = DEBUGGER_ATTACHED;
           }
           else {
-            result = s;
+            boolean appAlive = Arrays.stream(device.getClients()).anyMatch(c -> applicationId.equals(c.getClientData().getPackageName()));
+            if (s == null) {
+              // Monitor for this device not initialized yet.
+              result = DISABLED_STATUS;
+            }
+            else if (s == LOADING && appAlive) {
+              // App has came online, so flip state to UP_TO_DATE.
+              result = UP_TO_DATE;
+            }
+            else if (s != DISCONNECTED && s != LOADING && !appAlive) {
+              // App was running and has been terminated (or this was in disabled state already - this saves extra check), hide the indicator.
+              result = DISABLED_STATUS;
+            }
+            else {
+              result = s;
+            }
           }
         }
         return result;
@@ -229,9 +246,7 @@ public class AndroidLiveEditDeployMonitor {
         .collect(Collectors.toSet());
 
       // Find all devices that were deployed by us (and not user-started).
-      Map<IDevice, EditStatus> results = new HashMap<>(editStatus);
-      results.keySet().retainAll(devices);
-      return results;
+      return editStatus.keySet().stream().filter(devices::contains).collect(Collectors.toMap(d -> d, this::status));
     }
 
     @NotNull
@@ -314,6 +329,10 @@ public class AndroidLiveEditDeployMonitor {
     liveEditService.addOnEditListener(editsListener::onLiteralsChanged);
     liveEditService.addEditStatusProvider(new EditStatusGetter());
     Disposer.register(liveEditService, editsListener);
+  }
+
+  public void notifyDebug(String applicationId, IDevice device) {
+    updateEditStatus(device, DEBUGGER_ATTACHED);
   }
 
   public Callable<?> getCallback(String applicationId, IDevice device) {
