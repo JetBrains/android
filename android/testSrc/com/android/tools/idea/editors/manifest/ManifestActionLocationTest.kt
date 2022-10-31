@@ -26,6 +26,7 @@ import com.android.tools.idea.util.toIoFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
+import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -72,7 +73,7 @@ class ManifestActionLocationTest {
   @Test
   fun getActionLocation_navigationFile() {
     val browsableRecord = mergedManifest.getOnlyNodeRecord("category#android.intent.category.BROWSABLE")
-    val browsablePosition = ManifestUtils.getActionLocation(projectRule.gradleModule(":app").getMainModule(), browsableRecord)
+    val browsablePosition = getActionLocation(browsableRecord)
 
     assertThat(browsablePosition.file.sourceFile).isNotNull()
     assertThat(browsablePosition.file.sourceFile)
@@ -85,7 +86,7 @@ class ManifestActionLocationTest {
   @Test
   fun getActionLocation_libraryManifest() {
     val metaDataRecord = mergedManifest.getOnlyNodeRecord("meta-data#libMetaData")
-    val metaDataPosition = ManifestUtils.getActionLocation(projectRule.gradleModule(":app").getMainModule(), metaDataRecord)
+    val metaDataPosition = getActionLocation(metaDataRecord)
 
     assertThat(metaDataPosition.file.sourceFile).isNotNull()
     assertThat(metaDataPosition.file.sourceFile)
@@ -100,12 +101,16 @@ class ManifestActionLocationTest {
   @Test
   fun getActionLocation_primaryManifest() {
     val launcherRecord = mergedManifest.getOnlyNodeRecord("action#android.intent.action.MAIN")
-    val launcherPosition = ManifestUtils.getActionLocation(projectRule.gradleModule(":app").getMainModule(), launcherRecord)
+    val launcherPosition = getActionLocation(launcherRecord)
 
     assertThat(launcherPosition.file.sourceFile).isNotNull()
     assertThat(launcherPosition.file.sourceFile)
       .isEqualTo(findProjectRelativeFile("app", "src", "main", "AndroidManifest.xml"))
     assertThat(launcherPosition.asText())
       .isEqualTo("<action android:name=\"android.intent.action.MAIN\"/>")
+  }
+
+  private fun getActionLocation(browsableRecord: Actions.NodeRecord): SourceFilePosition {
+    return runReadAction {  ManifestUtils.getActionLocation(projectRule.gradleModule(":app").getMainModule(), browsableRecord) }
   }
 }

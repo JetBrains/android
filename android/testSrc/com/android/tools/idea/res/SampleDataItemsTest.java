@@ -23,6 +23,7 @@ import com.google.common.truth.Truth;
 import com.intellij.mock.MockPsiFile;
 import com.intellij.mock.MockPsiManager;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Computable;
 import com.intellij.testFramework.LightVirtualFile;
@@ -46,13 +47,13 @@ public class SampleDataItemsTest {
 
   @Test
   public void testCsvParsing() {
-    MockPsiFile file = new MockPsiFile(new LightVirtualFile("test.csv"), new MockPsiManager(rule.getProject())) {
+    MockPsiFile file = ReadAction.compute(() -> new MockPsiFile(new LightVirtualFile("test.csv"), new MockPsiManager(rule.getProject())) {
       @Override
       @NotNull
       public String getName() {
         return "test.csv";
       }
-    };
+    });
     file.putUserData(ModuleUtilCore.KEY_MODULE, rule.getModule());
     file.text = "header0,header1\nA1,B1\nA2\nA3,B3";
 

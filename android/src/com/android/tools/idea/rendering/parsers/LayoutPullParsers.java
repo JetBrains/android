@@ -109,7 +109,7 @@ public class LayoutPullParsers {
   private static final String[] FONT_FAMILY_TAGS = {TAG_FONT_FAMILY};
 
   private static final EnumSet<ResourceFolderType> FOLDER_NEEDS_READ_ACCESS =
-    EnumSet.of(ResourceFolderType.DRAWABLE, ResourceFolderType.MENU, ResourceFolderType.XML, ResourceFolderType.FONT);
+    EnumSet.of(ResourceFolderType.DRAWABLE, ResourceFolderType.MIPMAP, ResourceFolderType.MENU, ResourceFolderType.XML, ResourceFolderType.FONT);
 
   /** Not instantiatable. */
   private LayoutPullParsers() {}
