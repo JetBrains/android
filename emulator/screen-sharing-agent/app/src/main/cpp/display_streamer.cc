@@ -17,6 +17,7 @@
 #include "display_streamer.h"
 
 #include <linux/uio.h>
+#include <sys/system_properties.h>
 #include <sys/uio.h>
 #include <unistd.h>
 
@@ -110,9 +111,11 @@ constexpr double MIN_VIDEO_RESOLUTION = 128;
 constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
 constexpr int BIT_RATE = 8000000;
 constexpr int BIT_RATE_REDUCED = 2000000;
+constexpr int BIT_RATE_EMULATOR = 400000;
 constexpr int I_FRAME_INTERVAL_SECONDS = 10;
 constexpr int REPEAT_FRAME_DELAY_MILLIS = 100;
 constexpr int CHANNEL_HEADER_LENGTH = 20;
+constexpr int PROPERTY_VALUE_MAX = 92;
 
 bool IsCodecResolutionLessThanDisplayResolution(Size codec_resolution, Size display_resolution) {
   return max(codec_resolution.width, codec_resolution.height) < max(display_resolution.width, display_resolution.height);
@@ -183,7 +186,8 @@ void ConfigureDisplay(const SurfaceControl& surface_control, jobject display_tok
 
 }  // namespace
 
-DisplayStreamer::DisplayStreamer(int display_id, string codec_name, Size max_video_resolution, int initial_video_orientation, int socket_fd)
+DisplayStreamer::DisplayStreamer(int32_t display_id, string codec_name, Size max_video_resolution, int32_t initial_video_orientation,
+                                 int32_t max_bit_rate, int socket_fd)
     : display_rotation_watcher_(this),
       display_id_(display_id),
       codec_name_(move(codec_name)),
@@ -193,6 +197,7 @@ DisplayStreamer::DisplayStreamer(int display_id, string codec_name, Size max_vid
       display_info_(),
       max_video_resolution_(max_video_resolution),
       video_orientation_(initial_video_orientation),
+      max_bit_rate_(max_bit_rate),
       running_codec_() {
   assert(socket_fd > 0);
 }
@@ -241,7 +246,10 @@ void DisplayStreamer::Run() {
     Log::D("display_info: %s", display_info.ToDebugString().c_str());
     // Use heuristics for determining a bit rate value that doesn't cause SIGABRT in the encoder (b/251659422).
     int32_t bit_rate = api_level < 32 && IsCodecResolutionLessThanDisplayResolution(codec_info->max_resolution, display_info.logical_size) ?
-                       BIT_RATE_REDUCED : BIT_RATE;
+        BIT_RATE_REDUCED : BIT_RATE;
+    if (max_bit_rate_ > 0 && bit_rate > max_bit_rate_) {
+      bit_rate = max_bit_rate_;
+    }
     AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_BIT_RATE, bit_rate);
     ANativeWindow* surface = nullptr;
     {

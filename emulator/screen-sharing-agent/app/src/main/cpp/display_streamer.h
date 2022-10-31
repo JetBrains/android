@@ -35,7 +35,8 @@ namespace screensharing {
 class DisplayStreamer : public DisplayManager::DisplayListener {
 public:
   // The display streamer takes ownership of the socket file descriptor and closes it when destroyed.
-  DisplayStreamer(int display_id, std::string codec_name, Size max_video_resolution, int initial_video_orientation, int socket_fd);
+  DisplayStreamer(
+      int display_id, std::string codec_name, Size max_video_resolution, int initial_video_orientation, int max_bitrate, int socket_fd);
   virtual ~DisplayStreamer() = default;
 
   void Run();
@@ -80,11 +81,12 @@ private:
   int socket_fd_;
   int64_t presentation_timestamp_offset_;
   std::atomic<bool> stopped_;
+  int32_t max_bit_rate_;
 
   std::mutex mutex_;
   DisplayInfo display_info_;  // GUARDED_BY(mutex_)
   Size max_video_resolution_;  // GUARDED_BY(mutex_)
-  int32_t video_orientation_;   // GUARDED_BY(mutex_)
+  int32_t video_orientation_;  // GUARDED_BY(mutex_)
   AMediaCodec* running_codec_;  // GUARDED_BY(mutex_)
 
   DISALLOW_COPY_AND_ASSIGN(DisplayStreamer);

@@ -62,6 +62,7 @@ private:
 
   static int32_t display_id_;
   static Size max_video_resolution_;
+  static int32_t max_bit_rate_;  // Zero means no limit.
   static int32_t initial_video_orientation_;  // In quadrants counterclockwise.
   static std::string codec_name_;
   static int32_t flags_;

@@ -105,6 +105,12 @@ Agent::Agent(const vector<string>& args) {
       if (*ptr != '\0') {
         InvalidCommandLineArgument(arg);
       }
+    } else if (arg.rfind("--max_bit_rate=", 0) == 0) {
+      char* ptr;
+      max_bit_rate_ = strtoul(arg.c_str() + sizeof("--max_bit_rate=") - 1, &ptr, 10);
+      if (*ptr != '\0') {
+        InvalidCommandLineArgument(arg);
+      }
     } else if (arg.rfind("--codec=", 0) == 0) {
       codec_name_ = arg.substr(sizeof("--codec=") - 1, arg.size());
     } else if (!arg.empty()) {  // For some unclear reason some command line arguments are empty strings.
@@ -125,7 +131,7 @@ void Agent::Run() {
   }
 
   display_streamer_ = new DisplayStreamer(
-      display_id_, codec_name_, max_video_resolution_, initial_video_orientation_, CreateAndConnectSocket(SOCKET_NAME));
+      display_id_, codec_name_, max_video_resolution_, initial_video_orientation_, max_bit_rate_, CreateAndConnectSocket(SOCKET_NAME));
   controller_ = new Controller(CreateAndConnectSocket(SOCKET_NAME));
   Log::D("Created video and control sockets");
   controller_->Start();
@@ -183,6 +189,7 @@ void Agent::RecordTouchEvent() {
 int32_t Agent::display_id_(0);
 Size Agent::max_video_resolution_(numeric_limits<int32_t>::max(), numeric_limits<int32_t>::max());
 int32_t Agent::initial_video_orientation_(-1);
+int32_t Agent::max_bit_rate_(0);
 string Agent::codec_name_("vp8");
 int32_t Agent::flags_(0);
 DisplayStreamer* Agent::display_streamer_(nullptr);
