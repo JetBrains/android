@@ -155,7 +155,7 @@ class GroupedGridSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
           if (!view.isVisible) {
             continue
           }
-          view.setLocation(nextX + view.margin.left + previewFramePadding, nextY + previewFramePadding)
+          setContentPosition(view, nextX + view.margin.left + previewFramePadding, nextY + previewFramePadding)
           nextX += previewFramePadding + view.scaledContentSize.width + view.margin.horizontal + previewFramePadding
           maxBottomInRow = max(maxBottomInRow,
                                nextY + previewFramePadding + view.margin.vertical + view.scaledContentSize.height + previewFramePadding)
@@ -168,5 +168,13 @@ class GroupedGridSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     }
 
     content.filterNot { it.isVisible }.forEach { it.setLocation(-1, -1) }
+  }
+
+  private fun setContentPosition(content: PositionableContent, x: Int, y: Int) {
+    // The new compose layout consider the toolbar size as the anchor of location.
+    val margin = content.margin
+    val shiftedX = x + margin.left
+    val shiftedY = y + margin.top
+    content.setLocation(shiftedX, shiftedY)
   }
 }

@@ -225,18 +225,9 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     }
 
     override fun setLocation(x: Int, y: Int) {
-      if (StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
-        // The new compose layout consider the toolbar size as the anchor of location.
-        val margin = this.margin
-        val shiftedX = x + margin.left
-        val shiftedY = y + margin.top
-        sceneView.setLocation(shiftedX, shiftedY)
-      }
-      else {
-        // The SceneView is painted right below the top toolbar panel.
-        // This use the top-left corner of preview as the anchor of location.
-        sceneView.setLocation(x, y)
-      }
+      // The SceneView is painted right below the top toolbar panel.
+      // This set the top-left corner of preview.
+      sceneView.setLocation(x, y)
 
       // After positioning the view, we re-apply the bounds to the SceneViewPanel.
       // We do this even if x & y did not change since the size might have.
