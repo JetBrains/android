@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
+import static com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverse.HeapSnapshotPresentationConfig.SizePresentationStyle.BYTES;
+import static com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverse.HeapSnapshotPresentationConfig.SizePresentationStyle.OPTIMAL_UNITS;
 import static com.android.tools.idea.util.StudioPathManager.isRunningFromSources;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
@@ -40,6 +42,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -118,27 +121,45 @@ public final class HeapSnapshotTraverseService {
     if (!agentSuccessfullyLoaded) {
       return;
     }
-    HeapSnapshotTraverse.collectAndWriteStats(LOG::info, ComponentsSet.buildComponentSet(), false);
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(new HeapTraverseConfig(ComponentsSet.buildComponentSetForIntegrationTesting(),
+      /*collectHistograms=*/true));
+    HeapSnapshotTraverse.collectAndWriteStats(LOG::info, stats,
+                                              new HeapSnapshotTraverse.HeapSnapshotPresentationConfig(
+                                                OPTIMAL_UNITS,
+                                                /*shouldLogSharedClusters=*/true,
+                                                /*shouldLogRetainedSizes=*/false));
   }
 
+  /**
+   * This method collects memory usage report and dumps it to memory_usage_report.log file. This method is used by the end2end integration
+   * testing for collecting components/categories owned sizes that will be reported to perfgate afterwards.
+   */
   public void collectMemoryReportAndDumpToMetricsFile() {
-    try (Writer writer = new BufferedWriter(new FileWriter(new File(PathManager.getLogPath(), "metrics.log")))) {
+    try (Writer writer = new BufferedWriter(
+      new FileWriter(new File(PathManager.getLogPath(), "memory_usage_report.log"), StandardCharsets.UTF_8))) {
       loadObjectTaggingAgent();
       if (!agentSuccessfullyLoaded) {
+        // integration test is configured to fail in case of a line with this prefix in a log file.
         writer.append(MEMORY_USAGE_REPORT_FAILURE_MESSAGE_PREFIX).append("Failed to load agent").append("\n");
         return;
       }
 
-      HeapSnapshotTraverse.collectAndWriteStats((String s) -> {
-        try {
-          writer.append(s).append("\n");
-        }
-        catch (IOException ignored) {
-        }
-      }, ComponentsSet.buildComponentSetForIntegrationTesting(), true);
+      HeapSnapshotTraverse.collectAndWriteStats(
+        (String s) -> {
+          try {
+            writer.append(s).append("\n");
+          }
+          catch (IOException e) {
+            LOG.warn(String.format("%s Failed to write to the memory report file", MEMORY_USAGE_REPORT_FAILURE_MESSAGE_PREFIX), e);
+          }
+        }, new HeapSnapshotStatistics(ComponentsSet.buildComponentSetForIntegrationTesting()),
+        new HeapSnapshotTraverse.HeapSnapshotPresentationConfig(
+          BYTES,
+          /*shouldLogSharedClusters=*/false,
+          /*shouldLogRetainedSizes=*/false));
     }
     catch (IOException e) {
-      LOG.error("Failed to write memory usage statistics to metrics.log file", e);
+      LOG.error("Failed to write to the memory report file", e);
     }
   }
 

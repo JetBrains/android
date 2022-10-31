@@ -1,0 +1,126 @@
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.diagnostics.heap;
+
+import static com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverse.HeapSnapshotPresentationConfig.SizePresentationStyle.OPTIMAL_UNITS;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+
+public class ExtendedReportStatistics {
+
+  @NotNull final List<ClassNameHistogram> componentHistograms;
+
+  @NotNull final List<ClassNameHistogram> categoryHistograms;
+
+  @NotNull final Long2ObjectMap<ClassNameHistogram> sharedClustersHistograms;
+
+  public ExtendedReportStatistics(@NotNull final HeapTraverseConfig config) {
+    this.componentHistograms = Lists.newArrayList();
+    this.categoryHistograms = Lists.newArrayList();
+    this.sharedClustersHistograms = new Long2ObjectOpenHashMap<>();
+
+    int componentIndex = 0;
+    for (ComponentsSet.Component component : config.getComponentsSet().getComponents()) {
+      componentHistograms.add(new ClassNameHistogram());
+      assert component.getId() == componentIndex;
+      componentIndex++;
+    }
+    int componentCategoryIndex = 0;
+    for (ComponentsSet.ComponentCategory componentCategory : config.getComponentsSet().getComponentsCategories()) {
+      categoryHistograms.add(new ClassNameHistogram());
+      assert componentCategory.getId() == componentCategoryIndex;
+      componentCategoryIndex++;
+    }
+  }
+
+  void addClassNameToComponentOwnedHistogram(@NotNull final ComponentsSet.Component component,
+                                             @NotNull final String className,
+                                             long size) {
+    componentHistograms.get(component.getId()).addObjectClassName(className, size);
+  }
+
+  void addClassNameToCategoryOwnedHistogram(@NotNull final ComponentsSet.ComponentCategory componentCategory,
+                                            @NotNull final String className, long size) {
+    categoryHistograms.get(componentCategory.getId()).addObjectClassName(className, size);
+  }
+
+  public void addClassNameToSharedClusterHistogram(@NotNull final HeapSnapshotStatistics.SharedClusterStatistics sharedClusterStatistics,
+                                                   @NotNull String className,
+                                                   long size) {
+    sharedClustersHistograms.putIfAbsent(sharedClusterStatistics.componentsMask, new ClassNameHistogram());
+    sharedClustersHistograms.get(sharedClusterStatistics.componentsMask).addObjectClassName(className, size);
+  }
+
+  public void logCategoryHistogram(@NotNull Consumer<String> writer, @NotNull final ComponentsSet.ComponentCategory componentCategory) {
+    categoryHistograms.get(componentCategory.getId()).print(writer);
+  }
+
+  public void logComponentHistogram(@NotNull Consumer<String> writer, @NotNull final ComponentsSet.Component component) {
+    componentHistograms.get(component.getId()).print(writer);
+  }
+
+  public void logSharedClusterHistogram(@NotNull Consumer<String> writer,
+                                        @NotNull final HeapSnapshotStatistics.SharedClusterStatistics sharedClusterStatistics) {
+    sharedClustersHistograms.get(sharedClusterStatistics.componentsMask).print(writer);
+  }
+
+  static class ClassNameHistogram {
+
+    private final static int HISTOGRAM_PRINT_LIMIT = 20;
+
+    @NotNull final Map<String, ObjectsStatistics> histogram =
+      Maps.newHashMap();
+
+    public void addObjectClassName(@NotNull final String className, long size) {
+      histogram.putIfAbsent(className, new ObjectsStatistics());
+      histogram.get(className).addObject(size);
+    }
+
+    private boolean classNameIsStudioSource(@NotNull final String className) {
+      return className.startsWith("com.android.") ||
+             !className.startsWith("org.jetbrains") ||
+             !className.startsWith("com.intellij") ||
+             !className.startsWith("com.jetbrains");
+    }
+
+    public void print(Consumer<String> writer) {
+      writer.accept("      Histogram:");
+      histogram.entrySet().stream()
+        .sorted(Comparator.comparingLong((Map.Entry<String, ObjectsStatistics> a) -> a.getValue().getTotalSizeInBytes()).reversed())
+        .limit(HISTOGRAM_PRINT_LIMIT)
+        .forEach(e -> writer.accept(String.format(Locale.US, "        %s: %s",
+                                                  HeapTraverseUtil.getObjectsStatsPresentation(e.getValue(), OPTIMAL_UNITS),
+                                                  e.getKey())));
+
+      writer.accept("      Studio objects histogram:");
+      histogram.entrySet().stream().filter(e -> classNameIsStudioSource(e.getKey()))
+        .sorted(Comparator.comparingLong((Map.Entry<String, ObjectsStatistics> a) -> a.getValue().getTotalSizeInBytes()).reversed())
+        .limit(HISTOGRAM_PRINT_LIMIT)
+        .forEach(e -> writer.accept(String.format(Locale.US, "        %s: %s",
+                                                  HeapTraverseUtil.getObjectsStatsPresentation(e.getValue(), OPTIMAL_UNITS),
+                                                  e.getKey())));
+    }
+  }
+}

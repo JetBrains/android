@@ -363,7 +363,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     // newest d, b3, [b1, b2, b3]
     Assert.assertEquals(3, categoryComponentStats.getOwnedClusterStat().getNewObjectsStatistics().getObjectsCount());
     Assert.assertEquals(64, categoryComponentStats.getOwnedClusterStat().getNewObjectsStatistics().getTotalSizeInBytes());
-    List<HeapSnapshotStatistics.ClusterObjectsStatistics.MemoryTrafficStatistics.ObjectsStatistics>
+    List<ObjectsStatistics>
       previousSnapshotsRemainedObjectsStatistics =
       categoryComponentStats.getOwnedClusterStat().getPreviousSnapshotsRemainedObjectsStatistics();
 
@@ -490,6 +490,30 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     }
 
     Assert.assertTrue(processor.visitedClassesNames.contains("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$G"));
+  }
+
+  @Test
+  public void testHistogramCollection() {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("diagnostics_main",
+                                                        defaultCategory,
+                                                        List.of(
+                                                          "com.android.tools.idea.diagnostics"),
+                                                        Collections.emptyList());
+    HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
+      /*collectHistograms=*/true));
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(statistics).walkObjects(MAX_DEPTH, List.of(new D(new B(), new B(), new B()))));
+    Assert.assertNotNull(statistics.getExtendedReportStatistics());
+    ExtendedReportStatistics.ClassNameHistogram histogram0 = statistics.getExtendedReportStatistics().categoryHistograms.get(0);
+    ExtendedReportStatistics.ClassNameHistogram histogram1 = statistics.getExtendedReportStatistics().categoryHistograms.get(1);
+    Assert.assertTrue(histogram0.histogram.isEmpty());
+    Assert.assertEquals(48, histogram1.histogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B").getTotalSizeInBytes());
+    Assert.assertEquals(3, histogram1.histogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B").getObjectsCount());
+    Assert.assertEquals(16, histogram1.histogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D").getTotalSizeInBytes());
+    Assert.assertEquals(1, histogram1.histogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D").getObjectsCount());
   }
 
   private static class ClassNameRecordingChildProcessor extends HeapTraverseChildProcessor {

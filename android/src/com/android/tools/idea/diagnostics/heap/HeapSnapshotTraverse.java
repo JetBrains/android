@@ -100,7 +100,7 @@ public final class HeapSnapshotTraverse implements Disposable {
    * <p>
    * On the second pass, we directly update the masks and pass them to the referring objects.
    *
-   * @param maxDepth   the maximum depth to which we will descend when traversing the object tree.
+   * @param maxDepth the maximum depth to which we will descend when traversing the object tree.
    */
   public StatusCode walkObjects(int maxDepth) {
     if (!canTagObjects()) {
@@ -166,11 +166,12 @@ public final class HeapSnapshotTraverse implements Disposable {
 
         // Check whether the current object is a root of one of the components
         ComponentsSet.Component currentObjectComponent =
-          statistics.getComponentsSet().getComponentOfObject(currentObject);
+          statistics.getConfig().getComponentsSet().getComponentOfObject(currentObject);
 
         long currentObjectSize = getObjectSize(currentObject);
         short currentObjectCreationIterationId = getObjectCreationIterationId(currentObject);
         short currentObjectAge = (short)(iterationId - currentObjectCreationIterationId);
+        String currentObjectClassName = currentObject.getClass().getName();
 
         statistics.addObjectToTotal(currentObjectSize, currentObjectAge);
 
@@ -195,35 +196,35 @@ public final class HeapSnapshotTraverse implements Disposable {
                     (index) -> categoricalOwnedMask.set(
                       categoricalOwnedMask.get() |
                       1 <<
-                      statistics.getComponentsSet().getComponents().get(index)
+                      statistics.getConfig().getComponentsSet().getComponents().get(index)
                         .getComponentCategory().getId()));
         if (categoricalOwnedMask.get() != 0 && isPowerOfTwo(categoricalOwnedMask.get())) {
           processMask(categoricalOwnedMask.get(),
                       (index) -> statistics.addOwnedObjectSizeToCategoryComponent(index,
                                                                                   currentObjectSize,
-                                                                                  currentObjectAge));
+                                                                                  currentObjectAge, currentObjectClassName));
         }
         if (node.ownedByComponentMask == 0) {
           int uncategorizedComponentId =
-            statistics.getComponentsSet().getUncategorizedComponent().getId();
+            statistics.getConfig().getComponentsSet().getUncategorizedComponent().getId();
           int uncategorizedCategoryId =
-            statistics.getComponentsSet().getUncategorizedComponent().getComponentCategory()
+            statistics.getConfig().getComponentsSet().getUncategorizedComponent().getComponentCategory()
               .getId();
           statistics.addOwnedObjectSizeToComponent(uncategorizedComponentId, currentObjectSize,
-                                                   currentObjectAge);
+                                                   currentObjectAge, currentObjectClassName);
           statistics.addOwnedObjectSizeToCategoryComponent(uncategorizedCategoryId,
-                                                           currentObjectSize, currentObjectAge);
+                                                           currentObjectSize, currentObjectAge, currentObjectClassName);
         }
         else if (isPowerOfTwo(node.ownedByComponentMask)) {
           // if only owned by one component
           processMask(node.ownedByComponentMask,
                       (index) -> statistics.addOwnedObjectSizeToComponent(index, currentObjectSize,
-                                                                          currentObjectAge));
+                                                                          currentObjectAge, currentObjectClassName));
         }
         else {
           // if owned by multiple components -> add to shared
           statistics.addObjectSizeToSharedComponent(node.ownedByComponentMask, currentObjectSize,
-                                                    currentObjectAge);
+                                                    currentObjectAge, currentObjectClassName);
         }
 
         // propagate to referred objects
@@ -483,12 +484,12 @@ public final class HeapSnapshotTraverse implements Disposable {
   }
 
   public static void collectAndWriteStats(@NotNull final Consumer<String> writer,
-                                          @NotNull final ComponentsSet componentsSet,
-                                          boolean showSizesInBytes) {
-    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
+                                          @NotNull final HeapSnapshotStatistics stats,
+                                          @NotNull final HeapSnapshotPresentationConfig presentationConfig) {
     new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH);
 
-    stats.print(writer, bytes -> HeapTraverseUtil.getObjectsSizePresentation(bytes, showSizesInBytes));
+    stats.print(writer, bytes -> HeapTraverseUtil.getObjectsStatsPresentation(bytes, presentationConfig.sizePresentation),
+                presentationConfig);
   }
 
   public static StatusCode collectMemoryReport() {
@@ -544,6 +545,23 @@ public final class HeapSnapshotTraverse implements Disposable {
 
     private int getDepth() {
       return depth;
+    }
+  }
+
+  static class HeapSnapshotPresentationConfig {
+    final SizePresentationStyle sizePresentation;
+    final boolean shouldLogSharedClusters;
+    final boolean shouldLogRetainedSizes;
+
+    HeapSnapshotPresentationConfig(SizePresentationStyle sizePresentation, boolean shouldLogSharedClusters, boolean shouldLogRetainedSizes) {
+      this.sizePresentation = sizePresentation;
+      this.shouldLogSharedClusters = shouldLogSharedClusters;
+      this.shouldLogRetainedSizes = shouldLogRetainedSizes;
+    }
+
+    enum SizePresentationStyle {
+      BYTES,
+      OPTIMAL_UNITS,
     }
   }
 }

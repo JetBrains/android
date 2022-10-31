@@ -180,6 +180,14 @@ public final class ComponentsSet {
       }
     }
 
+    for (int i = 0; i < components.getComponents().size(); i++) {
+      assert components.getComponents().get(i).getId() == i;
+    }
+
+    for (int i = 0; i < components.getComponentsCategories().size(); i++) {
+      assert components.getComponentsCategories().get(i).getId() == i;
+    }
+
     return components;
   }
 

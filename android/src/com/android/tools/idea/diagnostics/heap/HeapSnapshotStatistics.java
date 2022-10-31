@@ -33,6 +33,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class HeapSnapshotStatistics {
 
@@ -48,8 +49,6 @@ final class HeapSnapshotStatistics {
   private final Long2ObjectMap<SharedClusterStatistics> maskToSharedComponentStats =
     new Long2ObjectOpenHashMap<>();
 
-  @NotNull
-  private final ComponentsSet componentsSet;
   int maxFieldsCacheSize = 0;
   int maxObjectsQueueSize = 0;
   // number of objects that were enumerated during the first traverse, but GCed after that and were
@@ -58,15 +57,31 @@ final class HeapSnapshotStatistics {
   int unsuccessfulFieldAccessCounter = 0;
   int heapObjectCount = 0;
   private short traverseSessionId;
+  @NotNull
+  private final HeapTraverseConfig config;
 
-  public HeapSnapshotStatistics(@NotNull final ComponentsSet componentSet) {
-    componentsSet = componentSet;
-    for (ComponentsSet.Component component : componentSet.getComponents()) {
+  @Nullable
+  private final ExtendedReportStatistics extendedReportStatistics;
+
+  public HeapSnapshotStatistics(@NotNull final ComponentsSet componentsSet) {
+    this(new HeapTraverseConfig(componentsSet, /*collectHistograms=*/false));
+  }
+
+  public HeapSnapshotStatistics(@NotNull final HeapTraverseConfig config) {
+    this.config = config;
+    for (ComponentsSet.Component component : config.getComponentsSet().getComponents()) {
       componentStats.add(new ComponentClusterObjectsStatistics(component));
     }
 
-    for (ComponentsSet.ComponentCategory category : componentSet.getComponentsCategories()) {
+    for (ComponentsSet.ComponentCategory category : config.getComponentsSet().getComponentsCategories()) {
       categoryComponentStats.add(new CategoryClusterObjectsStatistics(category));
+    }
+
+    if (config.collectHistograms) {
+      extendedReportStatistics = new ExtendedReportStatistics(config);
+    }
+    else {
+      extendedReportStatistics = null;
     }
   }
 
@@ -80,18 +95,24 @@ final class HeapSnapshotStatistics {
     return categoryComponentStats;
   }
 
-  public void addObjectSizeToSharedComponent(long sharedMask, long size, short objectAge) {
+  public void addObjectSizeToSharedComponent(long sharedMask, long size, short objectAge, String objectClassName) {
     if (!maskToSharedComponentStats.containsKey(sharedMask)) {
-      List<Integer> components = new ArrayList<>();
-      processMask(sharedMask,
-                  (index) -> components.add(componentsSet.getComponents().get(index).getId()));
-      maskToSharedComponentStats.put(sharedMask, new SharedClusterStatistics(components));
+      maskToSharedComponentStats.put(sharedMask, new SharedClusterStatistics(sharedMask));
     }
-    maskToSharedComponentStats.get(sharedMask).getStatistics().addObject(size, objectAge);
+    SharedClusterStatistics stats = maskToSharedComponentStats.get(sharedMask);
+    stats.getStatistics().addObject(size, objectAge);
+
+    if (config.collectHistograms && extendedReportStatistics != null) {
+      extendedReportStatistics.addClassNameToSharedClusterHistogram(stats, objectClassName, size);
+    }
   }
 
-  public void addOwnedObjectSizeToComponent(int componentId, long size, short objectAge) {
-    componentStats.get(componentId).addOwnedObject(size, objectAge);
+  public void addOwnedObjectSizeToComponent(int componentId, long size, short objectAge, String objectClassName) {
+    ComponentClusterObjectsStatistics stats = componentStats.get(componentId);
+    stats.addOwnedObject(size, objectAge);
+    if (config.collectHistograms && extendedReportStatistics != null) {
+      extendedReportStatistics.addClassNameToComponentOwnedHistogram(stats.getComponent(), objectClassName, size);
+    }
   }
 
   public void addObjectToTotal(long size, short objectAge) {
@@ -102,46 +123,71 @@ final class HeapSnapshotStatistics {
     categoryComponentStats.get(categoryId).addRetainedObject(size, objectAge);
   }
 
-  public void addOwnedObjectSizeToCategoryComponent(int categoryId, long size, short objectAge) {
-    categoryComponentStats.get(categoryId).addOwnedObject(size, objectAge);
+  public void addOwnedObjectSizeToCategoryComponent(int categoryId, long size, short objectAge, String objectClassName) {
+    CategoryClusterObjectsStatistics stats = categoryComponentStats.get(categoryId);
+    stats.addOwnedObject(size, objectAge);
+    if (config.collectHistograms && extendedReportStatistics != null) {
+      extendedReportStatistics.addClassNameToCategoryOwnedHistogram(stats.getComponentCategory(), objectClassName, size);
+    }
   }
 
   public void addRetainedObjectSizeToComponent(int componentID, long size, short objectAge) {
     componentStats.get(componentID).addRetainedObject(size, objectAge);
   }
 
-  void print(@NotNull final Consumer<String> writer, @NotNull final Function<Long, String> objectSizePresentation) {
+  void print(@NotNull final Consumer<String> writer, @NotNull final Function<ObjectsStatistics, String> objectsStatsPresentation,
+             @NotNull final HeapSnapshotTraverse.HeapSnapshotPresentationConfig presentationConfig) {
     writer.accept(
-      String.format(Locale.US, "Total used memory: %s/%d objects",
-                    objectSizePresentation.apply(totalStats.objectsStat.totalSizeInBytes),
-                    totalStats.objectsStat.objectsCount));
+      String.format(Locale.US, "Total used memory: %s",
+                    objectsStatsPresentation.apply(totalStats.objectsStat)));
 
     writer.accept(String.format(Locale.US, "%d Categories:", categoryComponentStats.size()));
     for (CategoryClusterObjectsStatistics stat : categoryComponentStats) {
       writer.accept(String.format(Locale.US, "  Category %s:", stat.getComponentCategory().getComponentCategoryLabel()));
-      writer.accept(String.format(Locale.US, "    Owned: %s/%d objects",
-                                  objectSizePresentation.apply(stat.getOwnedClusterStat().getObjectsStatistics().totalSizeInBytes),
-                                  stat.getOwnedClusterStat().getObjectsStatistics().objectsCount));
-      writer.accept(String.format(Locale.US, "    Retained: %s/%d objects",
-                                  objectSizePresentation.apply(stat.getRetainedClusterStat().getObjectsStatistics().totalSizeInBytes),
-                                  stat.getRetainedClusterStat().getObjectsStatistics().objectsCount));
+      writer.accept(String.format(Locale.US, "    Owned: %s",
+                                  objectsStatsPresentation.apply(stat.getOwnedClusterStat().getObjectsStatistics())));
+      if (config.collectHistograms && extendedReportStatistics != null) {
+        extendedReportStatistics.logCategoryHistogram(writer, stat.getComponentCategory());
+      }
+      if (presentationConfig.shouldLogRetainedSizes) {
+        writer.accept(String.format(Locale.US, "    Retained: %s",
+                                    objectsStatsPresentation.apply(
+                                      stat.getRetainedClusterStat().getObjectsStatistics())));
+      }
     }
 
     writer.accept(String.format(Locale.US, "%d Components:", componentStats.size()));
     for (ComponentClusterObjectsStatistics stat : componentStats) {
       writer.accept(String.format(Locale.US, "  Component %s:", stat.getComponent().getComponentLabel()));
-      writer.accept(String.format(Locale.US, "    Owned: %s/%d objects",
-                                  objectSizePresentation.apply(stat.getOwnedClusterStat().getObjectsStatistics().totalSizeInBytes),
-                                  stat.getOwnedClusterStat().getObjectsStatistics().objectsCount));
-      writer.accept(String.format(Locale.US, "    Retained: %s/%d objects",
-                                  objectSizePresentation.apply(stat.getRetainedClusterStat().getObjectsStatistics().totalSizeInBytes),
-                                  stat.getRetainedClusterStat().getObjectsStatistics().objectsCount));
+      writer.accept(String.format(Locale.US, "    Owned: %s",
+                                  objectsStatsPresentation.apply(stat.getOwnedClusterStat().getObjectsStatistics())));
+      if (config.collectHistograms && extendedReportStatistics != null) {
+        extendedReportStatistics.logComponentHistogram(writer, stat.getComponent());
+      }
+      if (presentationConfig.shouldLogRetainedSizes) {
+        writer.accept(String.format(Locale.US, "    Retained: %s",
+                                    objectsStatsPresentation.apply(
+                                      stat.getRetainedClusterStat().getObjectsStatistics())));
+      }
     }
-  }
 
-  @NotNull
-  public ComponentsSet getComponentsSet() {
-    return componentsSet;
+    if (presentationConfig.shouldLogSharedClusters) {
+      writer.accept("Shared clusters:");
+      maskToSharedComponentStats.values().stream()
+        .sorted(Comparator.comparingLong(a -> -a.getStatistics().getObjectsStatistics().getTotalSizeInBytes())).limit(10)
+        .forEach((SharedClusterStatistics s) -> {
+          writer.accept(String.format(Locale.US, "  %s: %s",
+                                      s.getComponentIds(config).stream()
+                                        .map(id -> componentStats.get(id).getComponent().getComponentLabel())
+                                        .collect(
+                                          Collectors.toList()),
+                                      objectsStatsPresentation.apply(s.getStatistics().getObjectsStatistics())));
+
+          if (config.collectHistograms && extendedReportStatistics != null) {
+            extendedReportStatistics.logSharedClusterHistogram(writer, s);
+          }
+        });
+    }
   }
 
   public void updateMaxFieldsCacheSize(int currentFieldSize) {
@@ -165,8 +211,7 @@ final class HeapSnapshotStatistics {
   }
 
   @NotNull
-  private MemoryUsageReportEvent.ObjectsStatistics buildObjectStatistics(@NotNull final
-                                                                         ClusterObjectsStatistics.MemoryTrafficStatistics.ObjectsStatistics objectsStatistics) {
+  private MemoryUsageReportEvent.ObjectsStatistics buildObjectStatistics(@NotNull final ObjectsStatistics objectsStatistics) {
     return MemoryUsageReportEvent.ObjectsStatistics.newBuilder()
       .setObjectsCount(objectsStatistics.getObjectsCount())
       .setTotalSizeBytes(objectsStatistics.getTotalSizeInBytes()).build();
@@ -205,9 +250,9 @@ final class HeapSnapshotStatistics {
 
     maskToSharedComponentStats.values().stream()
       .sorted(
-        Comparator.comparingLong(s -> -s.getStatistics().getObjectsStatistics().totalSizeInBytes))
+        Comparator.comparingLong(s -> -s.getStatistics().getObjectsStatistics().getTotalSizeInBytes()))
       .limit(sharedComponentsLimit).forEach(s -> builder.addSharedComponentStats(
-        MemoryUsageReportEvent.SharedClusterMemoryUsage.newBuilder().addAllIds(s.getComponentKinds())
+        MemoryUsageReportEvent.SharedClusterMemoryUsage.newBuilder().addAllIds(s.getComponentIds(config))
           .setStats(buildMemoryTrafficStatistics(s.getStatistics()))));
 
     for (CategoryClusterObjectsStatistics categoryStat : categoryComponentStats) {
@@ -236,14 +281,23 @@ final class HeapSnapshotStatistics {
     this.traverseSessionId = traverseSessionId;
   }
 
+  @NotNull
+  public HeapTraverseConfig getConfig() {
+    return config;
+  }
+
+  @Nullable
+  public ExtendedReportStatistics getExtendedReportStatistics() {
+    return extendedReportStatistics;
+  }
+
   static class SharedClusterStatistics {
     @NotNull
-    private final Collection<Integer> componentKinds;
-    @NotNull
     private final ClusterObjectsStatistics.MemoryTrafficStatistics statistics;
+    final long componentsMask;
 
-    private SharedClusterStatistics(@NotNull final Collection<Integer> components) {
-      componentKinds = components;
+    private SharedClusterStatistics(long componentsMask) {
+      this.componentsMask = componentsMask;
       statistics = new ClusterObjectsStatistics.MemoryTrafficStatistics();
     }
 
@@ -253,8 +307,11 @@ final class HeapSnapshotStatistics {
     }
 
     @NotNull
-    Collection<Integer> getComponentKinds() {
-      return componentKinds;
+    Collection<Integer> getComponentIds(@NotNull final HeapTraverseConfig config) {
+      List<Integer> components = new ArrayList<>();
+      processMask(componentsMask,
+                  (index) -> components.add(config.getComponentsSet().getComponents().get(index).getId()));
+      return components;
     }
   }
 
@@ -347,24 +404,6 @@ final class HeapSnapshotStatistics {
 
       public List<ObjectsStatistics> getPreviousSnapshotsRemainedObjectsStatistics() {
         return previousSnapshotsRemainedObjectsStats;
-      }
-
-      static class ObjectsStatistics {
-        private int objectsCount = 0;
-        private long totalSizeInBytes = 0;
-
-        private void addObject(long size) {
-          objectsCount++;
-          totalSizeInBytes += size;
-        }
-
-        int getObjectsCount() {
-          return objectsCount;
-        }
-
-        long getTotalSizeInBytes() {
-          return totalSizeInBytes;
-        }
       }
     }
   }

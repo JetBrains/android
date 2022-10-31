@@ -77,9 +77,9 @@ class BuildAndRunWithMemoryTest {
 
   private fun collectMemoryUsageStatistics(studio: AndroidStudio) {
     studio.executeAction("IntegrationTestCollectMemoryUsageStatisticsAction")
-    var m = system.installation.metricsFile.waitForMatchingLine("Total used memory: (\\d+) bytes/(\\d+) objects",
-                                                                "Memory usage report collection failed: .*", 60,
-                                                                TimeUnit.SECONDS)
+    var m = system.installation.memoryReportFile.waitForMatchingLine("Total used memory: (\\d+) bytes/(\\d+) objects",
+                                                                     "Memory usage report collection failed: .*", 60,
+                                                                     TimeUnit.SECONDS)
     val timeStamp = getTimeMillis()
     val totalObjectsSize = m.group(1).toLong()
     assert(totalObjectsSize > 1024 * 1024 * 10) { "Total size of objects should be over 10mb, problem on the memory reporting side." }
@@ -87,27 +87,27 @@ class BuildAndRunWithMemoryTest {
     metric.addSamples(benchmark, Metric.MetricSample(timeStamp, totalObjectsSize))
     metric.commit()
 
-    m = system.installation.metricsFile.waitForMatchingLine("(\\d+) Categories:", 60, TimeUnit.SECONDS)
+    m = system.installation.memoryReportFile.waitForMatchingLine("(\\d+) Categories:", 60, TimeUnit.SECONDS)
     val numberOfCategories = m.group(1).toInt()
     repeat(numberOfCategories) {
-      m = system.installation.metricsFile.waitForMatchingLine("  Category ([\\w:]+):", 60,
-                                                              TimeUnit.SECONDS)
+      m = system.installation.memoryReportFile.waitForMatchingLine("  Category ([\\w:]+):", 60,
+                                                                   TimeUnit.SECONDS)
       val categoryLabel = m.group(1).replace(':', '_')
-      m = system.installation.metricsFile.waitForMatchingLine("    Owned: (\\d+) bytes/(\\d+) objects", 60,
-                                                              TimeUnit.SECONDS)
+      m = system.installation.memoryReportFile.waitForMatchingLine("    Owned: (\\d+) bytes/(\\d+) objects", 60,
+                                                                   TimeUnit.SECONDS)
       val categoryOwnedSize = m.group(1).toLong()
       metric = Metric(categoryLabel + "_category_owned_objects_size")
       metric.addSamples(benchmark, Metric.MetricSample(timeStamp, categoryOwnedSize))
       metric.commit()
     }
-    m = system.installation.metricsFile.waitForMatchingLine("(\\d+) Components:", 60, TimeUnit.SECONDS)
+    m = system.installation.memoryReportFile.waitForMatchingLine("(\\d+) Components:", 60, TimeUnit.SECONDS)
     val numberOfComponents = m.group(1).toInt()
     repeat(numberOfComponents) {
-      m = system.installation.metricsFile.waitForMatchingLine("  Component ([\\w:]+):", 60,
-                                                              TimeUnit.SECONDS)
+      m = system.installation.memoryReportFile.waitForMatchingLine("  Component ([\\w:]+):", 60,
+                                                                   TimeUnit.SECONDS)
       val componentLabel = m.group(1)
-      m = system.installation.metricsFile.waitForMatchingLine("    Owned: (\\d+) bytes/(\\d+) objects", 60,
-                                                              TimeUnit.SECONDS)
+      m = system.installation.memoryReportFile.waitForMatchingLine("    Owned: (\\d+) bytes/(\\d+) objects", 60,
+                                                                   TimeUnit.SECONDS)
       val componentOwnedSize = m.group(1).toLong()
       metric = Metric(componentLabel + "_component_owned_objects_size")
       metric.addSamples(benchmark, Metric.MetricSample(timeStamp, componentOwnedSize))
