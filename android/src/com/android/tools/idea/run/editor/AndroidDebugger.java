@@ -18,10 +18,7 @@ package com.android.tools.idea.run.editor;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.ApplicationIdProvider;
-import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
@@ -29,7 +26,6 @@ import com.intellij.xdebugger.XDebugProcessStarter;
 import com.intellij.xdebugger.XDebugSession;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.concurrency.Promise;
 
@@ -39,13 +35,7 @@ import org.jetbrains.concurrency.Promise;
  * <p>This interface is exposed publicly as an extension point of Android plugin. Any IntelliJ plugin
  * may supply their debugger implementations by registering it to {@link #EP_NAME} from their
  * plugin.xml file.
- *
- * <p>This interface provides two entry points to start the debugger: {@link #getConnectDebuggerTask}
- * and {@link #attachToClient}.
- *
- * <p>{@link #getConnectDebuggerTask} is used when you run a {@link com.android.tools.idea.run.AndroidRunConfiguration}
- * with {@link com.intellij.execution.executors.DefaultDebugExecutor}. It creates a task which is to be executed at
- * the end of application launch pipeline by {@link com.android.tools.idea.run.LaunchTaskRunner}.
+
  *
  * <p>{@link #attachToClient} is used by {@link org.jetbrains.android.actions.AndroidConnectDebuggerAction} which
  * is an action to attach Android debugger to running Android processes.
@@ -56,7 +46,7 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
 
   /**
    * Extension point for any IntelliJ plugins to supply their {@link AndroidDebugger} implementations.
-   *
+   * <p>
    * If there multiple debugger implementations available for a project. Ones with {@link #shouldBeDefault}
    * returning true will be prioritized. A user may specify a debugger by run configuration or in
    * {@link org.jetbrains.android.actions.AndroidProcessChooserDialog}.
@@ -80,9 +70,6 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
    * Creates a new state object. Although this is called state, it contains mostly about configurations of
    * how you run your debugger. The created state will be associated with one of your
    * {@link com.android.tools.idea.run.AndroidRunConfiguration} and properties will be persisted onto xml file.
-   *
-   * <p>Note: this method is supposed to be used for {@link #getConnectDebuggerTask}. {@link #attachToClient}
-   * does not use this state at all.
    */
   @NotNull
   S createState();
@@ -96,32 +83,12 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
   @NotNull
   AndroidDebuggerConfigurable<S> createConfigurable(@NotNull RunConfiguration runConfiguration);
 
-  /**
-   * An main entry point of starting a debugger. This is used for attaching a debugger to a process
-   * started by run action with {@link com.intellij.execution.executors.DefaultDebugExecutor} type.
-   * When you attach a debugger to an arbitrary running Android processes without run configuration,
-   * {@link #attachToClient} is used instead.
-   *
-   * @param env an execution environment of a debugee process is running
-   * @param applicationIdProvider provides the Android application IDs for the targets to be debugged
-   * @param state an Android debugger state and configuration to be used to start the debugger
-   * @return a task which starts a debugger and attach to target processes
-   */
-  @NotNull
-  ConnectDebuggerTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
-                                             @NotNull ApplicationIdProvider applicationIdProvider,
-                                             @NotNull AndroidFacet facet,
-                                             @NotNull S state);
-
-  /**
-   * Returns true if this debugger supports a given {@code project}.
-   */
   boolean supportsProject(@NotNull Project project);
 
   /**
-   * An alternative entry point of starting a debugger. This is used for attaching a debugger to an arbitrary
+   * This is used for attaching a debugger to an arbitrary
    * running Android processes without associated run configuration and run action. When you attach a debugger
-   * through debug run action, {@link #getConnectDebuggerTask} is used instead.
+   * through debug run action, {@link #getDebugProcessStarterForNewProcess} is used instead.
    **/
   Promise<XDebugSession> attachToClient(@NotNull Project project, @NotNull Client client, @Nullable S debugState);
 

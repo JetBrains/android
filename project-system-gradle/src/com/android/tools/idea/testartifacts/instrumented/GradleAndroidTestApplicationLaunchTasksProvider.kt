@@ -17,17 +17,16 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.LaunchOptions
-import com.android.tools.idea.run.editor.AndroidDebuggerState
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
+import com.android.tools.idea.run.tasks.getBaseDebuggerTask
 import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.allInModuleTest
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.allInPackageTest
@@ -162,27 +161,12 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
     if (!myLaunchOptions.isDebug) {
       return null
     }
-    val logger = Logger.getInstance(AndroidLaunchTasksProvider::class.java)
     val androidDebuggerContext = myRunConfig.androidDebuggerContext
-    val debugger = androidDebuggerContext.androidDebugger
-    if (debugger == null) {
-      logger.warn("Unable to determine debugger to use for this launch")
-      return null
-    }
-    logger.info("Using debugger: " + debugger.id)
-    val androidDebuggerState = androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>()
-    return if (androidDebuggerState != null) {
-      debugger.getConnectDebuggerTask(
-        myEnv,
-        myApplicationIdProvider,
-        myFacet,
-        androidDebuggerState
-      ).apply {
-        timeoutSeconds = -1  // No timeout.
-      }
-    }
-    else null
+
+    return getBaseDebuggerTask(androidDebuggerContext, myFacet, myApplicationIdProvider, myEnv,
+                               timeoutSeconds = Int.MAX_VALUE) // No timeout. }
   }
+
 
   private fun getNumberOfSelectedDevices(): Int {
     return (myEnv.getCopyableUserData(DeviceFutures.KEY) ?: error("'DeviceFutures.KEY' not found")).devices.size

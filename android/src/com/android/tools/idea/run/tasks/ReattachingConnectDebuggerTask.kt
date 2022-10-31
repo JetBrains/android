@@ -42,9 +42,10 @@ class ReattachingConnectDebuggerTask<S : AndroidDebuggerState>(
   private val androidDebugger: AndroidDebugger<S>,
   private val androidDebuggerState: S,
   private val applicationIdProvider: ApplicationIdProvider,
-  private val masterAndroidProcessName: String) : ConnectDebuggerTask {
+  private val masterAndroidProcessName: String,
+  private var timeoutSeconds: Int
+) : ConnectDebuggerTask {
 
-  private var timeoutSeconds = 15
   override fun setTimeoutSeconds(value: Int) {
     timeoutSeconds = value
   }

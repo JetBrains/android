@@ -119,7 +119,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
       assertThat(task.getDuration()).isEqualTo(LaunchTaskDurations.LAUNCH_ACTIVITY);
     });
     assertThat(connectDebuggerTask).isNotNull();
-    assertThat(connectDebuggerTask.getTimeoutSeconds()).isEqualTo(-1);
+    assertThat(connectDebuggerTask.getTimeoutSeconds()).isEqualTo(Integer.MAX_VALUE);
   }
 
   public void testLaunchTaskProvidedForAllInPackageTest() throws Exception {

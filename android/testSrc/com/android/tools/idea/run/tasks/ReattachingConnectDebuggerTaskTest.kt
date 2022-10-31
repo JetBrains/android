@@ -108,7 +108,7 @@ class ReattachingConnectDebuggerTaskTest {
       override fun getTestPackageName() = APP_ID
     }
     val reattachingDebuggerTask = ReattachingConnectDebuggerTask(AndroidJavaDebugger(), AndroidDebuggerState(), applicationIdProvider,
-                                                                 MASTER_PROCESS_NAME)
+                                                                 MASTER_PROCESS_NAME, 15)
 
     val launchInfo = LaunchInfo(DefaultDebugExecutor.getDebugExecutorInstance(), executionEnvironment.runner,
                                 executionEnvironment) { _, _, _ -> ConsoleViewImpl(project, true) }

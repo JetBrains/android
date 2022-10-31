@@ -16,6 +16,8 @@
 package com.android.tools.idea.run.tasks
 
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.LaunchInfo
@@ -23,24 +25,29 @@ import com.android.tools.idea.run.ProcessHandlerConsolePrinter
 import com.android.tools.idea.run.configuration.execution.DebugSessionStarter
 import com.android.tools.idea.run.debug.showError
 import com.android.tools.idea.run.editor.AndroidDebugger
+import com.android.tools.idea.run.editor.AndroidDebuggerContext
 import com.android.tools.idea.run.editor.AndroidDebuggerState
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
+import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import org.jetbrains.android.facet.AndroidFacet
 import java.util.LinkedList
 
 class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
   private val debugger: AndroidDebugger<S>,
   private val debuggerState: S,
   applicationIdProvider: ApplicationIdProvider,
-  @JvmField val project: Project
+  @JvmField val project: Project,
+  private val timeoutSeconds: Int
 ) : ConnectDebuggerTask {
   private val LOG = Logger.getInstance(DefaultConnectDebuggerTask::class.java)
 
-  private var myPollTimeoutSeconds = 15
 
   // The first entry in the list contains the main package name, and an optional second entry contains test package name.
   @JvmField
@@ -67,12 +74,10 @@ class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
     }
   }
 
-  override fun setTimeoutSeconds(timeoutSeconds: Int) {
-    myPollTimeoutSeconds = timeoutSeconds
-  }
+  override fun setTimeoutSeconds(timeoutSeconds: Int) {}
 
   override fun getTimeoutSeconds(): Int {
-    return myPollTimeoutSeconds
+    return timeoutSeconds
   }
 
   override fun perform(
@@ -87,11 +92,6 @@ class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
     LOG.info("Attaching ${debugger.id} debugger")
 
     val env = launchInfo.env
-
-    var timeoutSeconds = myPollTimeoutSeconds
-    if (timeoutSeconds <= 0) {
-      timeoutSeconds = Int.MAX_VALUE
-    }
 
     DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
@@ -114,5 +114,57 @@ class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
           Logger.getInstance(this::class.java).error(it)
         }
       }
+  }
+}
+
+@JvmOverloads
+fun getBaseDebuggerTask(
+  androidDebuggerContext: AndroidDebuggerContext,
+  facet: AndroidFacet,
+  applicationIdProvider: ApplicationIdProvider,
+  executionEnvironment: ExecutionEnvironment,
+  timeoutSeconds: Int = 15
+): ConnectDebuggerTask? {
+  val logger = Logger.getInstance("getBaseDebuggerTask")
+  val debugger = androidDebuggerContext.getAndroidDebugger()
+  if (debugger == null) {
+    logger.error("Unable to determine debugger to use for this launch")
+    return null
+  }
+  logger.info("Using debugger: " + debugger.id)
+
+  val androidDebuggerState = androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>()
+
+  if (androidDebuggerState == null) {
+    logger.error("Unable to determine androidDebuggerState to use for this launch")
+    return null
+  }
+
+  return getBaseDebuggerTask(debugger, androidDebuggerState, executionEnvironment, facet, applicationIdProvider, timeoutSeconds)
+}
+
+@JvmOverloads
+fun <S : AndroidDebuggerState> getBaseDebuggerTask(
+  debugger: AndroidDebugger<S>,
+  androidDebuggerState: S,
+  executionEnvironment: ExecutionEnvironment,
+  facet: AndroidFacet,
+  applicationIdProvider: ApplicationIdProvider,
+  timeoutSeconds: Int = 15
+): ConnectDebuggerTask {
+  val executionType = AndroidModel.get(facet)?.testExecutionOption ?: TestExecutionOption.HOST
+
+  return if (executionEnvironment.runProfile is AndroidTestRunConfiguration &&
+             (TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR == executionType || TestExecutionOption.ANDROID_TEST_ORCHESTRATOR == executionType)) {
+    ReattachingConnectDebuggerTask(
+      debugger,
+      androidDebuggerState,
+      applicationIdProvider,
+      MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME[executionType]!!,
+      timeoutSeconds
+    )
+  }
+  else {
+    DefaultConnectDebuggerTask(debugger, androidDebuggerState, applicationIdProvider, executionEnvironment.project, timeoutSeconds)
   }
 }

@@ -21,7 +21,9 @@ import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import org.jetbrains.annotations.NotNull;
 
-/** A {@link ConnectDebuggerTask} is similar to a {@link LaunchTask}, except that running it creates a new launch descriptor and process. */
+/**
+ * A {@link ConnectDebuggerTask} is similar to a {@link LaunchTask}, except that running it creates a new launch descriptor and process.
+ */
 public interface ConnectDebuggerTask {
 
   /**

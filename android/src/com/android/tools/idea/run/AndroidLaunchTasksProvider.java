@@ -25,15 +25,14 @@ import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
-import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
-import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.ApplyChangesTask;
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;
 import com.android.tools.idea.run.tasks.ClearAppStorageTask;
 import com.android.tools.idea.run.tasks.ClearLogcatTask;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
+import com.android.tools.idea.run.tasks.DefaultConnectDebuggerTaskKt;
 import com.android.tools.idea.run.tasks.DeployTask;
 import com.android.tools.idea.run.tasks.DismissKeyguardTask;
 import com.android.tools.idea.run.tasks.KillAndRestartAppLaunchTask;
@@ -265,27 +264,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     if (!myLaunchOptions.isDebug()) {
       return null;
     }
-    Logger logger = Logger.getInstance(AndroidLaunchTasksProvider.class);
-
     AndroidDebuggerContext androidDebuggerContext = myRunConfig.getAndroidDebuggerContext();
-    AndroidDebugger debugger = androidDebuggerContext.getAndroidDebugger();
-    if (debugger == null) {
-      logger.warn("Unable to determine debugger to use for this launch");
-      return null;
-    }
-    logger.info("Using debugger: " + debugger.getId());
 
-    AndroidDebuggerState androidDebuggerState = androidDebuggerContext.getAndroidDebuggerState();
-    if (androidDebuggerState != null) {
-      //noinspection unchecked
-      return debugger.getConnectDebuggerTask(myEnv,
-                                             myApplicationIdProvider,
-                                             myFacet,
-                                             androidDebuggerState);
-    }
-
-    logger.warn("No debugger state present and cannot get debugger task");
-    return null;
+    return DefaultConnectDebuggerTaskKt.getBaseDebuggerTask(androidDebuggerContext, myFacet, myApplicationIdProvider, myEnv);
   }
 
   private boolean shouldDeployAsInstant() {
