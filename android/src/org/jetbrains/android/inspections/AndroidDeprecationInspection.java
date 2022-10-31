@@ -20,7 +20,6 @@ import com.intellij.codeInsight.daemon.impl.analysis.HighlightMessageUtil;
 import com.intellij.codeInsight.daemon.impl.analysis.JavaHighlightUtil;
 import com.intellij.codeInspection.*;
 import com.intellij.codeInspection.ui.MultipleCheckboxOptionsPanel;
-import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.infos.MethodCandidateInfo;
@@ -41,7 +40,6 @@ import java.util.List;
  */
 public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTool {
 
-  @SuppressWarnings("InspectionDescriptionNotFoundInspection")
   @NonNls public static final String SHORT_NAME = DeprecationUtil.DEPRECATION_SHORT_NAME;
   @NonNls public static final String ID = DeprecationUtil.DEPRECATION_ID;
   public static final String DISPLAY_NAME = DeprecationUtil.getDeprecationDisplayName();
@@ -270,13 +268,6 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
   public static void checkDeprecated(PsiElement refElement,
                                      PsiElement elementToHighlight,
                                      @Nullable TextRange rangeInElement,
-                                     ProblemsHolder holder) {
-    checkDeprecated(refElement, elementToHighlight, rangeInElement, false, false, true, holder);
-  }
-
-  public static void checkDeprecated(PsiElement refElement,
-                                     PsiElement elementToHighlight,
-                                     @Nullable TextRange rangeInElement,
                                      boolean ignoreInsideDeprecated,
                                      boolean ignoreImportStatements,
                                      boolean ignoreMethodsOfDeprecated,
@@ -304,7 +295,7 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
     String symbolName = HighlightMessageUtil.getSymbolName(refElement, PsiSubstitutor.EMPTY);
     String description = JavaErrorBundle.message("deprecated.symbol", symbolName);
 
-    List<LocalQuickFix> fixes = new ArrayList<LocalQuickFix>(4);
+    List<LocalQuickFix> fixes = new ArrayList<>(4);
     for (DeprecationFilter filter : getFilters()) {
       if (filter.isExcluded(refElement, elementToHighlight, symbolName)) {
         return;
@@ -318,27 +309,15 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
                            fixes.toArray(LocalQuickFix.EMPTY_ARRAY));
   }
 
-  // Android Studio: TEMPORARY local version of part of our deprecation filter implementation,
-  // until we decide how to proceed with
-  //   https://android-review.googlesource.com/149417
-  // (This part does not depend on Android APIs; the full AndroidDeprecationFilter is here:
-  //  https://android-review.googlesource.com/149601 )
-
   @NotNull
   public static DeprecationFilter[] getFilters() {
-    // Replace with actual extension lookup later:
-    //return DeprecationFilter.EP_NAME.getExtensions();
-    return DEPRECATION_FILTERS;
+    return new DeprecationFilter[]{new AndroidDeprecationFilter()};
   }
-
-  private static final DeprecationFilter[] DEPRECATION_FILTERS = new DeprecationFilter[]{new AndroidDeprecationFilter()};
 
   /**
    * Filter which allows plugins to customize the inspection results for deprecated elements
    */
   public static abstract class DeprecationFilter {
-    public static final ExtensionPointName<DeprecationFilter>
-      EP_NAME = new ExtensionPointName<>("com.intellij.deprecationFilter");
 
     /**
      * For a deprecated element, returns true to remove the deprecation warnings for this element,
