@@ -77,7 +77,9 @@ class BuildAttributionManagerImpl(
 
     BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
       analyticsManager.runLoggingPerformanceStats(
-        buildFinishedTimestamp - analyzersProxy.criticalPathAnalyzer.result.buildFinishedTimestamp) {
+        toolingApiLatencyMs = buildFinishedTimestamp - analyzersProxy.criticalPathAnalyzer.result.buildFinishedTimestamp,
+        numberOfGeneratedPartialResults = getNumberOfPartialResultsGenerated(attributionFileDir)
+      ) {
         try {
           val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
           agpVersion = attributionData?.buildInfo?.agpVersion?.let { AgpVersion.tryParse(it) }
@@ -155,5 +157,15 @@ class BuildAttributionManagerImpl(
     ConfigurationCacheTestBuildFlowRunner.getInstance(project).isTestConfigurationCacheBuild(request) -> BuildInvocationType.CONFIGURATION_CACHE_TRIAL
     request.gradleTasks.contains(CHECK_JETIFIER_TASK_NAME) -> BuildInvocationType.CHECK_JETIFIER
     else -> BuildInvocationType.REGULAR_BUILD
+  }
+
+  private fun getNumberOfPartialResultsGenerated(attributionFileDir: File): Int? {
+    return try {
+      AndroidGradlePluginAttributionData.getPartialResultsDir(attributionFileDir).takeIf {
+        it.exists()
+      }?.listFiles()?.size
+    } catch (e: Exception) {
+      null
+    }
   }
 }
