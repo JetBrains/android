@@ -56,6 +56,14 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
     val defaultBootLabel = JBLabel("Default boot")
     val defaultBootComboBox = ComboBox<Any>()
 
+    val storageSeparator = TitledSeparator("Storage")
+
+    val internalStorageLabel = JBLabel("Internal storage")
+    val internalStorageField = NumberOfBytesField()
+
+    val expandedStorageLabel = JBLabel("Expanded storage")
+    val expandedStorageComboBox = ComboBox<Any>()
+
     layout = groupLayout(this) {
       horizontalGroup {
         parallelGroup {
@@ -104,6 +112,18 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
           sequentialGroup {
             component(defaultBootLabel)
             component(defaultBootComboBox)
+          }
+
+          component(storageSeparator)
+
+          sequentialGroup {
+            component(internalStorageLabel)
+            component(internalStorageField)
+          }
+
+          sequentialGroup {
+            component(expandedStorageLabel)
+            component(expandedStorageComboBox)
           }
         }
       }
@@ -155,6 +175,18 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
           parallelGroup {
             component(defaultBootLabel)
             component(defaultBootComboBox, max = GroupLayout.PREFERRED_SIZE)
+          }
+
+          component(storageSeparator, max = GroupLayout.PREFERRED_SIZE)
+
+          parallelGroup {
+            component(internalStorageLabel)
+            component(internalStorageField)
+          }
+
+          parallelGroup {
+            component(expandedStorageLabel)
+            component(expandedStorageComboBox, max = GroupLayout.PREFERRED_SIZE)
           }
         }
       }
