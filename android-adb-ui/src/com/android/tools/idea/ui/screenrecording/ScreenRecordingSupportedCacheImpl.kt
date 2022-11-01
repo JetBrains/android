@@ -22,13 +22,7 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.deviceCache
 import com.android.adblib.shellAsText
 import com.android.annotations.concurrency.UiThread
-import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.avdmanager.EmulatorAdvFeatures
-import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.sdk.AndroidSdks
-import com.android.utils.ILogger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.delay
@@ -61,7 +55,7 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
     while (true)
       try {
         return when {
-          serialNumber.isEmulator() && isEmulatorRecordingEnabled() -> true
+          serialNumber.isEmulator() -> true
           isWatch(serialNumber) && sdk < 30 -> false
           sdk < 19 -> false
           else -> hasBinary(serialNumber)
@@ -89,10 +83,3 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
 }
 
 private fun String.isEmulator() = startsWith("emulator-")
-
-private fun isEmulatorRecordingEnabled(): Boolean {
-  val handler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-  val indicator = StudioLoggerProgressIndicator(ScreenRecorderAction::class.java)
-  val logger: ILogger = LogWrapper(ScreenRecorderAction::class.java)
-  return EmulatorAdvFeatures.emulatorSupportsScreenRecording(handler, indicator, logger)
-}
