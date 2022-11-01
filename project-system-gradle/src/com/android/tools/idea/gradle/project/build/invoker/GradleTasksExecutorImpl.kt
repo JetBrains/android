@@ -62,6 +62,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
@@ -152,6 +153,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
     override fun run(indicator: ProgressIndicator) {
       try {
         myProgressIndicator = indicator
+        indicator.text = this.title
         val projectManager = ProjectManager.getInstance()
         val project = myRequest.project
         val closeListener: CloseListener = CloseListener()
@@ -341,28 +343,30 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           buildError = e
           handleTaskExecutionError(e)
         } finally {
-          val application = ApplicationManager.getApplication()
-          if (buildError != null) {
-            buildAttributionManager?.onBuildFailure(myRequest)
-            if (wasBuildCanceled(buildError)) {
-              buildState.buildFinished(BuildStatus.CANCELED)
-              taskListener.onCancel(id)
-            } else {
-              buildState.buildFinished(BuildStatus.FAILED)
-              val projectResolverChain = GradleProjectResolver.createProjectResolverChain()
-              val userFriendlyError = projectResolverChain.getUserFriendlyError(null, buildError, gradleRootProjectPath, null)
-              taskListener.onFailure(id, userFriendlyError)
+          executeWithoutProcessCanceledException {
+            val application = ApplicationManager.getApplication()
+            if (buildError != null) {
+              buildAttributionManager?.onBuildFailure(myRequest)
+              if (wasBuildCanceled(buildError)) {
+                buildState.buildFinished(BuildStatus.CANCELED)
+                taskListener.onCancel(id)
+              } else {
+                buildState.buildFinished(BuildStatus.FAILED)
+                val projectResolverChain = GradleProjectResolver.createProjectResolverChain()
+                val userFriendlyError = projectResolverChain.getUserFriendlyError(null, buildError, gradleRootProjectPath, null)
+                taskListener.onFailure(id, userFriendlyError)
+              }
             }
-          }
-          taskListener.onEnd(id)
-          myBuildStopper.remove(id)
-          if (GuiTestingService.getInstance().isGuiTestingMode) {
-            val testOutput = application.getUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY)
-            if (StringUtil.isNotEmpty(testOutput)) {
-              application.putUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, null)
+            taskListener.onEnd(id)
+            myBuildStopper.remove(id)
+            if (GuiTestingService.getInstance().isGuiTestingMode) {
+              val testOutput = application.getUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY)
+              if (StringUtil.isNotEmpty(testOutput)) {
+                application.putUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, null)
+              }
             }
+            application.invokeLater { notifyGradleInvocationCompleted(buildState, stopwatch.elapsed(TimeUnit.MILLISECONDS)) }
           }
-          application.invokeLater { notifyGradleInvocationCompleted(buildState, stopwatch.elapsed(TimeUnit.MILLISECONDS)) }
           if (!getProject().isDisposed) {
             return@Function GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, buildError, model.get())
           }
@@ -585,3 +589,11 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
     }
   }
 }
+
+private inline fun <T> executeWithoutProcessCanceledException(crossinline action: () -> T): T {
+  var result: T? = null
+  ProgressManager.getInstance().executeNonCancelableSection { result = action() }
+  @Suppress("UNCHECKED_CAST")
+  return result as T
+}
+
