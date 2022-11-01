@@ -14,7 +14,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/ads-sdk
-                buildDir                      : <ROOT>/ads-sdk/build [-]
+                buildDir                      : <ROOT>/ads-sdk/build
                 buildFile                     : <ROOT>/ads-sdk/build.gradle
                 externalSystemId              : GRADLE
                 artifactsByConfiguration

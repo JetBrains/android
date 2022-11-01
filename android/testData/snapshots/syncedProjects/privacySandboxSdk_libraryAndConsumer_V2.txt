@@ -44,7 +44,7 @@ PROJECT                       : project
             GradlePath                    : :ads-sdk
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk
             EXCLUDE_FOLDER                : file://<PROJECT>/ads-sdk/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/ads-sdk/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/ads-sdk/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
