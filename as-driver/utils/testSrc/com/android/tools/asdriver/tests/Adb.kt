@@ -17,6 +17,8 @@ package com.android.tools.asdriver.tests
 
 import com.android.SdkConstants
 import com.android.testutils.TestUtils
+import com.android.utils.time.TimeSource
+import com.android.utils.time.toDurationUnit
 import java.io.FileWriter
 import java.io.IOException
 import java.nio.file.Files
@@ -26,6 +28,7 @@ import java.util.concurrent.TimeUnit.MICROSECONDS
 import java.util.regex.Matcher
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.toDuration
 
 class Adb private constructor(
   private val sdk: AndroidSdk,
@@ -44,11 +47,27 @@ class Adb private constructor(
   }
 
   @Throws(IOException::class, InterruptedException::class)
-  fun waitForLog(expectedRegex: String?, timeout: Long, unit: TimeUnit?): Matcher =
+  fun waitForLog(expectedRegex: String, timeout: Long, unit: TimeUnit): Matcher =
     LogFile(stdout).waitForMatchingLine(expectedRegex, timeout, unit)
 
   @JvmSynthetic
-  fun waitForLog(expectedRegex: String?, timeout: Duration): Matcher = waitForLog(expectedRegex, timeout.inWholeMicroseconds, MICROSECONDS)
+  fun waitForLog(expectedRegex: String, timeout: Duration): Matcher = waitForLog(expectedRegex, timeout.inWholeMicroseconds, MICROSECONDS)
+
+  /** Waits for the expected regular expressions to show up in the logs for this [Adb], in order. The timeout is for all lines. */
+  @Throws(IOException::class, InterruptedException::class)
+  fun waitForLogs(expectedRegexes: Iterable<String>, timeout: Long, unit: TimeUnit): List<Matcher> =
+    waitForLogs(expectedRegexes, timeout.toDuration(unit.toDurationUnit()))
+
+  /** Waits for the expected regular expressions to show up in the logs for this [Adb], in order. The timeout is for all lines. */
+  @JvmSynthetic
+  fun waitForLogs(expectedRegexes: Iterable<String>, timeout: Duration): List<Matcher> {
+    val start = TimeSource.Monotonic.markNow()
+    val logFile = LogFile(stdout)
+    return expectedRegexes.map {
+      val remainingDuration = timeout - start.elapsedNow()
+      logFile.waitForMatchingLine(it, remainingDuration.inWholeMicroseconds, MICROSECONDS)
+    }
+  }
 
   @Throws(IOException::class, InterruptedException::class)
   fun waitForDevice(emulator: Emulator) {
