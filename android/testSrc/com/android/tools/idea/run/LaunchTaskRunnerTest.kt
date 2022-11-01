@@ -32,7 +32,6 @@ import com.google.common.util.concurrent.Futures
 import com.intellij.execution.Executor
 import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.ProgramRunner
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import org.junit.Before
@@ -65,15 +64,8 @@ class LaunchTaskRunnerTest {
   @Mock
   lateinit var mockExecutor: Executor
   @Mock
-  lateinit var mockProgramRunner: ProgramRunner<*>
-  @Mock
   lateinit var mockExecutionEnvironment: ExecutionEnvironment
-  @Mock
-  lateinit var mockConsoleProvider: ConsoleProvider
 
-  private val launchInfo: LaunchInfo by lazy {
-    LaunchInfo(mockExecutor, mockProgramRunner, mockExecutionEnvironment, mockConsoleProvider)
-  }
 
   private val progressIndicator: ProgressIndicator by lazy {
     EmptyProgressIndicator()
@@ -81,6 +73,7 @@ class LaunchTaskRunnerTest {
 
   @Before
   fun setUp() {
+    whenever(mockExecutionEnvironment.executor).thenReturn(mockExecutor)
     whenever(mockExecutor.toolWindowId).thenReturn("toolWindowId")
     whenever(mockExecutor.id).thenReturn("id")
   }
@@ -127,7 +120,7 @@ class LaunchTaskRunnerTest {
       "configName",
       "applicationId",
       "executionTargetName",
-      launchInfo,
+      mockExecutionEnvironment,
       mockProcessHandler,
       deviceFutures,
       mockLaunchTasksProvider,

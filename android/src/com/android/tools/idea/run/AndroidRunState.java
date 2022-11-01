@@ -95,12 +95,11 @@ public class AndroidRunState implements RunProfileState {
       console instanceof ConsoleView ? ((ConsoleView)console)::printHyperlink : (s, h) -> {
       };
 
-    LaunchInfo launchInfo = new LaunchInfo(executor, runner, myEnv, myConsoleProvider);
     LaunchTaskRunner task = new LaunchTaskRunner(myModule.getProject(),
                                                  myLaunchConfigName,
                                                  getApplicationId(),
                                                  myEnv.getExecutionTarget().getDisplayName(),
-                                                 launchInfo,
+                                                 myEnv,
                                                  processHandler,
                                                  myDeviceFutures,
                                                  myLaunchTasksProvider,

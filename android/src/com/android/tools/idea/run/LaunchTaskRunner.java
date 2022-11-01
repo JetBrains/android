@@ -35,6 +35,7 @@ import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.RunContentManager;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
@@ -71,7 +72,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   @NotNull private final String myConfigName;
   @NotNull private final String myApplicationId;
   @Nullable private final String myExecutionTargetName; // Change to NotNull once everything is moved over to DeviceAndSnapshot
-  @NotNull private final LaunchInfo myLaunchInfo;
+  private ExecutionEnvironment myEnv;
   @NotNull private final ProcessHandler myProcessHandler;
   @NotNull private final DeviceFutures myDeviceFutures;
   @NotNull private final LaunchTasksProvider myLaunchTasksProvider;
@@ -86,7 +87,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
                           @NotNull String configName,
                           @NotNull String applicationId,
                           @Nullable String executionTargetName,
-                          @NotNull LaunchInfo launchInfo,
+                          @NotNull ExecutionEnvironment env,
                           @NotNull ProcessHandler processHandler,
                           @NotNull DeviceFutures deviceFutures,
                           @NotNull LaunchTasksProvider launchTasksProvider,
@@ -97,7 +98,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     myConfigName = configName;
     myApplicationId = applicationId;
     myExecutionTargetName = executionTargetName;
-    myLaunchInfo = launchInfo;
+    myEnv = env;
     myProcessHandler = processHandler;
     myDeviceFutures = deviceFutures;
     myLaunchTasksProvider = launchTasksProvider;
@@ -118,7 +119,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       ProcessHandlerLaunchStatus launchStatus = new ProcessHandlerLaunchStatus(myProcessHandler);
       ProcessHandlerConsolePrinter consolePrinter = new ProcessHandlerConsolePrinter(myProcessHandler);
       List<ListenableFuture<IDevice>> listenableDeviceFutures = myDeviceFutures.get();
-      boolean shouldConnectDebugger = myLaunchInfo.executor instanceof DefaultDebugExecutor && !isSwap();
+      boolean shouldConnectDebugger = myEnv.getExecutor() instanceof DefaultDebugExecutor && !isSwap();
 
       if (shouldConnectDebugger && listenableDeviceFutures.size() != 1) {
         launchStatus.terminateLaunch("Cannot launch a debug session on more than 1 device.", true);
@@ -199,7 +200,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         IDevice device = entry.getKey();
         boolean isSucceeded = runLaunchTasks(
           entry.getValue(),
-          new LaunchContext(myProject, myLaunchInfo.executor, device, launchStatus, consolePrinter, myProcessHandler, indicator),
+          new LaunchContext(myProject, myEnv.getExecutor(), device, launchStatus, consolePrinter, myProcessHandler, indicator),
           destroyProcessOnCancellation,
           completedStepsCount,
           totalScheduledStepsCount
@@ -231,7 +232,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
           throw new RuntimeException("ConnectDebuggerTask is null for task provider " + myLaunchTasksProvider.getClass().getName());
         }
         indicator.setText("Connecting debugger");
-        debuggerTask.perform(device, myLaunchInfo.env, myProcessHandler);
+        debuggerTask.perform(device, myEnv, myProcessHandler);
         // Update the indicator progress bar.
         completedStepsCount.set(completedStepsCount.get() + LaunchTaskDurations.CONNECT_DEBUGGER);
         indicator.setFraction(completedStepsCount.get().floatValue() / totalScheduledStepsCount);
@@ -296,7 +297,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
           // Show the tool window when we have an error.
           ApplicationManager.getApplication().invokeLater(() -> RunContentManager.getInstance(myProject).toFrontRunContent(
-            myLaunchInfo.executor, myProcessHandler));
+            myEnv.getExecutor(), myProcessHandler));
 
           if (result == Result.ERROR) {
             myStats.setErrorId(launchResult.getErrorId());
@@ -445,12 +446,12 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   }
 
   private boolean isSwap() {
-    return myLaunchInfo.env.getUserData(SwapInfo.SWAP_INFO_KEY) != null;
+    return myEnv.getUserData(SwapInfo.SWAP_INFO_KEY) != null;
   }
 
   @NotNull
   private String getLaunchVerb() {
-    SwapInfo swapInfo = myLaunchInfo.env.getUserData(SwapInfo.SWAP_INFO_KEY);
+    SwapInfo swapInfo = myEnv.getUserData(SwapInfo.SWAP_INFO_KEY);
     if (swapInfo != null) {
       if (swapInfo.getType() == SwapInfo.SwapType.APPLY_CHANGES) {
         return "Applying changes to";
