@@ -65,6 +65,11 @@ repo sync -j10
 
 And execute `update_sdk.py` from the main repo with the path pointing to this isolated checkout.
 
+## Prebuilt Zipfile Errors
+
+Running `update_sdk.py` as described in either of the previous two sections currently results in a broken build as of November 2022. See
+[b/234037608#comment7](https://b.corp.google.com/issues/234037608#comment7) for context and workarounds.
+
 # Building Android Studio
 
 To build Android Studio run
