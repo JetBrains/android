@@ -15,30 +15,34 @@
  */
 package com.android.tools.idea.run;
 
-import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
-import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ALIAS;
-import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_WATCHFACE;
-
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.idea.Bombed;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.util.concurrency.AppExecutorUtil;
+
 import java.util.Calendar;
+
+import static com.android.tools.idea.testing.TestProjectPaths.*;
 
 public class LaunchUtilsTest extends AndroidGradleTestCase {
   public void testActivity() throws Exception {
     loadProject(RUN_CONFIG_ACTIVITY);
-    assertFalse(LaunchUtils.isWatchFeatureRequired(myAndroidFacet));
+    boolean result = ReadAction.nonBlocking(() -> LaunchUtils.isWatchFeatureRequired(myAndroidFacet)).submit(AppExecutorUtil.getAppExecutorService()).get();
+    assertFalse(result);
   }
 
   public void testActivityAlias() throws Exception {
     loadProject(RUN_CONFIG_ALIAS);
-    assertFalse(LaunchUtils.isWatchFeatureRequired(myAndroidFacet));
+    boolean result = ReadAction.nonBlocking(() -> LaunchUtils.isWatchFeatureRequired(myAndroidFacet)).submit(AppExecutorUtil.getAppExecutorService()).get();
+    assertFalse(result);
   }
 
   @Bombed(year = 2022, month = Calendar.NOVEMBER, day = 30, user = "Andrei Kuznetsov",
   description = "Timed out due to: 'Calling invokeAndWait from read-action leads to possible deadlock.' exception")
   public void testWatchFaceService() throws Exception {
     loadProject(RUN_CONFIG_WATCHFACE);
-    assertTrue(LaunchUtils.isWatchFeatureRequired(myAndroidFacet));
+    boolean result = ReadAction.nonBlocking(() -> LaunchUtils.isWatchFeatureRequired(myAndroidFacet)).submit(AppExecutorUtil.getAppExecutorService()).get();
+    assertTrue(result);
   }
 }
