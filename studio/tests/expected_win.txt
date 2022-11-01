@@ -2066,7 +2066,6 @@ android-studio/plugins/platform-langInjection/lib/java-langInjection-jps.jar
 android-studio/plugins/platform-langInjection/lib/platform-langInjection.jar
 android-studio/plugins/properties/lib/properties.jar
 android-studio/plugins/repository-search/lib/repository-search.jar
-android-studio/plugins/settingsRepository/lib/settingsRepository.jar
 android-studio/plugins/settingsSync/lib/settingsSync.jar
 android-studio/plugins/sh/lib/sh.jar
 android-studio/plugins/smali/lib/smali.jar

@@ -2756,7 +2756,6 @@ Android Studio Preview.app/Contents/plugins/platform-langInjection/lib/java-lang
 Android Studio Preview.app/Contents/plugins/platform-langInjection/lib/platform-langInjection.jar
 Android Studio Preview.app/Contents/plugins/properties/lib/properties.jar
 Android Studio Preview.app/Contents/plugins/repository-search/lib/repository-search.jar
-Android Studio Preview.app/Contents/plugins/settingsRepository/lib/settingsRepository.jar
 Android Studio Preview.app/Contents/plugins/settingsSync/lib/settingsSync.jar
 Android Studio Preview.app/Contents/plugins/sh/lib/sh.jar
 Android Studio Preview.app/Contents/plugins/smali/lib/smali.jar

@@ -108,7 +108,6 @@ public class StartUpTest {
         "NetBeans Keymap",
         "Plugin DevKit",
         "Properties",
-        "Settings Repository",
         "Settings Sync",
         "Shell Script",
         "Smali Support",
