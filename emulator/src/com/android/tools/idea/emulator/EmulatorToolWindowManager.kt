@@ -645,6 +645,7 @@ internal class EmulatorToolWindowManager @AnyThread private constructor(
   private inner class PhysicalDeviceWatcher(disposableParent: Disposable) : Disposable {
     private val adbSession = AdbLibService.getSession(project)
     private val coroutineScope: CoroutineScope
+    private var onlineDevices = setOf<String>()
 
     init {
       Disposer.register(disposableParent, this)
@@ -653,21 +654,21 @@ internal class EmulatorToolWindowManager @AnyThread private constructor(
       coroutineScope.launch {
         adbSession.trackDevices().collect { deviceList ->
           UIUtil.invokeLaterIfNeeded {
-            val devices = deviceList.devices.entries.filter { it.deviceState == DeviceState.ONLINE }.map(DeviceInfo::serialNumber).toSet()
-            devicesConnected(devices)
+            onlineDevices = deviceList.devices.entries.filter { it.deviceState == DeviceState.ONLINE }.map(DeviceInfo::serialNumber).toSet()
+            onlineDevicesChanged()
           }
         }
       }
     }
 
-    fun devicesConnected(devices: Set<String>) {
-      val removed = mirroredDevices.minus(devices)
+    private fun onlineDevicesChanged() {
+      val removed = mirrorableDeviceProperties.keys.minus(onlineDevices)
       mirroredDevices.removeAll(removed)
       mirrorableDeviceProperties.keys.removeAll(removed)
       for (device in removed) {
         removePhysicalDevicePanel(device)
       }
-      for (deviceSerialNumber in devices) {
+      for (deviceSerialNumber in onlineDevices) {
         if (!mirroredDevices.contains(deviceSerialNumber)) {
           coroutineScope.launch {
             deviceConnected(deviceSerialNumber)
@@ -681,14 +682,15 @@ internal class EmulatorToolWindowManager @AnyThread private constructor(
       val deviceProperties = getMirrorableDeviceProperties(deviceSerialNumber)
       if (deviceProperties != null) {
         UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
-          mirrorableDeviceProperties[deviceSerialNumber] = deviceProperties
-          if (contentCreated) {
-            deviceConnected(deviceSerialNumber, deviceProperties)
-          }
-          else if (recentAttentionRequests.getIfPresent(deviceSerialNumber) != null) {
-            recentAttentionRequests.invalidate(deviceSerialNumber)
-            lastSelectedDeviceId = DeviceId.ofPhysicalDevice(deviceSerialNumber)
-            getToolWindow().showAndActivate()
+          if (deviceSerialNumber in onlineDevices && mirrorableDeviceProperties.put(deviceSerialNumber, deviceProperties) == null) {
+            if (contentCreated) {
+              deviceConnected(deviceSerialNumber, deviceProperties)
+            }
+            else if (recentAttentionRequests.getIfPresent(deviceSerialNumber) != null) {
+              recentAttentionRequests.invalidate(deviceSerialNumber)
+              lastSelectedDeviceId = DeviceId.ofPhysicalDevice(deviceSerialNumber)
+              getToolWindow().showAndActivate()
+            }
           }
         }
       }
@@ -720,9 +722,10 @@ internal class EmulatorToolWindowManager @AnyThread private constructor(
     }
 
     private fun startMirroring(deviceSerialNumber: String, deviceAbi: String, deviceName: String, deviceProperties: Map<String, String>) {
-      mirroredDevices.add(deviceSerialNumber)
-      if (contentCreated) {
-        addPhysicalDevicePanel(deviceSerialNumber, deviceAbi, deviceName, deviceProperties)
+      if (deviceSerialNumber in onlineDevices && mirroredDevices.add(deviceSerialNumber)) {
+        if (contentCreated) {
+          addPhysicalDevicePanel(deviceSerialNumber, deviceAbi, deviceName, deviceProperties)
+        }
       }
     }
 
