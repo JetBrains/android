@@ -17,8 +17,6 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.common.error.IssueModel
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.MemoryUseMeasurement
@@ -46,7 +44,8 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.TimeUnit
 
 private const val NUMBER_OF_SAMPLES = 40
 
@@ -91,10 +90,13 @@ class PerfgateVisualLintTest {
 
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
     val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, dashboardLayout)
+    val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintingBenchmark.measureOperation(measures = listOf(ElapsedTimeMeasurement(Metric("phone_background_linting_time")),
                                                               MemoryUseMeasurement(Metric("phone_background_linting_memory_use")))) {
       VisualLintService.getInstance(projectRule.project)
-        .runVisualLintAnalysis(listOf(nlModel), MoreExecutors.newDirectExecutorService())
+        .runVisualLintAnalysis(listOf(nlModel), visualLintExecutorService)
+      // Wait for visual lint tasks to complete
+      visualLintExecutorService.waitForTasksToComplete()
     }
   }
 
@@ -108,10 +110,17 @@ class PerfgateVisualLintTest {
     val wearLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/wear_layout.xml")!!
     val wearConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")
     val wearModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, wearLayout, wearConfiguration)
+    val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintingBenchmark.measureOperation(measures = listOf(ElapsedTimeMeasurement(Metric("wear_background_linting_time")),
                                                               MemoryUseMeasurement(Metric("wear_background_linting_memory_use")))) {
       VisualLintService.getInstance(projectRule.project)
-        .runVisualLintAnalysis(listOf(wearModel), MoreExecutors.newDirectExecutorService())
+        .runVisualLintAnalysis(listOf(wearModel), visualLintExecutorService)
+      // Wait for visual lint tasks to complete
+      visualLintExecutorService.waitForTasksToComplete()
     }
   }
+}
+
+private fun ExecutorService.waitForTasksToComplete() {
+  submit {}?.get(30, TimeUnit.SECONDS)
 }

@@ -43,6 +43,7 @@ import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.codeInspection.InspectionProfile
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -62,6 +63,8 @@ private val visualLintExecutorService = AppExecutorUtil.createBoundedApplication
  * Pool of 1 thread to run all the visual linting analyzers triggered from one analysis
  */
 private val visualLintAnalyzerExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("Visual Lint Analyzer", 1)
+/** Time out for visual lint analysis. Use a longer one for testing to ensure it always completes then. */
+private val visualLintTimeout: Long = if (ApplicationManager.getApplication().isUnitTestMode) 30 else 5
 
 /**
  * Service that runs visual lints
@@ -172,7 +175,7 @@ class VisualLintService(val project: Project): Disposable {
             }
           }, visualLintAnalyzerExecutorService)
         }
-        latch.await(5, TimeUnit.SECONDS)
+        latch.await(visualLintTimeout, TimeUnit.SECONDS)
         issueModel.updateErrorsList()
       } finally {
         displayingModel.removeListener(listener)

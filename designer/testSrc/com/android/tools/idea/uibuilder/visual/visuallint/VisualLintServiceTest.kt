@@ -40,6 +40,8 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 
 class VisualLintServiceTest {
@@ -79,7 +81,9 @@ class VisualLintServiceTest {
     val facet = AndroidFacet.getInstance(module)!!
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
     val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, dashboardLayout)
-    visualLintService.runVisualLintAnalysis(listOf(nlModel), MoreExecutors.newDirectExecutorService())
+    val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
+    visualLintService.runVisualLintAnalysis(listOf(nlModel), visualLintExecutorService)
+    visualLintExecutorService.waitForTasksToComplete()
 
     val issues = visualLintIssueModel.issues
     assertEquals(2, issues.size)
@@ -90,7 +94,8 @@ class VisualLintServiceTest {
     val atfLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/atf_layout.xml")!!
     val atfModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, atfLayout)
     VisualLintService.getInstance(projectRule.project)
-      .runVisualLintAnalysis(listOf(atfModel), MoreExecutors.newDirectExecutorService())
+      .runVisualLintAnalysis(listOf(atfModel), visualLintExecutorService)
+    visualLintExecutorService.waitForTasksToComplete()
 
     val atfIssues = visualLintIssueModel.issues
     assertEquals(2, atfIssues.size)
@@ -105,7 +110,8 @@ class VisualLintServiceTest {
     val wearConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")
     val wearModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, wearLayout, wearConfiguration)
     VisualLintService.getInstance(projectRule.project)
-      .runVisualLintAnalysis(listOf(wearModel), MoreExecutors.newDirectExecutorService())
+      .runVisualLintAnalysis(listOf(wearModel), visualLintExecutorService)
+    visualLintExecutorService.waitForTasksToComplete()
 
     val wearIssues = visualLintIssueModel.issues
     assertEquals(13, wearIssues.size)
@@ -116,4 +122,8 @@ class VisualLintServiceTest {
       .filter { it.type == VisualLintErrorType.WEAR_MARGIN }
     assertEquals(5, wearMarginIssues.size)
   }
+}
+
+private fun ExecutorService.waitForTasksToComplete() {
+  submit {}?.get(30, TimeUnit.SECONDS)
 }
