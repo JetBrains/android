@@ -79,6 +79,11 @@ Task                          : :app:mapDebugSourceSetPaths
     TaskType                      : com.android.build.gradle.tasks.MapSourceSetPathsTask
     PrimaryTaskCategory           : ANDROID_RESOURCES
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:mergeDebugArtProfile
+    TaskType                      : com.android.build.gradle.internal.tasks.MergeArtProfileTask
+    PrimaryTaskCategory           : ART_PROFILE
+    SecondaryTaskCategories       : MERGING
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:mergeDebugAssets
     TaskType                      : com.android.build.gradle.tasks.MergeSourceSetFolders
     PrimaryTaskCategory           : MISC
