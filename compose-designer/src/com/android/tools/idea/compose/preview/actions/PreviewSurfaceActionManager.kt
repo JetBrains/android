@@ -41,7 +41,7 @@ internal class PreviewSurfaceActionManager(
       {
         // Copy the model of the current selected object (if any)
         surface.selectionModel.primary?.model?.let {
-          return@CopyResultImageAction surface.getSceneManager(it) as LayoutlibSceneManager
+          return@CopyResultImageAction surface.getSceneManager(it)
         }
 
         surface.sceneViewAtMousePosition?.sceneManager as? LayoutlibSceneManager

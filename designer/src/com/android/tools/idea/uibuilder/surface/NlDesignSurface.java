@@ -636,12 +636,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     return new Builder(project, parentDisposable).build();
   }
 
-  @Nullable
-  @Override
-  public LayoutlibSceneManager getSceneManager() {
-    return (LayoutlibSceneManager)super.getSceneManager();
-  }
-
   /**
    * Set the ConstraintsLayer and SceneLayer layers to paint,
    * even if they are set to paint only on mouse hover
@@ -759,8 +753,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         }
         // Look up *current* result; a newer one could be available
         Map<LayoutlibSceneManager, RenderResult> results = getSceneManagers().stream()
-          .filter(LayoutlibSceneManager.class::isInstance)
-          .map(LayoutlibSceneManager.class::cast)
           .filter(sceneManager -> sceneManager.getRenderResult() != null)
           .collect(Collectors.toMap(Function.identity(), LayoutlibSceneManager::getRenderResult));
         if (results.isEmpty()) {
@@ -839,9 +831,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       false
     );
     return requestSequentialRender(manager -> {
-      LayoutlibSceneManager layoutlibSceneManager = ((LayoutlibSceneManager)manager);
-      layoutlibSceneManager.forceReinflate();
-      return layoutlibSceneManager.requestUserInitiatedRenderAsync();
+      manager.forceReinflate();
+      return manager.requestUserInitiatedRenderAsync();
     }).whenComplete((r, t) -> refreshProgressIndicator.processFinish());
   }
 
@@ -849,9 +840,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @Override
   public CompletableFuture<Void> forceRefresh() {
     return requestSequentialRender(manager -> {
-      LayoutlibSceneManager layoutlibSceneManager = ((LayoutlibSceneManager)manager);
-      layoutlibSceneManager.forceReinflate();
-      return layoutlibSceneManager.requestRenderAsync();
+      manager.forceReinflate();
+      return manager.requestRenderAsync();
     });
   }
 

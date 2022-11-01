@@ -351,7 +351,7 @@ class CustomViewPreviewRepresentation(
       // We want to deactivate the surface so that configuration changes do not trigger scene repaint.
       surface.deactivate()
       surface.models.first().let { model ->
-        (surface.getSceneManager(model) as LayoutlibSceneManager).forceReinflate()
+        surface.getSceneManager(model)!!.forceReinflate()
         model.updateFileContentBlocking(fileContent)
       }
     }
