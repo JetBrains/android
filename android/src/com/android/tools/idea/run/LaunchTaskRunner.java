@@ -232,7 +232,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
           throw new RuntimeException("ConnectDebuggerTask is null for task provider " + myLaunchTasksProvider.getClass().getName());
         }
         indicator.setText("Connecting debugger");
-        debuggerTask.perform(device, myEnv, myProcessHandler);
+        debuggerTask.perform(device, myApplicationId, myEnv, myProcessHandler);
         // Update the indicator progress bar.
         completedStepsCount.set(completedStepsCount.get() + LaunchTaskDurations.CONNECT_DEBUGGER);
         indicator.setFraction(completedStepsCount.get().floatValue() / totalScheduledStepsCount);

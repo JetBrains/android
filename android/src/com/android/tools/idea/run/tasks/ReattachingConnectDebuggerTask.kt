@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.tasks
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.configuration.execution.DebugSessionStarter
 import com.android.tools.idea.run.debug.showError
 import com.android.tools.idea.run.editor.AndroidDebugger
@@ -40,14 +39,13 @@ import com.intellij.openapi.progress.ProcessCanceledException
 class ReattachingConnectDebuggerTask<S : AndroidDebuggerState>(
   private val androidDebugger: AndroidDebugger<S>,
   private val androidDebuggerState: S,
-  private val applicationIdProvider: ApplicationIdProvider,
   private val masterAndroidProcessName: String,
   private var timeoutSeconds: Int) : ConnectDebuggerTask {
 
   override fun perform(device: IDevice,
+                       applicationId: String,
                        environment: ExecutionEnvironment,
                        oldProcessHandler: ProcessHandler) {
-    val applicationIdProvider = applicationIdProvider
     val logger = Logger.getInstance(ReattachingConnectDebuggerTask::class.java)
     // Reuse the current ConsoleView to retain the UI state and not to lose test results.
     val androidTestResultListener = oldProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY) as? ConsoleView
@@ -56,7 +54,7 @@ class ReattachingConnectDebuggerTask<S : AndroidDebuggerState>(
 
     DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
       device,
-      applicationIdProvider.packageName,
+      applicationId,
       masterAndroidProcessName,
       environment,
       androidDebugger,

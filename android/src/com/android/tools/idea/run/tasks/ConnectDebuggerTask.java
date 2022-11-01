@@ -25,5 +25,5 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface ConnectDebuggerTask {
 
-  void perform(@NotNull IDevice device, @NotNull ExecutionEnvironment environment, @NotNull ProcessHandler oldProcessHandler);
+  void perform(@NotNull IDevice device, @NotNull String applicationId, @NotNull ExecutionEnvironment environment, @NotNull ProcessHandler oldProcessHandler);
 }

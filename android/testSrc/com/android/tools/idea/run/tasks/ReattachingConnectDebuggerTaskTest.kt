@@ -23,7 +23,6 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.logcat.AndroidLogcatService
 import com.android.tools.idea.run.AndroidProcessHandler
-import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.debug.createFakeExecutionEnvironment
 import com.android.tools.idea.run.editor.AndroidDebuggerState
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
@@ -98,11 +97,7 @@ class ReattachingConnectDebuggerTaskTest {
     var pid = Random.nextInt()
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, pid, FakeAdbTestRule.CLIENT_PACKAGE_NAME, true)
 
-    val applicationIdProvider = object : ApplicationIdProvider {
-      override fun getPackageName() = APP_ID
-      override fun getTestPackageName() = APP_ID
-    }
-    val reattachingDebuggerTask = ReattachingConnectDebuggerTask(AndroidJavaDebugger(), AndroidDebuggerState(), applicationIdProvider,
+    val reattachingDebuggerTask = ReattachingConnectDebuggerTask(AndroidJavaDebugger(), AndroidDebuggerState(),
                                                                  MASTER_PROCESS_NAME, 15)
 
     val androidProcessHandler = AndroidProcessHandler(project, APP_ID)
@@ -112,7 +107,7 @@ class ReattachingConnectDebuggerTaskTest {
       firstStartDebugLatch.countDown()
     }
 
-    reattachingDebuggerTask.perform(device, executionEnvironment, androidProcessHandler)
+    reattachingDebuggerTask.perform(device, APP_ID, executionEnvironment, androidProcessHandler)
 
     if (!firstStartDebugLatch.await(20, TimeUnit.SECONDS)) {
       Assert.fail("First session tab wasn't open")

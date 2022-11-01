@@ -18,7 +18,6 @@ package com.android.tools.idea.run.tasks
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestExecutionOption
-import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.configuration.execution.DebugSessionStarter
 import com.android.tools.idea.run.debug.showError
@@ -33,47 +32,20 @@ import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.progress.ProcessCanceledException
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
-import java.util.LinkedList
 
 class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
   private val debugger: AndroidDebugger<S>,
   private val debuggerState: S,
-  applicationIdProvider: ApplicationIdProvider,
-  private val project: Project,
   @VisibleForTesting val timeoutSeconds: Int
 ) : ConnectDebuggerTask {
   private val LOG = Logger.getInstance(DefaultConnectDebuggerTask::class.java)
 
-  // The first entry in the list contains the main package name, and an optional second entry contains test package name.
-  @JvmField
-  val myApplicationIds: MutableList<String>
-
-  init {
-    myApplicationIds = LinkedList()
-    try {
-      val packageName = applicationIdProvider.packageName
-      myApplicationIds.add(packageName)
-    }
-    catch (e: ApkProvisionException) {
-      LOG.error(e)
-    }
-    try {
-      val testPackageName = applicationIdProvider.testPackageName
-      if (testPackageName != null) {
-        myApplicationIds.add(testPackageName)
-      }
-    }
-    catch (e: ApkProvisionException) {
-      // not as severe as failing to obtain package id for main application
-      LOG.warn("Unable to obtain test package name, will not connect debugger if tests don't instantiate main application")
-    }
-  }
-
   override fun perform(
     device: IDevice,
+    applicationId: String,
     environment: ExecutionEnvironment,
     oldProcessHandler: ProcessHandler
   ) {
@@ -84,11 +56,11 @@ class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
 
     DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      myApplicationIds[0],
+      applicationId,
       environment,
       debugger,
       debuggerState,
-      destroyRunningProcess = { d -> myApplicationIds.forEach { d.forceStop(it) } },
+      destroyRunningProcess = { d -> d.forceStop(applicationId) },
       androidTestResultListener,
       timeoutSeconds.toLong())
       .onSuccess { session ->
@@ -100,7 +72,9 @@ class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
           showError(environment.project, it, environment.runProfile.name)
         }
         else {
-          Logger.getInstance(this::class.java).error(it)
+          if (it !is ProcessCanceledException) {
+            Logger.getInstance(this::class.java).error(it)
+          }
         }
       }
   }
@@ -148,12 +122,11 @@ fun <S : AndroidDebuggerState> getBaseDebuggerTask(
     ReattachingConnectDebuggerTask(
       debugger,
       androidDebuggerState,
-      applicationIdProvider,
       MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME[executionType]!!,
       timeoutSeconds
     )
   }
   else {
-    DefaultConnectDebuggerTask(debugger, androidDebuggerState, applicationIdProvider, executionEnvironment.project, timeoutSeconds)
+    DefaultConnectDebuggerTask(debugger, androidDebuggerState, timeoutSeconds)
   }
 }
