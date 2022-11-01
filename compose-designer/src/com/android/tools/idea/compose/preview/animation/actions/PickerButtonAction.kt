@@ -17,8 +17,10 @@ package com.android.tools.idea.compose.preview.animation.actions
 
 import com.android.tools.adtui.actions.locationFromEvent
 import com.android.tools.idea.compose.pickers.PsiPickerManager
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationEventTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.picker.AnimatedPropertiesModel
+import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -36,7 +38,10 @@ import javax.swing.JComponent
  * A button displaying the "initial to target" state. It opens a picker to select these states.
  * @see [AnimatedPropertiesModel] for more details about the picker.
  */
-class PickerButtonAction(private val onClick: () -> Unit) : CustomComponentAction, AnAction() {
+class PickerButtonAction(
+  val tracker: ComposeAnimationEventTracker,
+  private val onClick: () -> Unit
+) : CustomComponentAction, AnAction() {
 
   private val stateListeners: MutableList<() -> Unit> = mutableListOf()
 
@@ -72,6 +77,7 @@ class PickerButtonAction(private val onClick: () -> Unit) : CustomComponentActio
           onClick()
         }
     )
+    tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.OPEN_PICKER)
   }
 
   private lateinit var initialState: ComposeUnit.Unit<*>
