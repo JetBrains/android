@@ -1523,7 +1523,7 @@ private fun setupTestProjectFromAndroidModelCore(
   val externalProjectData = InternalExternalProjectInfo(GradleConstants.SYSTEM_ID, rootProjectBasePath.path, projectDataNode)
   (ExternalProjectsManager.getInstance(project) as ExternalProjectsManagerImpl).updateExternalProjectData(externalProjectData)
 
-  ProjectDataManager.getInstance().importData(projectDataNode, project, true)
+  ProjectDataManager.getInstance().importData(projectDataNode, project)
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   // Effectively getTestRootDisposable(), which is not the project itself but its earlyDisposable.
