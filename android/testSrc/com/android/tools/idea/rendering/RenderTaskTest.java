@@ -718,7 +718,7 @@ public class RenderTaskTest extends AndroidTestCase {
       }
     });
 
-    configuration.setWallpaperPath(Wallpaper.WALLPAPER_1.getResourcePath());
+    configuration.setWallpaperPath(Wallpaper.RED.getResourcePath());
     RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
       task.setDecorations(false);
       try {
@@ -730,7 +730,7 @@ public class RenderTaskTest extends AndroidTestCase {
       }
     });
 
-    configuration.setWallpaperPath(Wallpaper.WALLPAPER_2.getResourcePath());
+    configuration.setWallpaperPath(Wallpaper.GREEN.getResourcePath());
     RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
       task.setDecorations(false);
       try {

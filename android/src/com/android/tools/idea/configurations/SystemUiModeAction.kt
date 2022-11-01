@@ -278,11 +278,10 @@ private class SetWallpaperAction(renderContext: ConfigurationHolder, val wallpap
 }
 
 enum class Wallpaper(val resourcePath: String, val icon: Icon) {
-  WALLPAPER_1("/wallpapers/wallpaper1.webp", getWallpaperIcon("/wallpapers/thumbnail1.png")),
-  WALLPAPER_2("/wallpapers/wallpaper2.webp", getWallpaperIcon("/wallpapers/thumbnail2.png")),
-  WALLPAPER_3("/wallpapers/wallpaper3.webp", getWallpaperIcon("/wallpapers/thumbnail3.png")),
-  WALLPAPER_4("/wallpapers/wallpaper4.webp", getWallpaperIcon("/wallpapers/thumbnail4.png")),
-  WALLPAPER_5("/wallpapers/wallpaper5.webp", getWallpaperIcon("/wallpapers/thumbnail5.png"));
+  RED("/wallpapers/red.png", getWallpaperIcon("/wallpapers/red_thumbnail.png")),
+  GREEN("/wallpapers/green.png", getWallpaperIcon("/wallpapers/green_thumbnail.png")),
+  BLUE("/wallpapers/blue.png", getWallpaperIcon("/wallpapers/blue_thumbnail.png")),
+  YELLOW("/wallpapers/yellow.png", getWallpaperIcon("/wallpapers/yellow_thumbnail.png")),
 }
 
 private fun wallpaperFromPath(path: String?): Wallpaper? {
