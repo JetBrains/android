@@ -29,7 +29,7 @@ import java.nio.file.Path
 private const val SERIAL_NUMBER_PREFIX = "emulator-"
 
 /**
- * A [RecordingProvider] that uses [EmulatorConsole]
+ * A [RecordingProvider] that uses [EmulatorConsole].
  */
 internal class EmulatorConsoleRecordingProvider(
   private val serialNumber: String,
@@ -63,7 +63,7 @@ internal class EmulatorConsoleRecordingProvider(
 
   companion object {
     // Note that this is very similar to ShellCommandRecordingProvider.getScreenRecordCommand, but there
-    // is no guarantee that the args will be the same in the future so best to keep separate versions.
+    // is no guarantee that the options will be the same in the future so best to keep separate versions.
     @VisibleForTesting
     internal fun getRecorderOptions(options: ScreenRecorderOptions): Array<String> {
       val args = mutableListOf<String>()
