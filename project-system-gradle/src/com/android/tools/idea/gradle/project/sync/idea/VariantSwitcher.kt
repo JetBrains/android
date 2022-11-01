@@ -142,7 +142,7 @@ fun switchVariant(
   project: Project,
   projectDataNode: DataNode<ProjectData>
 ): Boolean {
-  ProjectDataManager.getInstance().importData(projectDataNode, project, true)
+  ProjectDataManager.getInstance().importData(projectDataNode, project)
   return true
 }
 
