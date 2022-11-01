@@ -22,6 +22,8 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
+import com.intellij.util.xmlb.annotations.Transient
+import com.intellij.util.xmlb.annotations.XCollection
 import org.jetbrains.annotations.TestOnly
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria
 import studio.network.inspection.NetworkInspectorProtocol.InterceptRule
@@ -31,11 +33,12 @@ import javax.swing.JTable
 import kotlin.properties.Delegates
 
 class RuleData(
-  val id: Int,
+  // must be a public var for PersistentStateComponent to set it
+  var id: Int,
   name: String,
-  isActive: Boolean,
-  var ruleDataListener: RuleDataListener = RuleDataAdapter()
+  isActive: Boolean
 ) {
+
   companion object {
     private var count = 0
 
@@ -48,22 +51,31 @@ class RuleData(
     fun getLatestId() = count
   }
 
-  private fun <T> delegate(initialValue: T) = Delegates.observable(initialValue) { _, _, _ -> ruleDataListener.onRuleDataChanged(this)}
+  @Suppress("unused") // invoked via reflection by PersistentStateComponent
+  private constructor() : this(0, "", false)
 
-  inner class CriteriaData(
-    protocol: Protocol = Protocol.HTTPS,
-    host: String = "",
-    port: String = "",
-    path: String = "",
-    query: String = "",
-    method: Method = Method.GET
-  ) {
-    var protocol: Protocol by delegate(protocol)
-    var host: String by delegate(host)
-    var port: String by delegate(port)
-    var path: String by delegate(path)
-    var query: String by delegate(query)
-    var method: Method by delegate(method)
+  @get:Transient
+  var ruleDataListener: RuleDataListener = RuleDataAdapter()
+    set(value) {
+      field = value
+      val closure = { ruleDataListener.onRuleDataChanged(this) }
+      criteria.listener = closure
+      statusCodeRuleData.listener = closure
+      headerRuleTableModel.listener = closure
+      bodyRuleTableModel.listener = closure
+    }
+
+  class CriteriaData {
+    @get:Transient
+    var listener: (() -> Unit)? = null
+    private fun <T> delegate(initialValue: T) = Delegates.observable(initialValue) { _, _, _ -> listener?.invoke() }
+
+    var protocol: Protocol by delegate(Protocol.HTTPS)
+    var host: String by delegate("")
+    var port: String by delegate("")
+    var path: String by delegate("")
+    var query: String by delegate("")
+    var method: Method by delegate(Method.GET)
 
     val url: String
       get() = "$protocol://${host.ifBlank { "*" }}${port.withPrefixIfNotEmpty(':')}$path${query.withPrefixIfNotEmpty('?')}"
@@ -84,10 +96,17 @@ class RuleData(
     fun toProto(): Transformation
   }
 
-  inner class StatusCodeRuleData(findCode: String, isActive: Boolean, newCode: String) : TransformationRuleData {
-    var findCode: String by delegate(findCode)
-    var newCode: String by delegate(newCode)
-    var isActive: Boolean by delegate(isActive)
+  class StatusCodeRuleData(findCode: String?, isActive: Boolean?, newCode: String?) : TransformationRuleData {
+    @Suppress("unused") // invoked via reflection by PersistentStateComponent
+    private constructor() : this(null, null, null)
+
+    @get:Transient
+    var listener: (() -> Unit)? = null
+    private fun <T> delegate(initialValue: T) = Delegates.observable(initialValue) { _, _, _ -> listener?.invoke() }
+
+    var findCode: String by delegate(findCode ?: "")
+    var newCode: String by delegate(newCode ?: "")
+    var isActive: Boolean by delegate(isActive ?: false)
 
     override fun toProto(): Transformation = Transformation.newBuilder().apply {
       statusCodeReplacedBuilder.apply {
@@ -100,7 +119,13 @@ class RuleData(
     }.build()
   }
 
-  class HeaderAddedRuleData(val name: String, val value: String) : TransformationRuleData {
+  class HeaderAddedRuleData(name: String?, value: String?) : TransformationRuleData {
+    var name = name ?: ""
+    var value = value ?: ""
+
+    @Suppress("unused") // invoked via reflection by PersistentStateComponent
+    private constructor() : this(null, null)
+
     override fun toProto(): Transformation = Transformation.newBuilder().apply {
       headerAddedBuilder.apply {
         name = this@HeaderAddedRuleData.name
@@ -110,12 +135,18 @@ class RuleData(
   }
 
   class HeaderReplacedRuleData(
-    val findName: String?,
-    val isFindNameRegex: Boolean,
-    val findValue: String?,
-    val isFindValueRegex: Boolean,
-    val newName: String?,
-    val newValue: String?) : TransformationRuleData {
+    // These must be public vars for PersistentStateComponent to set them.
+    var findName: String?,
+    var isFindNameRegex: Boolean,
+    var findValue: String?,
+    var isFindValueRegex: Boolean,
+    var newName: String?,
+    var newValue: String?
+  ) : TransformationRuleData {
+
+    @Suppress("unused") // invoked via reflection by PersistentStateComponent
+    private constructor() : this(null, false, null, false, null, null)
+
     override fun toProto(): Transformation = Transformation.newBuilder().apply {
       headerReplacedBuilder.apply {
         if (findName != null) {
@@ -140,7 +171,10 @@ class RuleData(
     }.build()
   }
 
-  inner class HeaderRulesTableModel : ListTableModel<TransformationRuleData>() {
+  class HeaderRulesTableModel : ListTableModel<TransformationRuleData>() {
+    @get:Transient
+    var listener: (() -> Unit)? = null
+
     init {
       columnInfos = arrayOf(
         object : ColumnInfo<TransformationRuleData, String>("Type") {
@@ -177,12 +211,30 @@ class RuleData(
           }
         })
       addTableModelListener {
-        ruleDataListener.onRuleDataChanged(this@RuleData)
+        listener?.invoke()
       }
+    }
+
+    // For PersistentStateComponent
+    @XCollection(elementTypes = [HeaderAddedRuleData::class, HeaderReplacedRuleData::class])
+    override fun getItems(): MutableList<TransformationRuleData> {
+      return super.getItems()
+    }
+
+    // For PersistentStateComponent
+    @XCollection(elementTypes = [HeaderAddedRuleData::class, HeaderReplacedRuleData::class])
+    override fun setItems(items: MutableList<TransformationRuleData>) {
+      super.setItems(items)
     }
   }
 
-  class BodyReplacedRuleData(val body: String) : TransformationRuleData {
+  class BodyReplacedRuleData(
+    // This must be a public var for PersistentStateComponent to set it.
+    var body: String
+  ) : TransformationRuleData {
+    @Suppress("unused") // invoked via reflection by PersistentStateComponent
+    private constructor(): this("")
+
     override fun toProto(): Transformation = Transformation.newBuilder().apply {
       bodyReplacedBuilder.apply {
         body = ByteString.copyFrom(this@BodyReplacedRuleData.body.toByteArray())
@@ -190,7 +242,15 @@ class RuleData(
     }.build()
   }
 
-  class BodyModifiedRuleData(val targetText: String, val isRegex: Boolean, val newText: String) : TransformationRuleData {
+  class BodyModifiedRuleData(
+    // These must be public vars for PersistentStateComponent to set them.
+    var targetText: String,
+    var isRegex: Boolean,
+    var newText: String
+  ) : TransformationRuleData {
+    @Suppress("unused") // invoked via reflection by PersistentStateComponent
+    private constructor() : this("", false, "")
+
     override fun toProto(): Transformation = Transformation.newBuilder().apply {
       bodyModifiedBuilder.apply {
         targetTextBuilder.apply {
@@ -202,7 +262,10 @@ class RuleData(
     }.build()
   }
 
-  inner class BodyRulesTableModel : ListTableModel<TransformationRuleData>() {
+  class BodyRulesTableModel : ListTableModel<TransformationRuleData>() {
+    @get:Transient
+    var listener: (() -> Unit)? = null
+
     init {
       columnInfos = arrayOf(
         object : ColumnInfo<TransformationRuleData, String>("Type") {
@@ -235,18 +298,27 @@ class RuleData(
           }
         })
       addTableModelListener {
-        ruleDataListener.onRuleDataChanged(this@RuleData)
+        listener?.invoke()
       }
     }
+
+    // For PersistentStateComponent
+    @XCollection(elementTypes = [BodyModifiedRuleData::class, BodyReplacedRuleData::class])
+    override fun getItems(): MutableList<TransformationRuleData> = super.getItems()
+
+    // For PersistentStateComponent
+    @XCollection(elementTypes = [BodyModifiedRuleData::class, BodyReplacedRuleData::class])
+    override fun setItems(items: MutableList<TransformationRuleData>) = super.setItems(items)
   }
 
   var name: String by Delegates.observable(name) { _, _, _ -> ruleDataListener.onRuleNameChanged(this)}
   var isActive: Boolean by Delegates.observable(isActive) { _, _, _ -> ruleDataListener.onRuleIsActiveChanged(this)}
 
-  val criteria = CriteriaData()
-  val statusCodeRuleData = StatusCodeRuleData("", false, "")
-  val headerRuleTableModel = HeaderRulesTableModel()
-  val bodyRuleTableModel = BodyRulesTableModel()
+  // These must be public vars for PersistentStateComponent to set them.
+  var criteria = CriteriaData()
+  var statusCodeRuleData = StatusCodeRuleData("", false, "")
+  var headerRuleTableModel = HeaderRulesTableModel()
+  var bodyRuleTableModel = BodyRulesTableModel()
 
   fun toProto(): InterceptRule = InterceptRule.newBuilder().apply {
     enabled = isActive

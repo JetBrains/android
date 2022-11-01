@@ -128,11 +128,12 @@ class RuleDataPersistenceTest {
     var isClientNotified = false
     var rulesTableView = createNewRulesTableView()
     // Rule with custom listener that will fail the test if the coroutine is executed
-    val rule = RuleData(1, "First Rule", true, object: RuleDataListener {
+    val rule = RuleData(1, "First Rule", true)
+    rule.ruleDataListener = object: RuleDataListener {
       override fun onRuleNameChanged(ruleData: RuleData) { /* scope is not used in this listener */ }
       override fun onRuleIsActiveChanged(ruleData: RuleData) { scope.launch { isClientNotified = true } }
       override fun onRuleDataChanged(ruleData: RuleData) { scope.launch { isClientNotified = true } }
-    })
+    }
 
     rulesTableView.tableModel.addRow(rule)
     var items = rulesTableView.tableModel.items

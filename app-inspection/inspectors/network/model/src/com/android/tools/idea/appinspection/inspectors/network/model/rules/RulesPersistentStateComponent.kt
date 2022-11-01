@@ -18,11 +18,10 @@ package com.android.tools.idea.appinspection.inspectors.network.model.rules
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
-import com.intellij.util.xmlb.Converter
-import com.intellij.util.xmlb.annotations.OptionTag
+import com.intellij.openapi.components.Storage
 
 @Service
-@State(name = "NetworkInspectorRules")
+@State(name = "NetworkInspectorRules", storages = [Storage("networkInspector.xml")])
 class RulesPersistentStateComponent: PersistentStateComponent<RuleDataState> {
   var myRuleDataState: RuleDataState = RuleDataState()
 
@@ -35,19 +34,5 @@ class RulesPersistentStateComponent: PersistentStateComponent<RuleDataState> {
 }
 
 data class RuleDataState(
-  // Add custom converter to avoid XMLException being thrown by default converter
-  @OptionTag(converter = RuleDataConverter::class)
   var rulesList: MutableList<RuleData> = mutableListOf()
 )
-
-/*
- * Custom converter to convert [MutableList<RuleData>] to/from string representation.
- * Used to suppress XMLExceptions arising from default converter
- */
-class RuleDataConverter : Converter<MutableList<RuleData>>() {
-  override fun toString(ignored: MutableList<RuleData>) = ""
-  override fun fromString(ignored: String) = mutableListOf<RuleData>()
-}
-
-
-

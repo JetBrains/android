@@ -167,7 +167,9 @@ class RulesTableView(
     }
   }
 
-  private fun createRuleDataWithListener(id: Int) = RuleData(id, "New Rule", true, createNewRuleDataListener())
+  private fun createRuleDataWithListener(id: Int) = RuleData(id, "New Rule", true).apply {
+    ruleDataListener = createNewRuleDataListener()
+  }
 
   private fun reorderRules() {
     scope.launch {
