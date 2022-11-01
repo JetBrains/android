@@ -33,6 +33,7 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.layout.CellBuilder
 import com.intellij.ui.layout.panel
+import com.intellij.ui.layout.selected
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JRadioButton
 
@@ -54,41 +55,41 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
         }
 
         if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()) {
-            var rb : CellBuilder<JRadioButton>? = null
-            row {
-              rb = radioButton(
-                message("live.edit.configurable.display.name"),
-                { config.mode == LIVE_EDIT },
-                { enabled -> if (enabled) config.mode = LIVE_EDIT },
-                message("live.edit.configurable.display.name.comment")
-              )
-            }
-            row { // Add a row to indent
-              buttonGroup {
-                row {
-                  radioButton(
-                    message("live.edit.mode.manual", LiveEditAnActionListener.getLiveEditTriggerShortCutString()),
-                    { config.leTriggerMode == LE_TRIGGER_MANUAL },
-                    { enabled ->
-                      if (enabled) {
+          lateinit var rb : CellBuilder<JRadioButton>
+          row {
+            rb = radioButton(
+              message("live.edit.configurable.display.name"),
+              { config.mode == LIVE_EDIT },
+              { enabled -> if (enabled) config.mode = LIVE_EDIT },
+              message("live.edit.configurable.display.name.comment")
+            )
+          }
+          row { // Add a row to indent
+            buttonGroup {
+              row {
+                radioButton(
+                  message("live.edit.mode.manual", LiveEditAnActionListener.getLiveEditTriggerShortCutString()),
+                  { config.leTriggerMode == LE_TRIGGER_MANUAL },
+                  { enabled ->
+                    if (enabled) {
                       config.leTriggerMode = LE_TRIGGER_MANUAL
-                    }},
-                  )
-                }
-                row {
-                  radioButton(
-                    message("live.edit.mode.automatic"),
-                    { config.leTriggerMode == LE_TRIGGER_AUTOMATIC },
-                    { enabled ->
-                      if (enabled) {
-                        config.leTriggerMode = LE_TRIGGER_AUTOMATIC
-                      }
-                    },
-                  )
-                }
+                    }
+                  },
+                ).enableIf(rb.selected)
+              }
+              row {
+                radioButton(
+                  message("live.edit.mode.automatic"),
+                  { config.leTriggerMode == LE_TRIGGER_AUTOMATIC },
+                  { enabled ->
+                    if (enabled) {
+                      config.leTriggerMode = LE_TRIGGER_AUTOMATIC
+                    }
+                  },
+                ).enableIf(rb.selected)
               }
             }
-
+          }
         }
 
         row {
