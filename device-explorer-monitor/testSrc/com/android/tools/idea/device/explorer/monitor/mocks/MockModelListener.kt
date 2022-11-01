@@ -17,27 +17,13 @@ package com.android.tools.idea.device.explorer.monitor.mocks
 
 import com.android.tools.idea.FutureValuesTracker
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModelListener
-import com.android.tools.idea.device.explorer.monitor.processes.Device
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
 
 class MockModelListener : DeviceMonitorModelListener {
-  val deviceAddedTracker: FutureValuesTracker<Device> = FutureValuesTracker<Device>()
-  val deviceRemovedTracker: FutureValuesTracker<Device> = FutureValuesTracker<Device>()
+  val deviceTreeModelChangeTracker: FutureValuesTracker<DefaultTreeModel?> = FutureValuesTracker<DefaultTreeModel?>()
 
-  override fun allDevicesRemoved() {}
-
-  override fun deviceAdded(device: Device) {
-    deviceAddedTracker.produce(device)
+  override fun treeModelChanged(newTreeModel: DefaultTreeModel?, newTreeSelectionModel: DefaultTreeSelectionModel?) {
+    deviceTreeModelChangeTracker.produce(newTreeModel)
   }
-
-  override fun deviceRemoved(device: Device) {
-    deviceRemovedTracker.produce(device)
-  }
-
-  override fun deviceUpdated(device: Device) {}
-
-  override fun activeDeviceChanged(newActiveDevice: Device?) {}
-
-  override fun treeModelChanged(newTreeModel: DefaultTreeModel?, newTreeSelectionModel: DefaultTreeSelectionModel?) {}
 }

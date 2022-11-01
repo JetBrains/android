@@ -22,15 +22,16 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutures
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorController.Companion.getProjectController
-import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceListService
-import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceNameRendererFactory
+import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
 import com.android.tools.idea.device.explorer.monitor.mocks.MockDeviceMonitorView
+import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -49,17 +50,24 @@ class DeviceMonitorControllerTest {
   val adb = FakeAdbRule()
 
   private lateinit var model: DeviceMonitorModel
-  private lateinit var service: AdbDeviceListService
+  private lateinit var service: AdbDeviceService
+  private lateinit var processService: DeviceProcessService
   private lateinit var mockView: MockDeviceMonitorView
   private lateinit var testDevice1: DeviceState
 
   @Before
   fun setup() {
-    service = AdbDeviceListService.getInstance(project)
-    model = DeviceMonitorModel()
-    mockView = MockDeviceMonitorView(project, AdbDeviceNameRendererFactory(service), model)
+    service = AdbDeviceService(project)
+    processService = DeviceProcessService()
+    model = DeviceMonitorModel(processService)
+    mockView = MockDeviceMonitorView(model)
     mockView.setup()
     testDevice1 = adb.attachDevice("test_device_01", "Google", "Pix3l", "versionX", "29")
+  }
+
+  @After
+  fun cleanup() {
+    Disposer.dispose(service)
   }
 
   @Test
@@ -68,7 +76,7 @@ class DeviceMonitorControllerTest {
     val controller = createController()
 
     // Assert
-    Assert.assertEquals(controller, getProjectController(project))
+    assertThat(controller).isEqualTo(getProjectController(project))
   }
 
   @Test
@@ -78,11 +86,11 @@ class DeviceMonitorControllerTest {
 
     // Act
     controller.setup()
-    pumpEventsAndWaitForFuture(mockView.startRefreshTracker.consume())
-    addClient(testDevice1, 200)
+    waitForCondition { service.getIDeviceFromSerialNumber(testDevice1.deviceId) != null }
+    controller.setActiveConnectedDevice(testDevice1.deviceId)
 
     // Assert
-    checkMockViewInitialState(controller)
+    checkMockViewInitialState()
   }
 
   @Test
@@ -90,20 +98,15 @@ class DeviceMonitorControllerTest {
     // Prepare
     val controller = createController()
     controller.setup()
-    pumpEventsAndWaitForFuture(mockView.startRefreshTracker.consume())
-    addClient(testDevice1, 200)
-    checkMockViewInitialState(controller)
+    waitForCondition { service.getIDeviceFromSerialNumber(testDevice1.deviceId) != null }
+    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    checkMockViewInitialState()
 
     // Act
     val testDevice2 = adb.attachDevice("test_device_02", "Google", "Pix3l", "versionX", "29")
-    addClient(testDevice2, 300)
-    controller.selectActiveDevice(testDevice2.deviceId)
+    controller.setActiveConnectedDevice(testDevice2.deviceId)
 
     // Assert
-    val devices = pumpEventsAndWaitForFutures(mockView.modelListener.deviceAddedTracker.consumeMany(2))
-    Truth.assertThat(devices.map { it.serialNumber }).containsExactlyElementsIn(listOf(testDevice1.deviceId, testDevice2.deviceId))
-    Assert.assertEquals(2, mockView.deviceCombo.itemCount)
-    Assert.assertEquals(1, mockView.deviceCombo.selectedIndex)
     checkMockViewActiveDevice(testDevice2)
   }
 
@@ -112,36 +115,16 @@ class DeviceMonitorControllerTest {
     // Prepare
     val controller = createController()
     controller.setup()
-    pumpEventsAndWaitForFuture(mockView.startRefreshTracker.consume())
-    addClient(testDevice1, 200)
-    checkMockViewInitialState(controller)
+    waitForCondition { service.getIDeviceFromSerialNumber(testDevice1.deviceId) != null }
+    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    checkMockViewInitialState()
 
     // Act
-    adb.disconnectDevice(testDevice1.deviceId)
+    controller.setActiveConnectedDevice(null)
 
     // Assert
-    pumpEventsAndWaitForFutures(mockView.modelListener.deviceRemovedTracker.consumeMany(1))
-    Assert.assertEquals(0, mockView.deviceCombo.itemCount)
-    pumpEventsAndWaitForFuture(mockView.viewListener.deviceNotSelectedTracker.consume())
-    Assert.assertFalse(controller.hasActiveDevice())
-  }
-
-  @Test
-  fun testDeviceFailing() = runBlocking(AndroidDispatchers.uiThread) {
-    // Prepare
-    val controller = createController()
-    controller.setup()
-    pumpEventsAndWaitForFuture(mockView.startRefreshTracker.consume())
-    addClient(testDevice1, 200)
-    checkMockViewInitialState(controller)
-
-    // Act
-    testDevice1.deviceStatus = DeviceState.DeviceStatus.UNAUTHORIZED
-
-    // Assert
-    pumpEventsAndWaitForFuture(mockView.reportErrorRelatedToDeviceTracker.consume())
-    Assert.assertEquals(1, mockView.deviceCombo.itemCount)
-    Assert.assertTrue(controller.hasActiveDevice())
+    val treeModel = pumpEventsAndWaitForFuture(mockView.mockModelListener.deviceTreeModelChangeTracker.consume())
+    assertThat(treeModel).isNull()
   }
 
   @Test
@@ -149,14 +132,13 @@ class DeviceMonitorControllerTest {
     // Prepare
     val controller = createController()
     controller.setup()
-    pumpEventsAndWaitForFuture(mockView.startRefreshTracker.consume())
+    waitForCondition { service.getIDeviceFromSerialNumber(testDevice1.deviceId) != null }
+    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    checkMockViewInitialState()
     addClient(testDevice1, 5)
-    addClient(testDevice1, 20)
-    addClient(testDevice1, 200)
-    checkMockViewInitialState(controller)
-    val rootEntry = DeviceTreeNode.fromNode(mockView.tree.model.root)
-    checkNotNull(rootEntry)
-    waitForCondition { rootEntry.childCount == 3 }
+    val treeModel = pumpEventsAndWaitForFutures(mockView.mockModelListener.deviceTreeModelChangeTracker.consumeMany(3)).last()
+    val rootEntry = checkNotNull(DeviceTreeNode.fromNode(treeModel?.root))
+    assertThat(rootEntry.childCount).isEqualTo(1)
 
     // Act
     val processList = getListOfChildNodes(rootEntry)
@@ -170,67 +152,44 @@ class DeviceMonitorControllerTest {
     mockView.killNodes(removeProcessList)
 
     // Assert
-    waitForCondition { rootEntry.childCount == 2 }
-    Assert.assertEquals(2, rootEntry.childCount)
-    assertPidIsNotInChildNodes(rootEntry, clientStopped.processInfo.pid)
+    val updatedTreeModel = pumpEventsAndWaitForFuture(mockView.mockModelListener.deviceTreeModelChangeTracker.consume())
+    val updatedRootEntry = checkNotNull(DeviceTreeNode.fromNode(updatedTreeModel?.root))
+    assertThat(updatedRootEntry.childCount).isEqualTo(0)
+    assertPidIsNotInChildNodes(updatedRootEntry, clientStopped.processInfo.pid)
   }
 
   @Test
-  fun testExpandingNodesWhenSelectingDevice() = runBlocking(AndroidDispatchers.uiThread) {
+  fun testChangeInDeviceSelection() = runBlocking(AndroidDispatchers.uiThread) {
     // Prepare
     val controller = createController()
     controller.setup()
-    pumpEventsAndWaitForFuture(mockView.startRefreshTracker.consume())
-    addClient(testDevice1, 200)
-    checkMockViewInitialState(controller)
+    waitForCondition { service.getIDeviceFromSerialNumber(testDevice1.deviceId) != null }
+    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    checkMockViewInitialState()
 
     // Act
     val testDevice2 = adb.attachDevice("test_device_02", "Google", "Pix3l", "versionX", "29")
-    addClient(testDevice2, 300)
-    controller.selectActiveDevice(testDevice2.deviceId)
+    controller.setActiveConnectedDevice(testDevice2.deviceId)
 
     // Assert
-    val devices = pumpEventsAndWaitForFutures(mockView.modelListener.deviceAddedTracker.consumeMany(2))
-    Truth.assertThat(devices.map { it.serialNumber }).containsExactlyElementsIn(listOf(testDevice1.deviceId, testDevice2.deviceId))
-    Assert.assertEquals(2, mockView.deviceCombo.itemCount)
-    Assert.assertEquals(1, mockView.deviceCombo.selectedIndex)
     checkMockViewActiveDevice(testDevice2)
-
-    mockView.viewListener.treeNodeExpandingTracker.clear()
-    controller.selectActiveDevice(testDevice1.deviceId)
-    val oldNode = pumpEventsAndWaitForFuture(mockView.viewListener.treeNodeExpandingTracker.consume())
-    val oldDeviceNode = checkNotNull(DeviceTreeNode.fromNode(oldNode))
-    Assert.assertEquals(testDevice1.deviceId, oldDeviceNode.device.serialNumber)
+    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    checkMockViewActiveDevice(testDevice1)
   }
 
   private fun createController(): DeviceMonitorController {
     return DeviceMonitorController(project, model, mockView, service)
   }
 
-  private suspend fun checkMockViewInitialState(controller: DeviceMonitorController) {
-    checkMockViewComboBox(controller)
+  private fun checkMockViewInitialState() {
     checkMockViewActiveDevice(testDevice1)
   }
 
-  private fun checkMockViewComboBox(controller: DeviceMonitorController) {
-    // Check we have 2 devices available
-    val devices = pumpEventsAndWaitForFutures(mockView.modelListener.deviceAddedTracker.consumeMany(1))
-    Truth.assertThat(devices.map { it.serialNumber }).containsExactlyElementsIn(listOf(testDevice1.deviceId))
-
-    // The device combo box should contain both devices, and the first one should be selected
-    Assert.assertEquals(1, mockView.deviceCombo.itemCount)
-
-    // The first device should be selected automatically
-    pumpEventsAndWaitForFuture(mockView.viewListener.deviceSelectedTracker.consume())
-    Assert.assertEquals(0, mockView.deviceCombo.selectedIndex)
-    Assert.assertTrue(controller.hasActiveDevice())
-  }
-
-  private suspend fun checkMockViewActiveDevice(activeDevice: DeviceState) {
+  private fun checkMockViewActiveDevice(activeDevice: DeviceState) {
     // Check the file system tree is displaying the file system of the first device
-    waitForCondition { DeviceTreeNode.fromNode(mockView.tree.model.root) != null }
-    val rootEntry = checkNotNull(DeviceTreeNode.fromNode(mockView.tree.model.root))
-    Assert.assertEquals(rootEntry.device.serialNumber, activeDevice.deviceId)
+    val treeModel = pumpEventsAndWaitForFuture(mockView.mockModelListener.deviceTreeModelChangeTracker.consume())
+    val rootEntry = checkNotNull(DeviceTreeNode.fromNode(treeModel?.root))
+    assertThat(rootEntry.device.serialNumber).isEqualTo(activeDevice.deviceId)
   }
 
   private fun addClient(fakeDevice: DeviceState, pid: Int): ClientState {
@@ -249,7 +208,7 @@ class DeviceMonitorControllerTest {
   private fun assertPidIsNotInChildNodes(rootNode: DeviceTreeNode, pid: Int) {
     val children = getListOfChildNodes(rootNode)
     for (child in children) {
-      Assert.assertNotEquals((child as ProcessInfoTreeNode).processInfo.pid, pid)
+      assertThat((child as ProcessInfoTreeNode).processInfo.pid).isNotEqualTo(pid)
     }
   }
 

@@ -16,19 +16,22 @@
 package com.android.tools.idea.device.explorer.monitor
 
 import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.IDevice
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.fakeadbserver.DeviceState
 import com.android.testutils.MockitoKt
+import com.android.tools.idea.FutureValuesTracker
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceListService.Companion.getInstance
+import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -52,54 +55,108 @@ class AdbDeviceListServiceTest {
   private val project: Project
     get() = androidProjectRule.project
 
+  private lateinit var device1: DeviceState
+
   @Before
   fun setUp() {
-    adb.attachDevice(
+    device1 = adb.attachDevice(
       deviceId = "test_device_01", manufacturer = "Google", model = "Pixel 10", release = "8.0", sdk = "31",
-      hostConnectionType = com.android.fakeadbserver.DeviceState.HostConnectionType.USB)
+      hostConnectionType = DeviceState.HostConnectionType.USB)
   }
 
   @Test
-  fun testInitialDeviceList() = runBlocking(AndroidDispatchers.uiThread) {
-
+  fun testFindingDeviceBeforeServiceStarts() = runBlocking(AndroidDispatchers.uiThread) {
     // Prepare
-    val service = getInstance(project)
+    val service = AdbDeviceService(project)
 
     // Act
     service.start()
+
     // Assert
     // We should see the connected device immediately after start returns.
     // (FakeAdbRule waits for AndroidDebugBridge to be fully initialized.)
-    Assert.assertEquals(service.devices.size, 1)
+    assertThat(service.getIDeviceFromSerialNumber(device1.deviceId)).isNotNull()
+    Disposer.dispose(service)
+  }
+
+  @Test
+  fun testFindingDeviceAfterServiceStarts() = runBlocking(AndroidDispatchers.uiThread) {
+    // Prepare
+    val service = AdbDeviceService(project)
+    val tracker = FutureValuesTracker<IDevice?>()
+    val listener = object : DeviceServiceListener {
+      override fun deviceProcessListUpdated(device: IDevice) {
+        tracker.produce(device)
+      }
+    }
+
+    // Act
+    service.addListener(listener)
+    service.start()
+    val device2 = adb.attachDevice(
+      deviceId = "test_device_02", manufacturer = "Google", model = "Pixel 10", release = "8.0", sdk = "31",
+      hostConnectionType = DeviceState.HostConnectionType.USB)
+
+    // Assert
+    assertThat(service.getIDeviceFromSerialNumber(device2.deviceId)).isNotNull()
+    Disposer.dispose(service)
+  }
+
+  @Test
+  fun testNotFindingDevice() = runBlocking(AndroidDispatchers.uiThread) {
+    // Prepare
+    val service = AdbDeviceService(project)
+
+    // Act
+    service.start()
+
+    // Assert
+    assertThat(service.getIDeviceFromSerialNumber("Fake ID")).isNull()
+    Disposer.dispose(service)
+  }
+
+  @Test
+  fun testNotFindingDeviceWithNullSerialNumber() = runBlocking(AndroidDispatchers.uiThread) {
+    // Prepare
+    val service = AdbDeviceService(project)
+
+    // Act
+    service.start()
+
+    // Assert
+    assertThat(service.getIDeviceFromSerialNumber(null)).isNull()
+    Disposer.dispose(service)
   }
 
   @Test
   fun testDebugBridgeListenersRemovedOnDispose() = runBlocking(AndroidDispatchers.uiThread) {
     // Prepare
-    val service = getInstance(project)
+    val service = AdbDeviceService(project)
     service.start()
-    Assert.assertEquals(2, AndroidDebugBridge.getDebugBridgeChangeListenerCount())
-    Assert.assertEquals(1, AndroidDebugBridge.getDeviceChangeListenerCount())
+    assertThat(AndroidDebugBridge.getDebugBridgeChangeListenerCount()).isEqualTo(2)
+    assertThat(AndroidDebugBridge.getDeviceChangeListenerCount()).isEqualTo(1)
 
     // Act
     Disposer.dispose(service)
 
     // Assert
-    Assert.assertEquals(1, AndroidDebugBridge.getDebugBridgeChangeListenerCount())
-    Assert.assertEquals(0, AndroidDebugBridge.getDeviceChangeListenerCount())
+    assertThat(AndroidDebugBridge.getDebugBridgeChangeListenerCount()).isEqualTo(1)
+    assertThat(AndroidDebugBridge.getDeviceChangeListenerCount()).isEqualTo(0)
+    Disposer.dispose(service)
   }
 
   @Test
   fun testStartAlreadyStartedService() = runBlocking(AndroidDispatchers.uiThread) {
     // Prepare
-    val service = getInstance(project)
+    val service = AdbDeviceService(project)
 
     // Act
     service.start()
     service.start()
 
     // Assert
-    Assert.assertEquals(service.devices.size, 1)
+    assertThat(service.getIDeviceFromSerialNumber(device1.deviceId)).isNotNull()
+    Disposer.dispose(service)
   }
 
   @Test
@@ -107,19 +164,25 @@ class AdbDeviceListServiceTest {
     // Prepare
     val adbFileProvider = AdbFileProvider { null }
     project.replaceService(AdbFileProvider::class.java, adbFileProvider, androidProjectRule.testRootDisposable)
-    val service = getInstance(project)
+    val service = AdbDeviceService(project)
 
     // Act // Assert
     exceptionRule.expect(FileNotFoundException::class.java)
     runBlocking(AndroidDispatchers.uiThread) {
-      service.start()
+      try {
+        service.start()
+      } catch (e: Exception) {
+        throw e
+      } finally {
+        Disposer.dispose(service)
+      }
     }
   }
 
   @Test
   fun testGetDebugBridgeFailure() {
     // Prepare
-    val service = getInstance(project)
+    val service = AdbDeviceService(project)
     val mockAdbService = androidProjectRule.mockService(AdbService::class.java)
     Mockito.`when`(mockAdbService.getDebugBridge(MockitoKt.any(File::class.java))).thenReturn(
       Futures.immediateFailedFuture(RuntimeException("test fail")))
@@ -127,15 +190,20 @@ class AdbDeviceListServiceTest {
     // Act // Assert
     exceptionRule.expect(RuntimeException::class.java)
     runBlocking(AndroidDispatchers.uiThread) {
-      service.start()
+      try {
+        service.start()
+      } catch (e: Exception) {
+        throw e
+      } finally {
+        Disposer.dispose(service)
+      }
     }
-
   }
 
   @Test
   fun testGetDebugBridgeFailureNoMessage() {
     // Prepare
-    val service = getInstance(project)
+    val service = AdbDeviceService(project)
     val mockAdbService = androidProjectRule.mockService(AdbService::class.java)
     Mockito.`when`(mockAdbService.getDebugBridge(MockitoKt.any(File::class.java))).thenReturn(
       Futures.immediateFailedFuture(RuntimeException()))
@@ -143,7 +211,13 @@ class AdbDeviceListServiceTest {
     // Act // Assert
     exceptionRule.expect(RuntimeException::class.java)
     runBlocking(AndroidDispatchers.uiThread) {
-      service.start()
+      try {
+        service.start()
+      } catch (e: Exception) {
+        throw e
+      } finally {
+        Disposer.dispose(service)
+      }
     }
   }
 }

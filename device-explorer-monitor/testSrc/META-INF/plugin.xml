@@ -15,7 +15,7 @@
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <name>Android Device Monitor Tests</name>
-  <id>intellij.android.device-file-explorer.tests</id>
+  <id>intellij.android.device-monitor.tests</id>
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

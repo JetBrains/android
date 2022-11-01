@@ -23,6 +23,13 @@ iml_module(
 iml_module(
     name = "intellij.android.device-explorer-monitor.tests",
     iml_files = ["intellij.android.device-explorer-monitor.tests.iml"],
+    test_class = "com.android.tools.idea.device.explorer.monitor.DeviceMonitorTestSuite",
+    # keep sorted
+    test_data = [
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/android/testData",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

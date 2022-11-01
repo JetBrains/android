@@ -15,40 +15,21 @@
  */
 package com.android.tools.idea.device.explorer.monitor.mocks
 
-import com.android.tools.idea.FutureValuesTracker
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
-import com.android.tools.idea.device.explorer.monitor.DeviceMonitorProgressListener
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorView
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
-import com.android.tools.idea.device.explorer.monitor.DeviceNameRendererFactory
 import com.android.tools.idea.device.explorer.monitor.ProcessTreeNode
-import com.android.tools.idea.device.explorer.monitor.processes.Device
-import com.android.tools.idea.device.explorer.monitor.processes.DeviceListService
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorViewImpl
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ForceStopMenuItem
-import com.android.tools.idea.device.explorer.monitor.ui.menu.item.KillMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext
-import com.intellij.openapi.project.Project
-import com.intellij.ui.treeStructure.Tree
-import javax.swing.JComboBox
+import javax.swing.JComponent
 
-class MockDeviceMonitorView(
-  project: Project,
-  rendererFactory: DeviceNameRendererFactory,
-  model: DeviceMonitorModel
-) : DeviceMonitorView {
-  private val viewImpl = DeviceMonitorViewImpl(project, rendererFactory, model)
-  val modelListener = MockModelListener()
-  val viewListener = MockDeviceMonitorViewListener()
-
-  val startRefreshTracker = FutureValuesTracker<String>()
-  private val stopRefreshTracker = FutureValuesTracker<String>()
-  private val reportErrorRelatedToServiceTracker = FutureValuesTracker<String>()
-  val reportErrorRelatedToDeviceTracker = FutureValuesTracker<String>()
+class MockDeviceMonitorView(model: DeviceMonitorModel): DeviceMonitorView {
+  private val viewImpl = DeviceMonitorViewImpl(model)
+  val mockModelListener = MockModelListener()
 
   init {
-    viewImpl.addListener(viewListener)
-    model.addListener(modelListener)
+    model.addListener(mockModelListener)
   }
 
   override fun addListener(listener: DeviceMonitorViewListener) {
@@ -63,52 +44,13 @@ class MockDeviceMonitorView(
     viewImpl.setup()
   }
 
-  override fun startRefresh(text: String) {
-    viewImpl.startRefresh(text)
-    startRefreshTracker.produce(text)
-  }
-
-  override fun stopRefresh() {
-    viewImpl.stopRefresh()
-    stopRefreshTracker.produce(null)
-  }
-
-  override fun showNoDeviceScreen() {
-    viewImpl.showNoDeviceScreen()
-  }
-
-  override fun showActiveDeviceScreen() {
-    viewImpl.showActiveDeviceScreen()
-  }
-
-  override fun reportErrorRelatedToService(service: DeviceListService, message: String, t: Throwable) {
-    reportErrorRelatedToServiceTracker.produce(message + getThrowableMessage(t))
-    viewImpl.reportErrorRelatedToService(service, message, t)
-  }
-
-
-  override fun reportErrorGeneric(message: String, t: Throwable) {
-    viewImpl.reportErrorGeneric(message, t)
-  }
-
-  override fun reportMessageRelatedToDevice(fileSystem: Device, message: String) {
-    reportErrorRelatedToDeviceTracker.produce(message)
-    viewImpl.reportMessageRelatedToDevice(fileSystem, message)
-  }
-
-  override fun expandNode(treeNode: ProcessTreeNode) {}
+  override val panelComponent: JComponent
+    get() = viewImpl.panelComponent
 
   fun killNodes(processList: List<ProcessTreeNode>) {
     val menuItem = ForceStopMenuItem(viewImpl, MenuContext.Popup)
     menuItem.run(processList)
   }
-
-  val deviceCombo: JComboBox<Device?>
-    get() = viewImpl.getDeviceCombo()
-
-
-  val tree: Tree
-    get() = viewImpl.getTree()
 
   private fun getThrowableMessage(t: Throwable): String =
     if (t.message == null) "" else ": ${t.message}"

@@ -22,7 +22,9 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDevice
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
@@ -101,5 +103,9 @@ class DeviceProcessService {
         device.forceStop(process.processName)
       }
     }
+  }
+
+  companion object {
+    fun getInstance(project: Project): DeviceProcessService = project.service()
   }
 }

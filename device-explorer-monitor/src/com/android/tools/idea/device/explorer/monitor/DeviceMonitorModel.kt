@@ -56,7 +56,9 @@ class DeviceMonitorModel(private val processService: DeviceProcessService) {
         }
       }
     } else {
-      listeners.forEach(Consumer { x: DeviceMonitorModelListener -> x.treeModelChanged(null, null) })
+      treeModel = null
+      treeModelSelection = null
+      listeners.forEach(Consumer { x: DeviceMonitorModelListener -> x.treeModelChanged(treeModel, treeModelSelection) })
     }
   }
 

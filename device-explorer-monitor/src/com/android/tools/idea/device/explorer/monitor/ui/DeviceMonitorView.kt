@@ -20,7 +20,6 @@ import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
 import javax.swing.JComponent
 
 interface DeviceMonitorView {
-  val modelListener: DeviceMonitorModelListener
   val panelComponent: JComponent
   fun setup()
   fun addListener(listener: DeviceMonitorViewListener)

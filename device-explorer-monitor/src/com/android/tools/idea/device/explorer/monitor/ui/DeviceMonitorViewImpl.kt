@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device.explorer.monitor.ui
 
+import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModelListener
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
 import com.android.tools.idea.device.explorer.monitor.ProcessTreeNode
@@ -24,6 +25,7 @@ import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.RefreshMenuItem
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.util.function.Consumer
 import javax.swing.JComponent
@@ -31,12 +33,14 @@ import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
 import javax.swing.tree.TreePath
 
-class DeviceMonitorViewImpl: DeviceMonitorView, DeviceMonitorActionsListener {
+class DeviceMonitorViewImpl(model: DeviceMonitorModel): DeviceMonitorView, DeviceMonitorActionsListener {
   private val panel = DeviceMonitorPanel()
   private val listeners = mutableListOf<DeviceMonitorViewListener>()
+  private val modelListener = ModelListener()
 
-  override val modelListener
-    get() = ModelListener()
+  init {
+    model.addListener(modelListener)
+  }
 
   override val panelComponent: JComponent
     get() = panel.component
@@ -52,6 +56,26 @@ class DeviceMonitorViewImpl: DeviceMonitorView, DeviceMonitorActionsListener {
   override fun removeListener(listener: DeviceMonitorViewListener) {
     listeners.remove(listener)
   }
+
+  override val selectedNodes: List<ProcessTreeNode>?
+    get() {
+      val paths = panel.tree.selectionPaths ?: return null
+      val nodes = paths.mapNotNull { path -> ProcessTreeNode.fromNode(path.lastPathComponent) }.toList()
+      return nodes.ifEmpty { null }
+    }
+
+  override fun refreshNodes(treeNodes: List<ProcessTreeNode>) {
+    listeners.forEach(Consumer { it.refreshInvoked() })
+  }
+
+  override fun killNodes(treeNodes: List<ProcessTreeNode>) {
+    listeners.forEach(Consumer { it.killNodesInvoked(treeNodes) })
+  }
+
+  override fun forceStopNodes(treeNodes: List<ProcessTreeNode>) {
+    listeners.forEach(Consumer { it.forceStopNodesInvoked(treeNodes) })
+  }
+
 
   private fun createTreePopupMenu() {
     ComponentPopupMenu(panel.tree).apply {
@@ -75,25 +99,6 @@ class DeviceMonitorViewImpl: DeviceMonitorView, DeviceMonitorActionsListener {
       targetComponent = panel.tree
     }
     panel.toolbar.add(actionToolbar.component, BorderLayout.WEST)
-  }
-
-  override val selectedNodes: List<ProcessTreeNode>?
-    get() {
-      val paths = panel.tree.selectionPaths ?: return null
-      val nodes = paths.mapNotNull { path -> ProcessTreeNode.fromNode(path.lastPathComponent) }.toList()
-      return nodes.ifEmpty { null }
-    }
-
-  override fun refreshNodes(treeNodes: List<ProcessTreeNode>) {
-    listeners.forEach(Consumer { it.refreshInvoked() })
-  }
-
-  override fun killNodes(treeNodes: List<ProcessTreeNode>) {
-    listeners.forEach(Consumer { it.killNodesInvoked(treeNodes) })
-  }
-
-  override fun forceStopNodes(treeNodes: List<ProcessTreeNode>) {
-    listeners.forEach(Consumer { it.forceStopNodesInvoked(treeNodes) })
   }
 
   inner class ModelListener : DeviceMonitorModelListener {

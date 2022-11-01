@@ -17,9 +17,7 @@ package com.android.tools.idea.device.explorer.monitor
 
 import com.android.tools.idea.device.explorer.monitor.mocks.MockDevice
 import com.android.tools.idea.device.explorer.monitor.processes.Device
-import com.android.tools.idea.device.explorer.monitor.processes.DeviceState
 import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
-import com.android.tools.idea.device.explorer.monitor.ui.TreeUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.ui.tree.TreeModelAdapter
 import org.junit.Before
@@ -81,7 +79,7 @@ class TreeUtilTest {
   fun testSingleInsertAtStart() {
     // Prepare
     newProcesses.add(createProcessInfo(0))
-    newProcesses.sortWith(DeviceMonitorController.ProcessInfoNameComparator)
+    newProcesses.sortWith(DeviceMonitorModel.ProcessInfoNameComparator)
 
     // Act
     TreeUtil.updateChildrenNodes(treeModel, rootNode, newProcesses, createDefaultOps())
@@ -98,7 +96,7 @@ class TreeUtilTest {
   fun testSingleInsertAtEnd() {
     // Prepare
     newProcesses.add(createProcessInfo(30))
-    newProcesses.sortWith(DeviceMonitorController.ProcessInfoNameComparator)
+    newProcesses.sortWith(DeviceMonitorModel.ProcessInfoNameComparator)
 
     // Act
     TreeUtil.updateChildrenNodes(treeModel, rootNode, newProcesses, createDefaultOps())
@@ -115,7 +113,7 @@ class TreeUtilTest {
   fun testSingleInsertInTheMiddle() {
     // Prepare
     newProcesses.add(createProcessInfo(7))
-    newProcesses.sortWith(DeviceMonitorController.ProcessInfoNameComparator)
+    newProcesses.sortWith(DeviceMonitorModel.ProcessInfoNameComparator)
 
     // Act
     TreeUtil.updateChildrenNodes(treeModel, rootNode, newProcesses, createDefaultOps())
@@ -134,7 +132,7 @@ class TreeUtilTest {
     newProcesses.add(createProcessInfo(1))
     newProcesses.add(createProcessInfo(7))
     newProcesses.add(createProcessInfo(12))
-    newProcesses.sortWith(DeviceMonitorController.ProcessInfoNameComparator)
+    newProcesses.sortWith(DeviceMonitorModel.ProcessInfoNameComparator)
 
     // Act
     TreeUtil.updateChildrenNodes(treeModel, rootNode, newProcesses, createDefaultOps())
@@ -235,7 +233,7 @@ class TreeUtilTest {
   }
 
   private fun createDeviceNode(): DeviceTreeNode {
-    device = MockDevice("Test Device", "Test Serial Number", DeviceState.ONLINE)
+    device = MockDevice("Test Device", "Test Serial Number")
     return DeviceTreeNode(device)
   }
 
@@ -282,7 +280,7 @@ class TreeUtilTest {
       node.processInfo == entry
 
     override fun compareNodesForSorting(node: ProcessInfoTreeNode, entry: ProcessInfo): Int =
-      DeviceMonitorController.ProcessInfoNameComparator.compare(node.processInfo, entry)
+      DeviceMonitorModel.ProcessInfoNameComparator.compare(node.processInfo, entry)
 
     override fun mapEntry(entry: ProcessInfo): ProcessInfoTreeNode =
       ProcessInfoTreeNode(entry)
@@ -303,7 +301,7 @@ class TreeUtilTest {
       createProcessInfo(15),
       createProcessInfo(20)
     )
-    list.sortWith(DeviceMonitorController.ProcessInfoNameComparator)
+    list.sortWith(DeviceMonitorModel.ProcessInfoNameComparator)
     return list
   }
 

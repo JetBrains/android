@@ -27,7 +27,6 @@ import com.android.tools.idea.device.explorer.monitor.DeviceService
 import com.android.tools.idea.device.explorer.monitor.DeviceServiceListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
@@ -202,7 +201,7 @@ class AdbDeviceService @NonInjectable constructor(private val adbSupplier: Suppl
   }
 
   companion object {
-    fun getInstance(project: Project): AdbDeviceService = project.service()
+    fun getInstance(project: Project): AdbDeviceService = project.getService(AdbDeviceService::class.java)
 
     var LOGGER = logger<AdbDeviceService>()
   }

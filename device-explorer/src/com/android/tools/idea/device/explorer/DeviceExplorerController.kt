@@ -87,7 +87,7 @@ class DeviceExplorerController(
 
   private fun setActiveDevice(deviceHandle: DeviceHandle?) {
     model.setActiveDevice(deviceHandle)
-    deviceMonitorController.activeDeviceChanged(deviceHandle?.state?.connectedDevice)
+    deviceMonitorController.setActiveConnectedDevice(deviceHandle?.state?.connectedDevice?.serialNumber)
     deviceFilesController.setActiveConnectedDevice(newDeviceFileSystem(deviceHandle, deviceHandle?.state?.connectedDevice))
   }
 

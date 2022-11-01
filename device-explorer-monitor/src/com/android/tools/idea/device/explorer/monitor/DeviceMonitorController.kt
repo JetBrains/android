@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.device.explorer.monitor
 
-import com.android.adblib.ConnectedDevice
-import com.android.adblib.serialNumber
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorView
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Key
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -31,7 +31,7 @@ import javax.swing.JComponent
 
 @UiThread
 class DeviceMonitorController(
-  parentDisposable: Disposable,
+  project: Project,
   private val model: DeviceMonitorModel,
   private val view: DeviceMonitorView,
   private val deviceService: DeviceService
@@ -43,18 +43,18 @@ class DeviceMonitorController(
   private val viewListener = ViewListener()
 
   init {
-    Disposer.register(parentDisposable, this)
+    Disposer.register(project, this)
+    project.putUserData(KEY, this)
   }
 
-  fun activeDeviceChanged(device: ConnectedDevice?) {
+  fun setActiveConnectedDevice(serialNumber: String?) {
     uiThreadScope.launch {
-      val iDevice = deviceService.getIDeviceFromSerialNumber(device?.serialNumber)
+      val iDevice = deviceService.getIDeviceFromSerialNumber(serialNumber)
       model.activeDeviceChanged(iDevice)
     }
   }
 
   fun setup() {
-    model.addListener(view.modelListener)
     view.addListener(viewListener)
     deviceService.addListener(deviceServiceListener)
     view.setup()
@@ -73,7 +73,6 @@ class DeviceMonitorController(
   fun getViewComponent(): JComponent = view.panelComponent
 
   override fun dispose() {
-    model.removeListener(view.modelListener)
     view.removeListener(viewListener)
     deviceService.removeListener(deviceServiceListener)
     uiThreadScope.cancel("${javaClass.simpleName} has been disposed")
@@ -105,6 +104,16 @@ class DeviceMonitorController(
         model.forceStopNodesInvoked(nodes)
       }
     }
+  }
 
+  companion object {
+    private val KEY = Key.create<DeviceMonitorController>(
+      DeviceMonitorController::class.java.name
+    )
+
+    @JvmStatic
+    fun getProjectController(project: Project?): DeviceMonitorController? {
+      return project?.getUserData(KEY)
+    }
   }
 }
