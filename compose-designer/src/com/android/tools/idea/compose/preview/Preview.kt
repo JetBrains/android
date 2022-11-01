@@ -936,7 +936,10 @@ class ComposePreviewRepresentation(
       ComposePreviewManager.Status(
         !isRefreshing && hasErrorsAndNeedsBuild(),
         !isRefreshing && hasSyntaxErrors(),
-        !isRefreshing && projectBuildStatusManager.status == ProjectStatus.OutOfDate,
+        !isRefreshing && projectBuildStatusManager.status is ProjectStatus.OutOfDate,
+        !isRefreshing &&
+          (projectBuildStatusManager.status as? ProjectStatus.OutOfDate)?.areResourcesOutOfDate
+            ?: false,
         isRefreshing,
         interactiveMode,
       )

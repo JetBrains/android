@@ -72,6 +72,9 @@ internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewS
       !project.fastPreviewManager.isAutoDisabled &&
       previewStatus.isOutOfDate -> PreviewStatusNotification.OutOfDate
 
+    // Resources are out of date. FastPreview does not help with this.
+    previewStatus.areResourcesOutOfDate -> PreviewStatusNotification.OutOfDate
+
     // Refresh status
     previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STARTING ->
       PreviewStatusNotification.Refreshing(message("notification.interactive.preview.starting"))

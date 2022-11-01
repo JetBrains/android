@@ -24,6 +24,8 @@ import com.android.tools.idea.editors.build.ProjectBuildStatusManagerTest
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -37,10 +39,12 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
+import org.hamcrest.CoreMatchers
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -114,7 +118,7 @@ class ProjectBuildStatusManagerTest {
       documentManager.commitAllDocuments()
     }
     FileDocumentManager.getInstance().saveAllDocuments()
-    assertEquals(ProjectStatus.OutOfDate, statusManager.status)
+    assertThat(statusManager.status, CoreMatchers.instanceOf(ProjectStatus.OutOfDate::class.java))
     assertEquals(ProjectStatus.Ready, newStatusManager.status)
 
     // Status should change to NeedsBuild for all managers after a build clean
@@ -160,7 +164,8 @@ class ProjectBuildStatusManagerTest {
       documentManager.commitAllDocuments()
     }
     FileDocumentManager.getInstance().saveAllDocuments()
-
+    val facet = projectRule.androidFacet(":app")
+    waitForResourceRepositoryUpdates(facet.module.getMainModule())
     assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
     projectRule.buildAndAssertIsSuccessful()
     assertTrue(

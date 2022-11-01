@@ -28,6 +28,7 @@ class TestComposePreviewManager(
       hasRuntimeErrors = false,
       hasSyntaxErrors = false,
       isOutOfDate = false,
+      areResourcesOutOfDate = false,
       isRefreshing = false,
       interactiveMode = initialInteractiveMode
     )

@@ -73,6 +73,7 @@ internal class ComposeIssueNotificationActionTest {
       hasRuntimeErrors = false,
       hasSyntaxErrors = false,
       isOutOfDate = false,
+      areResourcesOutOfDate = false,
       isRefreshing = false,
       interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
     )

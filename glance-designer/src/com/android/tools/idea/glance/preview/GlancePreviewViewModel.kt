@@ -182,7 +182,7 @@ class GlancePreviewViewModel(
     get() = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
 
   override val isOutOfDate: Boolean
-    get() = projectBuildStatusManager.status == ProjectStatus.OutOfDate
+    get() = projectBuildStatusManager.status is ProjectStatus.OutOfDate
 
   override val previewedFile: PsiFile?
     get() = psiFilePointer.element

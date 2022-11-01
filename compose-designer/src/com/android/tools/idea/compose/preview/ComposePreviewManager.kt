@@ -71,6 +71,8 @@ interface ComposePreviewManager : Disposable {
    * @param hasSyntaxErrors true if the preview is displaying content of a file that has syntax
    * errors.
    * @param isOutOfDate true if the preview needs a refresh to be up to date.
+   * @param areResourcesOutOfDate true if the preview needs a build to be up to date because
+   * resources are out of date.
    * @param isRefreshing true if the view is currently refreshing.
    * @param interactiveMode represents current state of preview interactivity.
    */
@@ -78,6 +80,7 @@ interface ComposePreviewManager : Disposable {
     val hasRuntimeErrors: Boolean,
     val hasSyntaxErrors: Boolean,
     val isOutOfDate: Boolean,
+    val areResourcesOutOfDate: Boolean,
     val isRefreshing: Boolean,
     val interactiveMode: InteractiveMode
   ) {

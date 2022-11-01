@@ -293,7 +293,7 @@ class GlancePreviewViewModelTest {
   fun testIsOutOfDate() {
     Assert.assertFalse(viewModel.isOutOfDate)
 
-    statusManager.status = ProjectStatus.OutOfDate
+    statusManager.status = ProjectStatus.OutOfDate.Code
 
     Assert.assertTrue(viewModel.isOutOfDate)
   }

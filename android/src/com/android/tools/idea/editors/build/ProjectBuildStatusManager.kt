@@ -24,6 +24,11 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.hasExistingClassFile
+import com.android.tools.idea.res.ResourceNotificationManager
+import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
+import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion
+import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -38,6 +43,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.util.application.runReadAction
+import org.jetbrains.kotlin.idea.util.module
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -57,18 +64,33 @@ private enum class ProjectBuildStatus {
 }
 
 /** The project status */
-enum class ProjectStatus {
+sealed class ProjectStatus {
   /** The project is indexing or not synced yet */
-  NotReady,
+  object NotReady: ProjectStatus()
 
   /** The project needs to be built */
-  NeedsBuild,
+  object NeedsBuild: ProjectStatus()
 
-  /** The project is compiled but one or more files are out of date **/
-  OutOfDate,
-
+  /**
+   * The project is compiled but one or more files are out of date.
+   *
+   * Not all resource changes require a rebuild but we do not have an easy way for now to differentiate them. For example,
+   * a color change might be flagged as "out of date" but the preview should be ok dealing with that. However, adding or removing a
+   * resource will always require a rebuild since the R class needs to change.
+   *
+   * @param isCodeOutOfDate true if the code is out of date.
+   * @param areResourcesOutOfDate true if resources might be out of date.
+   */
+  sealed class OutOfDate private constructor(
+    val isCodeOutOfDate: Boolean,
+    val areResourcesOutOfDate: Boolean
+  ): ProjectStatus() {
+    object Code: OutOfDate(true, false)
+    object Resources: OutOfDate(false, true)
+    object CodeAndResources: OutOfDate(true, true)
+  }
   /** The project is compiled and up to date */
-  Ready
+  object Ready: ProjectStatus()
 }
 
 private val LOG = Logger.getInstance(ProjectStatus::class.java)
@@ -128,6 +150,12 @@ interface ProjectBuildStatusManagerForTests {
    */
   @TestOnly
   fun getBuildListenerForTest(): ProjectSystemBuildManager.BuildListener
+
+  /**
+   * Returns the internal [ResourceChangeListener] to be used by tests.
+   */
+  @TestOnly
+  fun getResourcesListenerForTest(): ResourceChangeListener
 }
 
 private object NopPsiFileChangeDetector : PsiFileChangeDetector {
@@ -180,15 +208,22 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
           fileChangeDetector.forceMarkFileAsUpToDate(editorFile)
         }
       }
+      val areResourcesOutOfDate = areResourcesOutOfDate.get()
+      val isCodeOutOfDate = isCodeOutOfDate()
       return when {
         currentProjectBuildStatus == ProjectBuildStatus.NotReady -> ProjectStatus.NotReady
         currentProjectBuildStatus == ProjectBuildStatus.NeedsBuild -> ProjectStatus.NeedsBuild
-        isBuildOutOfDate() -> ProjectStatus.OutOfDate
+        isCodeOutOfDate || areResourcesOutOfDate -> when {
+          isCodeOutOfDate && areResourcesOutOfDate -> ProjectStatus.OutOfDate.CodeAndResources
+          isCodeOutOfDate -> ProjectStatus.OutOfDate.Code
+          else -> ProjectStatus.OutOfDate.Resources
+        }
         else -> ProjectStatus.Ready
       }.also {
         LOG.debug("status $it")
       }
     }
+  private var areResourcesOutOfDate = AtomicBoolean(false)
 
   @get:UiThread
   override val isBuilding: Boolean
@@ -213,6 +248,8 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
         return
       }
       val newProjectBuildStatus = if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
+        // Clear the resources out of date flag
+        areResourcesOutOfDate.set(false)
         onSuccessfulBuild()
         ProjectBuildStatus.Built
       }
@@ -232,6 +269,13 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
     }
   }
 
+  private val resourceChangeListener = ResourceChangeListener { reason ->
+    LOG.debug("ResourceNotificationManager resourceChange ${reason.joinToString()}")
+    if (reason.contains(ResourceNotificationManager.Reason.RESOURCE_EDIT)) {
+      areResourcesOutOfDate.set(true)
+    }
+  }
+
   private fun onSuccessfulBuild() {
     fileChangeDetector.markFileAsUpToDate(editorFile)
   }
@@ -240,9 +284,30 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
     Disposer.register(parentDisposable) {
       fileChangeDetector.clearMarks(editorFile)
     }
+
+    LOG.debug("setup build listener")
     ProjectSystemService.getInstance(project).projectSystem.getBuildManager()
       .addBuildListener(parentDisposable, buildListener)
 
+    // Register listener
+    LOG.debug("setup build listener")
+    runReadAction { psiFile.module?.androidFacet }?.let { facet ->
+      val resourceNotificationManager = ResourceNotificationManager.getInstance(project)
+      if (Disposer.tryRegister(parentDisposable) {
+        LOG.debug("ResourceNotificationManager.removeListener")
+        resourceNotificationManager.removeListener(resourceChangeListener, facet, null, null)
+      }) {
+        ResourceNotificationManager.getInstance(project).addListener(
+          resourceChangeListener,
+          facet,
+          null,
+          null
+        )
+        LOG.debug("ResourceNotificationManager.addListener")
+      }
+    }
+
+    LOG.debug("waiting for smart and synced")
     project.runWhenSmartAndSyncedOnEdt(parentDisposable, {
       fileChangeDetector.markFileAsUpToDate(editorFile)
 
@@ -288,8 +353,11 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
     }
   }
 
-  private fun isBuildOutOfDate() = fileChangeDetector.hasFileChanged(editorFile)
+  private fun isCodeOutOfDate() = fileChangeDetector.hasFileChanged(editorFile)
+
 
   @TestOnly
   override fun getBuildListenerForTest(): ProjectSystemBuildManager.BuildListener = buildListener
+
+  override fun getResourcesListenerForTest(): ResourceChangeListener = resourceChangeListener
 }
