@@ -19,6 +19,7 @@ package com.android.tools.adtui.swing
 import com.android.annotations.concurrency.GuardedBy
 import com.google.common.util.concurrent.ListenableFutureTask
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonShortcuts
@@ -229,6 +230,7 @@ class HeadlessDialogWrapperPeerFactory : DialogWrapperPeerFactory() {
  * code. This redundant code is preserved in hope that it may be used in future to implement more
  * behaviors mimicking real dialogs.
  */
+@Suppress("UnstableApiUsage")
 private class HeadlessDialogWrapperPeer(
   private val wrapper: DialogWrapper,
   private var project: Project?,
@@ -467,6 +469,11 @@ private class HeadlessDialogWrapperPeer(
     }
 
   private inner class AnCancelAction : AnAction(), DumbAware {
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      return ActionUpdateThread.EDT
+    }
+
     override fun update(event: AnActionEvent) {
       val focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
       event.presentation.isEnabled = false
