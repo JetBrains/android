@@ -43,16 +43,14 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
 
   @UiThread
   override fun isScreenRecordingSupported(serialNumber: String, sdk: Int): Boolean {
-    return adbSession.deviceCache(serialNumber)
-      .getOrPutSuspending(cacheKey,
-                          fastDefaultValue = { false },
-                          defaultValue = { computeIsSupported(serialNumber, sdk) })
+    return adbSession.deviceCache(serialNumber).getOrPutSuspending(
+        cacheKey, fastDefaultValue = { false }, defaultValue = { computeIsSupported(serialNumber, sdk) })
   }
 
   private suspend fun computeIsSupported(serialNumber: String, sdk: Int): Boolean {
     // The default value (from the cache) is "false" until this function terminates,
     // so we try every 2 seconds until we can answer without error.
-    while (true)
+    while (true) {
       try {
         return when {
           serialNumber.isEmulator() -> true
@@ -62,9 +60,10 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
         }
       }
       catch (e: Throwable) {
-        thisLogger().info("Failure to retrieve screen recording support status for device $serialNumber, retrying in 2 seconds", e)
+        thisLogger().warn("Failure to retrieve screen recording support status for device $serialNumber, retrying in 2 seconds", e)
         delay(IS_SUPPORTED_RETRY_TIMEOUT.toMillis())
       }
+    }
   }
 
   private suspend fun isWatch(serialNumber: String): Boolean {
