@@ -304,7 +304,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
 
   fun isSyncNeeded(): ThreeState {
     return when {
-      PropertiesComponent.getInstance().getBoolean(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME) -> ThreeState.YES
+      PropertiesComponent.getInstance(project).getBoolean(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME) -> ThreeState.YES
       GradleFiles.getInstance(project).areGradleFilesModified() -> ThreeState.YES
       else -> ThreeState.NO
     }
@@ -319,7 +319,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       copy(state = newState, externalSystemTaskId = null, lastSyncFinishedTimeStamp = System.currentTimeMillis())
     }
 
-    PropertiesComponent.getInstance().setValue(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME, !newState.isSuccessful)
+    PropertiesComponent.getInstance(project).setValue(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME, !newState.isSuccessful)
 
     // TODO: Move out of GradleSyncState, create a ProjectCleanupTask to show this warning?
     if (newState != LastSyncState.SKIPPED) {
