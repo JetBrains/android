@@ -61,7 +61,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -354,14 +353,13 @@ public class AndroidLiveEditDeployMonitor {
     LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), applicationId);
 
     // Initialize EditStatus for current device.
-    updateEditStatus(device, DISCONNECTED);
+    updateEditStatus(device, LOADING);
 
     return () -> methodChangesExecutor
       .schedule(
         () -> {
           this.applicationId = applicationId;
           LiveEditService.getInstance(project).resetState();
-          updateEditStatus(device, LOADING);
 
           LiveLiteralsMonitorHandler.DeviceType deviceType;
           if (device.isEmulator()) {
