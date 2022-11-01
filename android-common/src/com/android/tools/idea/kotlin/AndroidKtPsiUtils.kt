@@ -172,7 +172,7 @@ fun KtClass.getQualifiedName(analysisSession: KtAnalysisSession? = null): String
   return if (isK2Plugin()) {
     analysisSession.applyOrAnalyze(this) {
       val symbol = getClassOrObjectSymbol()
-      val classId = symbol.classIdIfNonLocal ?: return null
+      val classId = symbol?.classIdIfNonLocal ?: return null
 
       if (symbol.classKind != KtClassKind.CLASS || classId.packageFqName.startsWith(StandardNames.BUILT_INS_PACKAGE_NAME)) {
         null
