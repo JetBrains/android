@@ -249,7 +249,6 @@ class IssuePanelService(private val project: Project) {
     val toolWindow = ProblemsView.getToolWindow(project) ?: return false
     val contentManager = toolWindow.contentManager
     contentManager.removeContent(tab, false)
-    contentManager.getContent(0)?.let { contentManager.setSelectedContent(it) }
     return true
   }
 
