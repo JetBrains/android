@@ -29,6 +29,7 @@ import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.diagnostic.thisLogger
@@ -69,6 +70,10 @@ class ScreenRecorderAction : DumbAwareAction(
 
   /** Serial numbers of devices that are currently recording. */
   private val recordingInProgress = mutableSetOf<String>()
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
+  }
 
   override fun update(event: AnActionEvent) {
     val params = event.getData(SCREEN_RECORDER_PARAMETERS_KEY)
