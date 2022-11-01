@@ -35,6 +35,7 @@ import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
@@ -67,10 +68,15 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 sealed class LightClassesTestBase : AndroidTestCase() {
 
-  protected fun resolveReferenceUnderCaret(): PsiElement? {
-    // We cannot use myFixture.elementAtCaret or TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED because JavaTargetElementEvaluator doesn't
-    // consider synthetic PSI elements as "acceptable" and just returns null instead, so it wouldn't test much.
-    return TargetElementUtil.findReference(myFixture.editor)!!.resolve()
+  protected fun resolveReferenceUnderCaret(): PsiElement? = runReadAction {
+    try {
+      myFixture.elementAtCaret
+    }
+    catch (e: AssertionError) {
+      // elementAtCaret throws if there is no reference available. For the purposes of these test cases, we are treating this case as a null
+      // so it can be verified as such.
+      null
+    }
   }
 
   companion object {
