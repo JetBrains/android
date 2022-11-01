@@ -178,6 +178,7 @@ studio_plugin(
             "//tools/adt/idea/app-inspection/inspectors/network/view:app-inspection.inspectors.network.view",
             "//tools/adt/idea/server-flags:intellij.android.server-flags",
             "//tools/adt/idea/codenavigation:codenavigation",
+            "//tools/adt/idea/execution/common:intellij.android.execution.common",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",
