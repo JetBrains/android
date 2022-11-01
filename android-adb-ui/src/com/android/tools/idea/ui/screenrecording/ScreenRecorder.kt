@@ -34,16 +34,15 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.time.Clock
 import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
-private val MAX_RECORDING_TIME_MILLIS = TimeUnit.MINUTES.toMillis(3)
 private const val SAVE_PATH_KEY = "ScreenRecorder.SavePath"
 
 /**
@@ -58,7 +57,8 @@ internal class ScreenRecorder(
   private val recordingProvider: RecordingProvider,
   private val clock: Clock = Clock.systemDefaultZone(),
 ) {
-  suspend fun recordScreen() {
+  suspend fun recordScreen(timeLimitSec: Int) {
+    require(timeLimitSec > 0)
     recordingProvider.startRecording()
 
     val start = clock.millis()
@@ -73,7 +73,7 @@ internal class ScreenRecorder(
 
     try {
       withContext(Dispatchers.IO) {
-        while (!stoppingLatch.await(millisUntilNextSecondTick(start), MILLISECONDS) && clock.millis() - start < MAX_RECORDING_TIME_MILLIS) {
+        while (!stoppingLatch.await(millisUntilNextSecondTick(start), MILLISECONDS) && clock.millis() - start < timeLimitSec * 1000) {
           withContext(uiThread) {
             dialog.recordingTimeMillis = clock.millis() - start
           }
@@ -82,7 +82,13 @@ internal class ScreenRecorder(
       withContext(uiThread) {
         dialog.recordingLabelText = AndroidAdbUiBundle.message("screenrecord.action.stopping")
       }
-      recordingProvider.stopRecording()
+      // TODO: Call recordingProvider.stopRecording() unconditionally when b/256957515 is fixed.
+      if (clock.millis() - start < timeLimitSec * 1000) {
+        recordingProvider.stopRecording()
+      }
+      else {
+        delay(1000)
+      }
     }
     catch (e: InterruptedException) {
       recordingProvider.stopRecording()

@@ -46,13 +46,6 @@ import java.nio.file.Path
 import java.time.Duration
 import kotlin.coroutines.EmptyCoroutineContext
 
-private const val REMOTE_PATH = "/sdcard/screen-recording-%d.mp4"
-private val WM_SIZE_OUTPUT_REGEX = Regex("(?<width>\\d+)x(?<height>\\d+)")
-private const val EMU_TMP_FILENAME = "tmp.webm"
-private val COMMAND_TIMEOUT = Duration.ofSeconds(2)
-private const val MAX_RECORDING_DURATION_MINUTES = 30 // Android 14+.
-private const val MAX_RECORDING_DURATION_MINUTES_LEGACY = 3
-
 /**
  * A [DumbAwareAction] that records the screen.
  *
@@ -85,10 +78,7 @@ class ScreenRecorderAction : DumbAwareAction(
     val params = event.getData(SCREEN_RECORDER_PARAMETERS_KEY) ?: return
     val project = event.project ?: return
     val serialNumber = params.serialNumber
-    // TODO: Remove the !serialNumber.isEmulator() condition when b/246620847 is fixed.
-    val maxRecordingDurationMin =
-        if (params.apiLevel >= 34 && !serialNumber.isEmulator()) MAX_RECORDING_DURATION_MINUTES else MAX_RECORDING_DURATION_MINUTES_LEGACY
-    val dialog = ScreenRecorderOptionsDialog(project, serialNumber.isEmulator(), maxRecordingDurationMin)
+    val dialog = ScreenRecorderOptionsDialog(project, serialNumber.isEmulator(), params.apiLevel)
     if (dialog.showAndGet()) {
       startRecordingAsync(params, dialog.useEmulatorRecording, project)
     }
@@ -106,7 +96,7 @@ class ScreenRecorderAction : DumbAwareAction(
     val serialNumber = params.serialNumber
     val avdName = params.avdName
     val emulatorRecordingFile =
-      if (manager != null && useEmulatorRecording && avdName != null) getTemporaryVideoPathForVirtualDevice(avdName, manager) else null
+        if (manager != null && useEmulatorRecording && avdName != null) getTemporaryVideoPathForVirtualDevice(avdName, manager) else null
     recordingInProgress.add(serialNumber)
 
     val disposableParent = params.recordingLifetimeDisposable
@@ -115,8 +105,7 @@ class ScreenRecorderAction : DumbAwareAction(
     coroutineScope.launch(exceptionHandler) {
       val showTouchEnabled = isShowTouchEnabled(adbSession, serialNumber)
       val size = getDeviceScreenSize(adbSession, serialNumber)
-      // TODO: Remove the !serialNumber.isEmulator() condition when b/246620847 is fixed.
-      val timeLimitSec = if (params.apiLevel >= 34 && !serialNumber.isEmulator()) MAX_RECORDING_DURATION_MINUTES * 60 else 0
+      val timeLimitSec = if (useEmulatorRecording || params.apiLevel >= 34) MAX_RECORDING_DURATION_MINUTES * 60 else 0
       val options: ScreenRecorderOptions = ScreenRecorderPersistentOptions.getInstance().toScreenRecorderOptions(size, timeLimitSec)
       if (options.showTouches != showTouchEnabled) {
         setShowTouch(adbSession, serialNumber, options.showTouches)
@@ -136,7 +125,8 @@ class ScreenRecorderAction : DumbAwareAction(
             options,
             adbSession)
         }
-        ScreenRecorder(project, recodingProvider).recordScreen()
+        val timeLimit = if (timeLimitSec > 0) timeLimitSec else MAX_RECORDING_DURATION_MINUTES_LEGACY * 60
+        ScreenRecorder(project, recodingProvider).recordScreen(timeLimit)
       }
       finally {
         if (options.showTouches != showTouchEnabled) {
@@ -216,6 +206,21 @@ class ScreenRecorderAction : DumbAwareAction(
   companion object {
     @JvmStatic
     val SCREEN_RECORDER_PARAMETERS_KEY = DataKey.create<Parameters>("ScreenRecorderParameters")
+
+    const val MAX_RECORDING_DURATION_MINUTES = 30 // Emulator or Android 14+.
+    const val MAX_RECORDING_DURATION_MINUTES_LEGACY = 3
+
+    private const val REMOTE_PATH = "/sdcard/screen-recording-%d.mp4"
+    private val WM_SIZE_OUTPUT_REGEX = Regex("(?<width>\\d+)x(?<height>\\d+)")
+    private const val EMU_TMP_FILENAME = "tmp.webm"
+    private val COMMAND_TIMEOUT = Duration.ofSeconds(2)
+
+    private fun getTemporaryVideoPathForVirtualDevice(avdName: String, manager: AvdManager): Path? {
+      val virtualDevice: AvdInfo = manager.getAvd(avdName, true) ?: return null
+      return virtualDevice.dataFolderPath.resolve(EMU_TMP_FILENAME)
+    }
+
+    private fun String.isEmulator() = startsWith("emulator-")
   }
 
   data class Parameters(
@@ -225,10 +230,3 @@ class ScreenRecorderAction : DumbAwareAction(
     val recordingLifetimeDisposable: Disposable,
   )
 }
-
-private fun getTemporaryVideoPathForVirtualDevice(avdName: String, manager: AvdManager): Path? {
-  val virtualDevice: AvdInfo = manager.getAvd(avdName, true) ?: return null
-  return virtualDevice.dataFolderPath.resolve(EMU_TMP_FILENAME)
-}
-
-private fun String.isEmulator() = startsWith("emulator-")
