@@ -93,7 +93,7 @@ DONE.
     legacyClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(projectRule.project)
-    val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT, newModel)
+    val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
     snapshotLoader.loadFile(savePath, newModel, stats)
 
     val window = newModel.windows[windowName]!!

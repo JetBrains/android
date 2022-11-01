@@ -41,7 +41,7 @@ class LegacySnapshotLoaderTest {
   @Test
   fun loadV1Snapshot() {
     val model = InspectorModel(projectRule.project)
-    val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT, model)
+    val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
     val snapshotMetadata = LegacySnapshotLoader().loadFile(testDataPath.resolve("legacy-snapshot-v1.li"), model, stats)
     // We don't get any metadata from V1, so just verify the version
     assertThat(snapshotMetadata.snapshotVersion).isEqualTo(ProtocolVersion.Version1)
@@ -52,7 +52,7 @@ class LegacySnapshotLoaderTest {
   @Test
   fun loadV3Snapshot() {
     val model = InspectorModel(projectRule.project)
-    val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT, model)
+    val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
     val snapshotMetadata = LegacySnapshotLoader().loadFile(testDataPath.resolve("legacy-snapshot-v3.li"), model, stats)
     assertThat(snapshotMetadata.snapshotVersion).isEqualTo(ProtocolVersion.Version3)
     assertThat(snapshotMetadata.apiLevel).isEqualTo(27)

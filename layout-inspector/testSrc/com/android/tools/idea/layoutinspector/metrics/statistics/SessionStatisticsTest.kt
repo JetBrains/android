@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.metrics.statistics
 
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
@@ -27,7 +26,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.testFramework.ApplicationRule
 import org.junit.ClassRule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class SessionStatisticsTest {
 
@@ -39,7 +37,7 @@ class SessionStatisticsTest {
 
   @Test
   fun doNotSaveEmptyData() {
-    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, model {})
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
     val data = DynamicLayoutInspectorSession.newBuilder()
     stats.frameReceived()
     stats.save(data)
@@ -63,7 +61,7 @@ class SessionStatisticsTest {
         }
       }
     }
-    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, model)
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
     val compose1 = model[COMPOSE1]
     stats.start()
     model.notifyModified(structuralChange = true)
@@ -75,14 +73,12 @@ class SessionStatisticsTest {
     stats.frameReceived()
     stats.gotoSourceFromDoubleClick()
     stats.selectionMadeFromComponentTree(compose1)
-    waitForCondition(10, TimeUnit.SECONDS) { stats.memoryMeasurements > 0 }
 
     val data = DynamicLayoutInspectorSession.newBuilder()
     stats.save(data)
     val result = data.build()
     assertThat(result.hasLive()).isTrue()
     assertThat(result.hasRotation()).isTrue()
-    assertThat(result.hasMemory()).isTrue()
     assertThat(result.hasCompose()).isTrue()
     assertThat(result.hasSystem()).isTrue()
     assertThat(result.hasGotoDeclaration()).isTrue()
@@ -90,7 +86,6 @@ class SessionStatisticsTest {
 
     assertThat(result.live.clicksWithoutLiveUpdates).isEqualTo(1)
     assertThat(result.rotation.componentTreeClicksIn2D).isEqualTo(1)
-    assertThat(result.memory.initialSnapshot.captureSizeMb).isEqualTo(0)
     assertThat(result.compose.componentTreeClicks).isEqualTo(1)
     assertThat(result.compose.framesWithRecompositionCountsOn).isEqualTo(2)
     assertThat(result.compose.framesWithRecompositionColorBlue).isEqualTo(2)

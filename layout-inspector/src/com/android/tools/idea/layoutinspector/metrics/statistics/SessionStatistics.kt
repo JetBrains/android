@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.metrics.statistics
 
-import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
@@ -23,7 +22,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.Att
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.openapi.actionSystem.AnActionEvent
-import org.jetbrains.annotations.TestOnly
 
 /**
  * Accumulators for various actions of interest.
@@ -123,19 +121,12 @@ interface SessionStatistics {
    * The current recomposition highlight color selected.
    */
   var recompositionHighlightColor: Int
-
-  /**
-   * Number of memory measurements
-   */
-  @get:TestOnly
-  val memoryMeasurements: Int
 }
 
-class SessionStatisticsImpl(clientType: ClientType, model: InspectorModel) : SessionStatistics {
+class SessionStatisticsImpl(clientType: ClientType) : SessionStatistics {
   private val attach = AttachStatistics(clientType)
   private val live = LiveModeStatistics()
   private val rotation = RotationStatistics()
-  private val memory = MemoryStatistics(model)
   private val compose = ComposeStatistics()
   private val system = SystemViewToggleStatistics()
   private val goto = GotoDeclarationStatistics()
@@ -144,7 +135,6 @@ class SessionStatisticsImpl(clientType: ClientType, model: InspectorModel) : Ses
     attach.start()
     live.start()
     rotation.start()
-    memory.start()
     compose.start()
     system.start()
     goto.start()
@@ -154,7 +144,6 @@ class SessionStatisticsImpl(clientType: ClientType, model: InspectorModel) : Ses
     attach.save { data.attachBuilder }
     live.save { data.liveBuilder }
     rotation.save { data.rotationBuilder }
-    memory.save { data.memoryBuilder }
     compose.save { data.composeBuilder }
     system.save { data.systemBuilder }
     goto.save { data.gotoDeclarationBuilder }
@@ -233,8 +222,4 @@ class SessionStatisticsImpl(clientType: ClientType, model: InspectorModel) : Ses
   override var recompositionHighlightColor: Int
     get() = compose.recompositionHighlightColor
     set(value) { compose.recompositionHighlightColor = value }
-
-  @get:TestOnly
-  override val memoryMeasurements: Int
-    get() = memory.measurements
 }

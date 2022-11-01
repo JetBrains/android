@@ -100,7 +100,7 @@ class AppInspectionInspectorClient(
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
 ) : AbstractInspectorClient(APP_INSPECTION_CLIENT, model.project, process, isInstantlyAutoConnected,
-                            SessionStatisticsImpl(APP_INSPECTION_CLIENT, model), parentDisposable) {
+                            SessionStatisticsImpl(APP_INSPECTION_CLIENT), parentDisposable) {
 
   private var viewInspector: ViewLayoutInspectorClient? = null
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider

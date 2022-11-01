@@ -295,5 +295,4 @@ private object DisconnectedSessionStatistics : SessionStatistics {
   override var hideSystemNodes: Boolean = true
   override var showRecompositions: Boolean = false
   override var recompositionHighlightColor: Int = HIGHLIGHT_COLOR_RED
-  override val memoryMeasurements: Int = 0
 }

@@ -42,7 +42,7 @@ class LegacyClient(
   private val metrics: LayoutInspectorMetrics,
   parentDisposable: Disposable,
   treeLoaderForTest: LegacyTreeLoader? = null
-) : AbstractInspectorClient(LEGACY_CLIENT, model.project, process, isInstantlyAutoConnected, SessionStatisticsImpl(LEGACY_CLIENT, model),
+) : AbstractInspectorClient(LEGACY_CLIENT, model.project, process, isInstantlyAutoConnected, SessionStatisticsImpl(LEGACY_CLIENT),
                             parentDisposable) {
 
   private val lookup: ViewNodeAndResourceLookup = model
