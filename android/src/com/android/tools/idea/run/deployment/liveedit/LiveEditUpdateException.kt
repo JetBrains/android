@@ -32,6 +32,8 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
     NON_PRIVATE_INLINE_FUNCTION("Modified function is a non-private inline function", "%", true),
     UNABLE_TO_INLINE("Unable to inline function", "%", true),
     UNABLE_TO_LOCATE_COMPOSE_GROUP("Unable to locate Compose Invalid Group", "%", false),
+    UNSUPPORTED_BUILD_SRC_CHANGE("buildSrc/ sources not supported", "%", false),
+
     INTERNAL_ERROR("Internal Error", "%", false),
     KNOWN_ISSUE("Known Issue", "%", true),
   }
@@ -51,6 +53,9 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
 
     fun internalError(details: String, cause: Throwable? = null) =
       LiveEditUpdateException(Error.INTERNAL_ERROR, details, null, cause)
+
+    fun unsupportedBuildSrcChange(name: String) =
+      LiveEditUpdateException(Error.UNSUPPORTED_BUILD_SRC_CHANGE, name, null, null)
 
     /**
      * We are unable to locate the Invalidate Group ID of a given Composable function's offsets.

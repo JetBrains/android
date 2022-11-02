@@ -59,6 +59,7 @@ private fun Throwable?.isCompilationError(): Boolean =
     LiveEditUpdateException.Error.NON_PRIVATE_INLINE_FUNCTION,
     LiveEditUpdateException.Error.INTERNAL_ERROR,
     LiveEditUpdateException.Error.UNABLE_TO_LOCATE_COMPOSE_GROUP,
+    LiveEditUpdateException.Error.UNSUPPORTED_BUILD_SRC_CHANGE,
     LiveEditUpdateException.Error.KNOWN_ISSUE -> false
   }
 

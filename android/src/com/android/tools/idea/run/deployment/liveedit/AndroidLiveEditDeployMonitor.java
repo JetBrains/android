@@ -17,6 +17,10 @@ package com.android.tools.idea.run.deployment.liveedit;
 
 import static com.android.tools.idea.editors.literals.LiveEditService.DISABLED_STATUS;
 import static com.android.tools.idea.run.deployment.liveedit.ErrorReporterKt.errorMessage;
+import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.PrebuildChecks;
+import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.checkIwiAvailable;
+import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.checkJetpackCompose;
+import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.checkSupportedFiles;
 
 import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
@@ -380,26 +384,7 @@ public class AndroidLiveEditDeployMonitor {
       .get();
   }
 
-  private static void checkJetpackCompose(@NotNull Project project) {
-    final List<IrGenerationExtension> pluginExtensions = IrGenerationExtension.Companion.getInstances(project);
-    boolean found = false;
-    for (IrGenerationExtension extension : pluginExtensions) {
-      if (extension.getClass().getName().equals("com.android.tools.compose.ComposePluginIrGenerationExtension")) {
-        found = true;
-        break;
-      }
-    }
 
-    if (!found) {
-      throw LiveEditUpdateException.compilationError("Cannot find Jetpack Compose plugin in Android Studio. Is it enabled?", null, null);
-    }
-  }
-
-  private static void checkIwiAvailable() {
-    if (StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get() == StudioFlags.OptimisticInstallSupportLevel.DISABLED) {
-      throw LiveEditUpdateException.compilationError("Cannot perform Live Edit without optimistic install support", null, null);
-    }
-  }
 
   // Triggered from LiveEdit manual mode. Use buffered changes.
   @Trace
@@ -454,11 +439,9 @@ public class AndroidLiveEditDeployMonitor {
     long compileFinish, pushFinish;
 
     ArrayList<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> compiled = new ArrayList<>();
+
     try {
-      // Check that Jetpack Compose plugin is enabled otherwise inline linking will fail with
-      // unclear BackendException
-      checkJetpackCompose(project);
-      checkIwiAvailable();
+      PrebuildChecks(project, changes);
       List<AndroidLiveEditCodeGenerator.CodeGeneratorInput> inputs = changes.stream().map(
         change ->
           new AndroidLiveEditCodeGenerator.CodeGeneratorInput(change.getFile(), change.getOrigin(), change.getParentGroup()))
@@ -467,7 +450,9 @@ public class AndroidLiveEditDeployMonitor {
         return false;
       }
     } catch (LiveEditUpdateException e) {
-      updateEditStatus(new EditStatus(EditState.PAUSED, errorMessage(e), null));
+      updateEditStatus(new EditStatus(
+        e.getError().getRecoverable() ? EditState.PAUSED : EditState.ERROR,
+        errorMessage(e), null));
       return true;
     }
 
@@ -497,7 +482,7 @@ public class AndroidLiveEditDeployMonitor {
     logLiveEditEvent(event);
     return true;
   }
-
+  
   private void scheduleErrorPolling(LiveUpdateDeployer deployer, Installer installer, AdbClient adb, String packageName) {
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
     ScheduledFuture<?> statusPolling = scheduler.scheduleWithFixedDelay(() -> {
