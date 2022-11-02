@@ -51,6 +51,12 @@ class NonTransitiveRClassDefaultRefactoringProcessorTest : UpgradeGradleFileMode
   }
 
   @Test
+  fun testIsEnabledFor800Alpha08() {
+    val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0-alpha08"))
+    assertTrue(processor.isEnabled)
+  }
+
+  @Test
   fun testIsEnabledFor800Beta01() {
     val processor = NonTransitiveRClassDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0-beta01"))
     assertTrue(processor.isEnabled)
