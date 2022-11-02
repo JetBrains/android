@@ -1485,7 +1485,7 @@ public final class StudioFlags {
       "enable.offline.mode.support",
       "Enable offline mode support.",
       "Show previously cached data when network has issues.",
-      false);
+      true);
 
   public static final Flag<Boolean> NOTES_ENABLED =
     Flag.create(
