@@ -185,6 +185,10 @@ public class AndroidLiveEditDeployMonitor {
   // In manual mode, we buffer events until user triggers a LE push.
   private final ArrayList<EditEvent> bufferedEvents = new ArrayList<>();
 
+  public void clearBufferedEvents() {
+    bufferedEvents.clear();
+  }
+
   private class EditStatusGetter implements LiveEditService.EditStatusProvider {
     @NotNull
     @Override
