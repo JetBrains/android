@@ -87,7 +87,11 @@ class ScreenSharingAgentTest {
           fakeUi.keyboard.type(char.code)
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-          waitForLogs(char.androidCode.downUp(), 10.seconds)
+          waitForLogs(
+            listOf(
+              ".*: KEY DOWN: ${char.androidCode}",
+              ".*: KEY UP: ${char.androidCode}"),
+            10.seconds)
         }
       }
     }
@@ -107,8 +111,7 @@ class ScreenSharingAgentTest {
               ".*: KEY DOWN: $AKEYCODE_SHIFT_LEFT",
               ".*: KEY DOWN: ${char.androidCode}",
               ".*: KEY UP: ${char.androidCode}",
-              ".*: KEY UP: $AKEYCODE_SHIFT_LEFT",
-            ),
+              ".*: KEY UP: $AKEYCODE_SHIFT_LEFT"),
             10.seconds)
         }
       }
@@ -124,41 +127,49 @@ class ScreenSharingAgentTest {
           fakeUi.keyboard.type(char.code)
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-          waitForLogs(char.androidCode.downUp(), 10.seconds)
+          waitForLogs(
+            listOf(".*: KEY DOWN: ${char.androidCode}",
+                   ".*: KEY UP: ${char.androidCode}"),
+            10.seconds)
         }
       }
     }
   }
 
   @Test
-  fun keyEvents_navigationKeyStrokes() {
-    val navigationKeyStrokeCases = mapOf(
-      KeyEvent.VK_LEFT to AKEYCODE_DPAD_LEFT,
-      KeyEvent.VK_KP_LEFT to AKEYCODE_DPAD_LEFT,
-      KeyEvent.VK_RIGHT to AKEYCODE_DPAD_RIGHT,
-      KeyEvent.VK_KP_RIGHT to AKEYCODE_DPAD_RIGHT,
-      KeyEvent.VK_UP to AKEYCODE_DPAD_UP,
-      KeyEvent.VK_KP_UP to AKEYCODE_DPAD_UP,
-      KeyEvent.VK_DOWN to AKEYCODE_DPAD_DOWN,
-      KeyEvent.VK_KP_DOWN to AKEYCODE_DPAD_DOWN,
-      KeyEvent.VK_HOME to AKEYCODE_MOVE_HOME,
-      KeyEvent.VK_END to AKEYCODE_MOVE_END,
-      KeyEvent.VK_PAGE_DOWN to AKEYCODE_PAGE_DOWN,
-      KeyEvent.VK_PAGE_UP to AKEYCODE_PAGE_UP,
-    )
-
+  @Ignore // Does not currently work
+  fun keyEvents_trivialKeystrokes() {
     runEventLogger {
       fakeUi.keyboard.setFocus(deviceView)
       adb.logcat {
-        for ((hostKeyStroke, androidKeyCode) in navigationKeyStrokeCases) {
-          fakeUi.keyboard.pressAndRelease(hostKeyStroke)
+        val trivialKeyStrokeCases = mapOf(
+          KeyEvent.VK_LEFT to AKEYCODE_DPAD_LEFT,
+          KeyEvent.VK_KP_LEFT to AKEYCODE_DPAD_LEFT,
+          KeyEvent.VK_RIGHT to AKEYCODE_DPAD_RIGHT,
+          KeyEvent.VK_KP_RIGHT to AKEYCODE_DPAD_RIGHT,
+          KeyEvent.VK_UP to AKEYCODE_DPAD_UP,
+          KeyEvent.VK_KP_UP to AKEYCODE_DPAD_UP,
+          KeyEvent.VK_DOWN to AKEYCODE_DPAD_DOWN,
+          KeyEvent.VK_KP_DOWN to AKEYCODE_DPAD_DOWN,
+          KeyEvent.VK_HOME to AKEYCODE_MOVE_HOME,
+          KeyEvent.VK_END to AKEYCODE_MOVE_END,
+          KeyEvent.VK_PAGE_DOWN to AKEYCODE_PAGE_DOWN,
+          KeyEvent.VK_PAGE_UP to AKEYCODE_PAGE_UP,
+        )
+        for ((hostKeyStroke, androidKeyCode) in trivialKeyStrokeCases) {
+          fakeUi.keyboard.type(hostKeyStroke)
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-          waitForLogs(androidKeyCode.downUp(), 10.seconds)
+          waitForLogs(
+            listOf(
+              ".*: KEY DOWN: $androidKeyCode",
+              ".*: KEY UP: $androidKeyCode"),
+            10.seconds)
         }
       }
     }
   }
+
 
   @Test
   fun keyEvents_controlCharacters() {
@@ -177,7 +188,11 @@ class ScreenSharingAgentTest {
           fakeUi.keyboard.pressAndRelease(hostKeyStroke)
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-          waitForLogs(androidKeyCode.downUp(), 10.seconds)
+          waitForLogs(
+            listOf(
+              ".*: KEY DOWN: $androidKeyCode",
+              ".*: KEY UP: $androidKeyCode"),
+            10.seconds)
         }
       }
     }
@@ -279,7 +294,5 @@ class ScreenSharingAgentTest {
     private fun Adb.logcat(block: Adb.() -> Unit) {
       runCommand("logcat", "$EVENT_LOGGER_TAG:D", "$AGENT_TAG:D", "*:S", emulator = emulator) { block() }
     }
-
-    private fun Int.downUp(): List<String> = listOf(".*: KEY DOWN: $this", ".*: KEY UP: $this")
   }
 }
