@@ -175,16 +175,24 @@ class SuspendingSocketChannel(
   private class CompletionHandlerAdapter(private val operation: Operation) : CompletionHandler<Int, CancellableContinuation<Int>> {
 
     override fun completed(result: Int, continuation: CancellableContinuation<Int>) {
-      if (result == -1) {
-        assert(operation == Operation.READ)
-        continuation.resumeWithException(EOFException("Reached the end of channel"))
+      if (continuation.isCancelled) {
         return
       }
 
-      continuation.resume(result)
+      if (result == -1) {
+        assert(operation == Operation.READ)
+        continuation.resumeWithException(EOFException("Reached the end of channel"))
+      }
+      else {
+        continuation.resume(result)
+      }
     }
 
     override fun failed(e: Throwable, continuation: CancellableContinuation<Int>) {
+      if (continuation.isCancelled) {
+        return
+      }
+
       continuation.resumeWithException(e)
     }
   }
