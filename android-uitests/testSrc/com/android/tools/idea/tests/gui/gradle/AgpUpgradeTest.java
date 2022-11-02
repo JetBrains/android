@@ -33,6 +33,7 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -96,18 +97,9 @@ public class AgpUpgradeTest {
     ideFrame.find(guiTest.robot())
       .requestFocusIfLost();
     AGPProjectUpdateNotificationCenterPanelFixture upgradeNotification = AGPProjectUpdateNotificationCenterPanelFixture.find(ideFrame);
-    assertTrue(upgradeNotification.isShowing());
-    upgradeNotification.clickUpgraded();
+    assertTrue(upgradeNotification.notificationIsShowing());
+    upgradeNotification.clickStartUpgradeAssistant();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-
-    //Checking for the AGP upgrade assistant dialog box and validating the buttons.
-    AGPUpgradeAssistantDialogFixture agpDialog = AGPUpgradeAssistantDialogFixture.find(ideFrame);
-    assertTrue(agpDialog.checkAllButtons());
-    assertTrue(agpDialog.checkIfProjectNameMentionedInDialog(projectName));
-    agpDialog.clickBeginUpgrade();
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-    ideFrame.find(guiTest.robot())
-      .requestFocusIfLost();
 
     //"Clearing any additional notifications not related to the test, so it wouldn't interrupt with the UI workflow."
     ideFrame.clearNotificationsPresentOnIdeFrame();
@@ -145,7 +137,7 @@ public class AgpUpgradeTest {
     assertTrue(upgradeAssistant.isShowUsagesEnabled());
     assertTrue(upgradeAssistant.isRunSelectedStepsButtonEnabled());
     upgradeAssistant.hide();
-    assertTrue(AGPProjectUpdateNotificationCenterPanelFixture.find(ideFrame).isShowing());
+    assertTrue(AGPProjectUpdateNotificationCenterPanelFixture.find(ideFrame).notificationIsShowing());
     assertThat(ideFrame.getEditor().open("build.gradle").getCurrentFileContents()).contains(oldAgpVersion);
   }
 

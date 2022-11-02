@@ -15,42 +15,53 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
+import com.intellij.ui.components.labels.LinkLabel;
+import java.awt.Container;
 import java.util.List;
-import javax.swing.JEditorPane;
-import org.jetbrains.annotations.NotNull;
+import javax.swing.JLabel;
 
 public class AGPProjectUpdateNotificationCenterPanelFixture {
   private final IdeFrameFixture myIdeFrameFixture;
-  private final JEditorPane myEditorPane;
-  static final String NOTIFICATIONTEXT= "Android Gradle Plugin can be";
+  private final Container targetPanel;
+  private final LinkLabel labelToClick;
+  static final String NOTIFICATION_HEADER = "Project update recommended";
+  static final String LINK_LABEL_TEXT = "Start AGP Upgrade Assistant";
 
   public static AGPProjectUpdateNotificationCenterPanelFixture find(IdeFrameFixture ideFrame) {
-    List<JEditorPane> editorPanes = Lists.newArrayList(ideFrame.robot().finder().findAll(ideFrame.target(), Matchers.byType(JEditorPane.class)));
-    if (editorPanes.size() > 0) {
-      for (JEditorPane editorPane : editorPanes) {
-        if (editorPane.getText().toLowerCase().contains(NOTIFICATIONTEXT.toLowerCase())) {
-          return new AGPProjectUpdateNotificationCenterPanelFixture(ideFrame, editorPane);
+    List <LinkLabel> linkLabels = Lists.newArrayList(ideFrame.robot().finder().findAll(ideFrame.target(), Matchers.byType(LinkLabel.class)));
+    if (linkLabels.size() > 0) {
+      for (LinkLabel label : linkLabels) {
+        if (label.getText() != null && label.getText().equalsIgnoreCase(LINK_LABEL_TEXT)) {
+          return new AGPProjectUpdateNotificationCenterPanelFixture(ideFrame, label.getFocusCycleRootAncestor(), label);
         }
       }
     }
-    throw new AssertionError("Unable to find the Project Update Notification center panel with text " + NOTIFICATIONTEXT);
+    throw new AssertionError("Unable to find the Project Update Notification center panel with text " + NOTIFICATION_HEADER);
   }
 
-  private AGPProjectUpdateNotificationCenterPanelFixture (IdeFrameFixture ideFrame, JEditorPane editorPane) {
+  private AGPProjectUpdateNotificationCenterPanelFixture (IdeFrameFixture ideFrame, Container target, LinkLabel label) {
     myIdeFrameFixture = ideFrame;
-    myEditorPane = editorPane;
+    targetPanel = target;
+    labelToClick = label;
   }
 
-  public boolean isShowing() {
-    return myEditorPane.isShowing();
+  public boolean notificationIsShowing() {
+    List<JLabel> notificationLabels = Lists.newArrayList(myIdeFrameFixture.robot().finder().findAll(targetPanel, Matchers.byType(JLabel.class)));
+    if (notificationLabels.size() > 0) {
+      for (JLabel label : notificationLabels) {
+        if (label.getText() != null && label.getText().contains(NOTIFICATION_HEADER) && label.isVisible()) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
-  public void clickUpgraded() {
-    myIdeFrameFixture.robot().click(myEditorPane);
+  public void clickStartUpgradeAssistant() {
+    myIdeFrameFixture.robot().click(labelToClick);
   }
 }
 
