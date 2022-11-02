@@ -18,10 +18,12 @@ package com.android.tools.idea.adddevicedialog
 import com.android.tools.idea.grouplayout.GroupLayout.Companion.groupLayout
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.TitledSeparator
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import javax.swing.GroupLayout
 import javax.swing.JButton
+import javax.swing.LayoutStyle.ComponentPlacement
 
 internal class AdditionalSettingsPanel internal constructor() : JBPanel<AdditionalSettingsPanel>(null) {
   init {
@@ -63,6 +65,21 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
 
     val expandedStorageLabel = JBLabel("Expanded storage")
     val expandedStorageComboBox = ComboBox<Any>()
+
+    val emulatedPerformanceSeparator = TitledSeparator("Emulated Performance")
+    val enableMultithreadingCheckBox = JBCheckBox("Enable multithreading")
+
+    val cpuCoresLabel = JBLabel("CPU cores")
+    val cpuCoresComboBox = ComboBox<Any>()
+
+    val graphicAccelerationLabel = JBLabel("Graphic acceleration")
+    val graphicAccelerationComboBox = ComboBox<Any>()
+
+    val simulatedRamLabel = JBLabel("Simulated RAM")
+    val simulatedRamField = NumberOfBytesField()
+
+    val vmHeapSizeLabel = JBLabel("VM heap size")
+    val vmHeapSizeField = NumberOfBytesField()
 
     layout = groupLayout(this) {
       horizontalGroup {
@@ -124,6 +141,31 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
           sequentialGroup {
             component(expandedStorageLabel)
             component(expandedStorageComboBox)
+          }
+
+          component(emulatedPerformanceSeparator)
+          component(enableMultithreadingCheckBox)
+
+          sequentialGroup {
+            preferredGap(enableMultithreadingCheckBox, cpuCoresLabel, ComponentPlacement.INDENT)
+
+            component(cpuCoresLabel)
+            component(cpuCoresComboBox)
+          }
+
+          sequentialGroup {
+            component(graphicAccelerationLabel)
+            component(graphicAccelerationComboBox)
+          }
+
+          sequentialGroup {
+            component(simulatedRamLabel)
+            component(simulatedRamField)
+          }
+
+          sequentialGroup {
+            component(vmHeapSizeLabel)
+            component(vmHeapSizeField)
           }
         }
       }
@@ -187,6 +229,29 @@ internal class AdditionalSettingsPanel internal constructor() : JBPanel<Addition
           parallelGroup {
             component(expandedStorageLabel)
             component(expandedStorageComboBox, max = GroupLayout.PREFERRED_SIZE)
+          }
+
+          component(emulatedPerformanceSeparator, max = GroupLayout.PREFERRED_SIZE)
+          component(enableMultithreadingCheckBox)
+
+          parallelGroup {
+            component(cpuCoresLabel)
+            component(cpuCoresComboBox, max = GroupLayout.PREFERRED_SIZE)
+          }
+
+          parallelGroup {
+            component(graphicAccelerationLabel)
+            component(graphicAccelerationComboBox, max = GroupLayout.PREFERRED_SIZE)
+          }
+
+          parallelGroup {
+            component(simulatedRamLabel)
+            component(simulatedRamField)
+          }
+
+          parallelGroup {
+            component(vmHeapSizeLabel)
+            component(vmHeapSizeField)
           }
         }
       }

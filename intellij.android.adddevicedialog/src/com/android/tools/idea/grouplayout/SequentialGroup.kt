@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.grouplayout
 
+import javax.swing.JComponent
+import javax.swing.LayoutStyle.ComponentPlacement
+
 class SequentialGroup internal constructor(
   override val group: javax.swing.GroupLayout.SequentialGroup,
   layout: GroupLayout
 ) : Group(group, layout) {
+  fun preferredGap(component1: JComponent, component2: JComponent, type: ComponentPlacement) {
+    group.addPreferredGap(component1, component2, type)
+  }
+
   fun containerGap(pref: Int, max: Int) {
     group.addContainerGap(pref, max)
   }
