@@ -1780,6 +1780,7 @@ android-studio/plugins/android/resources/simpleperf/windows-x86_64/libwinpthread
 android-studio/plugins/android/resources/simpleperf/windows-x86_64/simpleperf.exe
 android-studio/plugins/android/resources/simpleperf/x86/simpleperf
 android-studio/plugins/android/resources/simpleperf/x86_64/simpleperf
+android-studio/plugins/android/resources/threading_agent.jar
 android-studio/plugins/android/resources/trace_agent.jar
 android-studio/plugins/android/resources/trace_processor_daemon/trace_processor_daemon.exe
 android-studio/plugins/android/resources/transport/arm64-v8a/transport

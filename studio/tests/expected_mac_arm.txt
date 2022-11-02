@@ -2459,6 +2459,7 @@ Android Studio Preview.app/Contents/plugins/android/resources/simpleperf/darwin-
 Android Studio Preview.app/Contents/plugins/android/resources/simpleperf/darwin-x86_64/simpleperf
 Android Studio Preview.app/Contents/plugins/android/resources/simpleperf/x86/simpleperf
 Android Studio Preview.app/Contents/plugins/android/resources/simpleperf/x86_64/simpleperf
+Android Studio Preview.app/Contents/plugins/android/resources/threading_agent.jar
 Android Studio Preview.app/Contents/plugins/android/resources/trace_agent.jar
 Android Studio Preview.app/Contents/plugins/android/resources/trace_processor_daemon/trace_processor_daemon
 Android Studio Preview.app/Contents/plugins/android/resources/transport/arm64-v8a/transport

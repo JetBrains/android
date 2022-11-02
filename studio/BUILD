@@ -288,6 +288,7 @@ studio_plugin(
             "//tools/base/profiler/transform:profilers-transform",
             "//tools/base/profiler/app:perfa",
             "//tools/base/profiler/app:perfa_okhttp",
+            "//tools/base/threading-agent:threading_agent.jar",
             "//tools/base/tracer:trace_agent.jar",  # TODO(b/149320690): remove in 4.1 final release.
             "//tools/base/transport:transport-bundle",
             "//prebuilts/tools:simpleperf-bundle",
