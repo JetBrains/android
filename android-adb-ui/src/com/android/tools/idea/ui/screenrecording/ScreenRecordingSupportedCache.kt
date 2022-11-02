@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.project.Project
 
 /**
  * A cache of mapping of a device to a boolean indicating if it supports screen recording.
  */
 interface ScreenRecordingSupportedCache {
-  @UiThread
   fun isScreenRecordingSupported(serialNumber: String, sdk: Int): Boolean
 
   companion object {
