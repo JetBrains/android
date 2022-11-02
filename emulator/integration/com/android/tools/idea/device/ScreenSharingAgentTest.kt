@@ -24,7 +24,9 @@ import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.tests.IdeaTestSuiteBase
+import com.android.utils.executeWithRetries
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -184,10 +186,23 @@ class ScreenSharingAgentTest {
     waitFrames(1)
     assertThat(deviceView.displayRectangle).isNotNull()
 
+    // Before beginning the actual test, we will touch this point until we register a response from the app.
+    val firstTouch = Point(90, 90)
     runEventLogger {
       adb.logcat {
+        // Ensure that touch events can be received by the app. We don't really care if this first point takes a few tries.
+        executeWithRetries<InterruptedException>(FIRST_TOUCH_RETRIES) {
+          fakeUi.mouse.click(firstTouch.x, firstTouch.y)
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+          waitForLogs(deviceView.toDeviceDisplayCoordinates(firstTouch)!!.click(), 30.seconds)
+        }
+
+        // Now that we know touch events can be received by the app, conduct the real test.
         for (x in 50..150 step 10) {
           for (y in 150..250 step 10) {
+            // Don't reuse the point from the earlier part where we were just checking for the app's ability to receive touches.
+            if (firstTouch.x == x && firstTouch.y == y) continue
+
             fakeUi.mouse.click(x, y)
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -224,9 +239,12 @@ class ScreenSharingAgentTest {
     private const val NO_ANIMATIONS = 65536 // Intent.FLAG_ACTIVITY_NO_ANIMATION
     private const val START_COMMAND = "am start -n $APP_PKG/.$ACTIVITY -f $NO_ANIMATIONS"
     private const val CLEAR_DATA_COMMAND = "pm clear $APP_PKG"
+    private const val EVENT_LOGGER_INSTALLATION_MAX_RETRIES = 3
+    private const val FIRST_TOUCH_RETRIES = 5
 
     private val system: AndroidSystem = AndroidSystem.basic()
     private val projectRule = ProjectRule()
+
     @get:ClassRule
     @get:JvmStatic
     val ruleChain: RuleChain = RuleChain(projectRule, system, EdtRule())
@@ -271,8 +289,10 @@ class ScreenSharingAgentTest {
 
       // Install the event logger app
       val eventLoggerApk = getBinPath("tools/adt/idea/emulator/integration/event-logger/event-logger.apk")
-      adb.runCommand("install", eventLoggerApk.toString(), emulator = emulator) {
-        waitForLog("Success", 30.seconds)
+      executeWithRetries<InterruptedException>(EVENT_LOGGER_INSTALLATION_MAX_RETRIES) {
+        adb.runCommand("install", eventLoggerApk.toString(), emulator = emulator) {
+          waitForLog("Success", 30.seconds)
+        }
       }
     }
 
