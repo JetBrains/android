@@ -20,9 +20,11 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GradleVersion
 
 enum class CompatibleGradleVersion(val version: GradleVersion) {
-  // versions earlier than 4.4 (corresponding to AGP 3.0.0 and below) are not needed because
-  // we no longer support running such early versions of Gradle given our required JDKs, so upgrading to
-  // them using this functionality is a non-starter.
+  // Gradle versions earlier than 4.4 are not needed because Android Studio
+  // supports AGP versions 3.1.0 and later, which require Gradle 4.4 or later.
+  // As and when Android Studio drops support for AGP versions beyond 3.1.0, entries
+  // from this table can be removed (though their presence is generally harmless
+  // provided the computation of compatible Gradle versions, below, respects VERSION_MIN).
   VERSION_4_4(GradleVersion.parse("4.4")),
   VERSION_4_6(GradleVersion.parse("4.6")),
   VERSION_MIN(GradleVersion.parse(SdkConstants.GRADLE_MINIMUM_VERSION)),
