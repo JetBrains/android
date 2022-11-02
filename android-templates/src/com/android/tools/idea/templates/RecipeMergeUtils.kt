@@ -69,7 +69,7 @@ fun mergeXml(context: RenderingContext, sourceXml: String, targetXml: String, ta
   fun mergeManifest(): String? {
     XmlUtils.parseDocumentSilently(targetXml, true) ?: error("$targetXml failed to parse")
     XmlUtils.parseDocumentSilently(sourceXml, true) ?: error("$sourceXml failed to parse")
-    val namespace = context.moduleTemplateData?.packageName ?: ""
+    val namespace = context.moduleTemplateData?.namespace ?: ""
     val report = mergeManifest(namespace, context.moduleRoot!!, targetFile, targetXml, sourceXml) ?: return null
     if (report.result.isSuccess) {
       return report.getMergedDocument(MergingReport.MergedManifestKind.MERGED)

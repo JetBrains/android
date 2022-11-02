@@ -203,17 +203,24 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewEmptyViewActivity_notInRootPackage() {
-    exceptionRule.expectMessage("Project didn't compile correctly")
     checkCreateTemplate("Empty Views Activity",
                         withApplicationId("com.mycompany.myapp"),
                         withPackage("com.mycompany.myapp.subpackage"))
   }
 
-
   @TemplateCheck
   @Test
   fun testNewEmptyViewActivityWithKotlin() {
     checkCreateTemplate("Empty Views Activity", withKotlin)
+  }
+
+  @TemplateCheck
+  @Test
+  fun testNewEmptyViewActivityWithKotlin_notInRootPackage() {
+    checkCreateTemplate("Empty Views Activity",
+                        withKotlin,
+                        withApplicationId("com.mycompany.myapp"),
+                        withPackage("com.mycompany.myapp.subpackage"))
   }
 
   @TemplateCheck
