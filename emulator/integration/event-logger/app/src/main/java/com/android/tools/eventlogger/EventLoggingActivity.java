@@ -36,12 +36,6 @@ public class EventLoggingActivity extends Activity {
   }
 
   @Override
-  public void onResume() {
-    super.onResume();
-    Log.i(TAG, "RESUMED");
-  }
-
-  @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
     Log.i(TAG, "KEY DOWN: " + keyCode);
     return true;
