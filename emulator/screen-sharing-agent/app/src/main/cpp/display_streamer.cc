@@ -140,12 +140,13 @@ unique_ptr<CodecInfo> SelectCodec(Jni jni, const string& mime_type) {
   if (codec_info.IsNull()) {
     Log::Fatal("No video encoder is available for %s", mime_type.c_str());
   }
-  string name = JString(codec_info.GetObjectField(clazz.GetFieldId("name", "Ljava/lang/String;"))).GetValue();
+  JString jname = JString(codec_info.GetObjectField(clazz.GetFieldId("name", "Ljava/lang/String;")));
+  string codec_name = jname.IsNull() ? "<unnamed>" : jname.GetValue();
   int max_width = codec_info.GetIntField(clazz.GetFieldId("maxWidth", "I"));
   int max_height = codec_info.GetIntField(clazz.GetFieldId("maxHeight", "I"));
   int width_alignment = codec_info.GetIntField(clazz.GetFieldId("widthAlignment", "I"));
   int height_alignment = codec_info.GetIntField(clazz.GetFieldId("heightAlignment", "I"));
-  return make_unique<CodecInfo>(name, Size(max_width, max_height), Size(width_alignment, height_alignment));
+  return make_unique<CodecInfo>(codec_name, Size(max_width, max_height), Size(width_alignment, height_alignment));
 }
 
 int32_t RoundUpToMultipleOf(int32_t value, int32_t power_of_two) {
