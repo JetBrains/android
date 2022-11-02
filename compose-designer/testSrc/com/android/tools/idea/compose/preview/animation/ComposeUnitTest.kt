@@ -332,7 +332,7 @@ class ComposeUnitTest {
     assertEquals("green ( _ , 0.2 , _ , _ )", composeUnit.toString(1))
     assertEquals("blue ( _ , _ , 0.3 , _ )", composeUnit.toString(2))
     assertEquals("alpha ( _ , _ , _ , 0.4 )", composeUnit.toString(3))
-    assertEquals("( 0.1 , 0.2 , 0.3 , 0.4 )", composeUnit.toString())
+    assertEquals("0x1A334D66", composeUnit.toString())
     assertEquals(listOf(0.1f, 0.2f, 0.3f, 0.4f), composeUnit.components)
     assertNotNull(composeUnit.color)
   }

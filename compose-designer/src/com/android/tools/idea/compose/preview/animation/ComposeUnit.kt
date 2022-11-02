@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.preview.animation.validation.DpValidation
 import com.android.tools.idea.compose.preview.animation.validation.FloatValidation
 import com.android.tools.idea.compose.preview.animation.validation.IntValidation
 import com.android.tools.idea.compose.preview.message
+import com.intellij.ui.ColorUtil
 import java.lang.reflect.Method
 
 /** Compose units represented as multi-dimensional properties. */
@@ -440,6 +441,11 @@ object ComposeUnit {
 
     override fun toString(componentId: Int) =
       "${COMPONENT_NAMES[componentId]} ${super.toString(componentId)}"
+
+    /** Hex String if [color] is available. */
+    override fun toString(): String {
+      return color?.let { "0x${ColorUtil.toHex(it, true).uppercase()}" } ?: super.toString()
+    }
 
     override fun createProperties(prefix: String) =
       components.mapIndexed { index, component ->
