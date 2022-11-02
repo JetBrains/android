@@ -177,6 +177,8 @@ iml_module(
             "test_filter": "com.android.tools.idea.editors.manifest",
         },
         "editors.literals": {
+            # b/253897699
+            "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.editors.literals",
         },
         "instantapp": {
