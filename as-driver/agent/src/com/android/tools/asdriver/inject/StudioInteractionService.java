@@ -160,9 +160,9 @@ public class StudioInteractionService {
   public void waitForComponent(List<ASDriver.ComponentMatcher> matchers) throws InterruptedException, TimeoutException, InvocationTargetException {
     log("Attempting to wait for a component with matchers: " + matchers);
     // TODO(b/234067246): consider this timeout when addressing b/234067246. This particular
-    // timeout is so high because ComposePreviewKotlin performs a Gradle build, and that takes >4m
+    // timeout is so high because ComposePreviewKotlin performs a Gradle build, and that takes >10m
     // sometimes.
-    int timeoutMillis = 360000;
+    final long timeoutMillis = java.time.Duration.ofMinutes(10).toMillis();
     long msBetweenRetries = 300;
     long startTime = System.currentTimeMillis();
     long elapsedTime = 0;
