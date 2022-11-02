@@ -733,8 +733,8 @@ class ContentManagerImpl(val project: Project): ContentManager {
           treePanel.isVisible = uiState.showTree
           if (!uiState.showTree) {
             selectionModel.clearSelection()
-            refreshDetailsPanel()
           }
+          refreshDetailsPanel()
         }
         update(this@View.model.uiState.get())
         myListeners.listen(this@View.model.uiState, ::update)
@@ -1067,7 +1067,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
               sb.append(".")
               label.text = sb.toString()
               detailsPanel.add(label)
-              detailsPanel.addReleaseNotesInfo()
+              detailsPanel.addReleaseNotesInfo(model)
             }
             COMPATIBLE -> {
               if (model.current == model.recommended) {
@@ -1087,7 +1087,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
                           "to ${model.recommended}.</p>")
                 label.text = sb.toString()
                 detailsPanel.add(label)
-                detailsPanel.addReleaseNotesInfo()
+                detailsPanel.addReleaseNotesInfo(model)
               }
             }
             // Other (non-compatible) cases not handled by AGP Upgrade Assistant Tool Window
@@ -1154,13 +1154,19 @@ class ContentManagerImpl(val project: Project): ContentManager {
         .also { panel -> add(panel) }
     }
 
-    private fun JBPanel<JBPanel<*>>.addReleaseNotesInfo() {
+    private fun JBPanel<JBPanel<*>>.addReleaseNotesInfo(toolWindowModel: ToolWindowModel) {
+      val agpVersion = toolWindowModel.selectedVersion ?: toolWindowModel.recommended
       JPanel().apply {
         name = "release notes info panel"
         layout = FlowLayout(FlowLayout.LEADING, 0, 0)
         border = JBUI.Borders.empty(10, 0, 0, 0)
         add(JBLabel("View the Android Gradle plugin "))
-        BrowserLink(AllIcons.Ide.External_link_arrow, "release notes", null, "https://developer.android.com/studio/releases/gradle-plugin")
+        val (url, text) = when {
+          agpVersion == null -> "https://developer.android.com/studio/releases/gradle-plugin" to "release notes"
+          agpVersion.isPreview -> "https://developer.android.com/studio/preview/features" to "preview release notes"
+          else -> "https://developer.android.com/studio/releases/gradle-plugin" to "release notes"
+        }
+        BrowserLink(AllIcons.Ide.External_link_arrow, text, null, url)
           .apply { name = "browse release notes link" }
           .also { browserLink -> add(browserLink) }
       }
