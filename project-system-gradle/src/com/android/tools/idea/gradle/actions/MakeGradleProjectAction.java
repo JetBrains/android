@@ -42,6 +42,6 @@ public class MakeGradleProjectAction extends AndroidStudioGradleAction {
       // Reset info from the previous runs (if any).
       statusBar.setInfo(" ");
     }
-    GradleBuildInvoker.getInstance(project).assemble(TestCompileType.ALL);
+    GradleBuildInvoker.getInstance(project).assemble(TestCompileType.NONE);
   }
 }

@@ -50,6 +50,6 @@ public class MakeGradleProjectActionTest extends PlatformTestCase {
     myAction.doPerform(new TestActionEvent(), getProject());
 
     // Verify.
-    verify(myBuildInvoker).assemble(eq(TestCompileType.ALL));
+    verify(myBuildInvoker).assemble(eq(TestCompileType.NONE));
   }
 }
