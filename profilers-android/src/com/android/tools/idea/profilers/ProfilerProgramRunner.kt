@@ -28,6 +28,7 @@ import com.android.tools.idea.run.profiler.ProfilingMode
 import com.android.tools.idea.run.util.SwapInfo
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -71,7 +72,9 @@ class ProfilerProgramRunner : StudioProgramRunner() {
 
   private fun doExecuteInternal(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
     val descriptor = super.doExecute(state, environment)
-    createProfilerToolWindow(environment.project, descriptor, environment.getUserData(SwapInfo.SWAP_INFO_KEY) != null,
+    createProfilerToolWindow(environment.project,
+                             environment.runnerAndConfigurationSettings,
+                             environment.getUserData(SwapInfo.SWAP_INFO_KEY) != null,
                              environment.executor.id)
     return descriptor
   }
@@ -110,13 +113,16 @@ class ProfilerProgramRunner : StudioProgramRunner() {
     @JvmStatic
     fun createProfilerToolWindow(
       project: Project,
-      descriptor: RunContentDescriptor?,
+      settings: RunnerAndConfigurationSettings?,
       isSwapExecution: Boolean = false,
       executorId: String? = null
     ) {
       ApplicationManager.getApplication().assertIsDispatchThread()
 
-      descriptor?.isActivateToolWindowWhenAdded = false
+      // Prevents the Run tool window from taking over the Profiler tool window.
+      // TODO(b/251297822): find a better fix than overwriting this user configuration.
+      settings?.isActivateToolWindowBeforeRun = false
+
       ToolWindowManager.getInstance(project).getToolWindow(AndroidProfilerToolWindowFactory.ID)?.apply {
         if (!isVisible) {
           // First unset the last run app info, showing the tool window can trigger the profiler to start profiling using the stale info.
