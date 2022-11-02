@@ -207,62 +207,62 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewTabbedActivity() {
-    checkCreateTemplate("Tabbed View Activity")
+    checkCreateTemplate("Tabbed Views Activity")
   }
 
   @TemplateCheck
   @Test
   fun testNewTabbedActivityWithKotlin() {
-    checkCreateTemplate("Tabbed View Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Tabbed Views Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testNewNavigationDrawerActivity() {
-    checkCreateTemplate("Navigation Drawer Activity")
+    checkCreateTemplate("Navigation Drawer Views Activity")
   }
 
   @TemplateCheck
   @Test
   fun testNewNavigationDrawerActivityWithKotlin() {
-    checkCreateTemplate("Navigation Drawer Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Navigation Drawer Views Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testNewPrimaryDetailFlow() {
-    checkCreateTemplate("Primary/Detail View Flow")
+    checkCreateTemplate("Primary/Detail Views Flow")
   }
 
   @TemplateCheck
   @Test
   fun testNewPrimaryDetailFlowWithKotlin() {
-    checkCreateTemplate("Primary/Detail View Flow", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Primary/Detail Views Flow", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testNewFullscreenActivity() {
-    checkCreateTemplate("Fullscreen View Activity")
+    checkCreateTemplate("Fullscreen Views Activity")
   }
 
   @TemplateCheck
   @Test
   fun testNewFullscreenActivityWithKotlin() {
-    checkCreateTemplate("Fullscreen View Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Fullscreen Views Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testNewFullscreenActivity_activityNotInRootPackage() {
-    checkCreateTemplate("Fullscreen View Activity", templateStateCustomizer = withNewPackage("com.mycompany.myapp.subpackage"))
+    checkCreateTemplate("Fullscreen Views Activity", templateStateCustomizer = withNewPackage("com.mycompany.myapp.subpackage"))
   }
 
   @TemplateCheck
   @Test
   fun testNewFullscreenActivityWithKotlin_activityNotInRootPackage() {
     checkCreateTemplate(
-      "Fullscreen View Activity",
+      "Fullscreen Views Activity",
       withKotlin,
       avoidModifiedModuleName = true,
       templateStateCustomizer = withNewPackage("com.mycompany.myapp.subpackage"))
@@ -271,85 +271,85 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewLoginActivity() {
-    checkCreateTemplate("Login View Activity")
+    checkCreateTemplate("Login Views Activity")
   }
 
   @TemplateCheck
   @Test
   fun testNewLoginActivityWithKotlin() {
-    checkCreateTemplate("Login View Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Login Views Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testNewScrollingActivity() {
-    checkCreateTemplate("Scrolling View Activity")
+    checkCreateTemplate("Scrolling Views Activity")
   }
 
   @TemplateCheck
   @Test
   fun testNewScrollingActivityWithKotlin() {
-    checkCreateTemplate("Scrolling View Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Scrolling Views Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testNewSettingsActivity() {
-    checkCreateTemplate("Settings View Activity")
+    checkCreateTemplate("Settings Views Activity")
   }
 
   @TemplateCheck
   @Test
   fun testNewSettingsActivityWithKotlin() {
-    checkCreateTemplate("Settings View Activity", withKotlin)
+    checkCreateTemplate("Settings Views Activity", withKotlin)
   }
 
   @TemplateCheck
   @Test
   fun testBottomNavigationActivity() {
-    checkCreateTemplate("Bottom Navigation View Activity")
+    checkCreateTemplate("Bottom Navigation Views Activity")
   }
 
   @TemplateCheck
   @Test
   fun testBottomNavigationActivityWithKotlin() {
-    checkCreateTemplate("Bottom Navigation View Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Bottom Navigation Views Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testGoogleAdMobAdsActivity() {
-    checkCreateTemplate("Google AdMob Ads View Activity")
+    checkCreateTemplate("Google AdMob Ads Views Activity")
   }
 
   @TemplateCheck
   @Test
   fun testGoogleAdMobAdsActivityWithKotlin() {
-    checkCreateTemplate("Google AdMob Ads View Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Google AdMob Ads Views Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testGoogleMapsActivity() {
-    checkCreateTemplate("Google Maps View Activity")
+    checkCreateTemplate("Google Maps Views Activity")
   }
 
   @TemplateCheck
   @Test
   fun testGoogleMapsActivityWithKotlin() {
-    checkCreateTemplate("Google Maps View Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate("Google Maps Views Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testGooglePayActivity() {
-    checkCreateTemplate("Google Pay View Activity")
+    checkCreateTemplate("Google Pay Views Activity")
   }
 
   @TemplateCheck
   @Test
   fun testGooglePayActivityWithKotlin() {
-    checkCreateTemplate("Google Pay View Activity", withKotlin)
+    checkCreateTemplate("Google Pay Views Activity", withKotlin)
   }
 
   @TemplateCheck
@@ -394,13 +394,13 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testResponsiveActivity() {
-    checkCreateTemplate("Responsive Activity")
+    checkCreateTemplate("Responsive Views Activity")
   }
 
   @TemplateCheck
   @Test
   fun testResponsiveActivityWithKotlin() {
-    checkCreateTemplate("Responsive Activity", withKotlin)
+    checkCreateTemplate("Responsive Views Activity", withKotlin)
   }
 
   @TemplateCheck
@@ -426,13 +426,13 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewTvActivity() {
-    checkCreateTemplate("Android TV Blank View Activity")
+    checkCreateTemplate("Android TV Blank Views Activity")
   }
 
   @TemplateCheck
   @Test
   fun testNewTvActivityWithKotlin() {
-    checkCreateTemplate("Android TV Blank View Activity", withKotlin)
+    checkCreateTemplate("Android TV Blank Views Activity", withKotlin)
   }
 
   @TemplateCheck
