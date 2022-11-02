@@ -139,6 +139,7 @@ class ComposeLayoutInspectorClient(
       @VisibleForTesting isRunningFromSourcesInTests: Boolean? = null // Should only be set from tests
     ): ComposeLayoutInspectorClient? {
       val project = model.project
+      var requiredCompatibility: LibraryCompatibility? = null
       val jar = if (StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()) {
         // This dev jar is used for:
         // - most tests (developmentDirectory)
@@ -152,6 +153,7 @@ class ComposeLayoutInspectorClient(
         )
       }
       else {
+        requiredCompatibility = COMPOSE_INSPECTION_COMPATIBILITY
         val compatibility = apiServices.checkVersion(project.name, process, MINIMUM_COMPOSE_COORDINATE.groupId,
                                                      MINIMUM_COMPOSE_COORDINATE.artifactId, listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY))
         val version = compatibility?.version?.takeIf { it.isNotBlank() }
@@ -166,8 +168,7 @@ class ComposeLayoutInspectorClient(
 
       // Set force = true, to be more aggressive about connecting the layout inspector if an old version was
       // left running for some reason. This is a better experience than silently falling back to a legacy client.
-      val params = LaunchParameters(process, COMPOSE_LAYOUT_INSPECTOR_ID, jar, model.project.name, COMPOSE_INSPECTION_COMPATIBILITY,
-                                    force = true)
+      val params = LaunchParameters(process, COMPOSE_LAYOUT_INSPECTOR_ID, jar, model.project.name, requiredCompatibility, force = true)
       return try {
         val messenger = apiServices.launchInspector(params)
         ComposeLayoutInspectorClient(model, treeSettings, messenger, capabilities, launchMonitor).apply { updateSettings() }
