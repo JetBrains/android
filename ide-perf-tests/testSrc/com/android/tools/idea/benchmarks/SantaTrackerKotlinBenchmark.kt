@@ -52,7 +52,7 @@ class SantaTrackerKotlinBenchmark : FullProjectBenchmark() {
   }
 
   @Test
-  fun fullProjectInspection() {
+  fun fullProjectLintInspection() {
     super.fullProjectLintInspection(listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType, XmlFileType.INSTANCE), PROJECT_NAME)
   }
 
