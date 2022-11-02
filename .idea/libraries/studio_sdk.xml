@@ -39,6 +39,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/plugins/java/lib/jshell-frontend.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/plugins/java/lib/jshell-protocol.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/plugins/java/lib/sa-jdwp.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-222/$SDK_PLATFORM$/plugins/toml/lib/toml.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

@@ -564,6 +564,12 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @NonNull
   @Override
+  public GradleVisitor getGradleTomlVisitor() {
+    return new TomlIdeGradleVisitor();
+  }
+
+  @NonNull
+  @Override
   public List<File> getJavaClassFolders(@NonNull com.android.tools.lint.detector.api.Project project) {
     // todo: implement when class files checking detectors will be available
     return Collections.emptyList();
