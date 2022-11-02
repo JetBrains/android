@@ -23,6 +23,7 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.tests.IdeaTestSuiteBase
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -35,7 +36,6 @@ import org.junit.AfterClass
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.ClassRule
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -43,6 +43,7 @@ import org.junit.runners.Suite
 import org.junit.runners.Suite.SuiteClasses
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.Point
 import java.awt.event.KeyEvent
 import java.nio.file.Files
 import java.util.regex.Pattern
@@ -68,14 +69,7 @@ class ScreenSharingAgentTest {
 
   @Test
   fun framesReceived() {
-    val framesToWaitFor = 30
-    var framesReceived = 0
-    deviceView.addFrameListener { _, _, _, _ -> framesReceived++ }
-
-    waitForCondition(30.seconds) {
-      fakeUi.render()
-      framesReceived > framesToWaitFor
-    }
+    waitFrames(30)
   }
 
   @Test
@@ -183,11 +177,34 @@ class ScreenSharingAgentTest {
     }
   }
 
+  @Test
+  fun touchEvents_basic() {
+    // Wait for at least one frame to be sure that the device's display rectangle is set.
+    waitFrames(1)
+    assertThat(deviceView.displayRectangle).isNotNull()
+
+    runEventLogger {
+      adb.logcat {
+        for (x in 50..150 step 10) {
+          for (y in 150..250 step 10) {
+            fakeUi.mouse.click(x, y)
+            PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+            waitForLogs(deviceView.toDeviceDisplayCoordinates(Point(x, y))!!.click(), 30.seconds)
+          }
+        }
+      }
+    }
+  }
+
   private fun runEventLogger(block: () -> Unit) {
     try {
       adb.runCommand("shell", START_COMMAND, emulator = emulator) {
         val logLine = Pattern.quote("Starting: Intent { flg=0x${NO_ANIMATIONS.toString(16)} cmp=$APP_PKG/.$ACTIVITY }")
         waitForLog(logLine, 30.seconds)
+      }
+      adb.logcat {
+        waitForLog(".*: RESUMED", 10.seconds)
       }
       block()
     }
@@ -218,6 +235,8 @@ class ScreenSharingAgentTest {
     private lateinit var deviceView: DeviceView
     private lateinit var fakeUi: FakeUi
 
+    private var framesReceived = 0;
+
     @JvmStatic
     @BeforeClass
     fun setUpClass() {
@@ -244,6 +263,8 @@ class ScreenSharingAgentTest {
       fakeUi.render()
 
       waitForCondition(30.seconds) { deviceView.isConnected }
+
+      deviceView.addFrameListener { _, _, _, _ -> framesReceived++ }
 
       // Install the event logger app
       val eventLoggerApk = getBinPath("tools/adt/idea/emulator/integration/event-logger/event-logger.apk")
@@ -281,5 +302,18 @@ class ScreenSharingAgentTest {
     }
 
     private fun Int.downUp(): List<String> = listOf(".*: KEY DOWN: $this", ".*: KEY UP: $this")
+
+    private fun Point.click(): List<String> {
+      val coordinates = Pattern.quote("(${x.toDouble()},${y.toDouble()})")
+      return listOf(".*: TOUCH EVENT: ACTION_DOWN $coordinates", ".*: TOUCH EVENT: ACTION_UP $coordinates")
+    }
+
+    private fun waitFrames(numFrames: Int) {
+      val framesToWaitFor = framesReceived + numFrames
+      waitForCondition(30.seconds) {
+        fakeUi.render()
+        framesReceived > framesToWaitFor
+      }
+    }
   }
 }
