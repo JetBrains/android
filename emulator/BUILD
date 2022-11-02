@@ -95,10 +95,12 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
@@ -109,15 +111,20 @@ iml_module(
 
 iml_test(
     name = "ScreenSharingAgentTest",
+    size = "large",  # Involves starting an emulator, and running multiple tests on that emulator
     data = [
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
+        "//tools/adt/idea/emulator/integration/event-logger",
         "//tools/adt/idea/emulator/screen-sharing-agent",
         "//tools/adt/idea/emulator/screen-sharing-agent:native/x86_64/libscreen-sharing-agent.so",
-        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+        "@system_image_android-30_default_x86_64//:x86_64-android-30-images",
     ],
     module = ":intellij.android.emulator.integration",
-    tags = ["no_windows"],
+    tags = [
+        "no_windows",
+        "very_flaky",
+    ],
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.device.ScreenSharingAgentTestSuite",
