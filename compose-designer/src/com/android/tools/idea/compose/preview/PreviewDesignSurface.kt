@@ -32,6 +32,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
@@ -39,9 +40,22 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 
+private val GROUP_BY_GROUP_ID_TRANSFORM:
+  (Collection<PositionableContent>) -> List<List<PositionableContent>> =
+  { contents ->
+    val groups = mutableMapOf<String?, MutableList<PositionableContent>>()
+    for (content in contents) {
+      groups.getOrPut(content.groupId) { mutableListOf() }.add(content)
+    }
+    // Put the previews which don't have group first.
+    // TODO(b/245363234)?: Consider to sort the group by name?
+    val nulls = groups.remove(null)
+    if (nulls != null) listOf(nulls) + groups.values.toList() else groups.values.toList()
+  }
+
 /** List of available layouts for the Compose Preview Surface. */
 internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
-  listOfNotNull(
+  listOf(
     SurfaceLayoutManagerOption(
       message("vertical.layout"),
       VerticalOnlyLayoutManager(
@@ -62,23 +76,21 @@ internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
       ),
       DesignSurface.SceneViewAlignment.LEFT
     ),
-    if (StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get())
-      SurfaceLayoutManagerOption(
-        "Group Grid Layout (By Group name)",
-        GroupedGridSurfaceLayoutManager(5, 20) { contents: Collection<PositionableContent> ->
-          val groups = mutableMapOf<String?, MutableList<PositionableContent>>()
-          for (content in contents) {
-            groups.getOrPut(content.groupId) { mutableListOf() }.add(content)
-          }
-          // Put the previews which doesn't have group first.
-          // TODO(b/245363234)?: Consider to sort the group by name?
-          val nulls = groups.remove(null)
-          if (nulls != null) listOf(nulls) + groups.values.toList() else groups.values.toList()
-        },
-        DesignSurface.SceneViewAlignment.LEFT
+  ) +
+    if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) emptyList()
+    else
+      listOf(
+        SurfaceLayoutManagerOption(
+          "Group List Layout (By Group Name)",
+          GroupedListSurfaceLayoutManager(5, 20, GROUP_BY_GROUP_ID_TRANSFORM),
+          DesignSurface.SceneViewAlignment.LEFT
+        ),
+        SurfaceLayoutManagerOption(
+          "Group Grid Layout (By Group name)",
+          GroupedGridSurfaceLayoutManager(5, 20, GROUP_BY_GROUP_ID_TRANSFORM),
+          DesignSurface.SceneViewAlignment.LEFT
+        ),
       )
-    else null,
-  )
 
 /** Default layout manager selected in the preview. */
 internal val DEFAULT_PREVIEW_LAYOUT_MANAGER = PREVIEW_LAYOUT_MANAGER_OPTIONS.first().layoutManager
