@@ -173,11 +173,11 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
       isBusy.set(true)
       try {
         queueTimeoutFuture?.cancel(false)
-        pendingActionsQueueLock.withLock {
+        val isPending = pendingActionsQueueLock.withLock {
           pendingActionsQueue.remove(future)
         }
 
-        if (future.isDone) return@PriorityRunnable
+        if (!isPending || future.isDone) return@PriorityRunnable
 
         val actionTimeoutFuture = scheduleTimeoutAction(actionTimeout, actionTimeoutUnit) {
           if (!future.isDone) {
