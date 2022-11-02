@@ -155,6 +155,7 @@ class LiveEditService private constructor(val project: Project, var listenerExec
     val listener = MyPsiListener(::onMethodBodyUpdated)
     PsiManager.getInstance(project).addPsiTreeChangeListener(listener, this)
     deployMonitor = AndroidLiveEditDeployMonitor(this, project)
+    // TODO: Delete if it turns our we don't need Hard-refresh trigger.
     //bindKeyMapShortcut(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
   }
 

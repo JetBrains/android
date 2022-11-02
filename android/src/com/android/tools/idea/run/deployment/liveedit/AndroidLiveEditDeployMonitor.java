@@ -636,6 +636,7 @@ public class AndroidLiveEditDeployMonitor {
 
       // In manual mode we don't recompose automatically if priming happened.
       // Last minute change, we don't want user to have to perform "hard-refresh" is a class was primed.
+      // TODO: Delete if it turns our we don't need Hard-refresh trigger.
       //boolean recomposeAfterPriming = !LiveEditService.Companion.isLeTriggerManual();
       boolean recomposeAfterPriming = true;
 
