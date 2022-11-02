@@ -28,7 +28,6 @@ import com.android.utils.ILogger;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationActivationListener;
 import com.intellij.openapi.application.ApplicationManager;
@@ -62,17 +61,17 @@ public final class VirtualDeviceWatcher {
   @UiThread
   @SuppressWarnings("unused")
   private VirtualDeviceWatcher() throws AndroidLocationsException {
-    this(getAvdManagerInstance(), AndroidPluginDisposable.Companion.getApplicationInstance());
+    this(getAvdManagerInstance());
   }
 
   @UiThread
-  private VirtualDeviceWatcher(@NotNull AvdManager avdManager, @NotNull Disposable parent) {
+  private VirtualDeviceWatcher(@NotNull AvdManager avdManager) {
     myAvds = new HashMap<>();
     myAvdManager = avdManager;
     myListeners = new EventListenerList();
 
     myAlarm = new Alarm();
-    Disposer.register(parent, myAlarm);
+    Disposer.register(AndroidPluginDisposable.Companion.getApplicationInstance(), myAlarm);
 
     ApplicationManager.getApplication().getMessageBus().connect().subscribe(
       ApplicationActivationListener.TOPIC,
