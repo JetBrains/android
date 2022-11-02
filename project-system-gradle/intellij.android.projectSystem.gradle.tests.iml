@@ -44,5 +44,6 @@
     <orderEntry type="module" module-name="android.sdktools.manifest-merger" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" scope="TEST" />
     <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.build-attribution" scope="TEST" />
   </component>
 </module>

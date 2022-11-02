@@ -125,6 +125,7 @@ iml_module(
         "//tools/base/build-system:studio.android.sdktools.manifest-merger[module, test]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
+        "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module, test]",
     ],
 )
 
