@@ -41,7 +41,7 @@ class BuildConfigDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringPro
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override var necessityInfo = PointNecessity(AgpVersion.parse("8.0.0-beta01"))
+  override var necessityInfo = PointNecessity(AgpVersion.parse("8.0.0-alpha09"))
 
   class SourcesNotGenerated(moduleNames: List<String>) : BlockReason(
     shortDescription = "Generated BuildConfig sources are missing",

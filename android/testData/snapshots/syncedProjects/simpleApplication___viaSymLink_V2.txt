@@ -150,15 +150,12 @@ PROJECT                       : project_sm_src
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>_sm_src/app/src/androidTest/java
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>_sm_src/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>_sm_src/app/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>_sm_src/app/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>_sm_src/app/src/androidTest/kotlin [-]
@@ -344,7 +341,6 @@ PROJECT                       : project_sm_src
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app/src/main
             JavaSource                    : file://<PROJECT>_sm_src/app/src/main/java
@@ -352,8 +348,6 @@ PROJECT                       : project_sm_src
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>_sm_src/app/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>_sm_src/app/build/generated/res/resValues/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>_sm_src/app/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>_sm_src/app/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>_sm_src/app/src/debug/java [-]

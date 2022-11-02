@@ -196,7 +196,6 @@ PROJECT                       : project
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/debugAndroidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugAndroidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
@@ -205,8 +204,6 @@ PROJECT                       : project
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kapt/debugAndroidTest [-]
             Generated                     : true
@@ -458,7 +455,6 @@ PROJECT                       : project
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kapt/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/kaptKotlin/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
@@ -470,8 +466,6 @@ PROJECT                       : project
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/kapt/debug [-]
             Generated                     : true
@@ -969,15 +963,12 @@ PROJECT                       : project
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/src/androidTest
             JavaSource (test)             : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/java
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/kotlin [-]
@@ -1205,7 +1196,6 @@ PROJECT                       : project
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary/src/main
             JavaSource                    : file://<PROJECT>/awesomeandroidlibrary/src/main/kotlin
@@ -1213,8 +1203,6 @@ PROJECT                       : project
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/awesomeandroidlibrary/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/resValues/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/awesomeandroidlibrary/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/awesomeandroidlibrary/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/awesomeandroidlibrary/src/debug/java [-]

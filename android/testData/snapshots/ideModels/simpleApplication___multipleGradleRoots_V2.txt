@@ -392,7 +392,6 @@ MODULE                        : gradle_project_1.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/gradle_project_1/app/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/gradle_project_1/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/gradle_project_1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/gradle_project_1/app/build/intermediates/javac/debug/classes [-]
                 Dependencies
@@ -998,7 +997,6 @@ MODULE                        : gradle_project_1.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/gradle_project_1/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/gradle_project_1/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/gradle_project_1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/gradle_project_1/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
@@ -1806,7 +1804,6 @@ MODULE                        : gradle_project_name.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/gradle_project_2/app/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/gradle_project_2/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/gradle_project_2/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/gradle_project_2/app/build/intermediates/javac/debug/classes [-]
                 Dependencies
@@ -2412,7 +2409,6 @@ MODULE                        : gradle_project_name.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/gradle_project_2/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/gradle_project_2/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/gradle_project_2/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/gradle_project_2/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies

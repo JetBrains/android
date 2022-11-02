@@ -346,7 +346,6 @@ MODULE: AS36.app
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/debug/out
-                    file://./app/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
@@ -359,7 +358,6 @@ MODULE: AS36.app
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./app/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
@@ -915,7 +913,6 @@ MODULE: AS36.features.dynamicfeature
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/build/generated/ap_generated_sources/debug/out
-                    file://./features/dynamicfeature/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./features/dynamicfeature/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
@@ -928,7 +925,6 @@ MODULE: AS36.features.dynamicfeature
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./features/dynamicfeature/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./features/dynamicfeature/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
@@ -1460,7 +1456,6 @@ MODULE: AS36.features.dynamicfeature2
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/build/generated/ap_generated_sources/debug/out
-                    file://./features/dynamicfeature2/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./features/dynamicfeature2/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
@@ -1473,7 +1468,6 @@ MODULE: AS36.features.dynamicfeature2
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./features/dynamicfeature2/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./features/dynamicfeature2/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
@@ -2029,7 +2023,6 @@ MODULE: AS36.libs.android_library
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./libs/android_library/build/generated/ap_generated_sources/debug/out
-                    file://./libs/android_library/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./libs/android_library/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
@@ -2042,7 +2035,6 @@ MODULE: AS36.libs.android_library
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./libs/android_library/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./libs/android_library/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./libs/android_library/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:

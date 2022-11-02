@@ -396,7 +396,6 @@ MODULE                        : project_sm_src.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/javac/debug/classes [-]
                 Dependencies
@@ -1002,7 +1001,6 @@ MODULE                        : project_sm_src.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>_sm_src/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>_sm_src/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies

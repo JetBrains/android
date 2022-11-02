@@ -43,5 +43,9 @@ android {
       dimension "version"
     }
   }
+
+  buildFeatures {
+    buildConfig true
+  }
 }
 

@@ -346,7 +346,6 @@ MODULE: project_sm_src.app
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://._sm_src/app/build/generated/ap_generated_sources/debug/out
-                    file://._sm_src/app/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://._sm_src/app/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
@@ -359,7 +358,6 @@ MODULE: project_sm_src.app
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://._sm_src/app/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://._sm_src/app/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://._sm_src/app/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:

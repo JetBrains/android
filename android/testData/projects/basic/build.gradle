@@ -114,6 +114,10 @@ android {
         htmlOutput file("lint-report.html")
     }
 
+    buildFeatures {
+      buildConfig true
+    }
+
     // Override the versionCode of the release version
     applicationVariants.all { variant ->
         if (variant.buildType.name == "release") {

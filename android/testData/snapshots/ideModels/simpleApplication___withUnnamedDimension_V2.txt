@@ -490,7 +490,6 @@ MODULE                        : project.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateExampleDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/exampleDebug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/example/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/exampleDebug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/exampleDebug/classes [-]
                 VariantSourceProvider
@@ -1107,7 +1106,6 @@ MODULE                        : project.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateExampleDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/exampleDebugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/example/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/exampleDebugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/exampleDebugAndroidTest/classes [-]
                 VariantSourceProvider

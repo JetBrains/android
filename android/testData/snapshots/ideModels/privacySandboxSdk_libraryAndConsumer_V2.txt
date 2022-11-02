@@ -1042,7 +1042,6 @@ MODULE                        : project.ads-sdk-implementation
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debug/classes [-]
                 Dependencies
@@ -1071,7 +1070,6 @@ MODULE                        : project.ads-sdk-implementation
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/ads-sdk-implementation/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
@@ -1397,7 +1395,6 @@ MODULE                        : project.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
@@ -2111,7 +2108,6 @@ MODULE                        : project.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest [-]
@@ -3081,7 +3077,6 @@ MODULE                        : project.app-with-dynamic-feature
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/app-with-dynamic-feature/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app-with-dynamic-feature/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/javac/debug/classes [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debug [-]
@@ -3282,7 +3277,6 @@ MODULE                        : project.app-with-dynamic-feature
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app-with-dynamic-feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app-with-dynamic-feature/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/intermediates/javac/debugAndroidTest/classes [-]
                 ClassesFolder                 : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugAndroidTest [-]
@@ -4111,7 +4105,6 @@ MODULE                        : project.feature
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/feature/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/feature/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/feature/build/intermediates/javac/debug/classes [-]
                 ClassesFolder                 : <ROOT>/feature/build/tmp/kotlin-classes/debug [-]
@@ -4236,7 +4229,6 @@ MODULE                        : project.feature
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/feature/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/feature/build/intermediates/javac/debugAndroidTest/classes [-]
                 ClassesFolder                 : <ROOT>/feature/build/tmp/kotlin-classes/debugAndroidTest [-]

@@ -809,7 +809,6 @@ MODULE: MultiFlavor.app
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out
-                    file://./app/build/generated/source/buildConfig/firstAbcSecondAbc/debug
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/firstAbcSecondAbc/debug
         GeneratedUnitTestSources:
@@ -822,7 +821,6 @@ MODULE: MultiFlavor.app
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out
-                    file://./app/build/generated/source/buildConfig/androidTest/firstAbcSecondAbc/debug
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug
         GeneratedTestFixturesSources:

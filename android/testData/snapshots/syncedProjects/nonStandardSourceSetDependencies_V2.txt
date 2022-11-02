@@ -198,14 +198,11 @@ PROJECT                       : NonStandardSourceSetDependencies
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/java [-]
@@ -344,15 +341,12 @@ PROJECT                       : NonStandardSourceSetDependencies
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/main
             JavaSource                    : file://<PROJECT>/app/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
@@ -1264,14 +1258,11 @@ PROJECT                       : NonStandardSourceSetDependencies
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-a/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-a/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-a/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-a/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-a/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-a/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-a/src/androidTest/java [-]
@@ -1444,15 +1435,12 @@ PROJECT                       : NonStandardSourceSetDependencies
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-a/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-a/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-a/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-a/src/main
             JavaSource                    : file://<PROJECT>/feature-a/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-a/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-a/build/generated/res/resValues/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-a/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-a/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-a/src/debug/java [-]
@@ -1860,7 +1848,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidAndroidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidAndroidTestDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidDebugAndroidTest [-]
@@ -1872,8 +1859,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidAndroidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidAndroidTest/kotlin [-]
@@ -2184,7 +2169,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidMain [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/debug [-]
@@ -2193,8 +2177,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/build/generated/res/resValues/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/androidDebug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/androidDebug/kotlin [-]
@@ -2917,14 +2899,11 @@ PROJECT                       : NonStandardSourceSetDependencies
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample-test/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample-test/src/androidTest/java [-]
@@ -3011,15 +2990,12 @@ PROJECT                       : NonStandardSourceSetDependencies
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test/src/main
             JavaSource                    : file://<PROJECT>/kmp-java/sample-test/src/main/kotlin
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample-test/build/generated/res/resValues/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample-test/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmp-java/sample-test/src/debug/java [-]
@@ -3699,14 +3675,11 @@ PROJECT                       : NonStandardSourceSetDependencies
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/java [-]
@@ -3857,15 +3830,12 @@ PROJECT                       : NonStandardSourceSetDependencies
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/source/buildConfig/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/main
             JavaSource                    : file://<PROJECT>/lib/src/main/java
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/java [-]

@@ -56,11 +56,6 @@ Task                          : :app:generateDebugAssets
     TaskType                      : org.gradle.api.DefaultTask
     PrimaryTaskCategory           : MISC
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
-Task                          : :app:generateDebugBuildConfig
-    TaskType                      : com.android.build.gradle.tasks.GenerateBuildConfig
-    PrimaryTaskCategory           : COMPILED_CLASSES
-    SecondaryTaskCategories       : SOURCE_GENERATION
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:generateDebugResValues
     TaskType                      : com.android.build.gradle.tasks.GenerateResValues
     PrimaryTaskCategory           : ANDROID_RESOURCES
@@ -280,11 +275,6 @@ Task                          : :lib:extractDeepLinksForAarDebug
 Task                          : :lib:generateDebugAssets
     TaskType                      : org.gradle.api.DefaultTask
     PrimaryTaskCategory           : MISC
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
-Task                          : :lib:generateDebugBuildConfig
-    TaskType                      : com.android.build.gradle.tasks.GenerateBuildConfig
-    PrimaryTaskCategory           : COMPILED_CLASSES
-    SecondaryTaskCategories       : SOURCE_GENERATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:generateDebugRFile
     TaskType                      : com.android.build.gradle.internal.res.GenerateLibraryRFileTask

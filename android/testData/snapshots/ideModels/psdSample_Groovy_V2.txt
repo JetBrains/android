@@ -2198,7 +2198,6 @@ MODULE                        : project.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateBasicBarDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebug/classes [-]
                 VariantSourceProvider
@@ -2884,7 +2883,6 @@ MODULE                        : project.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateBasicBarDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
                 VariantSourceProvider
@@ -3582,7 +3580,6 @@ MODULE                        : project.dyn_feature
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/javac/debug/classes [-]
                 Dependencies
@@ -3606,7 +3603,6 @@ MODULE                        : project.dyn_feature
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
@@ -3927,7 +3923,6 @@ MODULE                        : project.lib
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                 Dependencies
@@ -4074,7 +4069,6 @@ MODULE                        : project.lib
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
@@ -4603,7 +4597,6 @@ MODULE                        : project.nested1
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested1/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/nested1/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested1/build/intermediates/javac/debug/classes [-]
                 Dependencies
@@ -4626,7 +4619,6 @@ MODULE                        : project.nested1
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested1/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/nested1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested1/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
@@ -4916,7 +4908,6 @@ MODULE                        : project.nested1.deep
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/javac/debug/classes [-]
                 Dependencies
@@ -4939,7 +4930,6 @@ MODULE                        : project.nested1.deep
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
@@ -5326,7 +5316,6 @@ MODULE                        : project.nested2
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateBasicDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/build/generated/source/buildConfig/basic/debug [-]
                 ClassesFolder                 : <ROOT>/nested2/build/intermediates/compile_r_class_jar/basicDebug/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested2/build/intermediates/javac/basicDebug/classes [-]
                 VariantSourceProvider
@@ -5360,7 +5349,6 @@ MODULE                        : project.nested2
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateBasicDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/build/generated/source/buildConfig/androidTest/basic/debug [-]
                 ClassesFolder                 : <ROOT>/nested2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested2/build/intermediates/javac/basicDebugAndroidTest/classes [-]
                 VariantSourceProvider
@@ -5665,7 +5653,6 @@ MODULE                        : project.nested2.deep
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/javac/debug/classes [-]
                 Dependencies
@@ -5688,7 +5675,6 @@ MODULE                        : project.nested2.deep
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
@@ -5986,7 +5972,6 @@ MODULE                        : project.nested2.trans.deep2
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
                 Dependencies
@@ -6009,7 +5994,6 @@ MODULE                        : project.nested2.trans.deep2
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies

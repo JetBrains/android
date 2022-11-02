@@ -21,12 +21,13 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildMainSourceProviderStub
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 @RunsInEdt
 class BuildConfigDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   override val projectRule = AndroidProjectRule.withAndroidModel(
-    AndroidProjectBuilder().withMainSourceProvider { buildMainSourceProviderStub() }
+    AndroidProjectBuilder(includeBuildConfigSources = { true }).withMainSourceProvider { buildMainSourceProviderStub() }
   )
 
   @Test // TODO(xof): fix redirect
@@ -41,5 +42,11 @@ class BuildConfigDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCas
     writeToBuildFile(TestFileName("BuildConfigDefault/NoBuildConfigDeclaration"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("BuildConfigDefault/NoBuildConfigDeclaration"))
+  }
+
+  @Test
+  fun testIsEnabledFor800Alpha09() {
+    val processor = BuildConfigDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0-alpha09"))
+    assertTrue(processor.isEnabled)
   }
 }

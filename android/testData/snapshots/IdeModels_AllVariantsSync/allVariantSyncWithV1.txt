@@ -649,7 +649,6 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebug/classes [-]
             VariantSourceProvider
@@ -1427,7 +1426,6 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : generateBasicBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebugAndroidTest/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
             VariantSourceProvider
@@ -1858,7 +1856,6 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicOtherBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicOtherBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebug/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebug/classes [-]
             VariantSourceProvider
@@ -2083,7 +2080,6 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : generateBasicOtherBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/basicOtherBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebugAndroidTest/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebugAndroidTest/classes [-]
             VariantSourceProvider
@@ -2515,7 +2511,6 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebug/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebug/classes [-]
             VariantSourceProvider
@@ -2740,7 +2735,6 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : generatePaidBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/paidBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebugAndroidTest/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebugAndroidTest/classes [-]
             VariantSourceProvider
@@ -3175,7 +3169,6 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidOtherBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebug/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidOtherBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebug/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebug/classes [-]
             VariantSourceProvider
@@ -3400,7 +3393,6 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : generatePaidOtherBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebugAndroidTest/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/paidOtherBar/debug [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebugAndroidTest/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebugAndroidTest/classes [-]
             VariantSourceProvider
@@ -3831,7 +3823,6 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/release [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarRelease/classes [-]
             VariantSourceProvider
@@ -4305,7 +4296,6 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicOtherBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicOtherBar/release [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarRelease/classes [-]
             VariantSourceProvider
@@ -4780,7 +4770,6 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidBar/release [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarRelease/classes [-]
             VariantSourceProvider
@@ -5258,7 +5247,6 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidOtherBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidOtherBar/release [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarRelease/classes [-]
             VariantSourceProvider
@@ -5726,7 +5714,6 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicBar/specialRelease [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarSpecialRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarSpecialRelease/classes [-]
             VariantSourceProvider
@@ -6196,7 +6183,6 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicOtherBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/basicOtherBar/specialRelease [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarSpecialRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarSpecialRelease/classes [-]
             VariantSourceProvider
@@ -6667,7 +6653,6 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidBar/specialRelease [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarSpecialRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarSpecialRelease/classes [-]
             VariantSourceProvider
@@ -7141,7 +7126,6 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidOtherBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarSpecialRelease/out [-]
-            GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/paidOtherBar/specialRelease [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarSpecialRelease/R.jar [-]
             ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarSpecialRelease/classes [-]
             VariantSourceProvider

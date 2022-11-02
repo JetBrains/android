@@ -336,6 +336,7 @@ interface AndroidProjectStubBuilder {
   val ndkModel: NdkModel?
   val includeRenderScriptSources: Boolean
   val includeAidlSources: Boolean
+  val includeBuildConfigSources: Boolean
   val internedModels: InternedModels
 }
 
@@ -396,6 +397,7 @@ data class AndroidProjectBuilder(
   val ndkModel: AndroidProjectStubBuilder.() -> NdkModel? = { null },
   val includeRenderScriptSources: AndroidProjectStubBuilder.() -> Boolean = { false },
   val includeAidlSources: AndroidProjectStubBuilder.() -> Boolean = { false },
+  val includeBuildConfigSources: AndroidProjectStubBuilder.() -> Boolean = { false },
 ) {
   fun withBuildId(buildId: AndroidProjectStubBuilder.() -> String) =
     copy(buildId = buildId)
@@ -543,6 +545,7 @@ data class AndroidProjectBuilder(
         override val ndkModel: NdkModel? = ndkModel()
         override val includeRenderScriptSources: Boolean get() = includeRenderScriptSources()
         override val includeAidlSources: Boolean get() = includeAidlSources()
+        override val includeBuildConfigSources: Boolean get() = includeBuildConfigSources()
         override val internedModels: InternedModels get() = internedModels
       }
       return AndroidProjectModels(
@@ -772,7 +775,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
       if (includeAidlSources) buildPath.resolve("generated/aidl_source_output_dir/${variant}/out") else null,
       buildPath.resolve("generated/ap_generated_sources/${variant}/out"),
       if (includeRenderScriptSources) buildPath.resolve("generated/renderscript_source_output_dir/${variant}/out") else null,
-      buildPath.resolve("generated/source/buildConfig/${variant}"),
+      if (includeBuildConfigSources) buildPath.resolve("generated/source/buildConfig/${variant}") else null,
     ),
     isTestArtifact = false,
     compileClasspathCore = dependenciesStub,
@@ -837,7 +840,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
       if (includeAidlSources) buildPath.resolve("generated/aidl_source_output_dir/${variant}AndroidTest/out") else null,
       buildPath.resolve("generated/ap_generated_sources/${variant}AndroidTest/out"),
       if (includeRenderScriptSources) buildPath.resolve("generated/renderscript_source_output_dir/${variant}AndroidTest/out") else null,
-      buildPath.resolve("generated/source/buildConfig/androidTest/${variant}"),
+      if (includeBuildConfigSources) buildPath.resolve("generated/source/buildConfig/androidTest/${variant}") else null,
     ),
     isTestArtifact = true,
     compileClasspathCore = dependenciesStub,

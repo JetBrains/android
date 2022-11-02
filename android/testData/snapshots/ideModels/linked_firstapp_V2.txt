@@ -724,7 +724,6 @@ MODULE                        : My_First_App.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
                 ClassesFolder                 : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug [-]
@@ -1364,7 +1363,6 @@ MODULE                        : My_First_App.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 ClassesFolder                 : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugAndroidTest [-]
@@ -2176,7 +2174,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/classes [-]
                 ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug [-]
@@ -2340,7 +2337,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugAndroidTest/classes [-]
                 ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugAndroidTest [-]

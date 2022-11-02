@@ -793,7 +793,6 @@ MODULE: project.app
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/basicBarDebug/out
-                    file://./app/build/generated/source/buildConfig/basicBar/debug
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/basicBar/debug
         GeneratedUnitTestSources:
@@ -806,7 +805,6 @@ MODULE: project.app
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out
-                    file://./app/build/generated/source/buildConfig/androidTest/basicBar/debug
                 ResDirectoryUrls:
                     file://./app/build/generated/res/resValues/androidTest/basicBar/debug
         GeneratedTestFixturesSources:
@@ -1757,7 +1755,6 @@ MODULE: project.dyn_feature
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./dyn_feature/build/generated/ap_generated_sources/debug/out
-                    file://./dyn_feature/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./dyn_feature/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
@@ -1770,7 +1767,6 @@ MODULE: project.dyn_feature
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./dyn_feature/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./dyn_feature/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
@@ -2314,7 +2310,6 @@ MODULE: project.lib
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./lib/build/generated/ap_generated_sources/debug/out
-                    file://./lib/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./lib/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
@@ -2327,7 +2322,6 @@ MODULE: project.lib
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./lib/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./lib/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./lib/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
@@ -2871,7 +2865,6 @@ MODULE: project.nested1
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./nested1/build/generated/ap_generated_sources/debug/out
-                    file://./nested1/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./nested1/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
@@ -2884,7 +2877,6 @@ MODULE: project.nested1
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./nested1/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./nested1/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./nested1/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
@@ -3416,7 +3408,6 @@ MODULE: project.nested1.deep
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./nested1/deep/build/generated/ap_generated_sources/debug/out
-                    file://./nested1/deep/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./nested1/deep/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
@@ -3429,7 +3420,6 @@ MODULE: project.nested1.deep
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./nested1/deep/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./nested1/deep/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
@@ -4180,7 +4170,6 @@ MODULE: project.nested2
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./nested2/build/generated/ap_generated_sources/basicDebug/out
-                    file://./nested2/build/generated/source/buildConfig/basic/debug
                 ResDirectoryUrls:
                     file://./nested2/build/generated/res/resValues/basic/debug
         GeneratedUnitTestSources:
@@ -4193,7 +4182,6 @@ MODULE: project.nested2
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out
-                    file://./nested2/build/generated/source/buildConfig/androidTest/basic/debug
                 ResDirectoryUrls:
                     file://./nested2/build/generated/res/resValues/androidTest/basic/debug
         GeneratedTestFixturesSources:
@@ -4912,7 +4900,6 @@ MODULE: project.nested2.deep
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./nested2/deep/build/generated/ap_generated_sources/debug/out
-                    file://./nested2/deep/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./nested2/deep/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
@@ -4925,7 +4912,6 @@ MODULE: project.nested2.deep
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./nested2/deep/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./nested2/deep/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
@@ -5457,7 +5443,6 @@ MODULE: project.nested2.trans.deep2
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/build/generated/ap_generated_sources/debug/out
-                    file://./nested2/trans/deep2/build/generated/source/buildConfig/debug
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
@@ -5470,7 +5455,6 @@ MODULE: project.nested2.trans.deep2
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./nested2/trans/deep2/build/generated/source/buildConfig/androidTest/debug
                 ResDirectoryUrls:
                     file://./nested2/trans/deep2/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
