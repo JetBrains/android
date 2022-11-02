@@ -61,9 +61,16 @@ object ForegroundProcessDetectionInitializer {
   private val logger = Logger.getInstance(ForegroundProcessDetectionInitializer::class.java)
 
   @VisibleForTesting
-  fun getDefaultForegroundProcessListener(processModel: ProcessesModel): ForegroundProcessListener {
+  fun getDefaultForegroundProcessListener(deviceModel: DeviceModel, processModel: ProcessesModel): ForegroundProcessListener {
     return object : ForegroundProcessListener {
       override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
+        // There could be multiple projects open. Project1 with device1 selected, Project2 with device2 selected.
+        // Because every event from the Transport is dispatched to every open project,
+        // both Project1 and Project2 are going to receive events from device1 and device2.
+        if (device != deviceModel.selectedDevice) {
+          return
+        }
+
         val foregroundProcessDescriptor = foregroundProcess.matchToProcessDescriptor(processModel)
         if (foregroundProcessDescriptor == null) {
           logger.info("Process descriptor not found for foreground process \"${foregroundProcess.processName}\"")
@@ -87,7 +94,7 @@ object ForegroundProcessDetectionInitializer {
     processModel: ProcessesModel,
     deviceModel: DeviceModel,
     coroutineScope: CoroutineScope,
-    foregroundProcessListener: ForegroundProcessListener = getDefaultForegroundProcessListener(processModel),
+    foregroundProcessListener: ForegroundProcessListener = getDefaultForegroundProcessListener(deviceModel, processModel),
     transportClient: TransportClient = getDefaultTransportClient(),
     metrics: ForegroundProcessDetectionMetrics,
   ): ForegroundProcessDetection {

@@ -94,7 +94,7 @@ class ForegroundProcessDetectionInitializerTest {
 
   @Test
   fun testNewForegroundProcessSetsSelectedProcess() {
-    val foregroundProcessListener = ForegroundProcessDetectionInitializer.getDefaultForegroundProcessListener(processModel)
+    val foregroundProcessListener = ForegroundProcessDetectionInitializer.getDefaultForegroundProcessListener(deviceModel, processModel)
     ForegroundProcessDetectionInitializer.initialize(
       project = projectRule.project,
       processModel = processModel,
@@ -104,11 +104,22 @@ class ForegroundProcessDetectionInitializerTest {
       metrics = ForegroundProcessDetectionMetrics,
     )
 
+    deviceModel.selectedDevice = device1
+
     foregroundProcessListener.onNewProcess(device1, ForegroundProcess(1, "process1"))
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess1)
 
     foregroundProcessListener.onNewProcess(device1, ForegroundProcess(2, "process2"))
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess2)
+
+    deviceModel.selectedDevice = device2
+
+    foregroundProcessListener.onNewProcess(device2, ForegroundProcess(1, "process1"))
+    assertThat(processModel.selectedProcess).isEqualTo(fakeProcess1)
+
+    // foreground process comes from device1, but selected device is device2. So it should be ignored.
+    foregroundProcessListener.onNewProcess(device1, ForegroundProcess(2, "process2"))
+    assertThat(processModel.selectedProcess).isEqualTo(fakeProcess1)
   }
 
   @org.junit.Ignore("b/250404336")
