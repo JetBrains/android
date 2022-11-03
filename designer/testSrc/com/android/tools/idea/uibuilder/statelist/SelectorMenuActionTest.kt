@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.actions.ANIMATION_TOOLBAR
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.editor.AnimatedSelectorToolbar
 import com.android.tools.idea.uibuilder.editor.AnimationToolbar
@@ -29,6 +30,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JPanel
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
@@ -50,7 +52,7 @@ class SelectorMenuActionTest {
     DataManager.registerDataProvider(surface) { if (it == ANIMATION_TOOLBAR.name) toolbar else null }
     whenever(toolbar.isTransitionSelected()).thenReturn(false)
 
-    val context = DataContext { dataId -> if (DESIGN_SURFACE.`is`(dataId)) surface else null }
+    val context = createContext(surface, toolbar)
     val presentation = PresentationFactory().getPresentation(action)
     val event = AnActionEvent.createFromDataContext("", presentation, context)
     action.update(event)
@@ -68,7 +70,7 @@ class SelectorMenuActionTest {
     DataManager.registerDataProvider(surface) { if (it == ANIMATION_TOOLBAR.name) toolbar else null }
     whenever(toolbar.isTransitionSelected()).thenReturn(true)
 
-    val context = DataContext { dataId -> if (DESIGN_SURFACE.`is`(dataId)) surface else null }
+    val context = createContext(surface, toolbar)
     val presentation = PresentationFactory().getPresentation(action)
     val event = AnActionEvent.createFromDataContext("", presentation, context)
     action.update(event)
@@ -86,7 +88,7 @@ class SelectorMenuActionTest {
     val toolbar = mock<AnimationToolbar>()
     DataManager.registerDataProvider(surface) { if (it == ANIMATION_TOOLBAR.name) toolbar else null }
 
-    val context = DataContext { dataId -> if (DESIGN_SURFACE.`is`(dataId)) surface else null }
+    val context = createContext(surface, toolbar)
     val presentation = PresentationFactory().getPresentation(action)
     val event = AnActionEvent.createFromDataContext("", presentation, context)
     action.update(event)
@@ -101,7 +103,7 @@ class SelectorMenuActionTest {
     val action = SelectorMenuAction()
     val surface = NlDesignSurface.builder(rule.project, rule.testRootDisposable).build()
 
-    val context = DataContext { dataId -> if (DESIGN_SURFACE.`is`(dataId)) surface else null }
+    val context = createContext(surface, null)
     val presentation = PresentationFactory().getPresentation(action)
     val event = AnActionEvent.createFromDataContext("", presentation, context)
     action.update(event)
@@ -122,5 +124,15 @@ class SelectorMenuActionTest {
 
     assertFalse(presentation.isEnabledAndVisible)
     assertNull(presentation.description)
+  }
+
+  private fun createContext(surface: DesignSurface<*>, toolbar: JPanel?): DataContext {
+    return DataContext { dataId ->
+      when {
+        DESIGN_SURFACE.`is`(dataId) -> surface
+        ANIMATION_TOOLBAR.`is`(dataId) -> toolbar
+        else -> null
+      }
+    }
   }
 }

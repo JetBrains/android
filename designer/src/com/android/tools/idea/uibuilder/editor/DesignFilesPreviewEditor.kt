@@ -114,7 +114,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
       else DesignerEditorPanel.ModelProvider.defaultModelProvider
 
     return DesignerEditorPanel(this, myProject, myFile, workBench, surface, NlComponentRegistrar, modelProvider, { emptyList() },
-                               { designSurface, model -> addAnimationToolbar(designSurface, model) },
+                               { panel, model -> addAnimationToolbar(panel, model) },
                                AndroidEditorSettings.getInstance().globalState.preferredDrawableSurfaceState())
   }
 
@@ -132,7 +132,8 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
     }
   }
 
-  private fun addAnimationToolbar(surface: DesignSurface<*>, model: NlModel?): JPanel? {
+  private fun addAnimationToolbar(panel: DesignerEditorPanel, model: NlModel?): JPanel? {
+    val surface = panel.surface
     val toolbar = if (StudioFlags.NELE_ANIMATED_SELECTOR_PREVIEW.get() && model?.type is AnimatedStateListTempFileType) {
       AnimatedSelectorToolbar.createToolbar(this, animatedSelectorModel!!, AnimatedSelectorListener(surface), 16, 0L)
     }
@@ -153,7 +154,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
     else {
       null
     }
-    DataManager.registerDataProvider(surface) { if (ANIMATION_TOOLBAR.`is`(it)) toolbar else null }
+    DataManager.registerDataProvider(panel) { if (ANIMATION_TOOLBAR.`is`(it)) toolbar else null }
     if (toolbar != null) {
       myProject.messageBus.connect(toolbar).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
         override fun selectionChanged(event: FileEditorManagerEvent) {

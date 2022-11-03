@@ -160,7 +160,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
                              @NotNull Consumer<NlComponent> componentConsumer,
                              @NotNull ModelProvider modelProvider,
                              @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface<?>>>> toolWindowDefinitions,
-                             @Nullable BiFunction<? super DesignSurface<?>, ? super NlModel, JComponent> bottomModelComponent,
+                             @Nullable BiFunction<DesignerEditorPanel, ? super NlModel, JComponent> bottomModelComponent,
                              @NotNull State defaultEditorPanelState) {
     super(new BorderLayout());
     myEditor = editor;
@@ -206,7 +206,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
           if (myBottomComponent != null) {
             myContentPanel.remove(myBottomComponent);
           }
-          myBottomComponent = bottomModelComponent.apply(surface, model);
+          myBottomComponent = bottomModelComponent.apply(DesignerEditorPanel.this, model);
           if (myBottomComponent != null) {
             myContentPanel.add(myBottomComponent, BorderLayout.SOUTH);
           }

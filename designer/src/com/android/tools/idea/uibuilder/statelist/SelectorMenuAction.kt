@@ -58,9 +58,7 @@ class SelectorMenuAction: AnAction("State Selector", null, StudioIcons.LayoutEdi
       return
     }
 
-    val toolbar = DataManager.getDataProvider(surface)?.let { provider -> ANIMATION_TOOLBAR.getData(provider) }
-
-    when (toolbar) {
+    when (val toolbar = e.getData(ANIMATION_TOOLBAR)) {
       null -> e.presentation.isEnabledAndVisible = true // This happens when previewing <selector> file
       is AnimatedSelectorToolbar -> {
         e.presentation.isVisible = true
