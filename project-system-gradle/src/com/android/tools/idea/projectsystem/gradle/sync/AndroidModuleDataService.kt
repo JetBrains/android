@@ -39,7 +39,6 @@ import com.android.tools.idea.gradle.project.sync.setProjectSyncRequest
 import com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetup
-import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
@@ -216,10 +215,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     if (IdeInfo.getInstance().isAndroidStudio) {
       MemorySettingsPostSyncChecker
         .checkSettings(project, TimeBasedReminder(project, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)))
-    }
-
-    if (projectData != null) {
-      ProjectStructureUsageTracker(project).trackProjectStructure(projectData.linkedExternalProjectPath)
     }
 
     SupportedModuleChecker.getInstance().checkForSupportedModules(project)

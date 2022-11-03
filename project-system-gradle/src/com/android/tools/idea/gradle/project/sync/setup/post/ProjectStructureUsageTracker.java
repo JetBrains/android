@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryUsedFeaturesFromManifestIndex;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS;
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.CMAKE;
@@ -22,16 +23,16 @@ import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.Na
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.NDK_BUILD;
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.NDK_COMPILE;
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
-import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryUsedFeaturesFromManifestIndex;
 
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeDependencies;
 import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.model.UsedFeatureRawText;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -56,28 +57,36 @@ import java.util.Set;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache;
 
 /**
  * Tracks, using {@link UsageTracker}, the structure of a project.
  */
-public class ProjectStructureUsageTracker {
+public class ProjectStructureUsageTracker implements GradleSyncListenerWithRoot {
   private static final Logger LOG = Logger.getInstance(ProjectStructureUsageTracker.class);
 
   @NotNull private final Project myProject;
+
+  @Override
+  public void syncSucceeded(@NotNull Project project, @NotNull @SystemIndependent String rootProjectPath) {
+    trackProjectStructure(rootProjectPath);
+  }
 
   public ProjectStructureUsageTracker(@NotNull Project project) {
     myProject = project;
   }
 
-  public void trackProjectStructure(@NotNull String linkedGradleBuildPath) {
+  private void trackProjectStructure(@NotNull String linkedGradleBuildPath) {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      // Run synchronously in unit tests as it is difficult to wait for a pooled thread in unit tests.
+      doTrackProjectStructure(linkedGradleBuildPath);
+      return;
+    }
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       try {
-        ExternalProject externalProject = ExternalProjectDataCache.getInstance(myProject).getRootExternalProject(linkedGradleBuildPath);
-        if (externalProject != null) {
-          trackProjectStructure(externalProject);
-        }
+        doTrackProjectStructure(linkedGradleBuildPath);
       }
       catch (Throwable e) {
         // Any errors in project tracking should not be displayed to the user.
@@ -86,8 +95,14 @@ public class ProjectStructureUsageTracker {
     });
   }
 
-  @VisibleForTesting
-  void trackProjectStructure(@NotNull ExternalProject externalProject) {
+  private void doTrackProjectStructure(@NotNull String linkedGradleBuildPath) {
+    ExternalProject externalProject = ExternalProjectDataCache.getInstance(myProject).getRootExternalProject(linkedGradleBuildPath);
+    if (externalProject != null) {
+      trackProjectStructure(externalProject);
+    }
+  }
+
+  private void trackProjectStructure(@NotNull ExternalProject externalProject) {
     GradleAndroidModel appModel = null;
     GradleAndroidModel libModel = null;
 

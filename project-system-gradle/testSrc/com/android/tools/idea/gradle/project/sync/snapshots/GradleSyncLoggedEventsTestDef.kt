@@ -97,13 +97,13 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_ENDED
               |  USER_REQUESTED_PARALLEL
               |  STUDIO_REQUESTD_$expectedMode
+              |GRADLE_BUILD_DETAILS
               |INTELLIJ_PROJECT_SIZE_STATS
               |  JAVA : 3
               |  XML : 16
               |  DOT_CLASS : 0
               |  KOTLIN : 0
-              |  NATIVE : 0
-              |GRADLE_BUILD_DETAILS""".trim()
+              |  NATIVE : 0""".trim()
             )
           }.trimMargin()
         )
@@ -136,13 +136,13 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_ENDED
               |  USER_REQUESTED_SEQUENTIAL
               |  STUDIO_REQUESTD_SEQUENTIAL
+              |GRADLE_BUILD_DETAILS
               |INTELLIJ_PROJECT_SIZE_STATS
               |  JAVA : 3
               |  XML : 16
               |  DOT_CLASS : 0
               |  KOTLIN : 0
-              |  NATIVE : 0
-              |GRADLE_BUILD_DETAILS""".trim()
+              |  NATIVE : 0""".trim()
             )
           }.trimMargin()
         )

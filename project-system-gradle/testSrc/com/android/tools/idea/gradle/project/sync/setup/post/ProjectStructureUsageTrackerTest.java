@@ -76,7 +76,6 @@ public class ProjectStructureUsageTrackerTest {
       UsageTracker.cleanAfterTesting();
   }
 
-  @Ignore("b/240662565")
   @Test
   public void testProductStructureUsageTrackingBasic() throws Exception {
     trackGradleProject(AndroidCoreTestProject.PROJECT_WITH_APP_AND_LIB_DEPENDENCY, project -> {
@@ -120,9 +119,7 @@ public class ProjectStructureUsageTrackerTest {
   }
 
 
-  // TODO(b/240662565): Test is flaky.
   @Test
-  @Ignore("b/240662565")
   public void testProductStructureUsageWithWearHardware() throws Exception {
     trackGradleProject(AndroidCoreTestProject.RUN_CONFIG_WATCHFACE, project -> {
 
@@ -147,7 +144,7 @@ public class ProjectStructureUsageTrackerTest {
                                    .setAppModuleCount(1)
                                    .setLibModuleCount(0))
                      .addAndroidModules(GradleAndroidModule.newBuilder()
-                                          .setModuleName(AnonymizerUtil.anonymizeUtf8("testProductStructureUsageWithWearHardware"))
+                                          .setModuleName(AnonymizerUtil.anonymizeUtf8("project"))
                                           .setIsLibrary(false)
                                           .setBuildTypeCount(2)
                                           .setFlavorCount(0)
