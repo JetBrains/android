@@ -53,6 +53,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.ui.JBColor;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import java.awt.BorderLayout;
@@ -91,6 +92,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import org.intellij.images.editor.ImageDocument;
 import org.intellij.images.editor.ImageFileEditor;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -434,6 +436,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
         Path file = VfsUtilCore.virtualToIoFile(myDestinationFile).toPath();
         try {
           writePng(myProcessedImage, file);
+          myDestinationFile.refresh(false, false);
         }
         catch (IOException e) {
           logger().error("Unexpected error while writing to " + file, e);
