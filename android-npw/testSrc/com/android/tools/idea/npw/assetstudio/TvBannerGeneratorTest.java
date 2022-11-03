@@ -31,7 +31,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.application.options.CodeStyle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.ThreadTracker;
+import com.intellij.testFramework.common.ThreadLeakTracker;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
@@ -128,7 +128,7 @@ public class TvBannerGeneratorTest extends AndroidTestCase {
   public void tearDown() throws Exception {
     try {
       // The RenderTask dispose thread may still be running.
-      ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "RenderTask dispose");
+      ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "RenderTask dispose");
       assertTrue(String.join("\n", myWarnings), myWarnings.isEmpty());
     } finally {
       super.tearDown();

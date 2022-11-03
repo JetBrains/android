@@ -32,9 +32,9 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.VfsTestUtil;
+import com.intellij.testFramework.common.ThreadLeakTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
@@ -116,7 +116,7 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
 
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
-    ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
 
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
