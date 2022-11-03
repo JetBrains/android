@@ -23,6 +23,7 @@ import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID;
 import com.android.Version;
 import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
@@ -45,7 +46,7 @@ public class LatestKnownPluginVersionProvider {
   public String get() {
     List<File> repoPaths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths();
     if (repoPaths.isEmpty()) {
-      return Version.ANDROID_GRADLE_PLUGIN_VERSION;
+      return getAndroidGradlePluginVersion();
     }
     else {
       Optional<GradleCoordinate> highestValueCoordinate = repoPaths.stream()
@@ -54,7 +55,7 @@ public class LatestKnownPluginVersionProvider {
         .max(COMPARE_PLUS_HIGHER);
 
       @Nullable String embeddedResult = highestValueCoordinate.map(GradleCoordinate::getRevision).orElse(null);
-      @NotNull String version = highestValueCoordinate.map(GradleCoordinate::getRevision).orElse(Version.ANDROID_GRADLE_PLUGIN_VERSION);
+      @NotNull String version = highestValueCoordinate.map(GradleCoordinate::getRevision).orElse(getAndroidGradlePluginVersion());
       synchronized(lastEmbeddedResult) {
         // We don't expect very many state changes; things should only change if an internal user gets an error from failing to find a
         // -dev version of AGP, following which they might well build and publish such a dev version to the embedded repo and try again.
@@ -70,6 +71,14 @@ public class LatestKnownPluginVersionProvider {
         lastEmbeddedResult[0] = embeddedResult;
       }
       return version;
+    }
+  }
+
+  private static String getAndroidGradlePluginVersion() {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      return Version.ANDROID_GRADLE_PLUGIN_VERSION;
+    } else {
+      return AndroidGradlePluginVersion.LATEST_STABLE_VERSION;
     }
   }
 }
