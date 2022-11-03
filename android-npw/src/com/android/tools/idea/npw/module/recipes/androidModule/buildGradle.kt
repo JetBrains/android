@@ -28,7 +28,8 @@ fun buildGradle(
   isKts: Boolean,
   isLibraryProject: Boolean,
   isDynamicFeature: Boolean,
-  packageName: String,
+  /** The application ID; also used for the namespace. */
+  applicationId: String,
   buildApiString: String,
   minApi: String,
   targetApi: String,
@@ -51,7 +52,7 @@ fun buildGradle(
     isLibraryProject = isLibraryProject,
     isDynamicFeature = isDynamicFeature,
     explicitApplicationId = !isLibraryProject,
-    applicationId = packageName,
+    applicationId = applicationId,
     hasTests = hasTests,
     canUseProguard = true,
     addLintOptions = addLintOptions,

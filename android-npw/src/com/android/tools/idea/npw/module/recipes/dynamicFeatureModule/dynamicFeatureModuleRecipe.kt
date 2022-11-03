@@ -65,7 +65,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
       useGradleKts,
       false,
       true,
-      packageName,
+      applicationId = moduleData.namespace,
       buildApi.apiString,
       minApi.apiString,
       targetApi.apiString,

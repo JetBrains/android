@@ -20,6 +20,7 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.gradle.repositories.OfflineIdeGoogleMavenRepository
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
@@ -42,6 +43,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExpectedException
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
 import kotlin.system.measureTimeMillis
@@ -64,6 +66,9 @@ class TemplateTest {
 
   @get:Rule
   val disposableRule = DisposableRule()
+
+  @get:Rule
+  var exceptionRule: ExpectedException = ExpectedException.none()
 
   /** A UsageTracker implementation that allows introspection of logged metrics in tests. */
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
@@ -161,9 +166,18 @@ class TemplateTest {
     "New Folder Location" to location
   )
 
-  private fun withNewPackage(packageName: String):TemplateStateCustomizer = mapOf(
-    "Package name" to packageName
-  )
+  private fun withApplicationId(applicationId: String): ProjectStateCustomizer =
+    { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+        projectData.applicationPackage = applicationId
+    }
+
+  private fun withPackage(packageName: String): ProjectStateCustomizer =
+    { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+        moduleData.packageName = packageName
+        val paths = GradleAndroidModuleTemplate.createDefaultModuleTemplate(projectRule.project, moduleData.name!!).paths
+        moduleData.setModuleRoots(paths, projectData.topOut!!.path, moduleData.name!!, packageName)
+    }
+
 
   //--- Activity templates ---
   @TemplateCheck
@@ -185,6 +199,16 @@ class TemplateTest {
   fun testNewEmptyViewActivity() {
     checkCreateTemplate("Empty Views Activity")
   }
+
+  @TemplateCheck
+  @Test
+  fun testNewEmptyViewActivity_notInRootPackage() {
+    exceptionRule.expectMessage("Project didn't compile correctly")
+    checkCreateTemplate("Empty Views Activity",
+                        withApplicationId("com.mycompany.myapp"),
+                        withPackage("com.mycompany.myapp.subpackage"))
+  }
+
 
   @TemplateCheck
   @Test
@@ -255,7 +279,10 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewFullscreenActivity_activityNotInRootPackage() {
-    checkCreateTemplate("Fullscreen Views Activity", templateStateCustomizer = withNewPackage("com.mycompany.myapp.subpackage"))
+    checkCreateTemplate(
+      "Fullscreen Views Activity",
+      withApplicationId("com.mycompany.myapp"),
+      withPackage("com.mycompany.myapp.subpackage"))
   }
 
   @TemplateCheck
@@ -264,8 +291,10 @@ class TemplateTest {
     checkCreateTemplate(
       "Fullscreen Views Activity",
       withKotlin,
-      avoidModifiedModuleName = true,
-      templateStateCustomizer = withNewPackage("com.mycompany.myapp.subpackage"))
+      withApplicationId("com.mycompany.myapp"),
+      withPackage("com.mycompany.myapp.subpackage"),
+      avoidModifiedModuleName = true
+    )
   }
 
   @TemplateCheck

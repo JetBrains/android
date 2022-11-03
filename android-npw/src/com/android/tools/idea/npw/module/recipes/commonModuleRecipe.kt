@@ -70,7 +70,7 @@ fun RecipeExecutor.generateCommonModule(
       useKts,
       isLibraryProject,
       data.isDynamic,
-      packageName,
+      applicationId = data.namespace,
       apis.buildApi.apiString,
       minApi.apiString,
       apis.targetApi.apiString,
