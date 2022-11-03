@@ -111,11 +111,9 @@ constexpr double MIN_VIDEO_RESOLUTION = 128;
 constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
 constexpr int BIT_RATE = 8000000;
 constexpr int BIT_RATE_REDUCED = 2000000;
-constexpr int BIT_RATE_EMULATOR = 400000;
 constexpr int I_FRAME_INTERVAL_SECONDS = 10;
 constexpr int REPEAT_FRAME_DELAY_MILLIS = 100;
 constexpr int CHANNEL_HEADER_LENGTH = 20;
-constexpr int PROPERTY_VALUE_MAX = 92;
 
 bool IsCodecResolutionLessThanDisplayResolution(Size codec_resolution, Size display_resolution) {
   return max(codec_resolution.width, codec_resolution.height) < max(display_resolution.width, display_resolution.height);
