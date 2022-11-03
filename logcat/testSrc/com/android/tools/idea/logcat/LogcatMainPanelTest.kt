@@ -995,6 +995,26 @@ class LogcatMainPanelTest {
   }
 
   @Test
+  fun resumeLogcat_hidesBanner(): Unit = runBlocking {
+    val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
+    logcatMainPanel.pauseLogcat()
+
+    logcatMainPanel.resumeLogcat()
+
+    assertThat(logcatMainPanel.findBanner("Logcat is paused").isVisible).isFalse()
+  }
+
+  @Test
+  fun restartLogcat_hidesBanner(): Unit = runBlocking {
+    val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
+    logcatMainPanel.pauseLogcat()
+
+    logcatMainPanel.restartLogcat()
+
+    assertThat(logcatMainPanel.findBanner("Logcat is paused").isVisible).isFalse()
+  }
+
+  @Test
   fun missingApplicationIds_showsBanner(): Unit = runBlocking {
     val fakePackageNamesProvider = FakeProjectApplicationIdsProvider(project)
     val logcatMainPanel = runInEdtAndGet {

@@ -584,11 +584,7 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   @UiThread
   override fun resumeLogcat() {
-    pausedBanner.isVisible = false
-    val device = connectedDevice.get() ?: return
-    coroutineScope.launch {
-      logcatServiceChannel.send(StartLogcat(device))
-    }
+    restartLogcat()
   }
 
   override fun clearMessageView() {
@@ -627,6 +623,7 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   @UiThread
   override fun restartLogcat() {
+    pausedBanner.isVisible = false
     val device = connectedDevice.get() ?: return
     coroutineScope.launch {
       logcatServiceChannel.send(StartLogcat(device))
