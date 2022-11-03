@@ -38,6 +38,7 @@ import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.containers.reverse
@@ -48,6 +49,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import layout_inspector.LayoutInspector
 import layout_inspector.LayoutInspector.TrackingForegroundProcessSupported.SupportType
+import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
@@ -192,7 +194,7 @@ class ForegroundProcessDetectionTest {
 
   @Test
   fun testReceiveForegroundProcessesDevice(): Unit = runBlocking {
-    val deviceModel = createDeviceModel(device1)
+    val (deviceModel, _) = createDeviceModel(device1)
     val foregroundProcessDetection = ForegroundProcessDetection(
       projectRule.project,
       deviceModel,
@@ -237,8 +239,8 @@ class ForegroundProcessDetectionTest {
   @Ignore
   // TODO re-enable
   fun testReceiveMultipleInstancesOfStudio(): Unit = runBlocking {
-    val deviceModel1 = createDeviceModel(device1)
-    val deviceModel2 = createDeviceModel(device1)
+    val (deviceModel1, _) = createDeviceModel(device1)
+    val (deviceModel2, _) = createDeviceModel(device1)
 
     val coroutineScope1 = AndroidCoroutineScope(disposableRule.disposable)
     val coroutineScope2 = AndroidCoroutineScope(disposableRule.disposable)
@@ -310,7 +312,7 @@ class ForegroundProcessDetectionTest {
 
   @Test
   fun testReceiveForegroundProcessesFromSelectedDevice(): Unit = runBlocking {
-    val deviceModel = createDeviceModel(device1, device2)
+    val (deviceModel, _) = createDeviceModel(device1, device2)
     val foregroundProcessDetection = ForegroundProcessDetection(
       projectRule.project,
       deviceModel,
@@ -360,7 +362,7 @@ class ForegroundProcessDetectionTest {
 
   @Test
   fun testHandshakeDeviceIsNotSupported(): Unit = runBlocking {
-    val deviceModel = createDeviceModel(device3)
+    val (deviceModel, _) = createDeviceModel(device3)
     val foregroundProcessDetection = ForegroundProcessDetection(
       projectRule.project,
       deviceModel,
@@ -398,7 +400,7 @@ class ForegroundProcessDetectionTest {
 
   @Test
   fun testStopPollingSelectedDevice() = runBlocking {
-    val deviceModel = createDeviceModel(device1, device2)
+    val (deviceModel, _) = createDeviceModel(device1, device2)
     val foregroundProcessDetection = ForegroundProcessDetection(
       projectRule.project,
       deviceModel,
@@ -468,12 +470,7 @@ class ForegroundProcessDetectionTest {
 
   @Test
   fun testStopInspector() {
-    val devices = listOf(device1, device2)
-    val testProcessDiscovery = TestProcessDiscovery()
-    devices.forEach { testProcessDiscovery.addDevice(it.toDeviceDescriptor()) }
-
-    val processModel = ProcessesModel(testProcessDiscovery)
-    val deviceModel = DeviceModel(processModel)
+    val (deviceModel, processModel) = createDeviceModel(device1, device2)
 
     val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
 
@@ -503,7 +500,7 @@ class ForegroundProcessDetectionTest {
       runBlocking { onDeviceDisconnectedSyncChannel.send(it) }
     }
 
-    val deviceModel = createDeviceModel(device1)
+    val (deviceModel, _) = createDeviceModel(device1)
     ForegroundProcessDetection(
       projectRule.project,
       deviceModel,
@@ -534,13 +531,7 @@ class ForegroundProcessDetectionTest {
     val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
 
     val fakeProcess = device1.toDeviceDescriptor().createProcess("fake_process")
-
-    val devices = listOf(device1)
-    val testProcessDiscovery = TestProcessDiscovery()
-    devices.forEach { testProcessDiscovery.addDevice(it.toDeviceDescriptor()) }
-
-    val processModel = ProcessesModel(testProcessDiscovery)
-    val deviceModel = DeviceModel(processModel)
+    val (deviceModel, processModel) = createDeviceModel(device1)
 
     connectDevice(device1)
 
@@ -571,6 +562,96 @@ class ForegroundProcessDetectionTest {
     // the device is still connected, so the global flag should not be reset
     assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
     assertThat(adbProperties.debugViewAttributes).isNull()
+  }
+
+  @Test
+  fun testStopPollingDeviceOnlyIfNotSelectedByOtherProjects(): Unit = runBlocking {
+    // device model used in first project
+    val (deviceModel1, processModel) = createDeviceModel(device1, device2)
+    // device model used in second project
+    val (deviceModel2, _) = createDeviceModel(device1, device2)
+
+    deviceModel2.selectedDevice = device1.toDeviceDescriptor()
+
+    val foregroundProcessDetection = ForegroundProcessDetection(
+      projectRule.project,
+      deviceModel1,
+      transportClient,
+      mock(),
+      projectRule.project.coroutineScope,
+      workDispatcher,
+      onDeviceDisconnected = {},
+      pollingIntervalMs = 500L
+    )
+
+    val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
+    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess ->
+      runBlocking { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
+    })
+
+    connectDevice(device1)
+    val (handshakeDevice1, supportType1) = handshakeSyncChannel.receive()
+    val startTrackingDevice1 = startTrackingSyncChannel.receive()
+
+    assertThat(handshakeDevice1).isEqualTo(device1)
+    assertThat(supportType1).isEqualTo(SupportType.SUPPORTED)
+
+    assertThat(startTrackingDevice1).isEqualTo(device1)
+
+    connectDevice(device2)
+    val (handshakeDevice2, supportType2) = handshakeSyncChannel.receive()
+    assertThat(handshakeDevice2).isEqualTo(device2)
+    assertThat(supportType2).isEqualTo(SupportType.SUPPORTED)
+
+    foregroundProcessDetection.startPollingDevice(device2.toDeviceDescriptor())
+    val startTrackingDevice2 = startTrackingSyncChannel.receive()
+    assertThat(startTrackingDevice2).isEqualTo(device2)
+
+    // normally `startPollingDevice` would start polling on the new device (`device2`) and stop polling on the previous one (`device1`).
+    // in this case it shouldn't, because `device1` is the selected device in `deviceModel2`.
+    // there is only one polling per device, so stopping the polling on `device1` would stop the polling for all connected projects.
+    withTimeoutOrNull<Nothing>(500) {
+      stopTrackingSyncChannel.receive()
+      fail()
+    }
+
+    foregroundProcessDetection.startPollingDevice(device1.toDeviceDescriptor())
+    val startTrackingDevice3 = startTrackingSyncChannel.receive()
+    assertThat(startTrackingDevice3).isEqualTo(device1)
+    val stopTrackingDevice3 = stopTrackingSyncChannel.receive()
+    assertThat(stopTrackingDevice3).isEqualTo(device2)
+
+    // test `stopPollingSelectedDevice`
+    foregroundProcessDetection.stopPollingSelectedDevice()
+    withTimeoutOrNull<Nothing>(500) {
+      stopTrackingSyncChannel.receive()
+      fail()
+    }
+
+    foregroundProcessDetection.startPollingDevice(device1.toDeviceDescriptor())
+    val startTrackingDevice4 = startTrackingSyncChannel.receive()
+    assertThat(startTrackingDevice4).isEqualTo(device1)
+
+    // test `stopInspector`
+    stopInspector(projectRule.project, deviceModel1, processModel, foregroundProcessDetection)
+    withTimeoutOrNull<Nothing>(500) {
+      stopTrackingSyncChannel.receive()
+      fail()
+    }
+
+    Disposer.dispose(deviceModel2)
+
+    foregroundProcessDetection.startPollingDevice(device1.toDeviceDescriptor())
+    val startTrackingDevice5 = startTrackingSyncChannel.receive()
+    assertThat(startTrackingDevice5).isEqualTo(device1)
+
+    assertThat(deviceModel1.selectedDevice).isEqualTo(device1.toDeviceDescriptor())
+
+    // `deviceModel2` has been disposed, `device1` is now the selected device only on `deviceModel1`
+    // so polling should stop.
+    foregroundProcessDetection.stopPollingSelectedDevice()
+    val stopTrackingDevice6 = stopTrackingSyncChannel.receive()
+    assertThat(stopTrackingDevice6).isEqualTo(device1)
   }
 
   /**
@@ -610,10 +691,11 @@ class ForegroundProcessDetectionTest {
     transportService.updateDevice(device, offlineDevice)
   }
 
-  private fun createDeviceModel(vararg devices: Common.Device): DeviceModel {
+  private fun createDeviceModel(vararg devices: Common.Device): Pair<DeviceModel, ProcessesModel> {
     val testProcessDiscovery = TestProcessDiscovery()
     devices.forEach { testProcessDiscovery.addDevice(it.toDeviceDescriptor()) }
-    return DeviceModel(ProcessesModel(testProcessDiscovery))
+    val processModel = ProcessesModel(testProcessDiscovery)
+    return DeviceModel(disposableRule.disposable, processModel) to processModel
   }
 
   private fun createForegroundProcessEvent(foregroundProcess: ForegroundProcess, stream: Common.Stream): Common.Event {

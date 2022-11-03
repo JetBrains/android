@@ -21,15 +21,21 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 class DeviceModelTest {
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   private lateinit var processModel: ProcessesModel
-  private lateinit var deviceModel: DeviceModel
 
   private val fakeProcess = object : ProcessDescriptor {
     override val device = FakeTransportService.FAKE_DEVICE.toDeviceDescriptor()
@@ -46,11 +52,11 @@ class DeviceModelTest {
     val testProcessDiscovery = TestProcessDiscovery()
     testProcessDiscovery.addDevice(FakeTransportService.FAKE_DEVICE.toDeviceDescriptor())
     processModel = ProcessesModel(testProcessDiscovery)
-    deviceModel = DeviceModel(processModel)
   }
 
   @Test
   fun testSettingSelectedDeviceResetsSelectedProcess() {
+    val deviceModel = DeviceModel(disposableRule.disposable, processModel)
     processModel.selectedProcess = fakeProcess
 
     deviceModel.selectedDevice = FakeTransportService.FAKE_DEVICE.toDeviceDescriptor()
@@ -60,6 +66,7 @@ class DeviceModelTest {
 
   @Test
   fun testListenersAreInvokedWhenSelectedDeviceChanges() {
+    val deviceModel = DeviceModel(disposableRule.disposable, processModel)
     var newDevice: DeviceDescriptor? = null
 
     deviceModel.newSelectedDeviceListeners.add {
@@ -69,5 +76,20 @@ class DeviceModelTest {
     deviceModel.selectedDevice = FakeTransportService.FAKE_DEVICE.toDeviceDescriptor()
 
     assertThat(newDevice).isEqualTo(FakeTransportService.FAKE_DEVICE.toDeviceDescriptor())
+  }
+
+  @Test
+  fun testDeviceModelsRemoveThemselvesWhenDisposed() {
+    val deviceModel1 = DeviceModel(disposableRule.disposable, processModel)
+    assertThat(ForegroundProcessDetection.deviceModels).containsExactly(deviceModel1)
+
+    val deviceModel2 = DeviceModel(disposableRule.disposable, processModel)
+    assertThat(ForegroundProcessDetection.deviceModels).containsExactly(deviceModel1, deviceModel2)
+
+    Disposer.dispose(deviceModel2)
+    assertThat(ForegroundProcessDetection.deviceModels).containsExactly(deviceModel1)
+
+    Disposer.dispose(deviceModel1)
+    assertThat(ForegroundProcessDetection.deviceModels).isEmpty()
   }
 }

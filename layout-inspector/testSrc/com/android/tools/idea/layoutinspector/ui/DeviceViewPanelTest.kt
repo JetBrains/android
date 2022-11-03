@@ -97,6 +97,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -159,7 +160,7 @@ class DeviceViewPanelWithFullInspectorTest {
   private var latch: CountDownLatch? = null
   private val commands = mutableListOf<LayoutInspectorViewProtocol.Command>()
 
-  private val deviceModel = DeviceModel(inspectorRule.processes)
+  private lateinit var deviceModel: DeviceModel
   private val appNamespace = ResourceNamespace.fromPackageName("com.example")
   private val demoLayout = ResourceReference(appNamespace, ResourceType.LAYOUT, "demo")
   private val view1Id = ResourceReference(appNamespace, ResourceType.ID, "v1")
@@ -167,6 +168,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Before
   fun before() {
+    deviceModel = DeviceModel(projectRule.testRootDisposable, inspectorRule.processes)
     inspectorRule.attachDevice(MODERN_DEVICE)
     projectRule.fixture.testDataPath =
       TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
@@ -785,7 +787,7 @@ class DeviceViewPanelTest {
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
-      DeviceModel(processes),
+      DeviceModel(disposableRule.disposable, processes),
       processes,
       {},
       {},
@@ -836,7 +838,7 @@ class DeviceViewPanelTest {
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = true
     val panel = DeviceViewPanel(
-      DeviceModel(processes),
+      DeviceModel(disposableRule.disposable, processes),
       processes,
       {},
       {},
@@ -874,7 +876,7 @@ class DeviceViewPanelTest {
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = true
     val panel = DeviceViewPanel(
-      DeviceModel(processes),
+      DeviceModel(disposableRule.disposable, processes),
       processes,
       {},
       {},
@@ -913,7 +915,7 @@ class DeviceViewPanelTest {
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
-      DeviceModel(processes),
+      DeviceModel(disposableRule.disposable, processes),
       processes,
       {},
       {},
@@ -961,7 +963,7 @@ class DeviceViewPanelTest {
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
-      DeviceModel(processes),
+      DeviceModel(disposableRule.disposable, processes),
       processes,
       {},
       {},
@@ -1012,7 +1014,7 @@ class DeviceViewPanelTest {
     treeSettings.hideSystemNodes = false
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      DeviceModel(processes),
+      DeviceModel(disposableRule.disposable, processes),
       processes,
       {},
       {},
@@ -1103,7 +1105,7 @@ class DeviceViewPanelTest {
       latch.await()
 
       inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
-      deviceModel = DeviceModel(processes)
+      deviceModel = DeviceModel(disposableRule.disposable, processes)
     }
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
@@ -1192,7 +1194,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        DeviceModel(inspectorRule.processes),
+        DeviceModel(disposableRule.disposable, inspectorRule.processes),
         inspectorRule.processes,
         {},
         {},
@@ -1217,7 +1219,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        DeviceModel(inspectorRule.processes),
+        DeviceModel(disposableRule.disposable, inspectorRule.processes),
         inspectorRule.processes,
         {},
         {},
@@ -1424,7 +1426,7 @@ class DeviceViewPanelWithNoClientsTest {
     inspectorRule.launchSynchronously = false
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      DeviceModel(inspectorRule.processes),
+      DeviceModel(disposableRule.disposable, inspectorRule.processes),
       inspectorRule.processes,
       {},
       {},
@@ -1454,7 +1456,7 @@ class DeviceViewPanelWithNoClientsTest {
   fun testNotDebuggablePane() {
     inspectorRule.startLaunch(4)
     inspectorRule.launchSynchronously = false
-    val deviceModel = DeviceModel(inspectorRule.processes)
+    val deviceModel = DeviceModel(disposableRule.disposable, inspectorRule.processes)
     val panel = DeviceViewPanel(
       deviceModel,
       inspectorRule.processes,

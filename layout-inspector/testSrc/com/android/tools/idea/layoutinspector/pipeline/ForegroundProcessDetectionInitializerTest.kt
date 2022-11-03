@@ -77,7 +77,7 @@ class ForegroundProcessDetectionInitializerTest {
 
     val testProcessDiscovery = TestProcessDiscovery()
     processModel = ProcessesModel(testProcessDiscovery)
-    deviceModel = DeviceModel(processModel)
+    deviceModel = DeviceModel(projectRule.testRootDisposable, processModel)
 
     fakeStream1 = createFakeStream(1, device1)
     fakeStream2 = createFakeStream(2, device2)

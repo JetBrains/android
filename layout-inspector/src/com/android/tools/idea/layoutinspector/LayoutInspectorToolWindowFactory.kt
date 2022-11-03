@@ -127,7 +127,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         )
         val layoutInspector = LayoutInspector(launcher, model, treeSettings)
 
-        val deviceModel = DeviceModel(processesModel)
+        val deviceModel = DeviceModel(workbench, processesModel)
         val foregroundProcessDetection = createForegroundProcessDetection(project, processesModel, deviceModel)
 
         val deviceViewPanel = DeviceViewPanel(

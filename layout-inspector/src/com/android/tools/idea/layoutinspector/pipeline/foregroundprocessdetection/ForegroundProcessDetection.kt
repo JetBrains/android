@@ -39,10 +39,12 @@ import com.android.tools.profiler.proto.Agent
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
+import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
@@ -51,6 +53,8 @@ import layout_inspector.LayoutInspector
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CopyOnWriteArraySet
 
 /**
 * Object used to create an initialized instance of [ForegroundProcessDetection].
@@ -129,11 +133,24 @@ object ForegroundProcessDetectionInitializer {
  * The selected device is controlled by [ForegroundProcessDetection],
  * and it is used by [SelectedDeviceAction].
  */
-class DeviceModel(private val processesModel: ProcessesModel) {
+class DeviceModel(parentDisposable: Disposable, private val processesModel: ProcessesModel): Disposable {
 
   @TestOnly
-  constructor(processesModel: ProcessesModel, foregroundProcessDetectionSupportedDeviceTest: Set<DeviceDescriptor>) : this(processesModel) {
+  constructor(
+    parentDisposable: Disposable,
+    processesModel: ProcessesModel,
+    foregroundProcessDetectionSupportedDeviceTest: Set<DeviceDescriptor>
+  ) : this(parentDisposable, processesModel) {
     foregroundProcessDetectionSupportedDevices.addAll(foregroundProcessDetectionSupportedDeviceTest)
+  }
+
+  init {
+    Disposer.register(parentDisposable, this)
+    ForegroundProcessDetection.deviceModels.add(this)
+  }
+
+  override fun dispose() {
+    ForegroundProcessDetection.deviceModels.remove(this)
   }
 
   /**
@@ -157,7 +174,7 @@ class DeviceModel(private val processesModel: ProcessesModel) {
   /**
    * The set of connected devices that support foreground process detection.
    */
-  internal val foregroundProcessDetectionSupportedDevices = mutableSetOf<DeviceDescriptor>()
+  internal val foregroundProcessDetectionSupportedDevices = CopyOnWriteArraySet<DeviceDescriptor>()
 
   val devices: Set<DeviceDescriptor>
     get() {
@@ -268,6 +285,21 @@ class ForegroundProcessDetection(
   workDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread,
   @TestOnly private val onDeviceDisconnected: (DeviceDescriptor) -> Unit = {},
   @TestOnly private val pollingIntervalMs: Long = 2000) {
+
+  companion object {
+    /**
+     * We are storing static references of [DeviceModel] because when multiple projects are open, they  need to coordinate with each other.
+     *
+     * When multiple projects are open, they all share the same device, on which a thread is running to do foreground process detection.
+     * When a project asks the device to stop foreground process detection, it stops not only for that project, but for all the others too.
+     *
+     * On-device foreground process detection should be stopped only if the device is not the selected device on any [DeviceModel].
+     *
+     * This could be avoided by changing the communication protocol between Studio and device see b/257101182.
+     */
+    @VisibleForTesting
+    val deviceModels = CopyOnWriteArrayList<DeviceModel>()
+  }
 
   private val logger = Logger.getInstance(ForegroundProcessDetection::class.java)
 
@@ -398,15 +430,16 @@ class ForegroundProcessDetection(
    * before sending a start command to the new device.
    */
   fun startPollingDevice(newDevice: DeviceDescriptor) {
-    if (newDevice == deviceModel.selectedDevice) {
+    val selectedDevice = deviceModel.selectedDevice
+    if (newDevice == selectedDevice) {
       return
     }
 
-    val oldStream = connectedStreams.values.find { it.stream.device.serial == deviceModel.selectedDevice?.serial }
+    val oldStream = connectedStreams.values.find { it.stream.device.serial == selectedDevice?.serial }
     val newStream = connectedStreams.values.find { it.stream.device.serial == newDevice.serial }
 
     if (oldStream != null) {
-      sendStopOnDevicePollingCommand(oldStream.stream)
+      sendStopOnDevicePollingCommand(oldStream.stream, selectedDevice!!)
     }
 
     if (newStream != null) {
@@ -426,9 +459,10 @@ class ForegroundProcessDetection(
    * Then sets [DeviceModel.selectedDevice] to null.
    */
   fun stopPollingSelectedDevice() {
-    val transportStreamChannel = connectedStreams.values.find { it.stream.device.serial == deviceModel.selectedDevice?.serial }
+    val selectedDevice = deviceModel.selectedDevice ?: return
+    val transportStreamChannel = connectedStreams.values.find { it.stream.device.serial == selectedDevice.serial }
     if (transportStreamChannel != null) {
-      sendStopOnDevicePollingCommand(transportStreamChannel.stream)
+      sendStopOnDevicePollingCommand(transportStreamChannel.stream, selectedDevice)
     }
     deviceModel.selectedDevice = null
   }
@@ -443,8 +477,22 @@ class ForegroundProcessDetection(
   /**
    * Tell the device connected to this stream to stop the on-device detection of foreground process.
    */
-  private fun sendStopOnDevicePollingCommand(stream: Common.Stream) {
-    transportClient.sendCommand(Commands.Command.CommandType.STOP_TRACKING_FOREGROUND_PROCESS, stream.streamId)
+  private fun sendStopOnDevicePollingCommand(stream: Common.Stream, deviceDescriptor: DeviceDescriptor) {
+    if (shouldStopPollingDevice(deviceDescriptor)) {
+      transportClient.sendCommand(Commands.Command.CommandType.STOP_TRACKING_FOREGROUND_PROCESS, stream.streamId)
+    }
+  }
+
+  /**
+   * The polling should be stopped on a device only if it's not the selected device on any other [DeviceModel].
+   * There can be multiple [DeviceModel]s if there are multiple projects open in Studio.
+   *
+   * @see ForegroundProcessDetection.deviceModels
+   */
+  private fun shouldStopPollingDevice(selectedDevice: DeviceDescriptor): Boolean {
+    val deviceModels = ForegroundProcessDetection.deviceModels
+    val count = deviceModels.mapNotNull { it.selectedDevice }.count { it.serial == selectedDevice.serial }
+    return count <= 1
   }
 }
 

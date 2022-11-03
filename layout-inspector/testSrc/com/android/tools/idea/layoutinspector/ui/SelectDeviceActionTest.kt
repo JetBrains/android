@@ -95,7 +95,7 @@ class SelectDeviceActionTest {
   fun testNoDevices() {
     val testNotifier = TestProcessDiscovery()
     val model = ProcessesModel(testNotifier)
-    val deviceModel = DeviceModel(model)
+    val deviceModel = DeviceModel(projectRule.testRootDisposable, model)
     val selectDeviceAction = SelectDeviceAction(deviceModel, {}, {})
     selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectDeviceAction.getChildren(null)
@@ -112,7 +112,10 @@ class SelectDeviceActionTest {
     val physicalStream = createFakeStream(isEmulator = false)
     val emulatorStream = createFakeStream(isEmulator = true)
 
-    val deviceModel = DeviceModel(model, setOf(physicalStream.device.toDeviceDescriptor(), emulatorStream.device.toDeviceDescriptor()))
+    val deviceModel = DeviceModel(
+      projectRule.testRootDisposable,
+      model,
+      setOf(physicalStream.device.toDeviceDescriptor(),emulatorStream.device.toDeviceDescriptor()))
     val selectDeviceAction = SelectDeviceAction(deviceModel, {}, {})
 
     testNotifier.addDevice(physicalStream.device.toDeviceDescriptor())
@@ -142,6 +145,7 @@ class SelectDeviceActionTest {
     testNotifier.addDevice(fakeStream3.device.toDeviceDescriptor())
 
     val deviceModel = DeviceModel(
+      projectRule.testRootDisposable,
       model,
       setOf(fakeStream1.device.toDeviceDescriptor(), fakeStream2.device.toDeviceDescriptor(), fakeStream3.device.toDeviceDescriptor())
     )
@@ -166,7 +170,11 @@ class SelectDeviceActionTest {
     val fakeStream = createFakeStream()
     testNotifier.addDevice(fakeStream.device.toDeviceDescriptor())
 
-    val deviceModel = DeviceModel(model, setOf(fakeStream.device.toDeviceDescriptor()))
+    val deviceModel = DeviceModel(
+      projectRule.testRootDisposable,
+      model,
+      setOf(fakeStream.device.toDeviceDescriptor())
+    )
     val selectDeviceAction = SelectDeviceAction(deviceModel, {}, {})
 
     selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
@@ -194,7 +202,11 @@ class SelectDeviceActionTest {
     testNotifier.addDevice(processB.device)
     testNotifier.fireConnected(processB)
 
-    val deviceModel = DeviceModel(model, setOf(processB.device))
+    val deviceModel = DeviceModel(
+      projectRule.testRootDisposable,
+      model,
+      setOf(processB.device)
+    )
     deviceModel.selectedDevice = processB.device
     val callbackFiredLatch = CountDownLatch(1)
     val selectDeviceAction = SelectDeviceAction(deviceModel, {}, onDetachAction = {
@@ -224,7 +236,11 @@ class SelectDeviceActionTest {
     testNotifier.addDevice(process.device)
     testNotifier.fireConnected(process)
 
-    val deviceModel = DeviceModel(processesModel, setOf(process.device))
+    val deviceModel = DeviceModel(
+      projectRule.testRootDisposable,
+      processesModel,
+      setOf(process.device)
+    )
     val callbackFiredLatch = CountDownLatch(1)
     val selectDeviceAction = SelectDeviceAction(deviceModel, {}, onDetachAction = {
       deviceModel.selectedDevice = null
@@ -287,7 +303,11 @@ class SelectDeviceActionTest {
     val stream = createFakeStream()
     testNotifier.addDevice(stream.device.toDeviceDescriptor())
 
-    val deviceModel = DeviceModel(model, setOf(stream.device.toDeviceDescriptor()))
+    val deviceModel = DeviceModel(
+      projectRule.testRootDisposable,
+      model,
+      setOf(stream.device.toDeviceDescriptor())
+    )
 
     val deviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = MockitoKt.mock()
 
@@ -309,7 +329,11 @@ class SelectDeviceActionTest {
     val fakeStream = createFakeStream()
     testNotifier.addDevice(fakeStream.device.toDeviceDescriptor())
 
-    val deviceModel = DeviceModel(model, setOf(fakeStream.device.toDeviceDescriptor()))
+    val deviceModel = DeviceModel(
+      projectRule.testRootDisposable,
+      model,
+      setOf(fakeStream.device.toDeviceDescriptor())
+    )
     val callbackFiredLatch = CountDownLatch(1)
     var actionPerformed = false
     val selectDeviceAction = SelectDeviceAction(
@@ -345,7 +369,11 @@ class SelectDeviceActionTest {
     testNotifier.addDevice(physicalStream.device.toDeviceDescriptor())
     testNotifier.addDevice(emulatorStream.device.toDeviceDescriptor())
 
-    val deviceModel = DeviceModel(model, setOf(physicalStream.device.toDeviceDescriptor()))
+    val deviceModel = DeviceModel(
+      projectRule.testRootDisposable,
+      model,
+      setOf(physicalStream.device.toDeviceDescriptor())
+    )
     val selectDeviceAction = SelectDeviceAction(deviceModel, {}, {})
 
     selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
@@ -386,7 +414,11 @@ class SelectDeviceActionTest {
     testNotifier.addDevice(emulatorStream.device.toDeviceDescriptor())
 
     val callbackFiredLatch = CountDownLatch(1)
-    val deviceModel = DeviceModel(model, setOf(physicalStream.device.toDeviceDescriptor()))
+    val deviceModel = DeviceModel(
+      projectRule.testRootDisposable,
+      model,
+      setOf(physicalStream.device.toDeviceDescriptor())
+    )
     var actionPerformed = false
     val selectDeviceAction = SelectDeviceAction(deviceModel, {}, {
       actionPerformed = true
