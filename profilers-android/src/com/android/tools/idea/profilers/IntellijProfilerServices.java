@@ -30,7 +30,6 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.Notification;

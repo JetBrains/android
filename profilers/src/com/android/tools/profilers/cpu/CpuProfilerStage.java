@@ -440,7 +440,7 @@ public class CpuProfilerStage extends StreamingStage {
     if (myCompletedTraceIdToInfoMap.containsKey(traceId)) {
       CpuCaptureStage stage = CpuCaptureStage.create(
         getStudioProfilers(),
-        ProfilingConfiguration.fromProto(myCompletedTraceIdToInfoMap.get(traceId).getTraceInfo().getConfiguration().getUserOptions()),
+        ProfilingConfiguration.fromProto(myCompletedTraceIdToInfoMap.get(traceId).getTraceInfo().getConfiguration()),
         traceId);
       if (stage != null) {
         getStudioProfilers().getIdeServices().getMainExecutor().execute(() -> getStudioProfilers().setStage(stage));
@@ -624,7 +624,7 @@ public class CpuProfilerStage extends StreamingStage {
           // Inform CpuCaptureParser to track metrics when the successful trace is parsed.
           if (trace.getStopStatus().getStatus().equals(Trace.TraceStopStatus.Status.SUCCESS)) {
             CpuCaptureMetadata captureMetadata =
-              new CpuCaptureMetadata(ProfilingConfiguration.fromProto(finishedTraceToSelect.getConfiguration().getUserOptions()));
+              new CpuCaptureMetadata(ProfilingConfiguration.fromProto(finishedTraceToSelect.getConfiguration()));
             // If the capture is successful, we can track a more accurate time, calculated from the capture itself.
             captureMetadata.setCaptureDurationMs(TimeUnit.NANOSECONDS.toMillis(trace.getToTimestamp() - trace.getFromTimestamp()));
             captureMetadata.setStoppingTimeMs((int)TimeUnit.NANOSECONDS.toMillis(trace.getStopStatus().getStoppingDurationNs()));
@@ -685,7 +685,7 @@ public class CpuProfilerStage extends StreamingStage {
       }
       else {
         // Updates myProfilerConfigModel to the ongoing profiler configuration.
-        myProfilerConfigModel.setProfilingConfiguration(ProfilingConfiguration.fromProto(traceInfo.getConfiguration().getUserOptions()));
+        myProfilerConfigModel.setProfilingConfiguration(ProfilingConfiguration.fromProto(traceInfo.getConfiguration()));
       }
       setCaptureState(state);
       getTimeline().setStreaming(true);

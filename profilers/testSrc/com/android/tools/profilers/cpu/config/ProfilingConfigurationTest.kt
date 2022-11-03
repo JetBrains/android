@@ -28,12 +28,15 @@ class ProfilingConfigurationTest {
 
   @Test
   fun fromProto() {
-    val proto = Trace.UserOptions.newBuilder()
+    val userOptions = Trace.UserOptions.newBuilder()
       .setName("MyConfiguration")
       .setTraceMode(Trace.TraceMode.SAMPLED)
       .setTraceType(Trace.UserOptions.TraceType.ART)
       .setSamplingIntervalUs(123)
       .setBufferSizeInMb(12)
+      .build()
+    val proto = Trace.TraceConfiguration.newBuilder()
+      .setUserOptions(userOptions)
       .build()
     val config = ProfilingConfiguration.fromProto(proto)
     assertThat(config).isInstanceOf(ArtSampledConfiguration::class.java)
