@@ -107,6 +107,8 @@ Controller::Controller(int socket_fd)
       clipboard_listener_(this),
       max_synced_clipboard_length_(0) {
   assert(socket_fd > 0);
+  char channel_marker = 'C';
+  write(socket_fd_, &channel_marker, sizeof(channel_marker));  // Control channel marker.
 }
 
 Controller::~Controller() {

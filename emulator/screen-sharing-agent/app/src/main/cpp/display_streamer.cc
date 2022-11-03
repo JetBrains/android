@@ -214,14 +214,16 @@ void DisplayStreamer::Run() {
          codec_info->name.c_str(), codec_info->max_resolution.width, codec_info->max_resolution.height);
   AMediaFormat* media_format = CreateMediaFormat(mime_type.c_str());
 
-  string header;
-  header.reserve(CHANNEL_HEADER_LENGTH);
-  header.append(codec_name_);
+  string buf;
+  int buf_size = 1 + CHANNEL_HEADER_LENGTH;
+  buf.reserve(buf_size);  // Single-byte channel marker followed by header.
+  buf.append("V");  // Video channel marker.
+  buf.append(codec_name_);
   // Pad with spaces to the fixed length.
-  while (header.length() < CHANNEL_HEADER_LENGTH) {
-    header.insert(header.end(), ' ');
+  while (buf.length() < buf_size) {
+    buf.insert(buf.end(), ' ');
   }
-  write(socket_fd_, header.c_str(), header.length());
+  write(socket_fd_, buf.c_str(), buf_size);
 
   WindowManager::WatchRotation(jni, &display_rotation_watcher_);
   DisplayManager::RegisterDisplayListener(jni, this);

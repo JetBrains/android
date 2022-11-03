@@ -161,6 +161,8 @@ internal class FakeScreenSharingAgent(val displaySize: Dimension, private val de
         terminateAgent(139)
         return@async
       }
+      videoChannel.write(ByteBuffer.wrap("V".toByteArray()))
+      controlChannel.write(ByteBuffer.wrap("C".toByteArray()))
       val displayStreamer = DisplayStreamer(videoChannel)
       this@FakeScreenSharingAgent.displayStreamer = displayStreamer
       val controller = Controller(controlChannel)
