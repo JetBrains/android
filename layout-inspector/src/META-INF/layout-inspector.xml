@@ -42,7 +42,7 @@
 
   <applicationListeners>
     <listener
-        class="com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.TransportDeviceManagerListenerImpl"
+        class="com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionOnDeviceFlagController"
         topic="com.intellij.openapi.project.ProjectManagerListener"
     />
   </applicationListeners>

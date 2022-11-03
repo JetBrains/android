@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.pipeline
+package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection
 
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.model.FakeTimer
@@ -25,9 +25,6 @@ import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionInitializer
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportService
@@ -104,7 +101,7 @@ class ForegroundProcessDetectionInitializerTest {
       metrics = ForegroundProcessDetectionMetrics,
     )
 
-    deviceModel.selectedDevice = device1
+    deviceModel.setSelectedDevice(device1)
 
     foregroundProcessListener.onNewProcess(device1, ForegroundProcess(1, "process1"))
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess1)
@@ -112,7 +109,7 @@ class ForegroundProcessDetectionInitializerTest {
     foregroundProcessListener.onNewProcess(device1, ForegroundProcess(2, "process2"))
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess2)
 
-    deviceModel.selectedDevice = device2
+    deviceModel.setSelectedDevice(device2)
 
     foregroundProcessListener.onNewProcess(device2, ForegroundProcess(1, "process1"))
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess1)

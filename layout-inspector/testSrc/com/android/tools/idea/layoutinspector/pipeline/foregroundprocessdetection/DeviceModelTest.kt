@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.pipeline
+package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection
 
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
@@ -59,7 +59,7 @@ class DeviceModelTest {
     val deviceModel = DeviceModel(disposableRule.disposable, processModel)
     processModel.selectedProcess = fakeProcess
 
-    deviceModel.selectedDevice = FakeTransportService.FAKE_DEVICE.toDeviceDescriptor()
+    deviceModel.setSelectedDevice(FakeTransportService.FAKE_DEVICE.toDeviceDescriptor())
 
     assertThat(processModel.selectedProcess).isNull()
   }
@@ -73,7 +73,7 @@ class DeviceModelTest {
       newDevice = it
     }
 
-    deviceModel.selectedDevice = FakeTransportService.FAKE_DEVICE.toDeviceDescriptor()
+    deviceModel.setSelectedDevice(FakeTransportService.FAKE_DEVICE.toDeviceDescriptor())
 
     assertThat(newDevice).isEqualTo(FakeTransportService.FAKE_DEVICE.toDeviceDescriptor())
   }

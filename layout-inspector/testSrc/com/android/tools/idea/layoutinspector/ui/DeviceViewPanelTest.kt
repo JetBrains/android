@@ -1475,7 +1475,7 @@ class DeviceViewPanelWithNoClientsTest {
     assertThat(deviceViewContentPanel.showNavigateToDebuggableProcess).isFalse()
 
     // connect device
-    deviceModel.selectedDevice = MODERN_DEVICE
+    deviceModel.setSelectedDevice(MODERN_DEVICE)
 
     // remains false, because the device is connected but no foreground process showed up yet
     assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isFalse()

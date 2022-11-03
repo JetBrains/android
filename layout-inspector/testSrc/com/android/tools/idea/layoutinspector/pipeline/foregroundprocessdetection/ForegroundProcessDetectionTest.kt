@@ -475,7 +475,7 @@ class ForegroundProcessDetectionTest {
     val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
 
     // test has device, no process
-    deviceModel.selectedDevice = device1.toDeviceDescriptor()
+    deviceModel.setSelectedDevice(device1.toDeviceDescriptor())
     processModel.selectedProcess = null
 
     stopInspector(projectRule.project, deviceModel, processModel, mockForegroundProcessDetection)
@@ -484,7 +484,7 @@ class ForegroundProcessDetectionTest {
     assertThat(processModel.selectedProcess).isNull()
 
     // test no device, has process
-    deviceModel.selectedDevice = null
+    deviceModel.setSelectedDevice(null)
     processModel.selectedProcess = device1.toDeviceDescriptor().createProcess("fake_process")
 
     stopInspector(projectRule.project, deviceModel, processModel, mockForegroundProcessDetection)
@@ -540,7 +540,7 @@ class ForegroundProcessDetectionTest {
     assertThat(changed).isTrue()
 
     // test has device, no process
-    deviceModel.selectedDevice = device1.toDeviceDescriptor()
+    deviceModel.setSelectedDevice(device1.toDeviceDescriptor())
     processModel.selectedProcess = null
 
     stopInspector(projectRule.project, deviceModel, processModel, mockForegroundProcessDetection)
@@ -552,7 +552,7 @@ class ForegroundProcessDetectionTest {
     assertThat(adbProperties.debugViewAttributes).isNull()
 
     // test no device, has process
-    deviceModel.selectedDevice = null
+    deviceModel.setSelectedDevice(null)
     processModel.selectedProcess = fakeProcess
 
     stopInspector(projectRule.project, deviceModel, processModel, mockForegroundProcessDetection)
@@ -571,7 +571,7 @@ class ForegroundProcessDetectionTest {
     // device model used in second project
     val (deviceModel2, _) = createDeviceModel(device1, device2)
 
-    deviceModel2.selectedDevice = device1.toDeviceDescriptor()
+    deviceModel2.setSelectedDevice(device1.toDeviceDescriptor())
 
     val foregroundProcessDetection = ForegroundProcessDetection(
       projectRule.project,

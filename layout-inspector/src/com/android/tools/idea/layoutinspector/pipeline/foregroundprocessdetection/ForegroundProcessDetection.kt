@@ -20,31 +20,20 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
-import com.android.tools.idea.run.AndroidRunConfigurationBase
-import com.android.tools.idea.transport.FailedToStartServerException
 import com.android.tools.idea.transport.TransportClient
-import com.android.tools.idea.transport.TransportDeviceManager
-import com.android.tools.idea.transport.TransportProxy
-import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.manager.StreamConnected
 import com.android.tools.idea.transport.manager.StreamDisconnected
 import com.android.tools.idea.transport.manager.StreamEvent
 import com.android.tools.idea.transport.manager.StreamEventQuery
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.idea.transport.manager.TransportStreamManager
-import com.android.tools.profiler.proto.Agent
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManagerListener
-import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
@@ -54,174 +43,6 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.CopyOnWriteArraySet
-
-/**
-* Object used to create an initialized instance of [ForegroundProcessDetection].
-* Doing this in a designated object is useful to facilitate testing.
-*/
-object ForegroundProcessDetectionInitializer {
-
-  private val logger = Logger.getInstance(ForegroundProcessDetectionInitializer::class.java)
-
-  @VisibleForTesting
-  fun getDefaultForegroundProcessListener(deviceModel: DeviceModel, processModel: ProcessesModel): ForegroundProcessListener {
-    return object : ForegroundProcessListener {
-      override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
-        // There could be multiple projects open. Project1 with device1 selected, Project2 with device2 selected.
-        // Because every event from the Transport is dispatched to every open project,
-        // both Project1 and Project2 are going to receive events from device1 and device2.
-        if (device != deviceModel.selectedDevice) {
-          return
-        }
-
-        val foregroundProcessDescriptor = foregroundProcess.matchToProcessDescriptor(processModel)
-        if (foregroundProcessDescriptor == null) {
-          logger.info("Process descriptor not found for foreground process \"${foregroundProcess.processName}\"")
-        }
-
-        // set the foreground process to be the selected process.
-        processModel.selectedProcess = foregroundProcessDescriptor
-      }
-    }
-  }
-
-  private fun getDefaultTransportClient(): TransportClient {
-    // The following line has the side effect of starting the transport service if it has not been already.
-    // The consequence of not doing this is gRPC calls are never responded to.
-    TransportService.getInstance()
-    return TransportClient(TransportService.channelName)
-  }
-
-  fun initialize(
-    project: Project,
-    processModel: ProcessesModel,
-    deviceModel: DeviceModel,
-    coroutineScope: CoroutineScope,
-    foregroundProcessListener: ForegroundProcessListener = getDefaultForegroundProcessListener(deviceModel, processModel),
-    transportClient: TransportClient = getDefaultTransportClient(),
-    metrics: ForegroundProcessDetectionMetrics,
-  ): ForegroundProcessDetection {
-    val foregroundProcessDetection = ForegroundProcessDetection(
-      project,
-      deviceModel,
-      transportClient,
-      metrics,
-      coroutineScope
-    )
-
-    foregroundProcessDetection.foregroundProcessListeners.add(foregroundProcessListener)
-
-    processModel.addSelectedProcessListeners {
-      val selectedProcessDevice = processModel.selectedProcess?.device
-      if (selectedProcessDevice != null && selectedProcessDevice != deviceModel.selectedDevice) {
-        // If the selectedProcessDevice is different from the selectedDeviceModel.selectedDevice,
-        // it means that the change of processModel.selectedProcess was not triggered by ForegroundProcessDetection.
-        // For example if the user deployed an app on a device from Studio.
-        // When this happens, we should start polling the selectedProcessDevice.
-        foregroundProcessDetection.startPollingDevice(selectedProcessDevice)
-      }
-    }
-
-    return foregroundProcessDetection
-  }
-}
-
-/**
- * Keeps track of the currently selected device.
- *
- * The selected device is controlled by [ForegroundProcessDetection],
- * and it is used by [SelectedDeviceAction].
- */
-class DeviceModel(parentDisposable: Disposable, private val processesModel: ProcessesModel): Disposable {
-
-  @TestOnly
-  constructor(
-    parentDisposable: Disposable,
-    processesModel: ProcessesModel,
-    foregroundProcessDetectionSupportedDeviceTest: Set<DeviceDescriptor>
-  ) : this(parentDisposable, processesModel) {
-    foregroundProcessDetectionSupportedDevices.addAll(foregroundProcessDetectionSupportedDeviceTest)
-  }
-
-  init {
-    Disposer.register(parentDisposable, this)
-    ForegroundProcessDetection.deviceModels.add(this)
-  }
-
-  override fun dispose() {
-    ForegroundProcessDetection.deviceModels.remove(this)
-  }
-
-  /**
-   * The device on which the on-device library is polling for foreground process.
-   * When null, it means that we are not polling on any device.
-   *
-   * [selectedDevice] should only be set by [ForegroundProcessDetection],
-   * this is to make sure that there is consistency between the [selectedDevice] and the device we are polling on.
-   */
-  var selectedDevice: DeviceDescriptor? = null
-    @VisibleForTesting
-    set(value) {
-      // each time the selected device changes, the selected process should be reset
-      processesModel.selectedProcess = null
-      newSelectedDeviceListeners.forEach { it.invoke(value) }
-      field = value
-    }
-
-  val newSelectedDeviceListeners = mutableListOf<(DeviceDescriptor?) -> Unit>()
-
-  /**
-   * The set of connected devices that support foreground process detection.
-   */
-  internal val foregroundProcessDetectionSupportedDevices = CopyOnWriteArraySet<DeviceDescriptor>()
-
-  val devices: Set<DeviceDescriptor>
-    get() {
-      return processesModel.devices
-    }
-
-  val selectedProcess: ProcessDescriptor?
-    get() {
-      return processesModel.selectedProcess
-    }
-
-  val processes: Set<ProcessDescriptor>
-    get() {
-      return processesModel.processes
-    }
-
-  fun supportsForegroundProcessDetection(device: DeviceDescriptor): Boolean {
-    return foregroundProcessDetectionSupportedDevices.contains(device)
-  }
-}
-
-/**
- * Listener used to set the feature flag to true or false in the Transport Daemon.
- */
-class TransportDeviceManagerListenerImpl : TransportDeviceManager.TransportDeviceManagerListener, ProjectManagerListener {
-
-  override fun projectOpened(project: Project) {
-    ApplicationManager.getApplication().messageBus.connect().subscribe(TransportDeviceManager.TOPIC, this)
-  }
-
-  override fun onPreTransportDaemonStart(device: Common.Device) { }
-  override fun onTransportDaemonException(device: Common.Device, exception: Exception) { }
-  override fun onTransportProxyCreationFail(device: Common.Device, exception: Exception) { }
-  override fun onStartTransportDaemonServerFail(device: Common.Device, exception: FailedToStartServerException) { }
-
-  override fun customizeProxyService(proxy: TransportProxy) { }
-  override fun customizeAgentConfig(configBuilder: Agent.AgentConfig.Builder, runConfig: AndroidRunConfigurationBase?) { }
-
-  override fun customizeDaemonConfig(configBuilder: Transport.DaemonConfig.Builder) {
-    configBuilder
-      .setLayoutInspectorConfig(
-        configBuilder.layoutInspectorConfigBuilder.setAutoconnectEnabled(
-          StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()
-        )
-      )
-  }
-}
 
 /**
  * Stops LayoutInspector.
@@ -297,7 +118,6 @@ class ForegroundProcessDetection(
      *
      * This could be avoided by changing the communication protocol between Studio and device see b/257101182.
      */
-    @VisibleForTesting
     val deviceModels = CopyOnWriteArrayList<DeviceModel>()
   }
 

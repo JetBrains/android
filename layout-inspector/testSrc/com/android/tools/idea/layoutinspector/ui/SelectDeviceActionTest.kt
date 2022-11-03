@@ -207,7 +207,7 @@ class SelectDeviceActionTest {
       model,
       setOf(processB.device)
     )
-    deviceModel.selectedDevice = processB.device
+    deviceModel.setSelectedDevice(processB.device)
     val callbackFiredLatch = CountDownLatch(1)
     val selectDeviceAction = SelectDeviceAction(deviceModel, {}, onDetachAction = {
       callbackFiredLatch.countDown()
@@ -243,13 +243,13 @@ class SelectDeviceActionTest {
     )
     val callbackFiredLatch = CountDownLatch(1)
     val selectDeviceAction = SelectDeviceAction(deviceModel, {}, onDetachAction = {
-      deviceModel.selectedDevice = null
+      deviceModel.setSelectedDevice(null)
       processesModel.selectedProcess = null
       callbackFiredLatch.countDown()
     }, onProcessSelected = {})
 
     // has selected device, but no selected process
-    deviceModel.selectedDevice = process.device
+    deviceModel.setSelectedDevice(process.device)
 
     selectDeviceAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectDeviceAction.getChildren(null)

@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.pipeline
+package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.TransportDeviceManagerListenerImpl
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionOnDeviceFlagController
 import com.android.tools.profiler.proto.Transport
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-class TransportDeviceManagerListenerTest {
+class ForegroundProcessDetectionOnDeviceFlagControllerTest {
 
   @Test
   fun flagIsEnabledByDefault() {
-    val transportDeviceManagerListener = TransportDeviceManagerListenerImpl()
+    val transportDeviceManagerListener = ForegroundProcessDetectionOnDeviceFlagController()
     val daemonConfig = Transport.DaemonConfig.newBuilder()
     transportDeviceManagerListener.customizeDaemonConfig(daemonConfig)
 
@@ -36,7 +36,7 @@ class TransportDeviceManagerListenerTest {
   @Test
   fun daemonConfigReflectsFlagStatus() {
     runWithFlagState(true) {
-      val transportDeviceManagerListener = TransportDeviceManagerListenerImpl()
+      val transportDeviceManagerListener = ForegroundProcessDetectionOnDeviceFlagController()
       val daemonConfig = Transport.DaemonConfig.newBuilder()
       transportDeviceManagerListener.customizeDaemonConfig(daemonConfig)
 
@@ -45,7 +45,7 @@ class TransportDeviceManagerListenerTest {
     }
 
     runWithFlagState(false) {
-      val transportDeviceManagerListener = TransportDeviceManagerListenerImpl()
+      val transportDeviceManagerListener = ForegroundProcessDetectionOnDeviceFlagController()
       val daemonConfig = Transport.DaemonConfig.newBuilder()
       transportDeviceManagerListener.customizeDaemonConfig(daemonConfig)
 
