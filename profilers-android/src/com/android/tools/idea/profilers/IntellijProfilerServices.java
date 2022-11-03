@@ -30,6 +30,7 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.Notification;
@@ -289,17 +290,12 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public List<ProfilingConfiguration> getUserCpuProfilerConfigs(int apiLevel) {
     CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
-    return ContainerUtil.map(
-      CpuProfilerConfigConverter.toProto(configsState.getUserConfigs(), apiLevel),
-      ProfilingConfiguration::fromProto);
+    return CpuProfilerConfigConverter.toProfilingConfiguration(configsState.getUserConfigs(), apiLevel);
   }
 
   @Override
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs(int apiLevel) {
-    return ContainerUtil.map(
-      CpuProfilerConfigConverter.toProto(CpuProfilerConfigsState.getDefaultConfigs(), apiLevel),
-      ProfilingConfiguration::fromProto
-    );
+    return CpuProfilerConfigConverter.toProfilingConfiguration(CpuProfilerConfigsState.getDefaultConfigs(), apiLevel);
   }
 
   @Override

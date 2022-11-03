@@ -18,7 +18,6 @@ package com.android.tools.profilers.cpu.config
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.options.OptionsProperty
 import com.android.tools.adtui.model.options.Slider
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.Trace.UserOptions.TraceType
 

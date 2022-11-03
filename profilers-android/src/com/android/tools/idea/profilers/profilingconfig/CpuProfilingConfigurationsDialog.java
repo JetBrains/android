@@ -16,7 +16,6 @@
 package com.android.tools.idea.profilers.profilingconfig;
 
 import com.android.tools.adtui.model.stdui.CommonAction;
-import com.android.tools.adtui.stdui.menu.CommonMenu;
 import com.android.tools.adtui.stdui.menu.CommonMenuItem;
 import com.android.tools.adtui.stdui.menu.CommonPopupMenu;
 import com.android.tools.adtui.ui.options.OptionsPanel;
@@ -66,8 +65,6 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
@@ -276,7 +273,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         configNames.add(configName);
 
         if (!isDefaultConfig(config)) {
-          configsToSave.add(CpuProfilerConfigConverter.fromProto(config.toProto()));
+          configsToSave.add(CpuProfilerConfigConverter.fromProfilingConfiguration(config));
         }
       }
 

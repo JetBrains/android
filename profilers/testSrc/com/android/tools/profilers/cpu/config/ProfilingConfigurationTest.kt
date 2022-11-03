@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu.config
 
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Trace
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
