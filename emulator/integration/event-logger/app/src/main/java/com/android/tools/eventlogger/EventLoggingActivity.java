@@ -67,7 +67,11 @@ public class EventLoggingActivity extends Activity {
 
   @Override
   public boolean onTouchEvent(MotionEvent event) {
-    Log.i(TAG, "TOUCH EVENT: " + MotionEvent.actionToString(event.getAction()) + " (" + event.getX() + "," + event.getY() + ")");
+    StringBuilder pointerStringBuilder = new StringBuilder();
+    for (int i = 0; i < event.getPointerCount(); ++i) {
+      pointerStringBuilder.append(" (").append(event.getX(i)).append(",").append(event.getY(i)).append(")");
+    }
+    Log.i(TAG, "TOUCH EVENT: " + MotionEvent.actionToString(event.getAction()) + pointerStringBuilder);
     return true;
   }
 }
