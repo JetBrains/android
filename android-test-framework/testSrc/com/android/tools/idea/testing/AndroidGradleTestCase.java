@@ -63,7 +63,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.TestApplicationManager;
-import com.intellij.testFramework.ThreadTracker;
+import com.intellij.testFramework.common.ThreadLeakTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
@@ -148,7 +148,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     TestApplicationManager.getInstance();
     ensureSdkManagerAvailable();
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
-    ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
 
     if (createDefaultProject()) {
       setUpFixture();

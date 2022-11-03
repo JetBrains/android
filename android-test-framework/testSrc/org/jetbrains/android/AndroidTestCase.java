@@ -47,8 +47,8 @@ import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
+import com.intellij.testFramework.common.ThreadLeakTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
@@ -173,7 +173,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
 
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
-    ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
 
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
