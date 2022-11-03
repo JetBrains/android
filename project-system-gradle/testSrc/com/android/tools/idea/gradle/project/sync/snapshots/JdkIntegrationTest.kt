@@ -149,6 +149,7 @@ class JdkIntegrationTest(
           assertGradleJdk(expectedGradleJdkName)
           assertProjectJdk(expectedProjectJdkName)
           assertProjectJdkTablePath(expectedJdkPath)
+          assertProjectJdkTableEntryIsValid(expectedProjectJdkName)
         },
         assertOnDiskConfig = {
           assertGradleJdk(expectedGradleJdkName)

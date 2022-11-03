@@ -16,11 +16,17 @@
 package com.android.tools.idea.gradle.project.sync.utils
 
 import com.android.tools.idea.gradle.project.sync.extensions.addRoots
+import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils.JdkRootsType.DETACHED
+import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils.JdkRootsType.INVALID
+import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils.JdkRootsType.VALID
+import com.android.tools.idea.sdk.extensions.isEqualTo
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.VfsTestUtil
@@ -33,8 +39,14 @@ object JdkTableUtils {
   data class Jdk(
     val name: String,
     val path: String,
-    val corruptedRoots: Boolean = false
+    val rootsType: JdkRootsType = VALID
   )
+
+  enum class JdkRootsType {
+    VALID,
+    INVALID,
+    DETACHED
+  }
 
   fun removeAllJavaSdkFromJdkTable() {
     ProjectJdkTable.getInstance()
@@ -48,21 +60,38 @@ object JdkTableUtils {
     return currentJdk?.homePath
   }
 
+  fun containsValidJdkTableEntry(jdkName: String): Boolean {
+    return ProjectJdkTable.getInstance().findJdk(jdkName)?.let { jdkTableEntry ->
+      val recreatedJdkTableEntry = JavaSdk.getInstance().createJdk(jdkName, jdkTableEntry.homePath.orEmpty())
+      jdkTableEntry.isEqualTo(recreatedJdkTableEntry).also {
+        Disposer.dispose(recreatedJdkTableEntry as Disposable)
+      }
+    } ?: run {
+      false
+    }
+  }
+
   fun populateJdkTableWith(
     jdks: List<Jdk>,
     tempDir: File
   ) {
-    jdks.forEach { (name, path, corruptedRoots) ->
+    jdks.forEach { (name, path, rootsType) ->
       val jdkPath = findOrCreateTempDir(path, tempDir).path
       val createdJdk = JavaSdk.getInstance().createJdk(name, jdkPath)
-      if (corruptedRoots) {
-        createdJdk.sdkModificator.run {
-          removeAllRoots()
-          addRoots(generateCorruptedJdkRoots(createdJdk, tempDir))
-          commitChanges()
-        }
+      when (rootsType) {
+        INVALID -> replaceJdkRoots(createdJdk, roots = generateCorruptedJdkRoots(createdJdk, tempDir))
+        DETACHED -> replaceJdkRoots(createdJdk, roots = emptyList())
+        VALID -> {}
       }
       SdkConfigurationUtil.addSdk(createdJdk)
+    }
+  }
+
+  private fun replaceJdkRoots(sdk: Sdk, roots: List<Pair<VirtualFile, OrderRootType>>) {
+    sdk.sdkModificator.run {
+      removeAllRoots()
+      addRoots(roots)
+      commitChanges()
     }
   }
 

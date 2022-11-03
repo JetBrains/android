@@ -43,6 +43,11 @@ class AssertInMemoryConfig(
     expect.that(currentJdkPath).isEqualTo(expectedJdkPath)
   }
 
+  fun assertProjectJdkTableEntryIsValid(jdkName: String) {
+    val containsValidJdkEntry = JdkTableUtils.containsValidJdkTableEntry(jdkName)
+    expect.that(containsValidJdkEntry).isTrue()
+  }
+
   fun assertGradleExecutionDaemon(expectedJdkPath: String) {
     val currentJdkPath = projectJdkUtils.getGradleDaemonExecutionJdkPath(syncedProject)
     expect.that(currentJdkPath).isEqualTo(expectedJdkPath)
