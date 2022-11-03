@@ -123,6 +123,7 @@ import javax.swing.JPopupMenu
 /**
  * Tests for [LogcatMainPanel]
  */
+@org.junit.Ignore("b/241939879")
 class LogcatMainPanelTest {
   private val projectRule = ProjectRule()
   private val executor = Executors.newCachedThreadPool()
