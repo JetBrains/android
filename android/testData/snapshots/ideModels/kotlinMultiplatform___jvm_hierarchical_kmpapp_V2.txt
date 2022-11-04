@@ -2317,6 +2317,7 @@ MODULE                        : kotlinMultiPlatform.app
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -2475,6 +2476,7 @@ MODULE                        : kotlinMultiPlatform.app
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -2606,6 +2608,7 @@ MODULE                        : kotlinMultiPlatform.app
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -2710,6 +2713,7 @@ MODULE                        : kotlinMultiPlatform.app
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -2802,6 +2806,7 @@ MODULE                        : kotlinMultiPlatform.app
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -3624,6 +3629,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -3753,6 +3759,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -3867,6 +3874,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -3971,6 +3979,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -4063,6 +4072,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true

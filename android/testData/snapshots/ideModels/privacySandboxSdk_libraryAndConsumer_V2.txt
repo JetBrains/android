@@ -2660,6 +2660,7 @@ MODULE                        : project.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
             debugAndroidTest
@@ -2728,6 +2729,7 @@ MODULE                        : project.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
             debugUnitTest
@@ -2786,6 +2788,7 @@ MODULE                        : project.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
         gradleUserHome                : <GRADLE>
@@ -3706,6 +3709,7 @@ MODULE                        : project.app-with-dynamic-feature
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
             debugAndroidTest
@@ -3774,6 +3778,7 @@ MODULE                        : project.app-with-dynamic-feature
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
             debugUnitTest
@@ -3832,6 +3837,7 @@ MODULE                        : project.app-with-dynamic-feature
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
         gradleUserHome                : <GRADLE>
@@ -4489,6 +4495,7 @@ MODULE                        : project.feature
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
             debugAndroidTest
@@ -4538,6 +4545,7 @@ MODULE                        : project.feature
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
             debugUnitTest
@@ -4575,6 +4583,7 @@ MODULE                        : project.feature
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
         gradleUserHome                : <GRADLE>
