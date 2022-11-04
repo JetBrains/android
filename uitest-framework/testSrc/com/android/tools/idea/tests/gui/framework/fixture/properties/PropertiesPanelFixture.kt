@@ -83,6 +83,12 @@ class PropertiesPanelFixture<P : PropertyItem>(private val propertiesPanel: Prop
   fun findSectionByName(name: String): SectionFixture? =
     (mainSections union scrollableSections).firstOrNull { it.title?.name == name }
 
+  fun listSectionNames(): List<String> =
+    scrollableSections.map { it.title?.name.toString()}
+
+  fun listAllLabels(): List<String> =
+    robot.finder().findAll(Matchers.byType(CollapsibleLabelPanel::class.java)).map { it.text.toString() }
+
   private fun findSections(page: PropertiesPage): List<SectionFixture> {
     return SectionBuilder(page, robot).build()
   }

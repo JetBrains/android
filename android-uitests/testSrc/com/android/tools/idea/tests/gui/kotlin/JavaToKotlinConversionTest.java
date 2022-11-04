@@ -113,6 +113,7 @@ public class JavaToKotlinConversionTest {
     ConfigureKotlinWithAndroidWithGradleDialogFixture
       configureKotlinDialogBox = ConfigureKotlinWithAndroidWithGradleDialogFixture.find(ideFrame);
     //Click on single module, and confirm if it displays the module name.
+    ideFrame.takeScreenshot();
     assertTrue(configureKotlinDialogBox.clickRadioButtonWithName("Single module:"));
     List<String> modulesList = configureKotlinDialogBox.getSingleModuleComboBoxDetails();
     assertTrue(modulesList.size() > 0);

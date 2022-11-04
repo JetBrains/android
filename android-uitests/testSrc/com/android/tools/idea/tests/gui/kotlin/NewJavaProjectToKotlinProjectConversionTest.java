@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.regex.Pattern;
@@ -49,7 +50,7 @@ public class NewJavaProjectToKotlinProjectConversionTest {
   private static final Logger logger = Logger.getInstance(NewJavaProjectToKotlinProjectConversionTest.class);
 
   protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Activity";
-  protected static final String BASIC_ACTIVITY_TEMPLATE = "Basic Activity";
+  protected static final String BASIC_ACTIVITY_TEMPLATE = "Basic Views Activity";
   protected static final String APP_NAME = "App";
   protected static final String PACKAGE_NAME = "android.com.app";
   protected static final int MIN_SDK_API = 29;
@@ -80,7 +81,7 @@ public class NewJavaProjectToKotlinProjectConversionTest {
   @Test
   public void testNewEmptyActivityJavaProjectToKotlinProjectConversion() throws Exception {
 
-    IdeFrameFixture ideFrameFixture = ConversionTestUtil.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
+    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
 
     ConversionTestUtil.convertJavaToKotlin(guiTest);
 
@@ -88,13 +89,13 @@ public class NewJavaProjectToKotlinProjectConversionTest {
 
     guiTest.robot().waitForIdle();
 
-    ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
+    guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish();
 
     guiTest.waitForBackgroundTasks();
 
     guiTest.robot().waitForIdle();
 
-    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(240)).isBuildSuccessful()).isTrue();
+    assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(240)).isBuildSuccessful()).isTrue();
   }
 
   @Ignore
@@ -102,14 +103,14 @@ public class NewJavaProjectToKotlinProjectConversionTest {
   @Test
   public void testNewBasicActivityJavaProjectToKotlinProjectConversion() throws Exception {
 
-    IdeFrameFixture ideFrameFixture = ConversionTestUtil.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
+    WizardUtils.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
 
     ConversionTestUtil.convertJavaToKotlin(guiTest);
 
     ConversionTestUtil.changeKotlinVersion(guiTest);
 
-    ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
+    guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish();
 
-    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(120)).isBuildSuccessful()).isTrue();
+    assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(120)).isBuildSuccessful()).isTrue();
   }
 }

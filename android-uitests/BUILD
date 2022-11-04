@@ -154,9 +154,9 @@ maven_repository(
         "@maven//:androidx.lifecycle.lifecycle-extensions_2.2.0",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.4.1",
         "@maven//:androidx.media.media_1.5.0",
-        "@maven//:androidx.navigation.navigation-fragment-ktx_2.3.5",
+        "@maven//:androidx.navigation.navigation-fragment-ktx_2.4.1",
         "@maven//:androidx.navigation.navigation-safe-args-gradle-plugin_2.5.2",
-        "@maven//:androidx.navigation.navigation-ui-ktx_2.3.5",
+        "@maven//:androidx.navigation.navigation-ui-ktx_2.4.1",
         "@maven//:androidx.palette.palette-ktx_1.0.0",
         "@maven//:androidx.recyclerview.recyclerview_1.2.1",
         "@maven//:androidx.slice.slice-builders_1.0.0",
@@ -1378,6 +1378,17 @@ java_test(
         "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.CreateNavGraphTest"],
+    tags = COMMON_TAGS + [
+        "qa_smoke",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "NavGraphAttributeTest",
+    data = COMMON_DATA,
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.NavGraphAttributeTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
     ],

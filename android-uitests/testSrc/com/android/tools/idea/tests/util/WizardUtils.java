@@ -58,4 +58,29 @@ public final class WizardUtils {
       .selectAndroidPane()
       .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)
   }
+  @NotNull
+  public static void createNewProject(@NotNull GuiTestRule guiTest,
+                                                    @NotNull String template,
+                                                    @NotNull String appName,
+                                                    @NotNull String appPackageName,
+                                                    int minSdkApi,
+                                                    @NotNull Language language) {
+    guiTest
+      .welcomeFrame()
+      .createNewProject()
+      .getChooseAndroidProjectStep()
+      .chooseActivity(template)
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .enterName(appName)
+      .enterPackageName(appPackageName)
+      .selectMinimumSdkApi(minSdkApi)
+      .setSourceLanguage(language)
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)
+  }
 }

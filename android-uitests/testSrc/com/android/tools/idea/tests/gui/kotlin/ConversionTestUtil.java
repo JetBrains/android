@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.KotlinIsNotConfiguredDialogFixture;
-import com.android.tools.idea.wizard.template.Language;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Ref;
 import java.io.IOException;
@@ -33,29 +32,6 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 public class ConversionTestUtil {
-
-  @NotNull
-  protected static IdeFrameFixture createNewProject(@NotNull GuiTestRule guiTest,
-                                                    @NotNull String template,
-                                                    @NotNull String appName,
-                                                    @NotNull String appPackageName,
-                                                    int minSdkApi,
-                                                    @NotNull Language language) {
-    return guiTest
-      .welcomeFrame()
-      .createNewProject()
-      .getChooseAndroidProjectStep()
-      .chooseActivity(template)
-      .wizard()
-      .clickNext()
-      .getConfigureNewAndroidProjectStep()
-      .enterName(appName)
-      .enterPackageName(appPackageName)
-      .selectMinimumSdkApi(minSdkApi)
-      .setSourceLanguage(language)
-      .wizard()
-      .clickFinishAndWaitForSyncToFinish();
-  }
 
   @NotNull
   protected static void removeCodeForGradleSyncToPass(@NotNull GuiTestRule guiTest) throws Exception {
