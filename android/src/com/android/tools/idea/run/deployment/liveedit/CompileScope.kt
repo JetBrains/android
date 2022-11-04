@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilat
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
 import org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
@@ -37,6 +38,7 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.InvalidModuleException
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.idea.core.util.analyzeInlinedFunctions
+import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.load.kotlin.toSourceElement
 import org.jetbrains.kotlin.psi.KtFile
@@ -179,6 +181,11 @@ private object CompileScopeImpl : CompileScope {
     compilerConfiguration.languageVersionSettings = langVersion
 
     compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, module.name)
+    KotlinFacet.get(module)?.let { kotlinFacet ->
+      (kotlinFacet.configuration.settings.compilerArguments as K2JVMCompilerArguments).moduleName?.let {
+        compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, it)
+      }
+    }
 
     val useComposeIR = LiveEditAdvancedConfiguration.getInstance().useEmbeddedCompiler
     if (useComposeIR) {

@@ -27,6 +27,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.PsiTestUtil
 import junit.framework.Assert
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
@@ -110,6 +111,11 @@ class BasicCompileTest {
 
     files["HasPublicInline.kt"] = projectRule.fixture.configureByText("HasPublicInline.kt",
                                                                      "public inline fun publicInlineFun() = 1")
+
+    files["HasComposableSingletons.kt"] = projectRule.fixture.configureByText("HasComposableSingletons.kt",
+                                                                "import androidx.compose.runtime.Composable\n" +
+                                                                "@Composable fun hasLambdaA(content: @Composable () -> Unit) { }\n" +
+                                                                "@Composable fun hasLambdaB() { hasLambdaA {} }")
   }
 
   @Test
@@ -216,6 +222,17 @@ class BasicCompileTest {
     }
   }
 
+  @Test
+  fun testModuleName() {
+    var output = compile(files["HasComposableSingletons.kt"], "hasLambdaA").singleOutput()
+    var singleton = output.supportClasses.get("ComposableSingletons\$HasComposableSingletonsKt");
+    Assert.assertNotNull(singleton)
+    var cl = loadClass(output, "ComposableSingletons\$HasComposableSingletonsKt")
+    var getLambda = cl.methods.find { it.name.contains("getLambda") }
+    // Make sure we have getLambda$<MODULE_NAME>
+    Assert.assertTrue(getLambda!!.name.contains(projectRule.module.name))
+  }
+
   private fun compile(file: PsiFile?, functionName: String, useInliner: Boolean = false) :
         List<AndroidLiveEditCodeGenerator.CodeGeneratorOutput> {
     return compile(file!!, findFunction(file, functionName), useInliner)
@@ -252,7 +269,7 @@ class BasicCompileTest {
    *
    * Support classes will also be loaded in the SAME classloader.
    */
-  private fun loadClass(output: AndroidLiveEditCodeGenerator.CodeGeneratorOutput) : Class<*> {
+  private fun loadClass(output: AndroidLiveEditCodeGenerator.CodeGeneratorOutput, target : String = output.className) : Class<*> {
     // We use a temp classloader so we can have the same class name across different classes without conflict.
     val tempLoader = object : URLClassLoader(arrayOf(URL("jar:file:$composeRuntimePath!/"))) {
       override fun findClass(name: String): Class<*>? {
@@ -267,7 +284,7 @@ class BasicCompileTest {
         }
       }
     }
-    return tempLoader.loadClass(output.className)
+    return tempLoader.loadClass(target)
   }
 
   /**
