@@ -508,7 +508,6 @@ internal class DeviceView(
     }
 
     override fun onEndOfVideoStream() {
-      disconnected(initialDisplayOrientation)
     }
   }
 
