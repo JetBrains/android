@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.ExecutorIconProvider
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
@@ -62,7 +63,13 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
   }
 
   private class GroupWrapper(actionGroup: ActionGroup) : ExecutorGroupWrapper(actionGroup) {
-    override fun groupShouldBeVisible(e: AnActionEvent) = StudioFlags.PROFILEABLE_BUILDS.get()
+    /**
+     * @return true if the Profileable Builds feature flag is true and the project's build system supports profiling mode (e.g. Gradle).
+     */
+    override fun groupShouldBeVisible(e: AnActionEvent) : Boolean {
+      val isProfilingModeSupported = e.project?.getProjectSystem()?.supportsProfilingMode() ?: false
+      return isProfilingModeSupported && StudioFlags.PROFILEABLE_BUILDS.get()
+    }
 
     override fun updateDisabledActionPresentation(eventPresentation: Presentation) {
       eventPresentation.icon = PROFILEABLE_ICON

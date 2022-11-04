@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.ExecutorIconProvider
 import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.execution.Executor
@@ -59,13 +60,14 @@ class ProfileRunExecutor : DefaultRunExecutor(), ExecutorIconProvider {
   override fun isApplicable(project: Project): Boolean = AndroidUtils.hasAndroidFacets(project)
 
   /**
-   * Wraps the original action so that it's only visible when the feature flag is true.
-   * Can be removed once the feature flag is removed.
+   * Wraps the original action so that it's only visible when the feature flag is true or if the project's system doesn't support profiling
+   * mode (e.g. Blaze).
    */
   override fun runnerActionsGroupExecutorActionCustomizer() = ActionWrapper { original ->
     object : EmptyAction.MyDelegatingAction(original) {
       override fun update(e: AnActionEvent) {
-        if (StudioFlags.PROFILEABLE_BUILDS.get()) {
+        val isProfilingModeSupported = e.project?.getProjectSystem()?.supportsProfilingMode() ?: false
+        if (isProfilingModeSupported && StudioFlags.PROFILEABLE_BUILDS.get()) {
           e.presentation.isEnabledAndVisible = false
         }
         else {

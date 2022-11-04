@@ -257,6 +257,10 @@ class TestProjectSystem @JvmOverloads constructor(
     error("not supported for the test implementation")
   }
 
+  override fun supportsProfilingMode(): Boolean {
+    error("not supported for the test implementation")
+  }
+
   override fun getPsiElementFinders() = emptyList<PsiElementFinder>()
 
   override fun getLightResourceClassService(): LightResourceClassService {

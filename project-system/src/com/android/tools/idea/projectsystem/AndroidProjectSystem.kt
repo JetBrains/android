@@ -137,6 +137,11 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    */
   @JvmDefault
   fun getKnownApplicationIds(project: Project): Set<String> = emptySet()
+
+  /**
+   * @return true if the project's build system supports building the app with a profiling mode flag (profileable, debuggable, etc.).
+   */
+  fun supportsProfilingMode() = false
 }
 
 val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")

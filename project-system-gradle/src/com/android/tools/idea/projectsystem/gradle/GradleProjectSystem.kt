@@ -306,6 +306,11 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     return ids
   }
 
+  /**
+   * Gradle supports the profiling mode flag.
+   */
+  override fun supportsProfilingMode() = true
+
   // TODO(b/228120633) reimplement this in a more efficient way
   private fun getModel(project: Project): AndroidModel? {
     if (project.isDisposed) {
