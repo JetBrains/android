@@ -26,5 +26,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/build-common:intellij.android.buildCommon[module]",
         "//tools/adt/idea/.idea/libraries:studio-proto",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )

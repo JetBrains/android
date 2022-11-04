@@ -17,7 +17,6 @@
     <orderEntry type="module" module-name="intellij.android.jps.model" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
-    <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
   </component>
 </module>

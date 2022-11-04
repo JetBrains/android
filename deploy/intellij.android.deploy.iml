@@ -23,5 +23,6 @@
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.buildCommon" />
     <orderEntry type="library" name="studio-proto" level="project" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
   </component>
 </module>
