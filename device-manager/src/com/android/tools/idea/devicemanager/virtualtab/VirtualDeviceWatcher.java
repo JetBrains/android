@@ -51,7 +51,7 @@ import org.jetbrains.annotations.Nullable;
  * Studio loses focus, and then check the differences when Studio regains focus.
  */
 @Service
-public final class VirtualDeviceWatcher {
+public final class VirtualDeviceWatcher implements ApplicationActivationListener {
   private @NotNull Map<String, AvdInfo> myAvds;
   private final @NotNull AvdManager myAvdManager;
   private final @NotNull EventListenerList myListeners;
@@ -73,36 +73,34 @@ public final class VirtualDeviceWatcher {
     myAlarm = new Alarm();
     Disposer.register(AndroidPluginDisposable.Companion.getApplicationInstance(), myAlarm);
 
-    ApplicationManager.getApplication().getMessageBus().connect().subscribe(
-      ApplicationActivationListener.TOPIC,
-      new ApplicationActivationListener() {
-        @UiThread
-        @Override
-        public void applicationActivated(@NotNull IdeFrame ideFrame) {
-          // Use a delay to avoid excessive operations
-          myAlarm.cancelAllRequests();
-          myAlarm.addRequest(() -> {
-            if (!ApplicationManager.getApplication().isActive()) {
-              return;
-            }
+    ApplicationManager.getApplication().getMessageBus().connect().subscribe(ApplicationActivationListener.TOPIC, this);
+  }
 
-            ListenableFuture<Void> future = DeviceManagerFutures.appExecutorServiceSubmit(VirtualDeviceWatcher.this::processAvdInfoChanges);
-            Futures.addCallback(future, new FailedFutureCallback(), AppExecutorUtil.getAppExecutorService());
-          }, 1000);
-        }
+  @UiThread
+  @Override
+  public void applicationActivated(@NotNull IdeFrame ideFrame) {
+    // Use a delay to avoid excessive operations
+    myAlarm.cancelAllRequests();
+    myAlarm.addRequest(() -> {
+      if (!ApplicationManager.getApplication().isActive()) {
+        return;
+      }
 
-        @UiThread
-        @Override
-        public void applicationDeactivated(@NotNull IdeFrame ideFrame) {
-          // If there is a delay in progress, we should not overwrite the AVDs because the baseline for the change needs to remain the same
-          if (myAlarm.getActiveRequestCount() > 0) {
-            return;
-          }
+      ListenableFuture<Void> future = DeviceManagerFutures.appExecutorServiceSubmit(this::processAvdInfoChanges);
+      Futures.addCallback(future, new FailedFutureCallback(), AppExecutorUtil.getAppExecutorService());
+    }, 1000);
+  }
 
-          ListenableFuture<Void> future = DeviceManagerFutures.appExecutorServiceSubmit(VirtualDeviceWatcher.this::snapshotAvds);
-          Futures.addCallback(future, new FailedFutureCallback(), AppExecutorUtil.getAppExecutorService());
-        }
-      });
+  @UiThread
+  @Override
+  public void applicationDeactivated(@NotNull IdeFrame ideFrame) {
+    // If there is a delay in progress, we should not overwrite the AVDs because the baseline for the change needs to remain the same
+    if (!myAlarm.isEmpty()) {
+      return;
+    }
+
+    ListenableFuture<Void> future = DeviceManagerFutures.appExecutorServiceSubmit(this::snapshotAvds);
+    Futures.addCallback(future, new FailedFutureCallback(), AppExecutorUtil.getAppExecutorService());
   }
 
   @UiThread
