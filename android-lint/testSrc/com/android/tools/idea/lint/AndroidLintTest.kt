@@ -1208,7 +1208,7 @@ class AndroidLintTest : AndroidTestCase() {
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
-      "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 4) { ... }",
+      "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 1) { ... }",
       "/src/androidx/annotation/RequiresSdkVersion.kt", "kt")
   }
 

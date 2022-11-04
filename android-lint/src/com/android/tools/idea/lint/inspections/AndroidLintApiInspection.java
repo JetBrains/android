@@ -56,9 +56,9 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
                                          @NotNull PsiElement endElement,
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
-    ApiConstraint requirement = LintFix.getApiConstraint(fixData, ApiDetector.KEY_REQUIRES_API, ApiConstraint.NONE);
-    int api = requirement.min();
-    if (api != -1) {
+    ApiConstraint requirement = LintFix.getApiConstraint(fixData, ApiDetector.KEY_REQUIRES_API, ApiConstraint.UNKNOWN);
+    if (requirement != ApiConstraint.UNKNOWN) {
+      int api = requirement.min();
       List<LintIdeQuickFix> list = new ArrayList<>();
       PsiFile file = startElement.getContainingFile();
       boolean isXml = false;
@@ -79,7 +79,7 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
       boolean requireClass = LintFix.getBoolean(fixData, ApiDetector.KEY_REQUIRE_CLASS, false);
       List<ApiConstraint.SdkApiConstraint> constraints = requirement.getConstraints();
       if (!requireClass && !isXml) {
-        ApiConstraint minSdk = LintFix.getApiConstraint(fixData, ApiDetector.KEY_MIN_API, ApiConstraint.NONE);
+        ApiConstraint minSdk = LintFix.getApiConstraint(fixData, ApiDetector.KEY_MIN_API, ApiConstraint.UNKNOWN);
         for (ApiConstraint constraint : constraints) {
           int version = constraint.min();
           int sdk = constraint.getSdk();

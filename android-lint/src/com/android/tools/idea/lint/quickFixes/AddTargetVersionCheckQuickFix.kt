@@ -64,7 +64,7 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 /** Fix which surrounds an API warning with a version check  */
 class AddTargetVersionCheckQuickFix(
   private val api: Int,
-  private val sdkId: Int = ANDROID_SDK_ID,
+  private val sdkId: Int,
   private val minSdk: ApiConstraint
 ) : DefaultLintQuickFix(
   if (sdkId == ANDROID_SDK_ID)
@@ -137,7 +137,7 @@ class AddTargetVersionCheckQuickFix(
   }
 
   private fun getExtensionCheckPrefix(): String {
-    return if (minSdk != ApiConstraint.NONE && minSdk.isAtLeast(ApiConstraint.get(AndroidVersion.VersionCodes.R, ANDROID_SDK_ID))) ""
+    return if (minSdk != ApiConstraint.UNKNOWN && minSdk.isAtLeast(ApiConstraint.get(AndroidVersion.VersionCodes.R, ANDROID_SDK_ID))) ""
     else "android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R && "
   }
 

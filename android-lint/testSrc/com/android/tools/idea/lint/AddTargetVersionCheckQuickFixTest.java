@@ -57,7 +57,7 @@ public class AddTargetVersionCheckQuickFixTest extends LightJavaCodeInsightFixtu
     });
     PsiExpression expression = first.get();
     assertThat(expression).isNotNull();
-    AddTargetVersionCheckQuickFix fix = new AddTargetVersionCheckQuickFix(9, ANDROID_SDK_ID, ApiConstraint.NONE);
+    AddTargetVersionCheckQuickFix fix = new AddTargetVersionCheckQuickFix(9, ANDROID_SDK_ID, ApiConstraint.ALL);
     assertThat(fix.getName()).isEqualTo("Surround with if (VERSION.SDK_INT >= VERSION_CODES.GINGERBREAD) { ... }");
     assertThat(AndroidFacet.getInstance(expression)).isNull();
     // Regression test for https://code.google.com/p/android/issues/detail?id=228481 :

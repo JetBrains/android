@@ -20,6 +20,8 @@ import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.lint.checks.ApiLookup;
+import com.android.tools.lint.detector.api.ApiConstraint;
+import com.android.tools.lint.detector.api.ExtensionSdk;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.intellij.codeInspection.LocalQuickFix;
@@ -45,19 +47,20 @@ public class AndroidDeprecationFilter extends AndroidDeprecationInspection.Depre
   private static final String ACTION_BAR_ACTIVITY = "android.support.v7.app.ActionBarActivity";
   private static final String APP_COMPAT_ACTIVITY = "android.support.v7.app.AppCompatActivity";
 
-  private static int getDeprecatedIn(@Nullable Project project, @NotNull PsiElement deprecatedElement) {
+  @NotNull
+  private static ApiConstraint getDeprecatedIn(@Nullable Project project, @NotNull PsiElement deprecatedElement) {
     if (project == null) {
-      return -1;
+      return ApiConstraint.UNKNOWN;
     }
     ApiLookup apiLookup = LintIdeClient.getApiLookup(project);
     if (apiLookup == null) {
-      return -1;
+      return ApiConstraint.UNKNOWN;
     }
 
     if (deprecatedElement instanceof PsiClass) {
       String owner = ((PsiClass)deprecatedElement).getQualifiedName();
       if (owner != null) {
-        return apiLookup.getClassDeprecatedIn(owner);
+        return apiLookup.getClassDeprecatedInVersions(owner);
       }
     }
     else if (deprecatedElement instanceof PsiMember) {
@@ -68,28 +71,29 @@ public class AndroidDeprecationFilter extends AndroidDeprecationInspection.Depre
         if (owner != null) {
           if (deprecatedElement instanceof PsiField) {
             String name = ((PsiField)deprecatedElement).getName();
-            return apiLookup.getFieldDeprecatedIn(owner, name);
+            return apiLookup.getFieldDeprecatedInVersions(owner, name);
           }
           else if (deprecatedElement instanceof PsiMethod) {
             PsiMethod method = (PsiMethod)deprecatedElement;
             String name = Lint.getInternalMethodName(method);
             String desc = evaluator.getMethodDescription(method, false, false);
             if (desc != null) {
-              return apiLookup.getMethodDeprecatedIn(owner, name, desc);
+              return apiLookup.getMethodDeprecatedInVersions(owner, name, desc);
             }
           }
         }
       }
     }
 
-    return -1;
+    return ApiConstraint.UNKNOWN;
   }
 
   @Override
   public boolean isExcluded(@NotNull PsiElement deprecatedElement, @NotNull PsiElement referenceElement, @Nullable String symbolName) {
     Project project = referenceElement.getProject();
-    int deprecatedIn = getDeprecatedIn(project, deprecatedElement);
-    if (deprecatedIn != -1) {
+    ApiConstraint deprecatedInVersions = getDeprecatedIn(project, deprecatedElement);
+    if (deprecatedInVersions != ApiConstraint.UNKNOWN) {
+      int deprecatedIn = deprecatedInVersions.min();
       AndroidFacet facet = AndroidFacet.getInstance(referenceElement);
       if (facet != null && !facet.isDisposed() && AndroidModuleInfo.getInstance(facet).getMinSdkVersion().getApiLevel() < deprecatedIn) {
         return !(VersionChecks.isPrecededByVersionCheckExit(referenceElement, deprecatedIn) ||
@@ -117,9 +121,14 @@ public class AndroidDeprecationFilter extends AndroidDeprecationInspection.Depre
       return "ActionBarActivity is deprecated; use `AppCompatActivity` instead";
     }
 
-    int version = getDeprecatedIn(referenceElement.getProject(), deprecatedElement);
-    if (version != -1) {
-      return defaultMessage + " as of " + SdkVersionInfo.getAndroidName(version);
+    ApiConstraint version = getDeprecatedIn(referenceElement.getProject(), deprecatedElement);
+    if (version != ApiConstraint.UNKNOWN) {
+      ApiConstraint.SdkApiConstraint sdk = version.findSdk(ExtensionSdk.ANDROID_SDK_ID, false);
+      if (sdk != null) {
+        return defaultMessage + " as of " + SdkVersionInfo.getAndroidName(sdk.min());
+      } else {
+        return defaultMessage + " as of " + version.min();
+      }
     }
 
     return defaultMessage;
