@@ -773,12 +773,14 @@ class ComposePreviewRepresentation(
         refreshFlow.conflate().collect {
           refreshFlow
             .resetReplayCache() // Do not keep re-playing after we have received the element.
+          LOG.debug("refreshFlow, request=$it")
           refresh(it)?.join()
         }
       }
 
       launch(workerThread) {
-        flowOf(
+        LOG.debug("smartModeFlow setup status=${projectBuildStatusManager.status}, dumbMode=${DumbService.isDumb(project)}")
+        merge(
             // Flow handling switch to smart mode.
             smartModeFlow(project, this@ComposePreviewRepresentation, LOG),
 
@@ -794,6 +796,7 @@ class ComposePreviewRepresentation(
             } else emptyFlow(),
           )
           .collectLatest {
+            LOG.debug("smartModeFlow, status change status=${projectBuildStatusManager.status}, dumbMode=${DumbService.isDumb(project)}")
             when (projectBuildStatusManager.status) {
               // Do not refresh if we still need to build the project. Instead, only update the
               // empty panel and editor notifications if needed.

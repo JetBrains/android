@@ -24,6 +24,7 @@ import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.ex.ApplicationUtil
 import com.intellij.openapi.application.ex.ApplicationUtil.CannotRunReadActionException
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
@@ -70,6 +71,7 @@ import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -507,13 +509,23 @@ fun <T> disposableCallbackFlow(debugName: String,
 @VisibleForTesting
 fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger?, onConnected: (() -> Unit)?): Flow<Unit> =
   disposableCallbackFlow("SmartModeFlow", logger, parentDisposable) {
+    val wasInDumbMode = AtomicBoolean(DumbService.getInstance(project).isDumb)
+    logger?.debug { "SmartModeFlow wasInDumbMode=${wasInDumbMode.get()}" }
     project.messageBus.connect(disposable).subscribe(DumbService.DUMB_MODE, object : DumbService.DumbModeListener {
       override fun exitDumbMode() {
+        // We have detected the change, so clear the flag
+        wasInDumbMode.set(false)
         trySend(Unit)
       }
     })
 
     onConnected?.let { launch(workerThread) { it() } }
+
+    val isInDumbMode = DumbService.getInstance(project).isDumb
+    logger?.debug { "SmartModeFlow setup complete wasInDumbMode=${wasInDumbMode.get()} isInDumbMode=${isInDumbMode}" }
+    if (wasInDumbMode.getAndSet(false) && !isInDumbMode) {
+      trySend(Unit)
+    }
   }
 
 /**
