@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.skia
 
 import com.android.annotations.concurrency.Slow
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.GetViewTreeRequest
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.GetViewTreeResponse
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.InspectorView
@@ -89,6 +90,7 @@ class SkiaParserServerConnection(private val serverPath: Path) {
   }
 
   @VisibleForTesting
+  @WorkerThread
   fun createGrpcClient() : Int {
     // TODO: actually find and (re-)launch the server, and reconnect here if necessary.
     val localPort = NetUtils.findAvailableSocketPort()
@@ -101,7 +103,7 @@ class SkiaParserServerConnection(private val serverPath: Path) {
       // TODO: chunk incoming images
       .maxInboundMessageSize(512 * 1024 * 1024 - 1)
       .build()
-    client = SkiaParserServiceGrpc.newStub(channel)
+    client = SkiaParserServiceGrpc.newStub(channel).withWaitForReady()
     return localPort
   }
 
