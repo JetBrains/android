@@ -461,7 +461,9 @@ class DeviceViewPanel(
       else {
         // refreshImages is done here instead of by the model itself so that we can be sure to zoom to fit first before trying to render
         // images upon first connecting.
-        new?.refreshImages(viewSettings.scaleFraction)
+        if (layoutInspector.currentClient.isConnected) {
+          new?.refreshImages(viewSettings.scaleFraction)
+        }
         contentPanel.renderModel.refresh()
       }
     }

@@ -65,12 +65,12 @@ import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
@@ -957,8 +957,12 @@ class DeviceViewPanelTest {
     val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
-    val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           executor = MoreExecutors.directExecutor())
+    val launcher: InspectorClientLauncher = mock()
+    val client: InspectorClient = mock()
+    whenever(client.isConnected).thenReturn(true)
+    whenever(client.stats).thenReturn(mock())
+    whenever(launcher.activeClient).thenReturn(client)
+
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false

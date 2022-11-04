@@ -29,11 +29,14 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.InvalidPictureException
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.awt.image.BufferedImage
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.assertTrue
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
@@ -157,6 +160,52 @@ class SkiaParserIntegrationTest {
     assertImagesCorrect(root, imageMap)
     server.shutdown()
     serverThread.join()
+  }
+
+  /**
+   * Test that shutdown() and getViewTree() can be called on different threads without interfering with each other.
+   */
+  @Test
+  fun testThreadSafety() {
+    val iterations = 100
+    var hasErrors = false
+    val parser = SkiaParserImpl({ hasErrors = true }) {
+      val server = SkiaParserServerConnection(mock())
+      // Call createGrpcClient directly to skip running the server binary
+      val port = server.createGrpcClient()
+      val serverThread = Thread { runServer(port) }
+      serverThread.start()
+      server
+    }
+    var numberOfViewTreeCalls = 0
+    val getViewTreeThread = Thread {
+      for (i in 1..iterations) {
+        parser.getViewTree(generateBoxes(), emptyList(), 1.0)
+        numberOfViewTreeCalls++
+
+        // Give the shutdownThread a chance to execute:
+        Thread.yield()
+      }
+    }
+    val shutdownThread = Thread {
+      while (!hasErrors && numberOfViewTreeCalls < iterations) {
+        // Starting a server is so slow that all the shutdown calls could finish without a single connection being created.
+        // Increase the upper limit such that we
+        parser.shutdown()
+
+        // Give the getViewTreeThread a chance to execute:
+        Thread.yield()
+      }
+    }
+    getViewTreeThread.start()
+    shutdownThread.start()
+    getViewTreeThread.join()
+    shutdownThread.join()
+
+    parser.shutdown()
+    if (hasErrors) {
+      error("Errors encountered")
+    }
   }
 
   private fun assertImagesCorrect(root: InspectorView, imageMap: Map<Int, ByteString>) {
