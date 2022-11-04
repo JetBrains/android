@@ -567,6 +567,7 @@ internal class DeviceView(
       else if (event.id == KEY_PRESSED) {
         deviceController.sendKeystroke(androidKeystroke)
       }
+      event.consume()
     }
 
     private fun hostKeyStrokeToAndroidKeyStroke(hostKeyCode: Int, modifiers: Int): AndroidKeyStroke? {

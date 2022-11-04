@@ -685,6 +685,7 @@ class EmulatorView(
           else -> return
         }
       emulator.sendKey(createHardwareKeyEvent(keyName))
+      event.consume()
     }
 
     override fun keyReleased(event: KeyEvent) {
@@ -696,6 +697,7 @@ class EmulatorView(
       }
 
       virtualSceneCameraVelocityController?.keyReleased(event.keyCode)
+      event.consume()
     }
   }
 
