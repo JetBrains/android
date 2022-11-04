@@ -434,12 +434,14 @@ class ManageSnapshotsDialogTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
-  private fun performAction(action: AnActionButton) {
+  private fun performAction(action: AnActionButton?) {
+    assertThat(action).isNotNull()
     assertThat(isPresentationEnabled(action)).isTrue()
-    action.actionPerformed(TestActionEvent(action))
+    action?.actionPerformed(TestActionEvent(action))
   }
 
-  private fun isPresentationEnabled(action: AnActionButton): Boolean {
+  private fun isPresentationEnabled(action: AnActionButton?): Boolean? {
+    if (action == null) return null
     val contextComponent = action.contextComponent
     try {
       action.contextComponent = object : JLayeredPane() {
