@@ -17,6 +17,7 @@ package com.android.tools.compose.code.completion
 
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.ComposeSettings
+import com.android.tools.compose.code.getComposableDescriptorRenderer
 import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.completion.CompletionContributor
@@ -187,14 +188,7 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
     val allParameters = descriptor.valueParameters
     val requiredParameters = allParameters.filter { !it.declaresDefaultValue() }
     val inParens = if (requiredParameters.hasComposableChildren) requiredParameters.dropLast(1) else requiredParameters
-    val renderer = when {
-      requiredParameters.size < allParameters.size -> SHORT_NAMES_WITH_DOTS
-      inParens.isEmpty() && requiredParameters.hasComposableChildren -> {
-        // Don't render an empty pair of parenthesis if we're rendering a lambda afterwards.
-        null
-      }
-      else -> BasicLookupElementFactory.SHORT_NAMES_RENDERER
-    }
+    val renderer = descriptor.getComposableDescriptorRenderer()
 
     presentation.clearTail()
     renderer
@@ -203,40 +197,6 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
 
     if (requiredParameters.hasComposableChildren) {
       presentation.appendTailText(" " + LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION, true)
-    }
-  }
-}
-
-/**
- * A version of [BasicLookupElementFactory.SHORT_NAMES_RENDERER] that adds `, ...)` at the end of the parameters list.
- */
-private val SHORT_NAMES_WITH_DOTS = BasicLookupElementFactory.SHORT_NAMES_RENDERER.withOptions {
-  val delegate = DescriptorRenderer.ValueParametersHandler.DEFAULT
-  valueParametersHandler = object : DescriptorRenderer.ValueParametersHandler {
-    override fun appendAfterValueParameter(
-      parameter: ValueParameterDescriptor,
-      parameterIndex: Int,
-      parameterCount: Int,
-      builder: StringBuilder
-    ) {
-      delegate.appendAfterValueParameter(parameter, parameterIndex, parameterCount, builder)
-    }
-
-    override fun appendBeforeValueParameter(
-      parameter: ValueParameterDescriptor,
-      parameterIndex: Int,
-      parameterCount: Int,
-      builder: StringBuilder
-    ) {
-      delegate.appendBeforeValueParameter(parameter, parameterIndex, parameterCount, builder)
-    }
-
-    override fun appendBeforeValueParameters(parameterCount: Int, builder: StringBuilder) {
-      delegate.appendBeforeValueParameters(parameterCount, builder)
-    }
-
-    override fun appendAfterValueParameters(parameterCount: Int, builder: StringBuilder) {
-      builder.append(if (parameterCount == 0) "...)" else ", ...)")
     }
   }
 }
