@@ -19,61 +19,54 @@ import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-import org.jetbrains.kotlin.idea.completion.BasicLookupElementFactory
+import org.jetbrains.kotlin.idea.completion.BasicLookupElementFactory.Companion.SHORT_NAMES_RENDERER
+import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.renderer.DescriptorRenderer
-
-fun FunctionDescriptor.getComposableDescriptorRenderer(): DescriptorRenderer? {
-  val allParameters = valueParameters
-  val requiredParameters = allParameters.filter { !it.declaresDefaultValue() }
-  val inParens = if (requiredParameters.hasComposableChildren) requiredParameters.dropLast(1) else requiredParameters
-  return when {
-    requiredParameters.size < allParameters.size -> SHORT_NAMES_WITH_DOTS
-    inParens.isEmpty() && requiredParameters.hasComposableChildren -> {
-      // Don't render an empty pair of parenthesis if we're rendering a lambda afterwards.
-      null
-    }
-    else -> BasicLookupElementFactory.SHORT_NAMES_RENDERER
-  }
-}
-
-private val List<ValueParameterDescriptor>.hasComposableChildren: Boolean
-  get() {
-    val lastArgType = lastOrNull()?.type ?: return false
-    return lastArgType.isBuiltinFunctionalType
-           && COMPOSABLE_FQ_NAMES.any { lastArgType.annotations.hasAnnotation(FqName(it)) }
-  }
+import org.jetbrains.kotlin.renderer.DescriptorRenderer.ValueParametersHandler
 
 /**
- * A version of [BasicLookupElementFactory.SHORT_NAMES_RENDERER] that adds `, ...)` at the end of the parameters list.
+ * Represents parts of a Composable function to be used for rendering in various menus or dialogs.
  */
-private val SHORT_NAMES_WITH_DOTS = BasicLookupElementFactory.SHORT_NAMES_RENDERER.withOptions {
-  val delegate = DescriptorRenderer.ValueParametersHandler.DEFAULT
-  valueParametersHandler = object : DescriptorRenderer.ValueParametersHandler {
-    override fun appendAfterValueParameter(
-      parameter: ValueParameterDescriptor,
-      parameterIndex: Int,
-      parameterCount: Int,
-      builder: StringBuilder
-    ) {
-      delegate.appendAfterValueParameter(parameter, parameterIndex, parameterCount, builder)
-    }
+data class ComposableFunctionRenderParts(val parameters: String?, val tail: String?)
 
-    override fun appendBeforeValueParameter(
-      parameter: ValueParameterDescriptor,
-      parameterIndex: Int,
-      parameterCount: Int,
-      builder: StringBuilder
-    ) {
-      delegate.appendBeforeValueParameter(parameter, parameterIndex, parameterCount, builder)
-    }
+/**
+ * Generates [ComposableFunctionRenderParts] for a given Composable function.
+ *
+ * Since Composable functions tend to have numerous optional parameters, those are omitted from the rendered parameters and replaced with an
+ * ellipsis ("..."). Additional modifications are made to ensure that a lambda can be added in cases where the Composable function requires
+ * another Composable as its final argument.
+ */
+fun FunctionDescriptor.getComposableFunctionRenderParts(): ComposableFunctionRenderParts {
+  val allParameters = valueParameters
+  val requiredParameters = allParameters.filter { !it.declaresDefaultValue() }
+  val lastParamIsComposable = requiredParameters.lastOrNull()?.isComposableFunctionParameter() == true
+  val inParens = if (lastParamIsComposable) requiredParameters.dropLast(1) else requiredParameters
 
-    override fun appendBeforeValueParameters(parameterCount: Int, builder: StringBuilder) {
-      delegate.appendBeforeValueParameters(parameterCount, builder)
-    }
+  val descriptorRenderer = when {
+    requiredParameters.size < allParameters.size -> SHORT_NAMES_RENDERER_WITH_DOTS
+    inParens.isEmpty() && lastParamIsComposable -> null // Don't render an empty pair of parentheses if we're rendering a lambda afterwards.
+    else -> SHORT_NAMES_RENDERER
+  }
+  val parameters = descriptorRenderer?.renderValueParameters(inParens, false)
 
+  val tail = if (lastParamIsComposable) LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION else null
+
+  return ComposableFunctionRenderParts(parameters, tail)
+}
+
+fun ValueParameterDescriptor.isComposableFunctionParameter(): Boolean {
+  val parameterType = type
+  return parameterType.isBuiltinFunctionalType && COMPOSABLE_FQ_NAMES.any { parameterType.annotations.hasAnnotation(FqName(it)) }
+}
+
+/**
+ * A version of [SHORT_NAMES_RENDERER] that adds `, ...)` at the end of the parameters list.
+ */
+private val SHORT_NAMES_RENDERER_WITH_DOTS = SHORT_NAMES_RENDERER.withOptions {
+  valueParametersHandler = object : ValueParametersHandler by ValueParametersHandler.DEFAULT {
     override fun appendAfterValueParameters(parameterCount: Int, builder: StringBuilder) {
-      builder.append(if (parameterCount == 0) "...)" else ", ...)")
+      if (parameterCount > 0) builder.append(", ")
+      builder.append("...)")
     }
   }
 }
