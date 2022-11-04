@@ -25,6 +25,8 @@ import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +41,7 @@ public class AndroidStudio implements AutoCloseable {
   private final AndroidStudioGrpc.AndroidStudioBlockingStub androidStudio;
   private final ProcessHandle process;
   private final AndroidStudioInstallation install;
+  private final Instant creationTime;
 
   static public AndroidStudio run(AndroidStudioInstallation installation,
                        Display display,
@@ -100,6 +103,7 @@ public class AndroidStudio implements AutoCloseable {
   private AndroidStudio(AndroidStudioInstallation install, ProcessHandle process, int port) {
     this.install = install;
     this.process = process;
+    creationTime = Instant.now();
     ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().build();
     androidStudio = AndroidStudioGrpc.newBlockingStub(channel);
   }
@@ -171,10 +175,39 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   /**
+   * Works around b/253431062 and b/256687010, which occur on Windows when Android Studio tries to
+   * initialize a class despite already being in the shutdown process. The specific failure is:
+   * "Sorry but parent [...] has already been disposed [...] so the child [...] will never be
+   * disposed".
+   *
+   * We hit this specifically when a test only needs to verify that Android Studio started
+   * correctly, which means we close Android Studio so quickly that we didn't give initialization
+   * time to finish.
+   *
+   * This is not intended to be a permanent solution. However, at least the impact is minimal;
+   * we end up waiting ~5 extra seconds for initialization to complete before quitting.
+   */
+  private void waitToWorkAroundWindowsIssue() throws InterruptedException {
+    if (!SystemInfo.isWindows) {
+      return;
+    }
+
+    Duration elapsedTime = Duration.between(creationTime, Instant.now());
+    Duration minimumTimeToStayOpen = Duration.ofSeconds(10);
+    if (elapsedTime.compareTo(minimumTimeToStayOpen) < 0) {
+      long msToWait = Math.max(Duration.ofSeconds(1).toMillis(), minimumTimeToStayOpen.toMillis() - elapsedTime.toMillis());
+      System.out.printf("This AndroidStudio instance was only created %dms ago, so waiting for %dms until quitting.%n", elapsedTime.toMillis(), msToWait);
+      Thread.sleep(msToWait);
+      System.out.println("Done waiting");
+    }
+  }
+
+  /**
    * Quit Studio such that Gradle and other Studio-owned processes are properly disposed of.
    */
   private void quitAndWaitForShutdown() throws IOException, InterruptedException {
     System.out.println("Quitting Studio...");
+    waitToWorkAroundWindowsIssue();
     quit(false);
     install.getIdeaLog().waitForMatchingLine(".*PersistentFSImpl - VFS dispose completed.*", 30, TimeUnit.SECONDS);
   }
