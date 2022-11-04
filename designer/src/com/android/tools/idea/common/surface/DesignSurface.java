@@ -102,7 +102,6 @@ import java.awt.event.AWTEventListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.MouseEvent;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -445,19 +444,15 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       zoomControlsLayerPane.setLayout(new BorderLayout());
       zoomControlsLayerPane.setFocusable(false);
 
-      myOnHoverListener = event -> {
-        if (event.getID() == MouseEvent.MOUSE_ENTERED || event.getID() == MouseEvent.MOUSE_EXITED) {
-          zoomControlsLayerPane.setVisible(
-            SwingUtilities.isDescendingFrom(((MouseEvent)event).getComponent(), DesignSurface.this)
-          );
-        }
-      };
-
       myLayeredPane.add(zoomControlsLayerPane, JLayeredPane.DRAG_LAYER);
       zoomControlsLayerPane.add(myActionManager.getDesignSurfaceToolbar(), BorderLayout.EAST);
       if (myZoomControlsPolicy == ZoomControlsPolicy.AUTO_HIDE) {
+        myOnHoverListener = DesignSurfaceHelper.createZoomControlAutoHiddenListener(this, zoomControlsLayerPane);
         zoomControlsLayerPane.setVisible(false);
         Toolkit.getDefaultToolkit().addAWTEventListener(myOnHoverListener, AWTEvent.MOUSE_EVENT_MASK);
+      }
+      else {
+        myOnHoverListener = event -> {};
       }
     }
     else {

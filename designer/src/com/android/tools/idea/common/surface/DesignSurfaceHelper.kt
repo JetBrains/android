@@ -37,8 +37,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
+import java.awt.event.AWTEventListener
+import java.awt.event.MouseEvent
 import java.io.IOException
 import java.io.InputStreamReader
+import javax.swing.JComponent
 
 private val logger: Logger by lazy { Logger.getInstance("DesignSurfaceHelper") }
 
@@ -122,4 +125,25 @@ fun WorkBench<DesignSurface<*>>.handleLayoutlibNativeCrash(runnable: Runnable) {
     runnable.run()
   }
   loadingStopped(message, actionData)
+}
+
+/**
+ * Create an [AWTEventListener] which checks the mouse position to determine if the [zoomControlComponent] should be shown.
+ */
+fun createZoomControlAutoHiddenListener(zoomControlPaneOwner: JComponent, zoomControlComponent: JComponent): AWTEventListener {
+  return AWTEventListener { event ->
+    val id: Int = event.id
+    if (id == MouseEvent.MOUSE_ENTERED || id == MouseEvent.MOUSE_EXITED) {
+      if (!zoomControlPaneOwner.isShowing) {
+        zoomControlComponent.isVisible = false
+        return@AWTEventListener
+      }
+      val mouseEvent = event as MouseEvent
+      val location = mouseEvent.locationOnScreen
+      val screenLocation = zoomControlPaneOwner.locationOnScreen
+      val rect = zoomControlPaneOwner.visibleRect
+      rect.translate(screenLocation.x, screenLocation.y)
+      zoomControlComponent.isVisible = rect.contains(location)
+    }
+  }
 }

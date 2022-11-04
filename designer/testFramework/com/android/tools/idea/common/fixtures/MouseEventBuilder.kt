@@ -33,6 +33,9 @@ open class MouseEventBuilder(@SwingCoordinate private val myX: Int, @SwingCoordi
   private var myClickCount = 1
   private var myId = 0
 
+  private var screenLocationX: Int = myX
+  private var screenLocationY: Int = myY
+
   open fun withSource(source: Any): MouseEventBuilder {
     mySource = source
     return this
@@ -68,6 +71,14 @@ open class MouseEventBuilder(@SwingCoordinate private val myX: Int, @SwingCoordi
     return this
   }
 
+  /**
+   * Set the value of [MouseEvent.getLocationOnScreen]. If this is not set, then [myX] and [myY] is used by default.
+   */
+  open fun withLocationOnScreen(x: Int, y: Int) {
+    screenLocationX = x
+    screenLocationY = y
+  }
+
   open fun build(): MouseEvent {
     return createMockEvent(MouseEvent::class.java);
   }
@@ -78,11 +89,14 @@ open class MouseEventBuilder(@SwingCoordinate private val myX: Int, @SwingCoordi
     whenever(event.component).thenReturn(myComponent)
     whenever(event.x).thenReturn(myX)
     whenever(event.y).thenReturn(myY)
+    whenever(event.point).thenReturn(Point(myX, myY))
+    whenever(event.xOnScreen).thenReturn(screenLocationX)
+    whenever(event.yOnScreen).thenReturn(screenLocationY)
+    whenever(event.locationOnScreen).thenReturn(Point(screenLocationX, screenLocationY))
     whenever(event.modifiers).thenReturn(myMask)
     whenever(event.modifiersEx).thenReturn(myMask)
     whenever(event.button).thenReturn(myButton)
     whenever(event.clickCount).thenReturn(myClickCount)
-    whenever(event.point).thenReturn(Point(myX, myY))
     whenever(event.getWhen()).thenReturn(System.currentTimeMillis())
     whenever(event.id).thenReturn(myId)
     return event

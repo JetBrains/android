@@ -33,6 +33,8 @@ import junit.framework.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
+import java.awt.Point
+import java.awt.Rectangle
 import java.awt.Toolkit
 import java.awt.event.MouseEvent
 import java.util.concurrent.CompletableFuture
@@ -71,24 +73,22 @@ class InteractionHandlerTest {
     val otherComponent = JPanel()
     val listeners = Toolkit.getDefaultToolkit().awtEventListeners
 
-    val enterToToolbarEvent = MouseEventBuilder(1, 1).withComponent(toolbar).withId(MouseEvent.MOUSE_ENTERED).build()
-    val existFromToolbarEvent = MouseEventBuilder(1, 1).withComponent(toolbar).withId(MouseEvent.MOUSE_EXITED).build()
-    val enterToOtherEvent = MouseEventBuilder(1, 1).withComponent(otherComponent).withId(MouseEvent.MOUSE_ENTERED).build()
-    val existFromOtherEvent = MouseEventBuilder(1, 1).withComponent(otherComponent).withId(MouseEvent.MOUSE_EXITED).build()
+    val enterToSurfaceEvent = MouseEventBuilder(99, 99).withComponent(surface).withId(MouseEvent.MOUSE_ENTERED).build()
+    val exitFromSurfaceEvent = MouseEventBuilder(101, 101).withComponent(surface).withId(MouseEvent.MOUSE_EXITED).build()
+    val enterToOtherEvent = MouseEventBuilder(101, 101).withComponent(otherComponent).withId(MouseEvent.MOUSE_ENTERED).build()
+    val exitFromOtherEvent = MouseEventBuilder(99, 99).withComponent(otherComponent).withId(MouseEvent.MOUSE_EXITED).build()
 
     run {
-      // Simulate moving mouse from toolbar to other
-      listeners.forEach { it.eventDispatched(existFromToolbarEvent) }
-      assertTrue(toolbar.parent.isVisible)
+      // Simulate moving mouse from surface to other
+      listeners.forEach { it.eventDispatched(exitFromSurfaceEvent) }
       listeners.forEach { it.eventDispatched(enterToOtherEvent) }
       assertFalse(toolbar.parent.isVisible)
     }
 
     run {
       // Simulate moving mouse from other to toolbar
-      listeners.forEach { it.eventDispatched(existFromOtherEvent) }
-      assertFalse(toolbar.parent.isVisible)
-      listeners.forEach { it.eventDispatched(enterToToolbarEvent) }
+      listeners.forEach { it.eventDispatched(exitFromOtherEvent) }
+      listeners.forEach { it.eventDispatched(enterToSurfaceEvent) }
       assertTrue(toolbar.parent.isVisible)
     }
   }
@@ -129,4 +129,12 @@ private class Surface(project: Project, disposable: Disposable,
   override fun forceRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 
   override fun getSelectableComponents(): List<NlComponent> = emptyList()
+
+  override fun isShowing(): Boolean = true
+
+  override fun getLocationOnScreen(): Point = Point(0, 0)
+
+  override fun getVisibleRect(): Rectangle = Rectangle(0, 0, 100, 100)
+
+  override fun getSize(rv: Dimension?): Dimension = Dimension(100, 100)
 }
