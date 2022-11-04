@@ -18,9 +18,6 @@ package com.android.tools.idea.run.deployment.liveedit;
 import static com.android.tools.idea.editors.literals.LiveEditService.DISABLED_STATUS;
 import static com.android.tools.idea.run.deployment.liveedit.ErrorReporterKt.errorMessage;
 import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.PrebuildChecks;
-import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.checkIwiAvailable;
-import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.checkJetpackCompose;
-import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.checkSupportedFiles;
 
 import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
@@ -40,7 +37,6 @@ import com.android.tools.idea.editors.literals.LiveEditService;
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler;
 import com.android.tools.idea.editors.literals.LiveLiteralsService;
 import com.android.tools.idea.editors.literals.EditEvent;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler;
@@ -82,7 +78,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension;
 
 /**
  * Helper to set up Live Literal deployment monitoring.
@@ -189,8 +184,13 @@ public class AndroidLiveEditDeployMonitor {
   // In manual mode, we buffer events until user triggers a LE push.
   private final ArrayList<EditEvent> bufferedEvents = new ArrayList<>();
 
-  public void clearBufferedEvents() {
+  // For every files a user modify, we keep track of whether we were able to successfully compile it. As long as one file has an error,
+  // LE status remains in error.
+  private final Set<String> filesWithCompilationErrors = new HashSet<>();
+
+  public void resetState() {
     bufferedEvents.clear();
+    filesWithCompilationErrors.clear();
   }
 
   private class EditStatusGetter implements LiveEditService.EditStatusProvider {
@@ -432,6 +432,9 @@ public class AndroidLiveEditDeployMonitor {
   }
 
   @Trace
+  /**
+   * @return true is the changes were successfully processed (without being interrupted). Otherwise, false.
+   */
   private boolean processChanges(Project project, List<EditEvent> changes, LiveEditEvent.Mode mode) {
     LiveEditEvent.Builder event = LiveEditEvent.newBuilder().setMode(mode);
 
@@ -449,7 +452,12 @@ public class AndroidLiveEditDeployMonitor {
       if (!new AndroidLiveEditCodeGenerator(project, sourceInlineCandidateCache).compile(inputs, compiled, !LiveEditService.isLeTriggerManual())) {
         return false;
       }
+      // Remove files successfully compiled from the error set.
+      for (EditEvent change : changes) {
+        filesWithCompilationErrors.remove(change.getFile().getName());
+      }
     } catch (LiveEditUpdateException e) {
+      filesWithCompilationErrors.add(e.getSource().getName());
       updateEditStatus(new EditStatus(
         e.getError().getRecoverable() ? EditState.PAUSED : EditState.ERROR,
         errorMessage(e), null));
@@ -660,7 +668,13 @@ public class AndroidLiveEditDeployMonitor {
     if (recomposeNeeded) {
       updateEditStatus(device, RECOMPOSE_NEEDED);
     } else {
-      updateEditStatus(device, UP_TO_DATE);
+      if (filesWithCompilationErrors.isEmpty()) {
+        updateEditStatus(device, UP_TO_DATE);
+      } else {
+        Optional<String> errorFilename = filesWithCompilationErrors.stream().sequential().findFirst();
+        String errorMsg = ErrorReporterKt.leErrorMessage(LiveEditUpdateException.Error.COMPILATION_ERROR, errorFilename.get());
+        updateEditStatus(device, new EditStatus(EditState.PAUSED, errorMsg, null));
+      }
       scheduleErrorPolling(deployer, installer, adb, applicationId);
     }
 

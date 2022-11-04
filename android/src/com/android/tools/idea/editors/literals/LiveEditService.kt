@@ -124,7 +124,7 @@ class LiveEditService private constructor(val project: Project, var listenerExec
 
   fun resetState() {
     inlineCandidateCache.clear()
-    deployMonitor.clearBufferedEvents()
+    deployMonitor.resetState()
   }
 
   fun interface EditListener {
