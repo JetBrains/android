@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.junit.Before
@@ -857,15 +858,17 @@ class ComposeCompletionContributorTest {
 
   private val CodeInsightTestFixture.renderedLookupElements: Collection<String>
     get() {
-      return lookupElements.orEmpty().map { lookupElement ->
-        val presentation = LookupElementPresentation()
-        lookupElement.renderElement(presentation)
-        buildString {
-          append(presentation.itemText)
-          append(presentation.tailText)
-          if (!presentation.typeText.isNullOrEmpty()) {
-            append(" ")
-            append(presentation.typeText)
+      return runReadAction {
+        lookupElements.orEmpty().map { lookupElement ->
+          val presentation = LookupElementPresentation()
+          lookupElement.renderElement(presentation)
+          buildString {
+            append(presentation.itemText)
+            append(presentation.tailText)
+            if (!presentation.typeText.isNullOrEmpty()) {
+              append(" ")
+              append(presentation.typeText)
+            }
           }
         }
       }

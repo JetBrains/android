@@ -39,9 +39,9 @@ class ComposableItemPresentationProviderTest {
       KotlinFileType.INSTANCE,
       """
       package com.example
-      
+
       val testFunction = <caret>{ }
-      
+
       """.trimIndent())
 
     runReadAction {
@@ -59,9 +59,9 @@ class ComposableItemPresentationProviderTest {
       KotlinFileType.INSTANCE,
       """
       package com.example
-      
+
       fun testFun<caret>ction(arg0: Int, arg1: Int) {}
-      
+
       """.trimIndent())
 
     runReadAction {
@@ -77,21 +77,21 @@ class ComposableItemPresentationProviderTest {
   fun getPresentation_functionIsComposable_composablePresentationReturned() {
     projectRule.fixture.addFileToProject("androidx/compose/runtime/Composable.kt", """
       package androidx.compose.runtime
-      
+
       annotation class Composable
-      
+
       """.trimIndent())
 
     projectRule.fixture.configureByText(
       KotlinFileType.INSTANCE,
       """
       package com.example
-      
+
       import androidx.compose.runtime.Composable
-      
+
       @Composable
-      fun testFun<caret>ction(arg0: Int, arg1: Int) {}
-      
+      fun testFun<caret>ction(arg0: Int, arg1: Int = 0) {}
+
       """.trimIndent())
 
     runReadAction {
@@ -99,7 +99,37 @@ class ComposableItemPresentationProviderTest {
       assertThat(function).isInstanceOf(KtFunction::class.java)
 
       val presentation = provider.getPresentation(function as KtFunction)!!
-      assertThat(presentation.presentableText).isEqualTo("@Composable testFunction")
+      assertThat(presentation.presentableText).isEqualTo("@Composable testFunction(arg0: Int, ...)")
+    }
+  }
+
+  @Test
+  fun getPresentation_functionIsComposable_composablePresentationReturnedWithLambda() {
+    projectRule.fixture.addFileToProject("androidx/compose/runtime/Composable.kt", """
+      package androidx.compose.runtime
+
+      annotation class Composable
+
+      """.trimIndent())
+
+    projectRule.fixture.configureByText(
+      KotlinFileType.INSTANCE,
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun testFun<caret>ction(arg0: Int, arg1: Int = 0, arg2: @Composable () -> Unit) {}
+
+      """.trimIndent())
+
+    runReadAction {
+      val function = projectRule.fixture.elementAtCaret
+      assertThat(function).isInstanceOf(KtFunction::class.java)
+
+      val presentation = provider.getPresentation(function as KtFunction)!!
+      assertThat(presentation.presentableText).isEqualTo("@Composable testFunction(arg0: Int, ...) {...}")
     }
   }
 }

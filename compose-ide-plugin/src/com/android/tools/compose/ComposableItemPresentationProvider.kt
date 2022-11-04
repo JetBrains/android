@@ -15,8 +15,10 @@
  */
 package com.android.tools.compose
 
+import com.android.tools.compose.code.getComposableFunctionRenderParts
 import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.ItemPresentationProvider
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.idea.presentation.KotlinFunctionPresentation
 import org.jetbrains.kotlin.idea.presentation.KtFunctionPresenter
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
@@ -55,6 +57,17 @@ class ComposableItemPresentationProvider : ItemPresentationProvider<KtFunction> 
    * is presented.
    * */
   private class ComposableFunctionPresentation(private val function: KtFunction) : KotlinFunctionPresentation(function) {
-    override fun getPresentableText() = "@Composable ${function.name}"
+    override fun getPresentableText(): String {
+      return buildString {
+        append("@Composable")
+        function.name?.let { append(" $it") }
+
+        val functionDescriptor = function.descriptor as? FunctionDescriptor
+        functionDescriptor?.getComposableFunctionRenderParts()?.let { (parameters, tail) ->
+          parameters?.let { append(it) }
+          tail?.let { append(" $it") }
+        }
+      }
+    }
   }
 }

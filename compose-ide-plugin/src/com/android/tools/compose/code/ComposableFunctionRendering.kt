@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.completion.BasicLookupElementFactory.Companion.SHORT_NAMES_RENDERER
 import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.renderer.DescriptorRenderer.ValueParametersHandler
 
 /**
@@ -38,7 +39,7 @@ data class ComposableFunctionRenderParts(val parameters: String?, val tail: Stri
  */
 fun FunctionDescriptor.getComposableFunctionRenderParts(): ComposableFunctionRenderParts {
   val allParameters = valueParameters
-  val requiredParameters = allParameters.filter { !it.declaresDefaultValue() }
+  val requiredParameters = allParameters.filter { it.isRequired() }
   val lastParamIsComposable = requiredParameters.lastOrNull()?.isComposableFunctionParameter() == true
   val inParens = if (lastParamIsComposable) requiredParameters.dropLast(1) else requiredParameters
 
@@ -52,6 +53,15 @@ fun FunctionDescriptor.getComposableFunctionRenderParts(): ComposableFunctionRen
   val tail = if (lastParamIsComposable) LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION else null
 
   return ComposableFunctionRenderParts(parameters, tail)
+}
+
+private fun ValueParameterDescriptor.isRequired(): Boolean {
+  if (declaresDefaultValue()) return false
+
+  // The ValueParameterDescriptor we get when running this from [ComposableItemPresentationProvider] for some reason says that optional
+  // Composable parameters don't declare a default value, which is incorrect. At the moment, the only way I've found to determine that
+  // they're truly optional is by looking at their text.
+  return source.getPsi()?.text?.endsWith("/* = compiled code */") != true
 }
 
 fun ValueParameterDescriptor.isComposableFunctionParameter(): Boolean {
