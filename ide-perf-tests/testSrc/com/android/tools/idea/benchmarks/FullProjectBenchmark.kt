@@ -23,10 +23,7 @@ import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
-import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.ex.GlobalInspectionContextBase
-import com.intellij.codeInspection.ex.InspectionManagerEx
-import com.intellij.codeInspection.ex.InspectionProfileImpl
 import com.intellij.lang.Language
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.command.undo.UndoManager
@@ -36,7 +33,6 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager
-import com.intellij.profile.codeInspection.ProjectInspectionProfileManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiWhiteSpace
@@ -45,13 +41,11 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.descendantsOfType
 import com.intellij.testFramework.createGlobalContextForTool
-import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
@@ -76,7 +70,7 @@ data class LayoutCompletionInput(
 /**
  * Contains the results of a layout critical user journey completion run, @see layoutAttributeCompletionBenchmark
  */
-data class LayoutCompletionSample (
+data class LayoutCompletionSample(
   val fastPathTime: Metric.MetricSample,
   val mediumPathTime: Metric.MetricSample,
   val slowPathTime: Metric.MetricSample
@@ -230,7 +224,7 @@ abstract class FullProjectBenchmark {
       values = { listOf(fileName, completionCount, sample.sampleData) }
     )
 
-    val metric =  Metric("${projectName}_${language.displayName}_${completionType}")
+    val metric = Metric("${projectName}_${language.displayName}_${completionType}")
     metric.addSamples(completionBenchmark, *samples.map { it.sample }.toTypedArray())
     metric.commit()
   }
@@ -354,13 +348,13 @@ abstract class FullProjectBenchmark {
       values = { listOf(fastPathTime.sampleData, mediumPathTime.sampleData, slowPathTime.sampleData) }
     )
 
-    val slowPathMetric =  Metric("${projectName}_${completionType}_Slow_Path")
+    val slowPathMetric = Metric("${projectName}_${completionType}_Slow_Path")
     slowPathMetric.addSamples(layoutCompletionBenchmark, *slowSamples.toTypedArray())
     slowPathMetric.commit()
-    val mediumPathMetric =  Metric("${projectName}_${completionType}_Medium_Path")
+    val mediumPathMetric = Metric("${projectName}_${completionType}_Medium_Path")
     mediumPathMetric.addSamples(layoutCompletionBenchmark, *mediumSamples.toTypedArray())
     mediumPathMetric.commit()
-    val fastPathMetric =  Metric("${projectName}_${completionType}_Fast_Path")
+    val fastPathMetric = Metric("${projectName}_${completionType}_Fast_Path")
     fastPathMetric.addSamples(layoutCompletionBenchmark, *fastSamples.toTypedArray())
     fastPathMetric.commit()
   }
@@ -461,11 +455,14 @@ abstract class FullProjectBenchmark {
     val profileManager = InspectionProjectProfileManager.getInstance(project)
     val profile = profileManager.currentProfile
 
-    profile.disableAllTools(project)
+    // Non-Lint inspection tools to be re-enabled after run
+    val disabledTools = mutableListOf<String>()
 
-    for (tool in profile.allTools) {
-      if (tool.tool.groupDisplayName.contains("Android Lint")) {
-        profile.enableTool(tool.tool.shortName, project)
+    for (tool in profile.getAllEnabledInspectionTools(project)) {
+      if (!tool.tool.groupDisplayName.contains("Android Lint")) {
+        val name = tool.tool.shortName
+        profile.setToolEnabled(name, false, project)
+        disabledTools.add(name)
       }
     }
 
@@ -501,6 +498,11 @@ abstract class FullProjectBenchmark {
       samples.add(Metric.MetricSample(System.currentTimeMillis(), timeMs))
       timePerFile.add(Pair(file.name, timeMs))
       totalTimeMs += timeMs
+    }
+
+    // Reset inspection profile
+    for (name in disabledTools) {
+      profile.setToolEnabled(name, true, project)
     }
 
     // Diagnostic logging
