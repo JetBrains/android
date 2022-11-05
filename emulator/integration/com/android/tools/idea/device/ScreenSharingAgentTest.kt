@@ -26,7 +26,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.android.utils.executeWithRetries
 import com.google.common.truth.Truth.assertThat
-import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -84,7 +83,7 @@ class ScreenSharingAgentTest {
           fakeUi.keyboard.type(char.code)
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-          waitForLogs(char.androidCode.downUp(), 10.seconds)
+          waitForLogs(char.androidCode.downUp(), INPUT_TIMEOUT)
         }
       }
     }
@@ -106,7 +105,7 @@ class ScreenSharingAgentTest {
               ".*: KEY UP: ${char.androidCode}",
               ".*: KEY UP: $AKEYCODE_SHIFT_LEFT",
             ),
-            10.seconds)
+            INPUT_TIMEOUT)
         }
       }
     }
@@ -121,7 +120,7 @@ class ScreenSharingAgentTest {
           fakeUi.keyboard.type(char.code)
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-          waitForLogs(char.androidCode.downUp(), 10.seconds)
+          waitForLogs(char.androidCode.downUp(), INPUT_TIMEOUT)
         }
       }
     }
@@ -151,7 +150,7 @@ class ScreenSharingAgentTest {
           fakeUi.keyboard.pressAndRelease(hostKeyStroke)
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-          waitForLogs(androidKeyCode.downUp(), 10.seconds)
+          waitForLogs(androidKeyCode.downUp(), INPUT_TIMEOUT)
         }
       }
     }
@@ -174,7 +173,7 @@ class ScreenSharingAgentTest {
           fakeUi.keyboard.pressAndRelease(hostKeyStroke)
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-          waitForLogs(androidKeyCode.downUp(), 10.seconds)
+          waitForLogs(androidKeyCode.downUp(), INPUT_TIMEOUT)
         }
       }
     }
@@ -194,7 +193,7 @@ class ScreenSharingAgentTest {
         executeWithRetries<InterruptedException>(FIRST_TOUCH_RETRIES) {
           fakeUi.mouse.click(firstTouch.x, firstTouch.y)
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-          waitForLogs(deviceView.toDeviceDisplayCoordinates(firstTouch)!!.click(), 30.seconds)
+          waitForLogs(deviceView.toDeviceDisplayCoordinates(firstTouch)!!.click(), INPUT_TIMEOUT)
         }
 
         // Now that we know touch events can be received by the app, conduct the real test.
@@ -206,7 +205,7 @@ class ScreenSharingAgentTest {
             fakeUi.mouse.click(x, y)
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-            waitForLogs(deviceView.toDeviceDisplayCoordinates(Point(x, y))!!.click(), 30.seconds)
+            waitForLogs(deviceView.toDeviceDisplayCoordinates(Point(x, y))!!.click(), INPUT_TIMEOUT)
           }
         }
       }
@@ -217,16 +216,16 @@ class ScreenSharingAgentTest {
     try {
       adb.runCommand("shell", START_COMMAND, emulator = emulator) {
         val logLine = Pattern.quote("Starting: Intent { flg=0x${NO_ANIMATIONS.toString(16)} cmp=$APP_PKG/.$ACTIVITY }")
-        waitForLog(logLine, 30.seconds)
+        waitForLog(logLine, LONG_DEVICE_OPERATION_TIMEOUT)
       }
       adb.logcat {
-        waitForLog(".*: RESUMED", 10.seconds)
+        waitForLog(".*: RESUMED", SHORT_DEVICE_OPERATION_TIMEOUT)
       }
       block()
     }
     finally {
       adb.runCommand("shell", CLEAR_DATA_COMMAND, emulator = emulator) {
-        waitForLog("Success", 30.seconds)
+        waitForLog("Success", SHORT_DEVICE_OPERATION_TIMEOUT)
       }
     }
   }
@@ -240,7 +239,16 @@ class ScreenSharingAgentTest {
     private const val START_COMMAND = "am start -n $APP_PKG/.$ACTIVITY -f $NO_ANIMATIONS"
     private const val CLEAR_DATA_COMMAND = "pm clear $APP_PKG"
     private const val EVENT_LOGGER_INSTALLATION_MAX_RETRIES = 3
-    private const val FIRST_TOUCH_RETRIES = 5
+    private const val FIRST_TOUCH_RETRIES = 10
+
+    // Long timeout for longer device operations like app installation
+    private val LONG_DEVICE_OPERATION_TIMEOUT = 30.seconds
+
+    // Short timeout for fast device operations like clearing cache
+    private val SHORT_DEVICE_OPERATION_TIMEOUT = 10.seconds
+
+    // Short timeout for quick operations like an app responding to an input
+    private val INPUT_TIMEOUT = 10.seconds
 
     private val system: AndroidSystem = AndroidSystem.basic()
     private val projectRule = ProjectRule()
@@ -283,7 +291,7 @@ class ScreenSharingAgentTest {
       fakeUi = FakeUi(deviceView.wrapInScrollPane(200, 300))
       fakeUi.render()
 
-      waitForCondition(30.seconds) { deviceView.isConnected }
+      waitForCondition(LONG_DEVICE_OPERATION_TIMEOUT) { deviceView.isConnected }
 
       deviceView.addFrameListener { _, _, _, _ -> framesReceived++ }
 
@@ -291,7 +299,7 @@ class ScreenSharingAgentTest {
       val eventLoggerApk = getBinPath("tools/adt/idea/emulator/integration/event-logger/event-logger.apk")
       executeWithRetries<InterruptedException>(EVENT_LOGGER_INSTALLATION_MAX_RETRIES) {
         adb.runCommand("install", eventLoggerApk.toString(), emulator = emulator) {
-          waitForLog("Success", 30.seconds)
+          waitForLog("Success", LONG_DEVICE_OPERATION_TIMEOUT)
         }
       }
     }
@@ -300,7 +308,7 @@ class ScreenSharingAgentTest {
     @AfterClass
     fun tearDownClass() {
       emulator.close()
-      waitForCondition(30.seconds) { !deviceView.isConnected }
+      waitForCondition(LONG_DEVICE_OPERATION_TIMEOUT) { !deviceView.isConnected }
       adb.close()
     }
 
@@ -333,7 +341,7 @@ class ScreenSharingAgentTest {
 
     private fun waitFrames(numFrames: Int) {
       val framesToWaitFor = framesReceived + numFrames
-      waitForCondition(30.seconds) {
+      waitForCondition(LONG_DEVICE_OPERATION_TIMEOUT) {
         fakeUi.render()
         framesReceived > framesToWaitFor
       }
