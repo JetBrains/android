@@ -24,5 +24,6 @@
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="transport-proto" level="project" />
+    <orderEntry type="library" name="perfetto-proto" level="project" />
   </component>
 </module>

@@ -27,5 +27,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/.idea/libraries:transport-proto",
+        "//tools/adt/idea/.idea/libraries:perfetto-proto",
     ],
 )
