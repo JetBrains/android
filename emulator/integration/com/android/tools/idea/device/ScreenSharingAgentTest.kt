@@ -279,6 +279,20 @@ class ScreenSharingAgentTest {
       emulator.waitForBoot()
       adb.waitForDevice(emulator)
 
+      // We must disable input resampling on the emulator, because it may change our inputs and make them impossible to verify.
+      // This requires overriding a system property and rebooting.
+      adb.runCommand("shell", "echo ro.input.resampling=0 | su root tee -a /data/local.prop", emulator = emulator) {
+        waitForLog("ro.input.resampling=0", SHORT_DEVICE_OPERATION_TIMEOUT)
+      }
+      adb.runCommand("reboot", emulator = emulator)
+      emulator.waitForBoot()
+      adb.waitForDevice(emulator)
+
+      // Don't bother starting the test if input sampling is still on.
+      adb.runCommand("shell", "su root getprop ro.input.resampling") {
+        waitForLog("0", SHORT_DEVICE_OPERATION_TIMEOUT)
+      }
+
       deviceView = DeviceView(
         disposableParent = projectRule.project.earlyDisposable,
         deviceSerialNumber = emulator.serialNumber,
