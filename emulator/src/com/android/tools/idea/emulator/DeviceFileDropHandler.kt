@@ -59,14 +59,14 @@ fun installFileDropHandler(dropTarget: JComponent, deviceSerialNumber: String, d
       return@setTargetChecker true
     }
     .setDisposableParent(displayView)
-    .setDropHandler(EmulatorFileDropHandler(deviceSerialNumber, displayView, project))
+    .setDropHandler(DeviceFileDropHandler(deviceSerialNumber, displayView, project))
     .install()
 }
 
 /**
- * Drop handler that installs .apk files and pushes other files to the AVD.
+ * Drop handler that installs .apk files and pushes other files to the device.
  */
-private class EmulatorFileDropHandler(
+private class DeviceFileDropHandler(
   private val deviceSerialNumber: String,
   private val displayView: AbstractDisplayView,
   private val project: Project
@@ -80,10 +80,8 @@ private class EmulatorFileDropHandler(
       return
     }
 
-    val fileNames = files.joinToString(", ") { it.name }
-
     if (fileTypes.contains(FileType.APK)) {
-      displayView.showLongRunningOperationIndicator("Installing $fileNames")
+      displayView.showLongRunningOperationIndicator("Installing ${formatForDisplay("app consisting of ", files)}")
 
       val resultFuture: ListenableFuture<InstallResult> = findDevice().transform(getAppExecutorService()) { install(files, it) }
 
@@ -91,7 +89,7 @@ private class EmulatorFileDropHandler(
         EdtExecutorService.getInstance(),
         success = { installResult ->
           if (installResult!!.status == InstallStatus.OK) {
-            notifyOfSuccess("$fileNames installed")
+            notifyOfSuccess("${formatForDisplay("App consisting of ", files)} installed")
           }
           else {
             val message = installResult.reason ?: ApkInstaller.message(installResult)
@@ -106,14 +104,15 @@ private class EmulatorFileDropHandler(
         })
     }
     else {
-      displayView.showLongRunningOperationIndicator("Copying $fileNames")
+      val fileList = formatForDisplay("", files)
+      displayView.showLongRunningOperationIndicator("Copying $fileList")
 
       val resultFuture: ListenableFuture<Unit> = findDevice().transform(getAppExecutorService()) { push(files, it) }
 
       resultFuture.addCallback(
         EdtExecutorService.getInstance(),
         success = {
-          notifyOfSuccess("$fileNames copied")
+          notifyOfSuccess("$fileList copied")
           displayView.hideLongRunningOperationIndicator()
         },
         failure = { throwable ->
@@ -123,6 +122,9 @@ private class EmulatorFileDropHandler(
         })
     }
   }
+
+  private fun formatForDisplay(prefixForPluralCase: String, files: List<File>): String =
+      if (files.size == 1) files[0].name else "$prefixForPluralCase${files.size} files"
 
   private fun getFileTypes(files: List<File>): Set<FileType> {
     val types = EnumSet.noneOf(FileType::class.java)
@@ -145,7 +147,7 @@ private class EmulatorFileDropHandler(
     device.push(filePaths, DEVICE_DOWNLOAD_DIR)
   }
 
-  private fun createAdbClient(device: IDevice) = AdbClient(device, LogWrapper(EmulatorFileDropHandler::class.java))
+  private fun createAdbClient(device: IDevice) = AdbClient(device, LogWrapper(DeviceFileDropHandler::class.java))
 
   private fun notifyOfSuccess(message: String) {
     RUNNING_DEVICES_NOTIFICATION_GROUP.createNotification(message, NotificationType.INFORMATION).notify(project)
