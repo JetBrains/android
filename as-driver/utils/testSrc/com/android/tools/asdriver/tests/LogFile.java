@@ -27,6 +27,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LogFile {
+  // Minimum amount of time to wait before (re)examining log files.
+  private static final int MIN_DELAY_MS = 50;
+  // Maximum amount of time to wait before (re)examining log files.
+  private static final int MAX_DELAY_MS = 1000;
   private final Path path;
 
   /** The current position on the log file, see {@code waitForMatchingLine} */
@@ -73,6 +77,7 @@ public class LogFile {
       Matcher matcher = null;
       long elapsed = 0;
       long start = System.currentTimeMillis();
+      int delayMs = MIN_DELAY_MS;
       while (elapsed < timeoutMillis) {
         String line = raf.readLine();
         if (failurePattern != null && line != null && failurePattern.matcher(line).matches()) {
@@ -85,7 +90,8 @@ public class LogFile {
         }
         matcher = null;
         if (line == null) {
-          Thread.sleep(Math.min(1000, timeoutMillis - elapsed));
+          Thread.sleep(Math.min(delayMs, timeoutMillis - elapsed));
+          delayMs = Math.min(MAX_DELAY_MS, 2 * delayMs);  // Exponential backoff up to 1 second max
         }
         elapsed = System.currentTimeMillis() - start;
       }
