@@ -308,7 +308,10 @@ class ScreenSharingAgentTest {
     @AfterClass
     fun tearDownClass() {
       emulator.close()
-      waitForCondition(LONG_DEVICE_OPERATION_TIMEOUT) { !deviceView.isConnected }
+      // Don't tear this down if setup failed because it will create distracting stacks in the test failure.
+      if (::deviceView.isInitialized) {
+        waitForCondition(LONG_DEVICE_OPERATION_TIMEOUT) { !deviceView.isConnected }
+      }
       adb.close()
     }
 
