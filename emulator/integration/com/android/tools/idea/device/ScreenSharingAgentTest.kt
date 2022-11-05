@@ -50,6 +50,7 @@ import java.awt.event.KeyEvent
 import java.nio.file.Files
 import java.util.regex.Pattern
 import javax.swing.JScrollPane
+import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
 @RunWith(Suite::class)
@@ -207,6 +208,47 @@ class ScreenSharingAgentTest {
 
             waitForLogs(Point(x, y).clickLogs(), INPUT_TIMEOUT)
           }
+        }
+      }
+    }
+  }
+
+  @Test
+  fun touchEvents_drag() {
+    // Wait for at least one frame to be sure that the device's display rectangle is set.
+    waitFrames(1)
+    assertThat(deviceView.displayRectangle).isNotNull()
+
+    // Before beginning the actual test, we will touch this point until we register a response from the app.
+    val firstTouch = Point(90, 90)
+    runEventLogger {
+      adb.logcat {
+        // Ensure that touch events can be received by the app. We don't really care if this first point takes a few tries.
+        executeWithRetries<InterruptedException>(FIRST_TOUCH_RETRIES) {
+          fakeUi.mouse.click(firstTouch.x, firstTouch.y)
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+          waitForLogs(firstTouch.clickLogs(), INPUT_TIMEOUT)
+        }
+
+        val pointsToTouch: List<Point> = (50..150 step 10).flatMap { x ->
+          (150..250 step 10).map { y -> Point(x,y) }
+        }
+
+        val random = Random(42) // Repeatably pseudo-random
+        for (points in pointsToTouch.shuffled(random).chunked(10)) {
+          fakeUi.mouse.press(points.first())
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+          waitForLog(points.first().pressLog(), INPUT_TIMEOUT)
+
+          for(p in points.drop(1)) {
+            fakeUi.mouse.dragTo(p)
+            PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+            waitForLog(p.dragToLog(), INPUT_TIMEOUT)
+          }
+
+          fakeUi.mouse.release()
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+          waitForLog(points.last().releaseLog(), INPUT_TIMEOUT)
         }
       }
     }
