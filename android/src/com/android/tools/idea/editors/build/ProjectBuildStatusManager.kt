@@ -109,12 +109,16 @@ interface ProjectBuildStatusManager {
      *  been built before.
      * @param psiFilter the filter to apply while detecting the changes in the [psiFile].
      * @param scope [CoroutineScope] to run the execution of the initialization of this ProjectBuildStatusManager.
+     * @param onReady called once the [ProjectBuildStatus] transitions from [ProjectStatus.NotReady] to any other state or
+     *  immediately if the the status is different from [ProjectStatus.NotReady].
+     *  This wil happen after the project is synced and has been indexed.
      */
     fun create(parentDisposable: Disposable,
                psiFile: PsiFile,
                psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
-               scope: CoroutineScope = AndroidCoroutineScope(parentDisposable, workerThread)): ProjectBuildStatusManager =
-      ProjectBuildStatusManagerImpl(parentDisposable, psiFile, psiFilter, scope)
+               scope: CoroutineScope = AndroidCoroutineScope(parentDisposable, workerThread),
+               onReady: (ProjectStatus) -> Unit = {}): ProjectBuildStatusManager =
+      ProjectBuildStatusManagerImpl(parentDisposable, psiFile, psiFilter, scope, onReady)
   }
 }
 
@@ -135,7 +139,8 @@ private object NopPsiFileChangeDetector : PsiFileChangeDetector {
 private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
                                             psiFile: PsiFile,
                                             private val psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
-                                            scope: CoroutineScope) : ProjectBuildStatusManager, ProjectBuildStatusManagerForTests {
+                                            scope: CoroutineScope,
+                                            private val onReady: (ProjectStatus) -> Unit) : ProjectBuildStatusManager, ProjectBuildStatusManagerForTests {
   private val editorFilePtr: SmartPsiElementPointer<PsiFile> = runReadAction {
     SmartPointerManager.getInstance(psiFile.project).createSmartPsiElementPointer(psiFile)
   }
@@ -241,20 +246,20 @@ private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
     project.runWhenSmartAndSyncedOnEdt(parentDisposable, {
       fileChangeDetector.markFileAsUpToDate(editorFile)
 
-      if (projectBuildStatusLock.read { projectBuildStatus } === ProjectBuildStatus.NotReady) {
-        // Check in the background the state of the build (hasBeenBuiltSuccessfully is a slow method).
-        scope.launch {
+      scope.launch {
+        if (projectBuildStatusLock.read { projectBuildStatus } === ProjectBuildStatus.NotReady) {
+          // Check in the background the state of the build (hasBeenBuiltSuccessfully is a slow method).
           val newState = if (hasExistingClassFile(editorFile)) ProjectBuildStatus.Built else ProjectBuildStatus.NeedsBuild
           // Only update the status if we are still in NotReady.
           projectBuildStatusLock.write {
             if (projectBuildStatus === ProjectBuildStatus.NotReady) {
-              // Set the initial state of the project and initialize the modification count.
-              // TODO(b/239802877): here we essentially change the build status, therefore we need a callback to inform the parent, the
-              // callback should probably do the same as what the parent does on runWhenSmartAndSyncedOnEdt
               projectBuildStatus = newState
             }
           }
         }
+
+        // Once the initial state has been set, call the onReady callback
+        onReady(status)
       }
     })
 

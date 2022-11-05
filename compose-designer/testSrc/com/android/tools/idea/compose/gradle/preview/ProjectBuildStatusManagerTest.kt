@@ -32,7 +32,9 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
@@ -73,12 +75,15 @@ class ProjectBuildStatusManagerTest {
       )!!
     WriteAction.run<Throwable> { projectRule.fixture.openFileInEditor(mainFile) }
 
+    val onReadyCalled = CountDownLatch(1)
     val statusManager =
       ProjectBuildStatusManager.create(
         projectRule.fixture.testRootDisposable,
         projectRule.fixture.file,
-        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher())
+        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()),
+        onReady = { onReadyCalled.countDown() }
       )
+    assertTrue(onReadyCalled.await(5, TimeUnit.SECONDS))
     assertTrue("Project must compile correctly", projectRule.build().isBuildSuccessful)
     assertTrue(
       "Builds status is not Ready after successful build",

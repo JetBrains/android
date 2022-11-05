@@ -77,7 +77,6 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepres
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.idea.util.toDisplayString
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.PowerSaveMode
@@ -266,7 +265,22 @@ class ComposePreviewRepresentation(
   private val module = runReadAction { psiFile.module }
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
 
-  private val projectBuildStatusManager = ProjectBuildStatusManager.create(this, psiFile)
+  private val projectBuildStatusManager =
+    ProjectBuildStatusManager.create(
+      this,
+      psiFile,
+      onReady = {
+        // When the preview is opened we must trigger an initial refresh. We wait for the project to
+        // be
+        // smart and synced to do it.
+        when (it) {
+          // Do not refresh if we still need to build the project. Instead, only update the empty
+          // panel and editor notifications if needed.
+          ProjectStatus.NeedsBuild -> composeWorkBench.updateVisibilityAndNotifications()
+          else -> requestRefresh()
+        }
+      }
+    )
 
   /** Frames per second limit for interactive preview. */
   private var fpsLimit = StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
@@ -711,21 +725,6 @@ class ComposePreviewRepresentation(
         }
       },
       this
-    )
-
-    // When the preview is opened we must trigger an initial refresh. We wait for the project to be
-    // smart and synched to do it.
-    project.runWhenSmartAndSyncedOnEdt(
-      this,
-      {
-        when (projectBuildStatusManager.status) {
-          // Do not refresh if we still need to build the project. Instead, only update the empty
-          // panel and editor notifications if needed.
-          ProjectStatus.NotReady,
-          ProjectStatus.NeedsBuild -> composeWorkBench.updateVisibilityAndNotifications()
-          else -> requestRefresh()
-        }
-      }
     )
 
     FastPreviewManager.getInstance(project)
