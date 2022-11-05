@@ -116,6 +116,9 @@ class BasicCompileTest {
                                                                 "import androidx.compose.runtime.Composable\n" +
                                                                 "@Composable fun hasLambdaA(content: @Composable () -> Unit) { }\n" +
                                                                 "@Composable fun hasLambdaB() { hasLambdaA {} }")
+
+    files["RecoverableError.kt"] = projectRule.fixture.configureByText("RecoverableError.kt",
+                                                                      "fun recoverableError() {\"a\".toString()}}")
   }
 
   @Test
@@ -144,6 +147,16 @@ class BasicCompileTest {
 
     // Re-compiling A.kt targetting bar(). Note that the offsets of bar() does not change despite foo() is now longer.
     output = compile(files["A.kt"], "bar").singleOutput()
+  }
+
+  @Test
+  fun recoverableErrors() {
+    try {
+      compile(files["RecoverableError.kt"], "recoverableError")
+      Assert.fail("RecoverableError.kt contains a lexical error and should not be updated by Live Edit")
+    } catch (e: LiveEditUpdateException) {
+      Assert.assertEquals("Expecting a top level declaration", e.message)
+    }
   }
 
   @Test

@@ -19,6 +19,11 @@ import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiErrorElement
+import com.intellij.psi.PsiRecursiveElementWalkingVisitor
+import com.intellij.psi.TokenType
+import com.intellij.psi.util.elementType
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
@@ -45,6 +50,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.source.PsiSourceFile
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
+import org.jetbrains.kotlin.types.isPrimitiveNumberUntil
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -179,6 +185,23 @@ private object CompileScopeImpl : CompileScope {
 
     val compilerConfiguration = CompilerConfiguration()
     compilerConfiguration.languageVersionSettings = langVersion
+
+    // The Kotlin compiler is built on top of the PSI parse tree which is used in the IDE.
+    // In order to support things like auto-complete when the user is still typing code, the IDE needs to be able to perform
+    // analysis of syntactically incorrect code during the Analysis phrase. The parser will try to continue to build the PSI tree by
+    // filling in PsiErrorElements to recover from lexical error states. Since the backend is also fine with generating code gen with
+    // PsiErrorElement, we need to do a quick pass to check if there are any PsiErrorElement in the tree and prevent Live Edit from
+    // sending invalid code to the device. It is important to note that the Analysis phrase would have triggered a full parse of the given
+    // file already so this is the best time to check.
+    var errorElement : PsiErrorElement? = null
+    input.forEach() {
+      it.acceptChildren(object : PsiRecursiveElementWalkingVisitor() {
+        override fun visitErrorElement(e: PsiErrorElement) {
+          errorElement = e
+        }
+      })
+    }
+    errorElement?.let { throw LiveEditUpdateException.compilationError(it.errorDescription, it.containingFile, null)}
 
     compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, module.name)
     KotlinFacet.get(module)?.let { kotlinFacet ->
