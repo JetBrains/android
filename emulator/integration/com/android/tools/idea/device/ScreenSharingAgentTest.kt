@@ -193,7 +193,7 @@ class ScreenSharingAgentTest {
         executeWithRetries<InterruptedException>(FIRST_TOUCH_RETRIES) {
           fakeUi.mouse.click(firstTouch.x, firstTouch.y)
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-          waitForLogs(deviceView.toDeviceDisplayCoordinates(firstTouch)!!.click(), INPUT_TIMEOUT)
+          waitForLogs(firstTouch.clickLogs(), INPUT_TIMEOUT)
         }
 
         // Now that we know touch events can be received by the app, conduct the real test.
@@ -205,7 +205,7 @@ class ScreenSharingAgentTest {
             fakeUi.mouse.click(x, y)
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-            waitForLogs(deviceView.toDeviceDisplayCoordinates(Point(x, y))!!.click(), INPUT_TIMEOUT)
+            waitForLogs(Point(x, y).clickLogs(), INPUT_TIMEOUT)
           }
         }
       }
@@ -334,10 +334,17 @@ class ScreenSharingAgentTest {
 
     private fun Int.downUp(): List<String> = listOf(".*: KEY DOWN: $this", ".*: KEY UP: $this")
 
-    private fun Point.click(): List<String> {
-      val coordinates = Pattern.quote("(${x.toDouble()},${y.toDouble()})")
-      return listOf(".*: TOUCH EVENT: ACTION_DOWN $coordinates", ".*: TOUCH EVENT: ACTION_UP $coordinates")
-    }
+    private fun Point.clickLogs(): List<String> = listOf(pressLog(), releaseLog())
+    private fun Point.pressLog(): String = logForAction("ACTION_DOWN")
+    private fun Point.releaseLog(): String = logForAction("ACTION_UP")
+    private fun Point.dragToLog(): String = logForAction("ACTION_MOVE")
+    private fun Point.logForAction(action: String): String = ".*: TOUCH EVENT: $action $coordinates"
+
+    private val Point.coordinates: String
+      get() {
+        val devicePoint = deviceView.toDeviceDisplayCoordinates(this)!!
+        return Pattern.quote("(${devicePoint.x.toDouble()},${devicePoint.y.toDouble()})")
+      }
 
     private fun waitFrames(numFrames: Int) {
       val framesToWaitFor = framesReceived + numFrames
