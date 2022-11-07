@@ -23,7 +23,6 @@ import static com.android.SdkConstants.TOOLS_URI;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.client.api.LintXmlConfiguration;
 import com.android.tools.lint.detector.api.Lint;
-import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.roots.GeneratedSourcesFilter;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
@@ -31,21 +30,17 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
-import com.intellij.psi.templateLanguages.TemplateLanguage;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.psi.xml.XmlToken;
-import com.intellij.psi.xml.XmlTokenType;
 import com.intellij.spellchecker.inspections.BaseSplitter;
 import com.intellij.spellchecker.inspections.PlainTextSplitter;
 import com.intellij.spellchecker.inspections.Splitter;
 import com.intellij.spellchecker.inspections.TextSplitter;
 import com.intellij.spellchecker.tokenizer.TokenConsumer;
 import com.intellij.spellchecker.tokenizer.Tokenizer;
-import com.intellij.spellchecker.tokenizer.TokenizerBase;
 import com.intellij.spellchecker.xml.XmlSpellcheckingStrategy;
 import com.intellij.util.Consumer;
 import com.intellij.util.xml.Converter;
@@ -123,28 +118,15 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
     }
 
     if (inEnglish(element)) {
-      if (element instanceof XmlToken && ((XmlToken)element).getTokenType() == XmlTokenType.XML_DATA_CHARACTERS) {
-        // For XML text, we need to use our own tokenizer to properly handle escapes in the XML output in the same
-        // way that AAPT would. But first, filter out common scenarios handled by super.getTokenizer before returning
-        // the TEXT_TOKENIZER:
-        PsiFile file = element.getContainingFile();
-        //noinspection InstanceofIncompatibleInterface
-        if (file == null || file.getLanguage() instanceof TemplateLanguage) {
-          return EMPTY_TOKENIZER;
-        }
-        PsiElement injection = InjectedLanguageManager.getInstance(element.getProject()).findInjectedElementAt(element.getContainingFile(),
-                                                                                                               element.getTextOffset());
-        if (injection != null) {
-          return EMPTY_TOKENIZER;
-        }
-
-        return AAPT_TOKENIZER;
-      }
-
       return super.getTokenizer(element);
     }
 
     return EMPTY_TOKENIZER;
+  }
+
+  @Override
+  protected Tokenizer<? extends PsiElement> createTextTokenizer() {
+    return new XmlTextTokenizer(AAPT_SPLITTER);
   }
 
   @NotNull
@@ -247,6 +229,10 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
   }
 
   private static class MyResourceReferenceTokenizer extends XmlAttributeValueTokenizer {
+    MyResourceReferenceTokenizer() {
+      super(TextSplitter.getInstance());
+    }
+
     @Nullable
     private static AndroidResourceReferenceBase findResourceReference(PsiElement element) {
       for (PsiReference reference : element.getReferences()) {
@@ -273,7 +259,6 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
   }
 
   private static final AaptXmlTextSplitter AAPT_SPLITTER = new AaptXmlTextSplitter();
-  private static final Tokenizer<PsiElement> AAPT_TOKENIZER = new TokenizerBase<>(AAPT_SPLITTER);
 
   /**
    * Splitter which splits XML strings up into text chunks, such that for example "word\nword2" will be
