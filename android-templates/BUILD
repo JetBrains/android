@@ -35,7 +35,7 @@ iml_module(
                 "cpu:3",
                 "no_test_mac",
             ],
-            "shard_count": 9,
+            "shard_count": 10,
             "data": [
                 "//prebuilts/studio/sdk:build-tools/latest",
                 "//prebuilts/studio/sdk:cmake",
