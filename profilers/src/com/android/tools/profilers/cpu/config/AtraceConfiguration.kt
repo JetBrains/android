@@ -24,7 +24,7 @@ import com.android.tools.profiler.proto.Trace.UserOptions.TraceType
 /**
  * Configuration for ATrace traces.
  */
-open class AtraceConfiguration(name: String) : ProfilingConfiguration(name) {
+class AtraceConfiguration(name: String) : ProfilingConfiguration(name) {
   @Slider(min = 1, max = 32, step = 1)
   @OptionsProperty(group = TRACE_CONFIG_GROUP, order = 100, name = "Buffer size limit:",
                    description = "In memory buffer size for capturing trace events.",
@@ -34,6 +34,16 @@ open class AtraceConfiguration(name: String) : ProfilingConfiguration(name) {
   override fun buildUserOptions(): Trace.UserOptions.Builder {
     return Trace.UserOptions.newBuilder()
       .setBufferSizeInMb(profilingBufferSizeInMb)
+  }
+
+  override fun getOptions(): Trace.AtraceOptions {
+    return Trace.AtraceOptions.newBuilder()
+      .setBufferSizeInMb(profilingBufferSizeInMb)
+      .build()
+  }
+
+  override fun addOptions(configBuilder: Trace.TraceConfiguration.Builder) {
+    configBuilder.atraceOptions = options
   }
 
   override fun getTraceType(): TraceType {

@@ -38,6 +38,18 @@ class ArtSampledConfiguration(name: String) : ProfilingConfiguration(name) {
       .setSamplingIntervalUs(profilingSamplingIntervalUs)
   }
 
+  override fun getOptions(): Trace.ArtOptions {
+    return Trace.ArtOptions.newBuilder()
+      .setTraceMode(Trace.TraceMode.SAMPLED)
+      .setBufferSizeInMb(profilingBufferSizeInMb)
+      .setSamplingIntervalUs(profilingSamplingIntervalUs)
+      .build()
+  }
+
+  override fun addOptions(configBuilder: Trace.TraceConfiguration.Builder) {
+    configBuilder.artOptions = options
+  }
+
   override fun getTraceType(): Trace.UserOptions.TraceType {
     return Trace.UserOptions.TraceType.ART
   }

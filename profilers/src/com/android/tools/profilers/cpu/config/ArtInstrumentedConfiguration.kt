@@ -36,6 +36,17 @@ class ArtInstrumentedConfiguration(name: String) : ProfilingConfiguration(name) 
       .setBufferSizeInMb(profilingBufferSizeInMb)
   }
 
+  override fun getOptions(): Trace.ArtOptions {
+    return Trace.ArtOptions.newBuilder()
+      .setTraceMode(TraceMode.INSTRUMENTED)
+      .setBufferSizeInMb(profilingBufferSizeInMb)
+      .build()
+  }
+
+  override fun addOptions(configBuilder: Trace.TraceConfiguration.Builder) {
+    configBuilder.artOptions = options
+  }
+
   override fun getTraceType(): Trace.UserOptions.TraceType {
     return Trace.UserOptions.TraceType.ART
   }

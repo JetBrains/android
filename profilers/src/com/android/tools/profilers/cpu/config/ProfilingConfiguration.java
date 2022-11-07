@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.config;
 
 import com.android.tools.adtui.model.options.OptionsProvider;
 import com.android.tools.adtui.model.options.OptionsProperty;
+import com.android.tools.idea.protobuf.GeneratedMessageV3;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Trace.UserOptions.TraceType;
 import org.jetbrains.annotations.NotNull;
@@ -114,6 +115,16 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
   }
 
   protected abstract Trace.UserOptions.Builder buildUserOptions();
+
+  /**
+   * Returns an options proto (field of {@link Trace.TraceConfiguration}) equivalent of the ProfilingConfiguration
+   */
+  protected abstract GeneratedMessageV3 getOptions();
+
+  /**
+   * Adds/sets the options field of a {@link Trace.TraceConfiguration} with proto conversion of {@link ProfilingConfiguration}
+   */
+  public abstract void addOptions(Trace.TraceConfiguration.Builder configBuilder);
 
   @Override
   public boolean equals(Object obj) {

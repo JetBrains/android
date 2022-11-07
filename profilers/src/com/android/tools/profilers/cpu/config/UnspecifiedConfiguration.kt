@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.config
 
+import com.android.tools.idea.protobuf.Empty
 import com.android.tools.profiler.proto.Trace
 
 /**
@@ -30,4 +31,11 @@ open class UnspecifiedConfiguration(name: String) : ProfilingConfiguration(name)
   override fun getRequiredDeviceLevel(): Int {
     return 0
   }
+
+  override fun getOptions(): Empty {
+    return Empty.newBuilder().build()
+  }
+
+  // Do not add anything. We only check for the presence of options, not the absence.
+  override fun addOptions(configBuilder: Trace.TraceConfiguration.Builder) {}
 }
