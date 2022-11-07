@@ -16,10 +16,12 @@
 package com.android.tools.idea.gradle.stubs.gradle;
 
 import java.util.ArrayList;
+import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.ProjectIdentifier;
+import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,9 +32,9 @@ import java.util.List;
 public class GradleProjectStub implements GradleProject {
   @NotNull private final String myName;
   @NotNull private final String myPath;
-  @NotNull private final ProjectIdentifierStub myProjectIdentifier;
-  @NotNull private final GradleScriptStub myScript;
-  @NotNull private final List<GradleTaskStub> myTasks;
+  @NotNull private final ProjectIdentifier myProjectIdentifier;
+  @NotNull private final GradleScript myScript;
+  @NotNull private final List<GradleTask> myTasks;
 
   public GradleProjectStub(@NotNull String name,
                            @NotNull String path,
@@ -41,20 +43,75 @@ public class GradleProjectStub implements GradleProject {
                            @NotNull String... tasks) {
     myName = name;
     myPath = path;
-    myScript = new GradleScriptStub(projectFile);
-    myProjectIdentifier = new ProjectIdentifierStub(myPath, rootDir);
+    myScript = new GradleScript() {
+      @Override
+      public File getSourceFile() {
+        return projectFile;
+      }
+    };
+    BuildIdentifier buildIdentifier = new BuildIdentifier() {
+      @Override
+      public File getRootDir() {
+        return rootDir;
+      }
+    };
+    myProjectIdentifier = new ProjectIdentifier() {
+      @Override
+      public String getProjectPath() {
+        return myPath;
+      }
+
+      @Override
+      public BuildIdentifier getBuildIdentifier() {
+        return buildIdentifier;
+      }
+    };
     myTasks = new ArrayList<>();
     for (String taskName : tasks) {
-      GradleTaskStub task = new GradleTaskStub(taskName, this);
+      GradleProject gradleProject = this;
+      GradleTask task = new GradleTask() {
+        @Override
+        public GradleProject getProject() {
+          return gradleProject;
+        }
+
+        @Override
+        public String getPath() {
+          throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getName() {
+          return taskName;
+        }
+
+        @Override
+        public String getDescription() {
+          return null;
+        }
+
+        @Override
+        public String getGroup() {
+          return null;
+        }
+
+        @Override
+        public ProjectIdentifier getProjectIdentifier() {
+          throw new UnsupportedOperationException(); // TODO(xof): could actually return myProjectIdentifier
+        }
+
+        @Override
+        public String getDisplayName() {
+          return taskName;
+        }
+
+        @Override
+        public boolean isPublic() {
+          return true;
+        }
+      };
       myTasks.add(task);
     }
-  }
-
-  // Used for GradleModuleModel construction
-  public GradleProjectStub(@NotNull List<String> taskNames,
-                           @NotNull String path,
-                           @NotNull File rootDir) {
-    this("", path, rootDir, new File("/"), taskNames.toArray(new String[0]));
   }
 
   @Override
@@ -97,7 +154,7 @@ public class GradleProjectStub implements GradleProject {
   }
 
   @Override
-  public GradleScriptStub getBuildScript() {
+  public GradleScript getBuildScript() {
     return myScript;
   }
 
