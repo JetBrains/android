@@ -29,7 +29,7 @@ import com.intellij.testFramework.PsiTestUtil
  * the runtime to be path of the classpath or else it'll throw an error.
  */
 private val composeRuntimePath = TestUtils.getWorkspaceRoot().resolve(
-  "tools/adt/idea/compose-ide-plugin/testData/lib/compose-runtime-1.3.0-SNAPSHOT.jar").toString()
+  "tools/adt/idea/compose-ide-plugin/testData/lib/compose-runtime-1.4.0-SNAPSHOT.jar").toString()
 
 /**
  * Loads the Compose runtime into the project class path. This allows for tests using the compiler (Live Edit/FastPreview)

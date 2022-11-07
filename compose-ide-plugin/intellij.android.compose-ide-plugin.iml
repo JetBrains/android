@@ -20,10 +20,10 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.3.0-SNAPSHOT.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.4.0-SNAPSHOT.jar!/" />
         </CLASSES>
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.3.0-SNAPSHOT-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.4.0-SNAPSHOT-sources.jar!/" />
         </SOURCES>
         <JAVADOC />
         <SOURCES />

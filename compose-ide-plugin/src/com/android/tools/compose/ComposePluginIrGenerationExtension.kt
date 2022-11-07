@@ -33,8 +33,7 @@ private val liveEditPackageName = "${CompileScope::class.java.packageName}."
 class ComposePluginIrGenerationExtension : IrGenerationExtension {
   override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
     try {
-        ComposeIrGenerationExtension(configuration = CompilerConfiguration.EMPTY,
-                                     reportsDestination = null,
+        ComposeIrGenerationExtension(reportsDestination = null,
                                      metricsDestination = null,
                                      generateFunctionKeyMetaClasses = true,
                                      intrinsicRememberEnabled = false)

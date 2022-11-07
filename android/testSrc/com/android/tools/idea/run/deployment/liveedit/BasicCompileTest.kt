@@ -55,7 +55,7 @@ class BasicCompileTest {
    * the runtime to be path of the classpath or else it'll throw an error.
    */
   private val composeRuntimePath = TestUtils.getWorkspaceRoot().resolve(
-    "tools/adt/idea/compose-ide-plugin/testData/lib/compose-runtime-1.3.0-SNAPSHOT.jar").toString()
+    "tools/adt/idea/compose-ide-plugin/testData/lib/compose-runtime-1.4.0-SNAPSHOT.jar").toString()
 
   @get:Rule
   var projectRule = AndroidProjectRule.inMemory()
