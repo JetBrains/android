@@ -51,6 +51,7 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.AdditionalOptions;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
@@ -334,14 +335,17 @@ public class CpuProfilerStage extends StreamingStage {
     String traceFilePath = String.format(Locale.US, "%s/%s-%d.trace", DAEMON_DEVICE_DIR_PATH, process.getName(), System.nanoTime());
 
     setCaptureState(CaptureState.STARTING);
-    Trace.TraceConfiguration configuration = Trace.TraceConfiguration.newBuilder()
+    Trace.TraceConfiguration.Builder configurationBuilder = Trace.TraceConfiguration.newBuilder()
       .setAppName(process.getName())
       .setAbiCpuArch(TransportFileManager.getShortAbiName(getStudioProfilers().getDevice().getCpuAbi()))
       .setInitiationType(TraceInitiationType.INITIATED_BY_UI)
       .setTempPath(traceFilePath) // TODO b/133321803 switch back to having daemon generates and provides the path.
       .setUserOptions(config.toProto())
-      .addAllSymbolDirs(getStudioProfilers().getIdeServices().getNativeSymbolsDirectories())
-      .build();
+      .addAllSymbolDirs(getStudioProfilers().getIdeServices().getNativeSymbolsDirectories());
+
+    config.addOptions(configurationBuilder, Map.of(AdditionalOptions.APP_PKG_NAME, process.getName(), AdditionalOptions.SYMBOL_DIRS,
+                                                   getStudioProfilers().getIdeServices().getNativeSymbolsDirectories()));
+    Trace.TraceConfiguration configuration = configurationBuilder.build();
 
     Executor poolExecutor = getStudioProfilers().getIdeServices().getPoolExecutor();
     Commands.Command startCommand = Commands.Command.newBuilder()

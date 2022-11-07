@@ -18,12 +18,14 @@ package com.android.tools.profilers.cpu.config
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.Trace.TraceConfiguration
 import com.android.tools.profiler.proto.Trace.TraceMode
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.AdditionalOptions
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
 import perfetto.protos.PerfettoConfig
 import perfetto.protos.PerfettoConfig.ProcessStatsConfig
+
 class ProfilingConfigurationTest {
 
   @get:Rule
@@ -72,14 +74,11 @@ class ProfilingConfigurationTest {
       profilingBufferSizeInMb = 5678
     }
 
-    artSampledConfiguration.addOptions(configBuilder)
+
+    artSampledConfiguration.addOptions(configBuilder, emptyMap())
     val config = configBuilder.build()
 
     assertThat(config.hasArtOptions()).isTrue()
-    assertThat(config.hasAtraceOptions()).isFalse()
-    assertThat(config.hasSimpleperfOptions()).isFalse()
-    assertThat(config.hasPerfettoOptions()).isFalse()
-
     assertThat(config.artOptions.traceMode).isEqualTo(TraceMode.SAMPLED)
     assertThat(config.artOptions.samplingIntervalUs).isEqualTo(1234)
     assertThat(config.artOptions.bufferSizeInMb).isEqualTo(5678)
@@ -92,14 +91,10 @@ class ProfilingConfigurationTest {
       profilingBufferSizeInMb = 1234
     }
 
-    artInstrumentedConfiguration.addOptions(configBuilder)
+    artInstrumentedConfiguration.addOptions(configBuilder, emptyMap())
     val config = configBuilder.build()
 
     assertThat(config.hasArtOptions()).isTrue()
-    assertThat(config.hasAtraceOptions()).isFalse()
-    assertThat(config.hasSimpleperfOptions()).isFalse()
-    assertThat(config.hasPerfettoOptions()).isFalse()
-
     assertThat(config.artOptions.traceMode).isEqualTo(TraceMode.INSTRUMENTED)
     assertThat(config.artOptions.samplingIntervalUs).isEqualTo(0)
     assertThat(config.artOptions.bufferSizeInMb).isEqualTo(1234)
@@ -112,14 +107,10 @@ class ProfilingConfigurationTest {
       profilingBufferSizeInMb = 1234
     }
 
-    atraceConfiguration.addOptions(configBuilder)
+    atraceConfiguration.addOptions(configBuilder, emptyMap())
     val config = configBuilder.build()
 
-    assertThat(config.hasArtOptions()).isFalse()
     assertThat(config.hasAtraceOptions()).isTrue()
-    assertThat(config.hasSimpleperfOptions()).isFalse()
-    assertThat(config.hasPerfettoOptions()).isFalse()
-
     assertThat(config.atraceOptions.bufferSizeInMb).isEqualTo(1234)
   }
 
@@ -128,17 +119,12 @@ class ProfilingConfigurationTest {
     val configBuilder = TraceConfiguration.getDefaultInstance().toBuilder()
     val simpleperfConfiguration = SimpleperfConfiguration("MyConfiguration").apply {
       profilingSamplingIntervalUs = 1234
-      symbolDirs = listOf("foo", "bar")
     }
 
-    simpleperfConfiguration.addOptions(configBuilder)
+    simpleperfConfiguration.addOptions(configBuilder, mapOf(AdditionalOptions.SYMBOL_DIRS to listOf("foo", "bar")))
     val config = configBuilder.build()
 
-    assertThat(config.hasArtOptions()).isFalse()
-    assertThat(config.hasAtraceOptions()).isFalse()
     assertThat(config.hasSimpleperfOptions()).isTrue()
-    assertThat(config.hasPerfettoOptions()).isFalse()
-
     assertThat(config.simpleperfOptions.samplingIntervalUs).isEqualTo(1234)
     assertThat(config.simpleperfOptions.symbolDirsList).isEqualTo(listOf("foo", "bar"))
   }
@@ -148,17 +134,12 @@ class ProfilingConfigurationTest {
     val configBuilder = TraceConfiguration.getDefaultInstance().toBuilder()
     val perfettoConfiguration = PerfettoConfiguration("MyConfiguration").apply {
       profilingBufferSizeInMb = 1234
-      appPkgName = "foo"
     }
 
-    perfettoConfiguration.addOptions(configBuilder)
+    perfettoConfiguration.addOptions(configBuilder, mapOf(AdditionalOptions.APP_PKG_NAME to "foo"))
     val config = configBuilder.build()
 
-    assertThat(config.hasArtOptions()).isFalse()
-    assertThat(config.hasAtraceOptions()).isFalse()
-    assertThat(config.hasSimpleperfOptions()).isFalse()
     assertThat(config.hasPerfettoOptions()).isTrue()
-
     assertThat(config.perfettoOptions.buffersCount).isEqualTo(2)
     assertThat(config.perfettoOptions.getBuffers(0).sizeKb).isEqualTo(1234 * 1024)
     // 256 Kb is the hardcoded value used for the secondary buffer
@@ -185,8 +166,7 @@ class ProfilingConfigurationTest {
       "binder_driver", "binder_lock", "sched", "freq"
     )
     assertThat(actualDataSources[0].config.perfEventConfig.allCpus).isTrue()
-    assertThat(actualDataSources[0].config.perfEventConfig.targetCmdlineCount).isEqualTo(1)
-    assertThat(actualDataSources[0].config.perfEventConfig.targetCmdlineList[0]).isEqualTo("foo")
+    assertThat(actualDataSources[0].config.perfEventConfig.targetCmdlineList).containsExactly("foo")
     assertThat(actualDataSources[0].config.ftraceConfig.atraceAppsCount).isEqualTo(1)
 
     // Verify second data source (First Process and Thread Names) is built correctly.
@@ -229,7 +209,7 @@ class ProfilingConfigurationTest {
     val configBuilder = TraceConfiguration.getDefaultInstance().toBuilder()
     val unspecifiedConfiguration = UnspecifiedConfiguration("MyConfiguration");
 
-    unspecifiedConfiguration.addOptions(configBuilder)
+    unspecifiedConfiguration.addOptions(configBuilder, emptyMap())
     val config = configBuilder.build()
 
     assertThat(config.hasArtOptions()).isFalse()
@@ -243,7 +223,7 @@ class ProfilingConfigurationTest {
     val configBuilder = TraceConfiguration.getDefaultInstance().toBuilder()
     val importedConfiguration = ImportedConfiguration();
 
-    importedConfiguration.addOptions(configBuilder)
+    importedConfiguration.addOptions(configBuilder, emptyMap())
     val config = configBuilder.build()
 
     assertThat(config.hasArtOptions()).isFalse()

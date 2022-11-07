@@ -37,5 +37,5 @@ open class UnspecifiedConfiguration(name: String) : ProfilingConfiguration(name)
   }
 
   // Do not add anything. We only check for the presence of options, not the absence.
-  override fun addOptions(configBuilder: Trace.TraceConfiguration.Builder) {}
+  override fun addOptions(configBuilder: Trace.TraceConfiguration.Builder, additionalOptions: Map<AdditionalOptions, Any>) {}
 }

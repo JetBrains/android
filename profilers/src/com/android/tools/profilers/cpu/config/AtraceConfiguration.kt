@@ -42,7 +42,7 @@ class AtraceConfiguration(name: String) : ProfilingConfiguration(name) {
       .build()
   }
 
-  override fun addOptions(configBuilder: Trace.TraceConfiguration.Builder) {
+  override fun addOptions(configBuilder: Trace.TraceConfiguration.Builder, additionalOptions: Map<AdditionalOptions, Any>) {
     configBuilder.atraceOptions = options
   }
 

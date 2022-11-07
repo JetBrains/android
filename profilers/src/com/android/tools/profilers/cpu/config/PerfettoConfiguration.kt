@@ -33,7 +33,6 @@ class PerfettoConfiguration(name: String) : ProfilingConfiguration(name) {
                    description = "In memory buffer size for capturing trace events.",
                    unit = "Mb")
   var profilingBufferSizeInMb = DEFAULT_BUFFER_SIZE_MB
-  var appPkgName: String = ""
 
   private val counterFtraceEvents = listOf("thermal/thermal_temperature", "perf_trace_counters/perf_trace_user")
   private val fenceFtraceEvents = listOf("fence/signaled", "fence/fence_wait_start")
@@ -137,7 +136,6 @@ class PerfettoConfiguration(name: String) : ProfilingConfiguration(name) {
     // Enable perf counters (mem / oom score / HW VSYNC)
     val perfEventConfig = ftraceDataConfig.perfEventConfig.toBuilder()
     perfEventConfig.allCpus = true
-    perfEventConfig.addTargetCmdline(appPkgName)
     ftraceDataConfig.perfEventConfig = perfEventConfig.build()
 
     // In P and above "*" is supported, if we move to support O we will want to
@@ -188,8 +186,23 @@ class PerfettoConfiguration(name: String) : ProfilingConfiguration(name) {
       .build()
   }
 
-  override fun addOptions(configBuilder: Trace.TraceConfiguration.Builder) {
-    configBuilder.perfettoOptions = options
+  private fun setAppPkgName(optionsBuilder: TraceConfig.Builder, appPkgName: String) {
+    val ftraceDataSourceIndex = optionsBuilder.dataSourcesList.indexOfFirst { it.config.name.equals("linux.ftrace") }
+
+    if (ftraceDataSourceIndex == -1) {
+      return
+    }
+
+    optionsBuilder.dataSourcesBuilderList[ftraceDataSourceIndex].configBuilder.perfEventConfigBuilder.addTargetCmdline(appPkgName)
+  }
+
+  override fun addOptions(configBuilder: Trace.TraceConfiguration.Builder, additionalOptions: Map<AdditionalOptions, Any>) {
+    val perfettoOptionsBuilder = options.toBuilder()
+
+    val appPkgName = additionalOptions.getOrDefault(AdditionalOptions.APP_PKG_NAME, null) as String?
+    appPkgName?.let { setAppPkgName(perfettoOptionsBuilder, it) }
+
+    configBuilder.perfettoOptions = perfettoOptionsBuilder.build()
   }
 
   override fun getTraceType(): Trace.UserOptions.TraceType {

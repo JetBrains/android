@@ -56,6 +56,7 @@ import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.AdditionalOptions;
 import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -77,6 +78,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -264,15 +266,25 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     // TODO b/133321803 switch back to having daemon generates and provides the path.
     String traceFilePath = String.format(Locale.US, "%s/%s-%d.trace", DAEMON_DEVICE_DIR_PATH, appPackageName, System.nanoTime());
+
+    ProfilingConfiguration profilingConfiguration =
+      CpuProfilerConfigConverter.toProfilingConfiguration(startupConfig, device.getVersion().getFeatureLevel());
+
+    // TODO (b/259116828): Remove traceOptions/setUserOptions once transition from UserOptions to tech-specific options field is complete.
     Trace.UserOptions traceOptions =
       CpuProfilerConfigConverter.toProto(startupConfig, device.getVersion().getFeatureLevel());
-    Trace.TraceConfiguration configuration = Trace.TraceConfiguration.newBuilder()
+
+    Trace.TraceConfiguration.Builder configurationBuilder = Trace.TraceConfiguration.newBuilder()
       .setAppName(appPackageName)
       .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_STARTUP)
       .setAbiCpuArch(cpuAbi)
       .setTempPath(traceFilePath)
-      .setUserOptions(traceOptions)
-      .build();
+      .setUserOptions(traceOptions);
+
+    // Set the options field of the TraceConfiguration with the respective profiling configuration.
+    profilingConfiguration.addOptions(configurationBuilder, Map.of(AdditionalOptions.APP_PKG_NAME, appPackageName));
+    Trace.TraceConfiguration configuration = configurationBuilder.build();
+
     try {
       if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
         Commands.Command startCommand = Commands.Command.newBuilder()
@@ -301,7 +313,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
     featureTracker.trackCpuStartupProfiling(profilerDevice, ProfilingConfiguration.fromProto(configuration));
 
-    if (traceOptions.getTraceType() != Trace.UserOptions.TraceType.ART) {
+    if (profilingConfiguration.getTraceType() != Trace.UserOptions.TraceType.ART) {
       return "";
     }
 

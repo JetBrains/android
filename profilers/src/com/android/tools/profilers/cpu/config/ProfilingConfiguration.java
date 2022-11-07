@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.options.OptionsProperty;
 import com.android.tools.idea.protobuf.GeneratedMessageV3;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Trace.UserOptions.TraceType;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -30,6 +31,11 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
   public static final int DEFAULT_BUFFER_SIZE_MB = 8;
   public static final int DEFAULT_SAMPLING_INTERVAL_US = 1000;
   public static final String TRACE_CONFIG_GROUP = "Trace config";
+
+  public enum AdditionalOptions {
+    SYMBOL_DIRS,
+    APP_PKG_NAME
+  }
 
   /**
    * Name to identify the profiling preference. It should be displayed in the preferences list.
@@ -123,8 +129,10 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
 
   /**
    * Adds/sets the options field of a {@link Trace.TraceConfiguration} with proto conversion of {@link ProfilingConfiguration}
+   * The additional options are a property bag for additional fields that should be set during TraceConfiguration creation.
    */
-  public abstract void addOptions(Trace.TraceConfiguration.Builder configBuilder);
+  public abstract void addOptions(Trace.TraceConfiguration.Builder configBuilder,
+                                  Map<AdditionalOptions, ? extends Object> additionalOptions);
 
   @Override
   public boolean equals(Object obj) {
