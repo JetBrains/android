@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.project
 
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectPostStartupActivity
 import com.intellij.openapi.util.Key
 import org.jetbrains.plugins.groovy.util.removeUserData
 
@@ -28,8 +27,8 @@ import org.jetbrains.plugins.groovy.util.removeUserData
  * It is intended to be used to populate the project's directory with content while the project hasn't been yet completely loaded
  * and Android and other plugins haven't yet seen the project.
  */
-class AndroidNewProjectInitializationStartupActivity : DumbAware, StartupActivity {
-  override fun runActivity(project: Project) {
+class AndroidNewProjectInitializationStartupActivity : ProjectPostStartupActivity {
+  override suspend fun execute(project: Project) {
     val initializationRunnable = project.getUserData(INITIALIZER_KEY)
     if (initializationRunnable != null) {
       log.info("Scheduling new project initialization.")
@@ -37,6 +36,7 @@ class AndroidNewProjectInitializationStartupActivity : DumbAware, StartupActivit
       project.removeUserData(INITIALIZER_KEY)
     }
   }
+
   companion object {
     fun setProjectInitializer(project: Project, initializer: () -> Unit) {
       assert(project.getUserData(INITIALIZER_KEY) == null)
