@@ -17,11 +17,10 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.intellij.execution.RunConfigurationProducerService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectPostStartupActivity
 
-class ComposePreviewRunConfigurationStartupActivity : StartupActivity.DumbAware {
-
-  override fun runActivity(project: Project) {
+private class ComposePreviewRunConfigurationStartupActivity : ProjectPostStartupActivity {
+  override suspend fun execute(project: Project) {
     val producerClass = ComposePreviewRunConfigurationProducer::class.java
     val producerService = RunConfigurationProducerService.getInstance(project)
     // Make sure to remove the producer from the ignored list in case it was added at some point when the flag was disabled.
