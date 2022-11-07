@@ -191,7 +191,7 @@ class ScreenSharingAgentTest {
     runEventLogger {
       adb.logcat {
         // Ensure that touch events can be received by the app. We don't really care if this first point takes a few tries.
-        executeWithRetries<InterruptedException>(FIRST_TOUCH_RETRIES) {
+        executeWithRetries<InterruptedException>(LONG_DEVICE_OPERATION_TIMEOUT) {
           fakeUi.mouse.click(firstTouch.x, firstTouch.y)
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
           waitForLogs(firstTouch.clickLogs(), INPUT_TIMEOUT)
@@ -224,7 +224,7 @@ class ScreenSharingAgentTest {
     runEventLogger {
       adb.logcat {
         // Ensure that touch events can be received by the app. We don't really care if this first point takes a few tries.
-        executeWithRetries<InterruptedException>(FIRST_TOUCH_RETRIES) {
+        executeWithRetries<InterruptedException>(LONG_DEVICE_OPERATION_TIMEOUT) {
           fakeUi.mouse.click(firstTouch.x, firstTouch.y)
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
           waitForLogs(firstTouch.clickLogs(), INPUT_TIMEOUT)
@@ -287,7 +287,6 @@ class ScreenSharingAgentTest {
     private const val START_COMMAND = "am start -n $APP_PKG/.$ACTIVITY -f $NO_ANIMATIONS"
     private const val CLEAR_DATA_COMMAND = "pm clear $APP_PKG"
     private const val EVENT_LOGGER_INSTALLATION_MAX_RETRIES = 3
-    private const val FIRST_TOUCH_RETRIES = 10
 
     // Long timeout for longer device operations like app installation
     private val LONG_DEVICE_OPERATION_TIMEOUT = 30.seconds
