@@ -31,7 +31,7 @@ fun reportLiveEditError(exception: LiveEditUpdateException) {
   report("E: Live Edit " + errorMessage(exception))
 }
 
-fun leErrorMessage(type: LiveEditUpdateException.Error, source : String?) = "${type.message} ${source?.let {" in ${it}"}}. Live Edit is temporarily paused until all errors are fixed."
+fun leErrorMessage(type: LiveEditUpdateException.Error, source : String?) = "${type.message} ${source?.let {" in ${it}"}}. Live Edit is temporarily paused until all compilation errors are fixed."
 
 fun errorMessage(exception: LiveEditUpdateException) : String {
   val source: PsiFile? = exception.source ?: return "${exception.error.message}: \n ${exception.details} \n"

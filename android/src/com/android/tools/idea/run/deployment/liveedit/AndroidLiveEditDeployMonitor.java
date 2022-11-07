@@ -185,7 +185,7 @@ public class AndroidLiveEditDeployMonitor {
   private final ArrayList<EditEvent> bufferedEvents = new ArrayList<>();
 
   // For every files a user modify, we keep track of whether we were able to successfully compile it. As long as one file has an error,
-  // LE status remains in error.
+  // LE status remains in Paused state.
   private final Set<String> filesWithCompilationErrors = new HashSet<>();
 
   public void resetState() {
