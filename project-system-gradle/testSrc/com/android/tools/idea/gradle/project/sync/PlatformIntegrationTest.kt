@@ -468,6 +468,37 @@ class PlatformIntegrationTest {
 
 
   @Test
+  fun testSimpleApplicationReopened() {
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    run {
+      val log = preparedProject.openProjectWithEventLogging { project ->
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      }
+
+      expect.that(log).isEqualTo(
+        """
+      |started(.)
+      |succeeded(.)
+      |ended: SUCCESS
+      """.trimMargin()
+      )
+    }
+
+    run {
+      val log = preparedProject.openProjectWithEventLogging { project ->
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      }
+
+      expect.that(log).isEqualTo(
+        """
+      |skipped
+      |ended: SKIPPED
+      """.trimMargin()
+      )
+    }
+  }
+
+  @Test
   fun `exceptions can be deserialized`() {
     val preparedProject =
       projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)

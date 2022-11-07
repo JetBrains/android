@@ -237,7 +237,6 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     LOG.info(message)
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED, rootProjectPath)
-
     syncFinished(LastSyncState.SUCCEEDED)
     syncPublisher { syncSucceeded(project, rootProjectPath) }
   }
@@ -269,7 +268,6 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     }
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE, rootProjectPath)
-
     syncFinished(LastSyncState.FAILED)
     syncPublisher { syncFailed(project, causeMessage, rootProjectPath) }
   }
@@ -282,13 +280,13 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     addToEventLog(SYNC_NOTIFICATION_GROUP, resultMessage, MessageType.INFO, null)
     LOG.info(resultMessage)
 
-    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_CANCELLED, rootProjectPath)
 
     // If the initial sync has been cancelled we do not have any models, but we cannot stay in the unknown state forever as it blocks
     // various UI features.
     val newStateAfterCancellation =
       state.get { stateBeforeSyncStarted.takeUnless { it == LastSyncState.UNKNOWN } ?: LastSyncState.FAILED }
 
+    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_CANCELLED, rootProjectPath)
     syncFinished(newStateAfterCancellation)
     syncPublisher { syncCancelled(project, rootProjectPath) }
   }
@@ -297,6 +295,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
    * Triggered when a sync have been skipped, this happens when the project is setup by models from the cache.
    */
   fun syncSkipped(listener: GradleSyncListener?) {
+    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_SKIPPED, rootProjectPath = null)
     syncFinished(LastSyncState.SKIPPED)
     listener?.syncSkipped(project)
     syncPublisher { syncSkipped(project) }
@@ -368,7 +367,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
   /**
    * Logs a sync event using [UsageTracker]
    */
-  private fun logSyncEvent(kind: AndroidStudioEvent.EventKind, rootProjectPath: @SystemIndependent String) {
+  private fun logSyncEvent(kind: AndroidStudioEvent.EventKind, rootProjectPath: @SystemIndependent String?) {
     // Do not log an event if the project has been closed, working out the sync type for a disposed project results in
     // an error.
     if (project.isDisposed) return
