@@ -46,6 +46,7 @@ import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderImpl
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ScopeType
@@ -56,6 +57,7 @@ import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
 import com.android.tools.idea.projectsystem.emptySourceProvider
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.androidFacetsForNonHolderModules
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
@@ -71,9 +73,9 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.impl.scopes.ModulesScope
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
@@ -239,21 +241,49 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     return AndroidGradleClassJarProvider()
   }
 
+  /**
+   * Stores information about package names.
+   *
+   * 1. It stores information about scopes that should be searched using manifest index.
+   * 2. It stores mapping information from package name to [AndroidFacet]s that have that package name.
+   */
+  internal class PackageNameInfo(val indexQueryScope: GlobalSearchScope, val packageInfo: Map<String, List<AndroidFacet>>)
+
+  private fun getPackageNameInfo(project: Project): PackageNameInfo {
+    return CachedValuesManager.getManager(project).getCachedValue(project, CachedValueProvider {
+      val modulesWithoutNamespaceInModel = mutableSetOf<Module>()
+      val facetsFromModuleSystem = mutableMapOf<String, MutableList<AndroidFacet>>()
+
+      for (androidFacet in project.androidFacetsForNonHolderModules()) {
+        val namespace = GradleAndroidModel.get(androidFacet)?.androidProject?.namespace
+        if (namespace == null) {
+          modulesWithoutNamespaceInModel.add(androidFacet.module)
+        }
+        else {
+          val facets = facetsFromModuleSystem[namespace] ?: mutableListOf()
+          facets.add(androidFacet)
+          facetsFromModuleSystem[namespace] = facets
+        }
+      }
+      val indexQueryScope = ModulesScope(modulesWithoutNamespaceInModel, project)
+      return@CachedValueProvider CachedValueProvider.Result(
+        PackageNameInfo(indexQueryScope, facetsFromModuleSystem), ProjectSyncModificationTracker.getInstance(project)
+      )
+    })
+  }
+
   override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): List<AndroidFacet> {
-    val androidFacets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
-    val shouldQueryIndex = androidFacets.any { GradleAndroidModel.get(it)?.androidProject?.namespace == null }
-    val facetsFromModuleSystem = androidFacets.filter { GradleAndroidModel.get(it)?.androidProject?.namespace == packageName }
-    if (!shouldQueryIndex) {
+    val packageNameInfo = getPackageNameInfo(project)
+
+    val facetsFromModuleSystem = packageNameInfo.packageInfo[packageName] ?: emptyList()
+    if (GlobalSearchScope.isEmptyScope(packageNameInfo.indexQueryScope)) {
+      // No need to query the index, all package names (namespace(s)) are specified in Gradle build files.
       return facetsFromModuleSystem
     }
 
-    val projectScope = GlobalSearchScope.projectScope(project)
     try {
       val facetsFromManifestIndex = DumbService.getInstance(project).runReadActionInSmartMode<List<AndroidFacet>> {
-        AndroidManifestIndex.queryByPackageName(project, packageName, projectScope)
-      }.filter {
-        // Filter out any facets that have a manifest override for package name, as that takes priority.
-        GradleAndroidModel.get(it)?.androidProject?.namespace == null
+        AndroidManifestIndex.queryByPackageName(project, packageName, packageNameInfo.indexQueryScope)
       }
       return facetsFromManifestIndex + facetsFromModuleSystem
     }
@@ -265,7 +295,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     }
     // If the index is unavailable fall back to direct filtering of the package names returned by the module system which is supposed
     // to work in the dumb mode (i.e. it fallback to slow manifest parsing if the index is not available).
-    return androidFacets.filter { it.getModuleSystem().getPackageName() == packageName }
+    return project.androidFacetsForNonHolderModules().filter { it.getModuleSystem().getPackageName() == packageName }.toList()
   }
 
   override fun getKnownApplicationIds(project: Project): Set<String> {
