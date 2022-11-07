@@ -26,6 +26,7 @@ import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
 import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.MapDataContext
@@ -50,6 +51,12 @@ class CreateScratchFileActionTest {
 
   private val project get() = projectRule.project
   private val editor by lazy { createLogcatEditor(project) }
+
+  /**
+   * RangeMarker's are kept in the Document as weak reference (see IntervalTreeImpl#createGetter) so we need to keep them alive as long as
+   * they are valid.
+   */
+  private val markers = mutableListOf<RangeMarker>()
 
   @After
   fun tearDown() {
@@ -121,10 +128,13 @@ class CreateScratchFileActionTest {
       put(EDITOR, editor)
     })
   }
-}
 
-private fun EditorEx.putLogcatMessage(message: LogcatMessage) {
-  document.setText("foo") // it doesn't really matter what the text is
-  caretModel.moveToOffset(0)
-  document.createRangeMarker(0, 3).putUserData(LOGCAT_MESSAGE_KEY, message)
+  private fun EditorEx.putLogcatMessage(message: LogcatMessage) {
+    document.setText("foo") // it doesn't really matter what the text is
+    caretModel.moveToOffset(0)
+    document.createRangeMarker(0, 3).apply {
+      putUserData(LOGCAT_MESSAGE_KEY, message)
+      markers.add(this)
+    }
+  }
 }
