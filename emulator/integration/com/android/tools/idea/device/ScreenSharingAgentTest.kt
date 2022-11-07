@@ -230,17 +230,23 @@ class ScreenSharingAgentTest {
           waitForLogs(firstTouch.clickLogs(), INPUT_TIMEOUT)
         }
 
+        // Build a set of points in the rectangle from (50, 150) to (150, 250) spaced out by 10 pixels in each dimension.
         val pointsToTouch: List<Point> = (50..150 step 10).flatMap { x ->
           (150..250 step 10).map { y -> Point(x,y) }
         }
 
-        val random = Random(42) // Repeatably pseudo-random
-        for (points in pointsToTouch.shuffled(random).chunked(10)) {
-          fakeUi.mouse.press(points.first())
+        // Seed our RNG so every instance of the test will behave the same.
+        val random = Random(42)
+        // Partition the space into disjoint "random" paths of <= 10 points for which we will press on the first,
+        // drag through the rest, and then release. This will give us a good variety of angles and distances to
+        // drag the pointer.
+        val paths = pointsToTouch.shuffled(random).chunked(10)
+        for (path in paths) {
+          fakeUi.mouse.press(path.first())
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-          waitForLog(points.first().pressLog(), INPUT_TIMEOUT)
+          waitForLog(path.first().pressLog(), INPUT_TIMEOUT)
 
-          for(p in points.drop(1)) {
+          for(p in path.drop(1)) {
             fakeUi.mouse.dragTo(p)
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
             waitForLog(p.dragToLog(), INPUT_TIMEOUT)
@@ -248,7 +254,7 @@ class ScreenSharingAgentTest {
 
           fakeUi.mouse.release()
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-          waitForLog(points.last().releaseLog(), INPUT_TIMEOUT)
+          waitForLog(path.last().releaseLog(), INPUT_TIMEOUT)
         }
       }
     }
