@@ -28,11 +28,14 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.LowMemoryWatcher;
 import com.intellij.testFramework.PlatformLiteFixture;
+import com.intellij.util.ThrowableRunnable;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.function.BiConsumer;
 import org.assertj.core.util.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -514,6 +517,19 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     Assert.assertEquals(3, histogram1.histogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B").getObjectsCount());
     Assert.assertEquals(16, histogram1.histogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D").getTotalSizeInBytes());
     Assert.assertEquals(1, histogram1.histogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D").getObjectsCount());
+  }
+
+  @Test
+  public void testPopFromEmptyStackThrows() {
+    try {
+      assertThrows(
+        NoSuchElementException.class,
+        StackNode::popElementFromDepthFirstSearchStack
+      );
+    }
+    finally {
+      StackNode.clearDepthFirstSearchStack();
+    }
   }
 
   private static class ClassNameRecordingChildProcessor extends HeapTraverseChildProcessor {
