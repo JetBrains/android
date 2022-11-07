@@ -23,24 +23,25 @@ import kotlin.reflect.KClass
 
 @RunWith(Parameterized::class)
 class PairEnumFinderTest(
-  private val testParam: TestParam
+  name: String,
+  private val real: KClass<out Enum<*>>,
+  private val converter: EnumConverter<Enum<*>, Enum<*>>
 ) {
-  data class TestParam(val real: KClass<out Enum<*>>, val converter: EnumConverter<Enum<*>, Enum<*>>)
 
   @Test
-  fun exampleParameterizedTest() {
-    testParam.real.java.enumConstants.forEach { realEnum ->
-      val proto = testParam.converter.aToB(realEnum)
-      val result = testParam.converter.bToA(proto)
+  fun testEnumConversionBothWays() {
+    real.java.enumConstants.forEach { realEnum ->
+      val proto = converter.aToB(realEnum)
+      val result = converter.bToA(proto)
       Truth.assertThat(result).isEqualTo(realEnum)
     }
   }
 
   companion object {
-    @Parameterized.Parameters(name = "{0}")
+    @Parameterized.Parameters(name = "\"{0}\" conversion test")
     @JvmStatic
     fun myTestParameters() = PairEnumFinder.permissibleConversions.map {
-      TestParam(it.key, it.value as EnumConverter<Enum<*>, Enum<*>>)
+      arrayOf(it.key.simpleName, it.key, it.value as EnumConverter<Enum<*>, Enum<*>>)
     }
   }
 }
