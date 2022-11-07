@@ -27,4 +27,5 @@
     <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
   </component>
+  <component name="TestModuleProperties" production-module="intellij.android.compose-ide-plugin" />
 </module>
