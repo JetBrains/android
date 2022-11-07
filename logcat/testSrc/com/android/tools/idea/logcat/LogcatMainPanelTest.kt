@@ -82,6 +82,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.Disposer
@@ -117,13 +118,13 @@ import java.time.ZoneId
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.TimeoutException
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 
 /**
  * Tests for [LogcatMainPanel]
  */
-@org.junit.Ignore("b/241939879")
 class LogcatMainPanelTest {
   private val projectRule = ProjectRule()
   private val executor = Executors.newCachedThreadPool()
@@ -901,7 +902,7 @@ class LogcatMainPanelTest {
       LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "bar"),
     ))
     runInEdtAndWait { logcatMainPanel.setFilter("foo") }
-    waitForCondition { logcatMainPanel.editor.document.text.endsWith("foo\n") }
+    logcatMainPanel.editor.document.waitForCondition { text.endsWith("foo\n") }
     logcatMainPanel.messageProcessor.onIdle {
       runInEdtAndWait {
         val offset = logcatMainPanel.editor.document.immutableCharSequence.indexOf("app1")
@@ -927,7 +928,7 @@ class LogcatMainPanelTest {
       LogcatMessage(LogcatHeader(DEBUG, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "bar"),
     ))
     runInEdtAndWait { logcatMainPanel.setFilter("foo level:INFO") }
-    waitForCondition { logcatMainPanel.editor.document.text.endsWith("foo\n") }
+    logcatMainPanel.editor.document.waitForCondition { text.endsWith("foo\n") }
     logcatMainPanel.messageProcessor.onIdle {
       runInEdtAndWait {
         val offset = logcatMainPanel.editor.document.immutableCharSequence.indexOf(" I ")
@@ -951,7 +952,7 @@ class LogcatMainPanelTest {
       LogcatMessage(LogcatHeader(DEBUG, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "bar"),
     ))
     runInEdtAndWait { logcatMainPanel.setFilter(" level:INFO foo level:INFO") }
-    waitForCondition { logcatMainPanel.editor.document.text.endsWith("foo\n") }
+    logcatMainPanel.editor.document.waitForCondition { text.endsWith("foo\n") }
     logcatMainPanel.messageProcessor.onIdle {
       runInEdtAndWait {
         val offset = logcatMainPanel.editor.document.immutableCharSequence.indexOf(" I ")
@@ -1061,8 +1062,8 @@ class LogcatMainPanelTest {
     logcatMainPanel.processMessages(listOf(
       LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
     ))
-    waitForCondition {
-      logcatMainPanel.editor.document.text.trim() == """
+    logcatMainPanel.editor.document.waitForCondition {
+      text.trim() == """
         1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
       """.trimIndent()
     }
@@ -1083,8 +1084,8 @@ class LogcatMainPanelTest {
     logcatMainPanel.processMessages(listOf(
       LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
     ))
-    waitForCondition {
-      logcatMainPanel.editor.document.text.trim() == """
+    logcatMainPanel.editor.document.waitForCondition {
+      text.trim() == """
         1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
       """.trimIndent()
     }
@@ -1105,8 +1106,8 @@ class LogcatMainPanelTest {
     logcatMainPanel.processMessages(listOf(
       LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
     ))
-    waitForCondition {
-      logcatMainPanel.editor.document.text.trim() == """
+    logcatMainPanel.editor.document.waitForCondition {
+      text.trim() == """
         1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
       """.trimIndent()
     }
@@ -1141,8 +1142,8 @@ class LogcatMainPanelTest {
     whenever(iDevice.clients).thenReturn(arrayOf(client))
     AndroidDebugBridge.deviceChanged(iDevice, CHANGE_CLIENT_LIST)
 
-    waitForCondition {
-      logcatMainPanel.editor.document.text.contains("PROCESS STARTED (0) for package myapp")
+    logcatMainPanel.editor.document.waitForCondition {
+      text.contains("PROCESS STARTED (0) for package myapp")
     }
   }
 
@@ -1170,8 +1171,8 @@ class LogcatMainPanelTest {
     runInEdtAndWait {
       logcatMainPanel.setFilter("package:mine | tag:tag2")
     }
-    waitForCondition {
-      logcatMainPanel.editor.document.text.trim() == """
+    logcatMainPanel.editor.document.waitForCondition {
+      text.trim() == """
         1970-01-01 04:00:01.000     1-2     tag2                    app2                                 W  message2
       """.trimIndent()
     }
@@ -1254,3 +1255,20 @@ private fun waitForCondition(condition: () -> Boolean) = waitForCondition(TIMEOU
 
 private fun LogcatMainPanel.findBanner(text: String) =
   TreeWalker(this).descendants().first { it is EditorNotificationPanel && it.text == text } as EditorNotificationPanel
+
+// Attempting to fix b/241939879. Wait for a document to satisfy a condition. If it fails, print the document text and try again.
+// Even it passes the second attempt, throw an exception but we'll know that it succeeded on the second attempt.
+private fun Document.waitForCondition(condition: Document.() -> Boolean) {
+  try {
+    waitForCondition(TIMEOUT_SEC, SECONDS) { this.condition() }
+  } catch (e: TimeoutException) {
+    println("Document.waitForCondition() failed. Attempting again. Document text was:\n============\n$text\n============")
+    try {
+      waitForCondition(TIMEOUT_SEC, SECONDS) { this.condition() }
+    } catch (e: TimeoutException) {
+      println("Document.waitForCondition() failed again. Document text was:\n============\n$text\n============")
+      throw RuntimeException("Failed on the second attempt", e)
+    }
+    throw RuntimeException("Failed first but then passed", e)
+  }
+}
