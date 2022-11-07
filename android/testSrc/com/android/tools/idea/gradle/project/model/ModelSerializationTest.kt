@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
