@@ -15,7 +15,6 @@
     <orderEntry type="module" module-name="app-inspection.ide" />
     <orderEntry type="module" module-name="intellij.android.profilersAndroid" />
     <orderEntry type="module" module-name="intellij.android.adb" />
-    <orderEntry type="module" module-name="intellij.android.adddevicedialog" />
     <orderEntry type="module" module-name="app-inspection.inspectors.database" />
     <orderEntry type="module" module-name="intellij.android.lang" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
@@ -41,6 +40,7 @@
     <orderEntry type="module" module-name="app-inspection.inspectors.network.ide" />
     <orderEntry type="module" module-name="app-inspection.inspectors.backgroundtask.ide" />
     <orderEntry type="module" module-name="intellij.android.debuggers" />
+    <orderEntry type="module" module-name="intellij.android.device" />
     <orderEntry type="module" module-name="intellij.android.logcat" />
     <orderEntry type="module" module-name="intellij.android.device-explorer" />
     <orderEntry type="module" module-name="intellij.android.device-file-explorer-toolwindow" />
