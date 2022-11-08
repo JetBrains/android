@@ -18,6 +18,8 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
+import com.android.tools.idea.execution.common.ApplicationDeployer
+import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.ApkFileUnit
@@ -28,26 +30,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.project.Project
 
-/**
- * Deploys one app, described as [ApkInfo], at a time.
- */
-interface ApplicationDeployer {
-  @Throws(DeployerException::class)
-  fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions): Deployer.Result
 
-  @Throws(DeployerException::class)
-  fun applyChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions): Deployer.Result
-
-  @Throws(DeployerException::class)
-  fun applyCodeChangesDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions): Deployer.Result
-}
-
-data class DeployOptions(
-  val disabledDynamicFeatures: List<String>,
-  var pmInstallFlags: String,
-  val installOnAllUsers: Boolean,
-  val alwaysInstallWithPm: Boolean
-)
 
 class ApplicationDeployerImpl(private val project: Project,
                               val console: ConsoleView) : ApplicationDeployer {

@@ -20,11 +20,12 @@ import com.android.ddmlib.IDevice
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.concurrency.executeOnPooledThread
+import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ApplicationTerminator
-import com.android.tools.idea.run.configuration.AppRunSettings
 import com.android.tools.idea.run.configuration.isDebug
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.util.LaunchUtils

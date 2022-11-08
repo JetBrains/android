@@ -19,6 +19,8 @@ import com.android.ddmlib.IDevice
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.model.Apk
 import com.android.tools.deployer.model.App
+import com.android.tools.idea.execution.common.ApplicationDeployer
+import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.manifest.parser.XmlNode
 import com.android.tools.manifest.parser.components.ManifestActivityInfo

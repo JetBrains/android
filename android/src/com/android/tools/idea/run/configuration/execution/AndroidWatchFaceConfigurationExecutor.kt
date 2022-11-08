@@ -23,11 +23,11 @@ import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
+import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.configuration.AppRunSettings
 import com.android.tools.idea.run.configuration.WearBaseClasses
-import com.android.tools.idea.run.configuration.WearSurfaceLaunchOptions
 import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment

@@ -30,5 +30,6 @@
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
   </component>
 </module>

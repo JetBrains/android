@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.deployer.model.component.Complication
+import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.configuration.editors.AndroidComplicationConfigurationEditor

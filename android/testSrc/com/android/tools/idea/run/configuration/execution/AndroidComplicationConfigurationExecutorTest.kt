@@ -22,11 +22,12 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestResources
 import com.android.tools.deployer.model.component.Complication
+import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
-import com.android.tools.idea.run.configuration.AppRunSettings
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
 import com.android.tools.idea.run.configuration.getComplicationSourceTypes

@@ -21,6 +21,7 @@ iml_module(
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
         "//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.4.0-SNAPSHOT",
         "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
     ],
 )
 

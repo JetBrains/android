@@ -30,5 +30,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.core" />
+    <orderEntry type="module" module-name="intellij.android.execution.common" />
   </component>
 </module>

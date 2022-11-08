@@ -54,5 +54,6 @@
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
     <orderEntry type="library" name="studio-plugin-toml" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" />
+    <orderEntry type="module" module-name="intellij.android.execution.common" />
   </component>
 </module>

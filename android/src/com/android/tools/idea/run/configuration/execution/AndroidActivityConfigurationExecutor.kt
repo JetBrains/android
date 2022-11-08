@@ -19,13 +19,13 @@ import com.android.AndroidProjectTypes
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.App
+import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState
-import com.android.tools.idea.run.configuration.AppRunSettings
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.util.androidFacet

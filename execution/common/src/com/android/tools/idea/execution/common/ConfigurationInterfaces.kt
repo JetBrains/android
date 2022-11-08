@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.configuration
+package com.android.tools.idea.execution.common
 
 import com.android.tools.deployer.model.component.ComponentType
-import com.android.tools.idea.run.configuration.execution.DeployOptions
-import com.android.tools.idea.run.editor.AndroidDebuggerContext
 import com.intellij.execution.configurations.ModuleRunConfiguration
 import com.intellij.openapi.module.Module
 
@@ -38,10 +36,6 @@ interface ComponentLaunchOptions {
 interface WearSurfaceLaunchOptions : ComponentLaunchOptions {
   var componentName: String?
   val componentBaseClassesFqNames: Array<String>
-}
-
-interface RunConfigurationWithDebugger : ModuleRunConfiguration {
-  val androidDebuggerContext: AndroidDebuggerContext
 }
 
 interface AppRunConfiguration : ModuleRunConfiguration {

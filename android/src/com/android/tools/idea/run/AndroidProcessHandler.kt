@@ -19,7 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.run.configuration.AppRunConfiguration
+import com.android.tools.idea.execution.common.AppRunConfiguration
 import com.android.tools.idea.run.deployable.SwappableProcessHandler
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget
 import com.intellij.execution.DefaultExecutionTarget

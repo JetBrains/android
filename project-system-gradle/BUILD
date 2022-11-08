@@ -49,6 +49,7 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl[module]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
     ],
 )
 
@@ -136,6 +137,7 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module, test]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
     ],
 )
 

@@ -18,10 +18,10 @@ package com.android.tools.idea.run.activity.launch
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.ComponentType
+import com.android.tools.idea.execution.common.ComponentLaunchOptions
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider
-import com.android.tools.idea.run.configuration.ComponentLaunchOptions
 import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.intellij.execution.ExecutionException

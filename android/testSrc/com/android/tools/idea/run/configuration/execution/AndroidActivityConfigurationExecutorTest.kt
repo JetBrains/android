@@ -19,10 +19,11 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.services.ServiceOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
-import com.android.tools.idea.run.configuration.AppRunSettings
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
 import com.intellij.execution.RunManager

@@ -45,6 +45,8 @@
     <orderEntry type="module" module-name="intellij.android.compose-ide-plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-designer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST"/>
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.compose-designer" />
+
 </module>

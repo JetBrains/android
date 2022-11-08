@@ -26,7 +26,8 @@ import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
-import com.android.tools.idea.run.configuration.AppRunSettings
+import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.DeployOptions
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
