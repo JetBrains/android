@@ -33,13 +33,22 @@ public class LogFile {
   private static final int MAX_DELAY_MS = 1000;
   private final Path path;
 
+  /** The size of the log file's header, which we do not want to search when looking for matching lines. */
+  private final long headerSize;
+
   /** The current position on the log file, see {@code waitForMatchingLine} */
   private long position;
 
   private static final String CHECK_LOGS_INSTRUCTIONS = "For more information, check the logs: go/e2e-find-log-files";
 
   public LogFile(Path filePath) {
+    this(filePath, 0);
+  }
+
+  public LogFile(Path filePath, int headerSize) {
     path = filePath;
+    this.headerSize = headerSize;
+    position = headerSize;
   }
 
   public Matcher waitForMatchingLine(String regex, String failureRegex, long timeout, TimeUnit unit) throws IOException, InterruptedException {
@@ -126,6 +135,6 @@ public class LogFile {
   }
 
   public void reset() {
-    position = 0;
+    position = headerSize;
   }
 }

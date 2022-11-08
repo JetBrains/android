@@ -21,6 +21,7 @@ import com.android.utils.time.TimeSource
 import com.android.utils.time.toDurationUnit
 import java.io.FileWriter
 import java.io.IOException
+import java.lang.ProcessBuilder.Redirect.appendTo
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -36,6 +37,7 @@ class Adb private constructor(
   private val process: Process? = null,
   private val stdout: Path? = null,
   private val stderr: Path? = null,
+  private val headerSize: Int = 0,
 ): AutoCloseable {
 
   @Throws(IOException::class)
@@ -69,7 +71,7 @@ class Adb private constructor(
 
   @Throws(IOException::class, InterruptedException::class)
   fun waitForLog(expectedRegex: String, timeout: Long, unit: TimeUnit): Matcher =
-    LogFile(stdout).waitForMatchingLine(expectedRegex, timeout, unit)
+    LogFile(stdout, headerSize).waitForMatchingLine(expectedRegex, timeout, unit)
 
   @JvmSynthetic
   fun waitForLog(expectedRegex: String, timeout: Duration): Matcher = waitForLog(expectedRegex, timeout.inWholeMicroseconds, MICROSECONDS)
@@ -83,7 +85,7 @@ class Adb private constructor(
   @JvmSynthetic
   fun waitForLogs(expectedRegexes: Iterable<String>, timeout: Duration): List<Matcher> {
     val start = TimeSource.Monotonic.markNow()
-    val logFile = LogFile(stdout)
+    val logFile = LogFile(stdout, headerSize)
     return expectedRegexes.map {
       val remainingDuration = timeout - start.elapsedNow()
       logFile.waitForMatchingLine(it, remainingDuration.inWholeMicroseconds, MICROSECONDS)
@@ -135,17 +137,17 @@ class Adb private constructor(
       val stdout = logsDir.resolve("stdout.txt").also { Files.createFile(it) }
       val stderr = logsDir.resolve("stderr.txt").also { Files.createFile(it) }
       val header = "=== $stdout ${params.joinToString("-")} ${System.currentTimeMillis()} ===\n"
-      FileWriter(stdout.toString(), /* append = */ true).use { it.write(header) }
+      FileWriter(stdout.toString()).use { it.write(header) }
       FileWriter(stderr.toString()).use { it.write(header) }
       val command = listOf(sdk.sourceDir.resolve(SdkConstants.FD_PLATFORM_TOOLS).resolve(SdkConstants.FN_ADB).toString()) + params
       System.out.printf("Adb invocation '${command.joinToString(" ")}' has stdout log at: $stdout%n")
       val pb = ProcessBuilder(command).apply {
-        redirectOutput(stdout.toFile())
-        redirectError(stderr.toFile())
+        redirectOutput(appendTo(stdout.toFile()))
+        redirectError(appendTo(stderr.toFile()))
         environment()["HOME"] = home.toString()
         emulator?.let { environment()["ANDROID_SERIAL"] = emulator.serialNumber }
       }
-      return Adb(sdk, home, pb.start(), stdout, stderr)
+      return Adb(sdk, home, pb.start(), stdout, stderr, header.toByteArray().size)
     }
   }
 }
