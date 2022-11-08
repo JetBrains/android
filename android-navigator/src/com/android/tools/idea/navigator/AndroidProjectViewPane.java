@@ -81,11 +81,11 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
   // Note: This value is duplicated in ProjectViewImpl.java to set the default view to be the Android project view.
   public static final String ID = AndroidProjectView.ID;
 
-  private AtomicBoolean isProcessingChanges = new AtomicBoolean(false);
+  private final AtomicBoolean isProcessingChanges = new AtomicBoolean(false);
 
   public AndroidProjectViewPane(Project project) {
     super(project);
-    ProjectWideFacetListenersRegistry.getInstance(project).registerListener(new ProjectWideFacetAdapter<Facet>() {
+    ProjectWideFacetListenersRegistry.getInstance(project).registerListener(new ProjectWideFacetAdapter<>() {
       @Override
       public void facetAdded(@NotNull Facet facet) {
         somethingChanged();
@@ -185,8 +185,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
   }
 
   @Override
-  @NotNull
-  public PsiDirectory[] getSelectedDirectories() {
+  public PsiDirectory @NotNull [] getSelectedDirectories() {
     Object selectedElement = getSelectedElement();
     if (selectedElement instanceof PackageElement) {
       PackageElement packageElement = (PackageElement)selectedElement;
@@ -389,11 +388,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
 
   private static class AndroidProjectTreeStructure extends ProjectTreeStructure implements ProjectViewSettings {
 
-    private final String panelId;
-
     AndroidProjectTreeStructure(@NotNull Project project, @NotNull String panelId) {
       super(project, panelId);
-      this.panelId = panelId;
     }
 
     @Override
