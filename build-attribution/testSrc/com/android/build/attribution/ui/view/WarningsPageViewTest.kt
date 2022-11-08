@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
+import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
@@ -25,6 +26,8 @@ import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.WarningsDataPageModelImpl
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
+import com.android.build.attribution.ui.view.details.WarningsViewDetailPagesFactory
+import com.android.buildanalyzer.common.TaskCategory
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
@@ -38,6 +41,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Dimension
+import javax.swing.JEditorPane
 
 class WarningsPageViewTest {
   @get:Rule
@@ -60,7 +64,7 @@ class WarningsPageViewTest {
     task1.issues = task1.issues + listOf(TaskIssueUiDataContainer.TaskSetupIssue(task1, this, ""))
   }
 
-  private val data = MockUiData(tasksList = listOf(task1, task2, task3))
+  private val data = MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryWarning = true)
 
   private val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
 
@@ -115,6 +119,26 @@ class WarningsPageViewTest {
     // Assert
     Mockito.verify(mockHandlers).warningsTreeNodeSelected(nodeToSelect)
     Mockito.verifyNoMoreInteractions(mockHandlers)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testTaskCategoryDetailsPageHasLinkHandlerRegistered() {
+    val page = WarningsViewDetailPagesFactory(
+      model, mockHandlers, disposableRule.disposable
+    ).createDetailsPage(model.getNodeDescriptorById(WarningsPageId.taskCategory(TaskCategory.ANDROID_RESOURCES))!!)
+
+    TreeWalker(page).descendants().filterIsInstance<JEditorPane>().let { content ->
+      assertThat(content).hasSize(1)
+
+      val htmlLinksHandler = content.first().hyperlinkListeners.find { it is HtmlLinksHandler } as? HtmlLinksHandler
+      assertThat(htmlLinksHandler).isNotNull()
+
+      assertThat(htmlLinksHandler!!.registeredLinkActions.keys).containsExactly(
+        "AndroidMigrateToNonTransitiveRClassesAction",
+        "NON_TRANSITIVE_R_CLASS"
+      )
+    }
   }
 
   @Test

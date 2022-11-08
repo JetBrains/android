@@ -163,7 +163,7 @@ class WarningsViewDetailPagesFactory(
     layout = BorderLayout()
     val linksHandler = HtmlLinksHandler(actionHandlers)
     val content = taskCategoryWarningDetailsHtml(taskCategoryData, linksHandler)
-    add(htmlTextLabelWithFixedLines(content), BorderLayout.NORTH)
+    add(htmlTextLabelWithFixedLines(content, linksHandler), BorderLayout.NORTH)
   }
 
   private fun taskCategoryWarningDetailsHtml(taskCategoryData: CriticalPathTaskCategoryUiData, linksHandler: HtmlLinksHandler): String {

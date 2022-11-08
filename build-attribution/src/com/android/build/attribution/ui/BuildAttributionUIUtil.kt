@@ -22,6 +22,7 @@ import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.buildanalyzer.common.TaskCategory
 import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.utils.HtmlBuilder
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.util.text.StringUtil
@@ -163,7 +164,8 @@ internal const val warnIconHtml: String = "<icon alt='Warning' src='AllIcons.Gen
 internal const val infoIconHtml: String = "<icon alt='Information' src='AllIcons.General.BalloonInformation'>"
 
 class HtmlLinksHandler(val actionHandlers: ViewActionHandlers) : HyperlinkListener {
-  private val registeredLinkActions = mutableMapOf<String, Runnable>()
+  @get:VisibleForTesting
+  val registeredLinkActions = mutableMapOf<String, Runnable>()
 
   fun externalLink(text: String, link: BuildAnalyzerBrowserLinks): String {
     registeredLinkActions[link.name] = Runnable {
