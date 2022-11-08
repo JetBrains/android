@@ -59,5 +59,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="app-inspection.ide" />
+    <orderEntry type="library" scope="TEST" name="perfetto-proto" level="project" />
   </component>
 </module>

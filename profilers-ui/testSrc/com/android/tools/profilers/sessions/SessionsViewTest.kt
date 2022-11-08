@@ -556,7 +556,8 @@ class SessionsViewTest {
                           .setUserOptions(
                             Trace.UserOptions.newBuilder()
                               .setTraceType(Trace.UserOptions.TraceType.ART)
-                              .setTraceMode(Trace.TraceMode.SAMPLED)))
+                              .setTraceMode(Trace.TraceMode.SAMPLED))
+                          .setArtOptions(Trace.ArtOptions.newBuilder().setTraceMode(Trace.TraceMode.SAMPLED)))
       .build()
 
     myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
@@ -630,7 +631,8 @@ class SessionsViewTest {
                           .setUserOptions(
                             Trace.UserOptions.newBuilder()
                               .setTraceType(Trace.UserOptions.TraceType.ATRACE)
-                              .setTraceMode(Trace.TraceMode.INSTRUMENTED)))
+                              .setTraceMode(Trace.TraceMode.INSTRUMENTED))
+                          .setAtraceOptions(Trace.AtraceOptions.getDefaultInstance()))
       .setFromTimestamp(sessionStartNs + 1)
       .setToTimestamp(-1)
       .build()

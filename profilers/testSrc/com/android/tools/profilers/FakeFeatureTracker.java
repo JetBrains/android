@@ -16,7 +16,6 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
@@ -59,11 +58,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
    * Stores the last {@link FilterMetadata} passed to the tracker.
    */
   private FilterMetadata myLastFilterMetadata;
-
-  /**
-   * Stores the last {@link Trace.UserOptions.TraceType} passed to the tracker.
-   */
-  public Trace.UserOptions.TraceType myLastCpuTraceType;
 
   /**
    * Stores the last {@link CpuImportTraceMetadata} passed to the tracker.
@@ -278,10 +272,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
   @Override
   public void trackImportTrace(@NotNull CpuImportTraceMetadata cpuImportTraceMetadata) {
     myLastCpuImportTraceMetadata = cpuImportTraceMetadata;
-  }
-
-  public Trace.UserOptions.TraceType getLastCpuTraceType() {
-    return myLastCpuTraceType;
   }
 
   @Override

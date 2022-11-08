@@ -590,7 +590,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     ArtSampledConfiguration metadataConfig = (ArtSampledConfiguration)metadata.getProfilingConfiguration();
     assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
     assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
-    assertThat(metadataConfig.getTraceType()).isEqualTo(Trace.UserOptions.TraceType.ART);
+    assertThat(metadataConfig.getTraceType()).isEqualTo(TraceType.ART);
     assertThat(metadata.getParsingTimeMs()).isGreaterThan(0L);
     assertThat(metadata.getStoppingTimeMs()).isEqualTo(FakeCpuService.FAKE_STOPPING_DURATION_MS);
     assertThat(metadata.getRecordDurationMs()).isGreaterThan(0L);
@@ -653,7 +653,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     ArtSampledConfiguration metadataConfig = (ArtSampledConfiguration)metadata.getProfilingConfiguration();
     assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
     assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
-    assertThat(metadataConfig.getTraceType()).isEqualTo(Trace.UserOptions.TraceType.ART);
+    assertThat(metadataConfig.getTraceType()).isEqualTo(TraceType.ART);
     // Trace was generated, so trace size should be greater than 0
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
     // Capture duration is calculated from the elapsed time since recording has started.
@@ -684,7 +684,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     ArtSampledConfiguration metadataConfig = (ArtSampledConfiguration)metadata.getProfilingConfiguration();
     assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
     assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
-    assertThat(metadataConfig.getTraceType()).isEqualTo(Trace.UserOptions.TraceType.ART);
+    assertThat(metadataConfig.getTraceType()).isEqualTo(TraceType.ART);
     // Trace was generated, so trace size should be greater than 0
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
     // Capture duration is calculated from the elapsed time since recording has started.

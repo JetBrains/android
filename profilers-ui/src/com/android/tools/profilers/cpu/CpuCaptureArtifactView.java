@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.sessions.SessionArtifactView;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +43,7 @@ public class CpuCaptureArtifactView extends SessionArtifactView<CpuCaptureSessio
     assert !getArtifact().isOngoing();
     getSessionsView().getIdeProfilerComponents().createExportDialog().open(
       () -> "Export As",
-      () -> CpuProfiler.generateCaptureFileName(getArtifact().getArtifactProto().getConfiguration().getUserOptions().getTraceType()),
+      () -> CpuProfiler.generateCaptureFileName(TraceType.from(getArtifact().getArtifactProto().getConfiguration())),
       () -> "trace",
       file -> getArtifact().getProfilers().getIdeServices().saveFile(file, outputStream -> getArtifact().export(outputStream), null));
   }

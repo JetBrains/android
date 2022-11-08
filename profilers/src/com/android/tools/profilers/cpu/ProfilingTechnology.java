@@ -115,7 +115,7 @@ public enum ProfilingTechnology {
   }
 
   @NotNull
-  public static ProfilingTechnology fromTypeAndMode(@NotNull Trace.UserOptions.TraceType type,
+  public static ProfilingTechnology fromTypeAndMode(@NotNull TraceType type,
                                                     @NotNull Trace.TraceMode mode) {
     switch (type) {
       case ART:

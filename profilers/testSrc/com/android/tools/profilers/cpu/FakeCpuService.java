@@ -22,6 +22,7 @@ import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.profiler.proto.Trace;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -56,7 +57,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private long myTraceDurationNs = TimeUnit.SECONDS.toNanos(1);
 
-  private Trace.UserOptions.TraceType myProfilerType = Trace.UserOptions.TraceType.ART;
+  private TraceType myProfilerType = TraceType.ART;
 
   private List<CpuProfiler.GetThreadsResponse.Thread> myThreads = new ArrayList<>();
 
@@ -80,7 +81,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       status.setErrorMessage("StartProfilingApp error");
     }
     else {
-      myProfilerType = request.getConfiguration().getUserOptions().getTraceType();
+      myProfilerType = TraceType.from(request.getConfiguration());
 
       myStartedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
         .setTraceId(myTraceId)
@@ -120,11 +121,11 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     responseObserver.onCompleted();
   }
 
-  public Trace.UserOptions.TraceType getTraceType() {
+  public TraceType getTraceType() {
     return myProfilerType;
   }
 
-  public void setTraceType(Trace.UserOptions.TraceType profilerType) {
+  public void setTraceType(TraceType profilerType) {
     myProfilerType = profilerType;
   }
 

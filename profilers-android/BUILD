@@ -52,6 +52,7 @@ iml_module(
         "//tools/adt/idea/codenavigation[module]",
         "//prebuilts/tools/common/m2:trace-perfetto-library",
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module]",
+        "//tools/adt/idea/.idea/libraries:perfetto-proto[test]",
     ],
 )
 

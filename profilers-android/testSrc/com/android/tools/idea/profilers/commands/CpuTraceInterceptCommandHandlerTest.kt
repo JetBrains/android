@@ -29,6 +29,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.TransportServiceGrpc
+import com.android.tools.profilers.cpu.TraceConfigOptionsUtils
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth
@@ -147,13 +148,16 @@ class CpuTraceInterceptCommandHandlerTest {
     type = Commands.Command.CommandType.START_CPU_TRACE
     commandId = cmdId
     startCpuTrace = Cpu.StartCpuTrace.newBuilder().apply {
-      configuration = Trace.TraceConfiguration.newBuilder().apply {
+      val configuration = Trace.TraceConfiguration.newBuilder().apply {
         abiCpuArch = "FakeAbi"
         userOptions = Trace.UserOptions.newBuilder().apply {
-          // Use mapping to UserOptions.TraceType until we remove UserOptions.
+          // TODO (b/258542374): Remove TRACE_TYPE_MAP, UserOptions will have to be removed as well.
           this.traceType = ProfilingConfiguration.TRACE_TYPE_MAP[traceType]
         }.build()
-      }.build()
+      }
+      // Add the technology-specific options.
+      TraceConfigOptionsUtils.addDefaultTraceOptions(configuration, traceType)
+      this.configuration = configuration.build()
     }.build()
   }.build()
 }

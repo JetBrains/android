@@ -171,6 +171,9 @@ class LegacyCpuTraceCommandHandlerTest {
         traceMode = Trace.TraceMode.INSTRUMENTED
         traceType = Trace.UserOptions.TraceType.ART
       }.build()
+      artOptions = Trace.ArtOptions.newBuilder().apply {
+        traceMode = Trace.TraceMode.INSTRUMENTED
+      }.build()
     }.build()
 
     fun createMockClient(testPid: Int, traceBytes: ByteArray = FAKE_TRACE_BYTES): Client = mock(Client::class.java).also { thisClient ->

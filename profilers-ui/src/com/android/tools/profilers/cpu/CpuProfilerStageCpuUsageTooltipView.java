@@ -22,6 +22,7 @@ import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StageView;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.intellij.util.ui.JBUI;
 import java.util.List;
 import javax.swing.JComponent;
@@ -55,7 +56,8 @@ class CpuProfilerStageCpuUsageTooltipView extends TooltipView {
       }
       SeriesData<CpuTraceInfo> trace = traceSeries.get(0);
       String name =
-        ProfilingTechnology.fromTypeAndMode(trace.value.getTraceType(), trace.value.getTraceMode()).getName();
+        ProfilingTechnology.fromTypeAndMode(TraceType.from(trace.value.getTraceInfo().getConfiguration()), trace.value.getTraceMode())
+          .getName();
       mySelectionLabel.setText(name);
     }
     else {

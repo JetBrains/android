@@ -22,12 +22,13 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Trace
-import com.android.tools.profiler.proto.Trace.UserOptions.TraceType
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
@@ -91,13 +92,17 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
 
 
   private fun addTraceInfo(traceId: Long, startTimeSec: Long, endTimeSec: Long, traceType: TraceType) {
+    // TODO (b/258542374): Remove TRACE_TYPE_MAP, UserOptions will have to be removed as well.
+    val configuration = Trace.TraceConfiguration.newBuilder().setUserOptions(
+      Trace.UserOptions.newBuilder().setTraceType(ProfilingConfiguration.TRACE_TYPE_MAP[traceType]))
+
+    TraceConfigOptionsUtils.addDefaultTraceOptions(configuration, traceType)
+
     val traceInfo: Cpu.CpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
       .setTraceId(traceId)
       .setFromTimestamp(TimeUnit.SECONDS.toNanos(startTimeSec))
       .setToTimestamp(TimeUnit.SECONDS.toNanos(endTimeSec))
-      .setConfiguration(Trace.TraceConfiguration.newBuilder().setUserOptions(
-        Trace.UserOptions.newBuilder().setTraceType(traceType)))
-      .build()
+      .setConfiguration(configuration).build()
     val traceEventBuilder = Common.Event.newBuilder()
       .setGroupId(traceId)
       .setPid(FakeTransportService.FAKE_PROCESS.pid)

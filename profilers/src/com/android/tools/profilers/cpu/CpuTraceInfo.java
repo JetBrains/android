@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.ConfigurableDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Trace;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,8 +56,8 @@ public class CpuTraceInfo implements ConfigurableDurationData {
   }
 
   @NotNull
-  public Trace.UserOptions.TraceType getTraceType() {
-    return myInfo.getConfiguration().getUserOptions().getTraceType();
+  public TraceType getTraceType() {
+    return TraceType.from(myInfo.getConfiguration());
   }
 
   @NotNull

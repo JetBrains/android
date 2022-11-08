@@ -22,7 +22,6 @@ import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
-import com.android.tools.profiler.proto.Trace.UserOptions.TraceType;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
@@ -30,6 +29,7 @@ import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ImportedConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.systemtrace.AtraceExporter;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -177,7 +177,7 @@ public class CpuProfiler implements StudioProfiler {
       // to handle converting the format to a format that Systrace can support. The reason for the multi-part file
       // is because Atrace dumps a compressed data file every X interval and this file represents the concatenation of all
       // the individual dumps.
-      if (info.getConfiguration().getUserOptions().getTraceType() == TraceType.ATRACE) {
+      if (TraceType.from(info.getConfiguration()) == TraceType.ATRACE) {
         File trace = FileUtil.createTempFile(String.format("cpu_trace_%d", info.getTraceId()), ".trace", true);
         try (FileOutputStream out = new FileOutputStream(trace)) {
           out.write(traceResponse.getContents().toByteArray());
@@ -186,7 +186,7 @@ public class CpuProfiler implements StudioProfiler {
       }
       else {
         FileUtil.copy(new ByteArrayInputStream(traceResponse.getContents().toByteArray()), outputStream);
-        if (info.getConfiguration().getUserOptions().getTraceType() == TraceType.PERFETTO) {
+        if (TraceType.from(info.getConfiguration()) == TraceType.PERFETTO) {
           // TODO (b/184681183): Uncomment this when we know what we want the user experience to be.
           //PerfettoTrace.Trace trace = PerfettoTrace.Trace.newBuilder()
           //  .addPacket(PerfettoTrace.TracePacket.newBuilder()

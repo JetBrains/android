@@ -29,6 +29,7 @@ import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.intellij.openapi.diagnostic.Logger
 import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.profiler.proto.Trace
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.TimeUnit
 
@@ -62,10 +63,10 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     // in pre-O devices.
     return when (command.type) {
       Commands.Command.CommandType.START_CPU_TRACE -> {
-        command.startCpuTrace.configuration.userOptions.traceType == Trace.UserOptions.TraceType.ART
+        TraceType.from(command.startCpuTrace.configuration) == TraceType.ART
       }
       Commands.Command.CommandType.STOP_CPU_TRACE -> {
-        command.stopCpuTrace.configuration.userOptions.traceType == Trace.UserOptions.TraceType.ART
+        TraceType.from(command.stopCpuTrace.configuration) == TraceType.ART
       }
       else -> false
     }
@@ -83,7 +84,8 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
   private fun startTrace(command: Commands.Command) {
     val traceConfiguration = command.startCpuTrace.configuration
     val userOptions = traceConfiguration.userOptions
-    assert(userOptions.traceType == Trace.UserOptions.TraceType.ART)
+    val traceType = TraceType.from(traceConfiguration)
+    assert(traceType == TraceType.ART)
 
     val pid = command.pid
     val appPkgName = device.getClientName(pid)
@@ -171,7 +173,8 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
   private fun stopTrace(command: Commands.Command) {
     val traceConfiguration = command.stopCpuTrace.configuration
     val userOptions = traceConfiguration.userOptions
-    assert(userOptions.traceType == Trace.UserOptions.TraceType.ART)
+    val traceType = TraceType.from(traceConfiguration)
+    assert(traceType == TraceType.ART)
 
     val pid = command.pid
     val appPkgName = device.getClientName(pid)
