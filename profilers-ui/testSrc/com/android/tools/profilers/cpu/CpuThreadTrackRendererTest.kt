@@ -26,8 +26,6 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -38,6 +36,7 @@ import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
@@ -85,7 +84,7 @@ class CpuThreadTrackRendererTest {
     val fakeTimeline = DefaultTimeline()
     val mockCapture = Mockito.mock(CpuCapture::class.java).apply {
       whenever(range).thenReturn(Range())
-      whenever(type).thenReturn(Trace.UserOptions.TraceType.ATRACE)
+      whenever(type).thenReturn(TraceType.ATRACE)
       whenever(getCaptureNode(1)).thenReturn(captureNode)
       whenever(systemTraceData).thenReturn(sysTraceData)
       whenever(timeline).thenReturn(fakeTimeline)
@@ -120,7 +119,7 @@ class CpuThreadTrackRendererTest {
     // Mock an imported ART trace
     val mockCapture = Mockito.mock(CpuCapture::class.java)
     whenever(mockCapture.range).thenReturn(Range())
-    whenever(mockCapture.type).thenReturn(Trace.UserOptions.TraceType.ART)
+    whenever(mockCapture.type).thenReturn(TraceType.ART)
     whenever(mockCapture.getCaptureNode(1)).thenReturn(CaptureNode(StubCaptureNodeModel()))
     val threadTrackModel = TrackModel.newBuilder(
       CpuThreadTrackModel(
@@ -141,7 +140,7 @@ class CpuThreadTrackRendererTest {
     // Mock a recorded ART trace.
     val mockCapture = Mockito.mock(CpuCapture::class.java).apply {
       whenever(range).thenReturn(Range())
-      whenever(type).thenReturn(Trace.UserOptions.TraceType.ART)
+      whenever(type).thenReturn(TraceType.ART)
     }
     val threadTrackModel = TrackModel.newBuilder(
       CpuThreadTrackModel(

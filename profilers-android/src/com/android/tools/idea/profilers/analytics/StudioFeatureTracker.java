@@ -35,6 +35,7 @@ import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.energy.EnergyDuration;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
@@ -1040,7 +1041,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
         if (hasComposeTracingNodes != null) captureMetadata.setHasComposeTracingNodes(hasComposeTracingNodes);
 
         captureMetadata.setProfilingConfig(toStatsCpuProfilingConfig(myCpuCaptureMetadata.getProfilingConfiguration()));
-        if (myCpuCaptureMetadata.getProfilingConfiguration().getTraceType() == Trace.UserOptions.TraceType.ART) {
+        if (myCpuCaptureMetadata.getProfilingConfiguration().getTraceType() == TraceType.ART) {
           captureMetadata.setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC);
         }
         profilerEvent.setCpuCaptureMetadata(captureMetadata);
@@ -1075,8 +1076,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
           cpuConfigInfo.setType(CpuProfilingConfig.Type.PERFETTO);
           cpuConfigInfo.setSizeLimit(options.getBufferSizeInMb());
           break;
-        case UNSPECIFIED_TYPE:
-        case UNRECOGNIZED:
+        case UNSPECIFIED:
           break;
       }
       return cpuConfigInfo.build();

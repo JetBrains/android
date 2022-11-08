@@ -25,6 +25,7 @@ import org.junit.Test
 import org.junit.rules.ExpectedException
 import perfetto.protos.PerfettoConfig
 import perfetto.protos.PerfettoConfig.ProcessStatsConfig
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 
 class ProfilingConfigurationTest {
 
@@ -48,7 +49,7 @@ class ProfilingConfigurationTest {
     val art = config as ArtSampledConfiguration
     assertThat(config.name).isEqualTo("MyConfiguration")
     assertThat(config).isInstanceOf(ArtSampledConfiguration::class.java)
-    assertThat(config.traceType).isEqualTo(Trace.UserOptions.TraceType.ART)
+    assertThat(config.traceType).isEqualTo(TraceType.ART)
     assertThat(config.profilingSamplingIntervalUs).isEqualTo(123)
     assertThat(config.profilingBufferSizeInMb).isEqualTo(12)
   }

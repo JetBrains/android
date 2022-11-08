@@ -43,6 +43,7 @@ import com.android.tools.profilers.cpu.CpuProfilerStage.CaptureState;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.android.tools.profilers.event.FakeEventService;
 import java.io.File;
@@ -387,7 +388,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Make sure we tracked the correct configuration
     ProfilingConfiguration trackedConfig =
       ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata().getProfilingConfiguration();
-    assertThat(trackedConfig.getTraceType()).isEqualTo(Trace.UserOptions.TraceType.SIMPLEPERF);
+    assertThat(trackedConfig.getTraceType()).isEqualTo(TraceType.SIMPLEPERF);
   }
 
   @Test
@@ -618,8 +619,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     ArtSampledConfiguration metadataConfig = (ArtSampledConfiguration)metadata.getProfilingConfiguration();
     assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
     assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
-    assertThat(metadataConfig.getTraceType()).isEqualTo(Trace.UserOptions.TraceType.ART);
-    //assertThat(metadataConfig.getMode()).isEqualTo(Trace.TraceMode.SAMPLED);
+    assertThat(metadataConfig.getTraceType()).isEqualTo(TraceType.ART);
     // Capture duration is calculated from the elapsed time since recording has started.
     // Note the legacy pipeline would generate two instances of metadata. First, it gets the error status from
     // the StopProfilingApp rpc right away. Second, just like unified pipeline, InProgressTraceHandler will detect
@@ -891,7 +891,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     @NotNull
     @Override
     public CompletableFuture<CpuCapture> parse(
-      @NotNull File traceFile, long traceId, @Nullable Trace.UserOptions.TraceType preferredProfilerType, int idHint, @Nullable String nameHint) {
+      @NotNull File traceFile, long traceId, @Nullable TraceType preferredProfilerType, int idHint, @Nullable String nameHint) {
       CompletableFuture<CpuCapture> capture = new CompletableFuture<>();
       capture.cancel(true);
       return capture;

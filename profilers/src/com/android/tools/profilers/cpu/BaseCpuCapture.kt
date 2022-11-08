@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.perflib.vmtrace.ClockType
-import com.android.tools.profiler.proto.Trace.UserOptions.TraceType
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel
 import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel

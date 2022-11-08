@@ -68,9 +68,7 @@ public class CpuProfilerConfigConverter {
         cpuProfilerConfig = new CpuProfilerConfig(perfettoConfiguration.getName(), CpuProfilerConfig.Technology.SYSTEM_TRACE);
         cpuProfilerConfig.setBufferSizeMb(perfettoConfiguration.getProfilingBufferSizeInMb());
         break;
-      case UNSPECIFIED_TYPE:
-        // fall through
-      case UNRECOGNIZED:
+      case UNSPECIFIED:
         UnspecifiedConfiguration unspecifiedConfiguration = (UnspecifiedConfiguration) config;
         cpuProfilerConfig = new CpuProfilerConfig(unspecifiedConfiguration.getName(), CpuProfilerConfig.Technology.SAMPLED_JAVA);
         break;

@@ -38,6 +38,7 @@ import org.junit.Test
 import org.mockito.Mockito
 import java.util.concurrent.TimeUnit
 import javax.swing.JTable
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 
 class CaptureNodeSummaryDetailsViewTest {
 
@@ -61,7 +62,7 @@ class CaptureNodeSummaryDetailsViewTest {
       startGlobal = TimeUnit.SECONDS.toMicros(10)
       endGlobal = TimeUnit.SECONDS.toMicros(20)
     }
-    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, Double.MAX_VALUE), Trace.UserOptions.TraceType.PERFETTO).apply {
+    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, Double.MAX_VALUE), TraceType.PERFETTO).apply {
       dataSeries.add(CaptureNodeAnalysisModel(captureNode, Mockito.mock(CpuCapture::class.java), Utils::runOnUi))
     }
     val view = CaptureNodeSummaryDetailsView(profilersView, model)

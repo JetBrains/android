@@ -20,6 +20,7 @@ import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import org.jetbrains.annotations.NotNull;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 
 public enum ProfilingTechnology {
   ART_SAMPLED("Java/Kotlin Method Sample Recording (legacy)",
@@ -80,18 +81,18 @@ public enum ProfilingTechnology {
   }
 
   @NotNull
-  public Trace.UserOptions.TraceType getType() {
+  public TraceType getType() {
     switch (this) {
       case ART_SAMPLED:
-        return Trace.UserOptions.TraceType.ART;
+        return TraceType.ART;
       case ART_INSTRUMENTED:
-        return Trace.UserOptions.TraceType.ART;
+        return TraceType.ART;
       case ART_UNSPECIFIED:
-        return Trace.UserOptions.TraceType.ART;
+        return TraceType.ART;
       case SIMPLEPERF:
-        return Trace.UserOptions.TraceType.SIMPLEPERF;
+        return TraceType.SIMPLEPERF;
       case SYSTEM_TRACE:
-        return Trace.UserOptions.TraceType.ATRACE;
+        return TraceType.ATRACE;
     }
     throw new IllegalArgumentException("Unreachable code");
   }

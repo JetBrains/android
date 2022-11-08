@@ -58,6 +58,7 @@ import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.AdditionalOptions;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -319,7 +320,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
     featureTracker.trackCpuStartupProfiling(profilerDevice, ProfilingConfiguration.fromProto(configuration));
 
-    if (profilingConfiguration.getTraceType() != Trace.UserOptions.TraceType.ART) {
+    if (profilingConfiguration.getTraceType() != TraceType.ART) {
       return "";
     }
 

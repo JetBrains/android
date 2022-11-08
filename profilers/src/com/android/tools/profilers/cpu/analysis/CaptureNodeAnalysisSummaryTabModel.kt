@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
-import com.android.tools.profiler.proto.Trace.UserOptions.TraceType
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 
 /**
  * Analysis tab model for capture nodes.

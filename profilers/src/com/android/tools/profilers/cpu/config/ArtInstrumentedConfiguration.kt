@@ -47,8 +47,8 @@ class ArtInstrumentedConfiguration(name: String) : ProfilingConfiguration(name) 
     configBuilder.artOptions = options
   }
 
-  override fun getTraceType(): Trace.UserOptions.TraceType {
-    return Trace.UserOptions.TraceType.ART
+  override fun getTraceType(): TraceType {
+    return TraceType.ART
   }
 
   override fun getRequiredDeviceLevel(): Int {

@@ -205,8 +205,8 @@ class PerfettoConfiguration(name: String) : ProfilingConfiguration(name) {
     configBuilder.perfettoOptions = perfettoOptionsBuilder.build()
   }
 
-  override fun getTraceType(): Trace.UserOptions.TraceType {
-    return Trace.UserOptions.TraceType.PERFETTO
+  override fun getTraceType(): TraceType {
+    return TraceType.PERFETTO
   }
 
   override fun getRequiredDeviceLevel(): Int {

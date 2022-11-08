@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.options.OptionsProvider;
 import com.android.tools.adtui.model.options.OptionsProperty;
 import com.android.tools.idea.protobuf.GeneratedMessageV3;
 import com.android.tools.profiler.proto.Trace;
-import com.android.tools.profiler.proto.Trace.UserOptions.TraceType;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,6 +35,53 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
     SYMBOL_DIRS,
     APP_PKG_NAME
   }
+
+  public enum TraceType {
+    ART ("Art"),
+    ATRACE("Atrace"),
+    SIMPLEPERF("Simpleperf"),
+    PERFETTO("Perfetto"),
+    UNSPECIFIED("Unspecified");
+
+    @NotNull
+    public static TraceType from(@NotNull Trace.TraceConfiguration config) {
+      if (config.hasArtOptions()) {
+        return ART;
+      }
+      else if (config.hasAtraceOptions()) {
+        return ATRACE;
+      }
+      else if (config.hasSimpleperfOptions()) {
+        return SIMPLEPERF;
+      }
+      else if (config.hasPerfettoOptions()) {
+        return PERFETTO;
+      }
+      else {
+        return UNSPECIFIED;
+      }
+    }
+
+    @NotNull private final String myDisplayName;
+
+    TraceType(@NotNull String displayName) {
+      myDisplayName = displayName;
+    }
+
+    @NotNull
+    public String getDisplayName() {
+      return myDisplayName;
+    }
+  }
+
+  // TODO (b/258542374): Delete this mapping once UserOptions is removed and thus so is TraceType proto.
+  public static final Map<TraceType, Trace.UserOptions.TraceType> TRACE_TYPE_MAP = Map.of(
+    TraceType.ART, Trace.UserOptions.TraceType.ART,
+    TraceType.ATRACE, Trace.UserOptions.TraceType.ATRACE,
+    TraceType.SIMPLEPERF, Trace.UserOptions.TraceType.SIMPLEPERF,
+    TraceType.PERFETTO, Trace.UserOptions.TraceType.PERFETTO,
+    TraceType.UNSPECIFIED, Trace.UserOptions.TraceType.UNSPECIFIED_TYPE
+  );
 
   /**
    * Name to identify the profiling preference. It should be displayed in the preferences list.
@@ -116,7 +162,7 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
   public Trace.UserOptions toProto() {
     return buildUserOptions()
       .setName(getName())
-      .setTraceType(getTraceType())
+      .setTraceType(TRACE_TYPE_MAP.get(getTraceType()))
       .build();
   }
 

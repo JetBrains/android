@@ -28,6 +28,7 @@ import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
 import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import java.awt.GridLayout;
 import java.io.File;
@@ -80,22 +81,22 @@ public class CaptureNodeModelRendererVisualTest extends VisualTest {
   }
 
   private static CaptureNode parseArtTraceAndGetHNode() {
-    return parseTraceAndGetHNode("cpu_trace.trace", "main", Trace.UserOptions.TraceType.ART);
+    return parseTraceAndGetHNode("cpu_trace.trace", "main", TraceType.ART);
   }
 
   private static CaptureNode parseSimpleperfTraceAndGetHNode() {
-    return parseTraceAndGetHNode("simpleperf_trace.trace", "splayingbitmaps", Trace.UserOptions.TraceType.SIMPLEPERF);
+    return parseTraceAndGetHNode("simpleperf_trace.trace", "splayingbitmaps", TraceType.SIMPLEPERF);
   }
 
   private static CaptureNode parseTraceAndGetHNode(String traceFile, String nodeName,
-                                                   Trace.UserOptions.TraceType profilerType) {
+                                                   TraceType profilerType) {
     File file = TestUtils.resolveWorkspacePath(TEST_RESOURCE_DIR + traceFile).toFile();
     TraceParser parser;
     int traceId = 20;
-    if (profilerType == Trace.UserOptions.TraceType.ART) {
+    if (profilerType == TraceType.ART) {
       parser = new ArtTraceParser();
     }
-    else if (profilerType == Trace.UserOptions.TraceType.SIMPLEPERF) {
+    else if (profilerType == TraceType.SIMPLEPERF) {
       parser = new SimpleperfTraceParser();
     }
     else {

@@ -18,7 +18,6 @@ package com.android.tools.profilers.perfetto.traceprocessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.*
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.PowerCounterTracksResult
-import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CounterModel
@@ -33,6 +32,7 @@ import java.io.Serializable
 import java.util.Deque
 import java.util.LinkedList
 import java.util.concurrent.TimeUnit
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 
 class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializable {
 
@@ -99,7 +99,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
   override fun getCpuCores() = cpuCores
   override fun getPowerRails(): List<CounterModel> = powerRails
   override fun getBatteryDrain(): List<CounterModel> = batteryDrain
-  override fun getSystemTraceTechnology() = Trace.UserOptions.TraceType.PERFETTO
+  override fun getSystemTraceTechnology() = TraceType.PERFETTO
 
   // TODO(b/156578844): Fetch data from TraceProcessor error table to populate this.
   override fun isCapturePossibleCorrupted() = false

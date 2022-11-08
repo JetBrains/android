@@ -56,8 +56,8 @@ class SimpleperfConfiguration(name: String) : ProfilingConfiguration(name) {
     configBuilder.simpleperfOptions = simpleperfOptionsBuilder.build()
   }
 
-  override fun getTraceType(): Trace.UserOptions.TraceType {
-    return Trace.UserOptions.TraceType.SIMPLEPERF
+  override fun getTraceType(): TraceType {
+    return TraceType.SIMPLEPERF
   }
 
   override fun getRequiredDeviceLevel(): Int {

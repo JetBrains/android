@@ -18,13 +18,12 @@ package com.android.tools.profilers.cpu.systemtrace
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
-import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.ThreadState
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import perfetto.protos.PerfettoTrace
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 
 class SystemTraceCpuCaptureBuilderTest {
 
@@ -398,7 +397,7 @@ class SystemTraceCpuCaptureBuilderTest {
     override fun getDanglingThread(tid: Int): ThreadModel? = danglingThreads[tid]
     override fun getCpuCores(): List<CpuCoreModel> = cpuCores
 
-    override fun getSystemTraceTechnology() = Trace.UserOptions.TraceType.UNSPECIFIED_TYPE
+    override fun getSystemTraceTechnology() = TraceType.UNSPECIFIED
     override fun getPowerRails(): List<CounterModel> = powerRails
     override fun getBatteryDrain(): List<CounterModel> = batteryDrain
     override fun isCapturePossibleCorrupted() = false

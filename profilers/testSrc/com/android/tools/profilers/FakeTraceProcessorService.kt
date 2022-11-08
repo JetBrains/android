@@ -16,8 +16,7 @@
 package com.android.tools.profilers
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
-import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.Trace
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CounterModel
@@ -149,7 +148,7 @@ class FakeTraceProcessorService: TraceProcessorService {
     override fun getProcessById(id: Int) = getProcesses().find { it.id == id }
     override fun getDanglingThread(tid: Int): ThreadModel? = null
     override fun getCpuCores(): List<CpuCoreModel> = emptyList()
-    override fun getSystemTraceTechnology() = Trace.UserOptions.TraceType.PERFETTO
+    override fun getSystemTraceTechnology() = TraceType.PERFETTO
     override fun getPowerRails(): List<CounterModel> = emptyList()
     override fun getBatteryDrain(): List<CounterModel> = emptyList()
     override fun isCapturePossibleCorrupted() = false

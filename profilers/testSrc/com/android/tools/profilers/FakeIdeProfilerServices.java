@@ -48,6 +48,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 
 public class FakeIdeProfilerServices implements IdeProfilerServices {
 
@@ -331,18 +332,18 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     myShouldProceedYesNoDialog = shouldProceedYesNoDialog;
   }
 
-  public void addCustomProfilingConfiguration(String name, Trace.UserOptions.TraceType type) {
+  public void addCustomProfilingConfiguration(String name, TraceType type) {
     ProfilingConfiguration config;
-    if (type == Trace.UserOptions.TraceType.ART) {
+    if (type == TraceType.ART) {
       config = new ArtSampledConfiguration(name);
     }
-    else if (type == Trace.UserOptions.TraceType.SIMPLEPERF) {
+    else if (type == TraceType.SIMPLEPERF) {
       config = new SimpleperfConfiguration(name);
     }
-    else if (type == Trace.UserOptions.TraceType.PERFETTO) {
+    else if (type == TraceType.PERFETTO) {
       config = new PerfettoConfiguration(name);
     }
-    else if (type == Trace.UserOptions.TraceType.ATRACE) {
+    else if (type == TraceType.ATRACE) {
       config = new AtraceConfiguration(name);
     }
     else {

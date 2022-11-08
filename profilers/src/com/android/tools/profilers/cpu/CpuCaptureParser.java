@@ -21,11 +21,11 @@ import static com.google.wireless.android.sdk.stats.CpuImportTraceMetadata.Impor
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.protobuf.ByteString;
-import com.android.tools.profiler.proto.Trace.UserOptions.TraceType;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
 import com.android.tools.profilers.cpu.compose.ComposeTracingConstants;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
@@ -400,7 +400,7 @@ public class CpuCaptureParser {
     private CpuCapture parseToCapture(
       @NotNull File traceFile, long traceId, @NotNull TraceType profilerType) {
 
-      boolean unknownType = TraceType.UNSPECIFIED_TYPE.equals(profilerType);
+      boolean unknownType = TraceType.UNSPECIFIED.equals(profilerType);
 
       if (unknownType || profilerType == TraceType.ART) {
         CpuCapture capture =

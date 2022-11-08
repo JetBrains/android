@@ -17,18 +17,17 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.perflib.vmtrace.ClockType
-import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.cpu.nodemodel.NoSymbolModel
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 
 class BaseCpuCaptureTest {
   @Test
   fun updateClockType() {
-    val capture = BaseCpuCapture(42, Trace.UserOptions.TraceType.ART, Range(0.0, 1.0), CAPTURE_TREES)
+    val capture = BaseCpuCapture(42, TraceType.ART, Range(0.0, 1.0), CAPTURE_TREES)
     assertClockType(capture.captureNodes, ClockType.GLOBAL)
     capture.updateClockType(ClockType.THREAD)
     assertClockType(capture.captureNodes, ClockType.THREAD)
@@ -46,7 +45,7 @@ class BaseCpuCaptureTest {
         addChild(CaptureNode(SingleNameModel("bar")))
       }
     )
-    val capture = BaseCpuCapture(42, Trace.UserOptions.TraceType.SIMPLEPERF, true, null, Range(0.0, 1.0), captureTrees,
+    val capture = BaseCpuCapture(42, TraceType.SIMPLEPERF, true, null, Range(0.0, 1.0), captureTrees,
                                  setOf("path"))
     assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data is NoSymbolModel)
     capture.collapseNodesWithTags(setOf("path"))
