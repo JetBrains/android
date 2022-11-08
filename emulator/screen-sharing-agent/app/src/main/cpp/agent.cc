@@ -122,8 +122,7 @@ Agent::Agent(const vector<string>& args) {
 Agent::~Agent() = default;
 
 void Agent::Run() {
-  struct sigaction action;
-  memset(&action, 0, sizeof(action));
+  struct sigaction action = {};
   action.sa_handler = sighup_handler;
   int res = sigaction(SIGHUP, &action, nullptr);
   if (res < 0) {
