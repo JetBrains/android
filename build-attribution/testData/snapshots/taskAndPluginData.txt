@@ -150,10 +150,6 @@ Task                          : :app:processDebugResources
     PrimaryTaskCategory           : ANDROID_RESOURCES
     SecondaryTaskCategories       : LINKING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
-Task                          : :app:reportBuildAnalyzerIssues
-    TaskType                      : com.android.build.gradle.tasks.BuildAnalyzerTask
-    PrimaryTaskCategory           : MISC
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:validateSigningDebug
     TaskType                      : com.android.build.gradle.internal.tasks.ValidateSigningTask
     PrimaryTaskCategory           : VERIFICATION
@@ -361,10 +357,6 @@ Task                          : :lib:prepareLintJarForPublish
 Task                          : :lib:processDebugManifest
     TaskType                      : com.android.build.gradle.tasks.ProcessMultiApkApplicationManifest
     PrimaryTaskCategory           : MANIFEST
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
-Task                          : :lib:reportBuildAnalyzerIssues
-    TaskType                      : com.android.build.gradle.tasks.BuildAnalyzerTask
-    PrimaryTaskCategory           : MISC
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:syncDebugLibJars
     TaskType                      : com.android.build.gradle.internal.tasks.LibraryAarJarsTask

@@ -17,15 +17,16 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
-import com.android.buildanalyzer.common.TaskCategory
 import com.android.buildanalyzer.common.TaskCategoryIssue
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.flags.StudioFlags
 
 class TaskCategoryWarningsAnalyzer : BaseAnalyzer<TaskCategoryWarningsAnalyzer.Result>(),
                                      BuildAttributionReportAnalyzer,
                                      PostBuildProcessAnalyzer {
-   private val taskCategoryIssues = mutableListOf<TaskCategoryIssue>()
-   private var agpSupportsTaskCategories: Boolean = false
+  private val taskCategoryIssues = mutableListOf<TaskCategoryIssue>()
+  private var agpSupportsTaskCategories: Boolean = false
+  private val minAGPVersion = AgpVersion.parse("8.0.0-alpha08")
 
   override fun calculateResult(): Result = when {
     !StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.get() -> FeatureDisabled
@@ -38,13 +39,11 @@ class TaskCategoryWarningsAnalyzer : BaseAnalyzer<TaskCategoryWarningsAnalyzer.R
   }
 
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
-    agpSupportsTaskCategories = androidGradlePluginAttributionData.taskNameToTaskInfoMap.any {
-      it.value.taskCategoryInfo.primaryTaskCategory != TaskCategory.UNKNOWN
-    }
     taskCategoryIssues.addAll(androidGradlePluginAttributionData.taskCategoryIssues)
   }
 
   override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalyzersProxy, studioProvidedInfo: StudioProvidedInfo) {
+    agpSupportsTaskCategories = studioProvidedInfo.agpVersion != null && studioProvidedInfo.agpVersion >= minAGPVersion
     if (analyzersResult.annotationProcessorsAnalyzer.result.nonIncrementalAnnotationProcessorsData.isNotEmpty()) {
       taskCategoryIssues.add(TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR)
     }
