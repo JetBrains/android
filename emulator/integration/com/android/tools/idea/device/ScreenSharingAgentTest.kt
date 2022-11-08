@@ -35,7 +35,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.junit.AfterClass
-import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
@@ -65,11 +64,6 @@ class ScreenSharingAgentTestSuite : IdeaTestSuiteBase()
 @RunWith(JUnit4::class)
 @RunsInEdt
 class ScreenSharingAgentTest {
-  @Before
-  fun setUp() {
-    adb.runCommand("logcat", "-c", emulator=emulator)
-  }
-
   @Test
   fun framesReceived() {
     waitFrames(30)
@@ -336,7 +330,7 @@ class ScreenSharingAgentTest {
       adb.waitForDevice(emulator)
 
       // Don't bother starting the test if input sampling is still on.
-      adb.runCommand("shell", "su root getprop ro.input.resampling") {
+      adb.runCommand("shell", "su root getprop ro.input.resampling", emulator = emulator) {
         waitForLog("0", SHORT_DEVICE_OPERATION_TIMEOUT)
       }
 
@@ -393,6 +387,7 @@ class ScreenSharingAgentTest {
       }
 
     private fun Adb.logcat(block: Adb.() -> Unit) {
+      runCommand("logcat", "-c", emulator = emulator).waitForProcess(SHORT_DEVICE_OPERATION_TIMEOUT)
       runCommand("logcat", "$EVENT_LOGGER_TAG:D", "$AGENT_TAG:D", "*:S", emulator = emulator) { block() }
     }
 
