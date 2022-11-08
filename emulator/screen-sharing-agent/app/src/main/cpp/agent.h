@@ -32,7 +32,7 @@ public:
   Agent(const std::vector<std::string>& args);
   ~Agent();
 
-  void Run();
+  static void Run();
 
   // Sets orientation of the device display. A negative value tells the agent to update
   // the app-level orientation according to the previously set display orientation.
