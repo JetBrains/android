@@ -49,11 +49,21 @@ class ComposeCompletionWeigherTest {
   /** Regression test for b/155314487. */
   @Test
   fun testLookupElementOrder_materialThemeInStatement() {
+    doTestLookupElementOrder_materialThemeInStatement("androidx.compose.material")
+  }
+
+  /** Regression test for b/155314487. */
+  @Test
+  fun testLookupElementOrder_materialTheme3InStatement() {
+    doTestLookupElementOrder_materialThemeInStatement("androidx.compose.material3")
+  }
+
+  fun doTestLookupElementOrder_materialThemeInStatement(materialThemePackage: String) {
     myFixture.addFileToProject(
-      "src/androidx/compose/material/MaterialTheme.kt",
+      "src/${materialThemePackage.replace('.', '/')}/MaterialTheme.kt",
       // language=kotlin
       """
-      package androidx.compose.material
+      package $materialThemePackage
 
       import androidx.compose.runtime.Composable
 
@@ -98,7 +108,7 @@ class ComposeCompletionWeigherTest {
 
     // Then:
     Truth.assertThat(myFixture.renderedLookupElements).containsExactly(
-      "MaterialTheme (androidx.compose.material)",
+      "MaterialTheme ($materialThemePackage)",
       "MaterialTheme {...}",
       "MaterialTheme (com.example)",
     ).inOrder()
@@ -107,11 +117,21 @@ class ComposeCompletionWeigherTest {
   /** Regression test for b/155314487. */
   @Test
   fun testLookupElementOrder_materialThemeInArgument() {
+    doTestLookupElementOrder_materialThemeInArgument("androidx.compose.material")
+  }
+
+  /** Regression test for b/155314487. */
+  @Test
+  fun testLookupElementOrder_materialTheme3InArgument() {
+    doTestLookupElementOrder_materialThemeInArgument("androidx.compose.material3")
+  }
+
+  fun doTestLookupElementOrder_materialThemeInArgument(materialThemePackage: String) {
     myFixture.addFileToProject(
-      "src/androidx/compose/material/MaterialTheme.kt",
+      "src/${materialThemePackage.replace('.', '/')}/MaterialTheme.kt",
       // language=kotlin
       """
-      package androidx.compose.material
+      package $materialThemePackage
 
       import androidx.compose.runtime.Composable
 
@@ -171,7 +191,7 @@ class ComposeCompletionWeigherTest {
 
     // Then:
     Truth.assertThat(myFixture.renderedLookupElements).containsExactly(
-      "MaterialTheme (androidx.compose.material)",
+      "MaterialTheme ($materialThemePackage)",
       "MaterialTheme (com.example)",
       "MaterialTheme {...}",
     ).inOrder()

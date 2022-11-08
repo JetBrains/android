@@ -72,12 +72,14 @@ class ComposeCompletionWeigher : CompletionWeigher() {
 
 /** Set of fully-qualified names of non-Composable functions that should be promoted above standard Composables in a statement. */
 private val PROMOTED_NON_COMPOSABLES_IN_STATEMENTS = setOf(
-  "androidx.compose.material.MaterialTheme"
+  "androidx.compose.material.MaterialTheme",
+  "androidx.compose.material3.MaterialTheme",
 )
 
 /** Set of fully-qualified names of non-Composable functions that should be promoted in a value argument. */
 private val PROMOTED_NON_COMPOSABLES_IN_ARGUMENTS = setOf(
-  "androidx.compose.material.MaterialTheme"
+  "androidx.compose.material.MaterialTheme",
+  "androidx.compose.material3.MaterialTheme",
 )
 
 private fun LookupElement.isPromotedInStatement(): Boolean {
