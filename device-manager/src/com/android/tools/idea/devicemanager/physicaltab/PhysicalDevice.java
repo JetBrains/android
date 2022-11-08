@@ -16,11 +16,11 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.device.Resolution;
 import com.android.tools.idea.devicemanager.ConnectionType;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Key;
-import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.StorageDevice;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;

@@ -16,9 +16,9 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.device.Resolution;
 import com.android.tools.idea.devicemanager.AdbShellCommandExecutor;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
-import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.StorageDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FluentFuture;

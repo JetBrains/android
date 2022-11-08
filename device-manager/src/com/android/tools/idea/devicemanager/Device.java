@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager;
 
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.device.Resolution;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
