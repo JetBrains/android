@@ -401,11 +401,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
 
   private static class AndroidProjectTreeStructure extends ProjectTreeStructure implements ProjectViewSettings {
 
-    private final String panelId;
-
     AndroidProjectTreeStructure(@NotNull Project project, @NotNull String panelId) {
       super(project, panelId);
-      this.panelId = panelId;
     }
 
     @Override
@@ -420,11 +417,6 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     @Override
     protected AbstractTreeNode createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
       return new AndroidViewProjectNode(project, settings);
-    }
-
-    @Override
-    public boolean isShowVisibilityIcons() {
-      return ProjectView.getInstance(myProject).isShowVisibilityIcons(panelId);
     }
   }
 }
