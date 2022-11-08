@@ -46,6 +46,27 @@ class Adb private constructor(
     }
   }
 
+  /** Waits for the [Process] associated with this [Adb] to terminate. */
+  @Throws(InterruptedException::class)
+  fun waitForProcess() {
+    checkNotNull(process) { "No process associated with this Adb!" }
+    process.waitFor()
+  }
+
+  /** Waits at most [timeout] for the [Process] associated with this [Adb] to terminate. */
+  @Throws(InterruptedException::class)
+  fun waitForProcess(timeout: Long, unit: TimeUnit) {
+    checkNotNull(process) { "No process associated with this Adb!" }
+    process.waitFor(timeout, unit)
+  }
+
+  /** Waits at most [duration] for the [Process] associated with this [Adb] to terminate. */
+  @JvmSynthetic
+  @Throws(InterruptedException::class)
+  fun waitForProcess(duration: Duration) {
+    waitForProcess(duration.inWholeMicroseconds, MICROSECONDS)
+  }
+
   @Throws(IOException::class, InterruptedException::class)
   fun waitForLog(expectedRegex: String, timeout: Long, unit: TimeUnit): Matcher =
     LogFile(stdout).waitForMatchingLine(expectedRegex, timeout, unit)
