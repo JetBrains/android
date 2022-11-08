@@ -144,9 +144,6 @@ class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorP
     override fun update(event: AnActionEvent) {
       val enabled = panel.getDataModel().rowCount > 0
       event.presentation.isEnabled = enabled
-
-      // Hack: the FocusableActionButton will update when the state of the template presentation is updated:
-      templatePresentation.isEnabled = enabled
     }
 
     override fun actionPerformed(event: AnActionEvent) {
