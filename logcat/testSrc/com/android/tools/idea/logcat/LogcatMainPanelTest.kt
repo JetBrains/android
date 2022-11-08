@@ -40,6 +40,7 @@ import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
+import com.android.tools.idea.logcat.filters.LogcatMasterFilter
 import com.android.tools.idea.logcat.filters.ProjectAppFilter
 import com.android.tools.idea.logcat.filters.StringFilter
 import com.android.tools.idea.logcat.folding.FoldingDetector
@@ -902,7 +903,7 @@ class LogcatMainPanelTest {
       LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "bar"),
     ))
     runInEdtAndWait { logcatMainPanel.setFilter("foo") }
-    logcatMainPanel.editor.document.waitForCondition { text.endsWith("foo\n") }
+    logcatMainPanel.editor.document.waitForCondition(logcatMainPanel) { text.endsWith("foo\n") }
     logcatMainPanel.messageProcessor.onIdle {
       runInEdtAndWait {
         val offset = logcatMainPanel.editor.document.immutableCharSequence.indexOf("app1")
@@ -928,7 +929,7 @@ class LogcatMainPanelTest {
       LogcatMessage(LogcatHeader(DEBUG, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "bar"),
     ))
     runInEdtAndWait { logcatMainPanel.setFilter("foo level:INFO") }
-    logcatMainPanel.editor.document.waitForCondition { text.endsWith("foo\n") }
+    logcatMainPanel.editor.document.waitForCondition(logcatMainPanel) { text.endsWith("foo\n") }
     logcatMainPanel.messageProcessor.onIdle {
       runInEdtAndWait {
         val offset = logcatMainPanel.editor.document.immutableCharSequence.indexOf(" I ")
@@ -952,7 +953,7 @@ class LogcatMainPanelTest {
       LogcatMessage(LogcatHeader(DEBUG, 1, 2, "app2", "", "tag2", Instant.ofEpochMilli(1000)), "bar"),
     ))
     runInEdtAndWait { logcatMainPanel.setFilter(" level:INFO foo level:INFO") }
-    logcatMainPanel.editor.document.waitForCondition { text.endsWith("foo\n") }
+    logcatMainPanel.editor.document.waitForCondition(logcatMainPanel) { text.endsWith("foo\n") }
     logcatMainPanel.messageProcessor.onIdle {
       runInEdtAndWait {
         val offset = logcatMainPanel.editor.document.immutableCharSequence.indexOf(" I ")
@@ -1062,7 +1063,7 @@ class LogcatMainPanelTest {
     logcatMainPanel.processMessages(listOf(
       LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
     ))
-    logcatMainPanel.editor.document.waitForCondition {
+    logcatMainPanel.editor.document.waitForCondition(logcatMainPanel) {
       text.trim() == """
         1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
       """.trimIndent()
@@ -1084,7 +1085,7 @@ class LogcatMainPanelTest {
     logcatMainPanel.processMessages(listOf(
       LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
     ))
-    logcatMainPanel.editor.document.waitForCondition {
+    logcatMainPanel.editor.document.waitForCondition(logcatMainPanel) {
       text.trim() == """
         1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
       """.trimIndent()
@@ -1106,7 +1107,7 @@ class LogcatMainPanelTest {
     logcatMainPanel.processMessages(listOf(
       LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", Instant.ofEpochMilli(1000)), "message1"),
     ))
-    logcatMainPanel.editor.document.waitForCondition {
+    logcatMainPanel.editor.document.waitForCondition(logcatMainPanel) {
       text.trim() == """
         1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
       """.trimIndent()
@@ -1142,7 +1143,7 @@ class LogcatMainPanelTest {
     whenever(iDevice.clients).thenReturn(arrayOf(client))
     AndroidDebugBridge.deviceChanged(iDevice, CHANGE_CLIENT_LIST)
 
-    logcatMainPanel.editor.document.waitForCondition {
+    logcatMainPanel.editor.document.waitForCondition(logcatMainPanel) {
       text.contains("PROCESS STARTED (0) for package myapp")
     }
   }
@@ -1171,7 +1172,7 @@ class LogcatMainPanelTest {
     runInEdtAndWait {
       logcatMainPanel.setFilter("package:mine | tag:tag2")
     }
-    logcatMainPanel.editor.document.waitForCondition {
+    logcatMainPanel.editor.document.waitForCondition(logcatMainPanel) {
       text.trim() == """
         1970-01-01 04:00:01.000     1-2     tag2                    app2                                 W  message2
       """.trimIndent()
@@ -1256,19 +1257,26 @@ private fun waitForCondition(condition: () -> Boolean) = waitForCondition(TIMEOU
 private fun LogcatMainPanel.findBanner(text: String) =
   TreeWalker(this).descendants().first { it is EditorNotificationPanel && it.text == text } as EditorNotificationPanel
 
-// Attempting to fix b/241939879. Wait for a document to satisfy a condition. If it fails, print the document text and try again.
-// Even it passes the second attempt, throw an exception but we'll know that it succeeded on the second attempt.
-private fun Document.waitForCondition(condition: Document.() -> Boolean) {
+// Attempting to fix b/241939879. Wait for a document to satisfy a condition. If it fails, print some state information.
+private fun Document.waitForCondition(logcatMainPanel: LogcatMainPanel, condition: Document.() -> Boolean) {
   try {
     waitForCondition(TIMEOUT_SEC, SECONDS) { this.condition() }
   } catch (e: TimeoutException) {
-    println("Document.waitForCondition() failed. Attempting again. Document text was:\n============\n$text\n============")
-    try {
-      waitForCondition(TIMEOUT_SEC, SECONDS) { this.condition() }
-    } catch (e: TimeoutException) {
-      println("Document.waitForCondition() failed again. Document text was:\n============\n$text\n============")
-      throw RuntimeException("Failed on the second attempt", e)
+    println("Document.waitForCondition() failed.")
+    println("Document text:")
+    println("====================================")
+    println(text)
+    println("====================================")
+    println("Message backlog:")
+    logcatMainPanel.messageBacklog.get().messages.forEach {
+      println(it)
     }
-    throw RuntimeException("Failed first but then passed", e)
+    println("Filter: ${logcatMainPanel.messageProcessor.logcatFilter}")
+    val messages = LogcatMasterFilter(logcatMainPanel.messageProcessor.logcatFilter).filter(logcatMainPanel.messageBacklog.get().messages)
+    println("Filtered messages:")
+    messages.forEach {
+      println(it)
+    }
+    throw e
   }
 }
