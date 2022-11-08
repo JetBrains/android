@@ -132,6 +132,34 @@ class ForegroundProcessDetection(
       deviceModels.remove(deviceModel)
       logger.info("Device model removed. Existing device models count: ${deviceModels.size}")
     }
+
+    /**
+     * Keeps track of the timestamp at connection for each device that was connected.
+     * This is used to detect when b/250589069 happens.
+     */
+    private val connectTimestamps = mutableMapOf<DeviceDescriptor, Long>()
+    private val loggedDevices = mutableSetOf<DeviceDescriptor>()
+
+    private fun addTimeStamp(deviceDescriptor: DeviceDescriptor, newTimeStamp: Long) {
+      if (connectTimestamps.contains(deviceDescriptor)) {
+        val prevTimeStamp = connectTimestamps[deviceDescriptor]!!
+        // the previous timestamp is >= the new timestamp, this means that b/250589069 happened.
+        if (prevTimeStamp >= newTimeStamp && !loggedDevices.contains(deviceDescriptor)) {
+          logger.info(
+            "Device re-connected \"${deviceDescriptor.manufacturer} ${deviceDescriptor.model} API${deviceDescriptor.apiLevel}\":" +
+            "previous timestamp ($prevTimeStamp) >= new timestamp ($newTimeStamp)"
+          )
+          // log only once per device
+          loggedDevices.add(deviceDescriptor)
+        }
+        else {
+          connectTimestamps[deviceDescriptor] = newTimeStamp
+        }
+      }
+      else {
+        connectTimestamps[deviceDescriptor] = newTimeStamp
+      }
+    }
   }
 
   val foregroundProcessListeners = mutableListOf<ForegroundProcessListener>()
@@ -158,6 +186,8 @@ class ForegroundProcessDetection(
 
             val timeRequest = Transport.TimeRequest.newBuilder().setStreamId(stream.streamId).build()
             val currentTime = activity.streamChannel.client.getCurrentTime(timeRequest).timestampNs
+
+            addTimeStamp(streamDevice, currentTime)
 
             // start listening for LAYOUT_INSPECTOR_FOREGROUND_PROCESS events
             launch {
