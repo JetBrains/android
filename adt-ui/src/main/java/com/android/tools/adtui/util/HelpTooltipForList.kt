@@ -61,8 +61,5 @@ class HelpTooltipForList<E> : HelpTooltip() {
     currentHoveredIndex = index
     hidePopup(false)
     isTooltipEnabled.set(index >= 0 && callback(index, this))
-    if (isTooltipEnabled.get()) {
-      initPopupBuilder(this)
-    }
   }
 }
