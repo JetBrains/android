@@ -409,10 +409,5 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     protected AbstractTreeNode createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
       return new AndroidViewProjectNode(project, settings);
     }
-
-    @Override
-    public boolean isShowVisibilityIcons() {
-      return ProjectView.getInstance(myProject).isShowVisibilityIcons(panelId);
-    }
   }
 }
