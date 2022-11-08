@@ -347,6 +347,7 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents[0].displayName).isEqualTo("Google Pixel 4")
     assertThat(contentManager.contents[1].displayName).isEqualTo("Google Pixel 6")
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Google Pixel 6")
+    assertThat(toolWindow.isVisible).isTrue()
 
     requestAttention(device1.serialNumber)
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Google Pixel 4")
@@ -354,6 +355,26 @@ class EmulatorToolWindowManagerTest {
     agentRule.disconnectDevice(device1)
     agentRule.disconnectDevice(device2)
     waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+  }
+
+  @Test
+  fun testPhysicalDeviceRequestsAttentionMirroringDisabled() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    deviceMirroringSettings.deviceMirroringEnabled = false
+    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
+    windowFactory.createToolWindowContent(project, toolWindow)
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+
+    val device1 = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+    requestAttention(device1.serialNumber)
+
+    dispatchAllEventsInIdeEventQueue()
+    awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    dispatchAllEventsInIdeEventQueue()
+    assertThat(toolWindow.isVisible).isFalse()
   }
 
   @Test

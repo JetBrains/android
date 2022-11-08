@@ -206,18 +206,20 @@ internal class EmulatorToolWindowManager @AnyThread private constructor(
 
     messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, this)
 
-    UIUtil.invokeLaterIfNeeded {
-      createPhysicalDeviceWatcherIfToolWindowAvailable(ToolWindowManager.getInstance(project))
-      if (physicalDeviceWatcher == null) {
-        messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
+    if (deviceMirroringSettings.deviceMirroringEnabled) {
+      UIUtil.invokeLaterIfNeeded {
+        createPhysicalDeviceWatcherIfToolWindowAvailable(ToolWindowManager.getInstance(project))
+        if (physicalDeviceWatcher == null) {
+          messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
 
-          override fun toolWindowsRegistered(ids: List<String>, toolWindowManager: ToolWindowManager) {
-            if (ids.contains(RUNNING_DEVICES_TOOL_WINDOW_ID) && deviceMirroringSettings.deviceMirroringEnabled &&
-                physicalDeviceWatcher == null) {
-              createPhysicalDeviceWatcherIfToolWindowAvailable(toolWindowManager)
+            override fun toolWindowsRegistered(ids: List<String>, toolWindowManager: ToolWindowManager) {
+              if (ids.contains(RUNNING_DEVICES_TOOL_WINDOW_ID) && deviceMirroringSettings.deviceMirroringEnabled &&
+                  physicalDeviceWatcher == null) {
+                createPhysicalDeviceWatcherIfToolWindowAvailable(toolWindowManager)
+              }
             }
-          }
-        })
+          })
+        }
       }
     }
   }
