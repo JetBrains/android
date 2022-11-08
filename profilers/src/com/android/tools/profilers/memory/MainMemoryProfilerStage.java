@@ -229,12 +229,14 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   }
 
   public void toggleNativeAllocationTracking() {
-    assert getStudioProfilers().getProcess() != null;
     Transport.ExecuteResponse response;
     if (!myNativeAllocationTracking) {
+      assert getStudioProfilers().getProcess() != null;
       response = startNativeAllocationTracking();
     }
     else {
+      // Not asserting on `getStudioProfilers().getProcess()` because it would be null if the user stops the session
+      // before stopping native allocation tracking first.
       response = stopNativeAllocationTracking(getPendingCaptureStartTime());
     }
     TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.TRACE_STATUS,
