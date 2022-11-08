@@ -127,7 +127,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -253,6 +252,14 @@ class ComposePreviewRepresentation(
      * [onDeactivate])
      */
     private val refreshFlow: MutableSharedFlow<RefreshRequest> = MutableSharedFlow(replay = 1)
+
+    /**
+     * Same as [refreshFlow] but only for requests to refresh UI and notifications (without
+     * refreshing the preview contents). This allows to bundle notifications and respects the
+     * activation/deactivation lifecycle.
+     */
+    private val refreshNotificationsAndVisibilityFlow: MutableSharedFlow<Unit> =
+      MutableSharedFlow(replay = 1)
   }
 
   /**
@@ -276,7 +283,7 @@ class ComposePreviewRepresentation(
         when (it) {
           // Do not refresh if we still need to build the project. Instead, only update the empty
           // panel and editor notifications if needed.
-          ProjectStatus.NeedsBuild -> composeWorkBench.updateVisibilityAndNotifications()
+          ProjectStatus.NeedsBuild -> requestVisibilityAndNotificationsUpdate()
           else -> requestRefresh()
         }
       }
@@ -389,7 +396,7 @@ class ComposePreviewRepresentation(
     if (isFromAnimationInspection) {
       onAnimationInspectionStop()
     } else {
-      composeWorkBench.updateVisibilityAndNotifications()
+      requestVisibilityAndNotificationsUpdate()
     }
     interactiveMode = ComposePreviewManager.InteractiveMode.STARTING
     val quickRefresh =
@@ -411,7 +418,7 @@ class ComposePreviewRepresentation(
       ticker.start()
       delegateInteractionHandler.delegate = interactiveInteractionHandler
       composeWorkBench.showPinToolbar = false
-      composeWorkBench.updateVisibilityAndNotifications()
+      requestVisibilityAndNotificationsUpdate()
 
       // While in interactive mode, display a small ripple when clicking
       surface.enableMouseClickDisplay()
@@ -426,7 +433,7 @@ class ComposePreviewRepresentation(
 
     LOG.debug("Stopping interactive")
     onInteractivePreviewStop()
-    composeWorkBench.updateVisibilityAndNotifications()
+    requestVisibilityAndNotificationsUpdate()
     onStaticPreviewStart()
     forceRefresh()?.invokeOnCompletion {
       interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
@@ -443,7 +450,7 @@ class ComposePreviewRepresentation(
     surface.disableMouseClickDisplay()
     delegateInteractionHandler.delegate = staticPreviewInteractionHandler
     composeWorkBench.showPinToolbar = true
-    composeWorkBench.updateVisibilityAndNotifications()
+    requestVisibilityAndNotificationsUpdate()
     ticker.stop()
     previewElementProvider.clearInstanceIdFilter()
     logInteractiveSessionMetrics()
@@ -751,7 +758,7 @@ class ComposePreviewRepresentation(
   }
 
   private fun afterBuildComplete(isSuccessful: Boolean) {
-    composeWorkBench.updateVisibilityAndNotifications()
+    requestVisibilityAndNotificationsUpdate()
   }
 
   private fun afterBuildStarted() {
@@ -759,7 +766,7 @@ class ComposePreviewRepresentation(
     // new ones will be subscribed once
     // build is complete and refresh is triggered.
     ComposePreviewAnimationManager.invalidate()
-    composeWorkBench.updateVisibilityAndNotifications()
+    requestVisibilityAndNotificationsUpdate()
   }
 
   /** Initializes the flows that will listen to different events and will call [requestRefresh]. */
@@ -778,8 +785,20 @@ class ComposePreviewRepresentation(
         }
       }
 
+      // Flow to collate and process refreshNotificationsAndVisibilityFlow requests.
       launch(workerThread) {
-        LOG.debug("smartModeFlow setup status=${projectBuildStatusManager.status}, dumbMode=${DumbService.isDumb(project)}")
+        refreshNotificationsAndVisibilityFlow.conflate().collect {
+          refreshNotificationsAndVisibilityFlow
+            .resetReplayCache() // Do not keep re-playing after we have received the element.
+          LOG.debug("refreshNotificationsAndVisibilityFlow, request=$it")
+          composeWorkBench.updateVisibilityAndNotifications()
+        }
+      }
+
+      launch(workerThread) {
+        LOG.debug(
+          "smartModeFlow setup status=${projectBuildStatusManager.status}, dumbMode=${DumbService.isDumb(project)}"
+        )
         merge(
             // Flow handling switch to smart mode.
             smartModeFlow(project, this@ComposePreviewRepresentation, LOG),
@@ -796,12 +815,14 @@ class ComposePreviewRepresentation(
             } else emptyFlow(),
           )
           .collectLatest {
-            LOG.debug("smartModeFlow, status change status=${projectBuildStatusManager.status}, dumbMode=${DumbService.isDumb(project)}")
+            LOG.debug(
+              "smartModeFlow, status change status=${projectBuildStatusManager.status}, dumbMode=${DumbService.isDumb(project)}"
+            )
             when (projectBuildStatusManager.status) {
               // Do not refresh if we still need to build the project. Instead, only update the
               // empty panel and editor notifications if needed.
               ProjectStatus.NotReady,
-              ProjectStatus.NeedsBuild -> composeWorkBench.updateVisibilityAndNotifications()
+              ProjectStatus.NeedsBuild -> requestVisibilityAndNotificationsUpdate()
               else -> requestRefresh()
             }
           }
@@ -974,7 +995,7 @@ class ComposePreviewRepresentation(
     // allow for notifications to be refreshed at the same time.
     val previousStatus = previousStatusRef.getAndSet(newStatus)
     if (newStatus != previousStatus) {
-      composeWorkBench.updateVisibilityAndNotifications()
+      requestVisibilityAndNotificationsUpdate()
     }
 
     return newStatus
@@ -1097,6 +1118,10 @@ class ComposePreviewRepresentation(
     launch(workerThread) { refreshFlow.emit(RefreshRequest(quickRefresh)) }
   }
 
+  private fun requestVisibilityAndNotificationsUpdate() {
+    launch(workerThread) { refreshNotificationsAndVisibilityFlow.emit(Unit) }
+  }
+
   /**
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and
    * render those elements. The refresh will only happen if the Preview elements have changed from
@@ -1142,7 +1167,7 @@ class ComposePreviewRepresentation(
           return@launchWithProgress
         }
 
-        composeWorkBench.updateVisibilityAndNotifications()
+        requestVisibilityAndNotificationsUpdate()
         refreshCallsCount.incrementAndGet()
 
         try {
@@ -1373,7 +1398,7 @@ class ComposePreviewRepresentation(
                     requestTracker.refreshCancelled(compilationCompleted = true)
                   else -> requestTracker.refreshFailed()
                 }
-                composeWorkBench.updateVisibilityAndNotifications()
+                requestVisibilityAndNotificationsUpdate()
               }
               refreshJob?.join()
             } else {
