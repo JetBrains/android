@@ -19,19 +19,8 @@ import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Opcodes
-import java.nio.file.Files
-import java.nio.file.Path
 
 data class InvalidateGroupEntry (var key : Int, val startOffset : Int, val endOffSet : Int)
-
-/**
- * Used mostly for testing / debugging.
- */
-fun main(args : Array<String>) {
-  var input = args[0]
-  var reader = ClassReader(Files.readAllBytes(Path.of(input)))
-  computeGroups(reader)
-}
 
 internal fun computeGroups(reader: ClassReader): Pair<String?, List<InvalidateGroupEntry>> {
   var visitor = KeyMetaAnnotationVisitor()
@@ -69,10 +58,15 @@ internal class KeyMetaAnnotationVisitor : AnnotationVisitor(Opcodes.ASM5) {
   override fun visit(name: String, value: Any) {
     if ("file" == name) {
       file = value.toString()
+    } else if ("key" == name) {
+      keys.add(value.toString().toInt())
+    } else if ("startOffset" == name) {
+      startOffsets.add(value.toString().toInt())
+    } else if ("endOffset" == name) {
+      endOffsets.add(value.toString().toInt())
     }
     super.visit(name, value)
   }
-
 
   override fun visitArray(name: String?): AnnotationVisitor? {
     return GroupKeyAnnotationVisitor(this)
