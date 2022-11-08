@@ -763,6 +763,87 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEquals("@tools:sample/avatars[0]", parser.getAttributeValue(AUTO_URI, "srcCompat"));
   }
 
+  // http://b/258051626
+  // paddingHorizontal will take precedence and be used over "paddingLeft" or "paddingRight".
+  // paddingVertical will take precedence and be used over "paddingTop" or "paddingBottom".
+  public void testPaddingOverrides() throws XmlPullParserException {
+    // Assert paddingHorizontal overrides existing paddingLeft and missing paddingRight
+    {
+      @Language("XML") final String content = "<TextView\n" +
+                                              "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                              "    android:layout_width=\"match_parent\"\n" +
+                                              "    android:layout_height=\"match_parent\"\n" +
+                                              "    android:paddingLeft=\"1dp\"\n" +
+                                              "    android:paddingHorizontal=\"12dp\" />\n";
+      PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
+      XmlFile xmlFile = (XmlFile) psiFile;
+      LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), null, Density.MEDIUM, null, false);
+      assertEquals(START_TAG, parser.nextTag());
+      assertEquals("12dp", parser.getAttributeValue(ANDROID_URI, "paddingLeft"));
+      assertEquals("12dp", parser.getAttributeValue(ANDROID_URI, "paddingRight"));
+      assertEquals("12dp", parser.getAttributeValue(ANDROID_URI, "paddingHorizontal"));
+      assertNull(parser.getAttributeValue(ANDROID_URI, "paddingVertical"));
+    }
+
+    // Assert tools paddingHorizontal overrides existing paddingLeft and missing paddingRight
+    {
+      @Language("XML") final String content = "<TextView\n" +
+                                              "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                              "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                                              "    android:layout_width=\"match_parent\"\n" +
+                                              "    android:layout_height=\"match_parent\"\n" +
+                                              "    android:paddingLeft=\"1dp\"\n" +
+                                              "    tools:paddingHorizontal=\"12dp\" />\n";
+      PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
+      XmlFile xmlFile = (XmlFile) psiFile;
+      LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), null, Density.MEDIUM, null, false);
+      assertEquals(START_TAG, parser.nextTag());
+      assertEquals("12dp", parser.getAttributeValue(ANDROID_URI, "paddingLeft"));
+      assertEquals("12dp", parser.getAttributeValue(ANDROID_URI, "paddingRight"));
+      assertEquals("12dp", parser.getAttributeValue(ANDROID_URI, "paddingHorizontal"));
+      assertNull(parser.getAttributeValue(ANDROID_URI, "paddingVertical"));
+    }
+
+    // Assert tools paddingVertical overrides existing paddingTop and missing paddingBottom
+    {
+      @Language("XML") final String content = "<TextView\n" +
+                                              "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                              "    android:layout_width=\"match_parent\"\n" +
+                                              "    android:layout_height=\"match_parent\"\n" +
+                                              "    android:paddingTop=\"1dp\"\n" +
+                                              "    android:paddingVertical=\"12dp\" />\n";
+      PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
+      XmlFile xmlFile = (XmlFile) psiFile;
+      LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), null, Density.MEDIUM, null, false);
+      assertEquals(START_TAG, parser.nextTag());
+      assertEquals("12dp", parser.getAttributeValue(ANDROID_URI, "paddingTop"));
+      assertEquals("12dp", parser.getAttributeValue(ANDROID_URI, "paddingBottom"));
+      assertEquals("12dp", parser.getAttributeValue(ANDROID_URI, "paddingVertical"));
+      assertNull(parser.getAttributeValue(ANDROID_URI, "paddingHorizontal"));
+    }
+
+    // Assert missing paddingHorizontal/paddingVertical do not break valid paddingLeft/Right/Top/Bottom
+    {
+      @Language("XML") final String content = "<TextView\n" +
+                                              "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                              "    android:layout_width=\"match_parent\"\n" +
+                                              "    android:layout_height=\"match_parent\"\n" +
+                                              "    android:paddingRight=\"1dp\"\n" +
+                                              "    android:paddingBottom=\"2dp\" />\n";
+      PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
+      XmlFile xmlFile = (XmlFile) psiFile;
+      LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), null, Density.MEDIUM, null, false);
+      assertEquals(START_TAG, parser.nextTag());
+      assertEquals("1dp", parser.getAttributeValue(ANDROID_URI, "paddingRight"));
+      assertEquals("2dp", parser.getAttributeValue(ANDROID_URI, "paddingBottom"));
+      assertNull(parser.getAttributeValue(ANDROID_URI, "paddingLeft"));
+      assertNull(parser.getAttributeValue(ANDROID_URI, "paddingTop"));
+      assertNull(parser.getAttributeValue(ANDROID_URI, "paddingHorizontal"));
+      assertNull(parser.getAttributeValue(ANDROID_URI, "paddingVertical"));
+    }
+
+  }
+
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }
 
   private void compareParsers(PsiFile file, NextEventType nextEventType) throws Exception {

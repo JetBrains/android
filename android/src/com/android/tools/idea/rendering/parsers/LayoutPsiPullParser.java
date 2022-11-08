@@ -29,6 +29,12 @@ import static com.android.SdkConstants.ATTR_MIN_WIDTH;
 import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.ATTR_NAV_GRAPH;
 import static com.android.SdkConstants.ATTR_PADDING;
+import static com.android.SdkConstants.ATTR_PADDING_BOTTOM;
+import static com.android.SdkConstants.ATTR_PADDING_HORIZONTAL;
+import static com.android.SdkConstants.ATTR_PADDING_LEFT;
+import static com.android.SdkConstants.ATTR_PADDING_RIGHT;
+import static com.android.SdkConstants.ATTR_PADDING_TOP;
+import static com.android.SdkConstants.ATTR_PADDING_VERTICAL;
 import static com.android.SdkConstants.ATTR_PARENT_TAG;
 import static com.android.SdkConstants.ATTR_SRC;
 import static com.android.SdkConstants.ATTR_SRC_COMPAT;
@@ -678,6 +684,18 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
       String srcCompatValue = getAttributeValue(AUTO_URI, ATTR_SRC_COMPAT);
       if (srcCompatValue != null) {
         return srcCompatValue;
+      }
+    }
+    else if (ATTR_PADDING_LEFT.equals(localName) || ATTR_PADDING_RIGHT.equals(localName)) {
+      String horizontal = getAttributeValue(ANDROID_URI, ATTR_PADDING_HORIZONTAL);
+      if (horizontal != null) {
+        return horizontal;
+      }
+    }
+    else if (ATTR_PADDING_TOP.equals(localName) || ATTR_PADDING_BOTTOM.equals(localName)) {
+      String vertical = getAttributeValue(ANDROID_URI, ATTR_PADDING_VERTICAL);
+      if (vertical != null) {
+        return vertical;
       }
     }
 

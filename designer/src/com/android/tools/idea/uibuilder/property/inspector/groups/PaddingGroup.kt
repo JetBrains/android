@@ -28,5 +28,5 @@ class PaddingGroup(properties: PropertiesTable<NlPropertyItem>) :
                       properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_END),
                       properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_TOP),
                       properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_BOTTOM),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_HORIZONTAL),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_VERTICAL))
+                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_PADDING_HORIZONTAL),
+                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_PADDING_VERTICAL))
