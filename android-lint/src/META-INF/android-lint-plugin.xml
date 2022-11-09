@@ -407,6 +407,7 @@
       <category>Android</category>
     </intentionAction>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintEditedTargetSdkVersion" groupName="Android Lint: Correctness" displayName="Manually Edited TargetSdkVersion" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintEditedTargetSdkVersionInspection"/>
+    <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintProviderReadPermissionOnly" groupName="Android Lint: Security" displayName="Provider with readPermission only and implemented write APIs" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintProviderReadPermissionOnlyInspection"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
