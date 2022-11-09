@@ -78,7 +78,7 @@ final class AsyncDetailsBuilder {
       .setTarget(myDevice.getTarget())
       .setAndroidVersion(myDevice.getAndroidVersion())
       .setPower(myExecutor.execute(device, "dumpsys battery").flatMap(Battery::newBattery).orElse(null))
-      .setResolution(myExecutor.execute(device, "wm size").flatMap(Resolution.Companion::newResolution).orElse(null))
+      .setResolution(myExecutor.execute(device, "wm size").map(Resolution::parseWmSizeOutput).orElse(null))
       .setDensity(device.getDensity())
       .addAllAbis(device.getAbis())
       .setStorageDevice(myExecutor.execute(device, "df /data").flatMap(StorageDevice::newStorageDevice).orElse(null))

@@ -16,37 +16,24 @@
 package com.android.tools.idea.device
 
 import com.intellij.openapi.diagnostic.Logger
-import java.util.Optional
-import java.util.regex.Pattern
 
-class Resolution(val width: Int, val height: Int) {
+data class Resolution(val width: Int, val height: Int) {
+  override fun toString() = "$width × $height"
 
-  override fun hashCode(): Int {
-    return 31 * width + height
-  }
+  private companion object {
+    private val REGEX = Regex("Physical size: (\\d+)x(\\d+)")
 
-  override fun equals(`object`: Any?): Boolean {
-    if (`object` !is Resolution) {
-      return false
-    }
-    val resolution = `object`
-    return width == resolution.width && height == resolution.height
-  }
+    @JvmStatic
+    @Suppress("unused")
+    fun parseWmSizeOutput(output: List<String>): Resolution? {
+      val result = REGEX.matchEntire(output[0])
 
-  override fun toString(): String {
-    return width.toString() + " × " + height
-  }
-
-  companion object {
-    private val PATTERN = Pattern.compile("Physical size: (\\d+)x(\\d+)")
-    fun newResolution(output: List<String?>): Optional<Resolution> {
-      val string = output[0]
-      val matcher = PATTERN.matcher(string)
-      if (!matcher.matches()) {
-        Logger.getInstance(Resolution::class.java).warn(string)
-        return Optional.empty()
+      if (result == null) {
+        Logger.getInstance(Resolution::class.java).warn(output[0])
+        return null
       }
-      return Optional.of(Resolution(matcher.group(1).toInt(), matcher.group(2).toInt()))
+
+      return Resolution(result.groupValues[1].toInt(), result.groupValues[2].toInt())
     }
   }
 }
