@@ -26,7 +26,7 @@ import com.android.tools.idea.logcat.message.LogcatHeader
 import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.EPOCH_FORMAT
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
@@ -50,10 +50,8 @@ import kotlin.text.Charsets.UTF_8
  */
 @Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
 class LogcatMessageAssemblerTest {
-  private val disposableRule = DisposableRule()
-
   @get:Rule
-  val rule = RuleChain(disposableRule)
+  val rule = RuleChain(ProjectRule())
 
   private val processNameMonitor = FakeProcessNameMonitor()
 
@@ -436,7 +434,6 @@ class LogcatMessageAssemblerTest {
     processNameMonitor: ProcessNameMonitor = this@LogcatMessageAssemblerTest.processNameMonitor,
   ) =
     LogcatMessageAssembler(
-      disposableRule.disposable,
       serialNumber,
       EPOCH_FORMAT,
       channel,

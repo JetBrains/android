@@ -53,15 +53,14 @@ private const val SYSTEM_LINE_PREFIX = "--------- beginning of "
  * This class is derived from [com.android.tools.idea.logcat.AndroidLogcatReceiver]
  */
 internal class LogcatMessageAssembler(
-  disposableParent: Disposable,
   private val serialNumber: String,
   logcatFormat: LogcatHeaderParser.LogcatFormat,
   private val channel: SendChannel<List<LogcatMessage>>,
   processNameMonitor: ProcessNameMonitor,
   coroutineContext: CoroutineContext,
   private val lastMessageDelayMs: Long,
-) {
-  private val coroutineScope = AndroidCoroutineScope(disposableParent, coroutineContext)
+) : Disposable {
+  private val coroutineScope = AndroidCoroutineScope(this, coroutineContext)
 
   private val previousState = AtomicPendingMessage()
 
@@ -177,6 +176,8 @@ internal class LogcatMessageAssembler(
       data.set(value)
     }
   }
+
+  override fun dispose() {}
 }
 
 private fun String.isSystemLine(): Boolean {

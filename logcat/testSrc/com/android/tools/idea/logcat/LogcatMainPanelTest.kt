@@ -36,7 +36,6 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.actions.PopupActionGroupAction
-import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
@@ -84,6 +83,8 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Document
+import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.Disposer
@@ -100,9 +101,6 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.tools.SimpleActionGroup
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ConcurrencyUtil
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -142,7 +140,9 @@ class LogcatMainPanelTest {
   private val mockFoldingDetector = mock<FoldingDetector>()
   private val fakeAdbSession = FakeAdbSession()
   private val androidLogcatFormattingOptions = AndroidLogcatFormattingOptions()
+  private val fakeLogcatService = FakeLogcatService()
   private val project get() = projectRule.project
+  private val disposable get() = disposableRule.disposable
 
   @Before
   fun setUp() {
@@ -150,6 +150,8 @@ class LogcatMainPanelTest {
       AndroidLogcatFormattingOptions::class.java,
       androidLogcatFormattingOptions,
       disposableRule.disposable)
+
+    project.replaceService(LogcatService::class.java, fakeLogcatService, disposable)
   }
 
   @RunsInEdt
@@ -608,14 +610,13 @@ class LogcatMainPanelTest {
     val testDevice = TestDevice("device1", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
     fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
     fakeAdbSession.hostServices.setDevices(testDevice)
-    val logcatService = FakeLogcatService()
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(logcatService = logcatService, adbSession = fakeAdbSession).also {
+      logcatMainPanel(adbSession = fakeAdbSession).also {
         waitForCondition { it.getConnectedDevice() != null }
       }
     }
 
-    logcatService.logMessages(message1)
+    fakeLogcatService.logMessages(message1)
 
     waitForCondition { logcatMainPanel.logcatServiceJob != null }
     waitForCondition { logcatMainPanel.messageBacklog.get().messages.isNotEmpty() }
@@ -632,9 +633,8 @@ class LogcatMainPanelTest {
     val testDevice = TestDevice("device1", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
     fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
     fakeAdbSession.hostServices.setDevices(testDevice)
-    val logcatService = FakeLogcatService()
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(logcatService = logcatService, adbSession = fakeAdbSession).also {
+      logcatMainPanel(adbSession = fakeAdbSession).also {
         waitForCondition { it.getConnectedDevice() != null && it.logcatServiceJob != null }
       }
     }
@@ -654,9 +654,8 @@ class LogcatMainPanelTest {
     val testDevice = TestDevice("device1", DeviceState.ONLINE, "11", 30, "Google", "Pixel", "")
     fakeAdbSession.deviceServices.setupCommandsForDevice(testDevice)
     fakeAdbSession.hostServices.setDevices(testDevice)
-    val logcatService = FakeLogcatService()
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(logcatService = logcatService, adbSession = fakeAdbSession).also {
+      logcatMainPanel(adbSession = fakeAdbSession).also {
         waitForCondition { it.getConnectedDevice() != null }
       }
     }
@@ -665,7 +664,7 @@ class LogcatMainPanelTest {
 
     logcatMainPanel.resumeLogcat()
     waitForCondition { !logcatMainPanel.isLogcatPaused() }
-    logcatService.logMessages(message1)
+    fakeLogcatService.logMessages(message1)
 
     assertThat(logcatMainPanel.logcatServiceJob).isNotNull()
     waitForCondition { logcatMainPanel.messageBacklog.get().messages.isNotEmpty() }
@@ -1202,7 +1201,6 @@ class LogcatMainPanelTest {
     foldingDetector: FoldingDetector? = null,
     projectApplicationIdsProvider: ProjectApplicationIdsProvider = FakeProjectApplicationIdsProvider(project),
     adbSession: AdbSession = FakeAdbSession(),
-    logcatService: LogcatService = FakeLogcatService(),
     zoneId: ZoneId = ZoneId.of("Asia/Yerevan"),
   ): LogcatMainPanel {
     project.replaceService(ProjectApplicationIdsProvider::class.java, projectApplicationIdsProvider, disposableRule.disposable)
@@ -1216,7 +1214,6 @@ class LogcatMainPanelTest {
       androidProjectDetector,
       hyperlinkDetector,
       foldingDetector,
-      logcatService,
       zoneId,
     ).also {
       Disposer.register(disposableRule.disposable, it)
@@ -1225,22 +1222,6 @@ class LogcatMainPanelTest {
 }
 
 private fun LogcatMessage.length() = FormattingOptions().getHeaderWidth() + message.length
-
-private class FakeLogcatService : LogcatService {
-  private var channel: Channel<List<LogcatMessage>>? = null
-
-  suspend fun logMessages(vararg messages: LogcatMessage) {
-    channel?.send(messages.asList()) ?: throw IllegalStateException("Channel not setup. Did you call readLogcat()?")
-  }
-
-  override suspend fun readLogcat(device: Device): Flow<List<LogcatMessage>> {
-    return Channel<List<LogcatMessage>>(1).also { channel = it }.consumeAsFlow()
-  }
-
-  override suspend fun clearLogcat(device: Device) {
-  }
-
-}
 
 private fun List<AnAction>.mapToStrings(indent: String = ""): List<String> {
   return flatMap {

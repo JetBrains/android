@@ -13,22 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.logcat.service
+package com.android.tools.idea.logcat
 
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.message.LogcatMessage
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.logcat.service.LogcatService
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.consumeAsFlow
 
-/**
- * Reads and clears a logcat from a device
- */
-internal interface LogcatService {
-  suspend fun readLogcat(device: Device) : Flow<List<LogcatMessage>>
+internal class FakeLogcatService : LogcatService {
+  private var channel: Channel<List<LogcatMessage>>? = null
 
-  suspend fun clearLogcat(device: Device)
+  suspend fun logMessages(vararg messages: LogcatMessage) {
+    channel?.send(messages.asList()) ?: throw IllegalStateException("Channel not setup. Did you call readLogcat()?")
+  }
 
-  companion object {
-    fun getInstance(project: Project): LogcatService = project.getService(LogcatService::class.java)
+  override suspend fun readLogcat(device: Device): Flow<List<LogcatMessage>> {
+    return Channel<List<LogcatMessage>>(1).also {
+      channel = it
+    }.consumeAsFlow()
+  }
+
+  override suspend fun clearLogcat(device: Device) {
   }
 }

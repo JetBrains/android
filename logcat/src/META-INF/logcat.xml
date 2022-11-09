@@ -58,6 +58,9 @@
     <applicationService serviceImplementation="com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory"/>
     <applicationService serviceImplementation="com.android.tools.idea.ui.screenrecording.ScreenRecorderPersistentOptions"/>
     <projectService
+        serviceInterface="com.android.tools.idea.logcat.service.LogcatService"
+        serviceImplementation="com.android.tools.idea.logcat.service.LogcatServiceImpl"/>
+    <projectService
         serviceInterface="com.android.tools.idea.logcat.ProjectApplicationIdsProvider"
         serviceImplementation="com.android.tools.idea.logcat.ProjectApplicationIdsProviderImpl"/>
 

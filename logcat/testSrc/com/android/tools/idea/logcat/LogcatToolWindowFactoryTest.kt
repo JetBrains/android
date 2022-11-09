@@ -30,6 +30,7 @@ import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColorSettingsPage
 import com.android.tools.idea.logcat.messages.TagFormat
+import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.logcat.testing.TestDevice
 import com.android.tools.idea.logcat.testing.setupCommandsForDevice
 import com.android.tools.idea.run.ShowLogcatListener
@@ -66,13 +67,16 @@ class LogcatToolWindowFactoryTest {
   val rule = RuleChain(projectRule, EdtRule(), disposableRule)
 
   private val project get() = projectRule.project
+  private val disposable get() = disposableRule.disposable
   private val settings = LogcatExperimentalSettings()
   private val mockProcessNameMonitor = mock<ProcessNameMonitor>()
   private val fakeAdbSession = FakeAdbSession()
+  private val fakeLogcatService = FakeLogcatService()
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication().replaceService(LogcatExperimentalSettings::class.java, settings, disposableRule.disposable)
+    ApplicationManager.getApplication().replaceService(LogcatExperimentalSettings::class.java, settings, disposable)
+    project.replaceService(LogcatService::class.java, fakeLogcatService, disposable)
   }
 
   @Test

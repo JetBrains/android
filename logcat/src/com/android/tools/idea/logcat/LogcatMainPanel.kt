@@ -19,7 +19,6 @@ import com.android.adblib.AdbSession
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
-import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -69,7 +68,6 @@ import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint
 import com.android.tools.idea.logcat.messages.TimestampFormat
 import com.android.tools.idea.logcat.service.LogcatService
-import com.android.tools.idea.logcat.service.LogcatServiceImpl
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
@@ -189,7 +187,6 @@ internal class LogcatMainPanel @TestOnly constructor(
   private var androidProjectDetector: AndroidProjectDetector,
   hyperlinkDetector: HyperlinkDetector?,
   foldingDetector: FoldingDetector?,
-  logcatService: LogcatService?,
   zoneId: ZoneId = ZoneId.systemDefault()
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, DataProvider, Disposable {
 
@@ -209,7 +206,6 @@ internal class LogcatMainPanel @TestOnly constructor(
     AndroidProjectDetectorImpl(),
     hyperlinkDetector = null,
     foldingDetector = null,
-    logcatService = null,
   )
 
   private var isLogcatPaused: Boolean = false
@@ -260,10 +256,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
   private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor)
   private val foldingDetector = foldingDetector ?: EditorFoldingDetector(project, editor)
-  private val logcatService = logcatService ?: LogcatServiceImpl(
-    this,
-    { adbSessionFactory(project).deviceServices },
-    ProcessNameMonitor.getInstance(project))
+  private val logcatService = LogcatService.getInstance(project)
   private var ignoreCaretAtBottom = false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   private val connectedDevice = AtomicReference<Device?>()
   private val logcatServiceChannel = Channel<LogcatServiceEvent>(1)
