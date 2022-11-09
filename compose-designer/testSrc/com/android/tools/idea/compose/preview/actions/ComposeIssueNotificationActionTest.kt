@@ -27,6 +27,7 @@ import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.actions.PreviewStatusNotification
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
@@ -37,6 +38,7 @@ import com.intellij.ui.components.ActionLink
 import com.intellij.xml.util.XmlStringUtil
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import org.junit.Assert.assertEquals
@@ -203,13 +205,13 @@ internal class ComposeIssueNotificationActionTest {
   }
 
   private fun InformationPopup.labelsDescription(): String =
-    component()
+    popupComponent
       .findAllDescendants(JLabel::class.java)
       .map { XmlStringUtil.stripHtml(it.text) }
       .joinToString("\n")
 
   private fun InformationPopup.linksDescription(): String =
-    component()
+    popupComponent
       .findAllDescendants(ActionLink::class.java)
       .map { it.text.replace("\\(.*\\)".toRegex(), "(SHORTCUT)") }
       .joinToString("\n")
@@ -322,7 +324,15 @@ internal class ComposeIssueNotificationActionTest {
 
   @Test
   fun `test popup is triggered`() {
-    val fakePopup = InformationPopup(null, "", emptyList(), emptyList())
+    val fakePopup =
+      object : InformationPopup {
+        override val popupComponent: JComponent = object : JComponent() {}
+        override var onMouseEnteredCallback: () -> Unit = {}
+        override fun hidePopup() {}
+        override fun showPopup(disposableParent: Disposable, event: InputEvent) {}
+        override fun isVisible(): Boolean = false
+      }
+
     var popupRequested = 0
     val action =
       ComposeIssueNotificationAction { _, _ ->

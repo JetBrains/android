@@ -36,7 +36,6 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.wm.ToolWindowManager
@@ -50,6 +49,7 @@ import com.intellij.ui.components.AnActionLink
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Insets
@@ -241,37 +241,68 @@ fun actionLink(text: String, action: AnAction, delegateDataContext: DataContext)
  * and not in this action.
  *
  * Clicking on the action will open a pop-up with additional details and action buttons.
+ * @param popupAlarm used to show and hide the popup as a hint.
  */
 open class IssueNotificationAction(
   private val createStatusInfo: (Project, DataContext) -> PreviewStatusNotification?,
-  private val createInformationPopup: (Project, DataContext) -> InformationPopup?
-) : AnAction(), RightAlignedToolbarAction, CustomComponentAction, Disposable {  /**
- * [Alarm] used to trigger the popup as a hint.
- */
-private val popupAlarm = Alarm()
+  private val createInformationPopup: (Project, DataContext) -> InformationPopup?,
+  private val popupAlarm: Alarm = Alarm()
+) : AnAction(), RightAlignedToolbarAction, CustomComponentAction, Disposable {
+
+  /**
+   * The currently opened popup.
+   */
+  private var popup: InformationPopup? = null
+
+  /**
+   * Creates an [AnActionEvent] from a mouse event, it's a lambda because we can replace with our own fake [DataContext].
+   */
+  @VisibleForTesting
+  var actionEventCreator: (MouseEvent, IssueNotificationAction) -> AnActionEvent = { me, action ->
+    AnActionEvent.createFromInputEvent(
+      me,
+      ActionPlaces.EDITOR_POPUP,
+      PresentationFactory().getPresentation(action),
+      ActionToolbar.getDataContextFor(me.component),
+      false, true
+    )
+  }
 
   /**
    * [MouseAdapter] that schedules the popup.
    */
-  private val mouseListener = object : MouseAdapter() {
+  @VisibleForTesting
+  val mouseListener = object : MouseAdapter() {
     override fun mouseEntered(me: MouseEvent) {
       popupAlarm.cancelAllRequests()
       popupAlarm.addRequest(
         {
-          if (popup?.isVisible() == true) return@addRequest // Do not show if already showing
-          val anActionEvent = AnActionEvent.createFromInputEvent(
-            me,
-            ActionPlaces.EDITOR_POPUP,
-            PresentationFactory().getPresentation(this@IssueNotificationAction),
-            ActionToolbar.getDataContextFor(me.component),
-            false, true)
-          showPopup(anActionEvent)
+          popup.takeUnless {
+            it?.isVisible() == true // Do not show if already showing, take unless returns null if the popup is visible
+          }.let {
+            val anActionEvent = actionEventCreator(me, this@IssueNotificationAction)
+            showPopup(anActionEvent)
+          }
         },
-        Registry.intValue("ide.tooltip.initialReshowDelay"))
+        Registry.intValue("ide.tooltip.initialReshowDelay") // Delay time before showing the popup
+      )
     }
 
     override fun mouseExited(me: MouseEvent) {
       popupAlarm.cancelAllRequests()
+
+      // When the mouse leaves the button, we schedule an alarm to close the popup.
+      scheduleClosePopup(popupAlarm)
+    }
+  }
+
+  fun scheduleClosePopup(alarm: Alarm) {
+    popup?.let { informationPopup ->
+      alarm.addRequest(
+        { informationPopup.hidePopup() },
+        // Adding initial delay value as used in the IntelliJ TrafficLightPop
+        Registry.intValue("ide.tooltip.initialDelay.highlighter")
+      )
     }
   }
 
@@ -342,19 +373,15 @@ private val popupAlarm = Alarm()
   }
 
   /**
-   * The currently opened popup.
-   */
-  private var popup: InformationPopup? = null
-
-  /**
    * Shows the actions popup.
    */
   private fun showPopup(e: AnActionEvent) {
     popupAlarm.cancelAllRequests()
     val project = e.project ?: return
     popup = createInformationPopup(project, e.dataContext)?.also { newPopup ->
-      Disposer.register(this, newPopup)
-      newPopup.showPopup(e.inputEvent)
+      // Whenever the mouse is inside the popup we cancel the existing alarms via callback
+      newPopup.onMouseEnteredCallback = { popupAlarm.cancelAllRequests() }
+      newPopup.showPopup(this, e.inputEvent)
     }
   }
 
@@ -363,7 +390,7 @@ private val popupAlarm = Alarm()
   }
 
   override fun dispose() {
-    popup?.hidePopup()
+    popup = null
     popupAlarm.cancelAllRequests()
   }
 }

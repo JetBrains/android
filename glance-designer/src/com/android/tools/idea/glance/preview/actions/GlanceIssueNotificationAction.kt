@@ -16,6 +16,7 @@
 package com.android.tools.idea.glance.preview.actions
 
 import com.android.tools.adtui.InformationPopup
+import com.android.tools.adtui.InformationPopupImpl
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.glance.preview.GlancePreviewBundle.message
@@ -59,7 +60,7 @@ internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewS
 internal fun createInformationPopup(project: Project, dataContext: DataContext): InformationPopup? {
   return getStatusInfo(project, dataContext)?.let {
     val viewModelStatus = dataContext.getData(PREVIEW_VIEW_MODEL_STATUS) ?: return null
-    return@let InformationPopup(
+    return@let InformationPopupImpl(
       null,
       it.description,
       listOf(),

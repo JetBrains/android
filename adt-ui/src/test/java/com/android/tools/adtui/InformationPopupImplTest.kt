@@ -37,7 +37,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 
 @RunsInEdt
-class InformationPopupTest {
+class InformationPopupImplTest {
   private val projectRule = ProjectRule()
   private val popupRule = JBPopupRule()
 
@@ -49,7 +49,7 @@ class InformationPopupTest {
 
   @Test
   fun testPopup() {
-    val popup = InformationPopup(
+    val popup = InformationPopupImpl(
       "Title",
       "A Description",
       listOf(),
@@ -59,7 +59,7 @@ class InformationPopupTest {
     val fakeUi = FakeUi(JPanel().apply {
       layout = BorderLayout()
       size = Dimension(200, 100)
-      add(popup.component(), BorderLayout.CENTER)
+      add(popup.popupComponent, BorderLayout.CENTER)
     }, 1.0, true)
 
     assertTrue(fakeUi.findComponent(JLabel::class.java) {
@@ -73,7 +73,7 @@ class InformationPopupTest {
 
   @Test
   fun testPopupWithMenu() {
-    val popup = InformationPopup(
+    val popup = InformationPopupImpl(
       "Title",
       "A Description",
       listOf(
@@ -88,7 +88,7 @@ class InformationPopupTest {
     val fakeUi = FakeUi(JPanel().apply {
       layout = BorderLayout()
       size = Dimension(200, 100)
-      add(popup.component(), BorderLayout.CENTER)
+      add(popup.popupComponent, BorderLayout.CENTER)
     }, 1.0, true)
 
     assertTrue(fakeUi.findComponent(JLabel::class.java) {
@@ -106,7 +106,7 @@ class InformationPopupTest {
 
   @Test
   fun testPopupWithLinks() {
-    val popup = InformationPopup(
+    val popup = InformationPopupImpl(
       "Title",
       "A Description",
       listOf(),
@@ -125,7 +125,7 @@ class InformationPopupTest {
     val fakeUi = FakeUi(JPanel().apply {
       layout = BorderLayout()
       size = Dimension(200, 100)
-      add(popup.component(), BorderLayout.CENTER)
+      add(popup.popupComponent, BorderLayout.CENTER)
     }, 1.0, true)
 
     assertEquals(
@@ -135,8 +135,8 @@ class InformationPopupTest {
   }
 
   @Test
-  fun testHoverOnContentIsDetected() {
-    val popup = InformationPopup(
+  fun testMouseFromOutsideThePopupAndHoveringIntoPopup() {
+    val popup = InformationPopupImpl(
       "Title",
       "A Description",
       listOf(),
@@ -146,17 +146,76 @@ class InformationPopupTest {
     val fakeUi = FakeUi(JPanel().apply {
       layout = BorderLayout()
       size = Dimension(200, 100)
-      add(popup.component(), BorderLayout.CENTER)
+      add(popup.popupComponent, BorderLayout.CENTER)
     }, 1.0, true)
 
-    assertFalse(popup.hasMouseHoveredOverPopup)
+    assertFalse(popup.shouldPopupStayOpen)
+
     // Move mouse but not inside the popup
-    fakeUi.mouse.moveTo(popup.component().x + popup.component().width * 2, 0)
-    assertFalse(popup.hasMouseHoveredOverPopup)
-    fakeUi.mouse.moveTo(popup.component().x + popup.component().width / 2, popup.component().y + popup.component().height / 2)
-    assertTrue(popup.hasMouseHoveredOverPopup)
-    // Move back out
-    fakeUi.mouse.moveTo(popup.component().x + popup.component().width * 2, 0)
-    assertTrue(popup.hasMouseHoveredOverPopup)
+    fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width * 2, 0)
+    assertFalse(popup.shouldPopupStayOpen)
+
+    // Move mouse into the popup
+    fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width / 2, popup.popupComponent.y + popup.popupComponent.height / 2)
+    assertTrue(popup.shouldPopupStayOpen)
+  }
+
+  @Test
+  fun testHoverIntoAndOutsidePopup() {
+    val popup = InformationPopupImpl(
+      "Title",
+      "A Description",
+      listOf(),
+      listOf()
+    )
+
+    val fakeUi = FakeUi(JPanel().apply {
+      layout = BorderLayout()
+      size = Dimension(200, 100)
+      add(popup.popupComponent, BorderLayout.CENTER)
+    }, 1.0, true)
+
+    assertFalse(popup.shouldPopupStayOpen)
+
+    // Move mouse but not inside the popup
+    fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width * 2, 0)
+    assertFalse(popup.shouldPopupStayOpen)
+
+    // Move mouse into the popup
+    fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width / 2, popup.popupComponent.y + popup.popupComponent.height / 2)
+    assertTrue(popup.shouldPopupStayOpen)
+
+    // Move back out, popup should be closed
+    fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width * 2, 0)
+    assertFalse(popup.shouldPopupStayOpen)
+  }
+
+  @Test
+  fun callbackGetsCalledWhenMouseEntersThePopup() {
+    val popup = InformationPopupImpl(
+      "Title",
+      "A Description",
+      listOf(),
+      listOf()
+    )
+
+    var isCallbackCalled = false
+    popup.onMouseEnteredCallback = {
+      isCallbackCalled = true
+    }
+
+    val fakeUi = FakeUi(JPanel().apply {
+      layout = BorderLayout()
+      size = Dimension(200, 100)
+      add(popup.popupComponent, BorderLayout.CENTER)
+    }, 1.0, true)
+
+    // Move mouse but not inside the popup, callback is not called yet
+    fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width * 2, 0)
+    assertFalse(isCallbackCalled)
+
+    // Move mouse into the popup, callback is fired
+    fakeUi.mouse.moveTo(popup.popupComponent.x + popup.popupComponent.width / 2, popup.popupComponent.y + popup.popupComponent.height / 2)
+    assertTrue(isCallbackCalled)
   }
 }
