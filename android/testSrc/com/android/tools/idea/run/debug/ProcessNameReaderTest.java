@@ -18,12 +18,12 @@ package com.android.tools.idea.run.debug;
 import static org.mockito.Mockito.mock;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.LightIdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
-import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.Nullable;
 
 public class ProcessNameReaderTest extends LightIdeaTestCase {

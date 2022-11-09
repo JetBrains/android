@@ -24,6 +24,7 @@ import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.Refere
 import com.android.tools.idea.compose.preview.namespaceVariations
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
@@ -39,7 +40,6 @@ import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubConfigurationAsLibrary
 import org.jetbrains.android.compose.stubDevicesAsLibrary
 import org.jetbrains.android.compose.stubPreviewAnnotation
-import org.jetbrains.android.facet.SourceProviderManager
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

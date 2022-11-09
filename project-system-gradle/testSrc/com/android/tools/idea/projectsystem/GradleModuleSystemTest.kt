@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.projectsystem.SourceProviderManager.Companion.getInstance
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.ProjectBuildModelHandler
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -38,8 +39,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.facet.SourceProviderManager
-import org.jetbrains.android.facet.SourceProviderManager.Companion.getInstance
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito

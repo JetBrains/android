@@ -24,6 +24,7 @@ import com.android.resources.ResourceUrl
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.model.Namespacing
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES
@@ -69,7 +70,6 @@ import org.jetbrains.android.dom.converters.AttrNameConverter
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.refactoring.module
 import org.jetbrains.android.refactoring.offerToCreateBackupAndRun
 import org.jetbrains.android.refactoring.syncBeforeFinishingRefactoring

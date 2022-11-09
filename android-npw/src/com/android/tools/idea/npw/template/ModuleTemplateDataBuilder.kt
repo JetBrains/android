@@ -30,6 +30,7 @@ import com.android.tools.idea.npw.ThemeHelper
 import com.android.tools.idea.npw.model.isViewBindingSupported
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.projectsystem.AndroidModulePaths
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.templates.getAppNameForTheme
 import com.android.tools.idea.util.toIoFile
@@ -52,7 +53,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
-import org.jetbrains.android.facet.SourceProviderManager
 import java.io.File
 
 /**

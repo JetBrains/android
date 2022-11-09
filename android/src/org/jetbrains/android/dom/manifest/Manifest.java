@@ -17,6 +17,7 @@ package org.jetbrains.android.dom.manifest;
 
 import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
 
+import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.DefinesXml;
@@ -28,7 +29,6 @@ import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.AndroidPackageConverter;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.Nullable;
 
 @DefinesXml

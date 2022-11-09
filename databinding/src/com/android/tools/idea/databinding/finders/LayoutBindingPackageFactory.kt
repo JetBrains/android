@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding.finders
 
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.util.toIoFile
 import com.google.common.collect.Maps
 import com.intellij.openapi.components.Service
@@ -27,7 +28,6 @@ import com.intellij.psi.impl.file.PsiPackageImpl
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.LightVirtualFileBase
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 import java.io.File
 
 @Service

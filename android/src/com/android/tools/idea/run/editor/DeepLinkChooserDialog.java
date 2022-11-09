@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.run.editor;
 
+import static com.android.tools.idea.instantapp.InstantApps.findFeatureModules;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.instantapp.InstantAppUrlFinder;
+import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -31,17 +34,14 @@ import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ArrayUtil;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.event.MouseEvent;
-import java.util.List;
-
-import static com.android.tools.idea.instantapp.InstantApps.findFeatureModules;
 
 public class DeepLinkChooserDialog extends DialogWrapper {
 

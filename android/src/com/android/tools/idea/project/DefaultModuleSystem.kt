@@ -41,6 +41,7 @@ import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
@@ -75,7 +76,6 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.SlowOperations
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
 import java.io.StringReader

@@ -16,8 +16,8 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.tools.idea.io.FilePaths
-import com.android.utils.SdkUtils.urlToFile
 import com.google.common.truth.Truth.assertThat
+import org.jetbrains.jps.util.JpsPathUtil.urlToFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

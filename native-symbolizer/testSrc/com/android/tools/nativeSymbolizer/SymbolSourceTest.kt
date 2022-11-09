@@ -17,10 +17,10 @@ package com.android.tools.nativeSymbolizer
 
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder.Companion.create
+import com.android.tools.idea.projectsystem.SourceProviderManager.Companion.replaceForTest
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.inMemory
 import com.google.common.truth.Truth
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager.Companion.replaceForTest
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test

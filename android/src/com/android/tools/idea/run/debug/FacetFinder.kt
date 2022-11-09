@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.debug
 
+import com.android.tools.idea.projectsystem.SourceProviderManager.Companion.getInstance
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.ApkProvisionException
@@ -26,7 +27,6 @@ import com.intellij.psi.XmlRecursiveElementVisitor
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager.Companion.getInstance
 import org.jetbrains.annotations.NonNls
 import java.util.LinkedList
 import java.util.Locale

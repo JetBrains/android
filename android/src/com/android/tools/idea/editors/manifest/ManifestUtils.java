@@ -15,15 +15,27 @@
  */
 package com.android.tools.idea.editors.manifest;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.TAG_INTENT_FILTER;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.findByFile;
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.isManifestFile;
+import static com.android.xml.AndroidManifest.ATTRIBUTE_GLESVERSION;
+import static org.jetbrains.android.dom.attrs.ToolsAttributeUtil.ATTR_NODE;
+import static org.jetbrains.android.dom.attrs.ToolsAttributeUtil.ATTR_REMOVE;
+
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.IntentFilterNodeKeyResolver;
 import com.android.manifmerger.XmlNode;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
+import com.android.tools.idea.projectsystem.SourceProviderManager;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.PositionXmlParser;
 import com.google.common.io.Files;
@@ -38,28 +50,21 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.facet.SourceProviderManager;
-import com.android.tools.idea.res.IdeResourcesUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.*;
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.projectsystem.SourceProvidersKt.findByFile;
-import static com.android.tools.idea.projectsystem.SourceProvidersKt.isManifestFile;
-import static com.android.xml.AndroidManifest.ATTRIBUTE_GLESVERSION;
-import static org.jetbrains.android.dom.attrs.ToolsAttributeUtil.ATTR_NODE;
-import static org.jetbrains.android.dom.attrs.ToolsAttributeUtil.ATTR_REMOVE;
+import javax.xml.parsers.ParserConfigurationException;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 public class ManifestUtils {
 

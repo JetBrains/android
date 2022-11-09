@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
@@ -28,7 +29,6 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
-import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.util.AndroidBundle
 
 class AidlDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {

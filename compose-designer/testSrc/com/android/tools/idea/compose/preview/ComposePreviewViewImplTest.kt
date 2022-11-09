@@ -34,6 +34,7 @@ import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -56,7 +57,6 @@ import java.awt.Dimension
 import javax.swing.JLabel
 import javax.swing.JPanel
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.android.facet.SourceProviderManager
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue

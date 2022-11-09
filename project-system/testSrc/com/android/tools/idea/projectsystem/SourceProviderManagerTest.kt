@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.facet
+package com.android.tools.idea.projectsystem
 
-import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteActionAndWait
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.roots.invalidateProjectRoots
 import org.junit.Rule
 import org.junit.Test

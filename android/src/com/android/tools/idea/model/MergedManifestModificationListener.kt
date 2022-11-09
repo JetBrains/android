@@ -18,6 +18,7 @@ package com.android.tools.idea.model
 import com.android.SdkConstants
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.isManifestFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
@@ -44,7 +45,6 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.BoundedTaskExecutor
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit

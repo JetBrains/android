@@ -20,6 +20,7 @@ import com.android.ide.common.util.PathString
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.isManifestFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
@@ -33,7 +34,6 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.annotations.VisibleForTesting
 
 

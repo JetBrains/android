@@ -29,6 +29,7 @@ import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryCustomPermissionGroupsFromManifestIndex
 import com.android.tools.idea.model.queryCustomPermissionsFromManifestIndex
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
@@ -44,7 +45,6 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.util.xml.DomElement
 import com.intellij.util.xml.XmlName
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 
 /**
  * Returns whether the given manifest [element] requires an attribute named [attrName].

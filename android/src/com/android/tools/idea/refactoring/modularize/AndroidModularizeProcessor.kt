@@ -22,6 +22,7 @@ import com.android.SdkConstants.TAG_RESOURCES
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.res.ResourceFolderRegistry
 import com.android.tools.idea.res.ResourceFolderRepository
 import com.android.tools.idea.res.getFolderType
@@ -65,7 +66,6 @@ import com.intellij.util.CommonJavaRefactoringUtil
 import org.jetbrains.android.AndroidFileTemplateProvider
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
-import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.Locale

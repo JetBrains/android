@@ -20,13 +20,13 @@ import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.utils.FileUtils
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.systemIndependentPath
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.facet.getManifestFiles
 import java.io.File
 

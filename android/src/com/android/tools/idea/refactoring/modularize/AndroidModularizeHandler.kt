@@ -24,6 +24,7 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.containsFile
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getMainModule
@@ -70,7 +71,6 @@ import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.actions.BaseRefactoringAction
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
-import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.annotations.NotNull
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.idea.KotlinLanguage

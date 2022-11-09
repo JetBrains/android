@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.res.getResourceSubdirs
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.actions.AddFontAction
@@ -57,7 +58,6 @@ import com.intellij.psi.PsiManager
 import org.jetbrains.android.actions.CreateResourceFileAction
 import org.jetbrains.android.actions.CreateResourceFileActionGroup
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 import kotlin.properties.Delegates
 
 /**

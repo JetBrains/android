@@ -29,6 +29,7 @@ import com.android.tools.idea.editors.fast.FastPreviewConfiguration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
+import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil;
 import com.android.tools.idea.res.ResourceClassRegistry;
@@ -68,7 +69,6 @@ import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 
 public class ModuleClassLoaderTest extends AndroidTestCase {

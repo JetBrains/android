@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented
 import com.android.tools.idea.AndroidPsiUtils.getPsiParentsOfType
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.androidProjectType
 import com.android.tools.idea.projectsystem.containsFile
 import com.android.tools.idea.projectsystem.isContainedBy
@@ -43,7 +44,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.PsiUtilCore
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigurationType
 

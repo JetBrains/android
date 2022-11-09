@@ -27,6 +27,7 @@ import static org.jetbrains.android.util.AndroidBuildCommonUtils.CLASSES_JAR_FIL
 
 import com.android.SdkConstants;
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil;
+import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.openapi.application.ApplicationManager;
