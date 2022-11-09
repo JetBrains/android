@@ -58,8 +58,7 @@ public:
   }
 
 private:
-  static constexpr char SOCKET_NAME[] = "screen-sharing-agent";
-
+  static std::string socket_name_;
   static int32_t display_id_;
   static Size max_video_resolution_;
   static int32_t max_bit_rate_;  // Zero means no limit.

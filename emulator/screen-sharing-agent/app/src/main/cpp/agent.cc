@@ -37,7 +37,7 @@ using namespace std::chrono;
 
 namespace {
 
-int CreateAndConnectSocket(const char* socket_name) {
+int CreateAndConnectSocket(const string& socket_name) {
   int socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);
   if (socket_fd < 0) {
     Log::Fatal("Failed to create a socket");
@@ -45,12 +45,15 @@ int CreateAndConnectSocket(const char* socket_name) {
   sockaddr_un address = { AF_UNIX, "" };
   // An abstract socket address is distinguished by a null byte in front of the socket name
   // and doesn't need a null terminator. See https://man7.org/linux/man-pages/man7/unix.7.html.
-  strncpy(address.sun_path + 1, socket_name, sizeof(address.sun_path) - 2);
-  int len = sizeof(sa_family_t) + 1 + strlen(socket_name);
+  if (socket_name.size() > sizeof(address.sun_path) - 2) {
+    Log::Fatal("Socket name \"%s\" is too long", socket_name.c_str());
+  }
+  strncpy(address.sun_path + 1, socket_name.c_str(), sizeof(address.sun_path) - 2);
+  int len = sizeof(sa_family_t) + 1 + socket_name.size();
   int ret = connect(socket_fd, (const struct sockaddr*) &address, len);
   if (ret < 0) {
     close(socket_fd);
-    Log::Fatal("Failed to connect to socket \"%s\" - %s", socket_name, strerror(errno));
+    Log::Fatal("Failed to connect to socket \"%s\" - %s", socket_name.c_str(), strerror(errno));
   }
   return socket_fd;
 }
@@ -68,7 +71,9 @@ void sighup_handler(int signal_number) {
 Agent::Agent(const vector<string>& args) {
   for (int i = 1; i < args.size(); i++) {
     const string& arg = args[i];
-    if (arg.rfind("--log=", 0) == 0) {
+    if (arg.rfind("--socket=", 0) == 0) {
+      socket_name_ = arg.substr(sizeof("--socket=") - 1, arg.size());
+    } else if (arg.rfind("--log=", 0) == 0) {
       auto value = arg.substr(sizeof("--log=") - 1, arg.size());
       if (value == "verbose") {
         Log::SetLevel(Log::Level::VERBOSE);
@@ -130,8 +135,8 @@ void Agent::Run() {
   }
 
   display_streamer_ = new DisplayStreamer(
-      display_id_, codec_name_, max_video_resolution_, initial_video_orientation_, max_bit_rate_, CreateAndConnectSocket(SOCKET_NAME));
-  controller_ = new Controller(CreateAndConnectSocket(SOCKET_NAME));
+      display_id_, codec_name_, max_video_resolution_, initial_video_orientation_, max_bit_rate_, CreateAndConnectSocket(socket_name_));
+  controller_ = new Controller(CreateAndConnectSocket(socket_name_));
   Log::D("Created video and control sockets");
   controller_->Start();
   display_streamer_->Run();
@@ -185,6 +190,7 @@ void Agent::RecordTouchEvent() {
   last_touch_time_millis_.store(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
 }
 
+string Agent::socket_name_("screen-sharing-agent");
 int32_t Agent::display_id_(0);
 Size Agent::max_video_resolution_(numeric_limits<int32_t>::max(), numeric_limits<int32_t>::max());
 int32_t Agent::initial_video_orientation_(-1);

@@ -101,17 +101,17 @@ internal class DeviceClient(
         pushAgent(deviceSelector, adb)
       }
     }
-    val deviceSocket = SocketSpec.LocalAbstract("screen-sharing-agent")
 
     @Suppress("BlockingMethodInNonBlockingContext")
     val asyncChannel = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(0))
     val port = (asyncChannel.localAddress as InetSocketAddress).port
     thisLogger().debug("Using port $port")
     SuspendingServerSocketChannel(asyncChannel).use { serverSocketChannel ->
-      ClosableReverseForwarding(deviceSelector, deviceSocket, SocketSpec.Tcp(port), adb).use {
+      val socketName = "screen-sharing-agent-$port"
+      ClosableReverseForwarding(deviceSelector, SocketSpec.LocalAbstract(socketName), SocketSpec.Tcp(port), adb).use {
         it.startForwarding()
         agentPushed.await()
-        startAgent(deviceSelector, adb, maxVideoSize, initialDisplayOrientation, agentTerminationListener)
+        startAgent(deviceSelector, adb, socketName, maxVideoSize, initialDisplayOrientation, agentTerminationListener)
         connectChannels(serverSocketChannel)
         // Port forwarding can be removed since the already established connections will continue to work without it.
       }
@@ -160,7 +160,7 @@ internal class DeviceClient(
     CoroutineScope(Dispatchers.Default).launch { disconnect() }
   }
 
-  suspend fun disconnect() {
+  private suspend fun disconnect() {
     coroutineScope {
       val videoChannelClosed = async {
         try {
@@ -236,6 +236,7 @@ internal class DeviceClient(
   private suspend fun startAgent(
       deviceSelector: DeviceSelector,
       adb: AdbDeviceServices,
+      socketName: String,
       maxVideoSize: Dimension,
       initialDisplayOrientation: Int,
       agentTerminationListener: AgentTerminationListener) {
@@ -252,6 +253,7 @@ internal class DeviceClient(
                       else " --log=${StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get()}"
     val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
                   " com.android.tools.screensharing.Main" +
+                  " --socket=$socketName" +
                   " --max_size=${maxVideoSize.width},${maxVideoSize.height}" +
                   orientationArg +
                   flagsArg +
