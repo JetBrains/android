@@ -19,8 +19,10 @@ import com.android.tools.idea.rendering.classloading.loadClassBytes
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.utils.FileUtils.toSystemIndependentPath
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Files
@@ -36,6 +38,22 @@ internal class ModuleClassLoaderOverlaysTest {
   @Test
   fun `empty overlay does not return classes`() {
     assertNull(ModuleClassLoaderOverlays.getInstance(projectRule.module).classLoaderLoader.loadClass(testClassName))
+  }
+
+  @Test
+  fun `invalidation updates the modification count`() {
+    // Copy the classes into a temp directory to use as overlay
+    val tempOverlayPath = Files.createTempDirectory("overlayTest")
+    val packageDirPath = Files.createDirectories(tempOverlayPath.resolve(TestClass::class.java.packageName.replace(".", "/")))
+
+    ModuleClassLoaderOverlays.getInstance(projectRule.module).pushOverlayPath(tempOverlayPath)
+    val classFilePath = packageDirPath.resolve(TestClass::class.java.simpleName + ".class")
+    Files.write(classFilePath, loadClassBytes(TestClass::class.java))
+    assertNotNull(ModuleClassLoaderOverlays.getInstance(projectRule.module).classLoaderLoader.loadClass(testClassName))
+
+    val modificationCount = ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationCount
+    ModuleClassLoaderOverlays.getInstance(projectRule.module).invalidateOverlayPaths()
+    assertTrue(modificationCount != ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationCount)
   }
 
   @Test

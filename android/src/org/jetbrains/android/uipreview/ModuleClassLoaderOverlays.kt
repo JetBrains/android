@@ -70,6 +70,7 @@ class ModuleClassLoaderOverlays private constructor(private val maxNumOverlays: 
     logger.debug("invalidateOverlayPaths")
     overlayPaths.clear()
     overlayClassLoader = null
+    modificationTracker.incModificationCount()
   }
 
   @Synchronized
