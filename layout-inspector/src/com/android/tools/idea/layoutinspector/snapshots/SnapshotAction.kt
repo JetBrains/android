@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector.snapshots
 
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
+import com.intellij.openapi.fileChooser.FileChooserDialog
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
@@ -28,16 +31,28 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VfsUtil
+import icons.StudioIcons
 import org.jetbrains.kotlin.idea.util.application.invokeLater
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-object CaptureSnapshotAction: AnAction(AllIcons.ToolbarDecorator.Export), TooltipDescriptionProvider {
+// TODO(b/258515462) Replace icon with an icon specific to Layout Inspector Snapshots
+object SnapshotAction : DropDownAction(null, "Snapshot Export/Import", StudioIcons.Emulator.Toolbar.SNAPSHOTS), TooltipDescriptionProvider {
+  init {
+    add(ExportSnapshotAction)
+    add(ImportSnapshotAction)
+  }
+}
+
+object ExportSnapshotAction : AnAction(
+  "Export Snapshot",
+  "Export a snapshot of Layout inspector to share, inspect, and use offline.",
+  AllIcons.ToolbarDecorator.Export
+), TooltipDescriptionProvider {
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isEnabled = event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient?.isConnected ?: false
-    event.presentation.description = "Export a snapshot of Layout inspector to share, inspect, and use offline."
   }
 
   override fun actionPerformed(event: AnActionEvent) {
@@ -65,5 +80,32 @@ object CaptureSnapshotAction: AnAction(AllIcons.ToolbarDecorator.Export), Toolti
       invokeLater { FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, vFile), false) }
     }
     ProgressManager.getInstance().runProcessWithProgressSynchronously(saveAndOpenSnapshot, "Saving snapshot", true, project)
+  }
+}
+
+object ImportSnapshotAction : AnAction(
+  "Import Snapshot",
+  "Import a snapshot, open into an editor.",
+  AllIcons.ToolbarDecorator.Import
+), TooltipDescriptionProvider {
+  override fun actionPerformed(event: AnActionEvent) {
+    val inspector = event.getData(LAYOUT_INSPECTOR_DATA_KEY) ?: return
+    val project = inspector.layoutInspectorModel.project
+
+    // Configure title, description and extension
+    val descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor(EXT_LAYOUT_INSPECTOR)
+      .withTitle("Load LayoutSnapshot")
+      .withDescription("Load layout inspector snapshot")
+
+    // Open the Dialog which returns a VirtualFileWrapper when closed
+    val openFileDialog: FileChooserDialog = FileChooserFactory.getInstance().createFileChooser(descriptor, project, null)
+
+    val vFiles = openFileDialog.choose(project, VfsUtil.getUserHomeDir())
+    if (vFiles.isEmpty()) return
+    val vFile = vFiles[0]
+    val saveAndOpenSnapshot = Runnable {
+      invokeLater { FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, vFile), true) }
+    }
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(saveAndOpenSnapshot, "Opening snapshot", true, project)
   }
 }

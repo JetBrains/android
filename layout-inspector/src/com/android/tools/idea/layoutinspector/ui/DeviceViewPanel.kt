@@ -37,14 +37,14 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.matchToProcessDescriptor
-import com.android.tools.idea.layoutinspector.snapshots.CaptureSnapshotAction
+import com.android.tools.idea.layoutinspector.snapshots.SnapshotAction
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.icons.AllIcons
@@ -586,7 +586,7 @@ class DeviceViewPanel(
     leftGroup.add(ViewMenuAction)
     leftGroup.add(ToggleOverlayAction)
     if (!layoutInspector.isSnapshot) {
-      leftGroup.add(CaptureSnapshotAction)
+      leftGroup.add(SnapshotAction)
     }
     leftGroup.add(AlphaSliderAction)
     if (!layoutInspector.isSnapshot) {

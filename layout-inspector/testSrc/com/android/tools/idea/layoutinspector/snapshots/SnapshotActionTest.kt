@@ -31,6 +31,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.fileChooser.FileChooserDialog
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
@@ -45,9 +47,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.doAnswer
+import java.awt.Component
 import java.nio.file.Path
 
-class CaptureSnapshotActionTest {
+class SnapshotActionTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
@@ -59,18 +62,31 @@ class CaptureSnapshotActionTest {
   @Test
   fun testSaveSnapshot() {
     val event = createEvent()
-    CaptureSnapshotAction.update(event)
+    ExportSnapshotAction.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
 
     isConnected = true
-    CaptureSnapshotAction.update(event)
+    ExportSnapshotAction.update(event)
     assertThat(event.presentation.isEnabled).isTrue()
 
     val tempFile = FileUtil.createTempFile("foo", "bar.li")
     overrideFileChooser("process.name", VirtualFileWrapper(tempFile))
-    CaptureSnapshotAction.actionPerformed(event)
+    ExportSnapshotAction.actionPerformed(event)
     runInEdt { UIUtil.dispatchAllInvocationEvents() }
     fileOpenCaptureRule.checkEditorOpened(tempFile.name, focusEditor = false)
+  }
+
+  @Test
+  fun testLoadSnapshot() {
+    val event = createEvent()
+    ImportSnapshotAction.update(event)
+    assertThat(event.presentation.isEnabled).isTrue()
+
+    val tempFile = FileUtil.createTempFile("foo", "bar.li")
+    overrideFileChooser("process.name", VirtualFileWrapper(tempFile))
+    ImportSnapshotAction.actionPerformed(event)
+    runInEdt { UIUtil.dispatchAllInvocationEvents() }
+    fileOpenCaptureRule.checkEditorOpened(tempFile.name, focusEditor = true)
   }
 
   private fun createEvent(): AnActionEvent {
@@ -105,6 +121,19 @@ class CaptureSnapshotActionTest {
           override fun save(baseDir: Path?, filename: String?): VirtualFileWrapper? {
             assertThat(filename?.startsWith(expectedFileName) ?: false).isTrue()
             return fileToReturn
+          }
+        }
+      }
+
+      override fun createFileChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): FileChooserDialog {
+        return object : FileChooserDialog {
+          @Deprecated("Deprecated in Java")
+          override fun choose(toSelect: VirtualFile?, project: Project?): Array<VirtualFile> {
+            error("not implemented")
+          }
+
+          override fun choose(project: Project?, vararg toSelect: VirtualFile?): Array<VirtualFile> {
+            return arrayOf(fileToReturn!!.virtualFile!!)
           }
         }
       }
