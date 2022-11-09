@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.tools.idea.devicemanager.Key;
 import java.util.EventObject;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceWatcherEvent extends EventObject {
   private final @NotNull Key myKey;
@@ -29,5 +30,20 @@ final class VirtualDeviceWatcherEvent extends EventObject {
 
   @NotNull Key getKey() {
     return myKey;
+  }
+
+  @Override
+  public int hashCode() {
+    return 31 * source.hashCode() + myKey.hashCode();
+  }
+
+  @Override
+  public boolean equals(@Nullable Object object) {
+    if (!(object instanceof VirtualDeviceWatcherEvent)) {
+      return false;
+    }
+
+    VirtualDeviceWatcherEvent event = (VirtualDeviceWatcherEvent)object;
+    return source.equals(event.source) && myKey.equals(event.myKey);
   }
 }

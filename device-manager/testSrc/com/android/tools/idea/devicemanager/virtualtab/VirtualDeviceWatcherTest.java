@@ -79,7 +79,7 @@ public final class VirtualDeviceWatcherTest {
 
     // Assert
     CountDownLatchAssert.await(myLatch);
-    Mockito.verify(myListener).virtualDeviceAdded(Mockito.any());
+    Mockito.verify(myListener).virtualDeviceAdded(new VirtualDeviceWatcherEvent(myWatcher, TestVirtualDevices.PIXEL_5_API_31_KEY));
   }
 
   @Test
@@ -95,7 +95,7 @@ public final class VirtualDeviceWatcherTest {
 
     // Assert
     CountDownLatchAssert.await(myLatch);
-    Mockito.verify(myListener).virtualDeviceRemoved(Mockito.any());
+    Mockito.verify(myListener).virtualDeviceRemoved(new VirtualDeviceWatcherEvent(myWatcher, TestVirtualDevices.PIXEL_5_API_31_KEY));
   }
 
   @Test
@@ -114,7 +114,7 @@ public final class VirtualDeviceWatcherTest {
 
     // Assert
     CountDownLatchAssert.await(myLatch);
-    Mockito.verify(myListener).virtualDeviceChanged(Mockito.any());
+    Mockito.verify(myListener).virtualDeviceChanged(new VirtualDeviceWatcherEvent(myWatcher, TestVirtualDevices.PIXEL_5_API_31_KEY));
   }
 
   private static final class CountDownLatchVirtualDeviceWatcherListener implements VirtualDeviceWatcherListener {
