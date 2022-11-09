@@ -174,26 +174,12 @@ public class AndroidFileChangeListener implements Disposable {
   }
 
   /**
-   * Quickly checks if the file might be relevant based on the file extension without ever reading
-   * the contents of the file. For a more accurate check use {@link #isRelevantFile(VirtualFile)}.
-   */
-  public static boolean isPossiblyRelevantFile(@NotNull VirtualFile file) {
-    String extension = file.getExtension();
-    if (StringUtil.isEmpty(extension)) {
-      return false;
-    }
-
-    return !JavaFileType.INSTANCE.getDefaultExtension().equals(extension) && !KotlinFileType.EXTENSION.equals(extension);
-  }
-
-  /**
-   * Checks if the file is relevant. May perform file I/O. For a faster approximate check use
-   * {@link #isPossiblyRelevantFile(VirtualFile)}.
+   * Checks if the file is relevant. May perform file I/O.
    */
   @Slow
   public static boolean isRelevantFile(@NotNull VirtualFile file) {
     // VirtualFile.getFileType will try to read from the file the first time it's
-    // called so we try to avoid it as much as possible. Instead we will just
+    // called, so we try to avoid it as much as possible. Instead, we will just
     // try to infer the type based on the extension.
     String extension = file.getExtension();
     if (StringUtil.isEmpty(extension)) {
@@ -256,7 +242,7 @@ public class AndroidFileChangeListener implements Disposable {
     if (fileType.getName().equals("Kotlin") && psiFile.getName().endsWith(EXT_GRADLE_KTS)) {
       return true;
     }
-    // Do not test getFileType() as this will differ depending on whether the toml plugin is active or not.
+    // Do not test getFileType() as this will differ depending on whether the Toml plugin is active or not.
     if (psiFile.getName().endsWith(".versions.toml")) {
       return true;
     }
@@ -375,12 +361,12 @@ public class AndroidFileChangeListener implements Disposable {
         repository.onFileCreated(created);
       }
       else {
-        // ResourceFolderRepository doesn't handle event on a whole folder so we pass all the children.
+        // ResourceFolderRepository doesn't handle event on a whole folder, so we pass all the children.
         for (VirtualFile child : created.getChildren()) {
           if (!child.isDirectory()) {
             // There is no need to visit subdirectories because Android does not support them.
             // If a base resource directory is created (e.g res/), a whole
-            // ResourceFolderRepository will be created separately so we don't need to handle
+            // ResourceFolderRepository will be created separately, so we don't need to handle
             // this case here.
             repository.onFileCreated(child);
           }
@@ -422,7 +408,7 @@ public class AndroidFileChangeListener implements Disposable {
     @Override
     public void documentChanged(@NotNull DocumentEvent event) {
       if (myProject.isDisposed()) {
-        // note that event may arrive from any project, not only from myProject
+        // Note that event may arrive from any project, not only from myProject.
         // myProject can be temporarily disposed in light tests
         return;
       }
