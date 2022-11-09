@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.ui
 
-import com.android.tools.adtui.model.stdui.DefaultCommonTextFieldModel
-import com.android.tools.adtui.model.stdui.EditingSupport
-import com.android.tools.adtui.model.stdui.EditorCompletion
-import com.android.tools.adtui.stdui.CommonTextField
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.Project
@@ -32,7 +28,6 @@ import kotlinx.collections.immutable.toImmutableList
 import java.awt.Color
 import java.awt.Desktop
 import java.awt.Dimension
-import java.awt.Font
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.GridBagConstraints
@@ -56,6 +51,7 @@ private const val EXPECTED_TEXT = "What was the expected behavior?"
 private const val ACTUAL_TEXT = "What was the actual behavior?"
 private const val CONSENT_TEXT = "We may email your for more information or updates."
 private const val PRIVACY_TEXT = "Information entered in the bug description will be publicly visible. To learn more about how Google uses your data, see <a href=\"http://www.google.com/policies/privacy/\">Google's Privacy Policy</a>."
+private const val DATA_TEXT = "<a href=\"http://www.google.com/policies/privacy/\">See what information we collect.</a>"
 
 class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project) {
   private val titleText = JBTextField().apply {
@@ -76,11 +72,6 @@ class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project
   private val actualText = PlaceholderTextArea(ACTUAL_TEXT).apply {
     name = "actualText"
     preferredSize = Dimension(800, 200)
-  }
-
-  private val feedbackComponents = CommonTextField(ComponentTextFieldModel()).apply {
-    name = "feedbackComponents"
-    preferredSize = Dimension(300, 40)
   }
 
   private val listModel = DefaultListModel<String>()
@@ -109,8 +100,6 @@ class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project
     get() = actualText.text
   val expected: String
     get() = expectedText.text
-  val component: String
-    get() = feedbackComponents.text
   val paths: List<Path>
     get() = pathList.toImmutableList()
 
@@ -148,35 +137,26 @@ class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project
 
       add(reproLabel, constraints)
 
-      val expectedLabel = JLabel().apply {
-        text = "<html>Expected<br/>behavior:</html>"
-      }
-
-      constraints.gridy = 2
-
       val actualLabel = JLabel().apply {
         text = "<html>Actual<br/>behavior:</html>"
       }
 
+      constraints.gridy = 2
+
       add(actualLabel, constraints)
 
-      val componentLabel = JLabel().apply {
-        text = "Component:"
+      val expectedLabel = JLabel().apply {
+        text = "<html>Expected<br/>behavior:</html>"
       }
 
       constraints.gridy = 3
 
       add(expectedLabel, constraints)
 
-      constraints.gridy = 4
-
-      add(componentLabel, constraints)
-
       val filesLabel = JLabel().apply {
         text = "Attached Files:"
       }
-
-      constraints.gridy = 5
+      constraints.gridy = 4
 
       add(filesLabel, constraints)
 
@@ -210,14 +190,6 @@ class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project
         gridx = 1
         gridy = 4
         gridwidth = 2
-      }
-
-      add(feedbackComponents, constraints)
-
-      constraints.apply {
-        gridx = 1
-        gridy = 5
-        gridwidth = 2
         gridheight = 2
       }
 
@@ -232,7 +204,7 @@ class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project
         gridwidth = 2
         gridheight = 1
         gridx = 3
-        gridy = 5
+        gridy = 4
       }
 
       add(addButton, constraints)
@@ -243,7 +215,7 @@ class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project
       }
 
       constraints.apply {
-        gridy = 6
+        gridy = 5
       }
 
       add(removeButton, constraints)
@@ -252,7 +224,7 @@ class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project
         gridwidth = 1
         gridheight = 1
         gridx = 1
-        gridy = 7
+        gridy = 6
       }
 
       add(consentChkbox, constraints)
@@ -273,10 +245,31 @@ class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project
       }
 
       constraints.apply {
-        gridy = 8
+        gridy = 7
       }
 
       add(privacy, constraints)
+
+      val data = JEditorPane("text/html", DATA_TEXT).apply {
+        isEditable = false
+        background = Color(0, 0, 0, 0)
+        preferredSize = Dimension(400, 20)
+        putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
+
+        addHyperlinkListener { e ->
+          if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+            if (Desktop.isDesktopSupported()) {
+              Desktop.getDesktop().browse(e.url.toURI());
+            }
+          }
+        }
+      }
+
+      constraints.apply {
+        gridy = 8
+      }
+
+      add(data, constraints)
     }
 
     init()
@@ -344,11 +337,5 @@ private class PlaceholderTextArea(private val placeHolderText: String?) : JBText
     val y = insets.top + margin.top + metrics.ascent
 
     g2.drawString(placeHolderText, x, y)
-  }
-}
-
-private class ComponentTextFieldModel : DefaultCommonTextFieldModel("", "Please select the affected component") {
-  override val editingSupport = object : EditingSupport {
-    override val completion: EditorCompletion = { FEEDBACK_COMPONENTS }
   }
 }

@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui
 
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.google.common.truth.Truth
@@ -24,14 +23,12 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Component
-import java.nio.file.Path
 import java.nio.file.Paths
 
 private val PATH = Paths.get("DiagnosticsFile20220616-040000.zip")
@@ -68,16 +65,11 @@ class SendFeedbackDialogTest {
       Truth.assertThat(actualText).isNotNull()
       actualText?.text = "This is the actual behavior."
 
-      val feedbackComponents = findByName<JBTextField>("feedbackComponents")
-      Truth.assertThat(feedbackComponents).isNotNull()
-      feedbackComponents?.text = "component"
-
       dialog.apply {
         Truth.assertThat(issueTitle).isEqualTo("This is the bug title.")
         Truth.assertThat(reproSteps).isEqualTo("These are the repro steps.")
         Truth.assertThat(expected).isEqualTo("This is the expected behavior.")
         Truth.assertThat(actual).isEqualTo("This is the actual behavior.")
-        Truth.assertThat(component).isEqualTo("component")
         Truth.assertThat(paths.size).isEqualTo(1)
         Truth.assertThat(paths[0]).isEqualTo(Paths.get("DiagnosticsFile20220616-040000.zip"))
       }
