@@ -43,6 +43,7 @@ public class BuildTypeContainerStub implements BuildTypeContainer {
     mySourceProvider.addCDirectory("src/" + myName + "/c");
     mySourceProvider.addCppDirectory("src/" + myName + "/cpp");
     mySourceProvider.addRenderscriptDirectory("src/" + myName + "/renderscript");
+    mySourceProvider.addBaselineProfileDirectory("src/" + myName + "/baselineProfiles");
     mySourceProvider.addResDirectory("src/" + myName + "/rs");
     mySourceProvider.addResourcesDirectory("src/" + myName + "/resources");
   }

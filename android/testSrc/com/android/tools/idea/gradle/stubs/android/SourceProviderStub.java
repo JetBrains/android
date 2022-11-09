@@ -36,6 +36,7 @@ public class SourceProviderStub implements SourceProvider {
   @NotNull private final Set<File> myCppDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myCDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myRenderscriptDirectories = Sets.newHashSet();
+  @NotNull private final Set<File> myBaselineProfileDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myResDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myResourcesDirectories = Sets.newHashSet();
 
@@ -145,6 +146,16 @@ public class SourceProviderStub implements SourceProvider {
   @NotNull
   public Set<File> getRenderscriptDirectories() {
     return myRenderscriptDirectories;
+  }
+
+  /**
+   * Adds the given path to the list of 'baselineProfiles' directories. It also creates the directory in the file system.
+   *
+   * @param path path of the 'baselineProfiles' directory to add, relative to the root directory of the Android project.
+   */
+  public void addBaselineProfileDirectory(@NotNull String path) {
+    File directory = myFileStructure.createProjectDir(path);
+    myBaselineProfileDirectories.add(directory);
   }
 
   /**
