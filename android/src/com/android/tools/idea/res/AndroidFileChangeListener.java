@@ -431,7 +431,7 @@ public class AndroidFileChangeListener implements Disposable {
       PsiFile psiFile = myPsiDocumentManager.getCachedPsiFile(document);
       if (psiFile == null) {
         VirtualFile virtualFile = myFileDocumentManager.getFile(document);
-        if (virtualFile != null && !(virtualFile instanceof LightVirtualFile)) {
+        if (virtualFile != null && !(virtualFile instanceof LightVirtualFile) && isRelevantFile(virtualFile)) {
           runInWriteAction(() -> myRegistry.dispatchToRepositories(virtualFile, ResourceFolderRepository::scheduleScan));
         }
       }
