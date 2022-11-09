@@ -16,9 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
@@ -32,6 +30,7 @@ import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -44,7 +43,7 @@ class OldAndroidPluginIssueChecker: GradleIssueChecker {
       "Support for builds using Gradle versions older than (.*?) .* You are currently using Gradle version (.*?). .*", Pattern.DOTALL)
     val MINIMUM_AGP_VERSION_JDK_8 = AgpVersion(3, 1, 0)
     val MINIMUM_AGP_VERSION_JDK_11 = AgpVersion(3, 2, 0)
-    val MINIMUM_GRADLE_VERSION = GradleVersion.parse(SdkConstants.GRADLE_MINIMUM_VERSION)
+    val MINIMUM_GRADLE_VERSION: GradleVersion = GradleVersion.version(SdkConstants.GRADLE_MINIMUM_VERSION)
   }
 
 
@@ -80,10 +79,11 @@ class OldAndroidPluginIssueChecker: GradleIssueChecker {
     // Try to prevent updates to versions lower than 4.8.1 since they are not supported by AS Flamingo+
     val matcher = UNSUPPORTED_GRADLE_VERSION_PATTERN.matcher(message)
     if (matcher.matches()) {
-      val minimumVersion = GradleVersion.parse(matcher.group(1))
-      val usedVersion = GradleVersion.parse(matcher.group(2))
+      val minimumVersion = runCatching { GradleVersion.version(matcher.group(1)) }.getOrNull() ?: return null
+      val usedVersion = runCatching { GradleVersion.version(matcher.group(2)) }.getOrNull() ?: return null
       if (minimumVersion <= MINIMUM_GRADLE_VERSION) {
-        return "This version of Android Studio requires projects to use Gradle $MINIMUM_GRADLE_VERSION or newer. This project is using Gradle $usedVersion."
+        return "This version of Android Studio requires projects to use Gradle ${MINIMUM_GRADLE_VERSION.version}" +
+               " or newer. This project is using Gradle ${usedVersion.version}."
       }
     }
     return null

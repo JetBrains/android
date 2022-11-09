@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.gradle.util.BuildFileProcessor
@@ -35,6 +34,7 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
+import org.gradle.util.GradleVersion
 import org.jetbrains.android.util.AndroidBundle
 import java.io.File
 
@@ -60,9 +60,9 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         val ioFile = GradleWrapper.getDefaultPropertiesFilePath(ioRoot)
         val gradleWrapper = GradleWrapper.get(ioFile, project)
         val currentGradleVersion = gradleWrapper.gradleVersion ?: return@forEach
-        val parsedCurrentGradleVersion = GradleVersion.tryParse(currentGradleVersion) ?: return@forEach
+        val parsedCurrentGradleVersion = runCatching { GradleVersion.version(currentGradleVersion) }.getOrNull() ?: return@forEach
         if (compatibleGradleVersion.version > parsedCurrentGradleVersion) {
-          val updatedUrl = gradleWrapper.getUpdatedDistributionUrl(compatibleGradleVersion.version.toString(), true)
+          val updatedUrl = gradleWrapper.getUpdatedDistributionUrl(compatibleGradleVersion.version.version, true)
           val virtualFile = VfsUtil.findFileByIoFile(ioFile, true) ?: return@forEach
           val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
           val property = propertiesFile.findPropertyByKey(SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY) ?: return@forEach
@@ -78,11 +78,11 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_VERSION)
 
   override fun getCommandName(): String =
-    AndroidBundle.message("project.upgrade.gradleVersionRefactoringProcessor.commandName", compatibleGradleVersion.version)
+    AndroidBundle.message("project.upgrade.gradleVersionRefactoringProcessor.commandName", compatibleGradleVersion.version.version)
 
   override fun getShortDescription(): String =
     """
-      Version ${compatibleGradleVersion.version} is the minimum version of Gradle compatible
+      Version ${compatibleGradleVersion.version.version} is the minimum version of Gradle compatible
       with Android Gradle Plugin version $new.
     """.trimIndent()
 
@@ -95,7 +95,7 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
       }
 
       override fun getProcessedElementsHeader() =
-        AndroidBundle.message("project.upgrade.gradleVersionRefactoringProcessor.usageView.header", compatibleGradleVersion.version)
+        AndroidBundle.message("project.upgrade.gradleVersionRefactoringProcessor.usageView.header", compatibleGradleVersion.version.version)
     }
   }
 
@@ -111,7 +111,7 @@ class GradleVersionUsageInfo(
   private val gradleVersion: GradleVersion,
   private val updatedUrl: String
 ) : GradleBuildModelUsageInfo(element) {
-  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.gradleVersionUsageInfo.tooltipText", gradleVersion)
+  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.gradleVersionUsageInfo.tooltipText", gradleVersion.version)
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     ((element as? WrappedPsiElement)?.realElement as? Property)?.let { property ->

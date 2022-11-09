@@ -29,5 +29,6 @@
     <orderEntry type="module" module-name="android.sdktools.sdk-common" exported="" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="library" exported="" name="studio-plugin-gradle" level="project" />
   </component>
 </module>

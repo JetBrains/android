@@ -1,11 +1,11 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.google.common.truth.Expect
 import com.intellij.testFramework.LightPlatformTestCase
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,20 +25,20 @@ class AgpCompatibleVersionTest : LightPlatformTestCase() {
        * this comment should encourage the brave maintainer to do.  Changes to GRADLE_LATEST_VERSION are both less likely to be disruptive
        * and more likely to be noticed quickly.
        */
-      "3.1" to GradleVersion.parse("4.8.1"),
-      "3.2" to GradleVersion.parse("4.8.1"),
-      "3.3" to GradleVersion.parse("4.10.1"),
-      "3.4" to GradleVersion.parse("5.1.1"),
-      "3.5" to GradleVersion.parse("5.4.1"),
-      "3.6" to GradleVersion.parse("5.6.4"),
-      "4.0" to GradleVersion.parse("6.1.1"),
-      "4.1" to GradleVersion.parse("6.5"),
-      "4.2" to GradleVersion.parse("6.7.1"),
-      "7.0" to GradleVersion.parse("7.0.2"),
-      "7.1" to GradleVersion.parse("7.2"),
-      "7.2" to GradleVersion.parse("7.3.3"),
-      "7.3" to GradleVersion.parse("7.4"),
-      "7.4" to GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)
+      "3.1" to GradleVersion.version("4.8.1"),
+      "3.2" to GradleVersion.version("4.8.1"),
+      "3.3" to GradleVersion.version("4.10.1"),
+      "3.4" to GradleVersion.version("5.1.1"),
+      "3.5" to GradleVersion.version("5.4.1"),
+      "3.6" to GradleVersion.version("5.6.4"),
+      "4.0" to GradleVersion.version("6.1.1"),
+      "4.1" to GradleVersion.version("6.5"),
+      "4.2" to GradleVersion.version("6.7.1"),
+      "7.0" to GradleVersion.version("7.0.2"),
+      "7.1" to GradleVersion.version("7.2"),
+      "7.2" to GradleVersion.version("7.3.3"),
+      "7.3" to GradleVersion.version("7.4"),
+      "7.4" to GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
     )
     fun String.toBetaVersionString() = when (this) {
       "3.1" -> "$this.0-beta2"

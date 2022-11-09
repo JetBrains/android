@@ -227,7 +227,7 @@ public final class GradleWrapper {
     AgpVersion parsedVersion = AgpVersion.parse(agpVersion);
     CompatibleGradleVersion gradleVersion = CompatibleGradleVersion.Companion.getCompatibleGradleVersion(parsedVersion);
 
-    return gradleVersion.getVersion().toString();
+    return gradleVersion.getVersion().getVersion();
   }
 
   /**

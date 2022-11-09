@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
@@ -40,6 +39,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.playback.commands.ActionCommand
 import com.intellij.openapi.vfs.LocalFileSystem
+import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.codeInsight.actions.AddGradleDslPluginAction
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -84,7 +84,7 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
 
     val pluginVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
     buildIssueComposer.addQuickFix("Upgrade plugin to version ${pluginVersion} and sync project",
-                            FixAndroidGradlePluginVersionQuickFix(pluginVersion, GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)))
+                            FixAndroidGradlePluginVersionQuickFix(pluginVersion, GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)))
     buildIssueComposer.addQuickFix("Open Gradle wrapper file", GetGradleSettingsQuickFix())
     buildIssueComposer.addQuickFix("Apply Gradle plugin", ApplyGradlePluginQuickFix(filePosition))
   }

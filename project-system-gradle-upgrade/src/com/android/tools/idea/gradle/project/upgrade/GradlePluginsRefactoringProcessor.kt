@@ -102,12 +102,12 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_PLUGINS)
 
   override fun getCommandName(): String =
-    AndroidBundle.message("project.upgrade.gradlePluginsRefactoringProcessor.commandName", compatibleGradleVersion.version)
+    AndroidBundle.message("project.upgrade.gradlePluginsRefactoringProcessor.commandName")
 
   override fun getShortDescription(): String =
     """
       Some Gradle plugins in the project use interfaces which are no longer supported
-      in version ${compatibleGradleVersion.version} (or later) of Gradle and version $new (or later)
+      in version ${compatibleGradleVersion.version.version} (or later) of Gradle and version $new (or later)
       of Android Gradle Plugin.
     """.trimIndent()
 
@@ -120,7 +120,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
       }
 
       override fun getProcessedElementsHeader() =
-        AndroidBundle.message("project.upgrade.gradlePluginsRefactoringProcessor.usageView.header", compatibleGradleVersion.version)
+        AndroidBundle.message("project.upgrade.gradlePluginsRefactoringProcessor.usageView.header")
     }
   }
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.quickFixes
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -31,6 +30,7 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import java.util.concurrent.CompletableFuture
+import org.gradle.util.GradleVersion
 
 class UpgradeGradleVersionsQuickFix(val gradleVersion: GradleVersion,
                                     val agpVersion: AgpVersion,

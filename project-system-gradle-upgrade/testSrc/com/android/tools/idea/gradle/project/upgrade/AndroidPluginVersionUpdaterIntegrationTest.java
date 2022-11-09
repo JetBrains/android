@@ -15,16 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
+import com.android.SdkConstants;
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.UpdateResult;
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
+import java.io.IOException;
 import junit.framework.AssertionFailedError;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -56,11 +61,17 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
   public void testUpdatePluginVersion() throws Throwable {
     loadProject(SYNC_MULTIPROJECT);
     setAndroidPluginVersion("1.0.0");
+    verifyAndroidPluginVersion("1.0.0");
+    setGradleVersion("4.2");
+    verifyGradleVersion("4.2");
 
-    UpdateResult result = myVersionUpdater.updatePluginVersion(AgpVersion.parse("20.0.0"), null, null);
+    AgpVersion agpVersion = AgpVersion.parse("20.0.0");
+    GradleVersion gradleVersion = CompatibleGradleVersion.Companion.getCompatibleGradleVersion(agpVersion).getVersion();
+    UpdateResult result = myVersionUpdater.updatePluginVersion(agpVersion, gradleVersion, null);
     assertTrue(result.isPluginVersionUpdated());
-    assertFalse(result.isGradleVersionUpdated());
+    assertTrue(result.isGradleVersionUpdated());
 
+    verifyGradleVersion(SdkConstants.GRADLE_LATEST_VERSION);
     GradleBuildModel buildModel = verifyAndroidPluginVersion("20.0.0");
 
     // Make sure Google Maven Repository is on buildscript after updating plugin (b/69977310)
@@ -69,14 +80,38 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
 
   public void testUpdatePluginVersionWhenPluginHasAlreadyUpdatedVersion() throws Throwable {
     loadProject(SYNC_MULTIPROJECT);
-
     setAndroidPluginVersion("20.0.0");
+    verifyAndroidPluginVersion("20.0.0");
 
     UpdateResult result = myVersionUpdater.updatePluginVersion(AgpVersion.parse("20.0.0"), null, null);
     assertFalse(result.isPluginVersionUpdated());
     assertFalse(result.isGradleVersionUpdated());
 
     verifyAndroidPluginVersion("20.0.0");
+  }
+
+  private void setGradleVersion(@NotNull String version) {
+    GradleWrapper wrapper = GradleWrapper.find(getProject());
+    assertNotNull(wrapper);
+    try {
+      wrapper.updateDistributionUrl(version);
+    }
+    catch (IOException e) {
+      fail(e.toString());
+    }
+  }
+
+  private void verifyGradleVersion(@NotNull String expectedVersion) {
+    GradleWrapper wrapper = GradleWrapper.find(getProject());
+    assertNotNull(wrapper);
+    String version = null;
+    try {
+      version = wrapper.getGradleVersion();
+    }
+    catch (IOException e) {
+      fail(e.toString());
+    }
+    assertEquals(expectedVersion, version);
   }
 
   private void setAndroidPluginVersion(@NotNull String version) {

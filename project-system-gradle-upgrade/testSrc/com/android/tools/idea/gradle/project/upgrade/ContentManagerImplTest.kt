@@ -587,7 +587,7 @@ class ContentManagerImplTest {
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     assertThat(treeString(view.tree)).isEqualTo("""
       Upgrade
-        Upgrade Gradle version to ${CompatibleGradleVersion.getCompatibleGradleVersion(latestAgpVersion).version}
+        Upgrade Gradle version to ${CompatibleGradleVersion.getCompatibleGradleVersion(latestAgpVersion).version.version}
         Upgrade Gradle plugins
         Upgrade AGP dependency from 4.1.0 to $latestAgpVersion
     """.trimIndent())
