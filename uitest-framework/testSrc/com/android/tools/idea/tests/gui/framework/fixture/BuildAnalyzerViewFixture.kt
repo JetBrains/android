@@ -50,6 +50,7 @@ class BuildAnalyzerViewFixture(robot: Robot, target: JPanel) : JPanelFixture(rob
 
   fun openOverviewPage(): OverviewPageFixture {
     robot().waitForIdle()
+    GuiTests.waitForBackgroundTasks(robot())
     pageComboBox.selectItem("Overview")
     GuiTests.waitForBackgroundTasks(robot())
     return overviewPage.also {
@@ -59,6 +60,7 @@ class BuildAnalyzerViewFixture(robot: Robot, target: JPanel) : JPanelFixture(rob
 
   fun openTasksPage(): BuildAnalyzerMasterDetailsPageFixture {
     robot().waitForIdle()
+    GuiTests.waitForBackgroundTasks(robot())
     pageComboBox.selectItem("Tasks")
     GuiTests.waitForBackgroundTasks(robot())
     return tasksPage.also {
@@ -69,6 +71,7 @@ class BuildAnalyzerViewFixture(robot: Robot, target: JPanel) : JPanelFixture(rob
 
   fun openWarningsPage(): BuildAnalyzerMasterDetailsPageFixture {
     robot().waitForIdle()
+    GuiTests.waitForBackgroundTasks(robot())
     pageComboBox.selectItem("Warnings")
     GuiTests.waitForBackgroundTasks(robot())
     return warningsPage.also {
@@ -79,6 +82,7 @@ class BuildAnalyzerViewFixture(robot: Robot, target: JPanel) : JPanelFixture(rob
 
   fun openDownloadsPage(): BuildAnalyzerMasterDetailsPageFixture {
     robot().waitForIdle()
+    GuiTests.waitForBackgroundTasks(robot())
     pageComboBox.selectItem("Downloads")
     GuiTests.waitForBackgroundTasks(robot())
     return downloadsPage.also {
@@ -89,6 +93,12 @@ class BuildAnalyzerViewFixture(robot: Robot, target: JPanel) : JPanelFixture(rob
   class OverviewPageFixture(robot: Robot, target: JPanel) : JPanelFixture(robot, target) {
     fun verifyLinkPresent(linkToVerify: String) {
       findHyperlinkLabelByTextContains(linkToVerify, robot(), target()).requireVisible()
+    }
+
+    fun clickLink(linkToClick: String) {
+      findHyperlinkLabelByTextContains(linkToClick, robot(), target())
+        .requireVisible()
+        .click()
     }
   }
 

@@ -171,8 +171,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public BuildStatus invokeCleanAndMakeProject() {
-    invokeMenuPath("Build", "Clean Project");
-    robot().waitForIdle();
+    waitAndInvokeMenuPath("Build", "Clean Project");
     return invokeProjectMake(null);
   }
 

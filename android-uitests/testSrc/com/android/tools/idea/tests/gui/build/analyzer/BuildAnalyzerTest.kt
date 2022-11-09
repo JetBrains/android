@@ -76,6 +76,7 @@ class BuildAnalyzerTest {
         guiTest.waitForBackgroundTasks()
         guiTest.robot().waitForIdle()
         view.openOverviewPage()
+        view.verifyLinksPresentInOverviewPage()
       }
       buildToolWindow.closeBuildAnalyzerTab()
 
@@ -92,22 +93,51 @@ class BuildAnalyzerTest {
     overviewPage.toString().contains("Gradle Daemon Memory Utilization")
     overviewPage.toString().contains("Build finished on \\d{1,2}\\/\\d{1,2}\\/\\d{1,2}, \\d{2}:\\d{2} [A|P]M")
     overviewPage.toString().contains("Total build duration was \\d{1,2}.\\d{1.2}s.")
+    overviewPage.toString().contains("Fine tune your JVM")
+    overviewPage.toString().contains("Don't show this again")
+    //Verifying the navigation links present in overview page
     overviewPage.verifyLinkPresent("Tasks impacting build duration")
     overviewPage.verifyLinkPresent("Plugins with tasks impacting build duration")
     overviewPage.verifyLinkPresent("All warnings")
-    overviewPage.toString().contains("Fine tune your JVM")
-    overviewPage.toString().contains("Don't show this again")
-    overviewPage.button(withText("Edit memory settings")).requireVisible().click()
     //Check if the settings dialog box can be opened.
+    overviewPage.button(withText("Edit memory settings")).requireVisible().click()
     val settingsDialog = IdeSettingsDialogFixture.find(guiTest.ideFrame().robot())
     settingsDialog.requireVisible()
     settingsDialog.clickButton("Cancel")
     guiTest.waitForAllBackgroundTasksToBeCompleted()
   }
 
+  private fun BuildAnalyzerViewFixture.verifyLinksPresentInOverviewPage() {
+    overviewPage.clickLink("Tasks impacting build duration")
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+    pageComboBox.requireSelection("Tasks")
+    tasksGroupByComboBox.requireSelection("Task Category")
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
+    pageComboBox.selectItem("Overview")
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
+    overviewPage.clickLink("Plugins with tasks impacting build duration")
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+    pageComboBox.requireSelection("Tasks")
+    tasksGroupByComboBox.requireSelection("Plugin")
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
+    pageComboBox.selectItem("Overview")
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
+    overviewPage.clickLink("All warnings")
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+    pageComboBox.requireSelection("Warnings")
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+  }
+
   private fun verifyTasksPage(view: BuildAnalyzerViewFixture, tasksPage: BuildAnalyzerViewFixture.BuildAnalyzerMasterDetailsPageFixture) {
     //Array of tasks that are going to run.
     val totalBuildTasks = arrayOf<String>("Android Resources", "Unknown")
+
+    //Check if the right page is opened.
+    view.pageComboBox.requireSelection("Tasks")
 
     //Check Group combo box content details
     assertTrue ( view.tasksGroupByComboBox.isEnabled )
@@ -133,7 +163,7 @@ class BuildAnalyzerTest {
       detailsPanel.requireVisible()
       val androidResourcesPageDetails = detailsPanel.readTaskDetails()
       assertTrue ( androidResourcesPageDetails.contains(Regex("\\d+ warnings associated")) )
-      assertTrue ( androidResourcesPageDetails.contains(Regex("Non-transitive R classes are currently disabled.")) )
+      assertTrue ( androidResourcesPageDetails.contains("Non-transitive R classes are currently disabled."))
       //detailsPanel.verifyLinkPresent("Click here to migrate your project to use non-transitive R classes")
     }
     guiTest.waitForAllBackgroundTasksToBeCompleted()
@@ -173,22 +203,25 @@ class BuildAnalyzerTest {
       detailsPanel.requireVisible()
       val samplePluginPageDetails = detailsPanel.readTaskDetails()
       tasksPage.verifyTaskDetails("SamplePlugin")
-      assertTrue ( samplePluginPageDetails.contains(Regex("\\d+ tasks")) )
-      assertTrue ( samplePluginPageDetails.contains(Regex("app:sample2")) )
-      assertTrue ( samplePluginPageDetails.contains(Regex("app:sample1")) )
+      assertTrue ( samplePluginPageDetails.contains(Regex("\\d+\\s+tasks")) )
+      assertTrue ( samplePluginPageDetails.contains("app:sample2") )
+      assertTrue ( samplePluginPageDetails.contains("app:sample1") )
       detailsPanel.clickNavigationLink("app:sample2")
     }
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     tasksPage.findDetailsPanel(":app:sample2").also { detailsPanel ->
       detailsPanel.requireVisible()
       val appSample2 = detailsPanel.readTaskDetails()
-      assertTrue ( appSample2.contains(Regex("Duration")) )
-      assertTrue ( appSample2.contains(Regex("Sub-project\\:\\s+\\:app")) )
-      assertTrue ( appSample2.contains(Regex("Plugin: SamplePlugin")) )
-      assertTrue ( appSample2.contains(Regex("Type: SampleTask")) )
-      assertTrue ( appSample2.contains(Regex("Categories: Unknown")) )
-      assertTrue ( appSample2.contains(Regex("Warnings")) )
-      assertTrue ( appSample2.contains(Regex("Reason task ran")) )
+      assertTrue ( appSample2.contains("Duration") )
+      assertTrue ( appSample2.contains(Regex("Sub-project:\\s+:app")) )
+      assertTrue ( appSample2.contains(Regex("Plugin:\\s+SamplePlugin")) )
+      assertTrue ( appSample2.contains(Regex("Type:\\s+SampleTask")) )
+      assertTrue ( appSample2.contains(Regex("Categories:\\s+Unknown")) )
+      //assertTrue ( appSample2.contains("Plugin: SamplePlugin") )
+      //assertTrue ( appSample2.contains("Type: SampleTask") )
+      //assertTrue ( appSample2.contains("Categories: Unknown") )
+      assertTrue ( appSample2.contains("Warnings") )
+      assertTrue ( appSample2.contains("Reason task ran") )
       detailsPanel.clickGenerateReport()
       guiTest.waitForAllBackgroundTasksToBeCompleted()
       guiTest.ideFrame().waitForDialog("Plugin Issue Report").also { dialog ->
@@ -204,13 +237,13 @@ class BuildAnalyzerTest {
     tasksPage.findDetailsPanel(":app:sample1").also { detailsPanel ->
       detailsPanel.requireVisible()
       val appSample1 = detailsPanel.readTaskDetails()
-      assertTrue ( appSample1.contains(Regex("Duration")) )
-      assertTrue ( appSample1.contains(Regex("Sub-project\\:\\s+\\:app")) )
-      assertTrue ( appSample1.contains(Regex("Plugin: SamplePlugin")) )
-      assertTrue ( appSample1.contains(Regex("Type: SampleTask")) )
-      assertTrue ( appSample1.contains(Regex("Categories: Unknown")) )
-      assertTrue ( appSample1.contains(Regex("Warnings")) )
-      assertTrue ( appSample1.contains(Regex("Reason task ran")) )
+      assertTrue ( appSample1.contains("Duration") )
+      assertTrue ( appSample1.contains(Regex("Sub-project:\\s+:app")) )
+      assertTrue ( appSample1.contains(Regex("Plugin:\\s+SamplePlugin")) )
+      assertTrue ( appSample1.contains(Regex("Type:\\s+SampleTask")) )
+      assertTrue ( appSample1.contains(Regex("Categories:\\s+Unknown")) )
+      assertTrue ( appSample1.contains("Warnings") )
+      assertTrue ( appSample1.contains("Reason task ran") )
       detailsPanel.clickGenerateReport()
       guiTest.waitForAllBackgroundTasksToBeCompleted()
       guiTest.ideFrame().waitForDialog("Plugin Issue Report").also { dialog ->
@@ -230,13 +263,13 @@ class BuildAnalyzerTest {
     tasksPage.findDetailsPanel(":app:sample1").also { detailsPanel ->
       detailsPanel.requireVisible()
       val appSample1 = detailsPanel.readTaskDetails()
-      assertTrue ( appSample1.contains(Regex("Duration")) )
-      assertTrue ( appSample1.contains(Regex("Sub-project\\:\\s+\\:app")) )
-      assertTrue ( appSample1.contains(Regex("Plugin: SamplePlugin")) )
-      assertTrue ( appSample1.contains(Regex("Type: SampleTask")) )
-      assertTrue ( appSample1.contains(Regex("Categories: Unknown")) )
-      assertTrue ( appSample1.contains(Regex("Warnings")) )
-      assertTrue ( appSample1.contains(Regex("Reason task ran")) )
+      assertTrue ( appSample1.contains("Duration") )
+      assertTrue ( appSample1.contains(Regex("Sub-project:\\s+:app")) )
+      assertTrue ( appSample1.contains(Regex("Plugin:\\s+SamplePlugin")) )
+      assertTrue ( appSample1.contains(Regex("Type:\\s+SampleTask")) )
+      assertTrue ( appSample1.contains(Regex("Categories:\\s+Unknown")) )
+      assertTrue ( appSample1.contains("Warnings") )
+      assertTrue ( appSample1.contains("Reason task ran") )
       detailsPanel.clickGenerateReport()
       guiTest.waitForAllBackgroundTasksToBeCompleted()
       guiTest.ideFrame().waitForDialog("Plugin Issue Report").also { dialog ->
@@ -250,13 +283,13 @@ class BuildAnalyzerTest {
     tasksPage.findDetailsPanel(":app:sample2").also { detailsPanel ->
       detailsPanel.requireVisible()
       val appSample2 = detailsPanel.readTaskDetails()
-      assertTrue ( appSample2.contains(Regex("Duration")) )
-      assertTrue ( appSample2.contains(Regex("Sub-project\\:\\s+\\:app")) )
-      assertTrue ( appSample2.contains(Regex("Plugin: SamplePlugin")) )
-      assertTrue ( appSample2.contains(Regex("Type: SampleTask")) )
-      assertTrue ( appSample2.contains(Regex("Categories: Unknown")) )
-      assertTrue ( appSample2.contains(Regex("Warnings")) )
-      assertTrue ( appSample2.contains(Regex("Reason task ran")) )
+      assertTrue ( appSample2.contains("Duration") )
+      assertTrue ( appSample2.contains(Regex("Sub-project:\\s+:app")) )
+      assertTrue ( appSample2.contains(Regex("Plugin:\\s+SamplePlugin")) )
+      assertTrue ( appSample2.contains(Regex("Type:\\s+SampleTask")) )
+      assertTrue ( appSample2.contains(Regex("Categories:\\s+Unknown")) )
+      assertTrue ( appSample2.contains("Warnings") )
+      assertTrue ( appSample2.contains("Reason task ran") )
       detailsPanel.clickGenerateReport()
       guiTest.waitForAllBackgroundTasksToBeCompleted()
       guiTest.ideFrame().waitForDialog("Plugin Issue Report").also { dialog ->
@@ -273,20 +306,22 @@ class BuildAnalyzerTest {
   }
 
   private fun verifyWarningsPage(view: BuildAnalyzerViewFixture, warningsPage: BuildAnalyzerViewFixture.BuildAnalyzerMasterDetailsPageFixture) {
+    view.pageComboBox.requireSelection("Warnings")
+
     warningsPage.tree.requireNoSelection()
     warningsPage.findDetailsPanel("empty-details").requireVisible()
 
-    //Verifying if the warnings are being displayed without groupby plugins
+    //Verifying if the warnings are being displayed without group-by plugins
     warningsPage.tree.selectPath("Always-Run Tasks")
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     warningsPage.findDetailsPanel("ALWAYS_RUN_TASKS").also { detailsPanel ->
       detailsPanel.requireVisible()
       val alwaysRunTasksDetailsPage = detailsPanel.readTaskDetails()
-      assertTrue ( alwaysRunTasksDetailsPage.contains(Regex("Always-Run Tasks")) )
-      assertTrue ( alwaysRunTasksDetailsPage.contains(Regex("Duration:")) )
+      assertTrue ( alwaysRunTasksDetailsPage.contains("Always-Run Tasks") )
+      assertTrue ( alwaysRunTasksDetailsPage.contains("Duration:") )
       assertTrue ( alwaysRunTasksDetailsPage.contains(Regex("\\d+\\s+warnings")) )
-      assertTrue ( alwaysRunTasksDetailsPage.contains(Regex(":app:sample2")) )
-      assertTrue ( alwaysRunTasksDetailsPage.contains(Regex(":app:sample1")) )
+      assertTrue ( alwaysRunTasksDetailsPage.contains(":app:sample2") )
+      assertTrue ( alwaysRunTasksDetailsPage.contains(":app:sample1") )
     }
 
     warningsPage.tree.expandPath("Always-Run Tasks")
@@ -311,10 +346,10 @@ class BuildAnalyzerTest {
       detailsPanel.requireVisible()
       val alwaysRunTasksDetailsPage = detailsPanel.readTaskDetails()
       assertTrue ( alwaysRunTasksDetailsPage.contains(Regex("SamplePlugin")) )
-      assertTrue ( alwaysRunTasksDetailsPage.contains(Regex("Duration:")) )
+      assertTrue ( alwaysRunTasksDetailsPage.contains("Duration:") )
       assertTrue ( alwaysRunTasksDetailsPage.contains(Regex("\\d+\\s+warnings")) )
-      assertTrue ( alwaysRunTasksDetailsPage.contains(Regex(":app:sample2")) )
-      assertTrue ( alwaysRunTasksDetailsPage.contains(Regex(":app:sample1")) )
+      assertTrue ( alwaysRunTasksDetailsPage.contains(":app:sample2") )
+      assertTrue ( alwaysRunTasksDetailsPage.contains(":app:sample1") )
     }
 
     //Validating errors shown in warnings page
@@ -322,8 +357,8 @@ class BuildAnalyzerTest {
     warningsPage.findDetailsPanel("ANDROID_RESOURCES").also { detailsPanel ->
       detailsPanel.requireVisible()
       val androidResourcesPageDetails = detailsPanel.readTaskDetails()
-      assertTrue ( androidResourcesPageDetails.contains(Regex("\\d+ warnings")) )
-      assertTrue ( androidResourcesPageDetails.contains(Regex("Non-transitive R classes are currently disabled.")) )
+      assertTrue ( androidResourcesPageDetails.contains(Regex("\\d+\\s+warnings")) )
+      assertTrue ( androidResourcesPageDetails.contains("Non-transitive R classes are currently disabled.") )
       //detailsPanel.verifyLinkPresent("Click here to migrate your project to use non-transitive R classes")
     }
     guiTest.waitForAllBackgroundTasksToBeCompleted()
@@ -334,13 +369,13 @@ class BuildAnalyzerTest {
     warningsPage.findDetailsPanel(":app:sample1").also { detailsPanel ->
       detailsPanel.requireVisible()
       val appSample1 = detailsPanel.readTaskDetails()
-      assertTrue ( appSample1.contains(Regex("Duration")) )
-      assertTrue ( appSample1.contains(Regex("Sub-project\\:\\s+\\:app")) )
-      assertTrue ( appSample1.contains(Regex("Plugin: SamplePlugin")) )
-      assertTrue ( appSample1.contains(Regex("Type: SampleTask")) )
-      assertTrue ( appSample1.contains(Regex("Categories: Unknown")) )
-      assertTrue ( appSample1.contains(Regex("Warnings")) )
-      assertTrue ( appSample1.contains(Regex("Reason task ran")) )
+      assertTrue ( appSample1.contains("Duration") )
+      assertTrue ( appSample1.contains(Regex("Sub-project:\\s+:app")) )
+      assertTrue ( appSample1.contains(Regex("Plugin:\\s+SamplePlugin")) )
+      assertTrue ( appSample1.contains(Regex("Type:\\s+SampleTask")) )
+      assertTrue ( appSample1.contains(Regex("Categories:\\s+Unknown")) )
+      assertTrue ( appSample1.contains("Warnings") )
+      assertTrue ( appSample1.contains("Reason task ran") )
       detailsPanel.clickGenerateReport()
       guiTest.waitForAllBackgroundTasksToBeCompleted()
       guiTest.ideFrame().waitForDialog("Plugin Issue Report").also { dialog ->
@@ -355,13 +390,13 @@ class BuildAnalyzerTest {
     warningsPage.findDetailsPanel(":app:sample2").also { detailsPanel ->
       detailsPanel.requireVisible()
       val appSample2 = detailsPanel.readTaskDetails()
-      assertTrue ( appSample2.contains(Regex("Duration")) )
+      assertTrue ( appSample2.contains("Duration") )
       assertTrue ( appSample2.contains(Regex("Sub-project\\:\\s+\\:app")) )
-      assertTrue ( appSample2.contains(Regex("Plugin: SamplePlugin")) )
-      assertTrue ( appSample2.contains(Regex("Type: SampleTask")) )
-      assertTrue ( appSample2.contains(Regex("Categories: Unknown")) )
-      assertTrue ( appSample2.contains(Regex("Warnings")) )
-      assertTrue ( appSample2.contains(Regex("Reason task ran")) )
+      assertTrue ( appSample2.contains(Regex("Plugin:\\s+SamplePlugin")) )
+      assertTrue ( appSample2.contains(Regex("Type:\\s+SampleTask")) )
+      assertTrue ( appSample2.contains(Regex("Categories:\\s+Unknown")) )
+      assertTrue ( appSample2.contains("Warnings") )
+      assertTrue ( appSample2.contains("Reason task ran") )
       detailsPanel.clickGenerateReport()
       guiTest.waitForAllBackgroundTasksToBeCompleted()
       guiTest.ideFrame().waitForDialog("Plugin Issue Report").also { dialog ->

@@ -4,6 +4,7 @@ apply plugin: SamplePlugin
 class SampleTask extends DefaultTask {
     @TaskAction
     def run() {
+      Thread.sleep(1000)
     }
 }
 
