@@ -40,6 +40,7 @@ class TransportErrorListener(private val project: Project) : TransportDeviceMana
       if (hasStartServerFailed) {
         // the banner can't be dismissed. It will automatically be dismissed when the Transport tries to start again.
         bannerService?.setNotification(errorMessage, emptyList())
+        // TODO(b/258453315) log to metrics
       }
       else {
         bannerService?.removeNotification(errorMessage)
@@ -59,6 +60,8 @@ class TransportErrorListener(private val project: Project) : TransportDeviceMana
   override fun onTransportProxyCreationFail(device: Common.Device, exception: Exception) { }
 
   override fun onStartTransportDaemonServerFail(device: Common.Device, exception: FailedToStartServerException) {
+    // this happens if the transport can't start the server on the designated port.
+    // for example if multiple versions of Studio are running.
     hasStartServerFailed = true
   }
 
