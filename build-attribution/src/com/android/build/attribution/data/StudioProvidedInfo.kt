@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.data
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -25,6 +24,7 @@ import com.intellij.lang.properties.IProperty
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
+import org.gradle.util.GradleVersion
 import org.jetbrains.android.refactoring.getProjectProperties
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.refactoring.isEnableJetifier

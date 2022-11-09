@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.composites.BuildMap
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
@@ -25,6 +24,7 @@ import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 /**
@@ -145,8 +145,8 @@ private fun buildCompositeBuildMap(
 ): IdeCompositeBuildMapImpl {
   val buildEnvironment = controller.findModel(buildModel, BuildEnvironment::class.java)
     ?: error("Cannot get BuildEnvironment model")
-  val parsedGradleVersion = GradleVersion.parse(buildEnvironment.gradle.gradleVersion)
-  val gradleSupportsDirectTaskInvocationInComposites = parsedGradleVersion.compareIgnoringQualifiers("6.8") >= 0
+  val parsedGradleVersion = GradleVersion.version(buildEnvironment.gradle.gradleVersion)
+  val gradleSupportsDirectTaskInvocationInComposites = parsedGradleVersion.baseVersion >= GradleVersion.version("6.8")
   return IdeCompositeBuildMapImpl(
     builds = listOf(IdeBuildImpl(":", buildModel.buildIdentifier.rootDir)) +
       buildModels

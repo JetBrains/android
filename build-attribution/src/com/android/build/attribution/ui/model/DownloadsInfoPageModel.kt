@@ -36,7 +36,7 @@ class DownloadsInfoPageModel(
   val repositoriesTableModel: ListTableModel<DownloadsAnalyzer.RepositoryResult> = RepositoriesTableModel(downloadsData)
 
   val repositoriesTableEmptyText: String get() = when(downloadsData) {
-    is DownloadsAnalyzer.GradleDoesNotProvideEvents -> "Minimal Gradle version providing downloads data is $minGradleVersionProvidingDownloadEvents."
+    is DownloadsAnalyzer.GradleDoesNotProvideEvents -> "Minimal Gradle version providing downloads data is ${minGradleVersionProvidingDownloadEvents.version}."
     is DownloadsAnalyzer.ActiveResult -> "There was no attempt to download files during this build."
     is DownloadsAnalyzer.AnalyzerIsDisabled -> error("UI Should not be available for this state.")
   }

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ThreeState;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
@@ -54,9 +54,10 @@ public class GradleVersions {
       if (gradleVersion != null) {
         // The version of Gradle used is retrieved one of the Gradle models. If that fails, we try to deduce it from the project's Gradle
         // settings.
-        GradleVersion revision = GradleVersion.tryParse(inferStableGradleVersion(gradleVersion.toString()));
-        if (revision != null) {
-          return revision;
+        try {
+          return GradleVersion.version(inferStableGradleVersion(gradleVersion.getVersion()));
+        }
+        catch (IllegalArgumentException ignored) {
         }
       }
     }
@@ -70,7 +71,11 @@ public class GradleVersions {
           try {
             String wrapperVersion = gradleWrapper.getGradleVersion();
             if (wrapperVersion != null) {
-              return GradleVersion.tryParse(inferStableGradleVersion(wrapperVersion));
+              try {
+                return GradleVersion.version(inferStableGradleVersion(wrapperVersion));
+              }
+              catch (IllegalArgumentException ignored) {
+              }
             }
           }
           catch (IOException e) {
@@ -116,7 +121,11 @@ public class GradleVersions {
     Matcher matcher = GRADLE_JAR_NAME_PATTERN.matcher(fileName);
     if (matcher.matches()) {
       // Obtain the version of Gradle from a library name (e.g. "gradle-core-2.0.jar")
-      return GradleVersion.tryParse(matcher.group(1));
+      try {
+        return GradleVersion.version(matcher.group(1));
+      }
+      catch (IllegalArgumentException ignored) {
+      }
     }
     return null;
   }

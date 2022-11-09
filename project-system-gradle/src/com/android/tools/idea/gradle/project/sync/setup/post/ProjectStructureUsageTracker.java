@@ -24,7 +24,6 @@ import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.Na
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.NDK_COMPILE;
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
@@ -143,9 +142,9 @@ public class ProjectStructureUsageTracker implements GradleSyncListenerWithRoot 
 
       String appId = AnonymizerUtil.anonymizeUtf8(model.getApplicationId());
       IdeAndroidProject androidProject = model.getAndroidProject();
-      GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
-      if (gradleVersion == null) {
-        gradleVersion = new GradleVersion(0, 0, 0);
+      String gradleVersionString = GradleVersions.getInstance().getGradleVersion(myProject).getVersion();
+      if (gradleVersionString == null) {
+        gradleVersionString = "0.0.0";
       }
 
       // @formatter:off
@@ -200,7 +199,7 @@ public class ProjectStructureUsageTracker implements GradleSyncListenerWithRoot 
       GradleBuildDetails.Builder gradleBuild = GradleBuildDetails.newBuilder();
       // @formatter:off
       gradleBuild.setAppId(appId).setAndroidPluginVersion(androidProject.getAgpVersion())
-                                 .setGradleVersion(gradleVersion.toString())
+                                 .setGradleVersion(gradleVersionString)
                                  .addAllLibraries(gradleLibraries)
                                  .addModules(gradleModule)
                                  .addAllAndroidModules(gradleAndroidModules)

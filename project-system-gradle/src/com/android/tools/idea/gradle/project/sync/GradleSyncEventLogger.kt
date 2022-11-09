@@ -123,7 +123,7 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
       event.kind = kind
 
       if (kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED) {
-        event.gradleVersion = GradleVersions.getInstance().getGradleVersion(project)?.toString() ?: ""
+        event.gradleVersion = GradleVersions.getInstance().getGradleVersion(project)?.version ?: ""
         event.setKotlinSupport(generateKotlinSupport())
       }
       event.withProjectId(project)

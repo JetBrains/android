@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.ide.common.repository.GradleVersion;
+import org.gradle.util.GradleVersion;
 import org.junit.Test;
 
 import java.io.File;
@@ -33,7 +33,7 @@ public class GradleVersionsUnitTest {
     File jarFile = new File("gradle-core-2.0.jar");
     GradleVersion gradleVersion = GradleVersions.getGradleVersionFromJar(jarFile);
     assertNotNull(gradleVersion);
-    assertEquals(GradleVersion.parse("2.0"), gradleVersion);
+    assertEquals(GradleVersion.version("2.0"), gradleVersion);
   }
 
   @Test
@@ -42,7 +42,7 @@ public class GradleVersionsUnitTest {
     File jarFile = new File("gradle-core-2.5-rc-1.jar");
     GradleVersion gradleVersion = GradleVersions.getGradleVersionFromJar(jarFile);
     assertNotNull(gradleVersion);
-    assertEquals(GradleVersion.parse("2.5"), gradleVersion);
+    assertEquals(GradleVersion.version("2.5"), gradleVersion);
   }
 
   @Test
@@ -50,7 +50,7 @@ public class GradleVersionsUnitTest {
     File jarFile = new File("gradle-core-2.10-20151029230024+0000.jar");
     GradleVersion gradleVersion = GradleVersions.getGradleVersionFromJar(jarFile);
     assertNotNull(gradleVersion);
-    assertEquals(GradleVersion.parse("2.10"), gradleVersion);
+    assertEquals(GradleVersion.version("2.10"), gradleVersion);
   }
 
   @Test
@@ -72,14 +72,13 @@ public class GradleVersionsUnitTest {
     File jarFile = new File("gradle-core-6.2.3.jar");
     GradleVersion gradleVersion = GradleVersions.getGradleVersionFromJar(jarFile);
     assertNotNull(gradleVersion);
-    assertEquals(GradleVersion.parse("6.2.3"), gradleVersion);
+    assertEquals(GradleVersion.version("6.2.3"), gradleVersion);
   }
 
   @Test
   public void getGradleVersionWithoutMinors() {
     File jarFile = new File("gradle-core-6.jar");
     GradleVersion gradleVersion = GradleVersions.getGradleVersionFromJar(jarFile);
-    assertNotNull(gradleVersion);
-    assertEquals(GradleVersion.parse("6"), gradleVersion);
+    assertNull(gradleVersion);
   }
 }

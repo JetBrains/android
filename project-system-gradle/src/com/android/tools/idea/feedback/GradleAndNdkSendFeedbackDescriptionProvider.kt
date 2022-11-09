@@ -76,7 +76,7 @@ class GradleAndNdkSendFeedbackDescriptionProvider : SendFeedbackDescriptionProvi
 
     fun getGradleDetails(): String? {
       val gradleVersion = GradleVersions.getInstance().getGradleVersion(project ?: return null)
-      return gradleVersion?.toString() ?: "(gradle version information not found)"
+      return gradleVersion?.version ?: "(gradle version information not found)"
     }
 
     fun getJdkDetails(): String {

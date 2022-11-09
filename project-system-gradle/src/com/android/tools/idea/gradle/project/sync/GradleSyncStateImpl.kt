@@ -18,7 +18,6 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.annotations.concurrency.UiThread
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
@@ -68,6 +67,7 @@ import com.intellij.util.PathUtil.toSystemIndependentName
 import com.intellij.util.ThreeState
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
+import org.gradle.util.GradleVersion
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting

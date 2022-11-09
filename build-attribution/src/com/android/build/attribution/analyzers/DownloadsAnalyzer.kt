@@ -17,7 +17,6 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.AgpVersion
 import com.google.wireless.android.sdk.stats.BuildDownloadsAnalysisData.RepositoryStats.RepositoryType
 import com.intellij.openapi.diagnostic.Logger
@@ -25,12 +24,13 @@ import org.gradle.tooling.Failure
 import org.gradle.tooling.events.FailureResult
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.download.FileDownloadFinishEvent
+import org.gradle.util.GradleVersion
 import java.net.URI
 
 private val LOG = Logger.getInstance(DownloadsAnalyzer::class.java)
 
 /** Minimal version of gradle that provides file download events. */
-val minGradleVersionProvidingDownloadEvents = GradleVersion.parse("7.3")
+val minGradleVersionProvidingDownloadEvents: GradleVersion = GradleVersion.version("7.3")
 
 /**
  * The version of AGP that requires gradle at least 7.3.

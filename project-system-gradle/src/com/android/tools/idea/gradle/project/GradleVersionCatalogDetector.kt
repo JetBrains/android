@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project
 import com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.EXPLICIT_CALL
@@ -49,6 +48,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
+import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
@@ -103,9 +103,9 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
         if(project.isDisposed) throw ProcessCanceledException() else project.getService(GradleVersionCatalogDetector::class.java)
       }
 
-    val MISSING_GRADLE_VERSION = GradleVersion.parse("0.0")
-    val PREVIEW_GRADLE_VERSION = GradleVersion.parse("7.0")
-    val STABLE_GRADLE_VERSION = GradleVersion.parse("7.4")
+    val MISSING_GRADLE_VERSION: GradleVersion = GradleVersion.version("0.0")
+    val PREVIEW_GRADLE_VERSION: GradleVersion = GradleVersion.version("7.0")
+    val STABLE_GRADLE_VERSION: GradleVersion = GradleVersion.version("7.4")
 
     val EMPTY_SETTINGS = object : SettingsVisitorResults {
       override val enableFeaturePreview = false
@@ -120,7 +120,9 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
         if (project.isDisposed) throw ProcessCanceledException()
         val gradleWrapper = GradleWrapper.find(project)
         ProgressManager.checkCanceled()
-        val gradleVersion = gradleWrapper?.gradleVersion?.let { GradleVersion.tryParse(it) } ?: MISSING_GRADLE_VERSION
+        val gradleVersion = gradleWrapper?.gradleVersion
+                              ?.let { runCatching { GradleVersion.version(it) }.getOrNull() }
+                            ?: MISSING_GRADLE_VERSION
         return@runReadAction gradleVersion.also { _gradleVersion = gradleVersion }
       }
     }
