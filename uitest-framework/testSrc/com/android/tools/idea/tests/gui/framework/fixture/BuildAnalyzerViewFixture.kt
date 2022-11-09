@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture
 
-import com.google.common.truth.Truth.assertThat
+import com.android.tools.idea.tests.gui.framework.GuiTests
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.treeStructure.Tree
-import org.fest.swing.core.NameMatcher
 import org.fest.swing.core.Robot
-import org.fest.swing.edt.GuiActionRunner
-import org.fest.swing.edt.GuiTask
 import org.fest.swing.fixture.JCheckBoxFixture
 import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JPanelFixture
 import org.fest.swing.fixture.JTreeFixture
 import java.awt.event.KeyEvent
 import javax.swing.JCheckBox
+import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.text.JTextComponent
 
@@ -41,37 +40,49 @@ class BuildAnalyzerViewFixture(robot: Robot, target: JPanel) : JPanelFixture(rob
     get() = BuildAnalyzerMasterDetailsPageFixture(robot(), finder().findByName(target(), "tasks-view", JPanel::class.java))
   val warningsPage: BuildAnalyzerMasterDetailsPageFixture
     get() = BuildAnalyzerMasterDetailsPageFixture(robot(), finder().findByName(target(), "warnings-view", JPanel::class.java))
-  val tasksGroupingCheckbox: JCheckBoxFixture
-    get() = JCheckBoxFixture(robot(), finder().findByName(target(), "tasksGroupingCheckBox", JCheckBox::class.java))
+  val downloadsPage: BuildAnalyzerMasterDetailsPageFixture
+    get() = BuildAnalyzerMasterDetailsPageFixture(robot(), finder().findByName(target(), "downloads-info-view", JPanel::class.java))
+  val warningsGroupingCheckbox: JCheckBoxFixture
+    get() = JCheckBoxFixture(robot(), finder().findByName(target(), "warningsGroupingCheckBox", JCheckBox::class.java))
+  val tasksGroupByComboBox: JComboBoxFixture
+    get() = JComboBoxFixture(robot(), finder().findByName(target(), "tasksGroupingComboBox", ComboBox::class.java, true))
 
-  private fun verifyTasksGroupingCheckboxNotShown() {
-    assertThat(finder().findAll(target(), NameMatcher("tasksGroupingCheckBox", JCheckBox::class.java, true))).isEmpty()
-  }
 
   fun openOverviewPage(): OverviewPageFixture {
     robot().waitForIdle()
     pageComboBox.selectItem("Overview")
+    GuiTests.waitForBackgroundTasks(robot())
     return overviewPage.also {
       it.requireVisible()
-      verifyTasksGroupingCheckboxNotShown()
     }
   }
 
   fun openTasksPage(): BuildAnalyzerMasterDetailsPageFixture {
     robot().waitForIdle()
     pageComboBox.selectItem("Tasks")
+    GuiTests.waitForBackgroundTasks(robot())
     return tasksPage.also {
       it.requireVisible()
-      tasksGroupingCheckbox.requireVisible()
+      tasksGroupByComboBox.requireVisible()
     }
   }
 
   fun openWarningsPage(): BuildAnalyzerMasterDetailsPageFixture {
     robot().waitForIdle()
     pageComboBox.selectItem("Warnings")
+    GuiTests.waitForBackgroundTasks(robot())
     return warningsPage.also {
       it.requireVisible()
-      verifyTasksGroupingCheckboxNotShown()
+      warningsGroupingCheckbox.requireVisible()
+    }
+  }
+
+  fun openDownloadsPage(): BuildAnalyzerMasterDetailsPageFixture {
+    robot().waitForIdle()
+    pageComboBox.selectItem("Downloads")
+    GuiTests.waitForBackgroundTasks(robot())
+    return downloadsPage.also {
+      it.requireVisible()
     }
   }
 
@@ -119,6 +130,25 @@ class BuildAnalyzerViewFixture(robot: Robot, target: JPanel) : JPanelFixture(rob
       robot().pressAndReleaseKey(KeyEvent.VK_DOWN)
     }
 
+    /**
+     *  This supposed to verify:
+     *    1. Click on task
+     *    2. Expland task
+     *    3. Verify details in the task details page
+     *    4. Collapse expanded task
+     */
+    fun verifyTaskDetails(taskName: String) {
+      tree.clickPath(taskName)
+      tree.expandPath(taskName)
+      // Get the task details Panel data and verify the contents.
+      val taskDetailsPanel = findDetailsPanel(taskName)
+      val taskDetailsInfo = taskDetailsPanel.readTaskDetails()
+      taskDetailsInfo.contains(taskName)
+      taskDetailsInfo.contains(Regex("duration\\:\\s\\<\\d+\\.\\d+s|duration\\:\\s\\d+\\.\\d+s"))
+      taskDetailsInfo.contains(Regex("Number\\sof\\stasks\\:\\s\\d+\\stasks"))
+      taskDetailsInfo.contains("Warnings")
+      tree.collapsePath(taskName)
+    }
   }
 
   class DetailsPageFixture(robot: Robot, target: JPanel) : JPanelFixture(robot, target) {
@@ -131,6 +161,18 @@ class BuildAnalyzerViewFixture(robot: Robot, target: JPanel) : JPanelFixture(rob
     fun clickNavigationLink(linkText: String) {
       JTextComponentWithHtmlFixture.create(robot(), finder().findByType(target(), JTextComponent::class.java))
         .clickOnLink(linkText)
+    }
+
+    //to verify if the links functionality
+    fun verifyLinkPresent(linkToVerify: String) {
+      JTextComponentWithHtmlFixture.create(robot(), finder().findByType(target(), JTextComponent::class.java)).select(linkToVerify)
+
+    }
+
+    //to get the jEditor pane information as text
+    fun readTaskDetails(): String {
+      val taskDetails: JEditorPane = robot().finder().find(target(), Matchers.byType(JEditorPane::class.java))
+      return taskDetails.text
     }
   }
 }

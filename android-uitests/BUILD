@@ -707,6 +707,8 @@ java_test(
 
 java_test(
     name = "BuildAnalyzerTest",
+    size = "enormous",
+    timeout = "long",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([
