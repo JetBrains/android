@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device.explorer
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.device.explorer.files.DeviceExplorerFileManager
 import com.android.tools.idea.device.explorer.files.DeviceFileExplorerController
 import com.android.tools.idea.device.explorer.files.DeviceFileExplorerModel
@@ -70,6 +71,7 @@ class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
     val view = DeviceFileExplorerViewImpl(project, model, TOOL_WINDOW_ID)
     return DeviceFileExplorerController(project, model, view, fileManager,
                                         object : DeviceFileExplorerController.FileOpener {
+                                          @UiThread
                                           override suspend fun openFile(localPath: Path) {
                                             fileManager.openFile(localPath)
                                           }
