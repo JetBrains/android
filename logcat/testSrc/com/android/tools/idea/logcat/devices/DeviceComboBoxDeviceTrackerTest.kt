@@ -25,6 +25,8 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
+import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
 import com.android.tools.idea.logcat.devices.DeviceEvent.TrackingReset
@@ -32,8 +34,10 @@ import com.android.tools.idea.logcat.testing.TestDevice
 import com.android.tools.idea.logcat.testing.attachDevice
 import com.android.tools.idea.logcat.testing.attachDevices
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -58,12 +62,15 @@ class DeviceComboBoxDeviceTrackerTest {
   private val projectRule = ProjectRule()
   private val fakeAdb = FakeAdbRule()
   private val closeables = CloseablesRule()
+  private val disposableRule = DisposableRule()
 
   private val deviceCommandHandler = MyDeviceCommandHandler()
 
   @get:Rule
-  val rule = RuleChain(projectRule, fakeAdb.withDeviceCommandHandler(deviceCommandHandler), closeables)
+  val rule = RuleChain(projectRule, fakeAdb.withDeviceCommandHandler(deviceCommandHandler), closeables, disposableRule)
 
+  private val project get() = projectRule.project
+  private val disposable get() = disposableRule.disposable
   private val device1 = TestDevice("device-1", ONLINE, "11", 30, "manufacturer1", "model1")
   private val device2 = TestDevice("device-2", ONLINE, "12", 31, "manufacturer2", "model2")
   private val emulator1 = TestDevice("emulator-1", ONLINE, "11", 30, avdName = "avd1")
@@ -258,7 +265,10 @@ class DeviceComboBoxDeviceTrackerTest {
     preexistingDevice: Device? = null,
     adbSession: AdbSession = fakeAdb.createAdbSession(closeables),
     coroutineContext: CoroutineContext = EmptyCoroutineContext,
-  ) = DeviceComboBoxDeviceTracker(projectRule.project, preexistingDevice, adbSession, coroutineContext)
+  ): DeviceComboBoxDeviceTracker {
+    project.registerOrReplaceServiceInstance(AdbLibService::class.java, TestAdbLibService(adbSession), disposable)
+    return DeviceComboBoxDeviceTracker(projectRule.project, preexistingDevice, coroutineContext)
+  }
 
   private class MyDeviceCommandHandler : DeviceCommandHandler("") {
 

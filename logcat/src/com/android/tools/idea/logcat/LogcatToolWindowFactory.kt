@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.adblib.AdbSession
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
-import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.isAndroidEnvironment
@@ -50,9 +48,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 
-internal class LogcatToolWindowFactory(
-  private val adbSessionFactory: (Project) -> AdbSession = { AdbLibService.getInstance(it).session },
-) : SplittingTabsToolWindowFactory(), DumbAware {
+internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
 
   private val logcatColors: LogcatColors = LogcatColors()
 
@@ -91,7 +87,7 @@ internal class LogcatToolWindowFactory(
       val name = if (applicationId == null) deviceInfo.id else "$applicationId (${deviceInfo.id})"
 
       val device = runCatching {
-        DeviceFactory(adbSessionFactory(toolWindow.project)).createDevice(deviceInfo.serialNumber)
+        DeviceFactory(toolWindow.project).createDevice(deviceInfo.serialNumber)
       }.getOrDefault(deviceInfo.toOfflineDevice())
       withContext(uiThread) {
         insideShowLogcatListener = true
@@ -129,7 +125,7 @@ internal class LogcatToolWindowFactory(
     UniqueNameGenerator.generateUniqueName("Logcat", "", "", " (", ")") { !tabNames.contains(it) }
 
   override fun createChildComponent(project: Project, popupActionGroup: ActionGroup, clientState: String?) =
-    LogcatMainPanel(project, popupActionGroup, logcatColors, LogcatPanelConfig.fromJson(clientState), adbSessionFactory)
+    LogcatMainPanel(project, popupActionGroup, logcatColors, LogcatPanelConfig.fromJson(clientState))
       .also {
         logcatPresenters.add(it)
         Disposer.register(it) { logcatPresenters.remove(it) }

@@ -24,13 +24,17 @@ import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MANUFACTURER
 import com.android.adblib.DevicePropertyNames.RO_PRODUCT_MODEL
 import com.android.adblib.DeviceSelector
 import com.android.adblib.shellAsText
+import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.logcat.util.LOGGER
+import com.intellij.openapi.project.Project
 import java.time.Duration
 
 private val ADB_TIMEOUT = Duration.ofMillis(1000)
 
 /** Reads from a running device and creates a [Device] */
-internal class DeviceFactory(private val adbSession: AdbSession) {
+internal class DeviceFactory(project: Project) {
+  private val adbSession: AdbSession = AdbLibService.getSession(project)
+
   suspend fun createDevice(serialNumber: String): Device {
     if (serialNumber.startsWith("emulator-")) {
       val properties = getProperties(

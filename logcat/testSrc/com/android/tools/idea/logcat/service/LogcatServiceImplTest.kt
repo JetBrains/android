@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.service
 
+import com.android.adblib.AdbSession
 import com.android.adblib.DeviceState.ONLINE
 import com.android.adblib.ddmlibcompatibility.testutils.createAdbSession
 import com.android.adblib.testingutils.CloseablesRule
@@ -27,6 +28,7 @@ import com.android.testutils.TestResources
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.adb.processnamemonitor.testing.FakeProcessNameMonitor
 import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.logcatMessage
 import com.android.tools.idea.logcat.message.LogLevel.DEBUG
@@ -215,10 +217,9 @@ class LogcatServiceImplTest {
     // takes a bit too long to terminate, the delay expires and the error message is consumed as a normal message rather than an error
     // message. We pass a longer delay to LogcatServiceImpl to prevent LogcatMessageAssembler from consuming the last message before the
     // server terminates.
-    val service = LogcatServiceImpl(
-      project,
-      fakeAdb.createAdbSession(closeables).deviceServices,
+    val service = logcatServiceImpl(
       lastMessageDelayMs = SECONDS.toMillis(10),
+      fakeAdb.createAdbSession(closeables),
     )
     val deviceState = fakeAdb.attachDevice(device30)
     deviceState.addLogcatMessage(logcat)
@@ -262,8 +263,13 @@ class LogcatServiceImplTest {
     assertThat(logcatHandler.lastArgs).isEqualTo("-c")
   }
 
-  private fun logcatServiceImpl(): LogcatServiceImpl =
-    LogcatServiceImpl(project, fakeAdb.createAdbSession(closeables).deviceServices)
+  private fun logcatServiceImpl(
+    lastMessageDelayMs: Long = 100L,
+    adbSession: AdbSession = fakeAdb.createAdbSession(closeables),
+  ): LogcatServiceImpl {
+    project.registerOrReplaceServiceInstance(AdbLibService::class.java, TestAdbLibService(adbSession), disposable)
+    return LogcatServiceImpl(project, lastMessageDelayMs)
+  }
 
   private class CheckFormatLogcatHandler : LogcatCommandHandler() {
     var lastDeviceId: String? = null

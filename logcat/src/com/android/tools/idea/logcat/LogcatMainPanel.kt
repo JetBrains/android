@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.adblib.AdbSession
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
-import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -159,7 +157,7 @@ private val TEXT_CURSOR = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
 class LogcatMainPanelFactory {
   companion object {
     fun create(project: Project): JComponent {
-      return LogcatMainPanel(project, SimpleActionGroup(), LogcatColors(), null) { AdbLibService.getInstance(it).session }
+      return LogcatMainPanel(project, SimpleActionGroup(), LogcatColors(), null)
     }
   }
 }
@@ -182,7 +180,6 @@ internal class LogcatMainPanel @TestOnly constructor(
   private val splitterPopupActionGroup: ActionGroup,
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
-  adbSessionFactory: (Project) -> AdbSession,
   private var logcatSettings: AndroidLogcatSettings,
   private var androidProjectDetector: AndroidProjectDetector,
   hyperlinkDetector: HyperlinkDetector?,
@@ -195,13 +192,11 @@ internal class LogcatMainPanel @TestOnly constructor(
     splitterPopupActionGroup: ActionGroup,
     logcatColors: LogcatColors,
     state: LogcatPanelConfig?,
-    adbSessionFactory: (Project) -> AdbSession,
   ) : this(
     project,
     splitterPopupActionGroup,
     logcatColors,
     state,
-    adbSessionFactory,
     AndroidLogcatSettings.getInstance(),
     AndroidProjectDetectorImpl(),
     hyperlinkDetector = null,
@@ -243,7 +238,6 @@ internal class LogcatMainPanel @TestOnly constructor(
     logcatFilterParser,
     state?.filter ?: getDefaultFilter(project, androidProjectDetector),
     state?.device,
-    adbSessionFactory(project),
   )
 
 

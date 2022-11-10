@@ -40,11 +40,12 @@ import kotlin.coroutines.CoroutineContext
  * An implementation of IDeviceComboBoxDeviceTracker that uses an [AdbSession]
  */
 internal class DeviceComboBoxDeviceTracker(
-  project: Project,
+  private val project: Project,
   private val preexistingDevice: Device?,
-  private val adbSession: AdbSession = AdbLibService.getSession(project),
   private val coroutineContext: CoroutineContext = Dispatchers.IO,
 ) : IDeviceComboBoxDeviceTracker {
+
+  private val adbSession: AdbSession = AdbLibService.getSession(project)
 
   override suspend fun trackDevices(
     /* For test only. Temporary until we switch to the new trackDevices API */ retryOnException: Boolean
@@ -70,7 +71,7 @@ internal class DeviceComboBoxDeviceTracker(
   private suspend fun FlowCollector<DeviceEvent>.trackDevicesInternal() {
     val onlineDevicesBySerial = mutableMapOf<String, Device>()
     val allDevicesById = mutableMapOf<String, Device>()
-    val deviceFactory = DeviceFactory(adbSession)
+    val deviceFactory = DeviceFactory(project)
 
     // Initialize state by reading all current devices
     coroutineScope {

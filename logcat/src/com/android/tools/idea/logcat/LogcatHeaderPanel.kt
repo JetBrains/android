@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.adblib.AdbSession
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.devices.DeviceComboBox
 import com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTracker
@@ -49,12 +48,11 @@ internal class LogcatHeaderPanel(
   private val filterParser: LogcatFilterParser,
   filter: String,
   initialDevice: Device?,
-  adbSession: AdbSession,
 ) : JPanel() {
   private val deviceComboBox = DeviceComboBox(
     logcatPresenter,
     initialDevice,
-    DeviceComboBoxDeviceTracker(project, initialDevice, adbSession))
+    DeviceComboBoxDeviceTracker(project, initialDevice))
 
   private val filterComponent: FilterTextComponent = FilterTextComponent.createComponent(project, logcatPresenter, filterParser, filter)
 

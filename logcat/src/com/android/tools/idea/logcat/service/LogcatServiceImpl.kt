@@ -1,6 +1,5 @@
 package com.android.tools.idea.logcat.service
 
-import com.android.adblib.AdbDeviceServices
 import com.android.adblib.DeviceSelector
 import com.android.adblib.LineBatchShellCollector
 import com.android.adblib.shellAsText
@@ -26,32 +25,28 @@ import java.time.Duration
  */
 private const val LOGCAT_IDLE_TIMEOUT_MILLIS = 100L
 
-/**
- * Implementation of a [LogcatService]
- *
- * TODO(aalbert): Eliminate the need for injecting [AdbDeviceServices] via the constructor. In order for this to be done, [AdbLibService]
- *  needs to become an interface so we can replace it with a test version.
- */
+/** Implementation of a [LogcatService] */
 internal class LogcatServiceImpl @VisibleForTesting constructor(
   private val project: Project,
-  private val deviceServices: AdbDeviceServices,
   private val lastMessageDelayMs: Long = LOGCAT_IDLE_TIMEOUT_MILLIS,
 ) : LogcatService {
   @Suppress("unused") // Used by XML registration
-  constructor(project: Project) : this(project, AdbLibService.getSession(project).deviceServices, LOGCAT_IDLE_TIMEOUT_MILLIS)
+  constructor(project: Project) : this(project, LOGCAT_IDLE_TIMEOUT_MILLIS)
+
+  private val deviceServices = AdbLibService.getSession(project).deviceServices
 
   override suspend fun readLogcat(device: Device): Flow<List<LogcatMessage>> {
     val deviceSelector = DeviceSelector.fromSerialNumber(device.serialNumber)
     @Suppress("OPT_IN_USAGE")
     return channelFlow {
-        val logcatFormat = device.logcatFormat
-        val messageAssembler = LogcatMessageAssembler(
-          device.serialNumber,
-          logcatFormat,
-          channel,
-          ProcessNameMonitor.getInstance(project),
-          coroutineContext,
-          lastMessageDelayMs)
+      val logcatFormat = device.logcatFormat
+      val messageAssembler = LogcatMessageAssembler(
+        device.serialNumber,
+        logcatFormat,
+        channel,
+        ProcessNameMonitor.getInstance(project),
+        coroutineContext,
+        lastMessageDelayMs)
       try {
         deviceServices.shell(deviceSelector, buildLogcatCommand(logcatFormat), LineBatchShellCollector()).collect {
           messageAssembler.processNewLines(it)

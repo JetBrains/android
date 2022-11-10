@@ -24,6 +24,8 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
+import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
@@ -46,7 +48,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.registerServiceInstance
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl.MockToolWindow
 import org.junit.Before
@@ -207,8 +209,10 @@ class LogcatToolWindowFactoryTest {
   private fun logcatToolWindowFactory(
     processNameMonitor: ProcessNameMonitor = mockProcessNameMonitor,
     adbSession: FakeAdbSession = fakeAdbSession,
-  ) = LogcatToolWindowFactory { adbSession }.also {
-    project.registerServiceInstance(ProcessNameMonitor::class.java, processNameMonitor)
+  ): LogcatToolWindowFactory {
+    project.registerOrReplaceServiceInstance(ProcessNameMonitor::class.java, processNameMonitor, disposable)
+    project.registerOrReplaceServiceInstance(AdbLibService::class.java, TestAdbLibService(adbSession), disposable)
+    return LogcatToolWindowFactory()
   }
 }
 
