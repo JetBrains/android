@@ -46,7 +46,9 @@ object ForegroundProcessDetectionInitializer {
 
         val foregroundProcessDescriptor = foregroundProcess.matchToProcessDescriptor(processModel)
         if (foregroundProcessDescriptor == null) {
-          logger.info("Process descriptor not found for foreground process \"${foregroundProcess.processName}\"")
+          logger.info("Process descriptor not found for foreground process \"${foregroundProcess.processName}\" " +
+                      "on device \"${device.manufacturer} ${device.model} API ${device.apiLevel}\""
+          )
         }
 
         // set the foreground process to be the selected process.
