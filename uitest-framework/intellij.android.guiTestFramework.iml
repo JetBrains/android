@@ -48,7 +48,7 @@
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.plugin" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.emulator" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.streaming" scope="TEST" />
     <orderEntry type="module" module-name="app-inspection.ide" scope="TEST" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />

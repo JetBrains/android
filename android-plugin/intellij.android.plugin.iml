@@ -10,7 +10,7 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="intellij.android.emulator" />
+    <orderEntry type="module" module-name="intellij.android.streaming" />
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" />
     <orderEntry type="module" module-name="app-inspection.ide" />
     <orderEntry type="module" module-name="intellij.android.profilersAndroid" />

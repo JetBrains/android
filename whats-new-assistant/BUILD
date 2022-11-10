@@ -14,7 +14,7 @@ iml_module(
         "//tools/adt/idea/assistant[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
-        "//tools/adt/idea/emulator:intellij.android.emulator[module]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module]",

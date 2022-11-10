@@ -13,7 +13,7 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="emulator-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.emulator" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.streaming" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />

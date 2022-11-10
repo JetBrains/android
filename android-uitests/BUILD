@@ -58,7 +58,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/.idea/libraries:emulator-proto[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
-        "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",

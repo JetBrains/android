@@ -12,7 +12,7 @@
     <orderEntry type="module" module-name="assistant" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="module" module-name="intellij.android.emulator" />
+    <orderEntry type="module" module-name="intellij.android.streaming" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="intellij.android.build-attribution" />

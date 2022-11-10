@@ -17,7 +17,7 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/adt/idea/emulator:intellij.android.emulator[module]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module]",
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module]",
         "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module]",
