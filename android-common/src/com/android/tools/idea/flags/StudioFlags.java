@@ -854,6 +854,12 @@ public final class StudioFlags {
     "When this flag is enabled, LayoutInspector will automatically connect to whatever debuggable process is in the foreground on the phone.",
     true);
 
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.ignore.framework.recompositions", "Ignore recompositions in compose framework",
+    "When this flag is enabled, LayoutInspector will disregard all recomposition counts for framework composables, " +
+    "such that the user can concentrate on their own code.",
+    true);
+
   public static final Flag<String> DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER = Flag.create(
     LAYOUT_INSPECTOR, "dev.jar.location", "Location of prebuilt compose app inspection jar for development",
     "If APP_INSPECTION_USE_DEV_JAR is enabled use this location to load the inspector jar in development.",

@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.model.packageNameHash
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRoot
@@ -143,6 +144,8 @@ class AppInspectionTreeLoaderTest {
       ComposableString(4, "Surface")
       ComposableString(5, "Button")
       ComposableString(6, "Text")
+      ComposableString(7, "BasicText")
+      ComposableString(8, "BasicText.kt")
 
       ComposableRoot {
         viewId = 5
@@ -169,11 +172,20 @@ class AppInspectionTreeLoaderTest {
               name = 6
               recomposeCount = 4
               recomposeSkips = 5
+
+              ComposableNode {
+                id = -5
+                packageHash = packageNameHash("androidx.compose.foundation.text")
+                filename = 8
+                name = 7
+                recomposeCount = 4 // These recomposition numbers will be ignored because this is a system node
+                recomposeSkips = 5
+              }
             }
           }
         }
         ComposableNode {
-          id = -5
+          id = -6
           packageHash = 1
           filename = 3
           name = 6
@@ -286,17 +298,17 @@ class AppInspectionTreeLoaderTest {
       assertThat((node4.renderBounds as Polygon).xpoints).isEqualTo(intArrayOf(25, 75, 23, 78))
       assertThat((node4.renderBounds as Polygon).ypoints).isEqualTo(intArrayOf(125, 127, 250, 253))
 
-      val node5 = tree.children[2]
-      assertThat(node5.drawId).isEqualTo(5)
-      assertThat(node5.layoutBounds.x).isEqualTo(0)
-      assertThat(node5.layoutBounds.y).isEqualTo(0)
-      assertThat(node5.layoutBounds.width).isEqualTo(300)
-      assertThat(node5.layoutBounds.height).isEqualTo(200)
-      assertThat(node5.qualifiedName).isEqualTo("androidx.compose.ui.platform.ComposeView")
-      assertThat((node5.drawChildren[0] as DrawViewImage).image).isEqualTo(image5)
-      assertThat(node5.children.map { it.drawId }).containsExactly(-2L, -5L)
+      val node6 = tree.children[2]
+      assertThat(node6.drawId).isEqualTo(5)
+      assertThat(node6.layoutBounds.x).isEqualTo(0)
+      assertThat(node6.layoutBounds.y).isEqualTo(0)
+      assertThat(node6.layoutBounds.width).isEqualTo(300)
+      assertThat(node6.layoutBounds.height).isEqualTo(200)
+      assertThat(node6.qualifiedName).isEqualTo("androidx.compose.ui.platform.ComposeView")
+      assertThat((node6.drawChildren[0] as DrawViewImage).image).isEqualTo(image5)
+      assertThat(node6.children.map { it.drawId }).containsExactly(-2L, -6L)
 
-      val cNode2 = node5.children[0] as ComposeViewNode
+      val cNode2 = node6.children[0] as ComposeViewNode
       assertThat(cNode2.drawId).isEqualTo(-2)
       assertThat(cNode2.qualifiedName).isEqualTo("Surface")
       assertThat(cNode2.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 2)
@@ -315,14 +327,22 @@ class AppInspectionTreeLoaderTest {
       assertThat(cNode4.qualifiedName).isEqualTo("Text")
       assertThat(cNode4.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
       assertThat(cNode4.recompositions.skips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
-      assertThat(cNode4.children).isEmpty()
+      assertThat(cNode4.children.map { it.drawId }).containsExactly(-5L)
 
-      val cNode5 = node5.children[1] as ComposeViewNode
+      val cNode5 = cNode4.children[0] as ComposeViewNode
+      assertThat(cNode5.isSystemNode).isTrue()
       assertThat(cNode5.drawId).isEqualTo(-5)
-      assertThat(cNode5.qualifiedName).isEqualTo("Text")
-      assertThat(cNode5.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
-      assertThat(cNode5.recompositions.skips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode5.qualifiedName).isEqualTo("BasicText")
+      assertThat(cNode5.recompositions.count).isEqualTo(0)
+      assertThat(cNode5.recompositions.skips).isEqualTo(0)
       assertThat(cNode5.children).isEmpty()
+
+      val cNode6 = node6.children[1] as ComposeViewNode
+      assertThat(cNode6.drawId).isEqualTo(-6)
+      assertThat(cNode6.qualifiedName).isEqualTo("Text")
+      assertThat(cNode6.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode6.recompositions.skips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode6.children).isEmpty()
 
       assertThat(loggedEvent).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER)
     }

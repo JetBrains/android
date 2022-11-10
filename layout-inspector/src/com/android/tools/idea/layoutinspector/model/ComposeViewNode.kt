@@ -82,6 +82,8 @@ const val FLAG_HAS_UNMERGED_SEMANTICS = LayoutInspectorComposeProtocol.Composabl
 fun packageNameHash(packageName: String): Int =
   packageName.fold(0) { hash, char -> hash * 31 + char.code }.absoluteValue
 
+fun isSystemComposeNode(packageHash: Int) = systemPackageHashes.contains(packageHash)
+
 /**
  * The recomposition counts for a [ComposeViewNode] or a combination of nodes.
  * @param count the number of recompositions
