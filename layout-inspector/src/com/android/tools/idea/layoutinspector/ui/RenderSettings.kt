@@ -114,12 +114,12 @@ class InspectorRenderSettings(scalePercent: Int = 100): RenderSettings {
 
   override var highlightColor: Int
     get() = if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get())
-      PropertiesComponent.getInstance().getInt(HIGHLIGHT_COLOR_KEY, 0xFF0000) else 0xFF0000
+      PropertiesComponent.getInstance().getInt(HIGHLIGHT_COLOR_KEY, HIGHLIGHT_DEFAULT_COLOR) else HIGHLIGHT_DEFAULT_COLOR
     set(value) {
       val actual = value.and(0xFFFFFF)
-      val old = PropertiesComponent.getInstance().getInt(HIGHLIGHT_COLOR_KEY, 0xFF0000)
+      val old = PropertiesComponent.getInstance().getInt(HIGHLIGHT_COLOR_KEY, HIGHLIGHT_DEFAULT_COLOR)
       if (old != actual) {
-        PropertiesComponent.getInstance().setValue(HIGHLIGHT_COLOR_KEY, actual, 0xFF0000)
+        PropertiesComponent.getInstance().setValue(HIGHLIGHT_COLOR_KEY, actual, HIGHLIGHT_DEFAULT_COLOR)
         modificationListeners.forEach { it() }
       }
     }

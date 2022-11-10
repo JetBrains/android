@@ -15,39 +15,62 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.replaceService
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class RenderSettingsTest {
 
-  val projectRule = ProjectRule()
+  private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val ruleChain = RuleChain(projectRule, DeviceViewSettingsRule())
+  val ruleChain = RuleChain(projectRule, DeviceViewSettingsRule(), disposableRule)
+
+  @Before
+  fun before() {
+    ApplicationManager.getApplication().replaceService(
+      PropertiesComponent::class.java, PropertiesComponentMock(), disposableRule.disposable)
+  }
 
   @Test
   fun testInspectorSettingsPersisted() {
     val settings1 = InspectorRenderSettings()
 
+    // Default values:
+    assertThat(settings1.drawBorders).isTrue()
+    assertThat(settings1.drawLabel).isTrue()
+    assertThat(settings1.highlightColor).isEqualTo(HIGHLIGHT_DEFAULT_COLOR)
+
     settings1.drawBorders = true
     settings1.drawLabel = false
+    settings1.highlightColor = HIGHLIGHT_COLOR_RED
 
     assertThat(settings1.drawBorders).isTrue()
     assertThat(settings1.drawLabel).isFalse()
+    assertThat(settings1.highlightColor).isEqualTo(HIGHLIGHT_COLOR_RED)
 
     val settings2 = InspectorRenderSettings()
     assertThat(settings2.drawBorders).isTrue()
     assertThat(settings2.drawLabel).isFalse()
+    assertThat(settings2.highlightColor).isEqualTo(HIGHLIGHT_COLOR_RED)
 
     settings2.drawBorders = false
     settings2.drawLabel = true
+    settings2.highlightColor = HIGHLIGHT_COLOR_PURPLE
 
     // settings1 gets the new values
     assertThat(settings1.drawBorders).isFalse()
     assertThat(settings1.drawLabel).isTrue()
+    assertThat(settings1.highlightColor).isEqualTo(HIGHLIGHT_COLOR_PURPLE)
   }
 
   @Test

@@ -36,6 +36,8 @@ const val HIGHLIGHT_COLOR_YELLOW = 0xFFC66D
 const val HIGHLIGHT_COLOR_PURPLE = 0x871094
 const val HIGHLIGHT_COLOR_ORANGE = 0xE1A336
 
+const val HIGHLIGHT_DEFAULT_COLOR = HIGHLIGHT_COLOR_BLUE
+
 object ViewMenuAction : DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE) {
   class SettingsAction(name: String, val property: KMutableProperty1<RenderSettings, Boolean>) : ToggleAction(name) {
     override fun isSelected(event: AnActionEvent) =
