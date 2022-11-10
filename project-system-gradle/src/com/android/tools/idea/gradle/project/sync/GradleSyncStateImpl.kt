@@ -475,7 +475,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     }
 
     @Suppress("UnstableApiUsage")
-    override fun onImportFailed(projectPath: String?) {
+    override fun onImportFailed(projectPath: String?, t: Throwable) {
       LOG.info("onImportFailed($projectPath)")
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       if (syncStateUpdaterService.stopTrackingTask(projectPath!!) != null) {
