@@ -587,7 +587,8 @@ class DeviceViewContentPanelTest {
     assertEquals(0.11, panel.renderModel.xOff)
     assertEquals(0.01, panel.renderModel.yOff)
 
-    panel.renderModel.resetRotation()
+    // Simulate a connection change. This should reset the rotation
+    model.connectionListeners.forEach { it(client) }
     assertEquals(0.0, panel.renderModel.xOff)
     assertEquals(0.0, panel.renderModel.yOff)
   }

@@ -174,6 +174,7 @@ class DeviceViewContentPanel(
     isOpaque = true
     inspectorModel.selectionListeners.add { _, _, origin -> autoScrollAndRepaint(origin) }
     inspectorModel.hoverListeners.add { _, _ -> repaint() }
+    inspectorModel.connectionListeners.add { renderModel.resetRotation() }
     addComponentListener(object : ComponentAdapter() {
       override fun componentResized(e: ComponentEvent?) {
         repaint()
