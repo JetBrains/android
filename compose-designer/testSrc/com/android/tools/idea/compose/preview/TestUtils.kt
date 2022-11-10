@@ -177,8 +177,7 @@ private fun RenderLogger.toDebugString(): String {
  */
 @TestOnly
 internal fun ComposePreviewRepresentation.debugStatusForTesting(): DebugStatus {
-  val renderResults =
-    surfaces().mapNotNull { it.sceneManager }.mapNotNull { it.renderResult }.toList()
+  val renderResults = listOfNotNull(surface.sceneManager?.renderResult)
 
   return DebugStatus(
     status(),

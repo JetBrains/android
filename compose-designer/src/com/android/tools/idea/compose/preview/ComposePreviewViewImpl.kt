@@ -20,7 +20,6 @@ import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
@@ -33,18 +32,11 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.requestBuild
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.actionSystem.EmptyAction
-import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
-import com.intellij.openapi.actionSystem.impl.PresentationFactory
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
@@ -60,12 +52,9 @@ import com.intellij.util.ui.UIUtil
 import java.awt.AWTEvent
 import java.awt.BorderLayout
 import java.awt.Component
-import java.awt.Dimension
-import java.awt.FlowLayout
 import java.awt.Point
 import java.awt.Toolkit
 import java.awt.event.AWTEventListener
-import java.awt.event.AdjustmentEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseEvent
@@ -82,11 +71,6 @@ private const val COMPOSE_PREVIEW_DOC_URL = "https://d.android.com/jetpack/compo
 
 /** Interface that isolates the view of the Compose view so it can be replaced for testing. */
 interface ComposePreviewView {
-  /** A list of additional (to the main) design surfaces in the preview view. */
-  val surfaces: List<NlDesignSurface>
-
-  val pinnedSurface: NlDesignSurface
-    get() = surfaces[0]
 
   val mainSurface: NlDesignSurface
 
@@ -101,9 +85,6 @@ interface ComposePreviewView {
    * component.
    */
   var bottomPanel: JComponent?
-
-  /** Sets whether the panel is showed display pin toolbar */
-  var showPinToolbar: Boolean
 
   /**
    * Sets whether the panel has content to display. If it does not, it will display an overlay with
@@ -130,9 +111,6 @@ interface ComposePreviewView {
   /** If the content is not already visible it shows the given message. */
   fun updateProgress(message: String)
 
-  /** If called the pinned previews will be shown/hidden at the top. */
-  fun setPinnedSurfaceVisibility(visible: Boolean)
-
   /** Called when a refresh in progress was cancelled by the user. */
   fun onRefreshCancelledByTheUser()
 
@@ -147,10 +125,7 @@ fun interface ComposePreviewViewProvider {
     projectBuildStatusManager: ProjectBuildStatusManager,
     dataProvider: DataProvider,
     mainDesignSurfaceBuilder: NlDesignSurface.Builder,
-    designSurfaceBuilders: List<NlDesignSurface.Builder>,
-    parentDisposable: Disposable,
-    onPinFileAction: AnAction,
-    onUnPinAction: AnAction
+    parentDisposable: Disposable
   ): ComposePreviewView
 }
 
@@ -169,30 +144,6 @@ private fun createOverlayPanel(vararg components: JComponent): JPanel =
         add(it)
       }
     }
-
-private class PinnedLabelPanel(pinAction: AnAction) : JPanel() {
-  private val button =
-    ActionButtonWithText(
-        pinAction,
-        PresentationFactory().getPresentation(pinAction ?: EmptyAction()),
-        "PinnedToolbar",
-        ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
-      )
-      .apply {
-        foreground = UIUtil.getInactiveTextColor()
-        font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
-      }
-
-  init {
-    add(button)
-  }
-
-  fun update() {
-    button.update()
-  }
-
-  override fun getMaximumSize(): Dimension = preferredSize
-}
 
 /**
  * [WorkBench] panel used to contain all the compose preview elements.
@@ -226,12 +177,9 @@ private class PinnedLabelPanel(pinAction: AnAction) : JPanel() {
  * panel. Used to handle which notifications should be displayed.
  * @param projectBuildStatusManager [ProjectBuildStatusManager] used to detect the current build
  * status and show/hide the correct loading message.
- * @param dataProvider the [DataProvider] to be used by the [pinnedSurface] and [mainSurface] panel.
+ * @param dataProvider the [DataProvider] to be used by the [mainSurface] panel.
  * @param mainDesignSurfaceBuilder a builder to create main design surface
- * @param designSurfaceBuilders a list of builders to create additional design surfaces
  * @param parentDisposable the [Disposable] to use as parent disposable for this panel.
- * @param onPinFileAction action to perform when pin file label is clicked
- * @param onUnPinAction action to perform when unpin file label is clicked
  */
 internal class ComposePreviewViewImpl(
   private val project: Project,
@@ -239,18 +187,13 @@ internal class ComposePreviewViewImpl(
   private val projectBuildStatusManager: ProjectBuildStatusManager,
   dataProvider: DataProvider,
   mainDesignSurfaceBuilder: NlDesignSurface.Builder,
-  designSurfaceBuilders: List<NlDesignSurface.Builder>,
-  parentDisposable: Disposable,
-  onPinFileAction: AnAction,
-  onUnPinAction: AnAction
+  parentDisposable: Disposable
 ) : ComposePreviewView, Pannable, DataProvider {
 
   private val workbench =
     WorkBench<DesignSurface<*>>(project, "Compose Preview", null, parentDisposable, 0)
 
   private val log = Logger.getInstance(ComposePreviewViewImpl::class.java)
-
-  override val surfaces by lazy { designSurfaceBuilders.map { it.build() } }
 
   override val mainSurface =
     mainDesignSurfaceBuilder
@@ -263,16 +206,6 @@ internal class ComposePreviewViewImpl(
         } else dataProvider.getData(key)
       }
       .build()
-      .also {
-        it.addPanZoomListener(
-          object : PanZoomListener {
-            override fun zoomChanged(previousScale: Double, newScale: Double) =
-              this@ComposePreviewViewImpl.surfaces.stream().forEach { s -> s.setScale(newScale) }
-
-            override fun panningChanged(adjustmentEvent: AdjustmentEvent?) {}
-          }
-        )
-      }
 
   override val isPannable: Boolean
     get() = mainSurface.isPannable
@@ -280,13 +213,9 @@ internal class ComposePreviewViewImpl(
     get() = mainSurface.isPanning
     set(value) {
       mainSurface.isPanning = value
-      surfaces.forEach { it.isPanning = value }
     }
 
   override val component: JComponent = workbench
-
-  private val pinnedPanelLabel = PinnedLabelPanel(onUnPinAction)
-  private val mainSurfacePinLabel = PinnedLabelPanel(onPinFileAction)
 
   /**
    * Vertical splitter where the top part is a surface containing the pinned elements and the bottom
@@ -305,16 +234,6 @@ internal class ComposePreviewViewImpl(
         "com.android.tools.idea.compose.preview.composeEditorNotificationProvider"
       )
     )
-
-  /** Panel containing pinning button. */
-  private val pinToolbarContainer =
-    JPanel(FlowLayout(FlowLayout.LEFT)).apply {
-      border = JBUI.Borders.empty()
-      isVisible = false
-      isOpaque = false
-      alignmentX = Component.LEFT_ALIGNMENT
-      alignmentY = Component.TOP_ALIGNMENT
-    }
 
   private val scrollPane =
     DesignSurfaceScrollPane.createDefaultScrollPane(surfaceSplitter, mainSurface.background) {}
@@ -344,9 +263,6 @@ internal class ComposePreviewViewImpl(
       )
       scrollPane.viewport.viewPosition = value
     }
-
-  /** True if the pinned surface is visible in the preview. */
-  private var isPinnedSurfaceVisible = false
 
   /**
    * Vertical splitter where the top component is the [surfaceSplitter] and the bottom component,
@@ -411,13 +327,12 @@ internal class ComposePreviewViewImpl(
         actionsToolbar = ActionsToolbar(parentDisposable, mainSurface)
         add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
 
-        // Panel containing notifications and the pin label
+        // Panel containing notifications label
         val topPanel =
           JPanel(VerticalLayout(0)).apply {
             isOpaque = false
             isFocusable = false
             add(notificationPanel, VerticalLayout.FILL_HORIZONTAL)
-            add(pinToolbarContainer)
           }
 
         add(createOverlayPanel(topPanel, layeredPane), BorderLayout.CENTER)
@@ -455,29 +370,6 @@ internal class ComposePreviewViewImpl(
         workbench.hideContent()
       }
     }
-
-  override fun setPinnedSurfaceVisibility(visible: Boolean) {
-    UIUtil.invokeLaterIfNeeded {
-      if (StudioFlags.COMPOSE_PIN_PREVIEW.get() && visible) {
-        isPinnedSurfaceVisible = true
-        surfaceSplitter.firstComponent = pinnedSurface
-      } else {
-        isPinnedSurfaceVisible = false
-        surfaceSplitter.firstComponent = null
-      }
-
-      if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
-        pinToolbarContainer.removeAll()
-        pinToolbarContainer.add(
-          if (isPinnedSurfaceVisible) pinnedPanelLabel else mainSurfacePinLabel
-        )
-      }
-
-      // The main surface label is only displayed if there is a text and the pinned surface is not
-      // already visible.
-      updateVisibilityAndNotifications()
-    }
-  }
 
   private fun showModalErrorMessage(message: String, actionData: ActionData?) =
     UIUtil.invokeLaterIfNeeded {
@@ -536,19 +428,7 @@ internal class ComposePreviewViewImpl(
           log.debug("Show content")
           workbench.hideLoading()
           if (hasContent) {
-            if (workbench.showContent()) {
-              // We invoke later to allow the panel to layout itself before calling zoomToFit.
-              ApplicationManager.getApplication().invokeLater {
-                // We zoom to fit the pinned surface to have better initial zoom level when first
-                // build is completed.
-                if (isPinnedSurfaceVisible) pinnedSurface.zoomToFit()
-                // We don't zoom to fit the mainSurface because it restores to the last zoom level
-                // when it opened.
-                // If there is no last zoom level (e.g. it is a new file), it zooms to fit to have
-                // the initial zoom level. See
-                // addComponentListener(...) in the constructor of DesignSurface.
-              }
-            }
+            workbench.showContent()
           } else {
             workbench.hideContent()
             workbench.loadingStopped(
@@ -558,27 +438,11 @@ internal class ComposePreviewViewImpl(
               null
             )
           }
-
-          if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
-            mainSurfacePinLabel.isVisible = !isPinnedSurfaceVisible
-            mainSurfacePinLabel.update()
-            pinnedPanelLabel.update()
-          }
         }
-      }
-
-      if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
-        // The "pin this file" action is only visible if the pin surface is not visible and if we
-        // are not in interactive nor animation preview.
-        pinToolbarContainer.isVisible = showPinToolbar
-      } else {
-        pinToolbarContainer.isVisible = false
       }
 
       updateNotifications()
     }
-
-  override var showPinToolbar: Boolean = true
 
   override var hasContent: Boolean = false
 

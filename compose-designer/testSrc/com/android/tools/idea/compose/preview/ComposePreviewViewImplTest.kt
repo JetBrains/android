@@ -30,7 +30,6 @@ import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementIn
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
@@ -60,9 +59,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.SourceProviderManager
-import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -188,15 +185,6 @@ class ComposePreviewViewImplTest {
         fixture.testRootDisposable,
         sceneComponentProvider
       )
-    val pinnedSurfaceBuilder =
-      createPinnedDesignSurfaceBuilder(
-        project,
-        navigationHandler,
-        interactionHandler,
-        nopDataProvider,
-        fixture.testRootDisposable,
-        sceneComponentProvider
-      )
     val composePreviewViewImpl =
       ComposePreviewViewImpl(
         project,
@@ -204,10 +192,7 @@ class ComposePreviewViewImplTest {
         statusManager,
         nopDataProvider,
         mainSurfaceBuilder,
-        listOf(pinnedSurfaceBuilder),
         fixture.testRootDisposable,
-        nopAction,
-        nopAction
       )
 
     previewView = composePreviewViewImpl
@@ -222,11 +207,6 @@ class ComposePreviewViewImplTest {
         true
       )
     fakeUi.root.validate()
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_PIN_PREVIEW.clearOverride()
   }
 
   /**
@@ -333,55 +313,6 @@ class ComposePreviewViewImplTest {
     assertEquals(2, fakeUi.findAllComponents<SceneViewPeerPanel>() { it.isShowing }.size)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display1" }!!.isShowing)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display2" }!!.isShowing)
-  }
-
-  @RunsInEdt
-  @Test
-  fun `show both main and pinned surfaces`() {
-    StudioFlags.COMPOSE_PIN_PREVIEW.override(true)
-    val composePreviewManager = TestComposePreviewManager()
-    val previews =
-      listOf(
-        SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display1"),
-        SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Display2")
-      )
-    val pinnedPreviews =
-      listOf(
-        SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Pinned Display1"),
-        SingleComposePreviewElementInstance.forTesting("Fake Test Method", "Pinned Display2")
-      )
-    val fakePreviewProvider =
-      object : PreviewElementProvider<ComposePreviewElementInstance> {
-        override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> =
-          previews.asSequence()
-      }
-    val fakePinnedPreviewProvider =
-      object : PreviewElementProvider<ComposePreviewElementInstance> {
-        override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> =
-          pinnedPreviews.asSequence()
-      }
-    updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
-    updatePreviewAndRefreshWithProvider(
-      fakePinnedPreviewProvider,
-      composePreviewManager,
-      previewView.pinnedSurface
-    )
-    previewView.mainSurface.zoomToFit()
-    fakeUi.root.validate()
-
-    assertEquals(2, fakeUi.findAllComponents<SceneViewPeerPanel>() { it.isShowing }.size)
-    assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display1" }!!.isShowing)
-    assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display2" }!!.isShowing)
-    // Not visible by default
-    assertFalse(fakeUi.findComponent<JLabel> { it.text == "Pinned Display1" }?.isShowing ?: false)
-    assertFalse(fakeUi.findComponent<JLabel> { it.text == "Pinned Display2" }?.isShowing ?: false)
-
-    previewView.setPinnedSurfaceVisibility(true)
-    previewView.mainSurface.zoomToFit()
-    fakeUi.root.validate()
-    assertTrue(fakeUi.findComponent<JLabel> { it.text == "Pinned Display1" }!!.isShowing)
-    assertTrue(fakeUi.findComponent<JLabel> { it.text == "Pinned Display2" }!!.isShowing)
-    assertEquals(4, fakeUi.findAllComponents<SceneViewPeerPanel>() { it.isShowing }.size)
   }
 
   @RunsInEdt

@@ -73,7 +73,7 @@ class RenderErrorTest {
               .asSequence()
         },
         PreferredVisibility.SPLIT
-      ) { _, _, _, _, _, _, _, _, _ -> previewView }
+      ) { _, _, _, _, _, _ -> previewView }
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
 
     lateinit var fakeUi: FakeUi

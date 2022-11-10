@@ -51,14 +51,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-internal class TestComposePreviewView(
-  override val surfaces: List<NlDesignSurface>,
-  override val mainSurface: NlDesignSurface
-) : ComposePreviewView {
+internal class TestComposePreviewView(override val mainSurface: NlDesignSurface) :
+  ComposePreviewView {
   override val component: JComponent
     get() = JPanel()
   override var bottomPanel: JComponent? = null
-  override var showPinToolbar: Boolean = true
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = true
   override var hasRendered: Boolean = true
@@ -68,8 +65,6 @@ internal class TestComposePreviewView(
   override fun updateVisibilityAndNotifications() {}
 
   override fun updateProgress(message: String) {}
-
-  override fun setPinnedSurfaceVisibility(visible: Boolean) {}
 
   override fun onRefreshCancelledByTheUser() {}
 
@@ -129,10 +124,6 @@ class ComposePreviewRepresentationTest {
       }
 
       val navigationHandler = ComposePreviewNavigationHandler()
-      val pinnedSurface =
-        NlDesignSurface.builder(project, fixture.testRootDisposable)
-          .setNavigationHandler(navigationHandler)
-          .build()
       val mainSurface =
         NlDesignSurface.builder(project, fixture.testRootDisposable)
           .setNavigationHandler(navigationHandler)
@@ -152,7 +143,7 @@ class ComposePreviewRepresentationTest {
         }
       )
 
-      val composeView = TestComposePreviewView(listOf(pinnedSurface), mainSurface)
+      val composeView = TestComposePreviewView(mainSurface)
       val preview =
         ComposePreviewRepresentation(
           composeTest,
@@ -165,7 +156,7 @@ class ComposePreviewRepresentationTest {
                 .asSequence()
           },
           PreferredVisibility.SPLIT
-        ) { _, _, _, _, _, _, _, _, _ -> composeView }
+        ) { _, _, _, _, _, _ -> composeView }
       Disposer.register(fixture.testRootDisposable, preview)
       withContext(Dispatchers.IO) {
         logger.info("compile")

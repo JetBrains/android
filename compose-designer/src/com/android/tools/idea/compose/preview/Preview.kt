@@ -25,8 +25,6 @@ import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
-import com.android.tools.idea.compose.preview.actions.PinAllPreviewElementsAction
-import com.android.tools.idea.compose.preview.actions.UnpinAllPreviewElementsAction
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
@@ -55,7 +53,6 @@ import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
-import com.android.tools.idea.preview.FilteredPreviewElementProvider
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewDisplaySettings
@@ -126,7 +123,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -329,12 +325,6 @@ class ComposePreviewRepresentation(
       requestRefresh()
     }
 
-  /** [PreviewElementProvider] containing the pinned previews. */
-  private val memoizedPinnedPreviewProvider =
-    FilteredPreviewElementProvider(PinnedPreviewElementManager.getPreviewElementProvider(project)) {
-      !(it.containingFile?.isEquivalentTo(psiFilePointer.containingFile) ?: false)
-    }
-
   /**
    * [PreviewElementProvider] used to save the result of a call to `previewProvider`. Calls to
    * `previewProvider` can potentially be slow. This saves the last result and it is refreshed on
@@ -417,7 +407,6 @@ class ComposePreviewRepresentation(
       fpsCounter.resetAndStart()
       ticker.start()
       delegateInteractionHandler.delegate = interactiveInteractionHandler
-      composeWorkBench.showPinToolbar = false
       requestVisibilityAndNotificationsUpdate()
 
       // While in interactive mode, display a small ripple when clicking
@@ -449,7 +438,6 @@ class ComposePreviewRepresentation(
     interactiveMode = ComposePreviewManager.InteractiveMode.STOPPING
     surface.disableMouseClickDisplay()
     delegateInteractionHandler.delegate = staticPreviewInteractionHandler
-    composeWorkBench.showPinToolbar = true
     requestVisibilityAndNotificationsUpdate()
     ticker.stop()
     previewElementProvider.clearInstanceIdFilter()
@@ -483,7 +471,6 @@ class ComposePreviewRepresentation(
           previewElementProvider.instanceFilter = value
           animationInspection.set(true)
           sceneComponentProvider.enabled = false
-          composeWorkBench.showPinToolbar = false
 
           // Open the animation inspection panel
           composeWorkBench.bottomPanel =
@@ -513,7 +500,6 @@ class ComposePreviewRepresentation(
     ComposePreviewAnimationManager.closeCurrentInspector()
     // Swap the components back
     composeWorkBench.bottomPanel = null
-    composeWorkBench.showPinToolbar = true
     previewElementProvider.instanceFilter = null
   }
 
@@ -558,22 +544,7 @@ class ComposePreviewRepresentation(
         this,
         sceneComponentProvider
       ),
-      listOf(
-        createPinnedDesignSurfaceBuilder(
-          project,
-          navigationHandler,
-          delegateInteractionHandler,
-          dataProvider,
-          this,
-          sceneComponentProvider
-        )
-      ),
-      this,
-      PinAllPreviewElementsAction(
-        { PinnedPreviewElementManager.getInstance(project).isPinned(psiFile) },
-        previewElementProvider
-      ),
-      UnpinAllPreviewElementsAction
+      this
     )
   }
 
@@ -584,9 +555,8 @@ class ComposePreviewRepresentation(
   private val interactiveInteractionHandler =
     LayoutlibInteractionHandler(composeWorkBench.mainSurface)
 
-  private val pinnedSurface: NlDesignSurface
-    get() = composeWorkBench.pinnedSurface
-  private val surface: NlDesignSurface
+  @get:VisibleForTesting
+  val surface: NlDesignSurface
     get() = composeWorkBench.mainSurface
 
   /**
@@ -799,33 +769,19 @@ class ComposePreviewRepresentation(
         LOG.debug(
           "smartModeFlow setup status=${projectBuildStatusManager.status}, dumbMode=${DumbService.isDumb(project)}"
         )
-        merge(
-            // Flow handling switch to smart mode.
-            smartModeFlow(project, this@ComposePreviewRepresentation, LOG),
-
-            // Flow handling pinned elements updates.
-            if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
-              disposableCallbackFlow("PinnedPreviewsFlow", LOG, this@ComposePreviewRepresentation) {
-                val listener = PinnedPreviewElementManager.Listener { trySend(Unit) }
-                PinnedPreviewElementManager.getInstance(project).addListener(listener)
-                Disposer.register(disposable) {
-                  PinnedPreviewElementManager.getInstance(project).removeListener(listener)
-                }
-              }
-            } else emptyFlow(),
+        // Flow handling switch to smart mode.
+        smartModeFlow(project, this@ComposePreviewRepresentation, LOG).collectLatest {
+          LOG.debug(
+            "smartModeFlow, status change status=${projectBuildStatusManager.status}, dumbMode=${DumbService.isDumb(project)}"
           )
-          .collectLatest {
-            LOG.debug(
-              "smartModeFlow, status change status=${projectBuildStatusManager.status}, dumbMode=${DumbService.isDumb(project)}"
-            )
-            when (projectBuildStatusManager.status) {
-              // Do not refresh if we still need to build the project. Instead, only update the
-              // empty panel and editor notifications if needed.
-              ProjectStatus.NotReady,
-              ProjectStatus.NeedsBuild -> requestVisibilityAndNotificationsUpdate()
-              else -> requestRefresh()
-            }
+          when (projectBuildStatusManager.status) {
+            // Do not refresh if we still need to build the project. Instead, only update the
+            // empty panel and editor notifications if needed.
+            ProjectStatus.NotReady,
+            ProjectStatus.NeedsBuild -> requestVisibilityAndNotificationsUpdate()
+            else -> requestRefresh()
           }
+        }
       }
 
       // Flow handling file changes and syntax error changes.
@@ -952,8 +908,6 @@ class ComposePreviewRepresentation(
     animationInspectionPreviewElementInstance = null
   }
 
-  private var lastPinsModificationCount = -1L
-
   private fun hasErrorsAndNeedsBuild(): Boolean =
     renderedElements.isNotEmpty() &&
       (!hasRenderedAtLeastOnce.get() ||
@@ -1000,9 +954,6 @@ class ComposePreviewRepresentation(
 
     return newStatus
   }
-
-  /** Method for tests to access the surfaces managed by this [ComposePreviewRepresentation]. */
-  @TestOnly internal fun surfaces() = listOfNotNull(pinnedSurface, surface)
 
   /**
    * Method called when the notifications of the [PreviewRepresentation] need to be updated. This is
@@ -1062,31 +1013,6 @@ class ComposePreviewRepresentation(
     onRestoreState?.invoke()
     onRestoreState = null
 
-    val arePinsEnabled =
-      StudioFlags.COMPOSE_PIN_PREVIEW.get() &&
-        interactiveMode.isStoppingOrDisabled() &&
-        !animationInspection.get()
-    val hasPinnedElements =
-      if (arePinsEnabled) {
-        memoizedPinnedPreviewProvider.previewElements().any()
-      } else false
-
-    composeWorkBench.setPinnedSurfaceVisibility(hasPinnedElements)
-    val pinnedManager = PinnedPreviewElementManager.getInstance(project)
-    if (hasPinnedElements) {
-      pinnedSurface.updatePreviewsAndRefresh(
-        true,
-        memoizedPinnedPreviewProvider,
-        LOG,
-        psiFile,
-        this,
-        progressIndicator,
-        this::onAfterRender,
-        previewElementModelAdapter,
-        this::configureLayoutlibSceneManagerForPreviewElement
-      )
-    }
-    lastPinsModificationCount = pinnedManager.modificationCount
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
     val showingPreviewElements =
@@ -1177,27 +1103,10 @@ class ComposePreviewRepresentation(
               memoizedElementsProvider.previewElements().toList().sortByDisplayAndSourcePosition()
             }
 
-          val pinnedPreviewElements =
-            if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
-              refreshProgressIndicator.text =
-                message("refresh.progress.indicator.finding.pinned.previews")
-
-              withContext(workerThread) {
-                memoizedPinnedPreviewProvider
-                  .previewElements()
-                  .toList()
-                  .sortByDisplayAndSourcePosition()
-              }
-            } else emptyList()
-
           val needsFullRefresh =
-            invalidated.getAndSet(false) ||
-              renderedElements != filePreviewElements ||
-              PinnedPreviewElementManager.getInstance(project).modificationCount !=
-                lastPinsModificationCount
+            invalidated.getAndSet(false) || renderedElements != filePreviewElements
 
-          composeWorkBench.hasContent =
-            filePreviewElements.isNotEmpty() || pinnedPreviewElements.isNotEmpty()
+          composeWorkBench.hasContent = filePreviewElements.isNotEmpty()
           if (!needsFullRefresh) {
             requestLogger.debug(
               "No updates on the PreviewElements, just refreshing the existing ones"

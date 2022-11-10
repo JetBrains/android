@@ -686,7 +686,7 @@ class ComposePreviewRepresentationGradleTest {
               .asSequence()
         },
         PreferredVisibility.SPLIT
-      ) { _, _, _, _, _, _, _, _, _ -> view }
+      ) { _, _, _, _, _, _ -> view }
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
     return previewRepresentation
   }

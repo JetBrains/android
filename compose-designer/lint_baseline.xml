@@ -77,24 +77,8 @@
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
         <location
-            file="src/com/android/tools/idea/compose/preview/ComposePreviewViewImpl.kt"
-            line="246"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
             file="src/com/android/tools/idea/compose/preview/Notifications.kt"
             line="86"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/compose/preview/PinnedPreviewElementManager.kt"
-            line="107"/>
     </issue>
 
     <issue

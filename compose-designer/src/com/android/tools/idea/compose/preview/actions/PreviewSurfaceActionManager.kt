@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.flags.ifEnabled
 import com.android.tools.idea.common.actions.CopyResultImageAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.createStatusIcon
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -67,11 +65,6 @@ internal class PreviewSurfaceActionManager(
         DefaultActionGroup(
           listOf(Separator()) +
             listOfNotNull(
-                StudioFlags.COMPOSE_PIN_PREVIEW.ifEnabled {
-                  StudioFlags.COMPOSE_INDIVIDUAL_PIN_PREVIEW.ifEnabled {
-                    PinPreviewElementAction { sceneView.scene.sceneManager.model.dataContext }
-                  }
-                },
                 AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext },
                 EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext },
                 DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext },

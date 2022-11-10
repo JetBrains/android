@@ -155,29 +155,3 @@ internal fun createMainDesignSurfaceBuilder(
       sceneComponentProvider
     )
     .setLayoutManager(DEFAULT_PREVIEW_LAYOUT_MANAGER)
-
-/** Creates a [NlDesignSurface.Builder] for the pinned design surface in the Compose preview. */
-internal fun createPinnedDesignSurfaceBuilder(
-  project: Project,
-  navigationHandler: NavigationHandler,
-  delegateInteractionHandler: InteractionHandler,
-  dataProvider: DataProvider,
-  parentDisposable: Disposable,
-  sceneComponentProvider: ComposeSceneComponentProvider
-) =
-  createPreviewDesignSurfaceBuilder(
-      project,
-      navigationHandler,
-      delegateInteractionHandler,
-      dataProvider,
-      parentDisposable,
-      sceneComponentProvider
-    )
-    .setLayoutManager(
-      GridSurfaceLayoutManager(
-        NlConstants.DEFAULT_SCREEN_OFFSET_X,
-        NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-        NlConstants.SCREEN_DELTA,
-        NlConstants.SCREEN_DELTA
-      )
-    )

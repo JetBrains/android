@@ -35,12 +35,6 @@ internal val SceneViewPeerPanel.displayName: String
 
 internal class TestComposePreviewView(parentDisposable: Disposable, project: Project) :
   ComposePreviewView, JPanel() {
-  override val surfaces: List<NlDesignSurface> =
-    listOf(
-      NlDesignSurface.builder(project, parentDisposable)
-        .setNavigationHandler(ComposePreviewNavigationHandler())
-        .build()
-    )
   override val mainSurface: NlDesignSurface =
     createMainDesignSurfaceBuilder(
         project,
@@ -54,7 +48,6 @@ internal class TestComposePreviewView(parentDisposable: Disposable, project: Pro
   override val component: JComponent
     get() = this
   override var bottomPanel: JComponent? = null
-  override var showPinToolbar: Boolean = true
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = false
   override var hasRendered: Boolean = false
@@ -72,8 +65,6 @@ internal class TestComposePreviewView(parentDisposable: Disposable, project: Pro
   override fun updateVisibilityAndNotifications() {}
 
   override fun updateProgress(message: String) {}
-
-  override fun setPinnedSurfaceVisibility(visible: Boolean) {}
 
   override fun onRefreshCancelledByTheUser() {}
 

@@ -1213,25 +1213,11 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_PIN_PREVIEW = Flag.create(
-    COMPOSE, "preview.pin.enable",
-    "Enable pinning compose previews",
-    "If enabled, a user can pin a preview",
-    false
-  );
-
   public static final Flag<Boolean> COMPOSE_CONSTRAINT_VISUALIZATION = Flag.create(
     COMPOSE, "constraint.visualization",
     "Enable ConstraintLayout visualization in Compose previews",
     "If enabled, constraints from a ConstraintLayout composable will be shown in the preview",
     true
-  );
-
-  public static final Flag<Boolean> COMPOSE_INDIVIDUAL_PIN_PREVIEW = Flag.create(
-    COMPOSE, "preview.individual.pin.enable",
-    "Enable pinning of individual compose previews",
-    "If enabled, a user can pin a single preview within a file",
-    false
   );
 
   public static final Flag<Integer> COMPOSE_INTERACTIVE_FPS_LIMIT = Flag.create(
