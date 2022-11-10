@@ -28,7 +28,7 @@ import kotlin.time.Duration
 
 @JvmSynthetic
 fun waitForCondition(timeout: Duration, condition: () -> Boolean) {
-  waitForCondition(timeout.inWholeMicroseconds, TimeUnit.MILLISECONDS, condition)
+  waitForCondition(timeout.inWholeMicroseconds, TimeUnit.MICROSECONDS, condition)
 }
 
 /**
