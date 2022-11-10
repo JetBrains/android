@@ -18,6 +18,7 @@ package com.android.tools.asdriver.tests;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
+import com.android.utils.FileUtils;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
@@ -394,6 +395,22 @@ public class AndroidStudioInstallation {
 
   public AndroidStudio run(Display display, Map<String, String> env) throws IOException, InterruptedException {
     return run(display, env, new String[] {});
+  }
+
+  /**
+   * Run from an APK project, which is different from an {@link AndroidProject} in that it doesn't
+   * have Gradle files or a {@code local.properties} file.
+   *
+   * Running from the "File" → "Profile or Debug APK" flow would also work, but that requires more
+   * automation to set up.
+   */
+  public AndroidStudio runFromExistingProject(Display display, HashMap<String, String> env, String path) throws IOException, InterruptedException {
+    Path project = TestUtils.resolveWorkspacePath(path);
+    Path targetProject = Files.createTempDirectory(fileSystem.getRoot(), "project");
+    FileUtils.copyDirectory(project.toFile(), targetProject.toFile());
+
+    trustPath(targetProject);
+    return run(display, env, new String[]{ targetProject.toString() });
   }
 
   public AndroidStudio run(Display display, Map<String, String> env, AndroidProject project, Path sdkDir) throws IOException, InterruptedException {

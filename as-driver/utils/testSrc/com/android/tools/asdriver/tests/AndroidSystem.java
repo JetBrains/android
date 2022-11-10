@@ -16,6 +16,7 @@
 package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
+import com.android.utils.FileUtils;
 import com.android.utils.PathUtils;
 import com.google.common.base.Preconditions;
 import com.intellij.openapi.util.SystemInfo;
@@ -189,6 +190,17 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     try (AndroidStudio studio = runStudio(project)) {
       callback.accept(studio);
       MemoryUsageReportProcessor.Companion.collectMemoryUsageStatistics(studio, install, memoryDashboardName);
+    }
+  }
+
+  public AndroidStudio runStudioFromApk(String projectPath) throws IOException, InterruptedException {
+    AndroidStudioInstallation install = getInstallation();
+    return install.runFromExistingProject(display, env, projectPath);
+  }
+
+  public void runStudioFromApk(String projectPath, Consumer<AndroidStudio> callback) throws Exception {
+    try (AndroidStudio studio = runStudioFromApk(projectPath)) {
+      callback.accept(studio);
     }
   }
 

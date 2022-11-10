@@ -346,6 +346,40 @@ iml_test(
     test_class = "com.android.tools.idea.BuildProjectTest",
 )
 
+iml_test(
+    name = "RunApkTest",
+    timeout = "long",
+    data = select({
+        "@platforms//os:linux": [
+            "//tools/adt/idea/studio:android-studio.linux.zip",
+        ],
+        "@platforms//os:macos": [
+            "//tools/adt/idea/studio:android-studio.mac.zip",
+        ],
+        "@platforms//os:windows": [
+            "//tools/adt/idea/studio:android-studio.win.zip",
+        ],
+        "//conditions:default": [],
+    }) + [
+        ":helloworldapk",
+        "//prebuilts/studio/sdk:platforms/android-31",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//tools/base/build-system:gradle-distrib-7.2",
+        "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
+    ],
+    module = ":intellij.android.core.integration",
+    tags = ["manual"],  # Flaky due to b/260867011
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.RunApkTest",
+)
+
 maven_repository(
     name = "buildproject_deps",
     # keep sorted: for buildifier
@@ -390,4 +424,9 @@ filegroup(
 filegroup(
     name = "liveeditproject",
     srcs = glob(["testData/liveedit/**"]),
+)
+
+filegroup(
+    name = "helloworldapk",
+    srcs = glob(["testData/helloworldapk/**"]),
 )
