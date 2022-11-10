@@ -227,11 +227,11 @@ internal class DeviceView(
   private suspend fun initializeAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int) {
     try {
       val deviceClient = DeviceClient(this, deviceSerialNumber, deviceAbi, deviceName, project)
-      deviceClient.startAgentAndConnect(maxOutputSize, initialDisplayOrientation, MyFrameListener(), object : AgentTerminationListener {
-        override fun agentTerminated(exitCode: Int) {
-          disconnected(initialDisplayOrientation)
-        }
-      })
+      val agentTerminationListener = object: AgentTerminationListener {
+        override fun agentTerminated(exitCode: Int) { disconnected(initialDisplayOrientation) }
+        override fun deviceDisconnected() { disconnected(initialDisplayOrientation) }
+      }
+      deviceClient.startAgentAndConnect(maxOutputSize, initialDisplayOrientation, MyFrameListener(), agentTerminationListener)
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         if (!disposed) {
           this.deviceClient = deviceClient

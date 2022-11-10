@@ -111,6 +111,7 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JScrollPane
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tests for [DeviceView] and [DeviceClient].
@@ -552,6 +553,19 @@ internal class DeviceViewTest {
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(19, 0, 462, 1000))
     assertThat(view.displayOrientationQuadrants).isEqualTo(0)
+  }
+
+  @Test
+  fun testDeviceDisconnection() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    createDeviceView(500, 1000, screenScale = 1.0)
+    waitForFrame()
+
+    agentRule.disconnectDevice(device)
+
+    waitForCondition(15.seconds) { !view.isConnected }
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {

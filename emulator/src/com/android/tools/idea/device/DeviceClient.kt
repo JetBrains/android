@@ -37,6 +37,7 @@ import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -274,18 +275,22 @@ internal class DeviceClient(
             is ShellCommandOutputElement.ExitCode -> {
               if (it.exitCode == 0) log.info("terminated") else log.warn("terminated with code ${it.exitCode}")
               agentTerminationListener.agentTerminated(it.exitCode)
+              cancel()
             }
           }
         }
       }
       catch (_: EOFException) {
         // Device disconnected. This is not an error.
+        log.info("device disconnected")
+        agentTerminationListener.deviceDisconnected()
       }
     }
   }
 
   interface AgentTerminationListener {
     fun agentTerminated(exitCode: Int)
+    fun deviceDisconnected()
   }
 
   private class ClosableReverseForwarding(
