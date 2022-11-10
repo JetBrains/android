@@ -21,23 +21,6 @@ import com.intellij.openapi.util.io.FileUtil
 import org.junit.Before
 import java.io.File
 
-class DolphinPerfTestV1: AbstractGradleSyncPerfTestCase() {
-  override val relativePath: String = DOLPHIN_PROJECT_ANDROID_ROOT
-  override val projectName: String = "Dolphin_V1"
-
-  @Before
-  override fun setUp() {
-    super.setUp()
-    // The dolphin project place the Android project under <project root>/Source/Android. So the IDEA project root does not contain native
-    // source code. Therefore we manually copy all the native source code to a subfolder 'native' under the IDEA project root. This works
-    // because the diff patch (setupForSyncTest) we applied already changed build.gradle to refer to the CMakeLists.txt under this "native"
-    // directory.
-    val dolphinSource: File = projectRule.resolveTestDataPath(DOLPHIN_PROJECT_ROOT)
-    val ideaProjectDolphinSource = File(FileUtil.toSystemDependentName(projectRule.project.basePath!!), "native")
-    FileUtil.copyDir(dolphinSource, ideaProjectDolphinSource)
-  }
-}
-
 class DolphinPerfTestV2: AbstractGradleSyncPerfTestCase() {
   override val relativePath: String = DOLPHIN_PROJECT_ANDROID_ROOT
   override val projectName: String = "Dolphin_V2"
