@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
+import com.android.adblib.testing.FakeAdbSession
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.testing.registerServiceInstance
+import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.adblib.testing.TestAdbLibService
+import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.Companion.SCREEN_RECORDER_PARAMETERS_KEY
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Before
@@ -41,19 +45,26 @@ import org.mockito.Mockito.anyInt
  */
 @Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
 class ScreenRecorderActionTest {
+  private val projectRule = ProjectRule()
+
+  private val mockScreenRecordingSupportedCache = mock<ScreenRecordingSupportedCache>()
+
   @get:Rule
-  val projectRule = ProjectRule()
+  val rule = RuleChain(
+    projectRule,
+    ProjectServiceRule(projectRule, AdbLibService::class.java, TestAdbLibService(FakeAdbSession())),
+    ProjectServiceRule(projectRule, ScreenRecordingSupportedCache::class.java, mockScreenRecordingSupportedCache),
+  )
 
   private val project get() = projectRule.project
+
   @Suppress("UnstableApiUsage")
   private val testRootDisposable get() = project.earlyDisposable
   private val userData = mutableMapOf<String, Any?>()
-  private val mockScreenRecordingSupportedCache = mock<ScreenRecordingSupportedCache>()
   private val action = ScreenRecorderAction()
 
   @Before
   fun setUp() {
-    project.registerServiceInstance(ScreenRecordingSupportedCache::class.java, mockScreenRecordingSupportedCache, testRootDisposable)
     userData[CommonDataKeys.PROJECT.name] = project
     userData[SCREEN_RECORDER_PARAMETERS_KEY.name] = ScreenRecorderAction.Parameters("device", 30, null, testRootDisposable)
   }

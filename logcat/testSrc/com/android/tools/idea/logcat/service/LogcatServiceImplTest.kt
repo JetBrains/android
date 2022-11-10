@@ -92,7 +92,6 @@ class LogcatServiceImplTest {
   @Test
   fun readLogcat_launchesLogcat_sdk30(): Unit = runBlocking {
     val device = device30
-    AdbLibService.getInstance(project).session
     val service = logcatServiceImpl()
     val logcatHandler = CheckFormatLogcatHandler()
     fakeAdb.addDeviceCommandHandler(logcatHandler)

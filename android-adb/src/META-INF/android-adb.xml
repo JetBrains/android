@@ -15,13 +15,17 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceImplementation="com.android.tools.idea.adb.AdbService" />
-    <applicationService serviceImplementation="com.android.tools.idea.adb.AdbOptionsService" />
+    <applicationService serviceImplementation="com.android.tools.idea.adb.AdbService"/>
+    <applicationService serviceImplementation="com.android.tools.idea.adb.AdbOptionsService"/>
+    <projectService
+        serviceInterface="com.android.tools.idea.adblib.AdbLibService"
+        serviceImplementation="com.android.tools.idea.adblib.AdbLibServiceImpl"
+    />
     <projectService
         serviceInterface="com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor"
         serviceImplementation="com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitorImpl"
     />
-    <xdebugger.configurableProvider implementation="com.android.tools.idea.adb.AdbConfigurableProvider" />
+    <xdebugger.configurableProvider implementation="com.android.tools.idea.adb.AdbConfigurableProvider"/>
     <notificationGroup id="ADB Logs" displayType="NONE"/>
   </extensions>
 
@@ -41,6 +45,6 @@
             class="com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction"
             icon="StudioIcons.Avd.PAIR_OVER_WIFI"
             text="Pair Devices Using Wi-Fi"
-            description="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
+            description="Open the Device Pairing dialog which allows connecting devices over Wi-Fi"/>
   </actions>
 </idea-plugin>

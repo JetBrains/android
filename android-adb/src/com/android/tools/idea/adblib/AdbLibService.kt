@@ -15,20 +15,11 @@
  */
 package com.android.tools.idea.adblib
 
-import com.android.adblib.AdbChannelProviderFactory
 import com.android.adblib.AdbSession
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.ddmlib.DdmPreferences
-import com.android.tools.idea.adb.AdbFileProvider
-import com.android.tools.idea.adb.AdbService
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.withContext
-import java.net.InetSocketAddress
-import java.time.Duration
 
 /**
  * [Project] service that provides access to the corresponding [AdbSession] for that project.
@@ -38,37 +29,8 @@ import java.time.Duration
  * If a [Project] instance is not available, use [AdbLibApplicationService] instead, but it is then
  * the caller's responsibility to manage [AndroidDebugBridge] initialization.
  */
-@Service
-class AdbLibService(val project: Project) : Disposable {
-  private val host
-    get() = AdbLibApplicationService.instance.session.host // re-use host from application service
-
-  private val channelProvider = AdbChannelProviderFactory.createConnectAddresses(host) {
-    listOf(getAdbSocketAddress())
-  }
-
-  val session: AdbSession = AdbSession.create(
-    host = host,
-    channelProvider = channelProvider,
-    connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong())
-  )
-
-  override fun dispose() {
-    session.close()
-  }
-
-  private suspend fun getAdbSocketAddress(): InetSocketAddress {
-    return withContext(host.ioDispatcher) {
-      val needToConnect = AndroidDebugBridge.getBridge()?.let { !it.isConnected } ?: true
-      if (needToConnect) {
-        // Ensure ddmlib is initialized with ADB server path from project context
-        val adbFile = AdbFileProvider.fromProject(project).get() ?: throw IllegalStateException(
-          "ADB has not been initialized for this project")
-        AdbService.getInstance().getDebugBridge(adbFile).await()
-      }
-      AndroidDebugBridge.getSocketAddress()
-    }
-  }
+interface AdbLibService : Disposable {
+  val session: AdbSession
 
   companion object {
     @JvmStatic
