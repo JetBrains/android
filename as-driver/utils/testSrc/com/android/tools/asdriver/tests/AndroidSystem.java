@@ -188,6 +188,13 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   }
 
   public void runStudio(@NotNull final AndroidProject project,
+                        Consumer<AndroidStudio> callback) throws Exception {
+    try (AndroidStudio studio = runStudio(project)) {
+      callback.accept(studio);
+    }
+  }
+
+  public void runStudio(@NotNull final AndroidProject project,
                         @Nullable final String memoryDashboardName,
                         Consumer<AndroidStudio> callback) throws Exception {
     try (AndroidStudio studio = runStudio(project)) {

@@ -380,4 +380,33 @@ public class AndroidStudio implements AutoCloseable {
       .waitForMatchingLine(".*Gradle sync finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
     System.out.println("Sync took " + matcher.group(1));
   }
+
+  public void runWithBleak(Runnable scenario) {
+    scenario.run(); // warm up: for BLeak to track a path in the heap, it must exist when the first snapshot is taken.
+    int lastIter = 3;
+    for (int i=0; i < lastIter; i++) {
+      ASDriver.TakeBleakSnapshotRequest request = ASDriver.TakeBleakSnapshotRequest.newBuilder().setCurrentIteration(i).setLastIteration(lastIter).build();
+      ASDriver.TakeBleakSnapshotResponse response = androidStudio.takeBleakSnapshot(request);
+      if (response.getResult() == ASDriver.TakeBleakSnapshotResponse.Result.ERROR) {
+        throw new IllegalStateException("Error in BLeak");
+      }
+      scenario.run();
+    }
+    ASDriver.TakeBleakSnapshotRequest request = ASDriver.TakeBleakSnapshotRequest.newBuilder().setCurrentIteration(lastIter).setLastIteration(lastIter).build();
+    ASDriver.TakeBleakSnapshotResponse response = androidStudio.takeBleakSnapshot(request);
+    switch (response.getResult()) {
+      case OK:
+        return;
+      case ERROR:
+        throw new IllegalStateException("Error in BLeak");
+      case LEAK_DETECTED:
+        throw new MemoryLeakException(response.getLeakInfo());
+    }
+  }
+
+  private static class MemoryLeakException extends RuntimeException {
+    private MemoryLeakException(String message) {
+      super(message);
+    }
+  }
 }

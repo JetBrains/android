@@ -19,5 +19,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="studio-grpc" level="project" />
+    <orderEntry type="module" module-name="intellij.android.bleak" />
   </component>
 </module>

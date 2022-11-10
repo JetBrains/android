@@ -35,6 +35,7 @@ java_binary(
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/bleak:intellij.android.bleak",
     ],
 )
 
@@ -50,6 +51,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/as-driver:asdriver_proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
+        "//tools/adt/idea/bleak:intellij.android.bleak[module]",
     ],
 )
 

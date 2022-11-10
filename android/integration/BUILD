@@ -287,6 +287,26 @@ iml_studio_test(
 )
 
 iml_studio_test(
+    name = "BuildProjectBleakTest",
+    timeout = "long",
+    data = [
+        ":buildproject_deps",
+        ":minapp",
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        INTEGRATION_TEST_GRADLE_VERSION,
+        "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
+    ],
+    module = ":intellij.android.core.integration",
+    tags = [
+        "block-network",
+        "no_mac",
+        "no_windows",
+        "very_flaky",  # b/283129200
+    ],
+    test_class = "com.android.tools.idea.BuildProjectBleakTest",
+)
+
+iml_studio_test(
     name = "RunApkTest",
     timeout = "long",
     data = [

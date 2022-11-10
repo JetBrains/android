@@ -160,6 +160,21 @@ public class AndroidStudioInstallation {
     }
   }
 
+  public void enableBleak() throws IOException {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(vmOptionsPath.toFile(), true))) {
+      try {
+        Path jvmtiAgent = TestUtils.resolveWorkspacePath(
+          "_solib_k8/libtools_Sadt_Sidea_Sbleak_Ssrc_Scom_Sandroid_Stools_Sidea_Sbleak_Sagents_Slibjnibleakhelper.so").toRealPath();
+        writer.append(String.format("-agentpath:%s%n", jvmtiAgent));
+        writer.append(String.format("-Denable.bleak=true%n"));
+        writer.append(String.format("-Dbleak.jvmti.enabled=true%n"));
+      }
+      catch (IOException ignored) {
+        throw new IllegalStateException("BLeak JVMTI agent not found");
+      }
+    }
+  }
+
   private static void unzip(Path zipFile, Path outDir) throws IOException {
     System.out.println("Unzipping...");
     long startTime = System.currentTimeMillis();

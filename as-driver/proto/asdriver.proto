@@ -26,6 +26,8 @@ service AndroidStudio {
   rpc GetSystemProperty(GetSystemPropertyRequest) returns (GetSystemPropertyResponse) {}
 
   rpc AnalyzeFile(AnalyzeFileRequest) returns (AnalyzeFileResponse) {}
+
+  rpc TakeBleakSnapshot(TakeBleakSnapshotRequest) returns (TakeBleakSnapshotResponse) {}
 }
 
 message GetVersionRequest {}
@@ -197,4 +199,19 @@ message AnalysisResult {
 
   // The line number that the issue starts on.
   uint32 line_number = 5;
+}
+
+message TakeBleakSnapshotRequest {
+  int32 current_iteration = 1;
+  int32 last_iteration = 2;
+}
+
+message TakeBleakSnapshotResponse {
+  enum Result {
+    OK = 0;
+    LEAK_DETECTED = 1;
+    ERROR = 2;
+  }
+  TakeBleakSnapshotResponse.Result result = 1;
+  optional string leak_info = 2;
 }

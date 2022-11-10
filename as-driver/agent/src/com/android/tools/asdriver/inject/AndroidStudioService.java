@@ -17,6 +17,9 @@ package com.android.tools.asdriver.inject;
 
 import com.android.tools.asdriver.proto.ASDriver;
 import com.android.tools.asdriver.proto.AndroidStudioGrpc;
+import com.android.tools.idea.bleak.BleakCheck;
+import com.android.tools.idea.bleak.BleakOptions;
+import com.android.tools.idea.bleak.BleakResult;
 import com.android.tools.idea.io.grpc.Server;
 import com.android.tools.idea.io.grpc.ServerBuilder;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
@@ -73,6 +76,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBase {
+
+  private static BleakOptions bleakOptions = AsdriverBleakOptions.getDefaults();
 
   static public void start() {
     ServerBuilder<?> builder = ServerBuilder.forPort(0);
@@ -555,5 +560,41 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
         throw new RuntimeException(e);
       }
     });
+  }
+
+  /**
+   * Do not call directly: this method is only intended to be used internally by {@code AndroidStudio.runWithBleak}
+   */
+  @Override
+  public void takeBleakSnapshot(ASDriver.TakeBleakSnapshotRequest request, StreamObserver<ASDriver.TakeBleakSnapshotResponse> responseObserver) {
+    try {
+      if (request.getCurrentIteration() == 0) {
+        for (BleakCheck<?, ?> check : bleakOptions.getChecks()) {
+          check.firstIterationFinished();
+        }
+      } else if (request.getCurrentIteration() == request.getLastIteration()) {
+        for (BleakCheck<?, ?> check : bleakOptions.getChecks()) {
+          check.lastIterationFinished();
+        }
+        String report = new BleakResult(bleakOptions.getChecks()).getErrorMessage();
+        if (!report.isEmpty()) {
+          responseObserver.onNext(
+            ASDriver.TakeBleakSnapshotResponse.newBuilder().setResult(ASDriver.TakeBleakSnapshotResponse.Result.LEAK_DETECTED)
+              .setLeakInfo(report).build());
+          return;
+        }
+      } else {
+        for (BleakCheck<?, ?> check : bleakOptions.getChecks()) {
+          check.middleIterationFinished();
+        }
+      }
+      responseObserver.onNext(ASDriver.TakeBleakSnapshotResponse.newBuilder().setResult(ASDriver.TakeBleakSnapshotResponse.Result.OK).build());
+    } catch (Exception e) {
+      responseObserver.onNext(
+        ASDriver.TakeBleakSnapshotResponse.newBuilder().setResult(ASDriver.TakeBleakSnapshotResponse.Result.ERROR).build());
+      e.printStackTrace();
+    } finally {
+      responseObserver.onCompleted();
+    }
   }
 }
