@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
+import com.android.ide.common.util.PathString
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.writeChild
 import com.intellij.openapi.application.runWriteActionAndWait
@@ -28,17 +29,14 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.net.URI
-import java.nio.file.FileSystems
+import java.net.URL
 import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.spi.FileSystemProvider
 
 private class TestVirtualFile(delegate: VirtualFile) : DelegateVirtualFile(delegate) {
-  var _modificationStamp: Long? = null
+  var injectedModificationStamp: Long? = null
 
-  override fun getModificationStamp(): Long = _modificationStamp ?: super.getModificationStamp()
-  override fun getTimeStamp(): Long = _modificationStamp ?: super.getTimeStamp()
+  override fun getModificationStamp(): Long = injectedModificationStamp ?: super.getModificationStamp()
+  override fun getTimeStamp(): Long = injectedModificationStamp ?: super.getTimeStamp()
 }
 
 class ProjectSystemClassLoaderTest {
@@ -102,7 +100,7 @@ class ProjectSystemClassLoaderTest {
     assertTrue(loader.loadedVirtualFiles.single { it.first == "a.class2" }.third.isUpToDate(virtualFile2))
 
     // Simulate a file modification via timestamp update
-    virtualFile1._modificationStamp = 111
+    virtualFile1.injectedModificationStamp = 111
     assertFalse(loader.loadedVirtualFiles.single { it.first == "a.class1" }.third.isUpToDate(virtualFile1))
     assertTrue(loader.loadedVirtualFiles.single { it.first == "a.class2" }.third.isUpToDate(virtualFile2))
 
@@ -183,17 +181,27 @@ class ProjectSystemClassLoaderTest {
     assertEquals("Updated content", String(loader.loadClass("test.package.A")!!))
   }
 
-  private fun createJarFile(outputJar: Path, contents: Map<String, ByteArray>) {
-    assertTrue(FileSystemProvider.installedProviders().any { it.scheme == "jar" })
+  @Test
+  fun `loading classes from jar sources`() {
+    val tempDirectory = VfsUtil.findFileByIoFile(Files.createTempDirectory("out").toFile(), true)!!
+    val outputJar = tempDirectory.toNioPath().resolve("classes.jar")
 
-    val outputJarUri = URI.create("jar:file:$outputJar")
-    FileSystems.newFileSystem(outputJarUri, mapOf("create" to "true")).use {
-      contents.forEach { pathString, contents ->
-        val path = it.getPath(pathString)
-        // Create parent directories if any
-        path.parent?.let { Files.createDirectories(it) }
-        Files.write(path, contents)
-      }
+    val outputJarPath = createJarFile(outputJar, mapOf(
+      "ClassA.class" to "contents1".encodeToByteArray(),
+      "ClassB.class" to "contents2".encodeToByteArray(),
+      "test/package/ClassC.class" to "contents3".encodeToByteArray(),
+    ))
+
+    val classes = mutableMapOf(
+      "A" to VfsUtil.findFileByURL(URL("jar:file:$outputJarPath!/ClassA.class")),
+      "B" to VfsUtil.findFileByURL(URL("jar:file:$outputJarPath!/ClassB.class")),
+      "test.package.C" to VfsUtil.findFileByURL(URL("jar:file:$outputJarPath!/test/package/ClassC.class"))
+    )
+    val loader = ProjectSystemClassLoader {
+      classes[it]
     }
+    assertEquals("contents1", String(loader.loadClass("A")!!))
+    assertEquals("contents2", String(loader.loadClass("B")!!))
+    assertEquals("contents3", String(loader.loadClass("test.package.C")!!))
   }
 }

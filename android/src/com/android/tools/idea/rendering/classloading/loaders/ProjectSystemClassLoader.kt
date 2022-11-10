@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
-import com.android.SdkConstants
+import com.google.common.cache.Cache
+import com.google.common.cache.CacheBuilder
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.newvfs.ArchiveFileSystem
-import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.uipreview.ClassModificationTimestamp
 import org.jetbrains.android.uipreview.INTERNAL_PACKAGE
 import org.jetbrains.annotations.TestOnly
 import java.io.IOException
+import java.net.URI
+import java.net.URLEncoder
 import java.nio.file.Files
-import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 
 private fun String.isSystemPrefix(): Boolean = startsWith("java.") ||
@@ -39,7 +38,20 @@ private fun String.isSystemPrefix(): Boolean = startsWith("java.") ||
  * A [DelegatingClassLoader.Loader] that loads the classes from a given IntelliJ [Module].
  * It relies in the given [findClassVirtualFileImpl] to find the [VirtualFile] mapping to a given FQCN.
  */
-class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) -> VirtualFile?) : DelegatingClassLoader.Loader {
+class ProjectSystemClassLoader(
+  jarLoaderCache: Cache<String, EntryCache>,
+  private val findClassVirtualFileImpl: (String) -> VirtualFile?
+) : DelegatingClassLoader.Loader {
+
+  constructor(findClassVirtualFileImpl: (String) -> VirtualFile?):
+    this(CacheBuilder.newBuilder()
+           .softValues()
+           .weigher { _: String, value: EntryCache -> value.weight() }
+           .maximumWeight(1_000_000)
+           .build<String, EntryCache>(), findClassVirtualFileImpl)
+
+  private val jarManager = JarManager(prefetchAllFiles = true, jarFileCache = jarLoaderCache)
+
   /**
    * Map that contains the mapping from the class FQCN to the [VirtualFile] that contains the `.class` contents and the
    * [ClassModificationTimestamp] representing the loading timestamp.
@@ -91,40 +103,38 @@ class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) ->
    * content.
    */
   private fun VirtualFile.readBytesUsingNio(): ByteArray? {
-    // Files in jar files can not be read using Files NIO
-    if (!isInLocalFileSystem) return null
-
     try {
       return Files.readAllBytes(toNioPath())
     }
-    catch (_: UnsupportedOperationException) {}
-    catch (_: IOException) {}
+    catch (_: UnsupportedOperationException) {
+    }
+    catch (_: IOException) {
+    }
 
     return null
   }
 
   /**
-   * Reads the contents of this [VirtualFile] using the Vfs.
+   * Reads the contents of this [VirtualFile] using NIO from within a jar. If the [VirtualFile] is not
+   * within a jar, this method will return null.
    */
-  private fun VirtualFile.readBytesUsingVfs(): ByteArray? =
-    if (isValid) contentsToByteArray() else null
-  
-  override fun loadClass(fqcn: String): ByteArray? = try {
-      val vFile = findClassVirtualFile(fqcn)
-      val contents = vFile?.readBytesUsingNio()
-                     ?: vFile?.readBytesUsingVfs()
-
-      // This clears the Zip cache for the R.jar class file on Windows. This is to workaround the locking of the file that
-      // IntelliJ does for 60 seconds. Clearing the archive cache will immediately release the ZIP.
-      if (SystemInfoRt.isWindows && vFile?.path?.contains(SdkConstants.FN_R_CLASS_JAR) == true) {
-        @Suppress("UnstableApiUsage")
-        (vFile.fileSystem as? ArchiveFileSystem)?.clearArchiveCache(vFile)
-      }
-
-      contents
-    } catch (_: Throwable) {
-      null
+  private fun VirtualFile.readFromJar(): ByteArray? =
+    if (url.startsWith("jar:")) {
+      // The URL needs to be encoded since it might contain spaces or other characters not valid in the URI.
+      jarManager.loadFileFromJar(URI(URLEncoder.encode(url, Charsets.UTF_8)))
     }
+    else null
+
+  override fun loadClass(fqcn: String): ByteArray? = try {
+    val vFile = findClassVirtualFile(fqcn)
+    val contents = vFile?.readBytesUsingNio()
+                   ?: vFile?.readFromJar()
+
+    contents
+  }
+  catch (_: Throwable) {
+    null
+  }
 
   /**
    * Injects the given [virtualFile] with the passed [fqcn] so it looks like loaded from the project. Only for testing.
