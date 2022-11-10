@@ -99,7 +99,10 @@
              id="android.compose"
              order="first"/>
 
-    <weigher key="proximity" implementationClass="com.android.tools.compose.code.actions.ComposeProximityWeigher"/>
+    <weigher key="proximity"
+             implementationClass="com.android.tools.compose.code.actions.ComposeProximityWeigher"
+             id="composeProximityWeigher"
+             order="before javaInheritance" />
 
     <lang.inspectionSuppressor language="kotlin" implementationClass="com.android.tools.compose.ComposeSuppressor"/>
 

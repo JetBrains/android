@@ -56,4 +56,5 @@ private fun PsiElement.manualWeight(): Int? {
 
 private val MANUALLY_WEIGHTED_FQ_NAMES = mapOf(
   "androidx.compose.ui.Modifier" to PROMOTED_WEIGHT,
+  "androidx.compose.ui.graphics.Color" to PROMOTED_WEIGHT,
 )

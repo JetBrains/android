@@ -45,14 +45,14 @@ import org.junit.runners.JUnit4
  * logic involved is internal in the Kotlin plugin. We can execute the correct intention, but in a unit test it will not pop up a dialog,
  * instead just selecting the first item.
  *
- * This file contains one test that validates that the Weigher is correctly wired up, by validating that the intention results in an import
+ * This file contains some tests that validate that the Weigher is correctly wired up, by validating that the intention results in an import
  * being added that wouldn't have been used if [ComposeProximityWeigher] isn't running. The remaining tests are more traditional unit tests,
  * working directly with [ComposeProximityWeigher] outside the context of the intention.
  */
 @RunWith(JUnit4::class)
 class ComposeProximityWeigherTest {
   @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  val projectRule = AndroidProjectRule.onDisk()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
@@ -113,6 +113,82 @@ class ComposeProximityWeigherTest {
 
       @Composable
       fun HomeScreen(modifier: Mod${caret}ifier) {}
+      """.trimIndent()
+    )
+  }
+
+  @Test
+  fun validateWeigherIsBeforeJavaInheritance() {
+    // IntelliJ's com.intellij.psi.util.proximity.JavaInheritanceWeigher is promoting Java classes above everything else in the import list,
+    // presumably by accident. We can avoid that behavior for @Composable functions by ensuring our weigher runs before that one. This test
+    // validates that scenario, by including a Java class in the potential import list and ensuring it's below a promoted class.
+    myFixture.addFileToProject(
+      "src/android/graphics/Color.java",
+      // language=java
+      """
+      package android.graphics;
+
+      public class Color {}
+      """)
+
+    myFixture.addFileToProject(
+      "src/androidx/compose/ui/graphics/Color.kt",
+      // language=kotlin
+      """
+      package androidx.compose.ui.graphics
+
+      value class Color
+      """)
+
+    myFixture.addFileToProject(
+      "src/androidx/compose/material/Surface.kt",
+      // language=kotlin
+      """
+      package androidx.compose.material
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.graphics.Color
+
+      @Composable
+      fun Surface(color: Color) {}
+      """)
+
+    val psiFile = myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.material.Surface
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        Surface(color = Co<caret>lor.White) {
+        }
+      }
+      """.trimIndent()
+    )
+
+    val action = myFixture.getIntentionAction("Import")!!
+    runInEdt {
+      action.invoke(myFixture.project, myFixture.editor, psiFile)
+    }
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.material.Surface
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.graphics.Color
+
+      @Composable
+      fun HomeScreen() {
+        Surface(color = Co<caret>lor.White) {
+        }
+      }
       """.trimIndent()
     )
   }
