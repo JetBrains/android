@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
@@ -43,7 +43,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     compatibleGradleVersion = getCompatibleGradleVersion(processor.new)
   }
 
-  val compatibleGradleVersion: CompatibleGradleVersion
+  private val compatibleGradleVersion: CompatibleGradleVersion
 
   override val necessityInfo = AlwaysNeeded
 
@@ -51,8 +51,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     val usages = mutableListOf<UsageInfo>()
     fun addUsagesFor(plugin: PluginModel) {
       if (plugin.version().valueType == GradlePropertyModel.ValueType.STRING) {
-        val version = GradleVersion.tryParse(plugin.version().toString()) ?: return
-        if (GradleVersion(0, 0) >= version) return
+        val version = Version.parse(plugin.version().toString()).takeIf { it > Version.prefixInfimum("0") } ?: return
         WELL_KNOWN_GRADLE_PLUGIN_TABLE[plugin.name().toString()]?.let { info ->
           val minVersion = info(compatibleGradleVersion)
           if (minVersion <= version) return
@@ -70,25 +69,20 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     // the Gradle version.  (Also, this makes it substantially easier to test the action of this processor on a file at a time.)
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       model.buildscript().dependencies().artifacts(CommonConfigurationNames.CLASSPATH).forEach dep@{ dep ->
-        GradleVersion.tryParse(dep.version().toString())?.let { currentVersion ->
-          // GradleVersion.tryParse() looks like it should only parse plausibly-valid version strings.  Unfortunately, things like
-          // `Versions.kotlin` are apparently plausibly-valid, returning a GradleVersion object essentially equivalent to `0.0` but with
-          // odd text present in the major/minor VersionSegments.
-          if (GradleVersion(0, 0) >= currentVersion) return@dep
-          WELL_KNOWN_GRADLE_PLUGIN_TABLE["${dep.group()}:${dep.name()}"]?.let { info ->
-            val minVersion = info(compatibleGradleVersion)
-            if (minVersion <= currentVersion) return@dep
-            val resultModel = dep.version().resultModel
-            val psiElement = when (val element = resultModel.rawElement) {
-              null -> return@dep
-              // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
-              is FakeArtifactElement -> element.realExpression.psiElement
-              else -> element.psiElement
-            }
-            psiElement?.let {
-              val wrappedPsiElement = WrappedPsiElement(psiElement, this, WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE)
-              usages.add(WellKnownGradlePluginDependencyUsageInfo(wrappedPsiElement, dep, resultModel, minVersion.toString()))
-            }
+        val currentVersion = Version.parse(dep.version().toString()).takeIf { it > Version.prefixInfimum("0") } ?: return@dep
+        WELL_KNOWN_GRADLE_PLUGIN_TABLE["${dep.group()}:${dep.name()}"]?.let { info ->
+          val minVersion = info(compatibleGradleVersion)
+          if (minVersion <= currentVersion) return@dep
+          val resultModel = dep.version().resultModel
+          val psiElement = when (val element = resultModel.rawElement) {
+            null -> return@dep
+            // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
+            is FakeArtifactElement -> element.realExpression.psiElement
+            else -> element.psiElement
+          }
+          psiElement?.let {
+            val wrappedPsiElement = WrappedPsiElement(psiElement, this, WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE)
+            usages.add(WellKnownGradlePluginDependencyUsageInfo(wrappedPsiElement, dep, resultModel, minVersion.toString()))
           }
         }
       }
@@ -129,86 +123,86 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     val WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE =
       UsageType(AndroidBundle.messagePointer("project.upgrade.gradlePluginsRefactoringProcessor.wellKnownGradlePluginUsageType"))
 
-    fun `kotlin-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+    fun `kotlin-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
-        VERSION_4_4 -> GradleVersion.parse("1.1.3")
-        VERSION_4_6 -> GradleVersion.parse("1.2.51")
-        VERSION_MIN -> GradleVersion.parse("1.2.51")
-        VERSION_4_10_1 -> GradleVersion.parse("1.3.0")
-        VERSION_5_1_1 -> GradleVersion.parse("1.3.10")
-        VERSION_5_4_1 -> GradleVersion.parse("1.3.10")
-        VERSION_5_6_4 -> GradleVersion.parse("1.3.10")
-        VERSION_6_1_1 -> GradleVersion.parse("1.3.20")
-        VERSION_6_5 -> GradleVersion.parse("1.3.20")
-        VERSION_6_7_1 -> GradleVersion.parse("1.3.20")
-        VERSION_7_0_2 -> GradleVersion.parse("1.3.40")
-        VERSION_7_2 -> GradleVersion.parse("1.3.40")
-        VERSION_7_3_3 -> GradleVersion.parse("1.3.40")
-        VERSION_7_4 -> GradleVersion.parse("1.6.21")
-        VERSION_FOR_DEV -> GradleVersion.parse("1.6.21")
+        VERSION_4_4 -> Version.parse("1.1.3")
+        VERSION_4_6 -> Version.parse("1.2.51")
+        VERSION_MIN -> Version.parse("1.2.51")
+        VERSION_4_10_1 -> Version.parse("1.3.0")
+        VERSION_5_1_1 -> Version.parse("1.3.10")
+        VERSION_5_4_1 -> Version.parse("1.3.10")
+        VERSION_5_6_4 -> Version.parse("1.3.10")
+        VERSION_6_1_1 -> Version.parse("1.3.20")
+        VERSION_6_5 -> Version.parse("1.3.20")
+        VERSION_6_7_1 -> Version.parse("1.3.20")
+        VERSION_7_0_2 -> Version.parse("1.3.40")
+        VERSION_7_2 -> Version.parse("1.3.40")
+        VERSION_7_3_3 -> Version.parse("1.3.40")
+        VERSION_7_4 -> Version.parse("1.6.21")
+        VERSION_FOR_DEV -> Version.parse("1.6.21")
       }
 
-    fun `androidx-navigation-safeargs-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+    fun `androidx-navigation-safeargs-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
         VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 ->
-          GradleVersion.parse("2.0.0")
+          Version.parse("2.0.0")
         // AGP 7.1 removed an incubating API used by safeargs.
-        VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_FOR_DEV -> GradleVersion.parse("2.4.1")
+        VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_FOR_DEV -> Version.parse("2.4.1")
       }
 
     // compatibility information from b/174686925 and https://github.com/mannodermaus/android-junit5/releases
-    fun `de-mannodermaus-android-junit5-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+    fun `de-mannodermaus-android-junit5-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
-        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1 -> GradleVersion.parse("1.3.1.0")
-        VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1 -> GradleVersion.parse("1.4.2.1")
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1 -> Version.parse("1.3.1.0")
+        VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1 -> Version.parse("1.4.2.1")
         VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3,
-        VERSION_7_4, VERSION_FOR_DEV -> GradleVersion.parse("1.6.1.0")
+        VERSION_7_4, VERSION_FOR_DEV -> Version.parse("1.6.1.0")
       }
 
-    fun `com-google-firebase-crashlytics-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+    fun `com-google-firebase-crashlytics-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
-        VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("2.0.0")
-        VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_FOR_DEV -> GradleVersion.parse("2.5.2")
+        VERSION_6_5, VERSION_6_7_1 -> Version.parse("2.0.0")
+        VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_FOR_DEV -> Version.parse("2.5.2")
       }
 
-    fun `com-google-firebase-appdistribution-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+    fun `com-google-firebase-appdistribution-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
-        VERSION_4_4, VERSION_4_6, VERSION_MIN -> GradleVersion.parse("1.0.0")
-        VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4 -> GradleVersion.parse("1.1.0")
-        VERSION_6_1_1, VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("1.4.0")
-        VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_FOR_DEV -> GradleVersion.parse("2.1.1")
+        VERSION_4_4, VERSION_4_6, VERSION_MIN -> Version.parse("1.0.0")
+        VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4 -> Version.parse("1.1.0")
+        VERSION_6_1_1, VERSION_6_5, VERSION_6_7_1 -> Version.parse("1.4.0")
+        VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_FOR_DEV -> Version.parse("2.1.1")
       }
 
-    fun `com-google-firebase-perf-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
-      when (compatibleGradleVersion) {
-        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
-        VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 -> GradleVersion.parse("1.2.1")
-        VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_FOR_DEV -> GradleVersion.parse("1.4.1")
-      }
-
-    fun `com-google-android-gms-oss-licenses-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
-      when (compatibleGradleVersion) {
-        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1 -> GradleVersion.parse("0.9.3")
-        VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1, VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("0.10.1")
-        VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_FOR_DEV -> GradleVersion.parse("0.10.4")
-      }
-
-    fun `com-google-gms-google-services-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+    fun `com-google-firebase-perf-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
-        VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 -> GradleVersion.parse("4.0.1")
-        VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_FOR_DEV -> GradleVersion.parse("4.3.10")
+        VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 -> Version.parse("1.2.1")
+        VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_FOR_DEV -> Version.parse("1.4.1")
       }
 
-    fun `com-google-dagger-hilt-android-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+    fun `com-google-android-gms-oss-licenses-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
+      when (compatibleGradleVersion) {
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1 -> Version.parse("0.9.3")
+        VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1, VERSION_6_5, VERSION_6_7_1 -> Version.parse("0.10.1")
+        VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_FOR_DEV -> Version.parse("0.10.4")
+      }
+
+    fun `com-google-gms-google-services-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
-        VERSION_6_5 -> GradleVersion.parse("2.0")
-        VERSION_6_7_1 -> GradleVersion.parse("2.32")
-        VERSION_7_0_2, VERSION_7_2 -> GradleVersion.parse("2.38")
-        VERSION_7_3_3, VERSION_7_4, VERSION_FOR_DEV -> GradleVersion.parse("2.40.1")
+        VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 -> Version.parse("4.0.1")
+        VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_FOR_DEV -> Version.parse("4.3.10")
+      }
+
+    fun `com-google-dagger-hilt-android-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
+      when (compatibleGradleVersion) {
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
+        VERSION_6_5 -> Version.parse("2.0")
+        VERSION_6_7_1 -> Version.parse("2.32")
+        VERSION_7_0_2, VERSION_7_2 -> Version.parse("2.38")
+        VERSION_7_3_3, VERSION_7_4, VERSION_FOR_DEV -> Version.parse("2.40.1")
       }
 
     /**
