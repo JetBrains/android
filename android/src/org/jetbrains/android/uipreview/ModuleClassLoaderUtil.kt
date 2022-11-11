@@ -94,10 +94,10 @@ class PseudoClassLocatorForLoader @JvmOverloads constructor(
         return PseudoClass.fromClass(fallbackClassloader.loadClass (classFqn), this)
       }
       catch (ex: ClassNotFoundException) {
-        Logger.getInstance(PseudoClassLocatorForLoader::class.java).error("Failed to load $classFqn", ex)
+        Logger.getInstance(PseudoClassLocatorForLoader::class.java).warn("Failed to load $classFqn", ex)
       }
     } else {
-      Logger.getInstance(PseudoClassLocatorForLoader::class.java).error("No classloader is provided to load $classFqn")
+      Logger.getInstance(PseudoClassLocatorForLoader::class.java).warn("No classloader is provided to load $classFqn")
     }
     return PseudoClass.objectPseudoClass()
   }
