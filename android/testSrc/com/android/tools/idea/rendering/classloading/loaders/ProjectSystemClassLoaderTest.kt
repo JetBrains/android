@@ -16,10 +16,11 @@
 package com.android.tools.idea.rendering.classloading.loaders
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.writeChild
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.newvfs.impl.FakeVirtualFile
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -27,24 +28,17 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.io.FileNotFoundException
+import java.net.URI
+import java.nio.file.FileSystems
 import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.spi.FileSystemProvider
 
-/**
- * [FakeVirtualFile] that supports [VirtualFile.contentsToByteArray].
- *
- * The constructor requires a parent [VirtualFile] and a file name. Optionally a last modified timestamp can be passed as
- * [modificationTimeStamp].
- */
-private open class TestVirtualFile(parent: VirtualFile,
-                                   name: String,
-                                   var modificationTimeStamp: Long = System.currentTimeMillis()) : FakeVirtualFile(parent, name) {
-  var contents = ByteArray(0)
-  override fun contentsToByteArray(): ByteArray = contents
+private class TestVirtualFile(delegate: VirtualFile) : DelegateVirtualFile(delegate) {
+  var _modificationStamp: Long? = null
 
-  override fun isValid(): Boolean = true
-  override fun getLength(): Long = contents.size.toLong()
-  override fun getTimeStamp(): Long = modificationTimeStamp
+  override fun getModificationStamp(): Long = _modificationStamp ?: super.getModificationStamp()
+  override fun getTimeStamp(): Long = _modificationStamp ?: super.getTimeStamp()
 }
 
 class ProjectSystemClassLoaderTest {
@@ -53,9 +47,9 @@ class ProjectSystemClassLoaderTest {
 
   @Test
   fun `check load from project`() {
-    val rootDir = projectRule.fixture.tempDirFixture.findOrCreateDir("test")
-    val virtualFile1 = TestVirtualFile(rootDir, "file1")
-    val virtualFile2 = TestVirtualFile(rootDir, "file2")
+    val outputDirectory = Files.createTempDirectory("out")
+    val virtualFile1 = VfsUtil.findFile(outputDirectory, true)!!.writeChild("file1", "contents1")
+    val virtualFile2 = VfsUtil.findFile(outputDirectory, true)!!.writeChild("file2", "contents2")
     val classes = mapOf(
       "a.class1" to virtualFile1,
       "a.class2" to virtualFile2
@@ -66,42 +60,34 @@ class ProjectSystemClassLoaderTest {
 
     assertNull(loader.loadClass("not.found.class"))
     assertEquals(0, loader.loadedVirtualFiles.count())
-    assertEquals(virtualFile1.contentsToByteArray(), loader.loadClass("a.class1"))
-    assertEquals(virtualFile2.contentsToByteArray(), loader.loadClass("a.class2"))
+    assertArrayEquals(virtualFile1.contentsToByteArray(), loader.loadClass("a.class1"))
+    assertArrayEquals(virtualFile2.contentsToByteArray(), loader.loadClass("a.class2"))
     assertEquals(2, loader.loadedVirtualFiles.count())
 
     // Invalidate and reload one class
     loader.invalidateCaches()
     assertEquals(0, loader.loadedVirtualFiles.count())
-    assertEquals(virtualFile1.contentsToByteArray(), loader.loadClass("a.class1"))
+    assertArrayEquals(virtualFile1.contentsToByteArray(), loader.loadClass("a.class1"))
     assertEquals(1, loader.loadedVirtualFiles.count())
   }
 
   @Test
   fun `test files removed`() {
-    val rootDir = projectRule.fixture.tempDirFixture.findOrCreateDir("test")
-    var removed = false
-    val virtualFile = object: TestVirtualFile(rootDir, "file1") {
-      override fun isValid(): Boolean = !removed
-
-      override fun contentsToByteArray(): ByteArray =
-        if (removed) throw FileNotFoundException("") else super.contentsToByteArray()
-    }
+    val outputDirectory = Files.createTempDirectory("out")
+    val virtualFile = VfsUtil.findFile(outputDirectory, true)!!.writeChild("file1", "contents1")
     val loader = ProjectSystemClassLoader {
       if (it == "a.class1") virtualFile else null
     }
-
-    assertEquals(virtualFile.contentsToByteArray(), loader.loadClass("a.class1"))
-    // Simulate file removal
-    removed = true
+    assertArrayEquals(virtualFile.contentsToByteArray(), loader.loadClass("a.class1"))
+    runWriteActionAndWait { virtualFile.delete(this) }
     assertNull(loader.loadClass("a.class1"))
   }
 
   @Test
   fun `verify loaded classes`() {
-    val rootDir = projectRule.fixture.tempDirFixture.findOrCreateDir("test")
-    val virtualFile1 = TestVirtualFile(rootDir, "file1", 111)
-    val virtualFile2 = TestVirtualFile(rootDir, "file2", 111)
+    val outputDirectory = Files.createTempDirectory("out")
+    val virtualFile1 = TestVirtualFile(VfsUtil.findFile(outputDirectory, true)!!.writeChild("file1", "contents1"))
+    val virtualFile2 = TestVirtualFile(VfsUtil.findFile(outputDirectory, true)!!.writeChild("file2", "contents2"))
     val classes = mapOf(
       "a.class1" to virtualFile1,
       "a.class2" to virtualFile2
@@ -110,29 +96,29 @@ class ProjectSystemClassLoaderTest {
       classes[it]
     }
 
-    assertEquals(virtualFile1.contentsToByteArray(), loader.loadClass("a.class1"))
-    assertEquals(virtualFile2.contentsToByteArray(), loader.loadClass("a.class2"))
+    assertArrayEquals(virtualFile1.contentsToByteArray(), loader.loadClass("a.class1"))
+    assertArrayEquals(virtualFile2.contentsToByteArray(), loader.loadClass("a.class2"))
     assertTrue(loader.loadedVirtualFiles.single { it.first == "a.class1" }.third.isUpToDate(virtualFile1))
     assertTrue(loader.loadedVirtualFiles.single { it.first == "a.class2" }.third.isUpToDate(virtualFile2))
 
     // Simulate a file modification via timestamp update
-    virtualFile1.modificationTimeStamp = 112
+    virtualFile1._modificationStamp = 111
     assertFalse(loader.loadedVirtualFiles.single { it.first == "a.class1" }.third.isUpToDate(virtualFile1))
     assertTrue(loader.loadedVirtualFiles.single { it.first == "a.class2" }.third.isUpToDate(virtualFile2))
 
     // Now invalidate and reload class1
     loader.invalidateCaches()
     assertEquals(0, loader.loadedVirtualFiles.count())
-    assertEquals(virtualFile1.contentsToByteArray(), loader.loadClass("a.class1"))
+    assertArrayEquals(virtualFile1.contentsToByteArray(), loader.loadClass("a.class1"))
     assertTrue(loader.loadedVirtualFiles.single { it.first == "a.class1" }.third.isUpToDate(virtualFile1))
   }
 
   @Test
   fun `verify platform classes are not loaded`() {
-    val rootDir = projectRule.fixture.tempDirFixture.findOrCreateDir("test")
-    val virtualFile1 = TestVirtualFile(rootDir, "file1")
-    val virtualFile2 = TestVirtualFile(rootDir, "file2")
-    val virtualFile3 = TestVirtualFile(rootDir, "file3")
+    val outputDirectory = Files.createTempDirectory("out")
+    val virtualFile1 = VfsUtil.findFile(outputDirectory, true)!!.writeChild("file1", "contents1")
+    val virtualFile2 = VfsUtil.findFile(outputDirectory, true)!!.writeChild("file2", "contents2")
+    val virtualFile3 = VfsUtil.findFile(outputDirectory, true)!!.writeChild("file3", "contents3")
     val classes = mapOf(
       "_layoutlib_._internal_..class1" to virtualFile1,
       "java.lang.Test" to virtualFile2,
@@ -144,7 +130,7 @@ class ProjectSystemClassLoaderTest {
 
     assertNull(loader.loadClass("_layoutlib_._internal_..Class1"))
     assertNull(loader.loadClass("java.lang.Test"))
-    assertEquals(virtualFile3.contentsToByteArray(), loader.loadClass("test.package.A"))
+    assertArrayEquals(virtualFile3.contentsToByteArray(), loader.loadClass("test.package.A"))
     assertEquals(1, loader.loadedVirtualFiles.count())
   }
 
@@ -153,9 +139,9 @@ class ProjectSystemClassLoaderTest {
    */
   @Test
   fun `verify failed class loads are not cached`() {
-    val rootDir = projectRule.fixture.tempDirFixture.findOrCreateDir("test")
-    val virtualFile1 = TestVirtualFile(rootDir, "file1")
-    val virtualFile2 = TestVirtualFile(rootDir, "file2")
+    val outputDirectory = Files.createTempDirectory("out")
+    val virtualFile1 = VfsUtil.findFile(outputDirectory, true)!!.writeChild("file1", "contents1")
+    val virtualFile2 = VfsUtil.findFile(outputDirectory, true)!!.writeChild("file2", "contents2")
     val classes = mutableMapOf(
       "test.package.A" to virtualFile1
     )
@@ -195,5 +181,19 @@ class ProjectSystemClassLoaderTest {
     // Write the file externally (not using VFS) and check the contents
     Files.writeString(classFile.toNioPath(), "Updated content")
     assertEquals("Updated content", String(loader.loadClass("test.package.A")!!))
+  }
+
+  private fun createJarFile(outputJar: Path, contents: Map<String, ByteArray>) {
+    assertTrue(FileSystemProvider.installedProviders().any { it.scheme == "jar" })
+
+    val outputJarUri = URI.create("jar:file:$outputJar")
+    FileSystems.newFileSystem(outputJarUri, mapOf("create" to "true")).use {
+      contents.forEach { pathString, contents ->
+        val path = it.getPath(pathString)
+        // Create parent directories if any
+        path.parent?.let { Files.createDirectories(it) }
+        Files.write(path, contents)
+      }
+    }
   }
 }
