@@ -551,11 +551,7 @@ internal class LogcatMainPanel(
 
   @UiThread
   override fun resumeLogcat() {
-    pausedBanner.isVisible = false
-    val device = connectedDevice.get() ?: return
-    coroutineScope.launch {
-      logcatServiceChannel.send(StartLogcat(device))
-    }
+    restartLogcat()
   }
 
   @UiThread
@@ -595,6 +591,7 @@ internal class LogcatMainPanel(
 
   @UiThread
   override fun restartLogcat() {
+    pausedBanner.isVisible = false
     val device = connectedDevice.get() ?: return
     coroutineScope.launch {
       logcatServiceChannel.send(StartLogcat(device))

@@ -169,6 +169,13 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testPluginsBlockInSettings() {
+    writeToSettingsFile(TestFileName("AgpVersion/SettingsPlugin"))
+    val processor = AgpVersionRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    processor.run()
+    verifyFileContents(settingsFile, TestFileName("AgpVersion/SettingsPluginExpected"))
+  }
+  @Test
   fun testPre80MavenPublishDoesNotBlockPre80Upgrades() {
     writeToBuildFile(TestFileName("AgpVersion/Pre80MavenPublish"))
     val processor = AgpVersionRefactoringProcessor(project, GradleVersion.parse("7.1.0"), GradleVersion.parse("7.2.0"))

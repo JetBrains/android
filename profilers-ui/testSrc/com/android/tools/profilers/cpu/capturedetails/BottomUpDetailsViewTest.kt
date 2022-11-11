@@ -75,6 +75,7 @@ class BottomUpDetailsViewTest {
     val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, Range(),
                                                        listOf(capture.getCaptureNode(capture.mainThreadId)!!),
                                                        capture, Utils::runOnUi) as CaptureDetails.BottomUp
+    assertThat(bottomUp.model?.root?.base).isInstanceOf(Aggregate.BottomUp.Root::class.java)
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
     val noDataInstructionsList = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().filter {

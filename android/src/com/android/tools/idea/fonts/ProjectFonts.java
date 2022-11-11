@@ -212,7 +212,7 @@ public class ProjectFonts {
       return;
     }
     ListMultimap<String, ResourceItem> fonts =
-      myResourceRepository.getProjectResources().getResources(ResourceNamespace.TODO(), ResourceType.FONT);
+      myResourceRepository.getAppResources().getResources(ResourceNamespace.TODO(), ResourceType.FONT);
     String fontName = StringUtil.trimStart(name, "@font/");
     if (!fonts.keySet().contains(fontName)) {
       createUnresolvedFontFamily(name);

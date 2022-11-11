@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.exportSignedPackage;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.google.common.collect.Sets;
@@ -23,7 +25,7 @@ import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.components.JBList;
 import gnu.trove.TIntArrayList;
@@ -38,9 +40,11 @@ import javax.swing.JPanel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class GradleSignStep extends ExportSignedPackageWizardStep {
   @NonNls private static final String PROPERTY_APK_PATH = "ExportApk.ApkPath";
+  @NonNls private static final String PROPERTY_BUNDLE_PATH = "ExportBundle.BundlePath";
   @NonNls private static final String PROPERTY_BUILD_VARIANTS = "ExportApk.BuildVariants";
 
   private JPanel myContentPanel;
@@ -88,20 +92,9 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
     myBuildVariantsList.setSelectedIndices(lastSelectedIndices.toNativeArray());
 
-    String lastApkFolderPath = properties.getValue(PROPERTY_APK_PATH);
-    File lastApkFolder;
-    if (lastApkFolderPath != null) {
-      lastApkFolder = new File(lastApkFolderPath);
-    }
-    else {
-      if (myAndroidModel == null) {
-        lastApkFolder = VfsUtilCore.virtualToIoFile(myWizard.getProject().getBaseDir());
-      }
-      else {
-        lastApkFolder = myAndroidModel.getRootDirPath();
-      }
-    }
-    myApkPathField.setText(lastApkFolder.getAbsolutePath());
+    String moduleName = myAndroidModel.getModuleName();
+    String targetType = myWizard.getTargetType();
+    myApkPathField.setText(FileUtil.toSystemDependentName(getInitialPath(properties, moduleName, targetType)));
     FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
     myApkPathField.addBrowseFolderListener("Select APK Destination Folder", null, myWizard.getProject(), descriptor);
   }
@@ -138,12 +131,32 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     myWizard.setGradleOptions(myBuildVariantsList.getSelectedValuesList());
 
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
-    properties.setValue(PROPERTY_APK_PATH, apkFolder);
+    properties.setValue(getApkPathPropertyName(myAndroidModel.getModuleName(), myWizard.getTargetType()), apkFolder);
     properties.setList(PROPERTY_BUILD_VARIANTS, buildVariants);
   }
 
   @Override
   public JComponent getComponent() {
     return myContentPanel;
+  }
+
+  @VisibleForTesting
+  String getInitialPath(@NotNull PropertiesComponent properties, @NotNull String moduleName, @NotNull String targetType) {
+    String lastApkFolderPath = properties.getValue(getApkPathPropertyName(moduleName, targetType));
+    if (!isNullOrEmpty(lastApkFolderPath)) {
+      return lastApkFolderPath;
+    }
+    if (myAndroidModel == null) {
+      return myWizard.getProject().getBaseDir().getPath();
+    }
+    else {
+      return myAndroidModel.getRootDirPath().getPath();
+    }
+  }
+
+  @VisibleForTesting
+  String getApkPathPropertyName(String moduleName, String targetType) {
+    return (targetType.equals(ExportSignedPackageWizard.APK) ? PROPERTY_APK_PATH : PROPERTY_BUNDLE_PATH) +
+           (isNullOrEmpty(moduleName) ? "" : "For" + moduleName);
   }
 }

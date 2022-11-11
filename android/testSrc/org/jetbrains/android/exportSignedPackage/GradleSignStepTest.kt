@@ -17,17 +17,62 @@ package org.jetbrains.android.exportSignedPackage
 
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.help.AndroidWebHelpProvider
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.LightPlatformTestCase
 import org.mockito.Mockito
+import java.io.File
 
 class GradleSignStepTest : LightPlatformTestCase() {
-  fun testGetHelpId() {
-    val wizard = Mockito.mock(ExportSignedPackageWizard::class.java)
-    whenever(wizard.project).thenReturn(project)
-    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+  private var myWizard = Mockito.mock(ExportSignedPackageWizard::class.java)
+  override fun setUp() {
+    super.setUp()
+    whenever(myWizard.project).thenReturn(project)
+    whenever(myWizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+  }
 
-    val gradleSignStep = GradleSignStep(wizard)
-    Truth.assertThat(gradleSignStep.helpId).startsWith(AndroidWebHelpProvider.HELP_PREFIX + "studio/publish/app-signing")
+  fun testGetHelpId() {
+    val gradleSignStep = GradleSignStep(myWizard)
+    assertThat(gradleSignStep.helpId).startsWith(AndroidWebHelpProvider.HELP_PREFIX + "studio/publish/app-signing")
+  }
+
+  fun testInitialDestinationApkNotSet() {
+    val gradleSignStep = GradleSignStep(myWizard)
+    val properties = PropertiesComponent.getInstance()
+    val projectPath = project.baseDir.path
+    // Set Bundle to confirm it is not the same
+    val bundlePath = this.homePath + File.pathSeparator + "Bundle"
+    properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.BUNDLE), bundlePath)
+    assertThat(gradleSignStep.getInitialPath(properties, name, ExportSignedPackageWizard.APK)).isEqualTo(projectPath)
+  }
+
+  fun testInitialDestinationBundleNotSet() {
+    val gradleSignStep = GradleSignStep(myWizard)
+    val properties = PropertiesComponent.getInstance()
+    val projectPath = project.baseDir.path
+    // Set Apk to confirm it is not the same
+    val apkPath = this.homePath + File.pathSeparator + "Apk"
+    properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.APK), apkPath)
+    assertThat(gradleSignStep.getInitialPath(properties, name, ExportSignedPackageWizard.BUNDLE)).isEqualTo(projectPath)
+  }
+
+  fun testInitialDestinationApkSet() {
+    val gradleSignStep = GradleSignStep(myWizard)
+    val properties = PropertiesComponent.getInstance()
+    val apkPath = this.homePath + File.pathSeparator + "Apk"
+    val bundlePath = this.homePath + File.pathSeparator + "Bundle"
+    properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.APK), apkPath)
+    properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.BUNDLE), bundlePath)
+    assertThat(gradleSignStep.getInitialPath(properties, name, ExportSignedPackageWizard.APK)).isEqualTo(apkPath)
+  }
+
+  fun testInitialDestinationBundleSet() {
+    val gradleSignStep = GradleSignStep(myWizard)
+    val properties = PropertiesComponent.getInstance()
+    val apkPath = this.homePath + File.pathSeparator + "Apk"
+    val bundlePath = this.homePath + File.pathSeparator + "Bundle"
+    properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.BUNDLE), bundlePath)
+    properties.setValue(gradleSignStep.getApkPathPropertyName(name, ExportSignedPackageWizard.APK), apkPath)
+    assertThat(gradleSignStep.getInitialPath(properties, name, ExportSignedPackageWizard.BUNDLE)).isEqualTo(bundlePath)
   }
 }

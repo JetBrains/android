@@ -2914,6 +2914,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
             debugAndroidTest
@@ -2943,6 +2944,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
             debugUnitTest
@@ -2972,6 +2974,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
         gradleUserHome                : <GRADLE>
@@ -3134,6 +3137,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -3250,6 +3254,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -3353,6 +3358,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3384,6 +3390,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -4196,6 +4203,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
             debugAndroidTest
@@ -4248,6 +4256,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
             debugUnitTest
@@ -4300,6 +4309,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
         gradleUserHome                : <GRADLE>
@@ -5024,6 +5034,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -5153,6 +5164,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -5245,6 +5257,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -5357,6 +5370,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -5389,6 +5403,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -5417,6 +5432,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -5608,6 +5624,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -5731,6 +5748,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -6767,6 +6785,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
             debugAndroidTest
@@ -6810,6 +6829,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
             debugUnitTest
@@ -6839,6 +6859,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
         gradleUserHome                : <GRADLE>
