@@ -101,6 +101,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.event.CaretEvent
@@ -454,6 +455,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   }
 
   override suspend fun appendMessages(textAccumulator: TextAccumulator) = withContext(uiThread(ModalityState.any())) {
+    LOGGER.debug { "Appending ${textAccumulator.text.length} bytes. isActive=$isActive" }
     if (!isActive) {
       return@withContext
     }
@@ -494,6 +496,7 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   @UiThread
   override fun applyFilter(logcatFilter: LogcatFilter?) {
+    LOGGER.debug { "Applying filter $logcatFilter" }
     messageProcessor.logcatFilter = logcatFilter
     noApplicationIdsBanner.isVisible = isMissingApplicationIds()
     reloadMessages()

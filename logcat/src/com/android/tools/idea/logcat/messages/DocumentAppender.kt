@@ -17,6 +17,8 @@ package com.android.tools.idea.logcat.messages
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.logcat.util.LOGGER
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.ex.DocumentEx
 import com.intellij.openapi.editor.impl.DocumentMarkupModel
@@ -42,6 +44,7 @@ internal class DocumentAppender(project: Project, private val document: Document
 
   @UiThread
   fun appendToDocument(buffer: TextAccumulator) {
+    LOGGER.debug { "Appending ${buffer.text.length} bytes to document" }
     val text = buffer.text
     if (text.length >= maxDocumentSize) {
       document.setText("")
