@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.run.debug.CaptureLogcatOutputToProcessHandlerKt.captureLogcatOutputToProcessHandler;
+
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
@@ -232,7 +234,18 @@ public class LaunchTaskRunner extends Task.Backgroundable {
           throw new RuntimeException("ConnectDebuggerTask is null for task provider " + myLaunchTasksProvider.getClass().getName());
         }
         indicator.setText("Connecting debugger");
-        debuggerTask.perform(device, myApplicationId, myEnv, myProcessHandler);
+        debuggerTask.perform(device, myApplicationId, myEnv, myProcessHandler)
+          .onSuccess(
+            session -> ApplicationManager.getApplication().executeOnPooledThread(
+              () ->
+                DeploymentApplicationService.getInstance()
+                  .findClient(device, myApplicationId).stream().findAny()
+                  .ifPresent(
+                    client -> captureLogcatOutputToProcessHandler(client, session.getConsoleView(),
+                                                                  session.getDebugProcess().getProcessHandler())
+                  )
+            )
+          );
         // Update the indicator progress bar.
         completedStepsCount.set(completedStepsCount.get() + LaunchTaskDurations.CONNECT_DEBUGGER);
         indicator.setFraction(completedStepsCount.get().floatValue() / totalScheduledStepsCount);

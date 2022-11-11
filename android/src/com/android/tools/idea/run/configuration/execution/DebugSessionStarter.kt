@@ -96,7 +96,6 @@ object DebugSessionStarter {
             val session = XDebuggerManager.getInstance(environment.project).startSession(environment, debugProcessStarter)
             val debugProcessHandler = session.debugProcess.processHandler
             debugProcessHandler.startNotify()
-            captureLogcatOutputToProcessHandler(clientPromise.get()!!, session.consoleView, debugProcessHandler)
             val executor = environment.executor
             AndroidSessionInfo.create(debugProcessHandler,
                                       environment.runProfile as? RunConfiguration,
@@ -205,7 +204,6 @@ object DebugSessionStarter {
             reattachingProcessHandler.subscribeOnDebugProcess(debugProcessHandler)
             session.runContentDescriptor.processHandler = reattachingProcessHandler
 
-            captureLogcatOutputToProcessHandler(clientPromise.get()!!, session.consoleView, reattachingProcessHandler)
             val executor = environment.executor
             AndroidSessionInfo.create(masterProcessHandler,
                                       environment.runProfile as? RunConfiguration,
