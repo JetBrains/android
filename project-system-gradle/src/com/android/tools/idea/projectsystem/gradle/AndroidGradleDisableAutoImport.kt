@@ -36,5 +36,5 @@ class RefreshOnlyAutoImportProjectTracker(): ExternalSystemProjectTracker {
   override fun register(projectAware: ExternalSystemProjectAware, parentDisposable: Disposable) = Unit
   override fun remove(id: ExternalSystemProjectId) = Unit
   override fun scheduleChangeProcessing() = Unit
-  override fun scheduleProjectRefresh() = Unit
+  override fun scheduleProjectRefresh(force: Boolean) = Unit
 }
