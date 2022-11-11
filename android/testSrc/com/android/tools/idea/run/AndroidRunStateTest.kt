@@ -80,7 +80,6 @@ class AndroidRunStateTest {
 
     val processHandler = result.processHandler
     assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
-    assertThat((processHandler as AndroidProcessHandler).captureLogcat).isTrue()
   }
 
   @Test
@@ -89,7 +88,6 @@ class AndroidRunStateTest {
 
     val processHandler = result.processHandler
     assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
-    assertThat((processHandler as AndroidProcessHandler).captureLogcat).isFalse()
   }
 
   @Test
@@ -99,7 +97,6 @@ class AndroidRunStateTest {
     requireNotNull(result)
     val processHandler = result.processHandler
     assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
-    assertThat((processHandler as AndroidProcessHandler).captureLogcat).isTrue()
   }
 
   @Test

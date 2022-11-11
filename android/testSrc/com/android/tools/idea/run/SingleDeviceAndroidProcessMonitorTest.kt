@@ -74,9 +74,6 @@ class SingleDeviceAndroidProcessMonitorTest {
   lateinit var mockDeploymentAppService: DeploymentApplicationService
 
   @Mock
-  lateinit var mockLogcatCaptor: AndroidLogcatOutputCapture
-
-  @Mock
   lateinit var mockTextEmitter: TextEmitter
 
   @Mock(answer = Answers.RETURNS_MOCKS)
@@ -118,7 +115,6 @@ class SingleDeviceAndroidProcessMonitorTest {
   }
 
   private fun startMonitor(
-    logcatCaptor: AndroidLogcatOutputCapture? = mockLogcatCaptor,
     finishAndroidProcessCallback: (IDevice) -> Unit = { it.forceStop(AndroidProcessMonitorManagerTest.TARGET_APP_NAME) }
   ): SingleDeviceAndroidProcessMonitor {
     return SingleDeviceAndroidProcessMonitor(
@@ -130,7 +126,6 @@ class SingleDeviceAndroidProcessMonitorTest {
         }
       },
       mockDeploymentAppService,
-      logcatCaptor,
       mockTextEmitter,
       finishAndroidProcessCallback,
       listenerExecutor = MoreExecutors.directExecutor(),
@@ -155,14 +150,12 @@ class SingleDeviceAndroidProcessMonitorTest {
     updateMonitorState()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_IS_RUNNING)
-    verify(mockLogcatCaptor).startCapture(eq(mockDevice), eq(123), eq(TARGET_APP_NAME))
 
     // Now the target process finishes.
     whenever(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf())
     updateMonitorState()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_DETACHED)
-    verify(mockLogcatCaptor).stopCapture(eq(mockDevice))
     verify(mockDevice, never()).kill(TARGET_APP_NAME)
   }
 
@@ -192,13 +185,11 @@ class SingleDeviceAndroidProcessMonitorTest {
     updateMonitorState()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_IS_RUNNING)
-    verify(mockLogcatCaptor).startCapture(eq(mockDevice), eq(123), eq(TARGET_APP_NAME))
 
     // Now kill the target process by close.
     monitor.close()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_FINISHED)
-    verify(mockLogcatCaptor).stopCapture(eq(mockDevice))
     verify(mockDevice, times(2)).forceStop(TARGET_APP_NAME)
   }
 
@@ -211,13 +202,11 @@ class SingleDeviceAndroidProcessMonitorTest {
     updateMonitorState()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_IS_RUNNING)
-    verify(mockLogcatCaptor).startCapture(eq(mockDevice), eq(123), eq(TARGET_APP_NAME))
 
     // Now detach the target process by close.
     monitor.detachAndClose()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_DETACHED)
-    verify(mockLogcatCaptor).stopCapture(eq(mockDevice))
     verify(mockDevice, never()).forceStop(TARGET_APP_NAME)
   }
 
@@ -228,12 +217,11 @@ class SingleDeviceAndroidProcessMonitorTest {
     timeoutMonitor()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_NOT_FOUND)
-    verify(mockLogcatCaptor).stopCapture(eq(mockDevice))
   }
 
   @Test
   fun monitorShouldWorkWithoutLogcatCaptor() {
-    val monitor = startMonitor(logcatCaptor = null)
+    val monitor = startMonitor()
 
     val mockClients = listOf(createMockClient(123))
     whenever(mockDeploymentAppService.findClient(eq(mockDevice), eq(TARGET_APP_NAME))).thenReturn(mockClients)
@@ -256,7 +244,6 @@ class SingleDeviceAndroidProcessMonitorTest {
     updateMonitorState()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_IS_RUNNING)
-    verify(mockLogcatCaptor).startCapture(eq(mockDevice), eq(123), eq(TARGET_APP_NAME))
 
     // Now replace the listener and detach the target process by replaceListenerAndClose.
     var isListenerReplacedAndDetached = false
@@ -267,7 +254,6 @@ class SingleDeviceAndroidProcessMonitorTest {
     })
 
     assertThat(isListenerReplacedAndDetached).isTrue()
-    verify(mockLogcatCaptor).stopCapture(eq(mockDevice))
     verify(mockDevice, times(2)).forceStop(TARGET_APP_NAME)
   }
 

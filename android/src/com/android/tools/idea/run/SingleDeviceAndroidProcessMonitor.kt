@@ -51,7 +51,6 @@ import kotlin.properties.Delegates
  * @param targetDevice a target android device to be monitored
  * @param listener a listener to listen events from this class
  * @param deploymentApplicationService a service to be used to look up running processes on a device
- * @param androidLogcatOutputCapture a controller to start and stop listening logcat messages for a device.
  *   A collected logcat messages are emitted to [textEmitter]. You can set null if you don't need them.
  * @param textEmitter a text emitter to output debug messages to be displayed
  */
@@ -60,7 +59,6 @@ class SingleDeviceAndroidProcessMonitor(
   val targetDevice: IDevice,
   private var listener: SingleDeviceAndroidProcessMonitorStateListener,
   private val deploymentApplicationService: DeploymentApplicationService,
-  private val androidLogcatOutputCapture: AndroidLogcatOutputCapture?,
   private val textEmitter: TextEmitter,
   private val finishAndroidProcessCallback: (IDevice) -> Unit,
   stateUpdaterExecutor: ScheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService(),
@@ -120,7 +118,6 @@ class SingleDeviceAndroidProcessMonitor(
       clients.forEach { client ->
         myMonitoringPids.computeIfAbsent(client.clientData.pid) { pid ->
           textEmitter.emit("Connected to process ${pid} on device '${targetDevice.name}'.\n", ProcessOutputTypes.STDOUT)
-          androidLogcatOutputCapture?.startCapture(targetDevice, pid, targetApplicationId)
         }
       }
     }
@@ -187,7 +184,6 @@ class SingleDeviceAndroidProcessMonitor(
   @Synchronized
   @WorkerThread
   override fun close() {
-    androidLogcatOutputCapture?.stopCapture(targetDevice)
 
     when (myState) {
       WAITING_FOR_PROCESS, PROCESS_IS_RUNNING -> {

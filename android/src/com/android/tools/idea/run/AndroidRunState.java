@@ -84,7 +84,6 @@ public class AndroidRunState implements RunProfileState {
           device.forceStop(appId);
           return Unit.INSTANCE;
         },
-        shouldCaptureLogcat(myEnv.getRunnerAndConfigurationSettings()),
         shouldAutoTerminate(myEnv.getRunnerAndConfigurationSettings()));
     }
     if (console == null) {
@@ -107,14 +106,6 @@ public class AndroidRunState implements RunProfileState {
                                                  hyperlinkConsumer);
     ProgressManager.getInstance().run(task);
     return new DefaultExecutionResult(console, processHandler);
-  }
-
-  private static boolean shouldCaptureLogcat(@Nullable RunnerAndConfigurationSettings runnerAndConfigurationSettings) {
-    // Don't capture logcat message in AndroidProcessHandler if this run is an instrumentation test because
-    // a test application process is often a short lived process and it finishes before the handler finds
-    // the process. We cannot display logcat messages reliably, thus disable it at all.
-    // (Enable logcat captor when the run configuration is unknown (=null) to maintain the previous version's behavior).
-    return !isAndroidInstrumentationTest(runnerAndConfigurationSettings);
   }
 
   private static boolean shouldAutoTerminate(@Nullable RunnerAndConfigurationSettings runnerAndConfigurationSettings) {

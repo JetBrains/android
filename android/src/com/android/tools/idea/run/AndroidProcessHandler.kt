@@ -53,7 +53,6 @@ import java.io.OutputStream
  *
  * @param project IDE project which uses this process handler
  * @param targetApplicationId a target application id to be monitored
- * @param captureLogcat true if you need logcat message to be captured and displayed in an attached console view, false otherwise
  * @param finishAndroidProcessCallback custom way to finish a started process, used by AndroidProcessMonitorManager.
  * @param deploymentApplicationService a service to be used to look up running processes on a device
  * @param androidProcessMonitorManagerFactory a factory method to construct [AndroidProcessMonitorManager]
@@ -62,12 +61,11 @@ class AndroidProcessHandler @JvmOverloads constructor(
   private val project: Project,
   val targetApplicationId: String,
   finishAndroidProcessCallback: (IDevice) -> Unit = { device -> device.forceStop(targetApplicationId) },
-  val captureLogcat: Boolean = true,
   val autoTerminate: Boolean = true,
   private val ansiEscapeDecoder: AnsiEscapeDecoder = AnsiEscapeDecoder(),
   private val deploymentApplicationService: DeploymentApplicationService = DeploymentApplicationService.instance,
-  androidProcessMonitorManagerFactory: AndroidProcessMonitorManagerFactory = { _, _, textEmitter, listener ->
-    AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, captureLogcat, listener,
+  androidProcessMonitorManagerFactory: AndroidProcessMonitorManagerFactory = { textEmitter, listener ->
+    AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, listener,
                                  finishAndroidProcessCallback)
   }) : ProcessHandler(), KillableProcess, SwappableProcessHandler {
 
@@ -84,8 +82,6 @@ class AndroidProcessHandler @JvmOverloads constructor(
    * all devices, it invokes [notifyProcessTerminated] to terminate android process handler.
    */
   private val myMonitorManager = androidProcessMonitorManagerFactory(
-    targetApplicationId,
-    deploymentApplicationService,
     object : TextEmitter {
       override fun emit(message: String, key: Key<*>) = notifyTextAvailable(message, key)
     },
@@ -239,7 +235,5 @@ class AndroidProcessHandler @JvmOverloads constructor(
   }
 }
 
-private typealias AndroidProcessMonitorManagerFactory = (targetApplicationId: String,
-                                                         deploymentApplicationService: DeploymentApplicationService,
-                                                         textEmitter: TextEmitter,
+private typealias AndroidProcessMonitorManagerFactory = (textEmitter: TextEmitter,
                                                          listener: AndroidProcessMonitorManagerListener) -> AndroidProcessMonitorManager

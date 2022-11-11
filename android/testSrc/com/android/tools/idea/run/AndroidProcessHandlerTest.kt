@@ -79,7 +79,6 @@ class AndroidProcessHandlerTest {
 
   @Mock
   lateinit var mockAnsiEscapeDecoder: AnsiEscapeDecoder
-  private var captureLogcat: Boolean = true
   private var autoTerminate: Boolean = true
 
   val handler: AndroidProcessHandler by lazy {
@@ -87,11 +86,10 @@ class AndroidProcessHandlerTest {
       project,
       TARGET_APP_NAME,
       { device -> device.forceStop(TARGET_APP_NAME) },
-      captureLogcat,
       autoTerminate,
       mockAnsiEscapeDecoder,
       mockDeploymentAppService
-    ) { _, _, emitter, listener ->
+    ) { emitter, listener ->
       textEmitter = emitter
       monitorManagerListener = listener
       mockMonitorManager
