@@ -33,8 +33,10 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.concurrency.Promise
 
 class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
   private val debugger: AndroidDebugger<S>,
@@ -48,13 +50,13 @@ class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
     applicationId: String,
     environment: ExecutionEnvironment,
     oldProcessHandler: ProcessHandler
-  ) {
+  ): Promise<XDebugSessionImpl> {
     // Reuse the current ConsoleView to retain the UI state and not to lose test results.
     val androidTestResultListener = oldProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY) as? ConsoleView
     LOG.info("Attaching ${debugger.id} debugger")
 
 
-    DebugSessionStarter.attachDebuggerToStartedProcess(
+    return DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
       applicationId,
       environment,
