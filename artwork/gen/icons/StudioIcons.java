@@ -263,6 +263,7 @@ public class StudioIcons {
 
   public static class DeviceProcessMonitor {
     public static final Icon FORCE_STOP = load("/studio/icons/device-process-monitor/force-stop.svg"); // 16x16
+    public static final Icon KILL_PROCESS = load("/studio/icons/device-process-monitor/kill-process.svg"); // 16x16
   }
 
   public static class Emulator {
