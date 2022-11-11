@@ -191,7 +191,15 @@ enum class TestProject(
     TestProjectToSnapshotPaths.TEST_FIXTURES,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_72 }
   ),
-  TEST_ONLY_MODULE(TestProjectToSnapshotPaths.TEST_ONLY_MODULE),
+  TEST_ONLY_MODULE(
+    TestProjectToSnapshotPaths.TEST_ONLY_MODULE,
+    patch = { projectRoot ->
+      if (this < AgpVersionSoftwareEnvironmentDescriptor.AGP_42) {
+        // Benchmarks sub-project is incompatible with <= 4.1.
+        projectRoot.resolve("settings.gradle").replaceInContent(", ':benchmark'", "")
+      }
+    }
+  ),
   KOTLIN_MULTIPLATFORM(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 }

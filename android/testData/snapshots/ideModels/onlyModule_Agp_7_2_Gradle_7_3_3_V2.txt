@@ -19,6 +19,8 @@ MODULE                        : project
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
                 tasks
+                    testBenchmarkUnitTest         : testBenchmarkUnitTest (DefaultExternalTask)
+                        qName                         : :app:testBenchmarkUnitTest
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                         qName                         : :app:testDebugUnitTest
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
@@ -29,6 +31,11 @@ MODULE                        : project
                     androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
+                    androidTestBenchmarkAnnotationProcessor : <empty>
+                    androidTestBenchmarkCompileOnly         : <empty>
+                    androidTestBenchmarkImplementation      : <empty>
+                    androidTestBenchmarkRuntimeOnly         : <empty>
+                    androidTestBenchmarkWearApp   : <empty>
                     androidTestCompileOnly        : <empty>
                     androidTestDebugAnnotationProcessor     : <empty>
                     androidTestDebugCompileOnly   : <empty>
@@ -47,6 +54,24 @@ MODULE                        : project
                     annotationProcessor           : <empty>
                     api                           : <empty>
                     archives                      : <empty>
+                    - benchmarkAabPublication     : <ROOT>/app/build/outputs/bundle/benchmark/app-benchmark.aab [-]
+                    benchmarkAnnotationProcessor  : <empty>
+                    benchmarkAnnotationProcessorClasspath   : <empty>
+                    benchmarkApi                  : <empty>
+                    benchmarkApiElements          : <empty>
+                    - benchmarkApkPublication     : <ROOT>/app/build/outputs/apk-zips/benchmark/apks.zip [-]
+                    benchmarkCompileClasspath     : <empty>
+                    benchmarkCompileOnly          : <empty>
+                    benchmarkImplementation       : <empty>
+                    benchmarkReverseMetadataValues          : <empty>
+                    benchmarkRuntimeClasspath     : <empty>
+                    benchmarkRuntimeElements      : <empty>
+                    benchmarkRuntimeOnly          : <empty>
+                    benchmarkUnitTestAnnotationProcessorClasspath     : <empty>
+                    benchmarkUnitTestCompileClasspath       : <empty>
+                    benchmarkUnitTestRuntimeClasspath       : <empty>
+                    benchmarkWearApp              : <empty>
+                    benchmarkWearBundling         : <empty>
                     compileOnly                   : <empty>
                     coreLibraryDesugaring         : <empty>
                     - debugAabPublication         : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
@@ -94,6 +119,11 @@ MODULE                        : project
                     releaseWearBundling           : <empty>
                     runtimeOnly                   : <empty>
                     testAnnotationProcessor       : <empty>
+                    testBenchmarkAnnotationProcessor        : <empty>
+                    testBenchmarkCompileOnly      : <empty>
+                    testBenchmarkImplementation   : <empty>
+                    testBenchmarkRuntimeOnly      : <empty>
+                    testBenchmarkWearApp          : <empty>
                     testCompileOnly               : <empty>
                     testDebugAnnotationProcessor  : <empty>
                     testDebugCompileOnly          : <empty>
@@ -102,6 +132,12 @@ MODULE                        : project
                     testDebugWearApp              : <empty>
                     testFixturesAnnotationProcessor         : <empty>
                     testFixturesApi               : <empty>
+                    testFixturesBenchmarkAnnotationProcessor          : <empty>
+                    testFixturesBenchmarkApi      : <empty>
+                    testFixturesBenchmarkCompileOnly        : <empty>
+                    testFixturesBenchmarkImplementation     : <empty>
+                    testFixturesBenchmarkRuntimeOnly        : <empty>
+                    testFixturesBenchmarkWearApp  : <empty>
                     testFixturesCompileOnly       : <empty>
                     testFixturesDebugAnnotationProcessor    : <empty>
                     testFixturesDebugApi          : <empty>
@@ -126,6 +162,50 @@ MODULE                        : project
                     testReleaseWearApp            : <empty>
                     testRuntimeOnly               : <empty>
                     testWearApp                   : <empty>
+                    wearApp                       : <empty>
+            benchmark                     : :benchmark (DefaultExternalProject)
+                name                          : benchmark
+                qName                         : :benchmark
+                group                         : project
+                version                       : unspecified
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                projectDir                    : <ROOT>/benchmark
+                buildDir                      : <ROOT>/benchmark/build [-]
+                buildFile                     : <ROOT>/benchmark/build.gradle
+                externalSystemId              : GRADLE
+                artifactsByConfiguration
+                    androidApis                   : <empty>
+                    androidJacocoAnt              : <empty>
+                    androidJdkImage               : <empty>
+                    androidTestUtil               : <empty>
+                    annotationProcessor           : <empty>
+                    api                           : <empty>
+                    archives                      : <empty>
+                    benchmarkAnnotationProcessor  : <empty>
+                    benchmarkAnnotationProcessorClasspath   : <empty>
+                    benchmarkApi                  : <empty>
+                    benchmarkCompileClasspath     : <empty>
+                    benchmarkCompileOnly          : <empty>
+                    benchmarkImplementation       : <empty>
+                    benchmarkRuntimeClasspath     : <empty>
+                    benchmarkRuntimeOnly          : <empty>
+                    benchmarkTestedApks           : <empty>
+                    benchmarkWearApp              : <empty>
+                    compileOnly                   : <empty>
+                    coreLibraryDesugaring         : <empty>
+                    debugAnnotationProcessor      : <empty>
+                    debugApi                      : <empty>
+                    debugCompileOnly              : <empty>
+                    debugImplementation           : <empty>
+                    debugRuntimeOnly              : <empty>
+                    debugWearApp                  : <empty>
+                    default                       : <empty>
+                    implementation                : <empty>
+                    lintChecks                    : <empty>
+                    lintPublish                   : <empty>
+                    runtimeOnly                   : <empty>
+                    testedApks                    : <empty>
                     wearApp                       : <empty>
             test                          : :test (DefaultExternalProject)
                 name                          : test
@@ -289,6 +369,8 @@ MODULE                        : project.app
         testApplicationId             : com.example.android.app.test
     - basicVariant:               : release
         applicationId                 : com.example.android.app
+    - basicVariant:               : benchmark
+        applicationId                 : com.example.android.app
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -442,6 +524,43 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
+        BuildType
+            Name                          : benchmark
+            IsDebuggable                  : false
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : benchmark
+            Manifest                      : <ROOT>/app/src/benchmark/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/app/src/benchmark/java [-]
+            KotlinDirectories             : <ROOT>/app/src/benchmark/java [-]
+            KotlinDirectories             : <ROOT>/app/src/benchmark/kotlin [-]
+            ResourcesDirectories          : <ROOT>/app/src/benchmark/resources [-]
+            AidlDirectories               : <ROOT>/app/src/benchmark/aidl [-]
+            RenderscriptDirectories       : <ROOT>/app/src/benchmark/rs [-]
+            ResDirectories                : <ROOT>/app/src/benchmark/res [-]
+            AssetsDirectories             : <ROOT>/app/src/benchmark/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/benchmark/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/benchmark/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testBenchmark
+                    Manifest                      : <ROOT>/app/src/testBenchmark/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testBenchmark/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testBenchmark/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testBenchmark/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testBenchmark/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/testBenchmark/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/testBenchmark/rs [-]
+                    ResDirectories                : <ROOT>/app/src/testBenchmark/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testBenchmark/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testBenchmark/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testBenchmark/shaders [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -467,6 +586,15 @@ MODULE                        : project.app
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/release/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/release/redirect.txt [-]
+        VariantBuildInformation
+            VariantName                   : benchmark
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleBenchmark
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/benchmark/redirect.txt [-]
+                BundleTaskName                : bundleBenchmark
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/benchmark/redirect.txt [-]
+                ApkFromBundleTaskName         : extractApksForBenchmark
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/benchmark/redirect.txt [-]
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -577,13 +705,13 @@ MODULE                        : project.app
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
-MODULE                        : project.test
+MODULE                        : project.benchmark
     GradleModuleModel
         agpVersion                    : 7.2.0
-        gradlePath                    : :test
+        gradlePath                    : :benchmark
         gradleVersion                 : 7.3.3
-        buildFile                     : <ROOT>/test/build.gradle
-        buildFilePath                 : <ROOT>/test/build.gradle
+        buildFile                     : <ROOT>/benchmark/build.gradle
+        buildFilePath                 : <ROOT>/benchmark/build.gradle
         rootFolderPath                : <ROOT>
         - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
         - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
@@ -611,15 +739,15 @@ MODULE                        : project.test
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     BuildName                     : :
-    ProjectPath                   : :test
+    ProjectPath                   : :benchmark
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/test/build [-]
+    BuildFolder                   : <ROOT>/benchmark/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
     GroupId                       : project
-    Namespace                     : com.example.android.app
+    Namespace                     : com.example.android.benchmark
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -653,15 +781,14 @@ MODULE                        : project.test
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-    - basicVariant:               : debug
-        applicationId                 : com.example.android.app.testmodule
+    - basicVariant:               : benchmark
+        applicationId                 : com.example.android.benchmark
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
         ProductFlavor
             Name                          : main
-            TestApplicationId             : com.example.android.app.testmodule
             MinSdkVersion
                 ApiLevel                      : 16
                 ApiString                     : 16
@@ -672,17 +799,17 @@ MODULE                        : project.test
                 UseSupportLibrary             : false
         SourceProvider
             Name                          : main
-            Manifest                      : <ROOT>/test/src/main/AndroidManifest.xml
-            JavaDirectories               : <ROOT>/test/src/main/java
-            KotlinDirectories             : <ROOT>/test/src/main/java
-            KotlinDirectories             : <ROOT>/test/src/main/kotlin [-]
-            ResourcesDirectories          : <ROOT>/test/src/main/resources [-]
-            AidlDirectories               : <ROOT>/test/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/test/src/main/rs [-]
-            ResDirectories                : <ROOT>/test/src/main/res [-]
-            AssetsDirectories             : <ROOT>/test/src/main/assets [-]
-            JniLibsDirectories            : <ROOT>/test/src/main/jniLibs [-]
-            ShadersDirectories            : <ROOT>/test/src/main/shaders [-]
+            Manifest                      : <ROOT>/benchmark/src/main/AndroidManifest.xml
+            JavaDirectories               : <ROOT>/benchmark/src/main/java
+            KotlinDirectories             : <ROOT>/benchmark/src/main/java
+            KotlinDirectories             : <ROOT>/benchmark/src/main/kotlin [-]
+            ResourcesDirectories          : <ROOT>/benchmark/src/main/resources [-]
+            AidlDirectories               : <ROOT>/benchmark/src/main/aidl [-]
+            RenderscriptDirectories       : <ROOT>/benchmark/src/main/rs [-]
+            ResDirectories                : <ROOT>/benchmark/src/main/res [-]
+            AssetsDirectories             : <ROOT>/benchmark/src/main/assets [-]
+            JniLibsDirectories            : <ROOT>/benchmark/src/main/jniLibs [-]
+            ShadersDirectories            : <ROOT>/benchmark/src/main/shaders [-]
         ExtraSourceProviders
     BuildTypes
         BuildType
@@ -694,18 +821,27 @@ MODULE                        : project.test
             IsMinifyEnabled               : false
             IsZipAlignEnabled             : true
         SourceProvider
-            Name                          : debug
-            Manifest                      : <ROOT>/test/src/debug/AndroidManifest.xml [-]
-            JavaDirectories               : <ROOT>/test/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/test/src/debug/java [-]
-            KotlinDirectories             : <ROOT>/test/src/debug/kotlin [-]
-            ResourcesDirectories          : <ROOT>/test/src/debug/resources [-]
-            AidlDirectories               : <ROOT>/test/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/test/src/debug/rs [-]
-            ResDirectories                : <ROOT>/test/src/debug/res [-]
-            AssetsDirectories             : <ROOT>/test/src/debug/assets [-]
-            JniLibsDirectories            : <ROOT>/test/src/debug/jniLibs [-]
-            ShadersDirectories            : <ROOT>/test/src/debug/shaders [-]
+        BuildType
+            Name                          : benchmark
+            IsDebuggable                  : true
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : benchmark
+            Manifest                      : <ROOT>/benchmark/src/benchmark/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/benchmark/src/benchmark/java [-]
+            KotlinDirectories             : <ROOT>/benchmark/src/benchmark/java [-]
+            KotlinDirectories             : <ROOT>/benchmark/src/benchmark/kotlin [-]
+            ResourcesDirectories          : <ROOT>/benchmark/src/benchmark/resources [-]
+            AidlDirectories               : <ROOT>/benchmark/src/benchmark/aidl [-]
+            RenderscriptDirectories       : <ROOT>/benchmark/src/benchmark/rs [-]
+            ResDirectories                : <ROOT>/benchmark/src/benchmark/res [-]
+            AssetsDirectories             : <ROOT>/benchmark/src/benchmark/assets [-]
+            JniLibsDirectories            : <ROOT>/benchmark/src/benchmark/jniLibs [-]
+            ShadersDirectories            : <ROOT>/benchmark/src/benchmark/shaders [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -714,15 +850,15 @@ MODULE                        : project.test
             KeyAlias                      : AndroidDebugKey
     VariantBuildInformation
         VariantBuildInformation
-            VariantName                   : debug
+            VariantName                   : benchmark
             BuildTasksAndOutputInformation
-                AssembleTaskName              : assembleDebug
-                AssembleTaskOutputListingFile : <ROOT>/test/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
+                AssembleTaskName              : assembleBenchmark
+                AssembleTaskOutputListingFile : <ROOT>/benchmark/build/intermediates/apk_ide_redirect_file/benchmark/redirect.txt [-]
     IdeVariants
         IdeVariant
-            Name                          : debug
-            BuildType                     : debug
-            DisplayName                   : debug
+            Name                          : benchmark
+            BuildType                     : benchmark
+            DisplayName                   : benchmark
             InstantAppCompatible          : false
             MinSdkVersion
                 ApiLevel                      : 16
@@ -732,16 +868,16 @@ MODULE                        : project.test
                 ApiString                     : <SDK_VERSION>
             MainArtifact
                 Name                          : MAIN
-                CompileTaskName               : compileDebugSources
-                AssembleTaskName              : assembleDebug
+                CompileTaskName               : compileBenchmarkSources
+                AssembleTaskName              : assembleBenchmark
                 IsTestArtifact                : false
-                IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/test/build/generated/aidl_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/test/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/test/build/generated/renderscript_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/test/build/generated/source/buildConfig/debug [-]
-                ClassesFolder                 : <ROOT>/test/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/test/build/intermediates/javac/debug/classes [-]
+                IdeSetupTaskNames             : generateBenchmarkSources
+                GeneratedSourceFolders        : <ROOT>/benchmark/build/generated/aidl_source_output_dir/benchmark/out [-]
+                GeneratedSourceFolders        : <ROOT>/benchmark/build/generated/ap_generated_sources/benchmark/out [-]
+                GeneratedSourceFolders        : <ROOT>/benchmark/build/generated/renderscript_source_output_dir/benchmark/out [-]
+                GeneratedSourceFolders        : <ROOT>/benchmark/build/generated/source/buildConfig/benchmark [-]
+                ClassesFolder                 : <ROOT>/benchmark/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/benchmark/R.jar [-]
+                ClassesFolder                 : <ROOT>/benchmark/build/intermediates/javac/benchmark/classes [-]
                 Dependencies
                     compileClasspath              : IdeDependenciesImpl
                         - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
@@ -1328,6 +1464,369 @@ MODULE                        : project.test
                             target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl)
                                 artifact                      : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
                                 artifactAddress               : org.hamcrest:hamcrest-library:1.3@jar
+                        - moduleDependencies          : <ROOT>::app@benchmark (IdeModuleDependencyImpl)
+                            target                        : <ROOT>::app@benchmark (IdeModuleLibraryImpl)
+                                buildId                       : <ROOT>
+                                projectPath                   : :app
+                                sourceSet                     : MAIN
+                                variant                       : benchmark
+                    runtimeClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.test.espresso:espresso-core:3.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test.espresso:espresso-core:3.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.test:monitor:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test:monitor:1.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.test:runner:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test:runner:1.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:print:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:print:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:collections:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.squareup:javawriter:2.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.squareup:javawriter:2.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : javax.inject:javax.inject:1 (IdeJavaLibraryDependencyImpl)
+                            target                        : javax.inject:javax.inject:1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : junit:junit:4.12 (IdeJavaLibraryDependencyImpl)
+                            target                        : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : net.sf.kxml:kxml2:2.3.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : net.sf.kxml:kxml2:2.3.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
+                ApplicationId                 : com.example.android.benchmark
+                SigningConfigName             : debug
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleBenchmark
+                    AssembleTaskOutputListingFile : <ROOT>/benchmark/build/intermediates/apk_ide_redirect_file/benchmark/redirect.txt [-]
+                GeneratedResourceFolders      : <ROOT>/benchmark/build/generated/res/rs/benchmark [-]
+                GeneratedResourceFolders      : <ROOT>/benchmark/build/generated/res/resValues/benchmark [-]
+                TestOptions
+                    AnimationsDisabled            : false
+                    Execution                     : HOST
+                ModelSyncFile
+                    Type                          : BASIC
+                    TaskName                      : createBenchmarkVariantModel
+                    File                          : <ROOT>/benchmark/build/intermediates/variant_model/benchmark/out [-]
+            TestedTargetVariants
+                TargetProjectPath             : :app
+                TargetVariant                 : benchmark
+    externalProject               : :benchmark (DefaultExternalProject) (*seen*)
+MODULE                        : project.benchmark.main
+MODULE                        : project.test
+    GradleModuleModel
+        agpVersion                    : 7.2.0
+        gradlePath                    : :test
+        gradleVersion                 : 7.3.3
+        buildFile                     : <ROOT>/test/build.gradle
+        buildFilePath                 : <ROOT>/test/build.gradle
+        rootFolderPath                : <ROOT>
+        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
+        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
+        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
+        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
+        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
+        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
+        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
+        - gradlePlugins               : com.android.build.gradle.internal.plugins.TestPlugin
+        - gradlePlugins               : com.android.build.gradle.TestPlugin
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        runtimeMinSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
+    ProjectPath                   : :test
+    ModelVersion                  : 7.2.0
+    ProjectType                   : PROJECT_TYPE_TEST
+    CompileTarget                 : android-32
+    BuildFolder                   : <ROOT>/test/build [-]
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    IsBaseSplit                   : false
+    GroupId                       : project
+    Namespace                     : com.example.android.app.benchmark
+    AaptOptions
+        NameSpacing                   : DISABLED
+    LintOptions
+        IsCheckTestSources            : false
+        IsCheckDependencies           : false
+        IsAbortOnError                : true
+        IsAbsolutePaths               : true
+        IsNoLines                     : false
+        IsQuiet                       : false
+        IsCheckAllWarnings            : false
+        IsIgnoreWarnings              : false
+        IsWarningsAsErrors            : false
+        IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
+        IsCheckGeneratedSources       : false
+        IsCheckReleaseBuilds          : true
+        IsExplainIssues               : true
+        IsShowAll                     : false
+        TextReport                    : false
+        HtmlReport                    : true
+        XmlReport                     : true
+        SarifReport                   : false
+    JavaCompileOptions
+        Encoding                      : UTF-8
+        SourceCompatibility           : 1.8
+        TargetCompatibility           : 1.8
+        IsCoreLibraryDesugaringEnabled          : false
+    AgpFlags
+        ApplicationRClassConstantIds  : true
+        AestRClassConstantIds         : true
+        TransitiveRClasses            : true
+        UsesCompose                   : false
+        MlModelBindingEnabled         : false
+    - basicVariant:               : debug
+        applicationId                 : com.example.android.app.testmodule
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
+    ViewBindingOptions
+        Enabled                       : false
+    DefaultConfig
+        ProductFlavor
+            Name                          : main
+            TestApplicationId             : com.example.android.app.testmodule
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
+            VectorDrawables
+                UseSupportLibrary             : false
+        SourceProvider
+            Name                          : main
+            Manifest                      : <ROOT>/test/src/main/AndroidManifest.xml
+            JavaDirectories               : <ROOT>/test/src/main/java
+            KotlinDirectories             : <ROOT>/test/src/main/java
+            KotlinDirectories             : <ROOT>/test/src/main/kotlin [-]
+            ResourcesDirectories          : <ROOT>/test/src/main/resources [-]
+            AidlDirectories               : <ROOT>/test/src/main/aidl [-]
+            RenderscriptDirectories       : <ROOT>/test/src/main/rs [-]
+            ResDirectories                : <ROOT>/test/src/main/res [-]
+            AssetsDirectories             : <ROOT>/test/src/main/assets [-]
+            JniLibsDirectories            : <ROOT>/test/src/main/jniLibs [-]
+            ShadersDirectories            : <ROOT>/test/src/main/shaders [-]
+        ExtraSourceProviders
+    BuildTypes
+        BuildType
+            Name                          : debug
+            IsDebuggable                  : true
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : debug
+            Manifest                      : <ROOT>/test/src/debug/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/test/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/test/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/test/src/debug/kotlin [-]
+            ResourcesDirectories          : <ROOT>/test/src/debug/resources [-]
+            AidlDirectories               : <ROOT>/test/src/debug/aidl [-]
+            RenderscriptDirectories       : <ROOT>/test/src/debug/rs [-]
+            ResDirectories                : <ROOT>/test/src/debug/res [-]
+            AssetsDirectories             : <ROOT>/test/src/debug/assets [-]
+            JniLibsDirectories            : <ROOT>/test/src/debug/jniLibs [-]
+            ShadersDirectories            : <ROOT>/test/src/debug/shaders [-]
+    SigningConfigs
+        SigningConfig
+            Name                          : debug
+            StoreFile                     : debug.keystore
+            StorePassword                 : android
+            KeyAlias                      : AndroidDebugKey
+    VariantBuildInformation
+        VariantBuildInformation
+            VariantName                   : debug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                AssembleTaskOutputListingFile : <ROOT>/test/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
+    IdeVariants
+        IdeVariant
+            Name                          : debug
+            BuildType                     : debug
+            DisplayName                   : debug
+            InstantAppCompatible          : false
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
+            MainArtifact
+                Name                          : MAIN
+                CompileTaskName               : compileDebugSources
+                AssembleTaskName              : assembleDebug
+                IsTestArtifact                : false
+                IdeSetupTaskNames             : generateDebugSources
+                GeneratedSourceFolders        : <ROOT>/test/build/generated/aidl_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/test/build/generated/ap_generated_sources/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/test/build/generated/renderscript_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/test/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/test/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/test/build/intermediates/javac/debug/classes [-]
+                Dependencies
+                    compileClasspath              : IdeDependenciesImpl
+                        - androidLibraries            : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.test.espresso:espresso-core:3.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test.espresso:espresso-core:3.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.test:monitor:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test:monitor:1.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support.test:runner:1.0.2@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support.test:runner:1.0.2@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:animated-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:print:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:print:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:support-vector-drawable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - androidLibraries            : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryDependencyImpl)
+                            target                        : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.core:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:collections:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : com.squareup:javawriter:2.1.1 (IdeJavaLibraryDependencyImpl)
+                            target                        : com.squareup:javawriter:2.1.1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : javax.inject:javax.inject:1 (IdeJavaLibraryDependencyImpl)
+                            target                        : javax.inject:javax.inject:1 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : junit:junit:4.12 (IdeJavaLibraryDependencyImpl)
+                            target                        : junit:junit:4.12 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : net.sf.kxml:kxml2:2.3.0 (IdeJavaLibraryDependencyImpl)
+                            target                        : net.sf.kxml:kxml2:2.3.0 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl) (*seen*)
+                        - javaLibraries               : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryDependencyImpl)
+                            target                        : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl) (*seen*)
                         - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
                             target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
                     runtimeClasspath              : IdeDependenciesImpl

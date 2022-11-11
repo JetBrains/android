@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'android'
+apply plugin: 'com.android.test'
 
 android {
   compileSdkVersion 19
@@ -21,19 +21,22 @@ android {
   defaultConfig {
     minSdkVersion 15
     targetSdkVersion 19
-
-    applicationId 'com.example.android.app'
+    // Do not configure testApplicationId here and instead leave it configured in the manifest.
   }
+
+  targetProjectPath ':app'
+  targetVariant 'benchmark'
 
   buildTypes {
+    // This benchmark buildType is used for benchmarking, and should function like your
+    // release build (for example, with minification on). It's signed with a debug key
+    // for easy local/CI testing.
     benchmark {
-      signingConfig signingConfigs.debug
-      matchingFallbacks = ['release']
-      debuggable false
+      debuggable = true
+      signingConfig = debug.signingConfig
+      matchingFallbacks = ["release"]
     }
   }
-
-  publishNonDefault true
 }
 
 repositories {
@@ -41,5 +44,13 @@ repositories {
 }
 
 dependencies {
-  testImplementation 'junit:junit:4.12'
+  implementation 'junit:junit:4.12'
+  implementation 'com.android.support:appcompat-v7:+'
+  implementation 'com.android.support.test.espresso:espresso-core:+'
+}
+
+androidComponents {
+  beforeVariants(selector().all()) {
+    enabled = buildType == "benchmark"
+  }
 }

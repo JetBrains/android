@@ -18,6 +18,8 @@ MODULE                        : project
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
                 tasks
+                    testBenchmarkUnitTest         : testBenchmarkUnitTest (DefaultExternalTask)
+                        qName                         : :app:testBenchmarkUnitTest
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
                         qName                         : :app:testDebugUnitTest
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
@@ -29,6 +31,15 @@ MODULE                        : project
                     androidTestAnnotationProcessor          : <empty>
                     androidTestApi                : <empty>
                     androidTestApk                : <empty>
+                    androidTestBenchmarkAnnotationProcessor : <empty>
+                    androidTestBenchmarkApi       : <empty>
+                    androidTestBenchmarkApk       : <empty>
+                    androidTestBenchmarkCompile   : <empty>
+                    androidTestBenchmarkCompileOnly         : <empty>
+                    androidTestBenchmarkImplementation      : <empty>
+                    androidTestBenchmarkProvided  : <empty>
+                    androidTestBenchmarkRuntimeOnly         : <empty>
+                    androidTestBenchmarkWearApp   : <empty>
                     androidTestCompile            : <empty>
                     androidTestCompileOnly        : <empty>
                     androidTestDebugAnnotationProcessor     : <empty>
@@ -58,6 +69,27 @@ MODULE                        : project
                     api                           : <empty>
                     apk                           : <empty>
                     archives                      : <empty>
+                    - benchmarkAabPublication     : <ROOT>/app/build/outputs/bundle/benchmark/app-benchmark.aab [-]
+                    benchmarkAnnotationProcessor  : <empty>
+                    benchmarkAnnotationProcessorClasspath   : <empty>
+                    benchmarkApi                  : <empty>
+                    benchmarkApiElements          : <empty>
+                    benchmarkApk                  : <empty>
+                    - benchmarkApkPublication     : <ROOT>/app/build/outputs/apk-zips/benchmark/apks.zip [-]
+                    benchmarkCompile              : <empty>
+                    benchmarkCompileClasspath     : <empty>
+                    benchmarkCompileOnly          : <empty>
+                    benchmarkImplementation       : <empty>
+                    benchmarkProvided             : <empty>
+                    benchmarkReverseMetadataValues          : <empty>
+                    benchmarkRuntimeClasspath     : <empty>
+                    benchmarkRuntimeElements      : <empty>
+                    benchmarkRuntimeOnly          : <empty>
+                    benchmarkUnitTestAnnotationProcessorClasspath     : <empty>
+                    benchmarkUnitTestCompileClasspath       : <empty>
+                    benchmarkUnitTestRuntimeClasspath       : <empty>
+                    benchmarkWearApp              : <empty>
+                    benchmarkWearBundling         : <empty>
                     compile                       : <empty>
                     compileOnly                   : <empty>
                     coreLibraryDesugaring         : <empty>
@@ -116,6 +148,15 @@ MODULE                        : project
                     testAnnotationProcessor       : <empty>
                     testApi                       : <empty>
                     testApk                       : <empty>
+                    testBenchmarkAnnotationProcessor        : <empty>
+                    testBenchmarkApi              : <empty>
+                    testBenchmarkApk              : <empty>
+                    testBenchmarkCompile          : <empty>
+                    testBenchmarkCompileOnly      : <empty>
+                    testBenchmarkImplementation   : <empty>
+                    testBenchmarkProvided         : <empty>
+                    testBenchmarkRuntimeOnly      : <empty>
+                    testBenchmarkWearApp          : <empty>
                     testCompile                   : <empty>
                     testCompileOnly               : <empty>
                     testDebugAnnotationProcessor  : <empty>
@@ -313,6 +354,8 @@ MODULE                        : project.app
         testApplicationId             : com.example.android.app.test
     - basicVariant:               : release
         applicationId                 : com.example.android.app
+    - basicVariant:               : benchmark
+        applicationId                 : com.example.android.app
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
@@ -464,6 +507,53 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
+        BuildType
+            Name                          : benchmark
+            IsDebuggable                  : false
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : benchmark
+            Manifest                      : <ROOT>/app/src/benchmark/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/app/src/benchmark/java [-]
+            ResourcesDirectories          : <ROOT>/app/src/benchmark/resources [-]
+            AidlDirectories               : <ROOT>/app/src/benchmark/aidl [-]
+            RenderscriptDirectories       : <ROOT>/app/src/benchmark/rs [-]
+            ResDirectories                : <ROOT>/app/src/benchmark/res [-]
+            AssetsDirectories             : <ROOT>/app/src/benchmark/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/benchmark/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/benchmark/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestBenchmark
+                    Manifest                      : <ROOT>/app/src/androidTestBenchmark/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/androidTestBenchmark/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/androidTestBenchmark/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/androidTestBenchmark/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/androidTestBenchmark/rs [-]
+                    ResDirectories                : <ROOT>/app/src/androidTestBenchmark/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/androidTestBenchmark/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/androidTestBenchmark/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/androidTestBenchmark/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testBenchmark
+                    Manifest                      : <ROOT>/app/src/testBenchmark/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testBenchmark/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testBenchmark/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/testBenchmark/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/testBenchmark/rs [-]
+                    ResDirectories                : <ROOT>/app/src/testBenchmark/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testBenchmark/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testBenchmark/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testBenchmark/shaders [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -489,6 +579,15 @@ MODULE                        : project.app
                 BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/release/output-metadata.json [-]
                 ApkFromBundleTaskName         : extractApksForRelease
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/release/output-metadata.json [-]
+        VariantBuildInformation
+            VariantName                   : benchmark
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleBenchmark
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/benchmark/output-metadata.json [-]
+                BundleTaskName                : bundleBenchmark
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/benchmark/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForBenchmark
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/benchmark/output-metadata.json [-]
     IdeVariants
         IdeVariant
             Name                          : debug
