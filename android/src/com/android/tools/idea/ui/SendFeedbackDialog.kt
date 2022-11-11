@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.ui
 
-import com.intellij.openapi.fileChooser.FileChooserDescriptor
-import com.intellij.openapi.fileChooser.FileChooserFactory
+import com.android.tools.idea.diagnostics.report.FileInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
-import kotlinx.collections.immutable.toImmutableList
+import com.intellij.ui.treeStructure.Tree
 import java.awt.Color
 import java.awt.Desktop
 import java.awt.Dimension
@@ -35,8 +33,9 @@ import java.awt.GridBagLayout
 import java.awt.Insets
 import java.awt.RenderingHints
 import java.nio.file.Path
+import java.util.Arrays
+import java.util.Collections
 import javax.swing.Action
-import javax.swing.DefaultListModel
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JEditorPane
@@ -44,7 +43,9 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.event.HyperlinkEvent
-import kotlin.io.path.name
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.MutableTreeNode
+import javax.swing.tree.TreeNode
 
 private const val REPRO_TEXT = "Please enter the series of steps necessary to reproduce this bug."
 private const val EXPECTED_TEXT = "What was the expected behavior?"
@@ -53,7 +54,7 @@ private const val CONSENT_TEXT = "We may email your for more information or upda
 private const val PRIVACY_TEXT = "Information entered in the bug description will be publicly visible. To learn more about how Google uses your data, see <a href=\"http://www.google.com/policies/privacy/\">Google's Privacy Policy</a>."
 private const val DATA_TEXT = "<a href=\"http://www.google.com/policies/privacy/\">See what information we collect.</a>"
 
-class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project) {
+class SendFeedbackDialog(project: Project?, files: List<FileInfo>) : DialogWrapper(project) {
   private val titleText = JBTextField().apply {
     name = "titleText"
     preferredSize = Dimension(800, 40)
@@ -74,22 +75,11 @@ class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project
     preferredSize = Dimension(800, 200)
   }
 
-  private val listModel = DefaultListModel<String>()
-  private val listFiles = JBList(listModel).apply {
-    preferredSize = Dimension(400, 300)
-  }
-
   private val consentChkbox = JBCheckBox().apply {
     text = CONSENT_TEXT
   }
 
   private val grid = JPanel(GridBagLayout())
-
-  // Set of all existing paths, to prevent duplicates
-  private val pathSet = mutableSetOf<Path>()
-
-  // List of paths sorted by file name, so that they match the order in the list control
-  private val pathList = mutableListOf<Path>()
 
   val issueTitle: String
     get() = titleText.text
@@ -100,20 +90,12 @@ class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project
     get() = actualText.text
   val expected: String
     get() = expectedText.text
-  val paths: List<Path>
-    get() = pathList.toImmutableList()
 
   init {
     title = "Create New Bug"
     isResizable = false
     isModal = true
     myOKAction.putValue(Action.NAME, "Submit")
-
-    file?.let {
-      pathSet.add(file)
-      pathList.add(file)
-      listModel.addElement(file.name)
-    }
 
     val titleLabel = JLabel().apply {
       text = "Title:"
@@ -193,11 +175,14 @@ class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project
         gridheight = 2
       }
 
-      add(JScrollPane(listFiles), constraints)
+      val scrollPane = JScrollPane(buildTree(files)).apply {
+        preferredSize = Dimension(300, 200)
+      }
+
+      add(JScrollPane(buildTree(files)), constraints)
 
       val addButton = JButton().apply {
         text = "Add"
-        addActionListener { onAddButtonPressed() }
       }
 
       constraints.apply {
@@ -211,7 +196,6 @@ class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project
 
       val removeButton = JButton().apply {
         text = "Remove"
-        addActionListener { onRemoveButtonPressed() }
       }
 
       constraints.apply {
@@ -275,33 +259,6 @@ class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project
     init()
   }
 
-  private fun onAddButtonPressed() {
-    val descriptor = FileChooserDescriptor(true, false, false, false, false, true)
-    val fileChooserDialog = FileChooserFactory.getInstance().createFileChooser(descriptor, null, null)
-    val files = fileChooserDialog.choose(null)
-
-    for (path in files.map { it.toNioPath() }) {
-      if (!pathSet.add(path)) {
-        continue
-      }
-
-      // Insert the new element in the proper place to maintain sorting by file name
-      val index = -(pathList.binarySearch(path, compareBy { it.name }) + 1)
-      pathList.add(index, path)
-      listModel.insertElementAt(path.name, index)
-    }
-  }
-
-  private fun onRemoveButtonPressed() {
-    val indices = listFiles.selectedIndices.reversed()
-    for (index in indices) {
-      val path = pathList[index]
-      pathSet.remove(path)
-      pathList.removeAt(index)
-      listModel.removeElementAt(index)
-    }
-  }
-
   override fun createCenterPanel(): JComponent = grid
 
   override fun doValidate(): ValidationInfo? {
@@ -315,6 +272,61 @@ class SendFeedbackDialog(project: Project?, file: Path?) : DialogWrapper(project
       return ValidationInfo("The actual behavior field cannot be empty.", actualText)
     }
     return null
+  }
+
+  private fun buildTree(list: List<FileInfo>) : Tree {
+    val root = FileNode("Attached Files")
+
+    for(file in list) {
+      addFile(root, file)
+    }
+
+    return Tree(root).apply {
+      preferredSize = Dimension(300, 200)
+    }
+  }
+
+  private fun addFile(root: FileNode, file: FileInfo) {
+    val tokens = file.destination.toString().split('/')
+    var current = root
+    for (i in 0..tokens.size - 2) {
+      current = current.addNode(tokens[i], null)
+    }
+    current.addNode(tokens[tokens.size - 1], file.source)
+  }
+
+  private class FileNode(name: String, path: Path? = null) : DefaultMutableTreeNode(name, path == null) {
+    fun addNode(name: String, path: Path?) : FileNode {
+      val node = FileNode(name, path)
+      if (this.children == null) {
+        this.add(node)
+        return node
+      }
+
+      val index = Collections.binarySearch(this.children, node, NodeComparator())
+      if (index >= 0) {
+        return this.children.get(index) as FileNode
+      }
+
+      this.insert(node, -index - 1)
+      return node
+    }
+  }
+
+  private class NodeComparator : Comparator<TreeNode> {
+    override fun compare(o1: TreeNode?, o2: TreeNode?): Int {
+      val node1 = o1 as FileNode
+      val node2 = o2 as FileNode
+
+      if (node1.allowsChildren != node2.allowsChildren) {
+        return node1.allowsChildren.compareTo(node2.allowsChildren)
+      }
+
+      val name1 = node1.userObject as String
+      val name2 = node2.userObject as String
+
+      return name1.compareTo(name2)
+    }
   }
 }
 

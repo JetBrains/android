@@ -33,6 +33,30 @@ interface DiagnosticsSummaryFileProvider {
   fun getFiles(project: Project?): List<FileInfo>
 
   companion object {
+    val DiagnosticSummaryFileProviders: Map<String, DiagnosticsSummaryFileProvider> = mapOf(
+      "Logs" to DefaultLogFileProvider,
+      "System Info" to SystemInfoFileProvider,
+      "Metrics" to DefaultMetricsLogFileProvider,
+      "Heap Reports" to HeapReportProvider,
+      "Thread Dumps" to ThreadDumpProvider,
+      "UI Freezes" to UIFreezeProvider)
+
+    /*
+       Build a list of FileInfo objects based on the specified providers. Each file info object will be resolved
+       relative to the name associated with the provider that created it.
+     */
+    @JvmStatic
+    fun buildFileList(project: Project? = null): List<FileInfo> {
+      val list = mutableListOf<FileInfo>()
+      for ((name, provider) in DiagnosticSummaryFileProviders.entries) {
+        val files = provider.getFiles(project).map {
+          FileInfo(it.source, Paths.get(name).resolve(it.destination))
+        }
+        list.addAll(files)
+      }
+      return list.sortedBy { it.destination }
+    }
+
     /**
      * Returns the diagnostics file directory based on the log path
      * Will create the diagnostics directory if it doesn't exist
@@ -44,27 +68,4 @@ interface DiagnosticsSummaryFileProvider {
       return dir
     }
   }
-}
-
-val DiagnosticSummaryFileProviders: Map<String, DiagnosticsSummaryFileProvider> = mapOf(
-  "Logs" to DefaultLogFileProvider,
-  "System Info" to SystemInfoFileProvider,
-  "Metrics" to DefaultMetricsLogFileProvider,
-  "Heap Reports" to HeapReportProvider,
-  "Thread Dumps" to ThreadDumpProvider,
-  "UI Freezes" to UIFreezeProvider)
-
-/*
-   Build a list of FileInfo objects based on the specified providers. Each file info object will be resolved
-   relative to the name associated with the provider that created it.
- */
-fun buildFileList(project: Project? = null): List<FileInfo> {
-  val list = mutableListOf<FileInfo>()
-  for ((name, provider) in DiagnosticSummaryFileProviders.entries) {
-    val files = provider.getFiles(project).map {
-      FileInfo(it.source, Paths.get(name).resolve(it.destination))
-    }
-    list.addAll(files)
-  }
-  return list.sortedBy { it.destination }
 }

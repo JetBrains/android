@@ -29,14 +29,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Component
-import java.nio.file.Paths
-
-private val PATH = Paths.get("DiagnosticsFile20220616-040000.zip")
 
 @RunsInEdt
 class SendFeedbackDialogTest {
   private val projectRule = ProjectRule()
-  private val dialog by lazy { SendFeedbackDialog(projectRule.project, PATH) }
+  private val dialog by lazy { SendFeedbackDialog(projectRule.project, emptyList()) }
 
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule())
@@ -70,8 +67,6 @@ class SendFeedbackDialogTest {
         Truth.assertThat(reproSteps).isEqualTo("These are the repro steps.")
         Truth.assertThat(expected).isEqualTo("This is the expected behavior.")
         Truth.assertThat(actual).isEqualTo("This is the actual behavior.")
-        Truth.assertThat(paths.size).isEqualTo(1)
-        Truth.assertThat(paths[0]).isEqualTo(Paths.get("DiagnosticsFile20220616-040000.zip"))
       }
     }
   }

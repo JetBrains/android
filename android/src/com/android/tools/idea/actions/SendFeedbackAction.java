@@ -16,7 +16,8 @@
 package com.android.tools.idea.actions;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.tools.idea.diagnostics.report.DiagnosticSummaryAction;
+import com.android.tools.idea.diagnostics.report.DiagnosticsSummaryFileProvider;
+import com.android.tools.idea.diagnostics.report.FileInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.SendFeedbackDialog;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
@@ -31,8 +32,8 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,16 +51,15 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     if (StudioFlags.ENABLE_NEW_SEND_FEEDBACK_DIALOG.get()) {
-      Path path = null;
+      List<FileInfo> list = new ArrayList<>();
       try {
-        String destination = DiagnosticSummaryAction.createSummaryFile(e.getProject());
-        path = Paths.get(destination);
+        list = DiagnosticsSummaryFileProvider.buildFileList(e.getProject());
       }
       catch (Exception ex) {
-        String message = "Error creating diagnostics report: " + ex.getMessage();
-        Messages.showErrorDialog(e.getProject(), message, "Diagnostics Summary File");
+        String message = "Error creating diagnostic file list: " + ex.getMessage();
+        Messages.showErrorDialog(e.getProject(), message, "Diagnostics Summary Files");
       }
-      new SendFeedbackDialog(null, path).show();
+      new SendFeedbackDialog(null, list).show();
     }
     else {
       submit(e.getProject());

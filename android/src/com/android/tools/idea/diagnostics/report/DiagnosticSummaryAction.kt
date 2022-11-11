@@ -22,7 +22,6 @@ import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import java.nio.file.Files
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -42,8 +41,8 @@ class DiagnosticSummaryAction : DumbAwareAction("Create Diagnostics Summary File
 
   companion object {
     @JvmStatic
-    fun createSummaryFile(project: Project?) : String {
-      val fileInfo = buildFileList(project)
+    fun createSummaryFile(project: Project?): String {
+      val fileInfo = DiagnosticsSummaryFileProvider.buildFileList(project)
 
       val zipInfo = fileInfo.map { ZipData(it.source.toString(), it.destination.toString()) }.toTypedArray()
 
