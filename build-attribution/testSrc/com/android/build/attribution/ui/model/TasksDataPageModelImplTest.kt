@@ -20,14 +20,15 @@ import com.android.build.attribution.ui.data.PluginSourceType
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
 import com.android.build.attribution.ui.model.TasksDataPageModel.Grouping
+import com.android.buildanalyzer.common.TaskCategory
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class TasksDataPageModelImplTest {
 
-  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000)
-  val task2 = mockTask(":app", "resources", "resources.plugin", 1000)
-  val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000)
+  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000, taskCategory = TaskCategory.JAVA)
+  val task2 = mockTask(":app", "resources", "resources.plugin", 1000, taskCategory = TaskCategory.ANDROID_RESOURCES)
+  val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000, taskCategory = TaskCategory.JAVA)
 
   val mockData = MockUiData(tasksList = listOf(task1, task2, task3))
 
@@ -46,10 +47,11 @@ class TasksDataPageModelImplTest {
     assertThat(model.print()).isEqualTo("""
       |Tasks determining build duration grouped by task execution category - Total: 4.0s, Filtered: 4.0s
       |ROOT
-      |  Android Resources
+      |  Java
       |    :app:compile
-      |    :app:resources
       |    :lib:compile
+      |  Android Resources
+      |    :app:resources
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(0)
   }
@@ -124,10 +126,11 @@ class TasksDataPageModelImplTest {
     assertThat(model.print()).isEqualTo("""
       |Tasks determining build duration grouped by task execution category - Total: 4.0s, Filtered: 4.0s
       |ROOT
-      |  Android Resources
+      |  Java
       |    :app:compile
-      |    :app:resources
-      |===>:lib:compile
+      |    :lib:compile
+      |  Android Resources
+      |===>:app:resources
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
     assertThat(modelUpdateListenerCallsWithTreeUpdateCount).isEqualTo(0)
@@ -147,10 +150,11 @@ class TasksDataPageModelImplTest {
     assertThat(model.print()).isEqualTo("""
       |Tasks determining build duration grouped by task execution category - Total: 4.0s, Filtered: 4.0s
       |ROOT
-      |  Android Resources
+      |  Java
       |    :app:compile
-      |    :app:resources
       |    :lib:compile
+      |  Android Resources
+      |    :app:resources
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(2)
     assertThat(modelUpdateListenerCallsWithTreeUpdateCount).isEqualTo(0)
@@ -264,10 +268,11 @@ class TasksDataPageModelImplTest {
     assertThat(model.print()).isEqualTo("""
       |Tasks determining build duration grouped by task execution category - Total: 4.0s, Filtered: 4.0s
       |ROOT
-      |=>Android Resources
+      |  Java
       |    :app:compile
-      |    :app:resources
       |    :lib:compile
+      |=>Android Resources
+      |    :app:resources
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
     assertThat(modelUpdateListenerCallsWithTreeUpdateCount).isEqualTo(1)
@@ -283,10 +288,11 @@ class TasksDataPageModelImplTest {
     assertThat(model.print()).isEqualTo("""
       |Tasks determining build duration grouped by task execution category - Total: 4.0s, Filtered: 4.0s
       |ROOT
-      |  Android Resources
+      |  Java
       |    :app:compile
-      |    :app:resources
       |===>:lib:compile
+      |  Android Resources
+      |    :app:resources
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
     assertThat(modelUpdateListenerCallsWithTreeUpdateCount).isEqualTo(0)
@@ -324,10 +330,11 @@ class TasksDataPageModelImplTest {
     assertThat(model.print()).isEqualTo("""
       |Tasks determining build duration grouped by task execution category - Total: 4.0s, Filtered: 4.0s
       |ROOT
-      |  Android Resources
+      |  Java
       |    :app:compile
-      |    :app:resources
       |    :lib:compile
+      |  Android Resources
+      |    :app:resources
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(0)
   }
@@ -335,15 +342,16 @@ class TasksDataPageModelImplTest {
   @Test
   fun testFilterApplySelectedNodeRemains() {
     // Arrange
-    val task1 = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
+    val task1 = mockTask(":app", "compile", "compiler.plugin", 2000, taskCategory = TaskCategory.JAVA).apply {
       issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
     }
-    val task2 = mockTask(":app", "resources", "resources.plugin", 1000)
-    val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000).apply {
+    val task2 = mockTask(":app", "resources", "resources.plugin", 1000, taskCategory = TaskCategory.ANDROID_RESOURCES)
+    val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000, taskCategory = TaskCategory.JAVA).apply {
       issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
     }
+    val task4 = mockTask(":lib", "noWarnings", "noWarnings.plugin", 1000)
 
-    val mockData = MockUiData(tasksList = listOf(task1, task2, task3))
+    val mockData = MockUiData(tasksList = listOf(task1, task2, task3, task4), createTaskCategoryWarning = true)
     val model = TasksDataPageModelImpl(mockData)
 
     model.selectNode(model.treeRoot.firstLeaf as TasksTreeNode)
@@ -353,11 +361,13 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.print()).isEqualTo("""
-      |Tasks determining build duration grouped by task execution category - Total: 4.0s, Filtered: 3.0s - 2 Warnings
+      |Tasks determining build duration grouped by task execution category - Total: 5.0s, Filtered: 4.0s - 4 Warnings
       |ROOT
-      |  Android Resources
+      |  Java
       |===>:app:compile
       |    :lib:compile
+      |  Android Resources
+      |    :app:resources
     """.trimMargin())
 
     // Act - group by plugin
@@ -365,7 +375,7 @@ class TasksDataPageModelImplTest {
 
     // Assert
     assertThat(model.print()).isEqualTo("""
-      |Plugins with tasks determining build duration - Total: 4.0s, Filtered: 3.0s - 2 Warnings
+      |Plugins with tasks determining build duration - Total: 5.0s, Filtered: 3.0s - 2 Warnings
       |ROOT
       |  compiler.plugin
       |===>:app:compile

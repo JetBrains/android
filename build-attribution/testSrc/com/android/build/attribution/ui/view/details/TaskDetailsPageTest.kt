@@ -23,6 +23,7 @@ import com.android.build.attribution.ui.mockTask
 import com.android.build.attribution.ui.panels.taskDetailsPage
 import com.android.build.attribution.ui.panels.taskDetailsPanelHtml
 import com.android.build.attribution.ui.view.ViewActionHandlers
+import com.android.buildanalyzer.common.TaskCategory
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.flags.StudioFlags
@@ -290,7 +291,7 @@ class TaskDetailsPageTest {
   @Test
   fun testTaskPageShowsTaskCategoryWhenFlagEnabled() {
     StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.override(true)
-    val taskData = mockTask(":module1", "task1", "myPlugin", 50, criticalPathDurationMs = 1000).apply {
+    val taskData = mockTask(":module1", "task1", "myPlugin", 50, criticalPathDurationMs = 1000, taskCategory = TaskCategory.ANDROID_RESOURCES).apply {
       onLogicalCriticalPath = false
       onExtendedCriticalPath = false
     }
@@ -303,7 +304,7 @@ class TaskDetailsPageTest {
       Sub-project: :module1<BR/>
       Plugin: myPlugin<BR/>
       Type: CompilationType<BR/>
-      Task Execution Categories: Android Resources, Compilation<BR/>
+      Task Execution Categories: Android Resources<BR/>
       <BR/>
       <B>Warnings</B><BR/>
       No warnings found<BR/>

@@ -57,8 +57,9 @@ fun mockTask(
   pluginName: String,
   executionTimeMs: Long,
   criticalPathDurationMs: Long = defaultCriticalPathDurationMs,
-  pluginUnknownBecauseOfCC: Boolean = false
-) = TestTaskUiData(module, name, pluginName, TimeWithPercentage(executionTimeMs, criticalPathDurationMs), pluginUnknownBecauseOfCC)
+  pluginUnknownBecauseOfCC: Boolean = false,
+  taskCategory: TaskCategory = TaskCategory.UNKNOWN,
+) = TestTaskUiData(module, name, pluginName, taskCategory, TimeWithPercentage(executionTimeMs, criticalPathDurationMs), pluginUnknownBecauseOfCC)
 
 class MockUiData(
   val totalBuildDurationMs: Long = defaultTotalBuildDurationMs,
@@ -233,6 +234,7 @@ class TestTaskUiData(
   override val module: String,
   override val name: String,
   override var pluginName: String,
+  private val taskCategory: TaskCategory,
   override val executionTime: TimeWithPercentage,
   override val pluginUnknownBecauseOfCC: Boolean = false
 ) : TaskUiData {
@@ -245,6 +247,18 @@ class TestTaskUiData(
   override var sourceType: PluginSourceType = PluginSourceType.ANDROID_PLUGIN
   override var reasonsToRun: List<String> = emptyList()
   override var issues: List<TaskIssueUiData> = emptyList()
-  override val primaryTaskCategory: TaskCategory = TaskCategory.ANDROID_RESOURCES
-  override val secondaryTaskCategories: List<TaskCategory> = listOf(TaskCategory.COMPILATION)
+  override val primaryTaskCategory: TaskCategory = taskCategory
+  override val secondaryTaskCategories: List<TaskCategory> = emptyList()
+  override val relatedTaskCategoryIssues: List<TaskCategoryIssueUiData>
+    get() = if (primaryTaskCategory == TaskCategory.ANDROID_RESOURCES) {
+      listOf(TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED).map {
+        TaskCategoryIssueUiData(
+          it,
+          it.getWarningMessage(emptyList()),
+          it.getLink()
+        )
+      }
+    } else {
+      emptyList()
+    }
 }

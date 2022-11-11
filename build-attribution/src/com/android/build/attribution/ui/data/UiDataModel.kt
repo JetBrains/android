@@ -117,6 +117,7 @@ interface TaskUiData {
     get() = issues.any { it.type.level == IssueLevel.INFO }
   val primaryTaskCategory: TaskCategory
   val secondaryTaskCategories: List<TaskCategory>
+  val relatedTaskCategoryIssues: List<TaskCategoryIssueUiData>
 }
 
 enum class PluginSourceType {

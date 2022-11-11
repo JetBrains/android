@@ -246,8 +246,8 @@ private class TasksTreeStructure(
     treeRoot.removeAllChildren()
     when (grouping) {
       TasksDataPageModel.Grouping.UNGROUPED -> createUngroupedNodes(filter, treeStats)
-      TasksDataPageModel.Grouping.BY_PLUGIN -> createGroupedByEntryNodes(filter, treeStats, reportData.criticalPathPlugins)
-      TasksDataPageModel.Grouping.BY_TASK_CATEGORY -> createGroupedByEntryNodes(filter, treeStats, reportData.criticalPathTaskCategories!!)
+      TasksDataPageModel.Grouping.BY_PLUGIN -> createGroupedByEntryNodes(filter, treeStats, reportData.criticalPathPlugins, grouping)
+      TasksDataPageModel.Grouping.BY_TASK_CATEGORY -> createGroupedByEntryNodes(filter, treeStats, reportData.criticalPathTaskCategories!!, grouping)
     }
     treeStats.filteredTaskTimesDistribution.seal()
     treeStats.totalTasksTimeMs = reportData.criticalPathTasks.tasks.sumByLong { it.executionTime.timeMs }
@@ -256,7 +256,7 @@ private class TasksTreeStructure(
   private fun createUngroupedNodes(filter: TasksFilter, treeStats: TreeStats) {
     treeRoot.removeAllChildren()
     reportData.criticalPathTasks.tasks.asSequence()
-      .filter { filter.acceptTask(it) }
+      .filter { filter.acceptTask(it, TasksDataPageModel.Grouping.UNGROUPED) }
       .map { TaskDetailsNodeDescriptor(it, TasksDataPageModel.Grouping.UNGROUPED, treeStats.filteredTaskTimesDistribution) }
       .forEach {
         if (it.taskData.hasWarning) treeStats.visibleWarnings++
@@ -264,11 +264,11 @@ private class TasksTreeStructure(
       }
   }
 
-  private fun createGroupedByEntryNodes(filter: TasksFilter, treeStats: TreeStats, criticalPathEntry: CriticalPathEntriesUiData) {
+  private fun createGroupedByEntryNodes(filter: TasksFilter, treeStats: TreeStats, criticalPathEntry: CriticalPathEntriesUiData, grouping: TasksDataPageModel.Grouping) {
     treeRoot.removeAllChildren()
     val filteredEntryTimesDistribution = TimeDistributionBuilder()
     criticalPathEntry.entries.forEach { entryUiData ->
-      val filteredTasksForEntry = entryUiData.criticalPathTasks.filter { filter.acceptTask(it) }
+      val filteredTasksForEntry = entryUiData.criticalPathTasks.filter { filter.acceptTask(it, grouping) }
       if (filteredTasksForEntry.isNotEmpty()) {
         val entryNode = treeNode(EntryDetailsNodeDescriptor(entryUiData, filteredTasksForEntry, filteredEntryTimesDistribution))
         if (entryUiData is CriticalPathTaskCategoryUiData) {

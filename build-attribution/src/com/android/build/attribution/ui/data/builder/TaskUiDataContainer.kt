@@ -23,6 +23,7 @@ import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.buildanalyzer.common.TaskCategory
+import com.android.buildanalyzer.common.TaskCategoryIssue
 
 /**
  * This class holds [TaskUiData] representations for [TaskData] objects provided from build analyzers.
@@ -31,12 +32,12 @@ import com.android.buildanalyzer.common.TaskCategory
 class TaskUiDataContainer(
   buildAnalysisResult: BuildEventsAnalysisResult,
   val issuesContainer: TaskIssueUiDataContainer,
+  val taskCategoryIssuesContainer: TaskCategoryIssueUiDataContainer,
   private val criticalPathDuration: Long
 ) {
 
   private val tasksCache: MutableMap<TaskData, TaskUiData> = HashMap()
   private val tasksDeterminingBuildDuration: Set<TaskData> = buildAnalysisResult.getTasksDeterminingBuildDuration().toHashSet()
-  private val totalBuildTimeMs: Long = buildAnalysisResult.getTotalBuildTimeMs()
   private val configurationCacheUsed: Boolean = buildAnalysisResult.buildUsesConfigurationCache()
 
   fun getByTaskData(task: TaskData): TaskUiData = tasksCache.computeIfAbsent(task) {
@@ -68,7 +69,9 @@ class TaskUiDataContainer(
         get() = issuesContainer.issuesForTask(task)
       override val primaryTaskCategory: TaskCategory = task.primaryTaskCategory
       override val secondaryTaskCategories: List<TaskCategory> = task.secondaryTaskCategories
-
+      override val relatedTaskCategoryIssues = taskCategoryIssuesContainer.issuesForCategory(
+        task.primaryTaskCategory, TaskCategoryIssue.Severity.WARNING
+      )
     }
   }
 }

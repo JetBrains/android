@@ -238,8 +238,9 @@ data class TasksFilter(
   val showTasksWithoutWarnings: Boolean
 ) {
 
-  fun acceptTask(taskData: TaskUiData): Boolean =
-    (showTasksWithoutWarnings || taskData.hasWarning) &&
+  fun acceptTask(taskData: TaskUiData, currentGrouping: TasksDataPageModel.Grouping): Boolean =
+    (showTasksWithoutWarnings || taskData.hasWarning ||
+     (currentGrouping == TasksDataPageModel.Grouping.BY_TASK_CATEGORY && taskData.relatedTaskCategoryIssues.isNotEmpty())) &&
     showTaskSourceTypes.contains(taskData.sourceType)
 
   fun toUiText(): String {

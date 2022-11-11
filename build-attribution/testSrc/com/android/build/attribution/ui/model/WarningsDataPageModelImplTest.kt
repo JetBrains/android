@@ -25,18 +25,19 @@ import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
+import com.android.buildanalyzer.common.TaskCategory
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class WarningsDataPageModelImplTest {
 
-  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
+  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000, taskCategory = TaskCategory.ANDROID_RESOURCES).apply {
     issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
   }
-  val task2 = mockTask(":app", "resources", "resources.plugin", 1000).apply {
+  val task2 = mockTask(":app", "resources", "resources.plugin", 1000, taskCategory = TaskCategory.ANDROID_RESOURCES).apply {
     issues = listOf(TaskIssueUiDataContainer.AlwaysRunUpToDateOverride(this))
   }
-  val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000).apply {
+  val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000, taskCategory = TaskCategory.ANDROID_RESOURCES).apply {
     issues = listOf(TaskIssueUiDataContainer.TaskSetupIssue(this, task1, ""))
     task1.issues = task1.issues + listOf(TaskIssueUiDataContainer.TaskSetupIssue(task1, this, ""))
   }
