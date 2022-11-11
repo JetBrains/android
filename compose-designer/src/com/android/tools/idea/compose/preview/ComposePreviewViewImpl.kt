@@ -146,31 +146,26 @@ private fun createOverlayPanel(vararg components: JComponent): JPanel =
     }
 
 /**
- * [WorkBench] panel used to contain all the compose preview elements.
+ * [WorkBench] panel used to contain all the Compose Preview elements.
  *
  * This view contains all the different components that are part of the Compose Preview. If
  * expanded, in the content area the different areas look as follows:
  * ```
  * +------------------------------------------+
- * |                                          |     |             |
- * |       pinnedSurface                      |     |             |
- * |                                          |     |             |
- * |                                          |     |             |
- * +------------------------------------------+     | surfacesSplitter
- * |                                          |     |             |
- * |       mainSurface                        |     |             |  mainSplitter
- * |                                          |     |             |
- * |                                          |     |             |
- * +------------------------------------------+                   |
- * |                                          |                   |
- * |       bottomPanel (for animations Panel) |                   |
- * |                                          |                   |
- * |                                          |                   |
+ * |                                          |     |
+ * |       mainSurface                        |     |
+ * |                                          |     |
+ * |                                          |     |
+ * +------------------------------------------+     | mainPanelSplitter
+ * |                                          |     |
+ * |   bottomPanel (for Animations Preview)   |     |
+ * |                                          |     |
+ * |                                          |     |
  * +------------------------------------------+
  * ```
  *
- * The mainSplitter top panel contains the scrollable panel and, also as overlays, the zoom controls
- * and the label that indicates what is currently pinned.
+ * The [mainPanelSplitter] top panel contains the scrollable panel ([mainSurface]) and, also as
+ * overlays, the zoom controls.
  *
  * @param project the current open project
  * @param psiFilePointer an [SmartPsiElementPointer] pointing to the file being rendered within this
@@ -217,17 +212,6 @@ internal class ComposePreviewViewImpl(
 
   override val component: JComponent = workbench
 
-  /**
-   * Vertical splitter where the top part is a surface containing the pinned elements and the bottom
-   * the main design surface.
-   */
-  private val surfaceSplitter =
-    JBSplitter(true, 0.25f, 0f, 0.5f).apply {
-      dividerWidth = SURFACE_SPLITTER_DIVIDER_WIDTH_PX
-      // surfaceSplitter.firstComponent will contain the pinned surface elements
-      secondComponent = mainSurface
-    }
-
   private val notificationPanel =
     NotificationPanel(
       ExtensionPointName.create(
@@ -236,18 +220,17 @@ internal class ComposePreviewViewImpl(
     )
 
   private val scrollPane =
-    DesignSurfaceScrollPane.createDefaultScrollPane(surfaceSplitter, mainSurface.background) {}
-      .also {
-        it.addComponentListener(
-          object : ComponentAdapter() {
-            override fun componentResized(e: ComponentEvent) {
-              // Relayout the previews when the size of scroll pane is changed. This re-layouts the
-              // previews when window size is reduced.
-              mainSurface.revalidateScrollArea()
-            }
+    DesignSurfaceScrollPane.createDefaultScrollPane(mainSurface, mainSurface.background) {}.also {
+      it.addComponentListener(
+        object : ComponentAdapter() {
+          override fun componentResized(e: ComponentEvent) {
+            // Relayout the previews when the size of scroll pane is changed. This re-layouts the
+            // previews when window size is reduced.
+            mainSurface.revalidateScrollArea()
           }
-        )
-      }
+        }
+      )
+    }
 
   override var scrollPosition: Point
     get() = scrollPane.viewport.viewPosition
@@ -265,9 +248,9 @@ internal class ComposePreviewViewImpl(
     }
 
   /**
-   * Vertical splitter where the top component is the [surfaceSplitter] and the bottom component,
-   * when visible, is an auxiliary panel associated with the preview. For example, it can be an
-   * animation inspector that lists all the animations the preview has.
+   * Vertical splitter where the top component is the [mainSurface] and the bottom component, when
+   * visible, is an auxiliary panel associated with the preview. For example, it can be an animation
+   * inspector that lists all the animations the preview has.
    */
   private val mainPanelSplitter =
     JBSplitter(true, 0.7f).apply { dividerWidth = ISSUE_SPLITTER_DIVIDER_WIDTH_PX }

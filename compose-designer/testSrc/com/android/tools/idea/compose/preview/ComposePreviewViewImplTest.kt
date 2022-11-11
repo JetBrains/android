@@ -39,8 +39,6 @@ import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.androidFacet
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
@@ -116,10 +114,6 @@ class ComposePreviewViewImplTest {
     get() = projectRule.fixture
 
   private val nopDataProvider = DataProvider {}
-  private val nopAction =
-    object : AnAction(null, null, null) {
-      override fun actionPerformed(e: AnActionEvent) {}
-    }
 
   private val statusManager =
     object : ProjectBuildStatusManager {
