@@ -16,7 +16,9 @@
 package com.android.tools.idea.device.explorer.files
 
 import com.android.adblib.ConnectedDevice
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
+import com.android.annotations.concurrency.WorkerThread
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
@@ -949,6 +951,7 @@ class DeviceFileExplorerController(
       try {
         parentEntry.uploadFile(localPath, object : FileTransferProgress {
           private var previousBytes: Long = 0
+          @UiThread
           override fun progress(currentBytes: Long, totalBytes: Long) {
             // Update progress UI
             tracker.processFileBytes(currentBytes - previousBytes)
@@ -993,6 +996,7 @@ class DeviceFileExplorerController(
             }
           }
 
+          @WorkerThread
           override fun isCancelled(): Boolean {
             return tracker.isCancelled
           }
@@ -1156,12 +1160,14 @@ class DeviceFileExplorerController(
       val stopwatch = Stopwatch.createStarted()
       fileManager.downloadFileEntry(entry, localPath, object : DownloadProgress {
         private var previousBytes: Long = 0
+        @UiThread
         override fun onStarting(entryFullPath: String) {
           val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
           previousBytes = 0
           startNodeDownload(currentNode)
         }
 
+        @UiThread
         override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) {
           val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
           tracker.processFileBytes(currentBytes - previousBytes)
@@ -1172,6 +1178,7 @@ class DeviceFileExplorerController(
           }
         }
 
+        @UiThread
         override fun onCompleted(entryFullPath: String) {
           sizeRef.complete(previousBytes)
           if (tracker.isInForeground) {
@@ -1180,6 +1187,7 @@ class DeviceFileExplorerController(
           }
         }
 
+        @AnyThread
         override fun isCancelled(): Boolean {
           return tracker.isCancelled
         }
