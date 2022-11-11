@@ -225,10 +225,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         executeMakeBeforeRun = false,
       ),
       IGNORE = { if (agpVersion < AGP_42) error("The test project does not contain the test class for older AGPs. ") },
-      // TODO(b/256669321): expectPackageName = "com.example.android.app",
-      expectPackageName =
-      "TestLoggerAssertionError*> Could not get applicationId for project.benchmark.main. Project type: PROJECT_TYPE_TEST",
-
+      expectPackageName = "com.example.android.app",
       expectTestPackageName = "com.example.android.benchmark"
     ),
   )

@@ -45,6 +45,7 @@ import com.android.tools.idea.apk.viewer.ApkParser;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeBasicVariant;
 import com.android.tools.idea.gradle.model.IdePrivacySandboxSdkInfo;
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
 import com.android.tools.idea.gradle.model.IdeVariant;
@@ -531,14 +532,16 @@ public final class GradleApkProvider implements ApkProvider {
       }
 
       IdeVariant targetVariant = targetAndroidModel.findVariantByName(testedVariant.getTargetVariant());
-      if (targetVariant == null) {
+      IdeBasicVariant targetBasicVariant = targetAndroidModel.findBasicVariantByName(testedVariant.getTargetVariant());
+      if (targetBasicVariant == null) {
         getLogger().warn("Tested variant not found. Sync might have failed.");
         continue;
       }
 
       File targetApk = getApk(targetVariant.getName(), targetVariant.getMainArtifact(), deviceAbis, deviceVersion, targetFacet);
 
-      String applicationId = new GradleApplicationIdProvider(targetFacet, false, targetAndroidModel, targetVariant).getPackageName();
+      String applicationId =
+        GradleApplicationIdProvider.createForBaseModule(targetFacet, targetAndroidModel, targetBasicVariant).getPackageName();
       targetedApks.add(new ApkInfo(targetApk, applicationId));
     }
 
