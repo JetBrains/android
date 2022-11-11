@@ -247,7 +247,18 @@ abstract class ProviderIntegrationTestCase : GradleIntegrationTest {
   var expect = Expect.createAndEnableStackTrace()
 
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
+
+  override fun getTestDataDirectoryWorkspaceRelativePath(): String {
+    // This was added as a workaround to cherry-pick b/256669321 with the minimum required changes
+    // been this part already refactored where TestScenario contains a reference to TestProject
+    val target = testDefinition?.scenario?.target as? Target.TestTargetRunConfiguration
+    return if (target?.testClassFqn == "com.example.android.benchmark.ExampleTest") {
+      "${TestProjectPaths.TEST_DATA_PATH}/snapshots"
+    } else {
+      TestProjectPaths.TEST_DATA_PATH
+    }
+  }
+
   override fun getAdditionalRepos(): Collection<File> = listOf()
 
   override fun getAgpVersionSoftwareEnvironmentDescriptor(): AgpVersionSoftwareEnvironmentDescriptor {

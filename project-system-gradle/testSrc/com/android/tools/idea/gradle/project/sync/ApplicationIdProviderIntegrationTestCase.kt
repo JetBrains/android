@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.TestProjectPaths
@@ -214,7 +215,18 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         "For more information on migrating to Android App Bundles, please visit " +
         "https://developer.android.com/topic/google-play-instant/feature-module-migration",
       ),
-    )
+    ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        testProject = TestProjectPaths.TEST_ONLY_MODULE,
+        target = TestTargetRunConfiguration("com.example.android.benchmark.ExampleTest"),
+        executeMakeBeforeRun = false,
+      ),
+      IGNORE = { if (agpVersion < AGP_42) error("The test project does not contain the test class for older AGPs. ") },
+      expectPackageName = "com.example.android.app",
+      expectTestPackageName = "com.example.android.benchmark"
+    ),
   )
 
 private fun def(

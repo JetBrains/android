@@ -390,6 +390,206 @@ PROJECT                       : project
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
+    MODULE                        : project.benchmark
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : project.benchmark
+            main                          : project.benchmark.main
+        ExternalModuleGroup           : project
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :benchmark
+        LinkedProjectPath             : <PROJECT>/benchmark
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/benchmark/build/intermediates/javac/benchmark/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/benchmark/project.benchmark.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : benchmark
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/benchmark/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/benchmark/src/benchmark/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/benchmark/build/generated/res/rs/benchmark [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/benchmark/build/generated/res/resValues/benchmark [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/benchmark/build/generated/res/rs/benchmark [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/benchmark/build/generated/res/resValues/benchmark [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 2
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            ExternalSource                : GRADLE
+            GradlePath                    : :benchmark
+        CONENT_ENTRY                  : file://<PROJECT>/benchmark
+            EXCLUDE_FOLDER                : file://<PROJECT>/benchmark/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/benchmark/build [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :benchmark:generateBenchmarkSources
+                ASSEMBLE                      : :app:assembleDebug, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                COMPILE_JAVA                  : :benchmark:compileBenchmarkSources
+                SOURCE_GEN                    : :benchmark:generateBenchmarkSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :benchmark:generateBenchmarkSources
+                ASSEMBLE                      : :app:assembleDebug, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                COMPILE_JAVA                  : :benchmark:compileBenchmarkSources
+                SOURCE_GEN                    : :benchmark:generateBenchmarkSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :benchmark:generateBenchmarkSources
+                ASSEMBLE                      : :app:assembleDebug, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                SOURCE_GEN                    : :benchmark:generateBenchmarkSources
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :benchmark:generateBenchmarkSources
+                ASSEMBLE                      : :app:assembleDebug, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                COMPILE_JAVA                  : :benchmark:compileBenchmarkSources
+                SOURCE_GEN                    : :benchmark:generateBenchmarkSources
+    MODULE                        : project.benchmark.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : project.benchmark
+            main                          : project.benchmark.main
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :benchmark:main
+        LinkedProjectPath             : <PROJECT>/benchmark
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/benchmark/build/intermediates/javac/benchmark/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/benchmark/project.benchmark.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/benchmark/build/generated/aidl_source_output_dir/benchmark/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/benchmark/build/generated/ap_generated_sources/benchmark/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/benchmark/build/generated/renderscript_source_output_dir/benchmark/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/benchmark/build/generated/res/resValues/benchmark [-]
+        CONENT_ENTRY                  : file://<PROJECT>/benchmark/build/generated/res/rs/benchmark [-]
+        CONENT_ENTRY                  : file://<PROJECT>/benchmark/build/generated/source/buildConfig/benchmark [-]
+        CONENT_ENTRY                  : file://<PROJECT>/benchmark/src
+            JavaSource                    : file://<PROJECT>/benchmark/src/main/java
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/build/generated/aidl_source_output_dir/benchmark/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/build/generated/ap_generated_sources/benchmark/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/build/generated/renderscript_source_output_dir/benchmark/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/build/generated/res/resValues/benchmark [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/build/generated/res/rs/benchmark [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/build/generated/source/buildConfig/benchmark [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/benchmark/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/benchmark/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/benchmark/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/benchmark/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/benchmark/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/benchmark/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/benchmark/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/benchmark/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/main/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/main/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/benchmark/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/main/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/benchmark/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
+        LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION> [=]
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-core:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-idling-resource:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support.test:monitor:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support.test:runner:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:collections:<VERSION> [=]
+        LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION> [=]
+        LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
+        LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1 [=]
+        LIBRARY                       : Gradle: javax.inject:javax.inject:1 [=]
+        LIBRARY                       : Gradle: junit:junit:4.12 [=]
+        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
+        ORDER_ENTRY                   : project.app.main
+        Classes
+            -                             : file://<PROJECT>/benchmark/build/intermediates/javac/benchmark/classes
+        BUILD_TASKS
+            TEST_COMPILE_MODE             : All
+                CLEAN                         : :benchmark:generateBenchmarkSources
+                ASSEMBLE                      : :app:assembleDebug, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                COMPILE_JAVA                  : :benchmark:compileBenchmarkSources
+                SOURCE_GEN                    : :benchmark:generateBenchmarkSources
+            TEST_COMPILE_MODE             : Android tests
+                CLEAN                         : :benchmark:generateBenchmarkSources
+                ASSEMBLE                      : :app:assembleDebug, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                COMPILE_JAVA                  : :benchmark:compileBenchmarkSources
+                SOURCE_GEN                    : :benchmark:generateBenchmarkSources
+            TEST_COMPILE_MODE             : Unit tests
+                CLEAN                         : :benchmark:generateBenchmarkSources
+                ASSEMBLE                      : :app:assembleDebug, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                SOURCE_GEN                    : :benchmark:generateBenchmarkSources
+            TEST_COMPILE_MODE             : None
+                CLEAN                         : :benchmark:generateBenchmarkSources
+                ASSEMBLE                      : :app:assembleDebug, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                COMPILE_JAVA                  : :benchmark:compileBenchmarkSources
+                SOURCE_GEN                    : :benchmark:generateBenchmarkSources
     MODULE                        : project.test
         LINKED_ANDROID_MODULE_GROUP
             holder                        : project.test
@@ -921,34 +1121,34 @@ PROJECT                       : project
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
-            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::test2:compileDebugSources, <PROJECT>::test:compileDebugSources
-            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
+            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::benchmark:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::benchmark:compileBenchmarkSources, <PROJECT>::test2:compileDebugSources, <PROJECT>::test:compileDebugSources
+            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Android tests
-            CLEAN                         : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::test2:compileDebugSources, <PROJECT>::test:compileDebugSources
-            SOURCE_GEN                    : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
+            CLEAN                         : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::benchmark:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::benchmark:compileBenchmarkSources, <PROJECT>::test2:compileDebugSources, <PROJECT>::test:compileDebugSources
+            SOURCE_GEN                    : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Unit tests
-            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
+            CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::benchmark:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources
-            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
+            SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : None
-            CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::test2:compileDebugSources, <PROJECT>::test:compileDebugSources
-            SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
+            CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::benchmark:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::benchmark:compileBenchmarkSources, <PROJECT>::test2:compileDebugSources, <PROJECT>::test:compileDebugSources
+            SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug

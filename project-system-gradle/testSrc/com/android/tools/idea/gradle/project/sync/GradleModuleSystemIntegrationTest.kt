@@ -19,6 +19,8 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.gradle.project.sync.snapshots.prepareTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.replaceInContent
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.DependencyScopeType.ANDROID_TEST
 import com.android.tools.idea.projectsystem.DependencyScopeType.MAIN
@@ -43,7 +45,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.io.File
-
 abstract class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
 
   @RunWith(Parameterized::class)
@@ -149,7 +150,13 @@ abstract class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun manifestOverridesInSeparateTest() {
-    prepareGradleProject(TestProjectToSnapshotPaths.TEST_ONLY_MODULE, "withTestOnly")
+    val agpVersion = getAgpVersionSoftwareEnvironmentDescriptor()
+    val preparedProject = prepareGradleProject(TestProjectToSnapshotPaths.TEST_ONLY_MODULE, "withTestOnly", agpVersion)
+    // This was added as a workaround to cherry-pick b/256669321 with the minimum required changes
+    // been this part already refactored using the projectRule.prepareTestProject with TestProject
+    if (agpVersion < AgpVersionSoftwareEnvironmentDescriptor.AGP_42) {
+      preparedProject.resolve("settings.gradle").replaceInContent(", ':benchmark'", "")
+    }
     openPreparedProject("withTestOnly") { project ->
       val overrides = project.gradleModule(":test")!!.getModuleSystem().getManifestOverrides().directOverrides
       assertThat(overrides).containsExactlyEntriesIn(mapOf(
