@@ -77,6 +77,7 @@ final class DetailsPanelPanel extends JBPanel<DetailsPanelPanel> implements Disp
     myDetailsPanel = null;
 
     add(myScrollPane);
+    revalidate();
   }
 
   @VisibleForTesting
