@@ -34,6 +34,7 @@ import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.view.details.JetifierWarningDetailsView
+import com.android.buildanalyzer.common.TaskCategory
 import com.android.builder.model.PROPERTY_CHECK_JETIFIER_RESULT_FILE
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
@@ -286,6 +287,20 @@ class BuildAnalyzerViewController(
 
   override fun createFindSelectedLibVersionDeclarationAction(selectionSupplier: Supplier<JetifierWarningDetailsView.DirectDependencyDescriptor?>): AnAction {
     return FindSelectedLibVersionDeclarationAction(selectionSupplier, project, analytics)
+  }
+
+  override fun redirectToTaskCategoryWarningsPage(taskCategory: TaskCategory) {
+    // if the view is grouped by category navigate to the root node, otherwise switch to the warnings page
+    if (model.selectedData == BuildAnalyzerViewModel.DataSet.TASKS && model.tasksPageModel.selectedGrouping == Grouping.BY_TASK_CATEGORY) {
+      model.tasksPageModel.selectPageById(TasksPageId.taskCategory(taskCategory))
+    } else {
+      model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
+      if (taskCategory != TaskCategory.JAVA) {
+        model.warningsPageModel.selectPageById(WarningsPageId.taskCategory(taskCategory))
+      } else {
+        model.warningsPageModel.selectPageById(WarningsPageId.annotationProcessorRoot)
+      }
+    }
   }
 
   private fun runAndMeasureDuration(action: () -> Unit): Duration {

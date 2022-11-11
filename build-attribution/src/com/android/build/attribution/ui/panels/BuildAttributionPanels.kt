@@ -25,6 +25,7 @@ import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.percentageStringHtml
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warnIconHtml
+import com.android.build.attribution.ui.withPluralization
 import com.android.tools.idea.flags.StudioFlags
 import com.android.utils.HtmlBuilder
 import javax.swing.BoxLayout
@@ -87,18 +88,24 @@ private fun HtmlBuilder.createWarningsSection(
   linksHandler: HtmlLinksHandler
 ) {
   addBold("Warnings").newline()
-  if (taskData.issues.isEmpty()) {
+  if (taskData.issues.isEmpty() && taskData.relatedTaskCategoryIssues.isEmpty()) {
     add("No warnings found").newline()
     newline()
   }
   else {
-    if (taskData.sourceType != PluginSourceType.BUILD_SRC) {
+    if (taskData.sourceType != PluginSourceType.BUILD_SRC && taskData.issues.isNotEmpty()) {
       val generateReportLink = linksHandler.actionLink("Generate report", "generateReport") {
         actionHandlers.generateReportClicked(taskData)
       }
       addHtml("Consider filing a bug to report this issue to the plugin developer. $generateReportLink")
     }
     beginTable()
+    if (taskData.relatedTaskCategoryIssues.isNotEmpty()) {
+      val redirectLink = linksHandler.actionLink(taskData.primaryTaskCategory.displayName(), taskData.primaryTaskCategory.name) {
+        actionHandlers.redirectToTaskCategoryWarningsPage(taskData.primaryTaskCategory)
+      }
+      addTableRow(warnIconHtml, "This task is impacted by ${taskData.relatedTaskCategoryIssues.size.withPluralization("issue")} found in the $redirectLink category.")
+    }
     taskData.issues.forEach { issue ->
       val description = "${issue.explanation}\n${linksHandler.externalLink("Learn more", issue.helpLink)}"
       addTableRow(warnIconHtml, "<B>${issue.type.uiName}</B>")

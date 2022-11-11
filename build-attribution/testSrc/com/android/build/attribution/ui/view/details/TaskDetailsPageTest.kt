@@ -307,8 +307,9 @@ class TaskDetailsPageTest {
       Task Execution Categories: Android Resources<BR/>
       <BR/>
       <B>Warnings</B><BR/>
-      No warnings found<BR/>
-      <BR/>
+      
+      <table><tr><td><icon alt='Warning' src='AllIcons.General.BalloonWarning'></td><td>This task is impacted by 1 issue found in the <a href='ANDROID_RESOURCES'>Android Resources</a> category.</td></tr>
+      </table>
       <B>Reason task ran</B><BR/>
       No info
       """.trimIndent())

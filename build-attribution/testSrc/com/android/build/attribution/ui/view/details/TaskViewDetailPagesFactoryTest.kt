@@ -259,7 +259,7 @@ which it must do in order to support incremental builds.<BR/>
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
     val taskCategoryData = data.criticalPathTaskCategories.entries.first{ it.name == "Android Resources" }
-    val descriptor = model.getNodeDescriptorById(TasksPageId.taskCategory(taskCategoryData)) as EntryDetailsNodeDescriptor
+    val descriptor = model.getNodeDescriptorById(TasksPageId.taskCategory(taskCategoryData.taskCategory)) as EntryDetailsNodeDescriptor
 
     val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
     assertThat(htmlBody).isEqualTo("""
@@ -283,7 +283,7 @@ which it must do in order to support incremental builds.<BR/>
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
     val taskCategoryData = data.criticalPathTaskCategories.entries.first{ it.name == "Android Resources" }
-    val descriptor = model.getNodeDescriptorById(TasksPageId.taskCategory(taskCategoryData)) as EntryDetailsNodeDescriptor
+    val descriptor = model.getNodeDescriptorById(TasksPageId.taskCategory(taskCategoryData.taskCategory)) as EntryDetailsNodeDescriptor
 
     val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
     assertThat(htmlBody).isEqualTo("""

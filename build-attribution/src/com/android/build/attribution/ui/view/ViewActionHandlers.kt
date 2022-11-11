@@ -26,6 +26,7 @@ import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.details.JetifierWarningDetailsView
+import com.android.buildanalyzer.common.TaskCategory
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.ui.awt.RelativePoint
 import java.util.function.Supplier
@@ -98,4 +99,6 @@ interface ViewActionHandlers {
   fun createFindSelectedLibVersionDeclarationAction(selectionSupplier: Supplier<JetifierWarningDetailsView.DirectDependencyDescriptor?>): AnAction
 
   fun migrateToNonTransitiveRClass()
+
+  fun redirectToTaskCategoryWarningsPage(taskCategory: TaskCategory)
 }
