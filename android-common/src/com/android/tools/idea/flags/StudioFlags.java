@@ -1402,6 +1402,15 @@ public final class StudioFlags {
       "Enable FTL DirectAccess",
       false);
 
+  public static final Flag<Boolean> DIRECT_ACCESS_MULTIPLE_DEVICES =
+    Flag.create(
+      FIREBASE_TEST_LAB,
+      "direct.access.multiple.devices",
+      "Multiple devices",
+      "Enables running multiple devices from FTL",
+      false
+    );
+
   public static final Flag<String> DIRECT_ACCESS_PROJECT =
     Flag.create(
       FIREBASE_TEST_LAB,
