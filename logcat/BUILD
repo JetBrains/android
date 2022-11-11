@@ -9,6 +9,7 @@ iml_module(
         "gen",
     ],
     iml_files = ["intellij.android.logcat.iml"],
+    lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     test_resources = ["testResources"],
     visibility = ["//visibility:public"],

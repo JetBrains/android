@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="5" by="lint 8.0.0-dev">
+
+  <issue
+      id="AvoidByLazy"
+      message="Avoid `by lazy` for simple lazy initialization">
+    <location
+        file="src/com/android/tools/idea/logcat/filters/LogcatMessageWrapper.kt"
+        line="43"/>
+  </issue>
+
+</issues>
