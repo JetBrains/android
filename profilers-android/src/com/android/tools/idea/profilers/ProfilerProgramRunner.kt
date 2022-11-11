@@ -90,7 +90,7 @@ class ProfilerProgramRunner : StudioProgramRunner() {
     val dialog = object : DialogWrapper(environment.project) {
       override fun createCenterPanel(): JComponent {
         return JPanel(BorderLayout()).apply {
-          add(JBLabel("<html>Profiling with Low Overhead requires Android Gradle Plugin 8.0 and a device with API level 29 or higher.<br>" +
+          add(JBLabel("<html>Profiling with Low Overhead requires Android Gradle Plugin 7.3 and a device with API level 29 or higher.<br>" +
                       "Do you want to continue to Profile with Complete Data?</html>"), BorderLayout.CENTER)
         }
       }
@@ -183,7 +183,7 @@ class ProfilerProgramRunner : StudioProgramRunner() {
 
     private fun isAgpVersionSupported(project: Project): Boolean {
       val agpVersion = GradleUtil.getLastKnownAndroidGradlePluginVersion(project)?.let { AgpVersion.tryParse(it) }
-      return agpVersion != null && agpVersion.isAtLeastIncludingPreviews(8, 0, 0)
+      return agpVersion != null && agpVersion.isAtLeastIncludingPreviews(7, 3, 0)
     }
 
     private fun isDeviceSupported(env: ExecutionEnvironment): Boolean {
