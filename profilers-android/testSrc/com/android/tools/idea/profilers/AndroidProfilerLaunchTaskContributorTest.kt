@@ -15,24 +15,31 @@
  */
 package com.android.tools.idea.profilers
 
+import com.android.ddmlib.IDevice
+import com.android.ddmlib.internal.DeviceImpl
+import com.android.tools.idea.run.editor.ProfilerState
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ExtensionTestUtil
-import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
 
-class AndroidProfilerLaunchTaskContributorTest : LightPlatformTestCase() {
+class AndroidProfilerLaunchTaskContributorTest {
+  @get:Rule
+  val projectRule = ProjectRule()
+
   @get:Rule
   val disposableRule = DisposableRule()
 
   @Test
   fun testIsProfilerLaunch() {
     // Register Profiler and Profiler Group as executors.
-    ExtensionTestUtil.addExtensions(Executor.EXECUTOR_EXTENSION_NAME, listOf(ProfileRunExecutor(), ProfileRunExecutorGroup()),
-                                    disposableRule.disposable)
+    ExtensionTestUtil.maskExtensions(Executor.EXECUTOR_EXTENSION_NAME,
+                                     listOf(DefaultRunExecutor(), ProfileRunExecutor(), ProfileRunExecutorGroup()),
+                                     disposableRule.disposable)
 
     // Should return true for the legacy profile executor.
     val profileExecutor = ProfileRunExecutor.getInstance()!!
@@ -45,5 +52,30 @@ class AndroidProfilerLaunchTaskContributorTest : LightPlatformTestCase() {
     // Should return false otherwise.
     val defaultRunExecutor = DefaultRunExecutor.getRunExecutorInstance()
     assertThat(AndroidProfilerLaunchTaskContributor.isProfilerLaunch(defaultRunExecutor)).isFalse()
+  }
+
+  @Test
+  fun testEmptyAmStartOptions() {
+    // Register Profiler and Profiler Group as executors.
+    ExtensionTestUtil.maskExtensions(Executor.EXECUTOR_EXTENSION_NAME,
+                                     listOf(DefaultRunExecutor(), ProfileRunExecutor(), ProfileRunExecutorGroup()),
+                                     disposableRule.disposable)
+
+    val device = DeviceImpl(null, "123", IDevice.DeviceState.ONLINE)
+    val profilerState = ProfilerState()
+
+    // Empty string for non-profiler executors.
+    val defaultRunExecutor = DefaultRunExecutor.getRunExecutorInstance()
+    assertThat(AndroidProfilerLaunchTaskContributor.getAmStartOptions(projectRule.project, "app", profilerState, device,
+                                                                      defaultRunExecutor)).isEmpty()
+
+    // Empty string for null ProfilerState.
+    val profileExecutor = ProfileRunExecutor.getInstance()!!
+    assertThat(AndroidProfilerLaunchTaskContributor.getAmStartOptions(projectRule.project, "app", null, device, profileExecutor)).isEmpty()
+
+    // Empty string for profileable executor.
+    val profileableExecutor = ProfileRunExecutorGroup.getInstance()!!.childExecutors()[0]
+    assertThat(AndroidProfilerLaunchTaskContributor.getAmStartOptions(projectRule.project, "app", profilerState, device,
+                                                                      profileableExecutor)).isEmpty()
   }
 }

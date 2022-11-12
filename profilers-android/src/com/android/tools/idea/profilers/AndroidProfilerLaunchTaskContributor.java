@@ -35,6 +35,7 @@ import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
+import com.android.tools.idea.run.profiler.ProfilingMode;
 import com.android.tools.idea.run.tasks.LaunchContext;
 import com.android.tools.idea.run.tasks.LaunchResult;
 import com.android.tools.idea.run.tasks.LaunchTask;
@@ -108,7 +109,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                                            @NotNull AndroidRunConfigurationBase configuration,
                                            @NotNull IDevice device,
                                            @NotNull Executor executor) {
-    return AndroidProfilerLaunchTaskContributor.getAmStartOptions(configuration.getProject(), applicationId, configuration.getProfilerState(), device, executor);
+    return AndroidProfilerLaunchTaskContributor.getAmStartOptions(configuration.getProject(), applicationId,
+                                                                  configuration.getProfilerState(), device, executor);
   }
 
   // Used only for Bazel. We need to write better mechanism of reusing AndroidLaunchTaskContributor for Blaze.
@@ -124,12 +126,14 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    TransportService transportService = TransportService.getInstance();
-    if (transportService == null) {
-      // Profiler cannot be run.
+    AbstractProfilerExecutorGroup.AbstractProfilerSetting setting =
+      AbstractProfilerExecutorGroup.Companion.getExecutorSetting(executor.getId());
+    if (setting != null && setting.getProfilingMode() == ProfilingMode.PROFILEABLE) {
+      // If running as profileable, skip "attach-agent".
       return "";
     }
 
+    TransportService transportService = TransportService.getInstance();
     ProfilerClient client = new ProfilerClient(TransportService.getChannelName());
     Common.Device profilerDevice;
     try {
@@ -398,7 +402,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     Path dir;
     if (StudioPathManager.isRunningFromSources()) {
       dir = StudioPathManager.resolvePathFromSourcesRoot(devDir);
-    } else {
+    }
+    else {
       dir = Paths.get(PathManager.getHomePath(), releaseDir);
     }
     for (String abi : device.getAbis()) {
@@ -415,11 +420,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
    */
   public static boolean isProfilerLaunch(@NotNull Executor executor) {
     return ProfileRunExecutor.EXECUTOR_ID.equals(executor.getId()) || // Legacy Profile executor
-           (
-             // Profileable Builds executor group
-             AbstractProfilerExecutorGroup.Companion.getInstance() != null &&
-             AbstractProfilerExecutorGroup.Companion.getInstance().getRegisteredSettings(executor.getId()) != null
-           );
+           AbstractProfilerExecutorGroup.Companion.getExecutorSetting(executor.getId()) != null; // Profileable Builds executor group
   }
 
   public static final class AndroidProfilerToolWindowLaunchTask implements LaunchTask {

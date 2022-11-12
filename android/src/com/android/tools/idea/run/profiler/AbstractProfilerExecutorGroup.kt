@@ -41,6 +41,13 @@ abstract class AbstractProfilerExecutorGroup<T : AbstractProfilerExecutorGroup.A
     fun getInstance(): AbstractProfilerExecutorGroup<*>? {
       return ExecutorRegistry.getInstance().getExecutorById(EXECUTOR_ID) as? AbstractProfilerExecutorGroup<*>
     }
+
+    /**
+     * @return the [RunExecutorSettings] associated with the given [executorId], or null if not found.
+     */
+    fun getExecutorSetting(executorId: String): AbstractProfilerSetting? {
+      return getInstance()?.getRegisteredSettings(executorId)
+    }
   }
 }
 

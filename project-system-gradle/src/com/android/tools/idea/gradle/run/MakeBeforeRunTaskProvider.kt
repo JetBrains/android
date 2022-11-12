@@ -250,7 +250,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     //   Profile as debuggable -> DEBUGGABLE
     //   Other (Run, Debug, legacy Profile) -> NOT_SET
     val profilingMode = if (StudioFlags.PROFILEABLE_BUILDS.get()) {
-      AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(env.executor.id)?.profilingMode ?: ProfilingMode.NOT_SET
+      AbstractProfilerExecutorGroup.getExecutorSetting(env.executor.id)?.profilingMode ?: ProfilingMode.NOT_SET
     }
     else {
       ProfilingMode.NOT_SET

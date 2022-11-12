@@ -62,7 +62,7 @@ class ProfilerProgramRunner : StudioProgramRunner() {
     }
     else {
       // Profile executor group for Profileable Builds.
-      when (AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId)?.profilingMode) {
+      when (AbstractProfilerExecutorGroup.getExecutorSetting(executorId)?.profilingMode) {
         ProfilingMode.DEBUGGABLE, ProfilingMode.NOT_SET -> doExecuteInternal(state, environment)
         ProfilingMode.PROFILEABLE -> checkProfileableSupportAndExecute(state, environment)
         else -> null
@@ -158,7 +158,7 @@ class ProfilerProgramRunner : StudioProgramRunner() {
         // Track profiling mode.
         // Executor will be null for legacy AGP version, which doesn't support profiling mode.
         // ASwB does not support profiling mode either, but it uses a different ProgramRunner so no event will be recorded.
-        val profilingMode = AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId)?.profilingMode
+        val profilingMode = AbstractProfilerExecutorGroup.getExecutorSetting(executorId)?.profilingMode
                             ?: ProfilingMode.NOT_SET
         metadataBuilder.profilingMode = profilingMode.analyticsProtoType
         // TODO(b/234158986): track build type metadata (debuggable, profileable, etc.)
