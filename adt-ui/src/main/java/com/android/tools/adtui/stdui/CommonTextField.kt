@@ -20,14 +20,13 @@ import com.android.tools.adtui.model.stdui.EDITOR_NO_COMPLETIONS
 import com.intellij.openapi.ui.ErrorBorderCapable
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.components.TextComponentEmptyText
+import com.intellij.util.BooleanFunction
 import com.intellij.util.ui.UIUtil
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
-import java.util.function.Predicate
 import javax.swing.JComponent
 import javax.swing.event.DocumentEvent
 import javax.swing.text.JTextComponent
@@ -35,6 +34,7 @@ import javax.swing.text.JTextComponent
 const val OUTLINE_PROPERTY = "JComponent.outline"
 const val ERROR_VALUE = "error"
 const val WARNING_VALUE = "warning"
+const val STATUS_VISIBLE_FUNCTION = "StatusVisibleFunction"
 
 /**
  * TextField controlled by an [editorModel].
@@ -71,7 +71,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
       })
       _lookup = myLookup
     }
-    putClientProperty(TextComponentEmptyText.STATUS_VISIBLE_FUNCTION, Predicate<JTextComponent> { text.isEmpty() })
+    putClientProperty(STATUS_VISIBLE_FUNCTION, BooleanFunction<JTextComponent> { text.isEmpty() })
     isFocusable = true
     setFromModel()
 

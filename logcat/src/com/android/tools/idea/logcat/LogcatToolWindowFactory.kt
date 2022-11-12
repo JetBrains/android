@@ -46,6 +46,7 @@ import com.intellij.ui.content.Content
 import com.intellij.util.text.UniqueNameGenerator
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 
 internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
 
@@ -131,6 +132,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
       }
 
   companion object {
+    @VisibleForTesting
     internal val logcatPresenters = mutableListOf<LogcatPresenter>()
   }
 

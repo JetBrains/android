@@ -148,6 +148,7 @@ internal abstract class LogcatFormatDialogBase(
     }
   }
 
+  @VisibleForTesting
   fun applyToComponents(currentOptions: FormattingOptions) {
     showTimestampCheckbox.isSelected = currentOptions.timestampFormat.enabled
     timestampStyleComboBox.selectedItem = currentOptions.timestampFormat.style
