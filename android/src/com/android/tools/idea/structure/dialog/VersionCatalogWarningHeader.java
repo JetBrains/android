@@ -15,11 +15,26 @@
  */
 package com.android.tools.idea.structure.dialog;
 
+import static com.intellij.util.ui.UIUtil.getLabelFont;
+
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.BrowserUtil;
+import com.intellij.ui.components.BrowserLink;
+import com.intellij.util.ui.UIUtil;
+import java.awt.Cursor;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.JLabel;
 
 public class VersionCatalogWarningHeader extends Header {
   public VersionCatalogWarningHeader() {
-    super("This project uses Gradle Version Catalogs: this tool may not behave as expected.");
+    super("This project uses Gradle Version Catalogs. There are some limitations.");
     setIcon(AllIcons.General.Warning);
+    String externalUrlString = "https://developer.android.com/r/studio-ui/gradle-version-catalogs/known-issues";
+    BrowserLink learnMoreLink = new BrowserLink(AllIcons.Ide.External_link_arrow, "Learn more.", null, externalUrlString);
+    learnMoreLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    learnMoreLink.setFont(getLabelFont(UIUtil.FontSize.SMALL));
+
+    addNextComponent(learnMoreLink);
   }
 }

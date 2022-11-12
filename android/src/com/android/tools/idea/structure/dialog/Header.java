@@ -15,29 +15,32 @@
  */
 package com.android.tools.idea.structure.dialog;
 
+import static com.intellij.ui.tabs.TabsUtil.getTabsHeight;
+import static com.intellij.util.ui.UIUtil.getLabelFont;
+
 import com.intellij.ui.Gray;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil.FontSize;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static com.intellij.ui.tabs.TabsUtil.getTabsHeight;
-import static com.intellij.util.ui.UIUtil.getLabelFont;
 
 public class Header extends JPanel {
   @NotNull private final JLabel myTitleLabel;
 
   public Header(@NotNull String title) {
-    super(new BorderLayout());
+    super(new FlowLayout(FlowLayout.LEADING,0,0));
     myTitleLabel = new JLabel(title);
-    myTitleLabel.setBorder(JBUI.Borders.empty(2, 5, 2, 10));
+    myTitleLabel.setBorder(JBUI.Borders.empty(2, 5, 2, 5));
     myTitleLabel.setFont(getLabelFont(FontSize.SMALL));
-    add(myTitleLabel, BorderLayout.CENTER);
+    add(myTitleLabel);
 
     setBackground(new JBColor(Gray._210, Gray._75)); // Taken from WelcomeScreenColors#CAPTION_BACKGROUND
     setForeground(new JBColor(JBColor.BLACK, Gray._197)); // Taken from WelcomeScreenColors#CAPTION_FOREGROUND
@@ -46,6 +49,10 @@ public class Header extends JPanel {
 
   public void setIcon(@NotNull Icon icon) {
     myTitleLabel.setIcon(icon);
+  }
+
+  public void addNextComponent(JComponent component){
+    add(component);
   }
 
   @Override
