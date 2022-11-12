@@ -43,7 +43,11 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
    */
   class ProfilerSetting(profilingMode: ProfilingMode) : AbstractProfilerSetting(profilingMode) {
     override val actionName: String
-      get() = "Profile"
+      get() = when (profilingMode) {
+        ProfilingMode.PROFILEABLE -> "Profile with low overhead"
+        ProfilingMode.DEBUGGABLE -> "Profile with complete data"
+        else -> "Profile"
+      }
 
     override val icon: Icon
       get() = when (profilingMode) {
@@ -52,7 +56,7 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
         else -> StudioIcons.Shell.Toolbar.PROFILER
       }
 
-    override val startActionText = actionName
+    override val startActionText = "Profile"
     override fun canRun(profile: RunProfile) = true
     override fun isApplicable(project: Project) = true
     override fun getStartActionText(configurationName: String) = when (profilingMode) {
