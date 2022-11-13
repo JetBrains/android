@@ -17,7 +17,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.emulator.EmulatorSettings
+import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog

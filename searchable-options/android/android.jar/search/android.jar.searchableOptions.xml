@@ -925,73 +925,6 @@
     <option name="push" hit="Push Edits Manually (Ctrl+S)" />
     <option name="s" hit="Push Edits Manually (Ctrl+S)" />
   </configurable>
-  <configurable id="emulator" configurable_name="Emulator">
-    <option name="ask" hit="Ask before deleting" />
-    <option name="before" hit="Ask before deleting" />
-    <option name="deleting" hit="Ask before deleting" />
-    <option name="automatically" hit="Delete automatically" />
-    <option name="delete" hit="Delete automatically" />
-    <option name="delete" hit="Do not delete" />
-    <option name="do" hit="Do not delete" />
-    <option name="not" hit="Do not delete" />
-    <option name="emulator" hit="Emulator" />
-    <option name="clipboard" hit="Enable clipboard sharing" />
-    <option name="enable" hit="Enable clipboard sharing" />
-    <option name="sharing" hit="Enable clipboard sharing" />
-    <option name="a" hit="Launch in a tool window" />
-    <option name="in" hit="Launch in a tool window" />
-    <option name="launch" hit="Launch in a tool window" />
-    <option name="tool" hit="Launch in a tool window" />
-    <option name="window" hit="Launch in a tool window" />
-    <option name="camera" hit="Velocity control keys for virtual scene camera:" />
-    <option name="control" hit="Velocity control keys for virtual scene camera:" />
-    <option name="for" hit="Velocity control keys for virtual scene camera:" />
-    <option name="keys" hit="Velocity control keys for virtual scene camera:" />
-    <option name="scene" hit="Velocity control keys for virtual scene camera:" />
-    <option name="velocity" hit="Velocity control keys for virtual scene camera:" />
-    <option name="virtual" hit="Velocity control keys for virtual scene camera:" />
-    <option name="for" hit="WASDQE (for QWERTY keyboard)" />
-    <option name="keyboard" hit="WASDQE (for QWERTY keyboard)" />
-    <option name="qwerty" hit="WASDQE (for QWERTY keyboard)" />
-    <option name="wasdqe" hit="WASDQE (for QWERTY keyboard)" />
-    <option name="configuration" hit="When encountering snapshots incompatible with the current configuration:" />
-    <option name="current" hit="When encountering snapshots incompatible with the current configuration:" />
-    <option name="encountering" hit="When encountering snapshots incompatible with the current configuration:" />
-    <option name="incompatible" hit="When encountering snapshots incompatible with the current configuration:" />
-    <option name="snapshots" hit="When encountering snapshots incompatible with the current configuration:" />
-    <option name="the" hit="When encountering snapshots incompatible with the current configuration:" />
-    <option name="when" hit="When encountering snapshots incompatible with the current configuration:" />
-    <option name="with" hit="When encountering snapshots incompatible with the current configuration:" />
-    <option name="azerty" hit="ZQSDAE (for AZERTY keyboard)" />
-    <option name="for" hit="ZQSDAE (for AZERTY keyboard)" />
-    <option name="keyboard" hit="ZQSDAE (for AZERTY keyboard)" />
-    <option name="zqsdae" hit="ZQSDAE (for AZERTY keyboard)" />
-  </configurable>
-  <configurable id="device.mirroring" configurable_name="Device Mirroring">
-    <option name="device" hit="Device Mirroring" />
-    <option name="mirroring" hit="Device Mirroring" />
-    <option name="clipboard" hit="Enable clipboard sharing" />
-    <option name="enable" hit="Enable clipboard sharing" />
-    <option name="sharing" hit="Enable clipboard sharing" />
-    <option name="android" hit="Enable mirroring of physical Android devices" />
-    <option name="devices" hit="Enable mirroring of physical Android devices" />
-    <option name="enable" hit="Enable mirroring of physical Android devices" />
-    <option name="mirroring" hit="Enable mirroring of physical Android devices" />
-    <option name="of" hit="Enable mirroring of physical Android devices" />
-    <option name="physical" hit="Enable mirroring of physical Android devices" />
-    <option name="clipboard" hit="Maximum length of synchronized clipboard text:" />
-    <option name="length" hit="Maximum length of synchronized clipboard text:" />
-    <option name="maximum" hit="Maximum length of synchronized clipboard text:" />
-    <option name="of" hit="Maximum length of synchronized clipboard text:" />
-    <option name="synchronized" hit="Maximum length of synchronized clipboard text:" />
-    <option name="text" hit="Maximum length of synchronized clipboard text:" />
-    <option name="device" hit="Turn off device display while mirroring" />
-    <option name="display" hit="Turn off device display while mirroring" />
-    <option name="mirroring" hit="Turn off device display while mirroring" />
-    <option name="off" hit="Turn off device display while mirroring" />
-    <option name="turn" hit="Turn off device display while mirroring" />
-    <option name="while" hit="Turn off device display while mirroring" />
-  </configurable>
   <configurable id="database.inspector" configurable_name="Database Inspector">
     <option name="database" hit="Database Inspector" />
     <option name="inspector" hit="Database Inspector" />
@@ -1116,6 +1049,73 @@
     <option name="these" path="SDK Update Sites" hit="These sites are consulted for installing and updating SDK platforms and tools." />
     <option name="tools" path="SDK Update Sites" hit="These sites are consulted for installing and updating SDK platforms and tools." />
     <option name="updating" path="SDK Update Sites" hit="These sites are consulted for installing and updating SDK platforms and tools." />
+  </configurable>
+  <configurable id="emulator" configurable_name="Emulator">
+    <option name="ask" hit="Ask before deleting" />
+    <option name="before" hit="Ask before deleting" />
+    <option name="deleting" hit="Ask before deleting" />
+    <option name="automatically" hit="Delete automatically" />
+    <option name="delete" hit="Delete automatically" />
+    <option name="delete" hit="Do not delete" />
+    <option name="do" hit="Do not delete" />
+    <option name="not" hit="Do not delete" />
+    <option name="emulator" hit="Emulator" />
+    <option name="clipboard" hit="Enable clipboard sharing" />
+    <option name="enable" hit="Enable clipboard sharing" />
+    <option name="sharing" hit="Enable clipboard sharing" />
+    <option name="a" hit="Launch in a tool window" />
+    <option name="in" hit="Launch in a tool window" />
+    <option name="launch" hit="Launch in a tool window" />
+    <option name="tool" hit="Launch in a tool window" />
+    <option name="window" hit="Launch in a tool window" />
+    <option name="camera" hit="Velocity control keys for virtual scene camera:" />
+    <option name="control" hit="Velocity control keys for virtual scene camera:" />
+    <option name="for" hit="Velocity control keys for virtual scene camera:" />
+    <option name="keys" hit="Velocity control keys for virtual scene camera:" />
+    <option name="scene" hit="Velocity control keys for virtual scene camera:" />
+    <option name="velocity" hit="Velocity control keys for virtual scene camera:" />
+    <option name="virtual" hit="Velocity control keys for virtual scene camera:" />
+    <option name="for" hit="WASDQE (for QWERTY keyboard)" />
+    <option name="keyboard" hit="WASDQE (for QWERTY keyboard)" />
+    <option name="qwerty" hit="WASDQE (for QWERTY keyboard)" />
+    <option name="wasdqe" hit="WASDQE (for QWERTY keyboard)" />
+    <option name="configuration" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="current" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="encountering" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="incompatible" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="snapshots" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="the" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="when" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="with" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="azerty" hit="ZQSDAE (for AZERTY keyboard)" />
+    <option name="for" hit="ZQSDAE (for AZERTY keyboard)" />
+    <option name="keyboard" hit="ZQSDAE (for AZERTY keyboard)" />
+    <option name="zqsdae" hit="ZQSDAE (for AZERTY keyboard)" />
+  </configurable>
+  <configurable id="device.mirroring" configurable_name="Device Mirroring">
+    <option name="device" hit="Device Mirroring" />
+    <option name="mirroring" hit="Device Mirroring" />
+    <option name="clipboard" hit="Enable clipboard sharing" />
+    <option name="enable" hit="Enable clipboard sharing" />
+    <option name="sharing" hit="Enable clipboard sharing" />
+    <option name="android" hit="Enable mirroring of physical Android devices" />
+    <option name="devices" hit="Enable mirroring of physical Android devices" />
+    <option name="enable" hit="Enable mirroring of physical Android devices" />
+    <option name="mirroring" hit="Enable mirroring of physical Android devices" />
+    <option name="of" hit="Enable mirroring of physical Android devices" />
+    <option name="physical" hit="Enable mirroring of physical Android devices" />
+    <option name="clipboard" hit="Maximum length of synchronized clipboard text:" />
+    <option name="length" hit="Maximum length of synchronized clipboard text:" />
+    <option name="maximum" hit="Maximum length of synchronized clipboard text:" />
+    <option name="of" hit="Maximum length of synchronized clipboard text:" />
+    <option name="synchronized" hit="Maximum length of synchronized clipboard text:" />
+    <option name="text" hit="Maximum length of synchronized clipboard text:" />
+    <option name="device" hit="Turn off device display while mirroring" />
+    <option name="display" hit="Turn off device display while mirroring" />
+    <option name="mirroring" hit="Turn off device display while mirroring" />
+    <option name="off" hit="Turn off device display while mirroring" />
+    <option name="turn" hit="Turn off device display while mirroring" />
+    <option name="while" hit="Turn off device display while mirroring" />
   </configurable>
   <configurable id="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider" configurable_name="Logcat">
     <option name="" hit=" KB" />

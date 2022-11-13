@@ -17,7 +17,6 @@
   <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-adb-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/adt-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/emulator.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/database-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-lang.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-lang-databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -27,6 +26,7 @@
   <xi:include href="/META-INF/databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/mlkit.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/sdk-updates.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/streaming.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/safeargs.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/pipeline.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/profilers.xml" xpointer="xpointer(/idea-plugin/*)"/>

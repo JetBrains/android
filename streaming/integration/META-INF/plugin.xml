@@ -15,10 +15,10 @@
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <name>Screen Sharing Agent Tests</name>
-  <id>intellij.android.streaming.tests</id>
+  <id>intellij.android.streaming.integration.tests</id>
   <xi:include href="/META-INF/adt-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-lang.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/emulator.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/streaming.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

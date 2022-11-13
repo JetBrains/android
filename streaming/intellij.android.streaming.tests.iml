@@ -22,9 +22,9 @@
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.streaming" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="emulator-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="ffmpeg" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="ffmpeg-platform" level="project" />

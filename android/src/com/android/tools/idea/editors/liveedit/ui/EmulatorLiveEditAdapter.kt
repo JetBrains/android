@@ -19,7 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.emulator.SERIAL_NUMBER_KEY
+import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.actionSystem.DataContext

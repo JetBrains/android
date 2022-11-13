@@ -21,7 +21,7 @@ import com.android.tools.idea.editors.literals.EditState
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.literals.LiveEditService.Companion.DISABLED_STATUS
 import com.android.tools.idea.editors.literals.LiveEditService.Companion.UP_TO_DATE_STATUS
-import com.android.tools.idea.emulator.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation

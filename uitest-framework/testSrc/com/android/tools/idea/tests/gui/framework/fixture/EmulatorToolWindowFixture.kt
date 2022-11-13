@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture
 
-import com.android.tools.idea.emulator.EmulatorView
-import com.android.tools.idea.emulator.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.intellij.openapi.project.Project
 import org.fest.swing.core.Robot
 import org.fest.swing.exception.ComponentLookupException

@@ -75,10 +75,10 @@ import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootNowEmulatorComm
 import com.android.tools.idea.avdmanager.emulatorcommand.DefaultEmulatorCommandBuilderFactory;
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory;
-import com.android.tools.idea.emulator.EmulatorSettings;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.streaming.EmulatorSettings;
 import com.android.utils.ILogger;
 import com.android.utils.PathUtils;
 import com.google.common.annotations.VisibleForTesting;

@@ -21,10 +21,10 @@ import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditAction
-import com.android.tools.idea.emulator.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.android.tools.idea.emulator.SERIAL_NUMBER_KEY
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
+import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.util.ListenerCollection
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider

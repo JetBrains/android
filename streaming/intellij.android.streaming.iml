@@ -19,10 +19,10 @@
     <orderEntry type="module" module-name="intellij.android.adb.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="module" module-name="intellij.android.layout-ui" />
     <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="module" module-name="intellij.android.jps.model" />
     <orderEntry type="module" module-name="intellij.android.core" />
+    <orderEntry type="module" module-name="intellij.android.jps.model" />
+    <orderEntry type="module" module-name="intellij.android.layout-ui" />
     <orderEntry type="library" name="emulator-proto" level="project" />
     <orderEntry type="library" name="ffmpeg" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="ffmpeg-platform" level="project" />

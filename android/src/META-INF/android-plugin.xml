@@ -118,7 +118,7 @@
       <action internal="true" id="Android.Jfr.Stop" class="com.android.tools.idea.diagnostics.profiler.StopJfr" />
       <action internal="true" id="Android.Diagnostic.Summary.File" class="com.android.tools.idea.diagnostics.report.DiagnosticSummaryAction" />
       <action internal="true" id="Android.DeviceMirroring.Benchmark" icon="StudioIcons.Shell.Menu.PROFILER"
-              class="com.android.tools.idea.device.actions.DeviceMirroringBenchmarkAction" text="Benchmark device mirroring"
+              class="com.android.tools.idea.streaming.benchmark.DeviceMirroringBenchmarkAction" text="Benchmark device mirroring"
               description="Benchmark mirroring of physical device" />
       <add-to-group group-id="Internal"/>
     </group>
@@ -282,8 +282,8 @@
 
     <actionConfigurationCustomizer implementation="org.jetbrains.android.AndroidPlugin$ActionCustomizer"/>
     <applicationService serviceImplementation="org.jetbrains.android.AndroidPlugin" preload="true"/>
-    <applicationService serviceImplementation="com.android.tools.idea.emulator.DeviceMirroringSettings"/>
-    <applicationService serviceImplementation="com.android.tools.idea.emulator.EmulatorSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.streaming.DeviceMirroringSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.streaming.EmulatorSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.res.ResourceUpdateTraceSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData" />
     <applicationService serviceImplementation="com.android.tools.idea.ui.GuiTestingService"/>

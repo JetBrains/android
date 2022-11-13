@@ -17,7 +17,7 @@ package com.android.tools.idea.whatsnew.assistant.actions
 
 import com.android.tools.idea.assistant.AssistActionHandler
 import com.android.tools.idea.assistant.datamodel.ActionData
-import com.android.tools.idea.device.settings.DeviceMirroringSettingsUi
+import com.android.tools.idea.streaming.device.settings.DeviceMirroringSettingsUi
 import com.android.tools.idea.whatsnew.assistant.WhatsNewMetricsTracker
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project

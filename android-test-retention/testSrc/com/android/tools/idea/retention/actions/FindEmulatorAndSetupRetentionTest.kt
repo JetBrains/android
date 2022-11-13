@@ -24,10 +24,10 @@ import com.android.testutils.ignore.IgnoreWithCondition
 import com.android.testutils.ignore.OnMac
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.emulator.EmulatorController
-import com.android.tools.idea.emulator.FakeEmulator
-import com.android.tools.idea.emulator.FakeEmulatorRule
-import com.android.tools.idea.emulator.RunningEmulatorCatalog
+import com.android.tools.idea.streaming.emulator.EmulatorController
+import com.android.tools.idea.streaming.emulator.FakeEmulator
+import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
+import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.testartifacts.instrumented.AVD_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
