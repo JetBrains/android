@@ -888,6 +888,39 @@ class VariablesTableTest {
     }
   }
 
+  // regression b/258243668
+  @Test
+  fun testAddVersionCatalogVariableAfterMultipleSelections() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
+    preparedProject.open { project ->
+      val psProject = PsProjectImpl(project)
+      val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable)
+
+      val versionCatalogNode: VersionCatalogNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find {
+        it.toString().contains("libs")
+      } as VersionCatalogNode
+      val buildScriptNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children()
+        .asSequence()
+        .find { it.toString().contains("(build script)") } as ModuleNode
+
+      val addNewCatalogVariable = versionCatalogNode.lastChild as VariablesBaseNode
+      //expand
+      variablesTable.tree.expandRow(variablesTable.getRowByNode(versionCatalogNode))
+      variablesTable.tree.expandRow(variablesTable.getRowByNode(buildScriptNode))
+
+      //new catalog var, focus on build script then edit new catalog variable
+      variablesTable.editNode(addNewCatalogVariable)
+
+      variablesTable.editNode(buildScriptNode)
+      // this will open popup with new variable options: simple, list, map
+      assertThat(variablesTable.isEditing, equalTo(false))
+
+      variablesTable.editNode(addNewCatalogVariable)
+      // checking if we start editing for last node
+      assertThat(variablesTable.isEditing, equalTo(true))
+    }
+  }
+
   @Test
   fun testAddList() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
@@ -1152,6 +1185,13 @@ private fun VariablesTable.selectNode(node: VariablesBaseNode) {
   val selectedRow = tree.getRowForPath(TreePath(node.path))
   selectionModel.setSelectionInterval(selectedRow, selectedRow)
 }
+
+private fun VariablesTable.editNode(node: VariablesBaseNode){
+  this.editCellAt(getRowByNode(node),0)
+}
+
+private fun VariablesTable.getRowByNode(node: VariablesBaseNode): Int =
+  tree.getRowForPath(TreePath(node.path))
 
 private fun PsVariable.isList() = value.maybeLiteralValue is List<*>
 private fun PsVariable.isMap() = value.maybeLiteralValue is Map<*, *>

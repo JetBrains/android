@@ -253,9 +253,10 @@ class VariablesTable private constructor(
     abstract fun prepareAddVariableEditor(editor: TableCellEditor?, row: Int, column: Int): Component?
     abstract fun addVariable(type: ValueType)
 
-    protected fun addVariableInternal(type: ValueType, startEditing: Boolean = true) {
-      val moduleNode = findParentContainer() ?: return
-      val emptyNode = moduleNode.findEmptyVariableNode() ?: return
+    protected fun addVariableInternal(type: ValueType, clickedOnRow: Int? = null, startEditing: Boolean = true) {
+      val maybeEmptyNode = clickedOnRow?.let { getEmptyNodeByRow(clickedOnRow) }
+      val moduleNode = findParentContainer(maybeEmptyNode) ?: return
+      val emptyNode = maybeEmptyNode ?: moduleNode.findEmptyVariableNode() ?: return
 
       emptyNode.type = type
 
@@ -285,7 +286,7 @@ class VariablesTable private constructor(
     }
 
     override fun prepareAddVariableEditor(editor: TableCellEditor?, row: Int, column: Int): Component {
-      addVariableInternal(ValueType.STRING, startEditing = false)
+      addVariableInternal(ValueType.STRING, row, startEditing = false)
       maybeScheduleNameRepaint(row, column)
       return super@VariablesTable.prepareEditor(editor, row, column)
     }
@@ -388,14 +389,17 @@ class VariablesTable private constructor(
 
   override fun prepareEditor(editor: TableCellEditor?, row: Int, column: Int): Component? {
     if (column == NAME) {
-      val node = tree.getPathForRow(row).lastPathComponent as? EmptyVariableNode
+      val node = getEmptyNodeByRow(row)
       if (node != null && node.type == null) {
-        return createAddVariableStrategy().prepareAddVariableEditor(editor, row, column)
+        return createAddVariableStrategy(node).prepareAddVariableEditor(editor, row, column)
       }
     }
     maybeScheduleNameRepaint(row, column)
     return super.prepareEditor(editor, row, column)
   }
+
+  private fun getEmptyNodeByRow(row: Int):EmptyVariableNode? =
+    tree.getPathForRow(row).lastPathComponent as? EmptyVariableNode
 
   override fun editingCanceled(e: ChangeEvent?) {
     val rowBeingEdited = editingRow
