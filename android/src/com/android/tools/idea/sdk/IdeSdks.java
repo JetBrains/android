@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.sdk.extensions.SdkExtensions;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -61,11 +62,9 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
-import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.EnvironmentUtil;
 import com.intellij.util.SystemProperties;
@@ -76,7 +75,6 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +82,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -1110,17 +1107,12 @@ public class IdeSdks {
 
     if (jdkInTable != null) {
       // Try to update only if there are differences
-      boolean shouldUpdate = true;
-      if ((jdkInTable instanceof ProjectJdkImpl) && (updatedJdk instanceof ProjectJdkImpl)) {
-        shouldUpdate = jdksWithDifferentSettings((ProjectJdkImpl)jdkInTable, (ProjectJdkImpl)updatedJdk);
-      }
+      boolean shouldUpdate = !SdkExtensions.isEqualTo(jdkInTable, updatedJdk);
       if (shouldUpdate) {
         ProjectJdkTable.getInstance().updateJdk(jdkInTable, updatedJdk);
-      } else {
-        Disposer.dispose((ProjectJdkImpl)updatedJdk);
       }
-    }
-    else {
+      Disposer.dispose((ProjectJdkImpl)updatedJdk);
+    } else {
       // Could not find JDK in JDK table, add as new entry
       jdkTable.addJdk(updatedJdk);
     }
@@ -1132,25 +1124,6 @@ public class IdeSdks {
       return JavaSdk.getInstance().createJdk(jdkName, jdkPath, false);
     }
     return null;
-  }
-
-  @VisibleForTesting
-  boolean jdksWithDifferentSettings(@NotNull ProjectJdkImpl jdkA, @NotNull ProjectJdkImpl jdkB) {
-    if (!StringUtils.equals(jdkA.getName(), jdkB.getName())) return true;
-    if (!StringUtils.equals(jdkA.getHomePath(), jdkB.getHomePath())) return true;
-    if (!StringUtils.equals(jdkA.getVersionString(), jdkB.getVersionString())) return true;
-    if (jdkA.getSdkAdditionalData() != jdkB.getSdkAdditionalData()) return true;
-    if (differentRootsOfType(OrderRootType.CLASSES, jdkA, jdkB)) return true;
-    if (differentRootsOfType(OrderRootType.SOURCES, jdkA, jdkB)) return true;
-    return differentRootsOfType(OrderRootType.DOCUMENTATION, jdkA, jdkB);
-  }
-
-  private boolean differentRootsOfType(@NotNull OrderRootType orderRootType, @NotNull ProjectJdkImpl jdkA, @NotNull ProjectJdkImpl jdkB) {
-    return differentRoots(jdkA.getRoots(orderRootType), jdkB.getRoots(orderRootType));
-  }
-
-  private boolean differentRoots(VirtualFile[] rootsA, VirtualFile[] rootsB) {
-    return !Arrays.equals(rootsA, rootsB);
   }
 
   private class EnvVariableSettings {

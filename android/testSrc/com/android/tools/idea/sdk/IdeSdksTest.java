@@ -53,6 +53,7 @@ import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.sdk.extensions.SdkExtensions;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.collect.ImmutableList;
@@ -349,7 +350,7 @@ public class IdeSdksTest extends PlatformTestCase {
   /**
    * Verify that the field's and method's names in ProjectJDKImpl have not changed, to try to catch changes in its implementation.
    * If this test fails, we need to confirm the changes are included as needed in
-   * {@link IdeSdks#jdksWithDifferentSettings(ProjectJdkImpl, ProjectJdkImpl)}..
+   * {@link SdkExtensions#isEqualTo(Sdk, Sdk)}
    */
   public void testProjectJdkImplFieldsAndMethods() {
     List<String> expectedFieldNames = Arrays.asList("ATTRIBUTE_VALUE", "ELEMENT_ADDITIONAL", "ELEMENT_NAME", "ELEMENT_TYPE");
