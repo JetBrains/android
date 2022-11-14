@@ -1344,37 +1344,6 @@ public class CommonActions {
     }
   }
 
-
-  private static class ClearConstraintsAction extends DirectViewAction {
-
-    private static final String MESSAGE_DELETE_CONSTRAINT = "Delete all the constraints in the current layout?";
-
-    private ClearConstraintsAction() {
-      super(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS, "Clear All Constraints");
-    }
-
-    @Override
-    @Nullable
-    public String getConfirmationMessage() {
-      return MESSAGE_DELETE_CONSTRAINT;
-    }
-
-    @Override
-    public void perform(@NotNull ViewEditor editor,
-                        @NotNull ViewHandler handler,
-                        @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren,
-                        @InputEventMask int modifiers) {
-      getAnalyticsManager(editor).trackClearAllConstraints();
-
-      ViewGroupHandler constraintHandler = (ViewGroupHandler) handler;
-      constraintHandler.clearAttributes(component.getChildren());
-      // Clear selection.
-      editor.getScene().select(Collections.emptyList());
-      ensureLayersAreShown(editor, 1000);
-    }
-  }
-
   @NotNull
   private static NlAnalyticsManager getAnalyticsManager(@NotNull ViewEditor editor) {
     return ((NlDesignSurface)editor.getScene().getDesignSurface()).getAnalyticsManager();

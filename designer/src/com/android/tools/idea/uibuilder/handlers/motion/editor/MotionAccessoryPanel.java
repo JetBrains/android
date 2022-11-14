@@ -29,10 +29,8 @@ import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
@@ -422,11 +420,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     }
 
     return null;
-  }
-
-  @NotNull
-  private static NlAnalyticsManager getAnalyticsManager(@NotNull ViewEditor editor) {
-    return ((NlDesignSurface)editor.getScene().getDesignSurface()).getAnalyticsManager();
   }
 
   private void selectOnDesignSurface(MTag[] tag) {
