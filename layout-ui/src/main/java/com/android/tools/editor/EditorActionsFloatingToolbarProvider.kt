@@ -88,15 +88,20 @@ abstract class EditorActionsFloatingToolbarProvider(
    * with zoom controls.
    */
   private var hiddenZoomLabelComponent: JComponent? = null
-  /** Timer used to automatically set the Zoom Label panel to not visible after a period of time. */
-  private var hiddenZoomLabelTimer: Timer? =
-    if (!ApplicationManager.getApplication().isUnitTestMode) { // Running a timer in a TestCase may cause it to fail.
-      Timer(2000) { hiddenZoomLabelComponent?.isVisible = false }.apply {
+
+  /**
+   * Timer used to automatically set the Zoom Label panel to not visible after a period of time.
+   * */
+  private var hiddenZoomLabelTimer: Timer? = ApplicationManager
+    .getApplication()
+    .takeUnless {
+      it.isUnitTestMode
+    }?.let {
+      Timer(2000) {
+        hiddenZoomLabelComponent?.isVisible = false
+      }.apply {
         isRepeats = false
       }
-    }
-    else {
-      null
     }
 
   init {
@@ -111,8 +116,9 @@ abstract class EditorActionsFloatingToolbarProvider(
   protected fun updateToolbar() {
     val actionGroups = getActionGroups()
     val actionManager = ActionManager.getInstance()
-    val zoomActionGroup = actionGroups.zoomControlsGroup?.let { createToolbar(actionManager, it, component) }
-
+    val zoomActionGroup = actionGroups.zoomControlsGroup?.let {
+      createToolbar(actionManager, it, component)
+    }
     val zoomLabelToolbar = actionGroups.zoomLabelGroup?.let {
       createToolbar(actionManager, it, component).apply {
         component.border = JBUI.Borders.empty(2)

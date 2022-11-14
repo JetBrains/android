@@ -29,7 +29,8 @@ import javax.swing.JComponent
  * Similar to ZoomFitAction, but it's just a button with a text that reads 'Reset' (no icon).
  */
 object ZoomResetAction : SetZoomAction(ZoomType.FIT), CustomComponentAction {
-  private val myTextColor = Color(0x1a7dc4) // For light and dark mode.
+  private const val BLUE_COLOR_RGB = 0x1a7dc4
+  private val myTextColor = Color(BLUE_COLOR_RGB) // For both light and dark mode.
 
   override fun update(event: AnActionEvent) {
     super.update(event)

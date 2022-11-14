@@ -31,11 +31,3 @@ interface EditorActionsToolbarActionGroups {
     get() = listOf()
 }
 
-/** The default implementation for [EditorActionsToolbarActionGroups], only returns [DefaultActionGroup.EMPTY_GROUP]. */
-object DesignSurfaceEmptyActionGroups: EditorActionsToolbarActionGroups {
-  override val zoomControlsGroup: ActionGroup
-    get() = DefaultActionGroup.EMPTY_GROUP
-
-  override val zoomLabelGroup: ActionGroup
-    get() = DefaultActionGroup.EMPTY_GROUP
-}
