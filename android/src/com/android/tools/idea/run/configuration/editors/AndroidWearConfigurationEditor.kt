@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration.editors
 
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -58,14 +59,24 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   SettingsEditor<T>() {
 
   private val modulesComboBox = ModulesComboBox()
-  protected val moduleSelector = object : ConfigurationModuleSelector(project, modulesComboBox) {
+
+  val moduleSelector = object : ConfigurationModuleSelector(project, modulesComboBox) {
     override fun isModuleAccepted(module: Module?): Boolean {
       if (module == null || !super.isModuleAccepted(module)) {
         return false
       }
       val facet = AndroidFacet.getInstance(module) ?: return false
       if (!module.isHolderModule()) return false
-      return !facet.configuration.isLibraryProject
+      return when (facet.getModuleSystem().type) {
+        AndroidModuleSystem.Type.TYPE_NON_ANDROID -> false
+        AndroidModuleSystem.Type.TYPE_APP -> true
+        AndroidModuleSystem.Type.TYPE_LIBRARY -> false
+        AndroidModuleSystem.Type.TYPE_TEST -> false
+        AndroidModuleSystem.Type.TYPE_ATOM -> false
+        AndroidModuleSystem.Type.TYPE_INSTANTAPP -> false
+        AndroidModuleSystem.Type.TYPE_FEATURE -> false
+        AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE -> false
+      }
     }
   }
 
