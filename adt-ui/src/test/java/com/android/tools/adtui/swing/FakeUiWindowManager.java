@@ -315,6 +315,11 @@ public final class FakeUiWindowManager extends WindowManagerEx {
   }
 
   @Override
+  public boolean isFrameReused(@NotNull ProjectFrameHelper frameHelper) {
+    return false;
+  }
+
+  @Override
   public @NotNull List<ProjectFrameHelper> getProjectFrameHelpers() {
     return Collections.emptyList();
   }
