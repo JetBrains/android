@@ -76,11 +76,10 @@ class SafeArgsModeModuleService(val module: Module) {
   }
 
   private fun GradleModuleModel.toSafeArgsMode(): SafeArgsMode {
-    when {
-      // TODO(b/150497628): Update this logic to use the public plugin name, not the private one
-      gradlePlugins.contains("androidx.navigation.safeargs.gradle.SafeArgsKotlinPlugin") -> return SafeArgsMode.KOTLIN
-      gradlePlugins.contains("androidx.navigation.safeargs.gradle.SafeArgsJavaPlugin") -> return SafeArgsMode.JAVA
-      else -> return SafeArgsMode.NONE
+    return when {
+      hasSafeArgsKotlinPlugin() -> SafeArgsMode.KOTLIN
+      hasSafeArgsJavaPlugin() -> SafeArgsMode.JAVA
+      else -> SafeArgsMode.NONE
     }
   }
 }

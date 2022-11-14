@@ -334,7 +334,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       val ndkModuleName = moduleName + "." + getModuleName(androidModel.mainArtifactCore.name)
       ndkModuleModel = maybeCreateNdkModuleModel(ndkModuleName, rootModulePath!!, androidModels)
     }
-    val gradlePluginList = gradlePluginModel?.gradlePluginList.orEmpty()
     val gradleSettingsFile = findGradleSettingsFile(rootModulePath!!)
     val hasArtifactsOrNoRootSettingsFile = !(gradleSettingsFile.isFile && !hasArtifacts(externalProject))
     if (hasArtifactsOrNoRootSettingsFile || androidModel != null) {
@@ -343,7 +342,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         gradleModule,
         androidModels?.androidProject?.agpVersion,
         buildScriptClasspathModel,
-        gradlePluginList
+        gradlePluginModel
       )
     }
     if (gradleModel != null) {
@@ -772,7 +771,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       gradleModule: IdeaModule,
       modelVersionString: String?,
       buildScriptClasspathModel: BuildScriptClasspathModel?,
-      gradlePluginList: Collection<String>
+      gradlePluginModel: GradlePluginModel?
     ): GradleModuleModel {
       val buildScriptPath = try {
         gradleModule.gradleProject.buildScript.sourceFile
@@ -782,7 +781,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       return GradleModuleModel(
         moduleName,
         gradleModule.gradleProject,
-        gradlePluginList,
+        gradlePluginModel?.hasSafeArgsJava() ?: false,
+        gradlePluginModel?.hasSafeArgsKotlin() ?: false,
         buildScriptPath,
         buildScriptClasspathModel?.gradleVersion,
         modelVersionString

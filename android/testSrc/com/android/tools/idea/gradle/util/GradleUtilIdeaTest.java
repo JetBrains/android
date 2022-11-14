@@ -64,7 +64,7 @@ public class GradleUtilIdeaTest extends PlatformTestCase {
     GradleProjectStub gradleProject = new GradleProjectStub(name, ":" + name, getBaseDirPath(getProject()), myBuildFile);
 
     GradleModuleModel gradleModuleModel =
-      new GradleModuleModel(myModule.getName(), gradleProject, emptyList(), myBuildFile, "2.2.1", null);
+      new GradleModuleModel(myModule.getName(), gradleProject, false, false, myBuildFile, "2.2.1", null);
 
     GradleFacet facet = createAndAddGradleFacet(myModule);
     facet.setGradleModuleModel(gradleModuleModel);

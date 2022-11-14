@@ -94,7 +94,8 @@ class ModelSerializationTest : AndroidGradleTestCase() {
     GradleModuleModel(
       "testName",
       gradleProject,
-      listOf("plugin1", "plugin2"),
+      false,
+      false,
       null,
       "4.1.10",
       "3.6.0-dev"

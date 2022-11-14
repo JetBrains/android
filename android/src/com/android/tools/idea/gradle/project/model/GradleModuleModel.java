@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.model;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.serialization.PropertyMapping;
 import org.gradle.tooling.model.DomainObjectSet;
@@ -27,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
@@ -39,34 +37,37 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
  */
 public class GradleModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 4L;
+  private static final long serialVersionUID = 5L;
 
   @NotNull private final String myModuleName;
   @NotNull private final List<String> myTaskNames;
   @NotNull private final String myGradlePath;
   @NotNull private final File myRootFolderPath;
-  @NotNull private final List<String> myGradlePlugins;
+  @NotNull private final Boolean mySafeArgsJava;
+  @NotNull private final Boolean mySafeArgsKotlin;
 
   @Nullable private final File myBuildFilePath;
   @Nullable private final String myGradleVersion;
   @Nullable private final String myAgpVersion;
 
   /**
-   * @param moduleName    the name of the IDE module.
-   * @param gradleProject the model obtained from Gradle.
-   * @param gradlePlugins the list of gradle plugins applied to this module.
-   * @param buildFilePath the path of the build.gradle file.
-   * @param gradleVersion the version of Gradle used to sync the project.
-   * @param agpVersion    the version of AGP used to sync the project.
+   * @param moduleName      the name of the IDE module.
+   * @param gradleProject   the model obtained from Gradle.
+   * @param safeArgsJava    whether the safe args Java plugin has been applied
+   * @param safeArgsKotlin  whether the safe args Kotlin plugin has been applied
+   * @param buildFilePath   the path of the build.gradle file.
+   * @param gradleVersion   the version of Gradle used to sync the project.
+   * @param agpVersion      the version of AGP used to sync the project.
    */
   public GradleModuleModel(@NotNull String moduleName,
                            @NotNull GradleProject gradleProject,
-                           @NotNull Collection<String> gradlePlugins,
+                           boolean safeArgsJava,
+                           boolean safeArgsKotlin,
                            @Nullable File buildFilePath,
                            @Nullable String gradleVersion,
                            @Nullable String agpVersion) {
     this(moduleName, getTaskNames(gradleProject), gradleProject.getPath(),
-         gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir(), ImmutableList.copyOf(gradlePlugins), buildFilePath,
+         gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir(), safeArgsJava, safeArgsKotlin, buildFilePath,
          gradleVersion, agpVersion);
   }
 
@@ -79,7 +80,8 @@ public class GradleModuleModel implements ModuleModel {
     "myTaskNames",
     "myGradlePath",
     "myRootFolderPath",
-    "myGradlePlugins",
+    "mySafeArgsJava",
+    "mySafeArgsKotlin",
     "myBuildFilePath",
     "myGradleVersion",
     "myAgpVersion"
@@ -88,7 +90,8 @@ public class GradleModuleModel implements ModuleModel {
                            @NotNull List<String> taskNames,
                            @NotNull String gradlePath,
                            @NotNull File rootFolderPath,
-                           @NotNull List<String> gradlePlugins,
+                           @NotNull Boolean safeArgsJava,
+                           @NotNull Boolean safeArgsKotlin,
                            @Nullable File buildFilePath,
                            @Nullable String gradleVersion,
                            @Nullable String agpVersion) {
@@ -96,7 +99,8 @@ public class GradleModuleModel implements ModuleModel {
     myTaskNames = taskNames;
     myGradlePath = gradlePath;
     myRootFolderPath = rootFolderPath;
-    myGradlePlugins = gradlePlugins;
+    mySafeArgsJava = safeArgsJava;
+    mySafeArgsKotlin = safeArgsKotlin;
     myBuildFilePath = buildFilePath;
     myGradleVersion = gradleVersion;
     myAgpVersion = agpVersion;
@@ -161,8 +165,11 @@ public class GradleModuleModel implements ModuleModel {
     return myAgpVersion;
   }
 
-  @NotNull
-  public List<String> getGradlePlugins() {
-    return myGradlePlugins;
+  public boolean hasSafeArgsJavaPlugin() {
+    return mySafeArgsJava;
+  }
+
+  public boolean hasSafeArgsKotlinPlugin() {
+    return mySafeArgsKotlin;
   }
 }

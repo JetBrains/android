@@ -20,12 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 /** Returns artifacts information of a module. */
 public interface GradlePluginModel {
+  Boolean hasSafeArgsJava();
 
-    /**
-     * Returns a list of applied plugins.
-     *
-     * @return a list of applied plugins.
-     */
-    @NotNull
-    Collection<String> getGradlePluginList();
+  Boolean hasSafeArgsKotlin();
 }

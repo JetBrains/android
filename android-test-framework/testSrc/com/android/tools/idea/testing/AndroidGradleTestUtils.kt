@@ -1272,14 +1272,6 @@ private fun setupTestProjectFromAndroidModelCore(
   project.putUserData(ALWAYS_SKIP_SYNC, true)
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-  val gradlePlugins = listOf(
-    "com.android.java.model.builder.JavaLibraryPlugin", "org.gradle.buildinit.plugins.BuildInitPlugin",
-    "org.gradle.buildinit.plugins.WrapperPlugin", "org.gradle.api.plugins.HelpTasksPlugin",
-    "com.android.build.gradle.api.AndroidBasePlugin", "org.gradle.language.base.plugins.LifecycleBasePlugin",
-    "org.gradle.api.plugins.BasePlugin", "org.gradle.api.plugins.ReportingBasePlugin",
-    "org.gradle.api.plugins.JavaBasePlugin", "com.android.build.gradle.AppPlugin",
-    "org.gradle.plugins.ide.idea.IdeaPlugin"
-  )
   val task = IdeaSyncPopulateProjectTask(project)
   val buildPath = rootProjectBasePath.resolve("build")
   val projectName = project.name
@@ -1376,7 +1368,6 @@ private fun setupTestProjectFromAndroidModelCore(
           moduleBasePath = moduleBasePath,
           gradleVersion = moduleBuilder.gradleVersion,
           agpVersion = moduleBuilder.agpVersion,
-          gradlePlugins = gradlePlugins,
           androidProject = androidProject.populateBaseFeature(),
           variants = variants.let { if (!setupAllVariants) it.filter { it.name == moduleBuilder.selectedBuildVariant } else it },
           libraryResolver = libraryResolver,
@@ -1454,7 +1445,6 @@ private fun createAndroidModuleDataNode(
   moduleBasePath: File,
   gradleVersion: String?,
   agpVersion: String?,
-  gradlePlugins: List<String>,
   androidProject: IdeAndroidProjectImpl,
   variants: Collection<IdeVariantCoreImpl>,
   libraryResolver: IdeLibraryModelResolver,
@@ -1481,7 +1471,8 @@ private fun createAndroidModuleDataNode(
         listOf(),
         gradlePath,
         moduleBasePath,
-        gradlePlugins,
+        false,
+        false,
         moduleBasePath.resolve("build.gradle"),
         gradleVersion,
         agpVersion
@@ -1677,7 +1668,8 @@ private fun createJavaModuleDataNode(
           listOf(),
           gradlePath,
           moduleBasePath,
-          emptyList(),
+          false,
+          false,
           null,
           null,
           null

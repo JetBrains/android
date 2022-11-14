@@ -732,7 +732,8 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("buildFile") { model.buildFile?.path?.toPrintablePath() }
         prop("buildFilePath") { model.buildFilePath?.path?.toPrintablePath() }
         prop("rootFolderPath") { model.rootFolderPath.path.toPrintablePath() }
-        model.gradlePlugins.forEach { prop("- gradlePlugins") { it } }
+        prop("hasSafeArgsJava") { model.hasSafeArgsJavaPlugin().toString() }
+        prop("hasSafeArgsKotlin") { model.hasSafeArgsKotlinPlugin().toString() }
         model.taskNames.forEach { prop("- taskNames") { it } }
       }
     }
