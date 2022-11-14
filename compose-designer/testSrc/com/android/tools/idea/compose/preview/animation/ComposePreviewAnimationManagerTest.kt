@@ -120,7 +120,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
     }
     surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()
     surface.addModelWithoutRender(model)
-    COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.override(true)
+    COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.override(false)
   }
 
   @After
@@ -530,7 +530,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
       assertInstanceOf<AnimationCard>(cards[2])
       assertInstanceOf<LabelCard>(cards[3])
       assertInstanceOf<LabelCard>(cards[4])
-      assertInstanceOf<AnimationCard>(cards[5])
+      assertInstanceOf<LabelCard>(cards[5])
       for (i in 6 until ComposeAnimationType.values().size) assertInstanceOf<LabelCard>(cards[i])
       assertEquals(11, timeline.sliderUI.elements.size)
       // Only coordination tab is opened.
