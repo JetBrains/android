@@ -98,11 +98,11 @@ public class AndroidSystem implements AutoCloseable, TestRule {
    * from the distribution zips. The SDK is set up pointing
    * to the standard prebuilts one.
    */
-  public static AndroidSystem standard() {
+  public static AndroidSystem standard(AndroidStudioInstallation.AndroidStudioFlavor androidStudioFlavor) {
     try {
       AndroidSystem system = basic(Files.createTempDirectory("root"));
 
-      system.install = AndroidStudioInstallation.fromZip(system.fileSystem);
+      system.install = AndroidStudioInstallation.fromZip(system.fileSystem, androidStudioFlavor);
       system.install.createFirstRunXml();
       system.install.createGeneralPropertiesXml();
 
@@ -111,6 +111,10 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  public static AndroidSystem standard() {
+    return standard(AndroidStudioInstallation.AndroidStudioFlavor.FOR_EXTERNAL_USERS);
   }
 
   /**

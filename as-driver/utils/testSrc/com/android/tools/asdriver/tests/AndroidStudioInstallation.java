@@ -49,6 +49,10 @@ public class AndroidStudioInstallation {
   private final Path logsDir;
 
   public static AndroidStudioInstallation fromZip(TestFileSystem testFileSystem) throws IOException {
+    return fromZip(testFileSystem, AndroidStudioFlavor.FOR_EXTERNAL_USERS);
+  }
+
+  public static AndroidStudioInstallation fromZip(TestFileSystem testFileSystem, AndroidStudioFlavor androidStudioFlavor) throws IOException {
     Path workDir = Files.createTempDirectory(testFileSystem.getRoot(), "android-studio");
     System.out.println("workDir: " + workDir);
     String platform = "linux";
@@ -61,18 +65,29 @@ public class AndroidStudioInstallation {
       studioDir = "android-studio";
     }
 
-    Path studioZip = TestUtils.getBinPath(String.format("tools/adt/idea/studio/android-studio.%s.zip", platform));
+    String zipPath;
+    switch (androidStudioFlavor) {
+      case FOR_EXTERNAL_USERS:
+        zipPath = String.format("tools/adt/idea/studio/android-studio.%s.zip", platform);
+        break;
+      case ASWB:
+        zipPath = String.format("tools/vendor/google/aswb/aswb.%s.zip", platform);
+        break;
+      default:
+        throw new IllegalArgumentException("A valid AndroidStudioFlavor must be passed in. Got: " + androidStudioFlavor);
+    }
+    Path studioZip = TestUtils.getBinPath(zipPath);
     unzip(studioZip, workDir);
 
-    return new AndroidStudioInstallation(testFileSystem, workDir, workDir.resolve(studioDir));
+    return new AndroidStudioInstallation(testFileSystem, workDir, workDir.resolve(studioDir), androidStudioFlavor);
   }
 
   static public AndroidStudioInstallation fromDir(TestFileSystem testFileSystem, Path studioDir) throws IOException {
     Path workDir = Files.createTempDirectory(testFileSystem.getRoot(), "android-studio");
-    return new AndroidStudioInstallation(testFileSystem, workDir, studioDir);
+    return new AndroidStudioInstallation(testFileSystem, workDir, studioDir, AndroidStudioFlavor.UNKNOWN);
   }
 
-  private AndroidStudioInstallation(TestFileSystem testFileSystem, Path workDir, Path studioDir) throws IOException {
+  private AndroidStudioInstallation(TestFileSystem testFileSystem, Path workDir, Path studioDir, AndroidStudioFlavor androidStudioFlavor) throws IOException {
     this.fileSystem = testFileSystem;
     this.workDir = workDir;
     this.studioDir = studioDir;
@@ -91,6 +106,8 @@ public class AndroidStudioInstallation {
 
     setConsentGranted(true);
     createVmOptionsFile();
+
+    System.out.println("AndroidStudioInstallation created with androidStudioFlavor==" + androidStudioFlavor);
   }
 
   private void createVmOptionsFile() throws IOException {
@@ -203,6 +220,9 @@ public class AndroidStudioInstallation {
     }
 
     Files.createDirectories(filetypePaths.getParent());
+
+    // Make sure backslashes don't show up in the path on Windows since the blob below must be valid JSON
+    String sdkPath = sdk.getSourceDir().toString().replaceAll("\\\\", "/");
     String filetypeContents = String.format(
       "<application>%n" +
       "  <component name=\"PropertyService\"><![CDATA[{%n" +
@@ -210,7 +230,7 @@ public class AndroidStudioInstallation {
       "    \"android.sdk.path\": \"%s\"%n" +
       "  }%n" +
       "}]]></component>%n" +
-      "</application>", sdk.getSourceDir());
+      "</application>", sdkPath);
     Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8);
   }
 
@@ -425,5 +445,18 @@ public class AndroidStudioInstallation {
       throw new RuntimeException("One or more methods called on a wrong thread. " +
                                  "See go/android-studio-threading-checks for more info.");
     }
+  }
+
+  public enum AndroidStudioFlavor {
+    // This is the most common version of Android Studio and is what can be found on
+    // https://developer.android.com/studio.
+    FOR_EXTERNAL_USERS,
+
+    // Android Studio with Blaze.
+    ASWB,
+
+    // This indicates that some operation will need to be performed to determine which flavor is
+    // being used.
+    UNKNOWN,
   }
 }
