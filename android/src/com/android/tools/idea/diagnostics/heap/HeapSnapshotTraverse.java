@@ -486,10 +486,11 @@ public final class HeapSnapshotTraverse implements Disposable {
   public static void collectAndWriteStats(@NotNull final Consumer<String> writer,
                                           @NotNull final HeapSnapshotStatistics stats,
                                           @NotNull final HeapSnapshotPresentationConfig presentationConfig) {
+    long collectionStartTimestamp = System.nanoTime();
     new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH);
 
     stats.print(writer, bytes -> HeapTraverseUtil.getObjectsStatsPresentation(bytes, presentationConfig.sizePresentation),
-                presentationConfig);
+                presentationConfig, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - collectionStartTimestamp));
   }
 
   public static StatusCode collectMemoryReport() {

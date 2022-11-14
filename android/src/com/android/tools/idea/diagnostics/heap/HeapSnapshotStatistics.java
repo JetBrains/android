@@ -136,10 +136,16 @@ final class HeapSnapshotStatistics {
   }
 
   void print(@NotNull final Consumer<String> writer, @NotNull final Function<ObjectsStatistics, String> objectsStatsPresentation,
-             @NotNull final HeapSnapshotTraverse.HeapSnapshotPresentationConfig presentationConfig) {
+             @NotNull final HeapSnapshotTraverse.HeapSnapshotPresentationConfig presentationConfig, long collectionTimeMs) {
     writer.accept(
       String.format(Locale.US, "Total used memory: %s",
                     objectsStatsPresentation.apply(totalStats.objectsStat)));
+    ObjectsStatistics sharedObjectsStatistics = new ObjectsStatistics();
+    maskToSharedComponentStats.values().forEach(e -> sharedObjectsStatistics.addStats(e.getStatistics().getObjectsStatistics()));
+
+    writer.accept(
+      String.format(Locale.US, "Total shared memory: %s", objectsStatsPresentation.apply(sharedObjectsStatistics)));
+    writer.accept(String.format(Locale.US, "Report collection time: %d ms", collectionTimeMs));
 
     writer.accept(String.format(Locale.US, "%d Categories:", categoryComponentStats.size()));
     for (CategoryClusterObjectsStatistics stat : categoryComponentStats) {

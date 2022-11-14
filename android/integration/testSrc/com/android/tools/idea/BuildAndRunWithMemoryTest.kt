@@ -36,6 +36,10 @@ class BuildAndRunWithMemoryTest {
     .setProject("Android Studio Memory Usage")
     .setDescription("Memory usage by Android Studio components after executing BuildAndRunWithMemoryTest.")
     .build()
+  private val reportCollectionTimeBenchmark = Benchmark.Builder("Memory Report Collection Time")
+    .setProject("Android Studio Memory Usage")
+    .setDescription("How long it took to collect memory report for different tests.")
+    .build()
 
   /**
    * Version of [BuildAndRunTest.deploymentTest] with tracking of components memory usage. Memory usage statistics is compared with the
@@ -85,6 +89,19 @@ class BuildAndRunWithMemoryTest {
     assert(totalObjectsSize > 1024 * 1024 * 10) { "Total size of objects should be over 10mb, problem on the memory reporting side." }
     var metric = Metric("total_used_memory")
     metric.addSamples(benchmark, Metric.MetricSample(timeStamp, totalObjectsSize))
+    metric.commit()
+    m = system.installation.memoryReportFile.waitForMatchingLine("Total shared memory: (\\d+) bytes/(\\d+) objects", 60,
+                                                                     TimeUnit.SECONDS)
+    val sharedObjectsSize = m.group(1).toLong()
+    metric = Metric("total_shared_objects_size")
+    metric.addSamples(benchmark, Metric.MetricSample(timeStamp, sharedObjectsSize))
+    metric.commit()
+
+    m = system.installation.memoryReportFile.waitForMatchingLine("Report collection time: (\\d+) ms", 60,
+                                                                 TimeUnit.SECONDS)
+    val reportCollectionTimeMs = m.group(1).toLong()
+    metric = Metric("build_and_run_with_memory_test")
+    metric.addSamples(reportCollectionTimeBenchmark, Metric.MetricSample(timeStamp, reportCollectionTimeMs))
     metric.commit()
 
     m = system.installation.memoryReportFile.waitForMatchingLine("(\\d+) Categories:", 60, TimeUnit.SECONDS)
