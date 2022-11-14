@@ -21,6 +21,12 @@ import com.android.utils.ILogger;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * An ILogger which demotes log levels from error/warning to info ond from info to debug, and ignores verbose logs.
+ *
+ * Error-level logs are also stored to a local buffer where they can be fetched later. This buffer is never cleared,
+ * so instances of this logger should be short-lived. (This functionality is currently unused.)
+ */
 public class MessageBuildingSdkLog implements ILogger {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.MessageBuildingSdkLog");
 
