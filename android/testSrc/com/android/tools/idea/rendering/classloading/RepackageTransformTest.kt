@@ -23,7 +23,13 @@ import org.junit.Test
 import java.io.PrintWriter
 import java.io.StringWriter
 
-class ToBeRepackaged
+class TestClass
+
+class ToBeRepackaged {
+  fun method() {
+    Class.forName("com.android.tools.idea.rendering.classloading.TestClass")
+  }
+}
 
 class RepackageTransformTest {
   @Test
@@ -43,5 +49,21 @@ class RepackageTransformTest {
       .map { it.value }
       .distinct()
       .joinToString("\n"))
+
+    assertEquals(
+      """
+        LDC "com.android.tools.idea.rendering.classloading.TestClass"
+        LDC "internal.test.com.android.tools.idea.rendering.classloading.TestClass"
+        INVOKESTATIC internal/test/com/android/tools/idea/rendering/classloading/ClassForNameHandler.forName (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Class;
+      """.trimIndent(),
+      outputTrace
+        .toString()
+        .lines()
+        .filter {
+          it.trimStart().startsWith("LDC") || it.trimStart().startsWith("INVOKESTATIC")
+        }
+        .map { it.trim() }
+        .joinToString("\n")
+    )
   }
 }

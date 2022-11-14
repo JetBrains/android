@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.rendering.classloading
 
+import com.intellij.util.ReflectionUtil
 import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.ClassRemapper
 import org.jetbrains.org.objectweb.asm.commons.Remapper
 
@@ -37,6 +41,37 @@ private class RepackageRemapper(packagePrefixes: Collection<String>,
 }
 
 /**
+ * Class providing re-maping for reflection `Class.forName` calls so they are redirected to the new name.
+ *
+ * All calls into [Class.forName] are replaced now into calls to this class and a new parameter is added with the new class that should be
+ * called.
+ * The `oldName` parameter is kept since it simplifies the rewriting of the call by only adding a new parameter at the end and avoiding to
+ * rewrite the LOAD calls.
+ *
+ * This class needs to be visible since it is accessed from the user code.
+ */
+object ClassForNameHandler {
+  @Suppress("UNUSED_PARAMETER") // oldName not used intentionally
+  @JvmStatic
+  fun forName(oldName: String, newName: String): Class<*>  {
+    val caller = ReflectionUtil.getGrandCallerClass()!!
+    return Class.forName(newName, true, caller.classLoader)
+  }
+
+  @Suppress("UNUSED_PARAMETER") // oldName not used intentionally
+  @JvmStatic
+  fun forName(module: Module, oldName: String, newName: String) {
+    // This is not currently supported as Modules are not being used.
+    throw UnsupportedOperationException()
+  }
+
+  @Suppress("UNUSED_PARAMETER") // oldName not used intentionally
+  @JvmStatic
+  fun forName(oldName: String, initialize: Boolean, classLoader: ClassLoader?, newName: String) =
+    Class.forName(newName, initialize, classLoader)
+}
+
+/**
  * [ClassVisitor] that repackages certain classes with a new package name. This allows to have the same class in two separate
  * namespaces so it can
  */
@@ -52,4 +87,75 @@ class RepackageTransform(delegate: ClassVisitor,
     .putString(remappedPrefix, Charsets.UTF_8)
     .hash()
     .toString()
+
+  /**
+   * This re-mapper replaces all calls to [Class.forName] with calls to [ClassForNameHandler.forName] while adding an additional parameter that
+   * correspond to the right name that should be called.
+   *
+   * In bytecode, the `forName` calls looks as:
+   *
+   * ```
+   * LDC "com.android.tools.idea.rendering.classloading.TestClass"
+   * INVOKESTATIC java/lang/Class.forName (Ljava/lang/String;)Ljava/lang/Class;
+   * ```
+   *
+   * After applying the transform, the call will look as:
+   * ```
+   * LDC "com.android.tools.idea.rendering.classloading.TestClass"
+   * LDC "internal.test.com.android.tools.idea.rendering.classloading.TestClass"
+   * INVOKESTATIC internal/test/com/android/tools/idea/rendering/classloading/ClassForNameHandler.forName (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Class;
+   * ```
+   *
+   * A second `LDC` is introduced to pass the remapped name that should be used instead. The original `java/lang/Class`, is transformed into a call
+   * to [ClassForNameHandler].
+   */
+  private class ClassForNameRepackageMethodTransform(api: Int, delegate: MethodVisitor, private val remapper: Remapper): MethodVisitor(api, delegate) {
+    private val repackageHandlerClassName = ClassForNameHandler::class.java.canonicalName.fromPackageNameToBinaryName()
+    private var lastLoadedLdc: String? = null
+    override fun visitLdcInsn(value: Any?) {
+      // We save all LDC calls using strings. This is to save the LDC that happens before the [Class.forName] call and that will contain
+      // the class name.
+      super.visitLdcInsn(value)
+      lastLoadedLdc = value as? String
+    }
+
+    /**
+     * Takes the given [descriptor] and adds the new `String` parameter that will be used to pass the new name of the class.
+     */
+    private fun remapDescriptorForRepackageHandler(descriptor: String): String {
+      val descriptorType = Type.getMethodType(descriptor)
+
+      val newArguments =
+        descriptorType.argumentTypes + arrayOf(Type.getType(String::class.java))
+      return Type.getMethodDescriptor(descriptorType.returnType, *newArguments)
+    }
+
+    override fun visitMethodInsn(opcode: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) {
+      if (lastLoadedLdc != null && name == "forName" && owner == "java/lang/Class") {
+        // If this is a call to forName, remap the old class name, and pass it as new parameter.
+        // We also need to update the method descriptor to add the new parameter.
+        super.visitLdcInsn(
+          remapper.mapType(lastLoadedLdc!!.fromPackageNameToBinaryName()).fromBinaryNameToPackageName())
+        super.visitMethodInsn(opcode,
+                              repackageHandlerClassName,
+                              name,
+                              remapDescriptorForRepackageHandler(descriptor),
+                              isInterface)
+      }
+      else
+        super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
+
+      lastLoadedLdc = null
+    }
+  }
+
+  override fun visitMethod(access: Int,
+                           name: String?,
+                           descriptor: String?,
+                           signature: String?,
+                           exceptions: Array<out String>?): MethodVisitor {
+    val methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions)
+
+    return ClassForNameRepackageMethodTransform(Opcodes.ASM9, methodVisitor, remapper)
+  }
 }
