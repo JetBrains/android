@@ -524,9 +524,9 @@ android-studio/license/eclipse_license.txt
 android-studio/license/eclipse_license2.txt
 android-studio/license/fest-NOTICE
 android-studio/license/fetchasgoogle.jar-NOTICE
+android-studio/license/ffmpeg-LICENSE.TXT
 android-studio/license/ffmpeg-LICENSE.md
 android-studio/license/ffmpeg-LICENSE.openh264
-android-studio/license/ffmpeg-LICENSE.TXT
 android-studio/license/ffmpeg-SOURCE_CODE.TXT
 android-studio/license/freemarker-NOTICE
 android-studio/license/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar-NOTICE
@@ -2321,7 +2321,6 @@ android-studio/plugins/cidr-base-plugin/lib/LICENSE.txt
 android-studio/plugins/cidr-base-plugin/lib/cidr-base-plugin.jar
 android-studio/plugins/cidr-debugger-plugin/lib/cidr-debugger-plugin.jar
 android-studio/plugins/completionMlRanking/lib/completionMlRanking.jar
-android-studio/plugins/completionMlRankingModels/lib/completionMlRankingModels.jar
 android-studio/plugins/configurationScript/lib/configurationScript.jar
 android-studio/plugins/copyright/lib/copyright.jar
 android-studio/plugins/coverage/lib/coverage.jar
@@ -2624,7 +2623,6 @@ android-studio/plugins/keymap-netbeans/lib/keymap-netbeans.jar
 android-studio/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
 android-studio/plugins/markdown/lib/markdown.jar
 android-studio/plugins/maven-model/lib/maven-model.jar
-android-studio/plugins/ml-models-local/lib/ml-models-local.jar
 android-studio/plugins/platform-images/lib/platform-images.jar
 android-studio/plugins/properties/lib/properties.jar
 android-studio/plugins/repository-search/lib/repository-search.jar
