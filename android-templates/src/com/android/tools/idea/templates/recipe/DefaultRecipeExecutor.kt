@@ -467,6 +467,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val buildModel = moduleGradleBuildModel ?: return
     val feature = when (name) {
       "compose" -> buildModel.android().buildFeatures().compose()
+      "dataBinding" -> buildModel.android().buildFeatures().dataBinding()
       "mlModelBinding" -> buildModel.android().buildFeatures().mlModelBinding()
       "viewBinding" -> buildModel.android().buildFeatures().viewBinding()
       "prefab" -> buildModel.android().buildFeatures().prefab()
