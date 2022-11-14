@@ -83,6 +83,7 @@ enum class AndroidCoreTestProject(
   UNUSED_RESOURCES_GROOVY(TestProjectPaths.UNUSED_RESOURCES_GROOVY),
   UNUSED_RESOURCES_KTS(TestProjectPaths.UNUSED_RESOURCES_KTS),
   UNUSED_RESOURCES_MULTI_MODULE(TestProjectPaths.UNUSED_RESOURCES_MULTI_MODULE),
+  WEAR_WATCHFACE(TestProjectPaths.WEAR_WATCHFACE),
   ;
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData"

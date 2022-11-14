@@ -104,6 +104,7 @@ maven_repository(
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
         "@maven//:androidx.test.ext.junit_1.1.2",
         "@maven//:androidx.test.ext.junit_1.1.3-alpha02",
+        "@maven//:androidx.wear.watchface.watchface-guava_1.1.0",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
         "@maven//:com.android.support.constraint.constraint-layout_1.1.0",
         "@maven//:com.android.support.design_28.0.0",
