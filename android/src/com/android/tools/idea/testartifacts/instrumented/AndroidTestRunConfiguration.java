@@ -16,6 +16,10 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import static com.android.tools.idea.projectsystem.AndroidModuleSystem.Type.TYPE_LIBRARY;
+import static com.android.tools.idea.projectsystem.AndroidModuleSystem.Type.TYPE_TEST;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isAndroidTestModule;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isMainModule;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
@@ -311,7 +315,28 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     return new AndroidRunConfigurationEditor<>(
       getProject(),
-      facet -> facet != null && supportsRunningLibraryProjects(facet).getFirst(),
+      module -> {
+        if (module == null) return false;
+        final var facet = AndroidFacet.getInstance(module);
+        if (facet == null) return false;
+        final var moduleSystem = getModuleSystem(facet);
+        final var moduleType = moduleSystem.getType();
+        switch (moduleType) {
+          case TYPE_APP:
+          case TYPE_DYNAMIC_FEATURE:
+          case TYPE_LIBRARY:
+            return isAndroidTestModule(module);
+          case TYPE_TEST:
+            return isMainModule(module);
+          case TYPE_ATOM:
+          case TYPE_FEATURE:
+          case TYPE_INSTANTAPP:
+            return false; // Legacy not-supported module types.
+          case TYPE_NON_ANDROID:
+            return false;
+        }
+        return false;
+      },
       this,
       false,
       true,

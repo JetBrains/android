@@ -80,7 +80,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   public static final String LAYOUT_INSPECTION_WITHOUT_ACTIVITY_RESTART = "Layout Inspection Without Activity Restart";
 
   public AndroidRunConfigurationEditor(Project project,
-                                       Predicate<AndroidFacet> libraryProjectValidator,
+                                       Predicate<Module> moduleValidator,
                                        T config,
                                        boolean showLogcatCheckbox,
                                        boolean isAndroidTest,
@@ -92,21 +92,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
         if (module == null || !super.isModuleAccepted(module)) {
           return false;
         }
-
-        final AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet == null) {
-          return false;
-        }
-
-        if (!ModuleSystemUtil.isMainModule(module) && !isAndroidTest) {
-          return false;
-        }
-
-        if (!ModuleSystemUtil.isAndroidTestModule(module) && isAndroidTest) {
-          return false;
-        }
-
-        return !facet.getConfiguration().isLibraryProject() || libraryProjectValidator.apply(facet);
+        return moduleValidator.apply(module);
       }
 
       @Override
