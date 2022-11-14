@@ -50,7 +50,7 @@ public abstract class Device {
     @Nullable
     String myName;
 
-    @Nullable LaunchCompatibility myLaunchCompatibility;
+    @NotNull LaunchCompatibility myLaunchCompatibility = LaunchCompatibility.YES;
 
     @Nullable
     Key myKey;
@@ -61,11 +61,7 @@ public abstract class Device {
     @Nullable
     AndroidDevice myAndroidDevice;
 
-    @Nullable Type myType;
-
-    Builder() {
-      myLaunchCompatibility = LaunchCompatibility.YES;
-    }
+    @NotNull Type myType = Type.PHONE;
 
     @NotNull
     abstract Device build();
@@ -110,6 +106,7 @@ public abstract class Device {
    * the IDevice returned.
    */
   @NotNull
+  @SuppressWarnings("GrazieInspection")
   public final Key getKey() {
     return myKey;
   }
