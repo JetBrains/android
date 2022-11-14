@@ -205,6 +205,7 @@ class TasksPageView(
       if (selectedNode == null) {
         val emptyPageId = TasksPageId.emptySelection(model.selectedGrouping)
         detailsPanel.select(emptyPageId, true)
+        tree.selectionModel.clearSelection()
       }
       else {
         detailsPanel.select(selectedNode.descriptor.pageId, true)
