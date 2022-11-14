@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.deployable.Deployable;
+import com.google.common.util.concurrent.ListenableFuture;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
@@ -143,6 +144,20 @@ public abstract class Device {
     return !Deployable.searchClientsForPackage(device, appPackage).isEmpty();
   }
 
+  final @NotNull ListenableFuture<@NotNull IDevice> getDdmlibDeviceAsync() {
+    AndroidDevice device = getAndroidDevice();
+
+    if (!device.isRunning()) {
+      throw new RuntimeException(device + " is not running");
+    }
+
+    return device.getLaunchedDevice();
+  }
+
+  /**
+   * @deprecated Use {@link #getDdmlibDeviceAsync}
+   */
+  @Deprecated(forRemoval = true)
   @Nullable
   final IDevice getDdmlibDevice() {
     AndroidDevice device = getAndroidDevice();
