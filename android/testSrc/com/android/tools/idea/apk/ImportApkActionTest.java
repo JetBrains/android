@@ -115,7 +115,7 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
   }
 
   private static class MainProjectTypeImporter extends CustomProjectTypeImporter.MainImporter {
-    @NotNull private final RecentProjectsManager myRecentProjectsManager;
+    private final @NotNull RecentProjectsManager myRecentProjectsManager;
     VirtualFile importedApkFile;
 
     MainProjectTypeImporter(@NotNull RecentProjectsManager recentProjectsManager) {
@@ -131,7 +131,7 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
   }
 
   private static final class RecentProjectsManagerStub implements RecentProjectsManager {
-    @NotNull private String myLastProjectLocation;
+    private @NotNull String myLastProjectLocation;
 
     RecentProjectsManagerStub(@NotNull String lastProjectLocation) {
       myLastProjectLocation = lastProjectLocation;
@@ -165,9 +165,8 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
       return false;
     }
 
-    @NotNull
     @Override
-    public String suggestNewProjectLocation() {
+    public @NotNull String suggestNewProjectLocation() {
       return "";
     }
 
@@ -175,9 +174,8 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
     public void setLastProjectCreationLocation(@Nullable Path value) {
     }
 
-    @NotNull
     @Override
-    public List<ProjectGroup> getGroups() {
+    public @NotNull List<ProjectGroup> getGroups() {
       return Collections.emptyList();
     }
 
@@ -207,10 +205,13 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
       return AnAction.EMPTY_ARRAY;
     }
 
-    @Nullable
     @Override
-    public Object reopenLastProjectsOnStart(@NotNull Continuation<? super Boolean> $completion) {
+    public @Nullable Object reopenLastProjectsOnStart(@NotNull Continuation<? super Boolean> $completion) {
       return null;
+    }
+
+    @Override
+    public void setActivationTimestamp(@NotNull Project project, long timestamp) {
     }
   }
 }

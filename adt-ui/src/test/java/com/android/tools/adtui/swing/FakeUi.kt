@@ -32,13 +32,7 @@ import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
-import java.awt.Component
-import java.awt.Container
-import java.awt.GraphicsConfiguration
-import java.awt.GraphicsDevice
-import java.awt.Point
-import java.awt.Rectangle
-import java.awt.Window
+import java.awt.*
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
 import java.awt.image.ColorModel
@@ -64,7 +58,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   init {
     if (root.parent == null && createFakeWindow) {
       val rootPane = root as? JRootPane ?: JRootPane().apply {
-        glassPane = IdeGlassPaneImpl(this, false)
+        glassPane = IdeGlassPaneImpl(rootPane = this, installPainters = false)
         isFocusCycleRoot = true
         bounds = root.bounds
         add(root)

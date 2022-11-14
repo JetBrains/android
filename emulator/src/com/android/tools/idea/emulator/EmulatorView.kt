@@ -57,9 +57,8 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.wm.IdeGlassPane
 import com.intellij.openapi.wm.IdeGlassPaneUtil
-import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
+import com.intellij.openapi.wm.impl.IdeGlassPaneEx
 import com.intellij.util.Alarm
 import com.intellij.util.SofterReference
 import com.intellij.util.containers.ContainerUtil
@@ -528,7 +527,7 @@ class EmulatorView(
   private fun startOperatingVirtualSceneCamera() {
     val keys = EmulatorSettings.getInstance().cameraVelocityControls.keys
     findNotificationHolderPanel()?.showNotification("Move camera with $keys keys, rotate with mouse or arrow keys")
-    val glass = IdeGlassPaneUtil.find(this)
+    val glass = IdeGlassPaneUtil.find(this) as IdeGlassPaneEx
     val cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.MOVE)
     val rootPane = glass.rootPane
     val scale = PI / min(rootPane.width, rootPane.height)
@@ -562,7 +561,7 @@ class EmulatorView(
     virtualSceneCameraVelocityController?.let(Disposer::dispose)
     virtualSceneCameraVelocityController = null
     findNotificationHolderPanel()?.showNotification("Hold Shift to control camera")
-    val glass = IdeGlassPaneUtil.find(this)
+    val glass = IdeGlassPaneUtil.find(this) as IdeGlassPaneEx
     glass.setCursor(null, this)
     UIUtil.setCursor(glass.rootPane, null)
   }
@@ -589,11 +588,7 @@ class EmulatorView(
     requestScreenshotFeed(displayMode.displaySize, displayOrientationQuadrants)
   }
 
-  private val IdeGlassPane.rootPane
-    get() = (this as IdeGlassPaneImpl).rootPane
-
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
-
     override fun onNext(response: EmulatorNotification) {
       if (EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS.get()) {
         LOG.info("Notification ${response.event}")

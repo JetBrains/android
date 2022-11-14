@@ -31,7 +31,6 @@ import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
-import com.intellij.openapi.wm.impl.DesktopLayout;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.ProjectFrameHelper;
 import java.awt.Color;
@@ -312,6 +311,11 @@ public final class FakeUiWindowManager extends WindowManagerEx {
   @Override
   public void releaseFrame(@NotNull ProjectFrameHelper frameHelper) {
     frameHelper.getFrame().dispose();
+  }
+
+  @Override
+  public boolean isFrameReused(@NotNull ProjectFrameHelper frameHelper) {
+    return false;
   }
 
   @Override
