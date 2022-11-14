@@ -154,7 +154,10 @@ abstract class EditorActionsFloatingToolbarProvider(
       controlsPanel.revalidate()
     }
     if (zoomLabelToolbar != null) {
-      val zoomLabelPanel = zoomLabelToolbar.component.wrapInDesignSurfaceUI()
+      val zoomLabelPanel = zoomLabelToolbar.component.wrapInDesignSurfaceUI().apply {
+        // Initialising the visibility to false will avoid to show the label when preview gets updated or created
+        isVisible = false
+      }
       floatingToolbar.add(zoomLabelPanel, zoomLabelConstraints)
       hiddenZoomLabelTimer?.start()
       hiddenZoomLabelComponent = zoomLabelPanel
