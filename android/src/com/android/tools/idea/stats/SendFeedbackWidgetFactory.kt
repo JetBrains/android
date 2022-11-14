@@ -16,7 +16,6 @@
 package com.android.tools.idea.stats
 
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.StatusBar
 import com.intellij.openapi.wm.StatusBarWidget
 import com.intellij.openapi.wm.StatusBarWidgetFactory
@@ -28,7 +27,6 @@ class SendFeedbackWidgetFactory
   override fun getDisplayName() = "Send Feedback to Google"
   override fun isAvailable(project: Project) = true
   override fun createWidget(project: Project): StatusBarWidget = SendFeedbackPanel()
-  override fun disposeWidget(widget: StatusBarWidget) = Disposer.dispose(widget)
   override fun canBeEnabledOn(statusBar: StatusBar) = true
 }
 
