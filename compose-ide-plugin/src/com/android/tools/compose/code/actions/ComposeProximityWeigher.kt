@@ -16,6 +16,7 @@
 package com.android.tools.compose.code.actions
 
 import com.android.tools.compose.isComposableFunction
+import com.android.tools.compose.isDeprecated
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.ProximityLocation
@@ -35,7 +36,7 @@ class ComposeProximityWeigher: ProximityWeigher() {
     // If we've manually weighted this element, use that weight.
     element.manualWeight()?.let { return it }
 
-    if (element.isComposableFunction()) return COMPOSABLE_METHOD_WEIGHT
+    if (element.isComposableFunction() && !element.isDeprecated()) return COMPOSABLE_METHOD_WEIGHT
 
     return DEFAULT_WEIGHT
   }

@@ -210,6 +210,22 @@ class ComposeProximityWeigherTest {
       KtNamedFunction::class.java
     )
 
+    val deprecatedComposableFunction = addFileAndFindElement(
+      "src/com/example/composable/DeprecatedComposableFunction.kt",
+      // language=kotlin
+      """
+      package com.example.composable
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      @Deprecated
+      fun DeprecatedComposableFunction()
+      """.trimIndent(),
+      "ComposableFunction",
+      KtNamedFunction::class.java
+    )
+
     val nonComposableFunction = addFileAndFindElement(
       "src/com/example/noncomposable/NonComposableFunction.kt",
       // language=kotlin
@@ -244,11 +260,12 @@ class ComposeProximityWeigherTest {
 
     val proximityLocation = ProximityLocation(locationFile, myFixture.module)
     val sortedList = runReadAction {
-      listOf(nonComposableFunction, composableFunction, manuallyWeightedElement)
+      listOf(nonComposableFunction, deprecatedComposableFunction, composableFunction, manuallyWeightedElement)
         .sortedByDescending { element -> ComposeProximityWeigher().weigh(element, proximityLocation) }
     }
 
-    assertThat(sortedList).containsExactly(manuallyWeightedElement, composableFunction, nonComposableFunction).inOrder()
+    assertThat(sortedList).containsExactly(manuallyWeightedElement, composableFunction, nonComposableFunction,
+                                           deprecatedComposableFunction).inOrder()
   }
 
   fun <T : PsiElement> addFileAndFindElement(relativePath: String,
