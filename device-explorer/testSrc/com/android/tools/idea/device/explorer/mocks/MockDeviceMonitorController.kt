@@ -13,12 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer.monitor
+package com.android.tools.idea.device.explorer.mocks
 
+import com.android.tools.idea.FutureValuesTracker
+import com.android.tools.idea.device.explorer.monitor.DeviceMonitorController
 import javax.swing.JComponent
+import javax.swing.JPanel
 
-interface DeviceMonitorController {
-  fun setup()
-  fun setActiveConnectedDevice(serialNumber: String?)
-  fun getViewComponent(): JComponent
+class MockDeviceMonitorController : DeviceMonitorController {
+  val activeDeviceTracker: FutureValuesTracker<String?> = FutureValuesTracker<String?>()
+
+  override fun setup() {}
+
+  override fun setActiveConnectedDevice(serialNumber: String?) {
+    activeDeviceTracker.produce(serialNumber)
+  }
+
+  override fun getViewComponent(): JComponent {
+    return JPanel()
+  }
 }

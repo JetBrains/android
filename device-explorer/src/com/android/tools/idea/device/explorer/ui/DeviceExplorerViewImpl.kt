@@ -29,11 +29,14 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLoadingPanel
 import icons.AndroidIcons
 import kotlinx.coroutines.flow.collect
+import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.util.concurrent.CancellationException
 import java.util.function.Consumer
+import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JList
+import javax.swing.JTabbedPane
 
 class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorerModel, private val toolWindowID: String): DeviceExplorerView {
   private val listeners: MutableList<DeviceExplorerViewListener> = ArrayList()
@@ -130,6 +133,12 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
       false
     )
   }
+
+  @TestOnly
+  fun getDeviceCombo(): JComboBox<DeviceHandle> = panel.deviceCombo
+
+  @TestOnly
+  fun getTabPane(): JTabbedPane = panel.tabPane
 
   private class DeviceNameRenderer : ColoredListCellRenderer<DeviceHandle>() {
     override fun customizeCellRenderer(list: JList<out DeviceHandle>, value: DeviceHandle?, index: Int, selected: Boolean, hasFocus: Boolean) {

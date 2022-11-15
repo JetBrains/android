@@ -18,17 +18,13 @@ package com.android.tools.idea.device.explorer.files
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.adb.AdbShellCommandException
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
-import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutures
-import com.android.tools.idea.device.explorer.files.DeviceFileExplorerController.Companion.getProjectController
-import com.android.tools.idea.device.explorer.files.DeviceFileExplorerController.NodeSorting.CustomComparator
+import com.android.tools.idea.device.explorer.files.DeviceFileExplorerControllerImpl.Companion.getProjectController
+import com.android.tools.idea.device.explorer.files.DeviceFileExplorerControllerImpl.NodeSorting.CustomComparator
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
-import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystemService
-import com.android.tools.idea.device.explorer.files.fs.DeviceState
 import com.android.tools.idea.device.explorer.files.mocks.MockDeviceExplorerFileManager
 import com.android.tools.idea.device.explorer.files.mocks.MockDeviceExplorerView
 import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileEntry
@@ -70,7 +66,6 @@ import com.intellij.util.Consumer
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.systemIndependentPath
 import com.intellij.util.ui.tree.TreeModelAdapter
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -100,12 +95,9 @@ import javax.swing.JComponent
 import javax.swing.RepaintManager
 import javax.swing.TransferHandler
 import javax.swing.TransferHandler.TransferSupport
-import javax.swing.event.ListDataEvent
-import javax.swing.event.ListDataListener
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
-import javax.swing.tree.TreeModel
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 
@@ -1475,13 +1467,13 @@ class DeviceExplorerControllerTest {
     pumpEventsAndWaitForFuture(myMockView.treeModelChangedTracker.consume())
   }
 
-  private fun setupControllerAndVerifyViewInitialState(controller: DeviceFileExplorerController) {
+  private fun setupControllerAndVerifyViewInitialState(controller: DeviceFileExplorerControllerImpl) {
     controller.setup()
     controller.setActiveConnectedDevice(myDevice1)
     checkMockViewInitialState(myDevice1)
   }
 
-  private fun createControllerAndVerifyViewInitialState(): DeviceFileExplorerController {
+  private fun createControllerAndVerifyViewInitialState(): DeviceFileExplorerControllerImpl {
     // Prepare
     val controller = createController()
 
@@ -1525,9 +1517,9 @@ class DeviceExplorerControllerTest {
     view: DeviceFileExplorerView = myMockView,
     deviceExplorerFileManager: DeviceExplorerFileManager = myMockFileManager,
     fileOpener: suspend (Path) -> Unit = myMockFileManager::openFile
-  ): DeviceFileExplorerController {
-    return DeviceFileExplorerController(project, myModel, view, deviceExplorerFileManager,
-                                    object : DeviceFileExplorerController.FileOpener {
+  ): DeviceFileExplorerControllerImpl {
+    return DeviceFileExplorerControllerImpl(project, myModel, view, deviceExplorerFileManager,
+                                            object : DeviceFileExplorerControllerImpl.FileOpener {
                                       override suspend fun openFile(localPath: Path) { fileOpener(localPath) }
                                     })
   }
