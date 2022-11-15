@@ -213,11 +213,13 @@ public abstract class BaseAction extends AnAction {
       var onlineFuture = deployable.isOnline();
 
       if (!(onlineFuture.isDone() && onlineFuture.get())) {
-        if (deployable.isUnauthorized()) {
-          return new DisableMessage(DisableMode.DISABLED, "device not authorized", "the selected device is not authorized");
+        var authorizedFuture = deployable.isAuthorized();
+
+        if (authorizedFuture.isDone() && authorizedFuture.get()) {
+          return new DisableMessage(DisableMode.DISABLED, "device not connected", "the selected device is not connected");
         }
         else {
-          return new DisableMessage(DisableMode.DISABLED, "device not connected", "the selected device is not connected");
+          return new DisableMessage(DisableMode.DISABLED, "device not authorized", "the selected device is not authorized");
         }
       }
 

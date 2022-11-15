@@ -35,10 +35,7 @@ public interface Deployable {
 
   @NotNull ListenableFuture<@NotNull Boolean> isOnline();
 
-  /**
-   * @return true if the underlying device is unauthorized, or false otherwise.
-   */
-  boolean isUnauthorized();
+  @NotNull ListenableFuture<@NotNull Boolean> isAuthorized();
 
   @NotNull
   static List<Client> searchClientsForPackage(@NotNull IDevice device, @NotNull String packageName) {

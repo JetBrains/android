@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IDevice.DeviceState;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvisionException;
@@ -132,12 +133,11 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
     }
 
     @Override
-    public boolean isUnauthorized() {
-      IDevice iDevice = myDevice.getDdmlibDevice();
-      if (iDevice == null) {
-        return false;
-      }
-      return iDevice.getState() == IDevice.DeviceState.UNAUTHORIZED;
+    public @NotNull ListenableFuture<@NotNull Boolean> isAuthorized() {
+      var executor = EdtExecutorService.getInstance();
+
+      // noinspection UnstableApiUsage
+      return Futures.transform(myDevice.getDdmlibDeviceAsync(), device -> !device.getState().equals(DeviceState.UNAUTHORIZED), executor);
     }
 
     @Override
