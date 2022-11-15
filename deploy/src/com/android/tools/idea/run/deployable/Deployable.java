@@ -19,6 +19,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.DeploymentApplicationService;
+import com.google.common.util.concurrent.ListenableFuture;
 import java.util.List;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
@@ -30,11 +31,7 @@ public interface Deployable {
   @NotNull
   Future<AndroidVersion> getVersion();
 
-  /**
-   * Returns the {@link Client}s associated with the current project's application that are already running on this {@link Deployable}.
-   */
-  @NotNull
-  List<Client> searchClientsForPackage();
+  @NotNull ListenableFuture<@NotNull List<@NotNull Client>> searchClientsForPackage();
 
   /**
    * @return true if the underlying device is online, or false otherwise.

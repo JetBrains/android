@@ -24,10 +24,12 @@ import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.serviceContainer.NonInjectable;
-import java.util.Collections;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Future;
@@ -114,14 +116,13 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
       return myDevice.getAndroidVersion();
     }
 
-    @NotNull
     @Override
-    public List<Client> searchClientsForPackage() {
-      IDevice iDevice = myDevice.getDdmlibDevice();
-      if (iDevice == null) {
-        return Collections.emptyList();
-      }
-      return Deployable.searchClientsForPackage(iDevice, myPackageName);
+    public @NotNull ListenableFuture<@NotNull List<@NotNull Client>> searchClientsForPackage() {
+      var future = myDevice.getDdmlibDeviceAsync();
+      var executor = EdtExecutorService.getInstance();
+
+      // noinspection UnstableApiUsage
+      return Futures.transform(future, device -> Deployable.searchClientsForPackage(device, myPackageName), executor);
     }
 
     @Override
