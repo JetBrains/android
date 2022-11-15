@@ -96,4 +96,95 @@ class PsiUtilsTest {
       assertThat(fixture.elementAtCaret.isComposableFunction()).isFalse()
     }
   }
+
+  @Test
+  fun isDeprecated_funnctionIsDeprecated() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      @Deprecated
+      fun Greet${caret}ing() {}
+      """.trimIndent()
+    )
+
+    runReadAction {
+      assertThat(fixture.elementAtCaret.isDeprecated()).isTrue()
+    }
+  }
+
+  @Test
+  fun isDeprecated_functionIsNotDeprecated() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      fun Greet${caret}ing() {}
+      """.trimIndent()
+    )
+
+    runReadAction {
+      assertThat(fixture.elementAtCaret.isDeprecated()).isFalse()
+    }
+  }
+
+  @Test
+  fun isDeprecated_elementCannotBeAnnotated() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.exa${caret}mple
+
+      fun Greeting() {}
+      """.trimIndent()
+    )
+
+    runReadAction {
+      assertThat(fixture.elementAtCaret.isDeprecated()).isFalse()
+    }
+  }
+
+  @Test
+  fun isDeprecatedAndIsComposableFunctionCaching() {
+    // These utility methods both utilize caching internally, and if they use the incorrect method (with a default key), their cached values
+    // can collide. This test validates that a single method with different values for each is still correctly returned.
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      @Deprecated
+      fun Gree${caret}ting() {}
+      """.trimIndent()
+    )
+
+    runReadAction {
+      assertThat(fixture.elementAtCaret.isComposableFunction()).isFalse()
+      assertThat(fixture.elementAtCaret.isDeprecated()).isTrue()
+    }
+
+    fixture.loadNewFile(
+      "src/com/example/Test2.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun Gree${caret}ting() {}
+      """.trimIndent()
+    )
+
+    runReadAction {
+      assertThat(fixture.elementAtCaret.isComposableFunction()).isTrue()
+      assertThat(fixture.elementAtCaret.isDeprecated()).isFalse()
+    }
+  }
 }
