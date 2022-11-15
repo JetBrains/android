@@ -24,9 +24,7 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.DesignSurfaceScrollPane
 import com.android.tools.idea.common.surface.InteractionManager
-import com.android.tools.idea.common.surface.layout.MatchParentLayoutManager
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -47,25 +45,13 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBSplitter
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.AWTEvent
 import java.awt.BorderLayout
-import java.awt.Component
 import java.awt.Point
-import java.awt.Toolkit
-import java.awt.event.AWTEventListener
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
-import java.awt.event.MouseEvent
 import javax.swing.JComponent
-import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
-import javax.swing.OverlayLayout
-import javax.swing.SwingUtilities
 
-private const val SURFACE_SPLITTER_DIVIDER_WIDTH_PX = 5
 private const val ISSUE_SPLITTER_DIVIDER_WIDTH_PX = 3
 private const val COMPOSE_PREVIEW_DOC_URL = "https://d.android.com/jetpack/compose/preview"
 
@@ -128,22 +114,6 @@ fun interface ComposePreviewViewProvider {
     parentDisposable: Disposable
   ): ComposePreviewView
 }
-
-/** Creates a [JPanel] using an [OverlayLayout] containing all the given [JComponent]s. */
-private fun createOverlayPanel(vararg components: JComponent): JPanel =
-  object : JPanel() {
-      // Since the overlay panel is transparent, we can not use optimized drawing or it will produce
-      // rendering artifacts.
-      override fun isOptimizedDrawingEnabled(): Boolean = false
-    }
-    .apply<JPanel> {
-      layout = OverlayLayout(this)
-      components.forEach {
-        it.alignmentX = Component.LEFT_ALIGNMENT
-        it.alignmentY = Component.TOP_ALIGNMENT
-        add(it)
-      }
-    }
 
 /**
  * [WorkBench] panel used to contain all the Compose Preview elements.
@@ -219,32 +189,10 @@ internal class ComposePreviewViewImpl(
       )
     )
 
-  private val scrollPane =
-    DesignSurfaceScrollPane.createDefaultScrollPane(mainSurface, mainSurface.background) {}.also {
-      it.addComponentListener(
-        object : ComponentAdapter() {
-          override fun componentResized(e: ComponentEvent) {
-            // Relayout the previews when the size of scroll pane is changed. This re-layouts the
-            // previews when window size is reduced.
-            mainSurface.revalidateScrollArea()
-          }
-        }
-      )
-    }
-
   override var scrollPosition: Point
-    get() = scrollPane.viewport.viewPosition
+    get() = mainSurface.scrollPosition
     set(value) {
-      val extentSize = scrollPane.viewport.extentSize
-      val viewSize = scrollPane.viewport.viewSize
-      val maxAvailableWidth = viewSize.width - extentSize.width
-      val maxAvailableHeight = viewSize.height - extentSize.height
-
-      value.setLocation(
-        value.x.coerceIn(0, maxAvailableWidth),
-        value.y.coerceIn(0, maxAvailableHeight)
-      )
-      scrollPane.viewport.viewPosition = value
+      mainSurface.setScrollPosition(value.x, value.y)
     }
 
   /**
@@ -272,39 +220,6 @@ internal class ComposePreviewViewImpl(
   init {
     mainSurface.name = "Compose"
 
-    val layeredPane =
-      JLayeredPane().apply {
-        isFocusable = true
-        isOpaque = true
-        layout = MatchParentLayoutManager()
-
-        val zoomControlsLayerPane =
-          object : JPanel(BorderLayout()) {
-              override fun isOptimizedDrawingEnabled(): Boolean = false
-            }
-            .apply {
-              border = JBUI.Borders.empty(UIUtil.getScrollBarWidth())
-              isOpaque = false
-              isFocusable = false
-              add(mainSurface.actionManager.designSurfaceToolbar, BorderLayout.EAST)
-            }
-
-        val workBenchHoverListener = AWTEventListener { event: AWTEvent ->
-          if (event.id == MouseEvent.MOUSE_ENTERED || event.id == MouseEvent.MOUSE_EXITED) {
-            zoomControlsLayerPane.isVisible =
-              SwingUtilities.isDescendingFrom((event as MouseEvent).component, workbench)
-          }
-        }
-        Toolkit.getDefaultToolkit()
-          .addAWTEventListener(workBenchHoverListener, AWTEvent.MOUSE_EVENT_MASK)
-        Disposer.register(workbench) {
-          Toolkit.getDefaultToolkit().removeAWTEventListener(workBenchHoverListener)
-        }
-
-        this.add(zoomControlsLayerPane, JLayeredPane.DRAG_LAYER as Integer)
-        this.add(scrollPane, JLayeredPane.POPUP_LAYER as Integer)
-      }
-
     val contentPanel =
       JPanel(BorderLayout()).apply {
         actionsToolbar = ActionsToolbar(parentDisposable, mainSurface)
@@ -318,7 +233,11 @@ internal class ComposePreviewViewImpl(
             add(notificationPanel, VerticalLayout.FILL_HORIZONTAL)
           }
 
-        add(createOverlayPanel(topPanel, layeredPane), BorderLayout.CENTER)
+        val content = JPanel(BorderLayout())
+        content.add(topPanel, BorderLayout.NORTH)
+        content.add(mainSurface, BorderLayout.CENTER)
+
+        add(content, BorderLayout.CENTER)
       }
 
     mainPanelSplitter.firstComponent = contentPanel

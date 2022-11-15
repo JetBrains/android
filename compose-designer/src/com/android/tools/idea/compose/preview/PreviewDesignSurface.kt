@@ -131,7 +131,7 @@ private fun createPreviewDesignSurfaceBuilder(
     }
     .setDelegateDataProvider(dataProvider)
     .setSelectionModel(NopSelectionModel)
-    .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.HIDDEN)
+    .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.AUTO_HIDE)
     .setSupportedActions(COMPOSE_SUPPORTED_ACTIONS)
     .setShouldRenderErrorsPanel(true)
     .setScreenViewProvider(COMPOSE_SCREEN_VIEW_PROVIDER, false)
