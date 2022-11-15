@@ -40,6 +40,14 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 
+private val NO_GROUP_TRANSFORM:
+  (Collection<PositionableContent>) -> List<List<PositionableContent>> =
+  {
+    // FIXME(b/258718991): we decide not group the previews for now.
+    listOf(it.toList())
+  }
+
+@Suppress("unused") // b/258718991
 private val GROUP_BY_GROUP_ID_TRANSFORM:
   (Collection<PositionableContent>) -> List<List<PositionableContent>> =
   { contents ->
@@ -82,12 +90,12 @@ internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
       listOf(
         SurfaceLayoutManagerOption(
           "Group List Layout (By Group Name)",
-          GroupedListSurfaceLayoutManager(5, 20, GROUP_BY_GROUP_ID_TRANSFORM),
+          GroupedListSurfaceLayoutManager(5, 20, NO_GROUP_TRANSFORM),
           DesignSurface.SceneViewAlignment.LEFT
         ),
         SurfaceLayoutManagerOption(
           "Group Grid Layout (By Group name)",
-          GroupedGridSurfaceLayoutManager(5, 20, GROUP_BY_GROUP_ID_TRANSFORM),
+          GroupedGridSurfaceLayoutManager(5, 20, NO_GROUP_TRANSFORM),
           DesignSurface.SceneViewAlignment.LEFT
         ),
       )
