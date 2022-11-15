@@ -37,7 +37,9 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiModifier
+import com.intellij.psi.scope.util.PsiScopesUtil
 import com.intellij.psi.search.ProjectScope
+import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBPanelWithEmptyText
@@ -198,14 +200,22 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   private fun findAvailableComponents(module: Module): Set<String> {
     ApplicationManager.getApplication().assertIsNonDispatchThread()
     val facade = JavaPsiFacade.getInstance(project)
+    val projectAllScope = ProjectScope.getAllScope(project)
     val surfaceBaseClasses = configuration.componentLaunchOptions.componentBaseClassesFqNames.mapNotNull {
-      facade.findClass(it, ProjectScope.getAllScope(project))
+      facade.findClass(it, projectAllScope)
     }
+    val resultScope = getComponentSearchScope(module)
     return surfaceBaseClasses.flatMap { baseClass ->
-      ClassInheritorsSearch.search(baseClass, getComponentSearchScope(module), true)
+      ClassInheritorsSearch.search(baseClass, projectAllScope, true)
+        .filtering {
+          // TODO: filter base on manifest index.
+          // We use this to filter based on the scope applicable for the module since, using the scope returned by [getComponentSearchScope]
+          // does not currently work when using the ClassInheritorSearch with Kotlin classes. The inheritance index is broken and we are
+          // forced to use the ProjectScope to ensure the parent classes are found by the ClassInheritorsSearch.
+          !(it.isInterface || it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) == true) &&
+          PsiSearchScopeUtil.isInScope(resultScope, it)
+        }
         .findAll()
-        // TODO: filter base on manifest index.
-        .filter { !(it.isInterface || it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) == true) }
         .mapNotNull { it.qualifiedName }
     }.distinct()
       .sorted()
