@@ -22,7 +22,8 @@ import kotlin.math.max
 /**
  * This layout put the previews in the same group into the same rows and tries to not use the horizontal scrollbar in the surface.
  *
- * It follows below logics to layout the previews:
+ * If there is only one visible preview, put it at the center of window.
+ * If there are more than one visible previews, follows below logics to layout the previews:
  * - The first preview of a group is always at the start of a new row.
  * - The previews in the same group will be put in the same row.
  * - If there is no enough space to put the following previews, move them into the next row.
@@ -138,6 +139,16 @@ class GroupedGridSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
       return
     }
 
+
+    val visibleContents = content.filter { it.isVisible }
+    if (visibleContents.size == 1) {
+      // When there is only one visible preview, centralize it as a special case.
+      layoutSingleContent(content.single(), availableWidth, availableHeight)
+
+      content.filterNot { it.isVisible }.forEach { it.setLocation(-1, -1) }
+      return
+    }
+
     val groupedViews = transform(content)
 
     val startX: Int = 0
@@ -168,6 +179,20 @@ class GroupedGridSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     }
 
     content.filterNot { it.isVisible }.forEach { it.setLocation(-1, -1) }
+  }
+
+  private fun layoutSingleContent(content: PositionableContent,
+                                  @SwingCoordinate availableWidth: Int,
+                                  @SwingCoordinate availableHeight: Int) {
+    val size = content.scaledContentSize
+    val margin = content.margin
+    val frameWidth = size.width + margin.horizontal
+    val frameHeight = size.height + margin.vertical
+
+    // Try to centralize the content.
+    val x = maxOf((availableWidth - frameWidth) / 2, previewFramePadding)
+    val y = maxOf((availableHeight - frameHeight) / 2, previewFramePadding)
+    setContentPosition(content, x, y)
   }
 
   private fun setContentPosition(content: PositionableContent, x: Int, y: Int) {

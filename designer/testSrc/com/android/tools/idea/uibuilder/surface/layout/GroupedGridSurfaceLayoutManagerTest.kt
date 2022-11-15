@@ -331,4 +331,21 @@ class GroupedGridSurfaceLayoutManagerTest {
       assertEquals(Dimension(260, 410), size)
     }
   }
+
+  @Test
+  fun testCentralizeSinglePreview() {
+    // Single visible preview case. Which the preview should be placed at the center of the window.
+    val manager = GroupedGridSurfaceLayoutManager(10, 20) { contents -> listOf(contents.toList()) }
+    val contents = listOf(TestPositionableContent(0, 0, 100, 100))
+    run {
+      manager.layout(contents, 1000, 1000, false)
+      assertEquals(450, contents[0].x)
+      assertEquals(450, contents[0].y)
+    }
+    run {
+      manager.layout(contents, 60, 60, false)
+      assertEquals(20, contents[0].x)
+      assertEquals(20, contents[0].y)
+    }
+  }
 }
