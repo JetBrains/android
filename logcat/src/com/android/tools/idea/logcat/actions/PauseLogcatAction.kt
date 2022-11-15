@@ -17,15 +17,15 @@ package com.android.tools.idea.logcat.actions
 
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
-import icons.StudioIcons
 
 /**
  * Pauses/Resumes Logcat collection
  */
 internal class PauseLogcatAction(private val logcatPresenter: LogcatPresenter)
-  : DumbAwareAction(LogcatBundle.message("logcat.pause.action.pause.text"), "", StudioIcons.Logcat.Toolbar.PAUSE) {
+  : DumbAwareAction(LogcatBundle.message("logcat.pause.action.pause.text"), "", AllIcons.Actions.Pause) {
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = logcatPresenter.getConnectedDevice() != null
@@ -49,6 +49,6 @@ private fun getActionText(logcatPresenter: LogcatPresenter) = when {
 }
 
 private fun getActionIcon(logcatPresenter: LogcatPresenter) = when {
-  logcatPresenter.isLogcatPaused() -> StudioIcons.Logcat.Toolbar.RESUME
-  else -> StudioIcons.Logcat.Toolbar.PAUSE
+  logcatPresenter.isLogcatPaused() -> AllIcons.Actions.Resume
+  else -> AllIcons.Actions.Pause
 }

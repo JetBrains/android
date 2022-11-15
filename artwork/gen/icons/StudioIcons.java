@@ -138,13 +138,15 @@ public class StudioIcons {
     public static final Icon REMOVE = load("/studio/icons/common/remove.svg"); // 16x16
     public static final Icon REORDER = load("/studio/icons/common/reorder.svg"); // 16x16
     public static final Icon RESET_ZOOM = load("/studio/icons/common/reset-zoom.svg"); // 16x16
-
     public static final Icon SCREENSHOT = load("/studio/icons/common/screenshot.svg"); // 16x16
-    public static final Icon VIDEO_CAPTURE = load("/studio/icons/common/video-capture.svg"); // 16x16
 
     /** @deprecated use AllIcons.Actions.Find */
     @Deprecated
     public static final Icon SEARCH = load("/studio/icons/common/search.svg"); // 16x16
+
+    /** @deprecated use AllIcons.General.GearPlain */
+    @Deprecated
+    public static final Icon SETTINGS = load("/studio/icons/common/settings.svg"); // 16x16
 
     /** @deprecated use ColoredIconGenerator.kt */
     @Deprecated
@@ -152,6 +154,7 @@ public class StudioIcons {
     public static final Icon SUCCESS_INLINE = load("/studio/icons/common/success-inline.svg"); // 16x16
     public static final Icon SUCCESS = load("/studio/icons/common/success.svg"); // 16x16
     public static final Icon TYPO_STACK = load("/studio/icons/common/typo-stack.svg"); // 16x16
+    public static final Icon VIDEO_CAPTURE = load("/studio/icons/common/video-capture.svg"); // 16x16
 
     /** @deprecated use ColoredIconGenerator.kt */
     @Deprecated
@@ -309,6 +312,9 @@ public class StudioIcons {
       /** @deprecated use ColoredIconGenerator.kt */
       @Deprecated
       public static final Icon PALETTE_DOWNLOAD_SELECTED = load("/studio/icons/layout-editor/extras/palette-download-selected.svg"); // 16x16
+
+      /** @deprecated use AllIcons.Actions.Download */
+      @Deprecated
       public static final Icon PALETTE_DOWNLOAD = load("/studio/icons/layout-editor/extras/palette-download.svg"); // 16x16
       public static final Icon PIPETTE_LARGE = load("/studio/icons/layout-editor/extras/pipette-large.svg"); // 24x24
       public static final Icon PIPETTE = load("/studio/icons/layout-editor/extras/pipette.svg"); // 16x16
@@ -354,6 +360,9 @@ public class StudioIcons {
       public static final Icon MIN_SCALE = load("/studio/icons/layout-editor/motion/min-scale.svg"); // 16x16
       public static final Icon MOTION_LAYOUT = load("/studio/icons/layout-editor/motion/motion-layout.svg"); // 16x16
       public static final Icon NEXT_TICK = load("/studio/icons/layout-editor/motion/next-tick.svg"); // 16x16
+
+      /** @deprecated use AllIcons.Actions.Pause */
+      @Deprecated
       public static final Icon PAUSE = load("/studio/icons/layout-editor/motion/pause.svg"); // 16x16
       public static final Icon PLAY_BACKWARD = load("/studio/icons/layout-editor/motion/play-backward.svg"); // 16x16
       public static final Icon PLAY_FORWARD = load("/studio/icons/layout-editor/motion/play-forward.svg"); // 16x16
@@ -684,9 +693,8 @@ public class StudioIcons {
     }
 
     public static class Toolbar {
-      public static final Icon PAUSE = load("/studio/icons/logcat/toolbar/pause.svg"); // 16x16
-      public static final Icon RESUME = load("/studio/icons/logcat/toolbar/resume.svg"); // 16x16
-      public static final Icon SETTINGS = load("/studio/icons/logcat/toolbar/settings.svg"); // 16x16
+      /** @deprecated use AllIcons.Actions.ToggleSoftWrap */
+      @Deprecated
       public static final Icon WRAP_TEXT = load("/studio/icons/logcat/toolbar/wrap-text.svg"); // 16x16
     }
   }
@@ -797,6 +805,9 @@ public class StudioIcons {
       public static final Icon FORCE_GARBAGE_COLLECTION = load("/studio/icons/profiler/toolbar/force-garbage-collection.svg"); // 16x16
       public static final Icon GOTO_LIVE = load("/studio/icons/profiler/toolbar/goto-live.svg"); // 16x16
       public static final Icon HEAP_DUMP = load("/studio/icons/profiler/toolbar/heap-dump.svg"); // 16x16
+
+      /** @deprecated use AllIcons.Actions.Pause */
+      @Deprecated
       public static final Icon PAUSE_LIVE = load("/studio/icons/profiler/toolbar/pause-live.svg"); // 16x16
       public static final Icon RECORD = load("/studio/icons/profiler/toolbar/record.svg"); // 16x16
       public static final Icon SELECT_ENTIRE_RANGE = load("/studio/icons/profiler/toolbar/select-entire-range.svg"); // 16x16
@@ -832,7 +843,6 @@ public class StudioIcons {
       public static final Icon SCENEFORM_BINARY = load("/studio/icons/shell/filetree/sceneform-binary.svg"); // 16x16
       public static final Icon SQL_FILE = load("/studio/icons/shell/filetree/sql-file.svg"); // 16x16
       public static final Icon TFLITE_FILE = load("/studio/icons/shell/filetree/tflite-file.svg"); // 16x16
-
     }
 
     public static class Menu {
