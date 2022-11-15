@@ -18,7 +18,6 @@
 package com.android.tools.compose
 
 import com.android.tools.idea.kotlin.fqNameMatches
-import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValueProvider
@@ -32,11 +31,7 @@ fun PsiElement.isComposableFunction(): Boolean {
   if (this !is KtNamedFunction) return false
 
   return CachedValuesManager.getCachedValue(this) {
-    val hasComposableAnnotation = annotationEntries.any {
-      // fqNameMatches is expensive, so we first verify that the short name of the annotation matches.
-      it.shortName?.identifier == COMPOSABLE_ANNOTATION_NAME &&
-      it.fqNameMatches(COMPOSABLE_FQ_NAMES)
-    }
+    val hasComposableAnnotation = annotationEntries.any { it.isComposableAnnotation() }
     val containingKtFile = this.containingKtFile
 
     CachedValueProvider.Result.create(
@@ -48,10 +43,11 @@ fun PsiElement.isComposableFunction(): Boolean {
   }
 }
 
-fun PsiElement.isComposableAnnotation():Boolean {
+fun PsiElement.isComposableAnnotation(): Boolean {
   if (this !is KtAnnotationEntry) return false
-  val fqName = this.getQualifiedName() ?: return false
-  return COMPOSABLE_FQ_NAMES.any { it == fqName }
+
+  // fqNameMatches is expensive, so we first verify that the short name of the annotation matches.
+  return shortName?.identifier == COMPOSABLE_ANNOTATION_NAME && fqNameMatches(COMPOSABLE_FQ_NAMES)
 }
 
 fun PsiElement.isInsideComposableCode(): Boolean {
