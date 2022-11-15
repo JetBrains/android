@@ -19,24 +19,30 @@ package com.android.tools.compose
 
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.intellij.openapi.roots.ProjectRootModificationTracker
+import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-fun PsiElement.isComposableFunction(): Boolean {
-  if (this !is KtNamedFunction) return false
+private val composableFunctionKey = Key.create<CachedValue<Boolean>>("com.android.tools.compose.PsiUtil.isComposableFunction")
 
-  return CachedValuesManager.getCachedValue(this) {
-    val hasComposableAnnotation = annotationEntries.any { it.isComposableAnnotation() }
+fun PsiElement.isComposableFunction(): Boolean =
+  (this as? KtNamedFunction)?.checkHasAnnotationWithCaching(composableFunctionKey) { it.isComposableAnnotation() } ?: false
+
+private fun KtAnnotated.checkHasAnnotationWithCaching(key: Key<CachedValue<Boolean>>, doCheck: (KtAnnotationEntry) -> Boolean): Boolean {
+  return CachedValuesManager.getCachedValue(this, key) {
+    val hasAnnotation = annotationEntries.any { doCheck(it) }
     val containingKtFile = this.containingKtFile
 
     CachedValueProvider.Result.create(
       // TODO: see if we can handle alias imports without ruining performance.
-      hasComposableAnnotation,
+      hasAnnotation,
       containingKtFile,
       ProjectRootModificationTracker.getInstance(project)
     )
