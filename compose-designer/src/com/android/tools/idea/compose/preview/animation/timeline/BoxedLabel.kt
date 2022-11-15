@@ -27,6 +27,7 @@ import com.intellij.util.ui.JBFont
 import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.RenderingHints
 import java.awt.font.TextLayout
 
 class BoxedLabel(
@@ -121,6 +122,8 @@ class BoxedLabel(
     )
     // Label
     g.color = InspectorColors.BOXED_LABEL_NAME_COLOR
+    val prevAntiAliasHint = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING)
+    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     g.drawString(label, point.x, point.y - boxedLabelOffset + textBoxHeight)
     // Colored box
     val xPos = point.x + boxedLabelOffset + labelLayout.bounds.width.toInt()
@@ -148,5 +151,6 @@ class BoxedLabel(
     // Value
     g.color = InspectorColors.BOXED_LABEL_VALUE_COLOR
     g.drawString(value, xPos + extraColorOffset, point.y - boxedLabelOffset + textBoxHeight)
+    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, prevAntiAliasHint)
   }
 }
