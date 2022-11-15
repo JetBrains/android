@@ -231,7 +231,6 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
     return myRemoveButton;
   }
 
-  @VisibleForTesting
   @NotNull JTable getTable() {
     return myTable;
   }
