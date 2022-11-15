@@ -16,9 +16,8 @@
 package com.android.tools.idea.streaming;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.adtui.swing.IconLoaderRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.intellij.openapi.util.IconLoader;
-import com.intellij.ui.IconManager;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
@@ -26,14 +25,8 @@ import org.junit.runner.RunWith;
 public class StreamingTestSuite extends IdeaTestSuiteBase {
 
   static {
-    // Since icons are cached and not reloaded for each test, loading of real icons
+    // Since icons are cached and not reloaded for each test, loading of realistic icons
     // has to be enabled before the first test in the suite that may trigger icon loading.
-    try {
-      IconManager.activate(null);
-    }
-    catch (Throwable e) {
-      throw new RuntimeException(e);
-    }
-    IconLoader.activate();
+    IconLoaderRule.enableIconLoading();
   }
 }
