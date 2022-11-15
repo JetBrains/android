@@ -34,11 +34,6 @@ fun getSubmodules(project: Project, parent: Module?): Collection<Module> {
     return groupPath.takeIf { (parent == null || groupPath.size > parentGroupPath.size) && groupPath.startsWith(parentGroupPath) }
   }
 
-  val modulesWithGroupPaths = modules
-    .filter { !it.isIgnoredRootModule() }
-    .mapNotNull { module -> module.groupPathIfMatchesParent()?.let { groupPath -> module to groupPath } }
-    .sortedBy { it.second.size }  // Ensures parents go before their children.
-
   val seenParents = mutableSetOf<List<String>>()
   var rootModuleCount = 0
   val submodules = mutableListOf<Module>()
